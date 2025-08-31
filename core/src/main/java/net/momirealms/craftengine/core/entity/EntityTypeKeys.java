@@ -81,4 +81,5 @@ public class EntityTypeKeys {
     public static final Key FURNACE_MINECART = Key.of("minecraft:furnace_minecart");
     public static final Key HOPPER_MINECART = Key.of("minecraft:hopper_minecart");
     public static final Key COMMAND_BLOCK_MINECART = Key.of("minecraft:command_block_minecart");
+    public static final Key SPAWNER_MINECART = Key.of("minecraft:spawner_minecart");
 }

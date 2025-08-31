@@ -57,6 +57,21 @@ public record Key(String namespace, String value) {
         return this.value.equals(key.value()) && this.namespace.equals(key.namespace());
     }
 
+    public boolean in(Key... items) {
+        if (items == null) {
+            return false;
+        }
+        for (Key key : items) {
+            if (key == this) {
+                return true;
+            }
+            if (this.value.equals(key.value()) && this.namespace.equals(key.namespace())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public @NotNull String toString() {
         return asString();
