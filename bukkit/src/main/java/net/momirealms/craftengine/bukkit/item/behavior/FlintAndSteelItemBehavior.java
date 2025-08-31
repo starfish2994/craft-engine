@@ -89,8 +89,7 @@ public class FlintAndSteelItemBehavior extends ItemBehavior {
                         return InteractionResult.PASS;
                     }
                     // 且没有shift或者忽略潜行的可交互方块
-                    if (!player.isSecondaryUseActive() || InteractUtils.isIgnoreSneaking((Player) player.platformPlayer(), vanillaBlockState,
-                            context.getHitResult(), (Item<ItemStack>) context.getItem())) {
+                    if (!player.isSecondaryUseActive()) {
                         player.playSound(FLINT_SOUND, firePos, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
                     }
                 } else {
@@ -111,7 +110,7 @@ public class FlintAndSteelItemBehavior extends ItemBehavior {
                     // 客户端觉得这玩意可交互，就会忽略声音
                     if (InteractUtils.isInteractable((Player) player.platformPlayer(), vanillaBlockState, context.getHitResult(), (Item<ItemStack>) context.getItem())) {
                         // 如果按住了shift，则代表尝试对侧面方块点火
-                        if (player.isSecondaryUseActive() && !InteractUtils.isIgnoreSneaking((Player) player.platformPlayer(), vanillaBlockState, context.getHitResult(), (Item<ItemStack>) context.getItem())) {
+                        if (player.isSecondaryUseActive()) {
                             // 如果底部不能燃烧，则燃烧点位为侧面，需要补发
                             if (!belowCanBurn) {
                                 player.playSound(FLINT_SOUND, firePos, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
