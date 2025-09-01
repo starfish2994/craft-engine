@@ -58,6 +58,7 @@ public final class BlockKeys {
     public static final Key SPAWNER = Key.of("minecraft:spawner");
     public static final Key TRIAL_SPAWNER = Key.of("minecraft:trial_spawner");
     // 红石方块
+    public static final Key REDSTONE_WIRE = Key.of("minecraft:redstone_wire");
     public static final Key REPEATER = Key.of("minecraft:repeater");
     public static final Key COMPARATOR = Key.of("minecraft:comparator");
     public static final Key LEVER = Key.of("minecraft:lever");

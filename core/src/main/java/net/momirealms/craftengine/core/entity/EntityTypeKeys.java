@@ -19,6 +19,7 @@ public class EntityTypeKeys {
     public static final Key AXOLOTL = Key.of("minecraft:axolotl");
     public static final Key CHICKEN = Key.of("minecraft:chicken");
     public static final Key SNIFFER = Key.of("minecraft:sniffer");
+    public static final Key DOLPHIN = Key.of("minecraft:dolphin");
     public static final Key ARMADILLO = Key.of("minecraft:armadillo");
     public static final Key COD = Key.of("minecraft:cod");
     public static final Key SALMON = Key.of("minecraft:salmon");

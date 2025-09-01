@@ -49,6 +49,7 @@ public final class InteractUtils {
     private static final Key NOTE_BLOCK_TOP_INSTRUMENTS = Key.of("minecraft:noteblock_top_instruments");
     private static final Key PARROT_POISONOUS_FOOD = Key.of("minecraft:parrot_poisonous_food");
     private static final Key HARNESSES = Key.of("minecraft:harnesses");
+    private static final Key FROG_FOOD = Key.of("minecraft:frog_food");
     private static final Key CANDLES = Key.of("minecraft:candles");
 
     private InteractUtils() {}
@@ -241,6 +242,7 @@ public final class InteractUtils {
             return id.asString().endsWith("_spawn_egg");
         });
         // 红石方块
+        registerInteraction(BlockKeys.REDSTONE_WIRE, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.REPEATER, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.COMPARATOR, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.LEVER, (player, item, blockState, result) -> true);
@@ -760,6 +762,10 @@ public final class InteractUtils {
         registerEntityInteraction(EntityTypeKeys.TURTLE, (player, entity, item) -> canBeFeed(entity, item));
         registerEntityInteraction(EntityTypeKeys.CHICKEN, (player, entity, item) -> canBeFeed(entity, item));
         registerEntityInteraction(EntityTypeKeys.SNIFFER, (player, entity, item) -> canBeFeed(entity, item));
+        registerEntityInteraction(EntityTypeKeys.DOLPHIN, (player, entity, item) -> {
+            Key id = item.vanillaId();
+            return ItemKeys.COD.equals(id) || ItemKeys.SALMON.equals(id);
+        });
 
         registerEntityInteraction(EntityTypeKeys.AXOLOTL, (player, entity, item) -> {
             Key id = item.vanillaId();
@@ -781,9 +787,9 @@ public final class InteractUtils {
             Key id = item.vanillaId();
             return ItemKeys.WATER_BUCKET.equals(id);
         });
-        registerEntityInteraction(EntityTypeKeys.TADPOLE, (player, entity, item) -> {
+        registerEntityInteraction(EntityTypeKeys.TADPOLE, (player, entity, item) ->     {
             Key id = item.vanillaId();
-            return ItemKeys.WATER_BUCKET.equals(id);
+            return ItemKeys.WATER_BUCKET.equals(id) || item.hasItemTag(FROG_FOOD);
         });
 
         registerEntityInteraction(EntityTypeKeys.SHEEP, (player, entity, item) -> {
@@ -799,7 +805,7 @@ public final class InteractUtils {
         });
         registerEntityInteraction(EntityTypeKeys.MOOSHROOM, (player, entity, item) -> {
             Key id = item.vanillaId();
-            return canBeFeed(entity, item) || canBeSheared(entity, item) || ItemKeys.BUCKET.equals(id) || ItemKeys.BOWL.equals(id);
+            return canBeFeed(entity, item, "cow_food") || canBeSheared(entity, item) || ItemKeys.BUCKET.equals(id) || ItemKeys.BOWL.equals(id);
         });
         registerEntityInteraction(EntityTypeKeys.BOGGED, (player, entity, item) -> canBeSheared(entity, item));
         registerEntityInteraction(EntityTypeKeys.SNOW_GOLEM, (player, entity, item) -> canBeSheared(entity, item));
@@ -812,6 +818,7 @@ public final class InteractUtils {
             Key id = item.vanillaId();
             return canBeFeed(entity, item) || ItemKeys.BUCKET.equals(id);
         });
+
         registerEntityInteraction(EntityTypeKeys.CREEPER, (player, entity, item) -> {
             Key id = item.vanillaId();
             return canBeFeed(entity, item) || ItemKeys.FLINT_AND_STEEL.equals(id);
@@ -868,78 +875,59 @@ public final class InteractUtils {
 
         registerEntityInteraction(EntityTypeKeys.HORSE, (player, entity, item) -> {
             if (!isAdult(entity)) return true;
-            if (entity instanceof AbstractHorse horse && isFood(entity, item)) {
-                if (isTamed(entity)) {
-                    if (!isInLove(entity) && horse.isBreedItem(item.getItem())) return true;
-                    return !isFullHealth(entity);
-                }
-                return !isFullHealth(entity) || !isFullTemper(entity);
+            if (isFood(entity, item)) {
+                return canBeFeed(entity, item);
             }
-            return isVehicle(entity);
+            return rideable(entity);
         });
         registerEntityInteraction(EntityTypeKeys.DONKEY, (player, entity, item) -> {
             if (!isAdult(entity)) return true;
-            if (entity instanceof AbstractHorse horse && isFood(entity, item)) {
-                if (isTamed(entity)) {
-                    if (!isInLove(entity) && horse.isBreedItem(item.getItem())) return true;
-                    return !isFullHealth(entity);
-                }
-                return !isFullHealth(entity) || !isFullTemper(entity);
+            if (isFood("horse_food", item)) {
+                return canBeFeed(entity, item, "horse_food");
             }
-            return isVehicle(entity);
+            return rideable(entity);
         });
         registerEntityInteraction(EntityTypeKeys.MULE, (player, entity, item) -> {
             if (!isAdult(entity)) return true;
-            if (entity instanceof AbstractHorse horse && isFood(entity, item)) {
-                if (isTamed(entity)) {
-                    if (!isInLove(entity) && horse.isBreedItem(item.getItem())) return true;
-                    return !isFullHealth(entity);
-                }
-                return !isFullHealth(entity) || !isFullTemper(entity);
+            if (isFood("horse_food", item)) {
+                return canBeFeed(entity, item, "horse_food");
             }
-            return isVehicle(entity);
+            return rideable(entity);
         });
         registerEntityInteraction(EntityTypeKeys.LLAMA, (player, entity, item) -> {
             if (!isAdult(entity)) return true;
-            if (entity instanceof AbstractHorse horse && isFood(entity, item)) {
-                if (isTamed(entity)) {
-                    if (!isInLove(entity) && horse.isBreedItem(item.getItem())) return true;
-                    return !isFullHealth(entity);
-                }
-                return !isFullHealth(entity) || !isFullTemper(entity);
+            if (isFood(entity, item)) {
+                return canBeFeed(entity, item);
             }
-            return isVehicle(entity);
+            return rideable(entity);
         });
         registerEntityInteraction(EntityTypeKeys.TRADER_LLAMA, (player, entity, item) -> {
             if (!isAdult(entity)) return true;
-            if (entity instanceof AbstractHorse horse && isFood(entity, item)) {
-                if (isTamed(entity)) {
-                    if (!isInLove(entity) && horse.isBreedItem(item.getItem())) return true;
-                    return !isFullHealth(entity);
-                }
-                return !isFullHealth(entity) || !isFullTemper(entity);
+            if (isFood("llama_food", item)) {
+                return canBeFeed(entity, item, "llama_food");
             }
-            return isVehicle(entity);
+            return rideable(entity);
         });
         registerEntityInteraction(EntityTypeKeys.CAMEL, (player, entity, item) -> {
             if (!isAdult(entity)) return true;
             if (isFood(entity, item)) {
-                if (!isInLove(entity)) return true;
-                return !isFullHealth(entity);
+                return canBeFeed(entity, item);
             }
             return true;
         });
+        registerEntityInteraction(EntityTypeKeys.ZOMBIE_HORSE, (player, entity, item) -> isTamed(entity) && rideable(entity));
+        registerEntityInteraction(EntityTypeKeys.SKELETON_HORSE, (player, entity, item) -> isTamed(entity) && rideable(entity));
         registerEntityInteraction(EntityTypeKeys.PIG, (player, entity, item) -> {
             Key id = item.vanillaId();
             return canBeFeed(entity, item)
                     || (ItemKeys.SADDLE.equals(id) && !hasSaddle(player, entity) && isAdult(entity))
-                    || (hasSaddle(player, entity) && !player.isSneaking() && isVehicle(entity));
+                    || (hasSaddle(player, entity) && !player.isSneaking() && rideable(entity));
         });
         registerEntityInteraction(EntityTypeKeys.STRIDER, (player, entity, item) -> {
             Key id = item.vanillaId();
             return canBeFeed(entity, item)
                     || (ItemKeys.SADDLE.equals(id) && !hasSaddle(player, entity) && isAdult(entity))
-                    || (hasSaddle(player, entity) && !player.isSneaking() && isVehicle(entity));
+                    || (hasSaddle(player, entity) && !player.isSneaking() && rideable(entity));
         });
         registerEntityInteraction(EntityTypeKeys.HAPPY_GHAST, (player, entity, item) -> {
             if (entity instanceof HappyGhast happyGhast && isAdult(entity)) {
@@ -950,8 +938,6 @@ public final class InteractUtils {
             }
             return canBeFeed(entity, item);
         });
-        registerEntityInteraction(EntityTypeKeys.ZOMBIE_HORSE, (player, entity, item) -> isTamed(entity) && isVehicle(entity));
-        registerEntityInteraction(EntityTypeKeys.SKELETON_HORSE, (player, entity, item) -> isTamed(entity) && isVehicle(entity));
 
         registerEntityInteraction(EntityTypeKeys.ALLAY, (player, entity, item) -> true);
         registerEntityInteraction(EntityTypeKeys.VILLAGER, (player, entity, item) -> true);
@@ -1023,37 +1009,29 @@ public final class InteractUtils {
         return player.isInvulnerable() || player.getFoodLevel() < 20;
     }
 
-    private static boolean hasSaddle(Player player, Entity entity) {
-        return entity instanceof Steerable steerable && steerable.hasSaddle() && !player.isSneaking();
+
+    private static boolean isFood(Entity entity, Item<ItemStack> item) {
+        String entityType = EntityUtils.getEntityType(entity).value();
+        return isFood(entityType + "_food", item);
     }
 
-    private static boolean isAdult(Entity entity) {
-        return entity instanceof Ageable ageable && ageable.isAdult();
+    private static boolean isFood(String food, Item<ItemStack> item) {
+        return item.hasItemTag(Key.of(food));
     }
 
-    public static boolean isFullHealth(Entity entity) {
-        if (entity instanceof LivingEntity living) {
-            Key key = AttributeModifiersModifier.getNativeAttributeName(Key.of("max_health"));
-            NamespacedKey maxHealthKey = KeyUtils.toNamespacedKey(key);
-            Attribute maxHealthAttr = Registry.ATTRIBUTE.get(maxHealthKey);
-            if (maxHealthAttr != null) {
-                AttributeInstance attribute = living.getAttribute(maxHealthAttr);
-                if (attribute != null) {
-                    float health = (float) living.getHealth();
-                    float maxHealth = (float) attribute.getValue();
-                    return health >= maxHealth;
-                }
-            }
+    private static boolean canBeFeed(Entity entity, Item<ItemStack> item) {
+        return canBeFeed(entity, item, null);
+    }
+
+    private static boolean canBeFeed(Entity entity, Item<ItemStack> item, String food) {
+        boolean isFood = food != null ? isFood(food, item) : isFood(entity, item);
+        if (!isFood) return false;
+        if (entity instanceof Tameable) {
+            if (!isFullHealth(entity)) return true;
+            if (entity instanceof AbstractHorse && !isFullTemper(entity)) return true;
+            return !isInLove(entity) && isTamed(entity);
         }
-        return false;
-    }
-
-    private static boolean isFullTemper(Entity entity) {
-        return entity instanceof AbstractHorse horse && horse.getDomestication() == horse.getMaxDomestication();
-    }
-
-    private static boolean isPetOwner(Player player, Entity entity) {
-        return entity instanceof Tameable tameable && tameable.isTamed() && player.getUniqueId().equals(tameable.getOwnerUniqueId());
+        return !isInLove(entity);
     }
 
     private static boolean isTamed(Entity entity) {
@@ -1061,21 +1039,42 @@ public final class InteractUtils {
     }
 
     private static boolean isInLove(Entity entity) {
-        return entity instanceof Animals animals && animals.isLoveMode();
+        if (entity instanceof Animals animals) {
+            return animals.isLoveMode() || !animals.canBreed();
+        }
+        return entity instanceof Ageable ageable && ageable.getAge() > 0;
     }
 
-    private static boolean isFood(Entity entity, Item<ItemStack> item) {
-        return item.hasItemTag(Key.of(EntityUtils.getEntityType(entity).value() + "_food"));
+    private static boolean isFullTemper(Entity entity) {
+        return entity instanceof AbstractHorse horse && horse.getDomestication() == horse.getMaxDomestication();
+    }
+
+    public static boolean isFullHealth(Entity entity) {
+        if (entity instanceof LivingEntity living) {
+            Key key = AttributeModifiersModifier.getNativeAttributeName(Key.of("max_health"));
+            Attribute maxHealthAttr = Registry.ATTRIBUTE.get(KeyUtils.toNamespacedKey(key));
+            if (maxHealthAttr == null) return false;
+            AttributeInstance attribute = living.getAttribute(maxHealthAttr);
+            return attribute != null && living.getHealth() >= attribute.getValue();
+        }
+        return false;
+    }
+
+    private static boolean isAdult(Entity entity) {
+        return entity instanceof Ageable ageable && ageable.isAdult();
+    }
+
+    private static boolean isPetOwner(Player player, Entity entity) {
+        return entity instanceof Tameable tameable && tameable.isTamed() && player.getUniqueId().equals(tameable.getOwnerUniqueId());
     }
 
     // 判断单座位实体是否载有乘客
-    private static boolean isVehicle(Entity entity) {
+    private static boolean rideable(Entity entity) {
         return entity.isEmpty();
     }
 
-    private static boolean canBeFeed(Entity entity, Item<ItemStack> item) {
-        if (isInLove(entity)) return false;
-        return isFood(entity, item);
+    private static boolean hasSaddle(Player player, Entity entity) {
+        return entity instanceof Steerable steerable && steerable.hasSaddle() && !player.isSneaking();
     }
 
     private static boolean canBeSheared(Entity entity, Item<ItemStack> item) {
