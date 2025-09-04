@@ -6,13 +6,9 @@ public final class BlockKeys {
     private BlockKeys() {}
     // 特殊
     public static final Key AIR = Key.of("minecraft:air");
-    public static final Key NOTE_BLOCK = Key.of("minecraft:note_block");
     public static final Key TRIPWIRE = Key.of("minecraft:tripwire");
     public static final Key CACTUS = Key.of("minecraft:cactus");
     public static final Key POWDER_SNOW = Key.of("minecraft:powder_snow");
-    // 自然方块
-    public static final Key OBSIDIAN = Key.of("minecraft:obsidian");
-    public static final Key BEDROCK = Key.of("minecraft:bedrock");
     // 功能方块
     public static final Key CRAFTING_TABLE = Key.of("minecraft:crafting_table");
     public static final Key STONECUTTER = Key.of("minecraft:stonecutter");
@@ -37,7 +33,6 @@ public final class BlockKeys {
     public static final Key WATER_CAULDRON = Key.of("minecraft:water_cauldron");
     public static final Key BELL = Key.of("minecraft:bell");
     public static final Key BEACON = Key.of("minecraft:beacon");
-    public static final Key LODESTONE = Key.of("minecraft:lodestone");
     public static final Key BEE_NEST = Key.of("minecraft:bee_nest");
     public static final Key BEEHIVE = Key.of("minecraft:beehive");
     public static final Key FLOWER_POT = Key.of("minecraft:flower_pot");
@@ -59,17 +54,59 @@ public final class BlockKeys {
     public static final Key TRIAL_SPAWNER = Key.of("minecraft:trial_spawner");
     // 红石方块
     public static final Key REDSTONE_WIRE = Key.of("minecraft:redstone_wire");
+    public static final Key REDSTONE_TORCH = Key.of("minecraft:redstone_torch");
+    public static final Key REDSTONE_BLOCK = Key.of("minecraft:redstone_block");
     public static final Key REPEATER = Key.of("minecraft:repeater");
     public static final Key COMPARATOR = Key.of("minecraft:comparator");
+    public static final Key TARGET = Key.of("minecraft:target");
     public static final Key LEVER = Key.of("minecraft:lever");
+    public static final Key SCULK_SENSOR = Key.of("minecraft:sculk_sensor");
+    public static final Key CALIBRATED_SCULK_SENSOR = Key.of("minecraft:calibrated_sculk_sensor");
+    public static final Key TRIPWIRE_HOOK = Key.of("minecraft:tripwire_hook");
     public static final Key DAYLIGHT_DETECTOR = Key.of("minecraft:daylight_detector");
+    public static final Key LIGHTNING_ROD = Key.of("minecraft:lightning_rod");
     public static final Key DISPENSER = Key.of("minecraft:dispenser");
     public static final Key DROPPER = Key.of("minecraft:dropper");
     public static final Key CRAFTER = Key.of("minecraft:crafter");
     public static final Key HOPPER = Key.of("minecraft:hopper");
+    public static final Key OBSERVER = Key.of("minecraft:observer");
+    public static final Key NOTE_BLOCK = Key.of("minecraft:note_block");
+    public static final Key DETECTOR_RAIL = Key.of("minecraft:detector_rail");
     public static final Key TNT = Key.of("minecraft:tnt");
     public static final Key REDSTONE_ORE = Key.of("minecraft:redstone_ore");
     public static final Key DEEPSLATE_REDSTONE_ORE = Key.of("minecraft:deepslate_redstone_ore");
+    // 按钮
+    public static final Key OAK_BUTTON = Key.of("minecraft:oak_button");
+    public static final Key SPRUCE_BUTTON = Key.of("minecraft:spruce_button");
+    public static final Key BIRCH_BUTTON = Key.of("minecraft:birch_button");
+    public static final Key JUNGLE_BUTTON = Key.of("minecraft:jungle_button");
+    public static final Key ACACIA_BUTTON = Key.of("minecraft:acacia_button");
+    public static final Key DARK_OAK_BUTTON = Key.of("minecraft:dark_oak_button");
+    public static final Key MANGROVE_BUTTON = Key.of("minecraft:mangrove_button");
+    public static final Key CHERRY_BUTTON = Key.of("minecraft:cherry_button");
+    public static final Key PALE_OAK_BUTTON = Key.of("minecraft:pale_oak_button");
+    public static final Key BAMBOO_BUTTON = Key.of("minecraft:bamboo_button");
+    public static final Key CRIMSON_BUTTON = Key.of("minecraft:crimson_button");
+    public static final Key WARPED_BUTTON = Key.of("minecraft:warped_button");
+    public static final Key STONE_BUTTON = Key.of("minecraft:stone_button");
+    public static final Key POLISHED_BLACKSTONE_BUTTON = Key.of("minecraft:polished_blackstone_button");
+    // 压力板
+    public static final Key OAK_PRESSURE_PLATE = Key.of("minecraft:oak_pressure_plate");
+    public static final Key SPRUCE_PRESSURE_PLATE = Key.of("minecraft:spruce_pressure_plate");
+    public static final Key BIRCH_PRESSURE_PLATE = Key.of("minecraft:birch_pressure_plate");
+    public static final Key JUNGLE_PRESSURE_PLATE = Key.of("minecraft:jungle_pressure_plate");
+    public static final Key ACACIA_PRESSURE_PLATE = Key.of("minecraft:acacia_pressure_plate");
+    public static final Key DARK_OAK_PRESSURE_PLATE = Key.of("minecraft:dark_oak_pressure_plate");
+    public static final Key MANGROVE_PRESSURE_PLATE = Key.of("minecraft:mangrove_pressure_plate");
+    public static final Key CHERRY_PRESSURE_PLATE = Key.of("minecraft:cherry_pressure_plate");
+    public static final Key PALE_OAK_PRESSURE_PLATE = Key.of("minecraft:pale_oak_pressure_plate");
+    public static final Key BAMBOO_PRESSURE_PLATE = Key.of("minecraft:bamboo_pressure_plate");
+    public static final Key CRIMSON_PRESSURE_PLATE = Key.of("minecraft:crimson_pressure_plate");
+    public static final Key WARPED_PRESSURE_PLATE = Key.of("minecraft:warped_pressure_plate");
+    public static final Key STONE_PRESSURE_PLATE = Key.of("minecraft:stone_pressure_plate");
+    public static final Key POLISHED_BLACKSTONE_PRESSURE_PLATE = Key.of("minecraft:polished_blackstone_pressure_plate");
+    public static final Key LIGHT_WEIGHTED_PRESSURE_PLATE = Key.of("minecraft:light_weighted_pressure_plate");
+    public static final Key HEAVY_WEIGHTED_PRESSURE_PLATE = Key.of("minecraft:heavy_weighted_pressure_plate");
     // 管理员用品
     public static final Key COMMAND_BLOCK = Key.of("minecraft:command_block");
     public static final Key CHAIN_COMMAND_BLOCK = Key.of("minecraft:chain_command_block");
@@ -79,6 +116,65 @@ public final class BlockKeys {
     public static final Key TEST_INSTANCE_BLOCK = Key.of("minecraft:test_instance_block");
     public static final Key TEST_BLOCK = Key.of("minecraft:test_block");
     public static final Key LIGHT = Key.of("minecraft:light");
+    // 门
+    public static final Key OAK_DOOR = Key.of("minecraft:oak_door");
+    public static final Key SPRUCE_DOOR = Key.of("minecraft:spruce_door");
+    public static final Key BIRCH_DOOR = Key.of("minecraft:birch_door");
+    public static final Key JUNGLE_DOOR = Key.of("minecraft:jungle_door");
+    public static final Key ACACIA_DOOR = Key.of("minecraft:acacia_door");
+    public static final Key DARK_OAK_DOOR = Key.of("minecraft:dark_oak_door");
+    public static final Key MANGROVE_DOOR = Key.of("minecraft:mangrove_door");
+    public static final Key CHERRY_DOOR = Key.of("minecraft:cherry_door");
+    public static final Key PALE_OAK_DOOR = Key.of("minecraft:pale_oak_door");
+    public static final Key BAMBOO_DOOR = Key.of("minecraft:bamboo_door");
+    public static final Key CRIMSON_DOOR = Key.of("minecraft:crimson_door");
+    public static final Key WARPED_DOOR = Key.of("minecraft:warped_door");
+    public static final Key IRON_DOOR = Key.of("minecraft:iron_door");
+
+    public static final Key COPPER_DOOR = Key.of("minecraft:copper_door");
+    public static final Key EXPOSED_COPPER_DOOR = Key.of("minecraft:exposed_copper_door");
+    public static final Key WEATHERED_COPPER_DOOR = Key.of("minecraft:weathered_copper_door");
+    public static final Key OXIDIZED_COPPER_DOOR = Key.of("minecraft:oxidized_copper_door");
+    public static final Key WAXED_COPPER_DOOR = Key.of("minecraft:waxed_copper_door");
+    public static final Key WAXED_EXPOSED_COPPER_DOOR = Key.of("minecraft:waxed_exposed_copper_door");
+    public static final Key WAXED_WEATHERED_COPPER_DOOR = Key.of("minecraft:waxed_weathered_copper_door");
+    public static final Key WAXED_OXIDIZED_COPPER_DOOR = Key.of("minecraft:waxed_oxidized_copper_door");
+    // 活板门
+    public static final Key OAK_TRAPDOOR = Key.of("minecraft:oak_trapdoor");
+    public static final Key SPRUCE_TRAPDOOR = Key.of("minecraft:spruce_trapdoor");
+    public static final Key BIRCH_TRAPDOOR = Key.of("minecraft:birch_trapdoor");
+    public static final Key JUNGLE_TRAPDOOR = Key.of("minecraft:jungle_trapdoor");
+    public static final Key ACACIA_TRAPDOOR = Key.of("minecraft:acacia_trapdoor");
+    public static final Key DARK_OAK_TRAPDOOR = Key.of("minecraft:dark_oak_trapdoor");
+    public static final Key MANGROVE_TRAPDOOR = Key.of("minecraft:mangrove_trapdoor");
+    public static final Key CHERRY_TRAPDOOR = Key.of("minecraft:cherry_trapdoor");
+    public static final Key PALE_OAK_TRAPDOOR = Key.of("minecraft:pale_oak_trapdoor");
+    public static final Key BAMBOO_TRAPDOOR = Key.of("minecraft:bamboo_trapdoor");
+    public static final Key CRIMSON_TRAPDOOR = Key.of("minecraft:crimson_trapdoor");
+    public static final Key WARPED_TRAPDOOR = Key.of("minecraft:warped_trapdoor");
+    public static final Key IRON_TRAPDOOR = Key.of("minecraft:iron_trapdoor");
+
+    public static final Key COPPER_TRAPDOOR = Key.of("minecraft:copper_trapdoor");
+    public static final Key EXPOSED_COPPER_TRAPDOOR = Key.of("minecraft:exposed_copper_trapdoor");
+    public static final Key WEATHERED_COPPER_TRAPDOOR = Key.of("minecraft:weathered_copper_trapdoor");
+    public static final Key OXIDIZED_COPPER_TRAPDOOR = Key.of("minecraft:oxidized_copper_trapdoor");
+    public static final Key WAXED_COPPER_TRAPDOOR = Key.of("minecraft:waxed_copper_trapdoor");
+    public static final Key WAXED_EXPOSED_COPPER_TRAPDOOR = Key.of("minecraft:waxed_exposed_copper_trapdoor");
+    public static final Key WAXED_WEATHERED_COPPER_TRAPDOOR = Key.of("minecraft:waxed_weathered_copper_trapdoor");
+    public static final Key WAXED_OXIDIZED_COPPER_TRAPDOOR = Key.of("minecraft:waxed_oxidized_copper_trapdoor");
+    // 栅栏门
+    public static final Key OAK_FENCE_GATE = Key.of("minecraft:oak_fence_gate");
+    public static final Key SPRUCE_FENCE_GATE = Key.of("minecraft:spruce_fence_gate");
+    public static final Key BIRCH_FENCE_GATE = Key.of("minecraft:birch_fence_gate");
+    public static final Key JUNGLE_FENCE_GATE = Key.of("minecraft:jungle_fence_gate");
+    public static final Key ACACIA_FENCE_GATE = Key.of("minecraft:acacia_fence_gate");
+    public static final Key DARK_OAK_FENCE_GATE = Key.of("minecraft:dark_oak_fence_gate");
+    public static final Key MANGROVE_FENCE_GATE = Key.of("minecraft:mangrove_fence_gate");
+    public static final Key CHERRY_FENCE_GATE = Key.of("minecraft:cherry_fence_gate");
+    public static final Key PALE_OAK_FENCE_GATE = Key.of("minecraft:pale_oak_fence_gate");
+    public static final Key BAMBOO_FENCE_GATE = Key.of("minecraft:bamboo_fence_gate");
+    public static final Key CRIMSON_FENCE_GATE = Key.of("minecraft:crimson_fence_gate");
+    public static final Key WARPED_FENCE_GATE = Key.of("minecraft:warped_fence_gate");
     // 床
     public static final Key WHITE_BED = Key.of("minecraft:white_bed");
     public static final Key LIGHT_GRAY_BED = Key.of("minecraft:light_gray_bed");
@@ -151,80 +247,6 @@ public final class BlockKeys {
     public static final Key PURPLE_SHULKER_BOX = Key.of("minecraft:purple_shulker_box");
     public static final Key MAGENTA_SHULKER_BOX = Key.of("minecraft:magenta_shulker_box");
     public static final Key PINK_SHULKER_BOX = Key.of("minecraft:pink_shulker_box");
-    // 按钮
-    public static final Key OAK_BUTTON = Key.of("minecraft:oak_button");
-    public static final Key SPRUCE_BUTTON = Key.of("minecraft:spruce_button");
-    public static final Key BIRCH_BUTTON = Key.of("minecraft:birch_button");
-    public static final Key JUNGLE_BUTTON = Key.of("minecraft:jungle_button");
-    public static final Key ACACIA_BUTTON = Key.of("minecraft:acacia_button");
-    public static final Key DARK_OAK_BUTTON = Key.of("minecraft:dark_oak_button");
-    public static final Key MANGROVE_BUTTON = Key.of("minecraft:mangrove_button");
-    public static final Key CHERRY_BUTTON = Key.of("minecraft:cherry_button");
-    public static final Key PALE_OAK_BUTTON = Key.of("minecraft:pale_oak_button");
-    public static final Key BAMBOO_BUTTON = Key.of("minecraft:bamboo_button");
-    public static final Key CRIMSON_BUTTON = Key.of("minecraft:crimson_button");
-    public static final Key WARPED_BUTTON = Key.of("minecraft:warped_button");
-    public static final Key STONE_BUTTON = Key.of("minecraft:stone_button");
-    public static final Key POLISHED_BLACKSTONE_BUTTON = Key.of("minecraft:polished_blackstone_button");
-    // 门
-    public static final Key OAK_DOOR = Key.of("minecraft:oak_door");
-    public static final Key SPRUCE_DOOR = Key.of("minecraft:spruce_door");
-    public static final Key BIRCH_DOOR = Key.of("minecraft:birch_door");
-    public static final Key JUNGLE_DOOR = Key.of("minecraft:jungle_door");
-    public static final Key ACACIA_DOOR = Key.of("minecraft:acacia_door");
-    public static final Key DARK_OAK_DOOR = Key.of("minecraft:dark_oak_door");
-    public static final Key MANGROVE_DOOR = Key.of("minecraft:mangrove_door");
-    public static final Key CHERRY_DOOR = Key.of("minecraft:cherry_door");
-    public static final Key PALE_OAK_DOOR = Key.of("minecraft:pale_oak_door");
-    public static final Key BAMBOO_DOOR = Key.of("minecraft:bamboo_door");
-    public static final Key CRIMSON_DOOR = Key.of("minecraft:crimson_door");
-    public static final Key WARPED_DOOR = Key.of("minecraft:warped_door");
-    public static final Key IRON_DOOR = Key.of("minecraft:iron_door");
-
-    public static final Key COPPER_DOOR = Key.of("minecraft:copper_door");
-    public static final Key EXPOSED_COPPER_DOOR = Key.of("minecraft:exposed_copper_door");
-    public static final Key WEATHERED_COPPER_DOOR = Key.of("minecraft:weathered_copper_door");
-    public static final Key OXIDIZED_COPPER_DOOR = Key.of("minecraft:oxidized_copper_door");
-    public static final Key WAXED_COPPER_DOOR = Key.of("minecraft:waxed_copper_door");
-    public static final Key WAXED_EXPOSED_COPPER_DOOR = Key.of("minecraft:waxed_exposed_copper_door");
-    public static final Key WAXED_WEATHERED_COPPER_DOOR = Key.of("minecraft:waxed_weathered_copper_door");
-    public static final Key WAXED_OXIDIZED_COPPER_DOOR = Key.of("minecraft:waxed_oxidized_copper_door");
-    // 活板门
-    public static final Key OAK_TRAPDOOR = Key.of("minecraft:oak_trapdoor");
-    public static final Key SPRUCE_TRAPDOOR = Key.of("minecraft:spruce_trapdoor");
-    public static final Key BIRCH_TRAPDOOR = Key.of("minecraft:birch_trapdoor");
-    public static final Key JUNGLE_TRAPDOOR = Key.of("minecraft:jungle_trapdoor");
-    public static final Key ACACIA_TRAPDOOR = Key.of("minecraft:acacia_trapdoor");
-    public static final Key DARK_OAK_TRAPDOOR = Key.of("minecraft:dark_oak_trapdoor");
-    public static final Key MANGROVE_TRAPDOOR = Key.of("minecraft:mangrove_trapdoor");
-    public static final Key CHERRY_TRAPDOOR = Key.of("minecraft:cherry_trapdoor");
-    public static final Key PALE_OAK_TRAPDOOR = Key.of("minecraft:pale_oak_trapdoor");
-    public static final Key BAMBOO_TRAPDOOR = Key.of("minecraft:bamboo_trapdoor");
-    public static final Key CRIMSON_TRAPDOOR = Key.of("minecraft:crimson_trapdoor");
-    public static final Key WARPED_TRAPDOOR = Key.of("minecraft:warped_trapdoor");
-    public static final Key IRON_TRAPDOOR = Key.of("minecraft:iron_trapdoor");
-
-    public static final Key COPPER_TRAPDOOR = Key.of("minecraft:copper_trapdoor");
-    public static final Key EXPOSED_COPPER_TRAPDOOR = Key.of("minecraft:exposed_copper_trapdoor");
-    public static final Key WEATHERED_COPPER_TRAPDOOR = Key.of("minecraft:weathered_copper_trapdoor");
-    public static final Key OXIDIZED_COPPER_TRAPDOOR = Key.of("minecraft:oxidized_copper_trapdoor");
-    public static final Key WAXED_COPPER_TRAPDOOR = Key.of("minecraft:waxed_copper_trapdoor");
-    public static final Key WAXED_EXPOSED_COPPER_TRAPDOOR = Key.of("minecraft:waxed_exposed_copper_trapdoor");
-    public static final Key WAXED_WEATHERED_COPPER_TRAPDOOR = Key.of("minecraft:waxed_weathered_copper_trapdoor");
-    public static final Key WAXED_OXIDIZED_COPPER_TRAPDOOR = Key.of("minecraft:waxed_oxidized_copper_trapdoor");
-    // 栅栏门
-    public static final Key OAK_FENCE_GATE = Key.of("minecraft:oak_fence_gate");
-    public static final Key SPRUCE_FENCE_GATE = Key.of("minecraft:spruce_fence_gate");
-    public static final Key BIRCH_FENCE_GATE = Key.of("minecraft:birch_fence_gate");
-    public static final Key JUNGLE_FENCE_GATE = Key.of("minecraft:jungle_fence_gate");
-    public static final Key ACACIA_FENCE_GATE = Key.of("minecraft:acacia_fence_gate");
-    public static final Key DARK_OAK_FENCE_GATE = Key.of("minecraft:dark_oak_fence_gate");
-    public static final Key MANGROVE_FENCE_GATE = Key.of("minecraft:mangrove_fence_gate");
-    public static final Key CHERRY_FENCE_GATE = Key.of("minecraft:cherry_fence_gate");
-    public static final Key PALE_OAK_FENCE_GATE = Key.of("minecraft:pale_oak_fence_gate");
-    public static final Key BAMBOO_FENCE_GATE = Key.of("minecraft:bamboo_fence_gate");
-    public static final Key CRIMSON_FENCE_GATE = Key.of("minecraft:crimson_fence_gate");
-    public static final Key WARPED_FENCE_GATE = Key.of("minecraft:warped_fence_gate");
     // 告示牌
     public static final Key OAK_SIGN = Key.of("minecraft:oak_sign");
     public static final Key SPRUCE_SIGN = Key.of("minecraft:spruce_sign");
@@ -277,4 +299,21 @@ public final class BlockKeys {
     public static final Key BAMBOO_WALL_HANGING_SIGN = Key.of("minecraft:bamboo_wall_hanging_sign");
     public static final Key CRIMSON_WALL_HANGING_SIGN = Key.of("minecraft:crimson_wall_hanging_sign");
     public static final Key WARPED_WALL_HANGING_SIGN = Key.of("minecraft:warped_wall_hanging_sign");
+
+    public static final Key[] BUTTONS = new Key[]{
+            OAK_BUTTON, SPRUCE_BUTTON, BIRCH_BUTTON, JUNGLE_BUTTON, ACACIA_BUTTON, DARK_OAK_BUTTON, MANGROVE_BUTTON, CHERRY_BUTTON,
+            PALE_OAK_BUTTON, BAMBOO_BUTTON, CRIMSON_BUTTON, WARPED_BUTTON, STONE_BUTTON, POLISHED_BLACKSTONE_BUTTON
+    };
+
+    public static final Key[] PRESSURE_PLATES = new Key[]{
+            OAK_PRESSURE_PLATE, SPRUCE_PRESSURE_PLATE, BIRCH_PRESSURE_PLATE, JUNGLE_PRESSURE_PLATE, ACACIA_PRESSURE_PLATE,
+            DARK_OAK_PRESSURE_PLATE, MANGROVE_PRESSURE_PLATE, CHERRY_PRESSURE_PLATE, PALE_OAK_PRESSURE_PLATE, BAMBOO_PRESSURE_PLATE,
+            CRIMSON_PRESSURE_PLATE, WARPED_PRESSURE_PLATE, STONE_PRESSURE_PLATE, POLISHED_BLACKSTONE_PRESSURE_PLATE,
+            LIGHT_WEIGHTED_PRESSURE_PLATE, HEAVY_WEIGHTED_PRESSURE_PLATE
+    };
+
+    public static final Key[] REDSTONE_CONNECTION = new Key[] {
+            REDSTONE_WIRE, REDSTONE_TORCH, REDSTONE_BLOCK, REPEATER, COMPARATOR, TARGET, LEVER, SCULK_SENSOR, CALIBRATED_SCULK_SENSOR,
+            TRIPWIRE_HOOK, LECTERN, DAYLIGHT_DETECTOR, LIGHTNING_ROD, TRAPPED_CHEST, JUKEBOX, OBSERVER, DETECTOR_RAIL
+    };
 }

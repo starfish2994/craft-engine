@@ -108,10 +108,7 @@ public class AxeItemBehavior extends ItemBehavior {
             if (!InteractUtils.isInteractable(
                     bukkitPlayer, BlockStateUtils.fromBlockData(customState.vanillaBlockState().literalObject()),
                     context.getHitResult(), item
-            ) || (player.isSecondaryUseActive() && !InteractUtils.isIgnoreSneaking(
-                    bukkitPlayer, BlockStateUtils.fromBlockData(customState.vanillaBlockState().literalObject()),
-                    context.getHitResult(), item
-            ))) {
+            ) || player.isSecondaryUseActive()) {
                 player.swingHand(context.getHand());
             }
             // shrink item amount

@@ -4,8 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.momirealms.craftengine.bukkit.item.behavior.AxeItemBehavior;
-import net.momirealms.craftengine.bukkit.item.behavior.FlintAndSteelItemBehavior;
+import net.momirealms.craftengine.bukkit.item.behavior.*;
 import net.momirealms.craftengine.bukkit.item.factory.BukkitItemFactory;
 import net.momirealms.craftengine.bukkit.item.listener.ArmorEventListener;
 import net.momirealms.craftengine.bukkit.item.listener.DebugStickListener;
@@ -41,6 +40,9 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
     static {
         registerVanillaItemExtraBehavior(FlintAndSteelItemBehavior.INSTANCE, ItemKeys.FLINT_AND_STEEL);
         registerVanillaItemExtraBehavior(AxeItemBehavior.INSTANCE, ItemKeys.AXES);
+        registerVanillaItemExtraBehavior(CompassItemBehavior.INSTANCE, ItemKeys.COMPASS);
+        registerVanillaItemExtraBehavior(EnderEyeItemBehavior.INSTANCE, ItemKeys.ENDER_EYE);
+        registerVanillaItemExtraBehavior(EndCrystalItemBehavior.INSTANCE, ItemKeys.END_CRYSTAL);
     }
 
     private static BukkitItemManager instance;

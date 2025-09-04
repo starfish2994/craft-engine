@@ -3,7 +3,10 @@ package net.momirealms.craftengine.bukkit.util;
 import io.papermc.paper.entity.Shearable;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.behavior.BlockItemBehavior;
+import net.momirealms.craftengine.bukkit.item.behavior.EnderEyeItemBehavior;
+import net.momirealms.craftengine.bukkit.item.behavior.FlintAndSteelItemBehavior;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
+import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.BlockKeys;
 import net.momirealms.craftengine.core.entity.EntityTypeKeys;
@@ -16,16 +19,17 @@ import net.momirealms.craftengine.core.item.recipe.UniqueIdItem;
 import net.momirealms.craftengine.core.item.recipe.input.SingleItemInput;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.QuadFunction;
-import net.momirealms.craftengine.core.util.TriFunction;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.BlockHitResult;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.ExistingBlock;
-import org.bukkit.*;
+import org.bukkit.DyeColor;
+import org.bukkit.GameMode;
+import org.bukkit.Registry;
+import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Lightable;
@@ -42,7 +46,6 @@ import java.util.Optional;
 
 public final class InteractUtils {
     private static final Map<Key, QuadFunction<Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean>> INTERACTIONS = new HashMap<>();
-    private static final Map<Key, QuadFunction<Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean>> SNEAK_BYPASS = new HashMap<>();
     private static final Map<Key, QuadFunction<Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean>> WILL_CONSUME = new HashMap<>();
     private static final Map<Key, TriFunction<Player, Entity, @Nullable Item<ItemStack>, Boolean>> ENTITY_INTERACTIONS = new HashMap<>();
 
@@ -60,63 +63,6 @@ public final class InteractUtils {
         registerInteraction(BlockKeys.POWDER_SNOW, (player, item, blockState, result) -> {
             Key id = item.vanillaId();
             return ItemKeys.BUCKET.equals(id);
-        });
-        // 自然方块
-        registerInteraction(BlockKeys.OBSIDIAN, (player, item, blockState, result) -> {
-            Key id = item.vanillaId();
-            if (ItemKeys.END_CRYSTAL.equals(id)) {
-                World world = player.getWorld();
-                BukkitWorld bukkitWorld = new BukkitWorld(world);
-                BlockPos blockPos = result.getBlockPos();
-                BlockPos abovePos = blockPos.relative(Direction.UP);
-                ExistingBlock aboveBlock = bukkitWorld.getBlockAt(abovePos);
-                if (!aboveBlock.id().equals(BlockKeys.AIR)) {
-                    return false;
-                } else {
-                    return true;
-                    // TODO 需要判定区域内无任何实体
-//                    double x = aboveBlock.x();
-//                    double y = aboveBlock.y();
-//                    double z = aboveBlock.z();
-//                    Object serverWorld = bukkitWorld.serverWorld();
-//                    AABB aabb = new AABB(x, y, z, x + 1.0, y + 2.0, z + 1.0);
-//                    Object nmsAABB = FastNMS.INSTANCE.constructor$AABB(
-//                            aabb.minX, aabb.minY, aabb.minZ,
-//                            aabb.maxX, aabb.maxY, aabb.maxZ
-//                    );
-//                    boolean hasCollision = FastNMS.INSTANCE.checkEntityCollision(serverWorld, List.of(nmsAABB), x + 0.5, y + 1.0, z + 0.5);
-//                    return !hasCollision;
-                }
-            }
-            return false;
-        });
-        registerInteraction(BlockKeys.BEDROCK, (player, item, blockState, result) -> {
-            Key id = item.vanillaId();
-            if (ItemKeys.END_CRYSTAL.equals(id)) {
-                World world = player.getWorld();
-                BukkitWorld bukkitWorld = new BukkitWorld(world);
-                BlockPos blockPos = result.getBlockPos();
-                BlockPos abovePos = blockPos.relative(Direction.UP);
-                ExistingBlock aboveBlock = bukkitWorld.getBlockAt(abovePos);
-                if (!aboveBlock.id().equals(BlockKeys.AIR)) {
-                    return false;
-                } else {
-                    return true;
-                    // TODO 需要判定区域内无任何实体
-//                    double x = aboveBlock.x();
-//                    double y = aboveBlock.y();
-//                    double z = aboveBlock.z();
-//                    Object serverWorld = bukkitWorld.serverWorld();
-//                    AABB aabb = new AABB(x, y, z, x + 1.0, y + 2.0, z + 1.0);
-//                    Object nmsAABB = FastNMS.INSTANCE.constructor$AABB(
-//                            aabb.minX, aabb.minY, aabb.minZ,
-//                            aabb.maxX, aabb.maxY, aabb.maxZ
-//                    );
-//                    boolean hasCollision = FastNMS.INSTANCE.checkEntityCollision(serverWorld, List.of(nmsAABB), x + 0.5, y + 1.0, z + 0.5);
-//                    return !hasCollision;
-                }
-            }
-            return false;
         });
         // 功能方块
         registerInteraction(BlockKeys.CRAFTING_TABLE, (player, item, blockState, result) -> true);
@@ -190,10 +136,6 @@ public final class InteractUtils {
             return false;
         });
         registerInteraction(BlockKeys.BEACON, (player, item, blockState, result) -> true);
-        registerInteraction(BlockKeys.LODESTONE, (player, item, blockState, result) -> {
-            Key id = item.vanillaId();
-            return ItemKeys.COMPASS.equals(id);
-        });
         registerInteraction(BlockKeys.BEE_NEST, (player, item, blockState, result) -> {
             if (blockState instanceof Beehive beehive && beehive.getHoneyLevel() == beehive.getMaximumHoneyLevel()) {
                 Key id = item.vanillaId();
@@ -226,9 +168,11 @@ public final class InteractUtils {
         });
         registerInteraction(BlockKeys.DRAGON_EGG, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.END_PORTAL_FRAME, (player, item, blockState, result) -> {
-            if (blockState instanceof EndPortalFrame endPortalFrame && !endPortalFrame.hasEye()) {
-                Key id = item.vanillaId();
-                return ItemKeys.ENDER_EYE.equals(id);
+            Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
+            if (behaviors.isPresent()) {
+                for (ItemBehavior behavior : behaviors.get()) {
+                    if (behavior instanceof EnderEyeItemBehavior) return true;
+                }
             }
             return false;
         });
@@ -242,7 +186,49 @@ public final class InteractUtils {
             return id.asString().endsWith("_spawn_egg");
         });
         // 红石方块
-        registerInteraction(BlockKeys.REDSTONE_WIRE, (player, item, blockState, result) -> true);
+        registerInteraction(BlockKeys.REDSTONE_WIRE, (player, item, blockState, result) -> {
+            if (blockState instanceof RedstoneWire redstoneWire) {
+                boolean isCross = redstoneWire.getFace(BlockFace.EAST).equals(RedstoneWire.Connection.SIDE)
+                        && redstoneWire.getFace(BlockFace.NORTH).equals(RedstoneWire.Connection.SIDE)
+                        && redstoneWire.getFace(BlockFace.SOUTH).equals(RedstoneWire.Connection.SIDE)
+                        && redstoneWire.getFace(BlockFace.WEST).equals(RedstoneWire.Connection.SIDE);
+                boolean isDot = redstoneWire.getFace(BlockFace.EAST).equals(RedstoneWire.Connection.NONE)
+                        && redstoneWire.getFace(BlockFace.NORTH).equals(RedstoneWire.Connection.NONE)
+                        && redstoneWire.getFace(BlockFace.SOUTH).equals(RedstoneWire.Connection.NONE)
+                        && redstoneWire.getFace(BlockFace.WEST).equals(RedstoneWire.Connection.NONE);
+                if (isCross || isDot) {
+                    BlockPos blockPos = result.getBlockPos();
+                    BukkitWorld bukkitWorld = new BukkitWorld(player.getWorld());
+                    World world = bukkitWorld.platformWorld();
+
+                    Direction[] directions = {Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH};
+                    for (Direction direction : directions) {
+                        BlockPos neighborPos = blockPos.relative(direction);
+                        Block neighborBlock = world.getBlockAt(neighborPos.x(), neighborPos.y(), neighborPos.z());
+                        Key neighborBlockKey = new BukkitExistingBlock(neighborBlock).id();
+                        BlockData neighborBlockData = neighborBlock.getBlockData();
+                        boolean canConnection = ArrayUtils.contains(BlockKeys.REDSTONE_CONNECTION, neighborBlockKey)
+                                || ArrayUtils.contains(BlockKeys.PRESSURE_PLATES, neighborBlockKey)
+                                || ArrayUtils.contains(BlockKeys.BUTTONS, neighborBlockKey);
+                        if (canConnection) {
+                            return switch (neighborBlockData) {
+                                case Repeater repeater -> {
+                                    Direction neighborDirection = DirectionUtils.toDirection(repeater.getFacing());
+                                    yield !(neighborDirection == direction || neighborDirection == direction.opposite());
+                                }
+                                case Observer observer -> {
+                                    Direction neighborDirection = DirectionUtils.toDirection(observer.getFacing());
+                                    yield !(neighborDirection == direction);
+                                }
+                                default -> false;
+                            };
+                        }
+                    }
+                    return true;
+                }
+            }
+            return false;
+        });
         registerInteraction(BlockKeys.REPEATER, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.COMPARATOR, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.LEVER, (player, item, blockState, result) -> true);
@@ -252,8 +238,13 @@ public final class InteractUtils {
         registerInteraction(BlockKeys.CRAFTER, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.HOPPER, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.TNT, (player, item, blockState, result) -> {
-            Key id = item.vanillaId();
-            return ItemKeys.FLINT_AND_STEEL.equals(id);
+            Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
+            if (behaviors.isPresent()) {
+                for (ItemBehavior behavior : behaviors.get()) {
+                    if (behavior instanceof FlintAndSteelItemBehavior) return true;
+                }
+            }
+            return false;
         });
         registerInteraction(BlockKeys.REDSTONE_ORE, (player, item, blockState, result) -> {
             Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
@@ -727,21 +718,6 @@ public final class InteractUtils {
         registerInteraction(BlockKeys.WARPED_WALL_HANGING_SIGN, (player, item, blockState, result) -> true);
     }
 
-    // 忽略潜行
-    static {
-        registerSneakBypass(BlockKeys.LODESTONE, (player, item, blockState, result) -> {
-            Key id = item.vanillaId();
-            return ItemKeys.COMPASS.equals(id);
-        });
-        registerSneakBypass(BlockKeys.END_PORTAL_FRAME, (player, item, blockState, result) -> {
-            if (blockState instanceof EndPortalFrame endPortalFrame && !endPortalFrame.hasEye()) {
-                Key id = item.vanillaId();
-                return ItemKeys.ENDER_EYE.equals(id);
-            }
-            return false;
-        });
-    }
-
     // 消耗
     static {
         registerWillConsume(BlockKeys.CACTUS, (player, item, blockState, result) -> {
@@ -794,7 +770,7 @@ public final class InteractUtils {
 
         registerEntityInteraction(EntityTypeKeys.SHEEP, (player, entity, item) -> {
             Key id = item.vanillaId();
-            if (entity instanceof Sheep sheep && sheep.readyToBeSheared() && id.in(ItemKeys.DYES)) {
+            if (entity instanceof Sheep sheep && sheep.readyToBeSheared() && ArrayUtils.contains(ItemKeys.DYES, item)) {
                 DyeColor sheepColor = sheep.getColor();
                 if (sheepColor != null) {
                     String color = sheepColor.name().toLowerCase();
@@ -820,12 +796,17 @@ public final class InteractUtils {
         });
 
         registerEntityInteraction(EntityTypeKeys.CREEPER, (player, entity, item) -> {
-            Key id = item.vanillaId();
-            return canBeFeed(entity, item) || ItemKeys.FLINT_AND_STEEL.equals(id);
+            Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
+            if (behaviors.isPresent()) {
+                for (ItemBehavior behavior : behaviors.get()) {
+                    if (behavior instanceof FlintAndSteelItemBehavior) return true;
+                }
+            }
+            return false;
         });
         registerEntityInteraction(EntityTypeKeys.PIGLIN, (player, entity, item) -> {
             Key id = item.vanillaId();
-            return canBeFeed(entity, item) || ItemKeys.GOLD_INGOT.equals(id);
+            return ItemKeys.GOLD_INGOT.equals(id);
         });
         registerEntityInteraction(EntityTypeKeys.ARMADILLO, (player, entity, item) -> {
             Key id = item.vanillaId();
@@ -954,13 +935,6 @@ public final class InteractUtils {
         }
     }
 
-    private static void registerSneakBypass(Key key, QuadFunction<org.bukkit.entity.Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean> function) {
-        var previous = SNEAK_BYPASS.put(key, function);
-        if (previous != null) {
-            CraftEngine.instance().logger().warn("Duplicated interaction check: " + key);
-        }
-    }
-
     private static void registerWillConsume(Key key, QuadFunction<org.bukkit.entity.Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean> function) {
         var previous = WILL_CONSUME.put(key, function);
         if (previous != null) {
@@ -979,14 +953,6 @@ public final class InteractUtils {
         Key blockType = BlockStateUtils.getBlockOwnerIdFromData(state);
         if (INTERACTIONS.containsKey(blockType)) {
             return INTERACTIONS.get(blockType).apply(player, item, state, hit);
-        }
-        return false;
-    }
-
-    public static boolean isIgnoreSneaking(Player player, BlockData state, BlockHitResult hit, @Nullable Item<ItemStack> item) {
-        Key blockType = BlockStateUtils.getBlockOwnerIdFromData(state);
-        if (SNEAK_BYPASS.containsKey(blockType)) {
-            return SNEAK_BYPASS.get(blockType).apply(player, item, state, hit);
         }
         return false;
     }

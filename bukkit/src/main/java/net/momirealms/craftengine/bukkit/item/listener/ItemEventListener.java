@@ -257,7 +257,7 @@ public class ItemEventListener implements Listener {
                         // so we should check and resend sounds on BlockPlaceEvent
                         BlockData craftBlockData = BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().literalObject());
                         if (InteractUtils.isInteractable(player, craftBlockData, hitResult, itemInHand)) {
-                            if (!serverPlayer.isSecondaryUseActive() || InteractUtils.isIgnoreSneaking(player, craftBlockData, hitResult, itemInHand)) {
+                            if (!serverPlayer.isSecondaryUseActive()) {
                                 serverPlayer.setResendSound();
                             }
                         } else {
@@ -276,7 +276,7 @@ public class ItemEventListener implements Listener {
                         return;
                     } else {
                         // todo 实际上这里的处理并不正确，因为判断玩家是否能够放置那个方块需要更加细节的判断。比如玩家无法对着树叶放置火把，但是交互事件依然触发，此情况下不可丢弃自定义行为。
-                        if ((serverPlayer.isSecondaryUseActive() && InteractUtils.isIgnoreSneaking(player, blockData, hitResult, itemInHand)) || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
+                        if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
                             event.setCancelled(true);
                         }
                     }
@@ -290,10 +290,9 @@ public class ItemEventListener implements Listener {
             if (optionalItemBehaviors.isPresent()) {
                 // 检测是否可交互应当只判断原版方块，因为自定义方块早就判断过了，如果可交互不可能到这一步
                 boolean interactable = immutableBlockState == null && InteractUtils.isInteractable(player, blockData, hitResult, itemInHand);
-                boolean isIgnoreSneaking = InteractUtils.isIgnoreSneaking(player, blockData, hitResult, itemInHand);
                 // 如果方块可交互但是玩家没shift，那么原版的方块交互优先，取消自定义物品的behavior
                 // todo 如果我的物品行为允许某些交互呢？是否值得进一步处理？
-                if ((!serverPlayer.isSecondaryUseActive() || isIgnoreSneaking) && interactable) {
+                if (!serverPlayer.isSecondaryUseActive() && interactable) {
                     return;
                 }
                 UseOnContext useOnContext = new UseOnContext(serverPlayer, hand, itemInHand, hitResult);
@@ -316,7 +315,7 @@ public class ItemEventListener implements Listener {
             // 执行物品右键事件
             if (hasCustomItem) {
                 // 要求服务端侧这个方块不可交互，或玩家处于潜行状态
-                if ((serverPlayer.isSecondaryUseActive() && !InteractUtils.isIgnoreSneaking(player, blockData, hitResult, itemInHand)) || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
+                if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
                     Cancellable dummy = Cancellable.dummy();
                     PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                             .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))

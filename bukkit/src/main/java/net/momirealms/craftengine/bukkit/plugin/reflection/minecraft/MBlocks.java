@@ -10,6 +10,8 @@ public final class MBlocks {
     public static final Object AIR$defaultState;
     public static final Object STONE;
     public static final Object STONE$defaultState;
+    public static final Object BEDROCK;
+    public static final Object OBSIDIAN;
     public static final Object FIRE;
     public static final Object SOUL_FIRE;
     public static final Object ICE;
@@ -22,6 +24,8 @@ public final class MBlocks {
     public static final Object WATER$defaultState;
     public static final Object TNT;
     public static final Object TNT$defaultState;
+    public static final Object LODESTONE;
+    public static final Object END_PORTAL_FRAME;
 
     private static Object getById(String id) {
         Object rl = FastNMS.INSTANCE.method$ResourceLocation$fromNamespaceAndPath("minecraft", id);
@@ -35,6 +39,8 @@ public final class MBlocks {
         SOUL_FIRE = getById("soul_fire");
         STONE = getById("stone");
         STONE$defaultState = FastNMS.INSTANCE.method$Block$defaultState(STONE);
+        BEDROCK = getById("bedrock");
+        OBSIDIAN = getById("obsidian");
         ICE = getById("ice");
         SHORT_GRASS = getById(VersionHelper.isOrAbove1_20_3() ? "short_grass" : "grass");
         SHORT_GRASS$defaultState = FastNMS.INSTANCE.method$Block$defaultState(SHORT_GRASS);
@@ -45,5 +51,7 @@ public final class MBlocks {
         WATER$defaultState = FastNMS.INSTANCE.method$Block$defaultState(WATER);
         TNT = getById("tnt");
         TNT$defaultState = FastNMS.INSTANCE.method$Block$defaultState(TNT);
+        LODESTONE = getById("lodestone");
+        END_PORTAL_FRAME = getById("end_portal_frame");
     }
 }
