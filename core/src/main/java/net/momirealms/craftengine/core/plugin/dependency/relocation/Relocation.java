@@ -6,7 +6,7 @@ public final class Relocation {
     private static final String RELOCATION_PREFIX = "net.momirealms.craftengine.libraries.";
 
     public static Relocation of(String id, String pattern) {
-        return new Relocation(pattern.replace("{}", "."), RELOCATION_PREFIX + id);
+        return new Relocation(pattern.replace("{}", "."), RELOCATION_PREFIX + id.replace("{}", "."));
     }
 
     private final String pattern;

@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.scanner.ScannerException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -125,6 +126,7 @@ public abstract class AbstractPackManager implements PackManager {
 
         loadInternalList("textures", "", VANILLA_TEXTURES::add);
         VANILLA_MODELS.add(Key.of("minecraft", "builtin/entity"));
+        VANILLA_MODELS.add(Key.of("minecraft", "item/player_head"));
         for (int i = 0; i < 256; i++) {
             VANILLA_TEXTURES.add(Key.of("minecraft", "font/unicode_page_" + String.format("%02x", i)));
         }
@@ -541,6 +543,19 @@ public abstract class AbstractPackManager implements PackManager {
                                     AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
                                 } catch (IOException e) {
                                     AbstractPackManager.this.plugin.logger().severe("Error while reading config file: " + path, e);
+                                    return FileVisitResult.CONTINUE;
+                                } catch (ScannerException e) {
+                                    if (e.getMessage() != null && e.getMessage().contains("TAB") && e.getMessage().contains("indentation")) {
+                                        try {
+                                            String content = Files.readString(path);
+                                            content = content.replace("\t", "    ");
+                                            Files.writeString(path, content);
+                                        } catch (Exception ex) {
+                                            AbstractPackManager.this.plugin.logger().severe("Failed to fix tab indentation in config file: " + path, ex);
+                                        }
+                                    } else {
+                                        AbstractPackManager.this.plugin.logger().severe("Error found while reading config file: " + path, e);
+                                    }
                                     return FileVisitResult.CONTINUE;
                                 } catch (LocalizedException e) {
                                     e.setArgument(0, path.toString());

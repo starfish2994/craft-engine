@@ -1,10 +1,7 @@
 package net.momirealms.craftengine.bukkit.compatibility;
 
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.bukkit.compatibility.item.CustomFishingSource;
-import net.momirealms.craftengine.bukkit.compatibility.item.MMOItemsSource;
-import net.momirealms.craftengine.bukkit.compatibility.item.MythicMobsSource;
-import net.momirealms.craftengine.bukkit.compatibility.item.NeigeItemsSource;
+import net.momirealms.craftengine.bukkit.compatibility.item.*;
 import net.momirealms.craftengine.bukkit.compatibility.legacy.slimeworld.LegacySlimeFormatStorageAdaptor;
 import net.momirealms.craftengine.bukkit.compatibility.leveler.*;
 import net.momirealms.craftengine.bukkit.compatibility.model.bettermodel.BetterModelModel;
@@ -14,6 +11,7 @@ import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicItemDrop
 import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicSkillHelper;
 import net.momirealms.craftengine.bukkit.compatibility.papi.PlaceholderAPIUtils;
 import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsEventListeners;
+import net.momirealms.craftengine.bukkit.compatibility.region.WorldGuardRegionCondition;
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
 import net.momirealms.craftengine.bukkit.compatibility.viaversion.ViaVersionUtils;
@@ -23,9 +21,12 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.loot.LootConditions;
 import net.momirealms.craftengine.core.plugin.compatibility.CompatibilityManager;
 import net.momirealms.craftengine.core.plugin.compatibility.LevelerProvider;
 import net.momirealms.craftengine.core.plugin.compatibility.ModelProvider;
+import net.momirealms.craftengine.core.plugin.context.condition.AlwaysFalseCondition;
+import net.momirealms.craftengine.core.plugin.context.event.EventConditions;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldManager;
@@ -119,6 +120,15 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
             BukkitItemManager.instance().registerExternalItemSource(new MythicMobsSource());
             new MythicItemDropListener(this.plugin);
             logHook("MythicMobs");
+        }
+        Key worldGuardRegion = Key.of("worldguard:region");
+        if (this.isPluginEnabled("WorldGuard")) {
+            EventConditions.register(worldGuardRegion, new WorldGuardRegionCondition.FactoryImpl<>());
+            LootConditions.register(worldGuardRegion, new WorldGuardRegionCondition.FactoryImpl<>());
+            logHook("WorldGuard");
+        } else {
+            EventConditions.register(worldGuardRegion, new AlwaysFalseCondition.FactoryImpl<>());
+            LootConditions.register(worldGuardRegion, new AlwaysFalseCondition.FactoryImpl<>());
         }
     }
 
@@ -248,6 +258,10 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.isPluginEnabled("CustomFishing")) {
             itemManager.registerExternalItemSource(new CustomFishingSource());
             logHook("CustomFishing");
+        }
+        if (this.isPluginEnabled("Zaphkiel")) {
+            itemManager.registerExternalItemSource(new ZaphkielSource());
+            logHook("Zaphkiel");
         }
     }
 

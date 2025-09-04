@@ -9,7 +9,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflect
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.bukkit.world.BukkitBlockInWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -82,7 +82,7 @@ public final class BlockEventListener implements Listener {
                         try {
                             Object soundType = CoreReflections.field$BlockBehaviour$soundType.get(ownerBlock);
                             Object placeSound = CoreReflections.field$SoundType$placeSound.get(soundType);
-                            player.playSound(block.getLocation(), FastNMS.INSTANCE.field$SoundEvent$location(placeSound).toString(), SoundCategory.BLOCKS, 1f, 0.8f);
+                            player.playSound(block.getLocation().add(0.5, 0.5, 0.5), FastNMS.INSTANCE.field$SoundEvent$location(placeSound).toString(), SoundCategory.BLOCKS, 1f, 0.8f);
                         } catch (ReflectiveOperationException e) {
                             this.plugin.logger().warn("Failed to get sound type", e);
                         }
@@ -99,7 +99,7 @@ public final class BlockEventListener implements Listener {
                 Object ownerBlock = BlockStateUtils.getBlockOwner(blockState);
                 Object soundType = CoreReflections.field$BlockBehaviour$soundType.get(ownerBlock);
                 Object placeSound = CoreReflections.field$SoundType$placeSound.get(soundType);
-                player.playSound(block.getLocation(), FastNMS.INSTANCE.field$SoundEvent$location(placeSound).toString(), SoundCategory.BLOCKS, 1f, 0.8f);
+                player.playSound(block.getLocation().add(0.5, 0.5, 0.5), FastNMS.INSTANCE.field$SoundEvent$location(placeSound).toString(), SoundCategory.BLOCKS, 1f, 0.8f);
             } catch (ReflectiveOperationException e) {
                 this.plugin.logger().warn("Failed to get sound type", e);
             }
@@ -124,7 +124,7 @@ public final class BlockEventListener implements Listener {
                 Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
                 optionalCustomItem.get().execute(
                         PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
-                            .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(block))
+                            .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                             .withParameter(DirectContextParameters.POSITION, position)
                             .withParameter(DirectContextParameters.PLAYER, serverPlayer)
                             .withParameter(DirectContextParameters.EVENT, cancellable)
@@ -156,7 +156,7 @@ public final class BlockEventListener implements Listener {
                 // execute functions
                 Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
                 PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
-                        .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(block))
+                        .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                         .withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, state)
                         .withParameter(DirectContextParameters.EVENT, cancellable)
                         .withParameter(DirectContextParameters.POSITION, position)
@@ -174,12 +174,15 @@ public final class BlockEventListener implements Listener {
             // override vanilla block loots
             if (player.getGameMode() != GameMode.CREATIVE) {
                 this.plugin.vanillaLootManager().getBlockLoot(stateId).ifPresent(it -> {
+                    if (!event.isDropItems()) {
+                        return;
+                    }
                     if (it.override()) {
                         event.setDropItems(false);
                         event.setExpToDrop(0);
                     }
                     ContextHolder lootContext = ContextHolder.builder()
-                            .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(block))
+                            .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                             .withParameter(DirectContextParameters.POSITION, position)
                             .withParameter(DirectContextParameters.PLAYER, serverPlayer)
                             .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand).build();
@@ -198,7 +201,7 @@ public final class BlockEventListener implements Listener {
                     try {
                         Object soundType = CoreReflections.field$BlockBehaviour$soundType.get(ownerBlock);
                         Object breakSound = CoreReflections.field$SoundType$breakSound.get(soundType);
-                        block.getWorld().playSound(block.getLocation(), FastNMS.INSTANCE.field$SoundEvent$location(breakSound).toString(), SoundCategory.BLOCKS, 1f, 0.8f);
+                        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), FastNMS.INSTANCE.field$SoundEvent$location(breakSound).toString(), SoundCategory.BLOCKS, 1f, 0.8f);
                     } catch (ReflectiveOperationException e) {
                         this.plugin.logger().warn("Failed to get sound type", e);
                     }
@@ -224,7 +227,7 @@ public final class BlockEventListener implements Listener {
                 WorldPosition position = new WorldPosition(world, location.getBlockX() + 0.5, location.getBlockY() + 0.5, location.getBlockZ() + 0.5);
                 ContextHolder.Builder builder = ContextHolder.builder()
                         .withParameter(DirectContextParameters.POSITION, position)
-                        .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(block));
+                        .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block));
                 for (LootTable<?> lootTable : it.lootTables()) {
                     for (Item<?> item : lootTable.getRandomItems(builder.build(), world, null)) {
                         world.dropItemNaturally(position, item);
@@ -250,7 +253,7 @@ public final class BlockEventListener implements Listener {
             state.owner().value().execute(PlayerOptionalContext.of(BukkitAdaptors.adapt(player), ContextHolder.builder()
                     .withParameter(DirectContextParameters.EVENT, cancellable)
                     .withParameter(DirectContextParameters.POSITION, new WorldPosition(new BukkitWorld(event.getWorld()), LocationUtils.toVec3d(location)))
-                    .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(block))
+                    .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                     .withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, state)
             ), EventTrigger.STEP);
             if (cancellable.isCancelled()) {

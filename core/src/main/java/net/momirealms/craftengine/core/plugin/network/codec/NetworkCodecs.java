@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.plugin.network.payload;
+package net.momirealms.craftengine.core.plugin.network.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -21,9 +21,9 @@ import java.util.OptionalInt;
 /**
  * 随便写了点方便后面重构和客户端通讯
  */
-public interface NetWorkCodecs {
+public interface NetworkCodecs {
 
-    NetWorkCodec<Boolean> BOOLEAN = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Boolean> BOOLEAN = new NetworkCodec<>() {
         @Override
         public Boolean decode(ByteBuf in) {
             return in.readBoolean();
@@ -35,7 +35,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Byte> BYTE = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Byte> BYTE = new NetworkCodec<>() {
         @Override
         public Byte decode(ByteBuf in) {
             return in.readByte();
@@ -47,9 +47,9 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Float> ROTATION_BYTE = BYTE.map(MCUtils::unpackDegrees, MCUtils::packDegrees);
+    NetworkCodec<ByteBuf, Float> ROTATION_BYTE = BYTE.map(MCUtils::unpackDegrees, MCUtils::packDegrees);
 
-    NetWorkCodec<Short> SHORT = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Short> SHORT = new NetworkCodec<>() {
         @Override
         public Short decode(ByteBuf in) {
             return in.readShort();
@@ -61,7 +61,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Integer> UNSIGNED_SHORT = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Integer> UNSIGNED_SHORT = new NetworkCodec<>() {
         @Override
         public Integer decode(ByteBuf in) {
             return in.readUnsignedShort();
@@ -73,7 +73,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Integer> INTEGER = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Integer> INTEGER = new NetworkCodec<>() {
         @Override
         public Integer decode(ByteBuf in) {
             return in.readInt();
@@ -85,7 +85,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Integer> VAR_INTEGER = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Integer> VAR_INTEGER = new NetworkCodec<>() {
         @Override
         public Integer decode(ByteBuf in) {
             int result = 0;
@@ -111,12 +111,12 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<OptionalInt> OPTIONAL_VAR_INTEGER = VAR_INTEGER.map(
+    NetworkCodec<ByteBuf, OptionalInt> OPTIONAL_VAR_INTEGER = VAR_INTEGER.map(
             integer -> integer == 0 ? OptionalInt.empty() : OptionalInt.of(integer - 1),
             optionalInt -> optionalInt.isPresent() ? optionalInt.getAsInt() + 1 : 0
     );
 
-    NetWorkCodec<Long> LONG = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Long> LONG = new NetworkCodec<>() {
         @Override
         public Long decode(ByteBuf in) {
             return in.readLong();
@@ -128,7 +128,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Long> VAR_LONG = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Long> VAR_LONG = new NetworkCodec<>() {
         @Override
         public Long decode(ByteBuf in) {
             long result = 0L;
@@ -154,7 +154,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Float> FLOAT = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Float> FLOAT = new NetworkCodec<>() {
         @Override
         public Float decode(ByteBuf in) {
             return in.readFloat();
@@ -166,7 +166,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Double> DOUBLE = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Double> DOUBLE = new NetworkCodec<>() {
         @Override
         public Double decode(ByteBuf in) {
             return in.readDouble();
@@ -178,7 +178,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<byte[]> BYTE_ARRAY = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, byte[]> BYTE_ARRAY = new NetworkCodec<>() {
         @Override
         public byte[] decode(ByteBuf in) {
             int maxSize = in.readableBytes();
@@ -199,7 +199,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<long[]> LONG_ARRAY = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, long[]> LONG_ARRAY = new NetworkCodec<>() {
         @Override
         public long[] decode(ByteBuf in) {
             int arrayLength = VAR_INTEGER.decode(in);
@@ -224,7 +224,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<String> STRING_UTF8 = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, String> STRING_UTF8 = new NetworkCodec<>() {
         private static final int MAX_STRING_LENGTH = 32767;
 
         @Override
@@ -273,7 +273,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Tag> TAG = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Tag> TAG = new NetworkCodec<>() {
         @Override
         public Tag decode(ByteBuf in) {
             int initialIndex = in.readerIndex();
@@ -304,7 +304,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<CompoundTag> COMPOUND_TAG = TAG.map(tag -> {
+    NetworkCodec<ByteBuf, CompoundTag> COMPOUND_TAG = TAG.map(tag -> {
         if (tag instanceof CompoundTag compoundTag) {
             return compoundTag;
         } else {
@@ -312,7 +312,7 @@ public interface NetWorkCodecs {
         }
     }, tag -> tag);
 
-    NetWorkCodec<Optional<CompoundTag>> OPTIONAL_COMPOUND_TAG = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Optional<CompoundTag>> OPTIONAL_COMPOUND_TAG = new NetworkCodec<>() {
         @Override
         public Optional<CompoundTag> decode(ByteBuf in) {
             int initialIndex = in.readerIndex();
@@ -347,7 +347,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Vector3f> VECTOR3F = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Vector3f> VECTOR3F = new NetworkCodec<>() {
         @Override
         public Vector3f decode(ByteBuf in) {
             return new Vector3f(in.readFloat(), in.readFloat(), in.readFloat());
@@ -361,7 +361,7 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Quaternionf> QUATERNIONF = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Quaternionf> QUATERNIONF = new NetworkCodec<>() {
         @Override
         public Quaternionf decode(ByteBuf in) {
             return new Quaternionf(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
@@ -376,9 +376,9 @@ public interface NetWorkCodecs {
         }
     };
 
-    NetWorkCodec<Integer> CONTAINER_ID = VAR_INTEGER;
+    NetworkCodec<ByteBuf, Integer> CONTAINER_ID = VAR_INTEGER;
 
-    NetWorkCodec<Integer> RGB_COLOR = new NetWorkCodec<>() {
+    NetworkCodec<ByteBuf, Integer> RGB_COLOR = new NetworkCodec<>() {
         @Override
         public Integer decode(ByteBuf in) {
             return 255 << 24 | in.readByte() & 0xFF << 16 | in.readByte() & 0xFF << 8 | in.readByte() & 0xFF;

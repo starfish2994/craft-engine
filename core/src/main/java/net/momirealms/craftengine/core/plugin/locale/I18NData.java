@@ -92,7 +92,7 @@ public class I18NData {
     }
 
     private static String stateToRealBlockId(ImmutableBlockState state) {
-        String id = state.customBlockState().handle().toString();
+        String id = state.customBlockState().literalObject().toString();
         int first = -1, last = -1;
         for (int i = 0; i < id.length(); i++) {
             char c = id.charAt(i);

@@ -47,7 +47,7 @@ public final class ParticleUtils {
 
     public static Object toBukkitParticleData(ParticleData particleData, Context context, World world, double x, double y, double z) {
         return switch (particleData) {
-            case BlockStateData data -> BlockStateUtils.fromBlockData(data.blockState().handle());
+            case BlockStateData data -> BlockStateUtils.fromBlockData(data.blockState().literalObject());
             case ColorData data -> ColorUtils.toBukkit(data.color());
             case DustData data -> new Particle.DustOptions(ColorUtils.toBukkit(data.color()), data.size());
             case DustTransitionData data -> new Particle.DustTransition(ColorUtils.toBukkit(data.from()), ColorUtils.toBukkit(data.to()), data.size());

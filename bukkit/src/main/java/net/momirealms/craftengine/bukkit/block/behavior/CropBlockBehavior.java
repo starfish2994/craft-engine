@@ -94,7 +94,7 @@ public class CropBlockBehavior extends BukkitBlockBehavior {
             BlockStateUtils.getOptionalCustomBlockState(state).ifPresent(customState -> {
                 int age = this.getAge(customState);
                 if (age < this.ageProperty.max && RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
-                    FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, customState.with(this.ageProperty, age + 1).customBlockState().handle(), UpdateOption.UPDATE_ALL.flags());
+                    FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, customState.with(this.ageProperty, age + 1).customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
                 }
             });
         }
@@ -133,7 +133,7 @@ public class CropBlockBehavior extends BukkitBlockBehavior {
         if (isMaxAge(state))
             return InteractionResult.PASS;
         boolean sendSwing = false;
-        Object visualState = state.vanillaBlockState().handle();
+        Object visualState = state.vanillaBlockState().literalObject();
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (CoreReflections.clazz$BonemealableBlock.isInstance(visualStateBlock)) {
             boolean is = FastNMS.INSTANCE.method$BonemealableBlock$isValidBonemealTarget(visualStateBlock, context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()), visualState);
@@ -156,7 +156,7 @@ public class CropBlockBehavior extends BukkitBlockBehavior {
         }
         ImmutableBlockState customState = optionalCustomState.get();
         boolean sendParticles = false;
-        Object visualState = customState.vanillaBlockState().handle();
+        Object visualState = customState.vanillaBlockState().literalObject();
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (CoreReflections.clazz$BonemealableBlock.isInstance(visualStateBlock)) {
             boolean is = FastNMS.INSTANCE.method$BonemealableBlock$isValidBonemealTarget(visualStateBlock, level, pos, visualState);
@@ -180,7 +180,7 @@ public class CropBlockBehavior extends BukkitBlockBehavior {
         if (i > maxAge) {
             i = maxAge;
         }
-        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, customState.with(this.ageProperty, i).customBlockState().handle(), UpdateOption.UPDATE_ALL.flags());
+        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, customState.with(this.ageProperty, i).customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
         if (sendParticles) {
             world.spawnParticle(ParticleUtils.HAPPY_VILLAGER, x + 0.5, y + 0.5, z + 0.5, 15, 0.25, 0.25, 0.25);
         }

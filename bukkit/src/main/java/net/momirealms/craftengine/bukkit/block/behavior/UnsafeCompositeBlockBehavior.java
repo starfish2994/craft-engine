@@ -4,9 +4,11 @@ import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.AbstractBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.item.context.UseOnContext;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,22 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior {
             }
         }
         return Optional.empty();
+    }
+
+    @Nullable
+    @Override
+    public EntityBlockBehavior getEntityBehavior() {
+        EntityBlockBehavior target = null;
+        for (AbstractBlockBehavior behavior : this.behaviors) {
+            if (behavior instanceof EntityBlockBehavior entityBehavior) {
+                if (target == null) {
+                    target = entityBehavior;
+                } else {
+                    throw new IllegalArgumentException("Multiple entity block behaviors are not allowed");
+                }
+            }
+        }
+        return target;
     }
 
     @Override
@@ -72,6 +90,18 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior {
             }
         }
         return previous;
+    }
+
+
+    @Override
+    public Object getContainer(Object thisBlock, Object[] args) throws Exception {
+        for (AbstractBlockBehavior behavior : this.behaviors) {
+            Object container = behavior.getContainer(thisBlock, args);
+            if (container != null) {
+                return container;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -262,6 +292,30 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean hasAnalogOutputSignal(Object thisBlock, Object[] args) throws Exception {
+        for (AbstractBlockBehavior behavior : this.behaviors) {
+            if (behavior.hasAnalogOutputSignal(thisBlock, args)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int getAnalogOutputSignal(Object thisBlock, Object[] args) throws Exception {
+        int signal = 0;
+        int count = 0;
+        for (AbstractBlockBehavior behavior : this.behaviors) {
+            int s = behavior.getAnalogOutputSignal(thisBlock, args);
+            if (s != 0) {
+                signal += s;
+                count++;
+            }
+        }
+        return count == 0 ? 0 : signal / count;
     }
 
     @Override

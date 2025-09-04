@@ -47,6 +47,6 @@ public final class DefaultChunkSerializer {
             }
         }
         ListTag blockEntities = Optional.ofNullable(chunkNbt.getList("block_entities")).orElse(new ListTag());
-        return new CEChunk(world, pos, sectionArray, DefaultBlockEntitySerializer.deserialize(blockEntities));
+        return new CEChunk(world, pos, sectionArray, blockEntities);
     }
 }

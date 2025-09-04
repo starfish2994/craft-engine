@@ -126,7 +126,7 @@ public final class CraftEngineBlocks {
         boolean success;
         Object worldServer = FastNMS.INSTANCE.field$CraftWorld$ServerLevel(location.getWorld());
         Object blockPos = FastNMS.INSTANCE.constructor$BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        Object blockState = block.customBlockState().handle();
+        Object blockState = block.customBlockState().literalObject();
         Object oldBlockState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(worldServer, blockPos);
         success = FastNMS.INSTANCE.method$LevelWriter$setBlock(worldServer, blockPos, blockState, option.flags());
         if (success) {
@@ -249,6 +249,6 @@ public final class CraftEngineBlocks {
      */
     @NotNull
     public static BlockData getBukkitBlockData(@NotNull ImmutableBlockState blockState) {
-        return BlockStateUtils.fromBlockData(blockState.customBlockState().handle());
+        return BlockStateUtils.fromBlockData(blockState.customBlockState().literalObject());
     }
 }

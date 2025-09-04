@@ -7,18 +7,25 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MFluids;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
+import net.momirealms.craftengine.core.block.BlockRegistryMirror;
+import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.state.StatePropertyAccessor;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
-import net.momirealms.craftengine.core.world.BlockInWorld;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.world.ExistingBlock;
 import net.momirealms.craftengine.core.world.World;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.jetbrains.annotations.NotNull;
 
-public class BukkitBlockInWorld implements BlockInWorld {
+import java.util.Optional;
+
+public class BukkitExistingBlock implements ExistingBlock {
     private final Block block;
 
-    public BukkitBlockInWorld(Block block) {
+    public BukkitExistingBlock(Block block) {
         this.block = block;
     }
 
@@ -45,6 +52,22 @@ public class BukkitBlockInWorld implements BlockInWorld {
     }
 
     @Override
+    public @NotNull StatePropertyAccessor createStatePropertyAccessor() {
+        return FastNMS.INSTANCE.createStatePropertyAccessor(BlockStateUtils.getBlockState(this.block));
+    }
+
+    @Override
+    public boolean isCustom() {
+        return CraftEngineBlocks.isCustomBlock(this.block);
+    }
+
+    @Override
+    public @NotNull BlockStateWrapper blockState() {
+        Object blockState = BlockStateUtils.getBlockState(this.block);
+        return BlockRegistryMirror.stateByRegistryId(BlockStateUtils.blockStateToId(blockState));
+    }
+
+    @Override
     public int x() {
         return this.block.getX();
     }
@@ -57,6 +80,16 @@ public class BukkitBlockInWorld implements BlockInWorld {
     @Override
     public int z() {
         return this.block.getZ();
+    }
+
+    @Override
+    public Key id() {
+        Object blockState = BlockStateUtils.getBlockState(this.block);
+        Optional<ImmutableBlockState> optionalCustomBlockState = BlockStateUtils.getOptionalCustomBlockState(blockState);
+        if (optionalCustomBlockState.isPresent()) {
+            return optionalCustomBlockState.get().owner().value().id();
+        }
+        return BlockStateUtils.getBlockOwnerIdFromState(blockState);
     }
 
     @Override

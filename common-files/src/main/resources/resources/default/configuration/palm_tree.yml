@@ -643,6 +643,17 @@ recipes:
     result:
       id: default:palm_trapdoor
       count: 2
+  default:palm_door:
+    type: shaped
+    pattern:
+      - AA
+      - AA
+      - AA
+    ingredients:
+      A: default:palm_planks
+    result:
+      id: default:palm_door
+      count: 3
   default:palm_fence_gate:
     type: shaped
     pattern:

@@ -113,7 +113,7 @@ public class FenceGateBlockBehavior extends BukkitBlockBehavior {
         if (relativeStateIsWall) {
             // TODO: 连接原版方块
         }
-        return customState.with(this.inWallProperty, flag).customBlockState().handle();
+        return customState.with(this.inWallProperty, flag).customBlockState().literalObject();
     }
 
     @Override
@@ -148,7 +148,7 @@ public class FenceGateBlockBehavior extends BukkitBlockBehavior {
     private void playerToggle(UseOnContext context, ImmutableBlockState state) {
         Player player = context.getPlayer();
         this.toggle(state, context.getLevel(), context.getClickedPos(), player);
-        if (!InteractUtils.isInteractable((org.bukkit.entity.Player) player.platformPlayer(), BlockStateUtils.fromBlockData(state.vanillaBlockState().handle()), context.getHitResult(), (Item<ItemStack>) context.getItem())) {
+        if (!InteractUtils.isInteractable((org.bukkit.entity.Player) player.platformPlayer(), BlockStateUtils.fromBlockData(state.vanillaBlockState().literalObject()), context.getHitResult(), (Item<ItemStack>) context.getItem())) {
             player.swingHand(context.getHand());
         }
     }
@@ -223,7 +223,7 @@ public class FenceGateBlockBehavior extends BukkitBlockBehavior {
             this.playSound(LocationUtils.fromBlockPos(blockPos), world, hasSignal);
         }
 
-        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, customState.with(this.poweredProperty, hasSignal).customBlockState().handle(), UpdateOption.Flags.UPDATE_CLIENTS);
+        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, customState.with(this.poweredProperty, hasSignal).customBlockState().literalObject(), UpdateOption.Flags.UPDATE_CLIENTS);
     }
 
     private void toggle(ImmutableBlockState state, World world, BlockPos pos, @Nullable Player player) {
@@ -240,7 +240,7 @@ public class FenceGateBlockBehavior extends BukkitBlockBehavior {
             }
             newState = blockState.with(this.openProperty, true);
         }
-        FastNMS.INSTANCE.method$LevelWriter$setBlock(world.serverWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().handle(), UpdateOption.UPDATE_ALL.flags());
+        FastNMS.INSTANCE.method$LevelWriter$setBlock(world.serverWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
         boolean open = isOpen(newState);
         ((org.bukkit.World) world.platformWorld()).sendGameEvent(
                 player != null ? (org.bukkit.entity.Player) player.platformPlayer() : null,

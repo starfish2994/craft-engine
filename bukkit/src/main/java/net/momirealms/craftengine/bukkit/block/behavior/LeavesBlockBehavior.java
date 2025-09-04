@@ -86,10 +86,10 @@ public class LeavesBlockBehavior extends BukkitBlockBehavior {
                 LeavesBlockBehavior behavior = optionalBehavior.get();
                 ImmutableBlockState newState = behavior.updateDistance(customState, level, blockPos);
                 if (newState != customState) {
-                    if (blockState == newState.customBlockState().handle()) {
+                    if (blockState == newState.customBlockState().literalObject()) {
                         CoreReflections.method$BlockStateBase$updateNeighbourShapes.invoke(blockState, level, blockPos, UpdateOption.UPDATE_ALL.flags(), 512);
                     } else {
-                        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, newState.customBlockState().handle(), UpdateOption.UPDATE_ALL.flags());
+                        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, newState.customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
                     }
                 }
             }

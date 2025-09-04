@@ -33,7 +33,7 @@ public class ParticleFunction<CTX extends Context> extends AbstractConditionalFu
                             final String blockState = ResourceConfigUtils.requireNonEmptyStringOrThrow(map.get("block-state"), "warning.config.function.particle.missing_block_state");
                             @Override
                             public BlockStateWrapper get() {
-                                return CraftEngine.instance().blockManager().createPackedBlockState(this.blockState);
+                                return CraftEngine.instance().blockManager().createBlockState(this.blockState);
                             }
                         })),
                 ParticleTypes.BLOCK, ParticleTypes.FALLING_DUST, ParticleTypes.DUST_PILLAR, ParticleTypes.BLOCK_CRUMBLE, ParticleTypes.BLOCK_MARKER);

@@ -35,7 +35,9 @@ public interface Plugin {
 
     PluginLogger logger();
 
-    ClassPathAppender classPathAppender();
+    ClassPathAppender sharedClassPathAppender();
+
+    ClassPathAppender privateClassPathAppender();
 
     File dataFolderFile();
 

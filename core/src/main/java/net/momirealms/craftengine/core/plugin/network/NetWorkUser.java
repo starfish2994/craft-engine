@@ -4,10 +4,13 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.plugin.Plugin;
+import net.momirealms.craftengine.core.util.IntIdentityList;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.world.chunk.ChunkStatus;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,6 +40,10 @@ public interface NetWorkUser {
     void sendPacket(Object packet, boolean immediately);
 
     void sendPacket(Object packet, boolean immediately, Runnable sendListener);
+
+    void sendPackets(List<Object> packet, boolean immediately);
+
+    void sendPackets(List<Object> packet, boolean immediately, Runnable sendListener);
 
     void sendCustomPayload(Key channel, byte[] data);
 
@@ -71,4 +78,18 @@ public interface NetWorkUser {
     void setShouldProcessFinishConfiguration(boolean shouldProcess);
 
     boolean shouldProcessFinishConfiguration();
+
+    boolean isChunkTracked(long chunkPos);
+
+    ChunkStatus getTrackedChunk(long chunkPos);
+
+    void addTrackedChunk(long chunkPos, ChunkStatus chunkStatus);
+
+    void clearTrackedChunks();
+
+    void removeTrackedChunk(long chunkPos);
+
+    IntIdentityList clientBlockList();
+
+    void setClientBlockList(IntIdentityList integers);
 }

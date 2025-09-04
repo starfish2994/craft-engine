@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.MCUtils;
 
 public class BlockPos extends Vec3i {
+    public static final BlockPos ZERO = new BlockPos(0, 0, 0);
 
     public BlockPos(int x, int y, int z) {
         super(x, y, z);

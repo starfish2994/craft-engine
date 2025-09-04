@@ -1,14 +1,20 @@
 package net.momirealms.craftengine.core.item.recipe;
 
+import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.util.Key;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class CustomCraftingTableRecipe<T> extends AbstractGroupedRecipe<T> {
     protected final CraftingRecipeCategory category;
+    private final CustomRecipeResult<T> visualResult;
 
-    protected CustomCraftingTableRecipe(Key id, boolean showNotification, CustomRecipeResult<T> result, String group, CraftingRecipeCategory category) {
+    protected CustomCraftingTableRecipe(Key id, boolean showNotification, CustomRecipeResult<T> result, @Nullable CustomRecipeResult<T> visualResult, String group, CraftingRecipeCategory category) {
         super(id, showNotification, result, group);
         this.category = category == null ? CraftingRecipeCategory.MISC : category;
+        this.visualResult = visualResult;
     }
 
     public CraftingRecipeCategory category() {
@@ -18,5 +24,29 @@ public abstract class CustomCraftingTableRecipe<T> extends AbstractGroupedRecipe
     @Override
     public RecipeType type() {
         return RecipeType.CRAFTING;
+    }
+
+    public CustomRecipeResult<T> visualResult() {
+        return visualResult;
+    }
+
+    public boolean hasVisualResult() {
+        return visualResult != null;
+    }
+
+    public T assembleVisual(RecipeInput input, ItemBuildContext context) {
+        if (this.visualResult != null) {
+            return this.visualResult.buildItemStack(context);
+        } else {
+            throw new IllegalStateException("No visual result available");
+        }
+    }
+
+    public Item<T> buildVisualOrActualResult(ItemBuildContext context) {
+        if (this.visualResult != null) {
+            return this.visualResult.buildItem(context);
+        } else {
+            return super.result.buildItem(context);
+        }
     }
 }

@@ -181,14 +181,14 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     @Nullable
     @Override
-    public BlockStateWrapper createPackedBlockState(String blockState) {
+    public BlockStateWrapper createBlockState(String blockState) {
         ImmutableBlockState state = BlockStateParser.deserialize(blockState);
         if (state != null) {
             return state.customBlockState();
         }
         try {
             BlockData blockData = Bukkit.createBlockData(blockState);
-            return BlockStateUtils.toPackedBlockState(blockData);
+            return BlockStateUtils.toBlockStateWrapper(blockData);
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -231,7 +231,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     @Override
     public Key getBlockOwnerId(BlockStateWrapper state) {
-        return BlockStateUtils.getBlockOwnerIdFromState(state.handle());
+        return BlockStateUtils.getBlockOwnerIdFromState(state.literalObject());
     }
 
     @Override
@@ -258,9 +258,9 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         int size = RegistryUtils.currentBlockRegistrySize();
         BlockStateWrapper[] states = new BlockStateWrapper[size];
         for (int i = 0; i < size; i++) {
-            states[i] = BlockStateWrapper.create(BlockStateUtils.idToBlockState(i), i, BlockStateUtils.isVanillaBlock(i));
+            states[i] = new BukkitBlockStateWrapper(BlockStateUtils.idToBlockState(i), i);
         }
-        BlockRegistryMirror.init(states, BlockStateWrapper.vanilla(MBlocks.STONE$defaultState, BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)));
+        BlockRegistryMirror.init(states, new BukkitBlockStateWrapper(MBlocks.STONE$defaultState, BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)));
     }
 
     private void registerEmptyBlock() {

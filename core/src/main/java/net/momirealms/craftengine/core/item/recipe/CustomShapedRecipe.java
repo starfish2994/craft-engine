@@ -21,10 +21,11 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
     public CustomShapedRecipe(Key id,
                               boolean showNotification,
                               CustomRecipeResult<T> result,
+                              CustomRecipeResult<T> visualResult,
                               String group,
                               CraftingRecipeCategory category,
                               Pattern<T> pattern) {
-        super(id, showNotification, result, group, category);
+        super(id, showNotification, result, visualResult, group, category);
         this.pattern = pattern;
         this.parsedPattern = pattern.parse();
     }
@@ -165,7 +166,9 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
             }
             return new CustomShapedRecipe(id,
                     showNotification(arguments),
-                    parseResult(arguments), arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
+                    parseResult(arguments),
+                    parseVisualResult(arguments),
+                    arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
                     new Pattern<>(pattern.toArray(new String[0]), ingredients)
             );
         }
@@ -175,7 +178,10 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
             Map<Character, Ingredient<A>> ingredients = Maps.transformValues(VANILLA_RECIPE_HELPER.shapedIngredientMap(json.getAsJsonObject("key")), this::toIngredient);
             return new CustomShapedRecipe<>(id,
                     true,
-                    parseResult(VANILLA_RECIPE_HELPER.craftingResult(json.getAsJsonObject("result"))), VANILLA_RECIPE_HELPER.readGroup(json), VANILLA_RECIPE_HELPER.craftingCategory(json),
+                    parseResult(VANILLA_RECIPE_HELPER.craftingResult(json.getAsJsonObject("result"))),
+                    null,
+                    VANILLA_RECIPE_HELPER.readGroup(json),
+                    VANILLA_RECIPE_HELPER.craftingCategory(json),
                     new Pattern<>(VANILLA_RECIPE_HELPER.craftingShapedPattern(json), ingredients)
             );
         }

@@ -3,6 +3,8 @@ package net.momirealms.craftengine.bukkit.item.behavior;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MFluids;
+import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -45,11 +47,15 @@ public class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
         try {
             if (player == null) return InteractionResult.FAIL;
             Object blockHitResult = CoreReflections.method$Item$getPlayerPOVHitResult.invoke(null, world.serverWorld(), player.serverPlayer(), CoreReflections.instance$ClipContext$Fluid$SOURCE_ONLY);
-            Object blockPos = CoreReflections.field$BlockHitResul$blockPos.get(blockHitResult);
+            Object blockPos = FastNMS.INSTANCE.field$BlockHitResul$blockPos(blockHitResult);
             BlockPos above = new BlockPos(FastNMS.INSTANCE.field$Vec3i$x(blockPos), FastNMS.INSTANCE.field$Vec3i$y(blockPos) + offsetY, FastNMS.INSTANCE.field$Vec3i$z(blockPos));
-            Direction direction = Direction.values()[(int) CoreReflections.method$Direction$ordinal.invoke(CoreReflections.field$BlockHitResul$direction.get(blockHitResult))];
-            boolean miss = CoreReflections.field$BlockHitResul$miss.getBoolean(blockHitResult);
+            Direction direction = DirectionUtils.fromNMSDirection(FastNMS.INSTANCE.field$BlockHitResul$direction(blockHitResult));
+            boolean miss = FastNMS.INSTANCE.field$BlockHitResul$miss(blockHitResult);
             Vec3d hitPos = LocationUtils.fromVec(CoreReflections.field$HitResult$location.get(blockHitResult));
+            Object fluidType = FastNMS.INSTANCE.method$FluidState$getType(FastNMS.INSTANCE.method$BlockGetter$getFluidState(world.serverWorld(), blockPos));
+            if (fluidType != MFluids.WATER && fluidType != MFluids.LAVA) {
+                return InteractionResult.PASS;
+            }
             if (miss) {
                 return super.useOnBlock(new UseOnContext(player, hand, BlockHitResult.miss(hitPos, direction, above)));
             } else {

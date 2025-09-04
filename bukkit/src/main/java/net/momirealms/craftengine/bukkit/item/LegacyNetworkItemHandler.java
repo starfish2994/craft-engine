@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.item;
 
-import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.CustomItem;
@@ -11,8 +10,11 @@ import net.momirealms.craftengine.core.item.modifier.ArgumentsModifier;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
+import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
@@ -61,7 +63,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) {
             if (!Config.interceptItem()) return Optional.empty();
-            return new OtherItem(wrapped, false).process();
+            return new OtherItem(wrapped, false).process(NetworkTextReplaceContext.of(player));
         } else {
             BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
             Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
@@ -71,7 +73,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
             }
             if (!customItem.hasClientBoundDataModifier()) {
                 if (!Config.interceptItem() && !hasDifferentMaterial) return Optional.empty();
-                return new OtherItem(wrapped, hasDifferentMaterial).process();
+                return new OtherItem(wrapped, hasDifferentMaterial).process(NetworkTextReplaceContext.of(player));
             } else {
                 CompoundTag tag = new CompoundTag();
                 Tag argumentTag = wrapped.getTag(ArgumentsModifier.ARGUMENTS_TAG);
@@ -93,10 +95,10 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
                 }
                 if (Config.interceptItem()) {
                     if (!tag.containsKey("display.Name")) {
-                        processCustomName(wrapped, tag::put);
+                        processCustomName(wrapped, tag::put, context);
                     }
                     if (!tag.containsKey("display.Lore")) {
-                        processLore(wrapped, tag::put);
+                        processLore(wrapped, tag::put, context);
                     }
                 }
                 if (tag.isEmpty()) {
@@ -111,13 +113,13 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
         }
     }
 
-    public static boolean processCustomName(Item<ItemStack> item, BiConsumer<String, CompoundTag> callback) {
+    public static boolean processCustomName(Item<ItemStack> item, BiConsumer<String, CompoundTag> callback, Context context) {
         Optional<String> optionalCustomName = item.customNameJson();
         if (optionalCustomName.isPresent()) {
             String line = optionalCustomName.get();
-            Map<String, Component> tokens = CraftEngine.instance().fontManager().matchTags(line);
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
             if (!tokens.isEmpty()) {
-                item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens)));
+                item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
                 callback.accept("display.Name", NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
                 return true;
             }
@@ -125,18 +127,18 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
         return false;
     }
 
-    private static boolean processLore(Item<ItemStack> item, BiConsumer<String, CompoundTag> callback) {
+    private static boolean processLore(Item<ItemStack> item, BiConsumer<String, CompoundTag> callback, Context context) {
         Optional<List<String>> optionalLore = item.loreJson();
         if (optionalLore.isPresent()) {
             boolean changed = false;
             List<String> lore = optionalLore.get();
             List<String> newLore = new ArrayList<>(lore.size());
             for (String line : lore) {
-                Map<String, Component> tokens = CraftEngine.instance().fontManager().matchTags(line);
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
                 if (tokens.isEmpty()) {
                     newLore.add(line);
                 } else {
-                    newLore.add(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens)));
+                    newLore.add(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
                     changed = true;
                 }
             }
@@ -164,11 +166,11 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
             this.forceReturn = forceReturn;
         }
 
-        public Optional<Item<ItemStack>> process() {
-            if (processLore(this.item, (s, c) -> networkTag().put(s, c))) {
+        public Optional<Item<ItemStack>> process(Context context) {
+            if (processLore(this.item, (s, c) -> networkTag().put(s, c), context)) {
                 this.globalChanged = true;
             }
-            if (processCustomName(this.item, (s, c) -> networkTag().put(s, c))) {
+            if (processCustomName(this.item, (s, c) -> networkTag().put(s, c), context)) {
                 this.globalChanged = true;
             }
             if (this.globalChanged) {

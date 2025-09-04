@@ -6,7 +6,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.bukkit.world.BukkitBlockInWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateOption;
@@ -82,12 +82,12 @@ public class AxeItemBehavior extends ItemBehavior {
         CompoundTag compoundTag = customState.propertiesNbt();
         ImmutableBlockState newState = newCustomBlock.getBlockState(compoundTag);
 
-        BukkitBlockInWorld clicked = (BukkitBlockInWorld) context.getLevel().getBlockAt(context.getClickedPos());
+        BukkitExistingBlock clicked = (BukkitExistingBlock) context.getLevel().getBlockAt(context.getClickedPos());
         org.bukkit.entity.Player bukkitPlayer = null;
         if (player != null) {
             bukkitPlayer = ((org.bukkit.entity.Player) player.platformPlayer());
             // Call bukkit event
-            EntityChangeBlockEvent event = new EntityChangeBlockEvent(bukkitPlayer, clicked.block(), BlockStateUtils.fromBlockData(newState.customBlockState().handle()));
+            EntityChangeBlockEvent event = new EntityChangeBlockEvent(bukkitPlayer, clicked.block(), BlockStateUtils.fromBlockData(newState.customBlockState().literalObject()));
             if (EventUtils.fireAndCheckCancel(event)) {
                 return InteractionResult.FAIL;
             }
@@ -98,7 +98,7 @@ public class AxeItemBehavior extends ItemBehavior {
         if (ItemUtils.isEmpty(item)) return InteractionResult.FAIL;
         BlockPos pos = context.getClickedPos();
         context.getLevel().playBlockSound(Vec3d.atCenterOf(pos), AXE_STRIP_SOUND, 1, 1);
-        FastNMS.INSTANCE.method$LevelWriter$setBlock(context.getLevel().serverWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().handle(), UpdateOption.UPDATE_ALL_IMMEDIATE.flags());
+        FastNMS.INSTANCE.method$LevelWriter$setBlock(context.getLevel().serverWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().literalObject(), UpdateOption.UPDATE_ALL_IMMEDIATE.flags());
         clicked.block().getWorld().sendGameEvent(bukkitPlayer, GameEvent.BLOCK_CHANGE, new Vector(pos.x(), pos.y(), pos.z()));
         Material material = MaterialUtils.getMaterial(item.vanillaId());
         if (bukkitPlayer != null) {
@@ -106,7 +106,7 @@ public class AxeItemBehavior extends ItemBehavior {
 
             // resend swing if it's not interactable on client side
             if (!InteractUtils.isInteractable(
-                    bukkitPlayer, BlockStateUtils.fromBlockData(customState.vanillaBlockState().handle()),
+                    bukkitPlayer, BlockStateUtils.fromBlockData(customState.vanillaBlockState().literalObject()),
                     context.getHitResult(), item
             ) || player.isSecondaryUseActive()) {
                 player.swingHand(context.getHand());

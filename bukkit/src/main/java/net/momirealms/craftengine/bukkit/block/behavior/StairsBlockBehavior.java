@@ -65,7 +65,7 @@ public class StairsBlockBehavior extends BukkitBlockBehavior {
         Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2() ? args[4] : args[1]);
         StairsShape stairsShape = getStairsShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
-                ? customState.with(this.shapeProperty, stairsShape).customBlockState().handle()
+                ? customState.with(this.shapeProperty, stairsShape).customBlockState().literalObject()
                 : superMethod.call();
     }
 

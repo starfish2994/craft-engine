@@ -19,10 +19,12 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.EmptyBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
 import net.momirealms.craftengine.core.util.SectionPosUtils;
+import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.SectionPos;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -33,6 +35,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -214,52 +217,90 @@ public final class WorldStorageInjector {
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     private static void compareAndUpdateBlockState(int x, int y, int z, Object newState, Object previousState, InjectedHolder holder) {
-        try {
-            Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(newState);
-            CESection section = holder.ceSection();
-            // 如果是原版方块
-            if (optionalCustomState.isEmpty()) {
-                // 那么应该清空自定义块
-                ImmutableBlockState previous = section.setBlockState(x, y, z, EmptyBlock.STATE);
-                // 处理  自定义块 -> 原版块
-                if (!previous.isEmpty()) {
-                    holder.ceChunk().setDirty(true);
-                    if (Config.enableLightSystem()) {
-                        // 自定义块到原版块，只需要判断旧块是否和客户端一直
-                        BlockStateWrapper wrapper = previous.vanillaBlockState();
-                        if (wrapper != null) {
-                            updateLight(holder, wrapper.handle(), previousState, x, y, z);
-                        }
+        Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(newState);
+        CESection section = holder.ceSection();
+        // 如果是原版方块
+        if (optionalCustomState.isEmpty()) {
+            // 那么应该清空自定义块
+            ImmutableBlockState previous = section.setBlockState(x, y, z, EmptyBlock.STATE);
+            // 处理  自定义块 -> 原版块
+            if (!previous.isEmpty()) {
+                CEChunk chunk = holder.ceChunk();
+                chunk.setDirty(true);
+                if (previous.hasBlockEntity()) {
+                    BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                    BlockEntity blockEntity = chunk.getBlockEntity(pos, false);
+                    if (blockEntity != null) {
+                        blockEntity.preRemove();
+                        chunk.removeBlockEntity(pos);
                     }
                 }
-            } else {
-                ImmutableBlockState immutableBlockState = optionalCustomState.get();
-                ImmutableBlockState previousImmutableBlockState = section.setBlockState(x, y, z, immutableBlockState);
-                if (previousImmutableBlockState == immutableBlockState) return;
-                // 处理  自定义块到自定义块或原版块到自定义块
-                holder.ceChunk().setDirty(true);
-                // 不可能！绝对不可能！
-                if (immutableBlockState.isEmpty()) return;
-                // 如果新方块的光照属性和客户端认为的不同
                 if (Config.enableLightSystem()) {
-                    if (previousImmutableBlockState.isEmpty()) {
-                        // 原版块到自定义块，只需要判断新块是否和客户端视觉一致
-                        updateLight(holder, immutableBlockState.vanillaBlockState().handle(), newState, x, y, z);
-                    } else {
-                        // 自定义块到自定义块
-                        updateLight$complex(holder, immutableBlockState.vanillaBlockState().handle(), newState, previousState, x, y, z);
+                    // 自定义块到原版块，只需要判断旧块是否和客户端一直
+                    BlockStateWrapper wrapper = previous.vanillaBlockState();
+                    if (wrapper != null) {
+                        updateLight(holder, wrapper.literalObject(), previousState, x, y, z);
                     }
                 }
             }
-        } catch (Exception e) {
-            CraftEngine.instance().logger().warn("Failed to intercept setBlockState", e);
+        } else {
+            ImmutableBlockState newImmutableBlockState = optionalCustomState.get();
+            ImmutableBlockState previousImmutableBlockState = section.setBlockState(x, y, z, newImmutableBlockState);
+            if (previousImmutableBlockState == newImmutableBlockState) return;
+            // 处理  自定义块到自定义块或原版块到自定义块
+            CEChunk chunk = holder.ceChunk();
+            chunk.setDirty(true);
+            // 如果两个方块没有相同的主人 且 旧方块有方块实体
+            if (!previousImmutableBlockState.isEmpty()) {
+                if (previousImmutableBlockState.owner() != newImmutableBlockState.owner() && previousImmutableBlockState.hasBlockEntity()) {
+                    BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                    BlockEntity blockEntity = chunk.getBlockEntity(pos, false);
+                    if (blockEntity != null) {
+                        try {
+                            blockEntity.preRemove();
+                        } catch (Throwable t) {
+                            CraftEngine.instance().logger().warn("Error removing block entity " + blockEntity.getClass().getName(), t);
+                        }
+                        chunk.removeBlockEntity(pos);
+                    }
+                }
+            }
+            if (newImmutableBlockState.hasBlockEntity()) {
+                BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                BlockEntity blockEntity = chunk.getBlockEntity(pos, false);
+                if (blockEntity != null && !blockEntity.isValidBlockState(newImmutableBlockState)) {
+                    chunk.removeBlockEntity(pos);
+                    blockEntity = null;
+                }
+                if (blockEntity == null) {
+                    blockEntity = Objects.requireNonNull(newImmutableBlockState.behavior().getEntityBehavior()).createBlockEntity(pos, newImmutableBlockState);
+                    if (blockEntity != null) {
+                        chunk.addBlockEntity(blockEntity);
+                    }
+                } else {
+                    blockEntity.setBlockState(newImmutableBlockState);
+                    // 方块类型未变，仅更新状态，选择性更新ticker
+                    chunk.replaceOrCreateTickingBlockEntity(blockEntity);
+                }
+            }
+            // 如果新方块的光照属性和客户端认为的不同
+            if (Config.enableLightSystem()) {
+                if (previousImmutableBlockState.isEmpty()) {
+                    // 原版块到自定义块，只需要判断新块是否和客户端视觉一致
+                    updateLight(holder, newImmutableBlockState.vanillaBlockState().literalObject(), newState, x, y, z);
+                } else {
+                    // 自定义块到自定义块
+                    updateLight$complex(holder, newImmutableBlockState.vanillaBlockState().literalObject(), newState, previousState, x, y, z);
+                }
+            }
         }
     }
 
     @SuppressWarnings("DuplicatedCode")
-    protected static void updateLight(@This InjectedHolder thisObj, Object clientState, Object serverState, int x, int y, int z) {
-        CEWorld world = thisObj.ceChunk().world();
+    private static void updateLight(@This InjectedHolder thisObj, Object clientState, Object serverState, int x, int y, int z) {
+        CEWorld world = thisObj.ceChunk().world;
         Object blockPos = LocationUtils.toBlockPos(x, y, z);
         Object serverWorld = world.world().serverWorld();
         if (FastNMS.INSTANCE.method$LightEngine$hasDifferentLightProperties(serverState, clientState, serverWorld, blockPos)) {
@@ -270,8 +311,8 @@ public final class WorldStorageInjector {
     }
 
     @SuppressWarnings("DuplicatedCode")
-    protected static void updateLight$complex(@This InjectedHolder thisObj, Object newClientState, Object newServerState, Object oldServerState, int x, int y, int z) {
-        CEWorld world = thisObj.ceChunk().world();
+    private static void updateLight$complex(@This InjectedHolder thisObj, Object newClientState, Object newServerState, Object oldServerState, int x, int y, int z) {
+        CEWorld world = thisObj.ceChunk().world;
         Object blockPos = LocationUtils.toBlockPos(x, y, z);
         Object serverWorld = world.world().serverWorld();
         // 如果客户端新状态和服务端新状态光照属性不同

@@ -8,8 +8,8 @@ import java.util.Objects;
 
 public class DynamicBoundRegistry<T> extends AbstractMappedRegistry<T> {
 
-    public DynamicBoundRegistry(ResourceKey<? extends Registry<T>> key) {
-        super(key);
+    public DynamicBoundRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize) {
+        super(key, expectedSize);
     }
 
     @Override

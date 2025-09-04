@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflect
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public final class EnchantmentUtils {
 
@@ -11,6 +12,7 @@ public final class EnchantmentUtils {
 
     @SuppressWarnings("unchecked")
     public static Map<String, Integer> toMap(Object itemEnchantments) throws ReflectiveOperationException {
+        if (itemEnchantments == null) return Map.of();
         Map<String, Integer> map = new HashMap<>();
         Map<Object, Integer> enchantments = (Map<Object, Integer>) CoreReflections.field$ItemEnchantments$enchantments.get(itemEnchantments);
 

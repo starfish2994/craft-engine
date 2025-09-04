@@ -109,7 +109,7 @@ public final class BlockStateGenerator {
             if (optionalPlayer != null && settings.requireCorrectTool()) {
                 if (item.isEmpty()) return List.of();
                 if (!settings.isCorrectTool(item.id()) &&
-                        (!settings.respectToolComponent() || !FastNMS.INSTANCE.method$ItemStack$isCorrectToolForDrops(tool, state.customBlockState().handle()))) {
+                        (!settings.respectToolComponent() || !FastNMS.INSTANCE.method$ItemStack$isCorrectToolForDrops(tool, state.customBlockState().literalObject()))) {
                     return List.of();
                 }
             }
@@ -121,8 +121,10 @@ public final class BlockStateGenerator {
             if (!item.isEmpty()) {
                 lootBuilder.withParameter(DirectContextParameters.ITEM_IN_HAND, item);
             }
-
             BukkitServerPlayer player = optionalPlayer != null ? BukkitCraftEngine.instance().adapt(FastNMS.INSTANCE.method$ServerPlayer$getBukkitEntity(optionalPlayer)) : null;
+            if (player != null) {
+                lootBuilder.withParameter(DirectContextParameters.PLAYER, player);
+            }
             Float radius = (Float) FastNMS.INSTANCE.method$LootParams$Builder$getOptionalParameter(builder, MLootContextParams.EXPLOSION_RADIUS);
             if (radius != null) {
                 lootBuilder.withParameter(DirectContextParameters.EXPLOSION_RADIUS, radius);
@@ -177,7 +179,7 @@ public final class BlockStateGenerator {
             if (state == null) return thisObj;
             Property<Boolean> waterloggedProperty = (Property<Boolean>) state.owner().value().getProperty("waterlogged");
             if (waterloggedProperty == null) return thisObj;
-            return state.with(waterloggedProperty, (boolean) args[1]).customBlockState().handle();
+            return state.with(waterloggedProperty, (boolean) args[1]).customBlockState().literalObject();
         }
     }
 

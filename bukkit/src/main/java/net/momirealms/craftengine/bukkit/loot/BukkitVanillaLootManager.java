@@ -55,7 +55,6 @@ public class BukkitVanillaLootManager extends AbstractVanillaLootManager impleme
         HandlerList.unregisterAll(this);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
         Entity entity = event.getEntity();

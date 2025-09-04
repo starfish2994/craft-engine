@@ -1,37 +1,42 @@
 package net.momirealms.craftengine.core.world.chunk;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.momirealms.craftengine.core.block.BlockEntityState;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.block.EmptyBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.tick.*;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.world.*;
+import net.momirealms.craftengine.core.world.chunk.serialization.DefaultBlockEntitySerializer;
+import net.momirealms.sparrow.nbt.ListTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
+import java.util.*;
 
 public class CEChunk {
-    private boolean loaded;
-    private final CEWorld world;
-    private final ChunkPos chunkPos;
-    private final CESection[] sections;
-    private final WorldHeight worldHeightAccessor;
-    private final Map<Integer, BlockEntityState> blockEntities;
-    private boolean dirty;
+    public final CEWorld world;
+    public final ChunkPos chunkPos;
+    public final CESection[] sections;
+    public final WorldHeight worldHeightAccessor;
+    public final Map<BlockPos, BlockEntity> blockEntities;
+    private volatile boolean dirty;
+    private volatile boolean loaded;
+    protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingBlockEntitiesByPos = new HashMap<>();
 
     public CEChunk(CEWorld world, ChunkPos chunkPos) {
         this.world = world;
         this.chunkPos = chunkPos;
         this.worldHeightAccessor = world.worldHeight();
         this.sections = new CESection[this.worldHeightAccessor.getSectionsCount()];
-        this.blockEntities = new Int2ObjectOpenHashMap<>(16, 0.5f);
+        this.blockEntities = new Object2ObjectOpenHashMap<>(16, 0.5f);
         this.fillEmptySection();
     }
 
-    public CEChunk(CEWorld world, ChunkPos chunkPos, CESection[] sections, Map<Integer, BlockEntityState> blockEntities) {
+    public CEChunk(CEWorld world, ChunkPos chunkPos, CESection[] sections, ListTag blockEntitiesTag) {
         this.world = world;
         this.chunkPos = chunkPos;
-        this.blockEntities = blockEntities;
+        this.blockEntities = new Object2ObjectOpenHashMap<>(Math.max(blockEntitiesTag.size(), 16), 0.5f);
         this.worldHeightAccessor = world.worldHeight();
         int sectionCount = this.worldHeightAccessor.getSectionsCount();
         this.sections = new CESection[sectionCount];
@@ -44,10 +49,104 @@ public class CEChunk {
             }
         }
         this.fillEmptySection();
+        List<BlockEntity> blockEntities = DefaultBlockEntitySerializer.deserialize(this, blockEntitiesTag);
+        for (BlockEntity blockEntity : blockEntities) {
+            this.setBlockEntity(blockEntity);
+        }
     }
 
-    public Map<Integer, BlockEntityState> blockEntities() {
-        return this.blockEntities;
+    public void addBlockEntity(BlockEntity blockEntity) {
+        this.setBlockEntity(blockEntity);
+        this.replaceOrCreateTickingBlockEntity(blockEntity);
+    }
+
+    public void removeBlockEntity(BlockPos blockPos) {
+        BlockEntity removedBlockEntity = this.blockEntities.remove(blockPos);
+        if (removedBlockEntity != null) {
+            removedBlockEntity.setValid(false);
+        }
+    }
+
+    public void clearAllBlockEntities() {
+        this.blockEntities.values().forEach(e -> e.setValid(false));
+        this.blockEntities.clear();
+        this.tickingBlockEntitiesByPos.values().forEach((ticker) -> ticker.setTicker(DummyTickingBlockEntity.INSTANCE));
+        this.tickingBlockEntitiesByPos.clear();
+    }
+
+    public <T extends BlockEntity> void replaceOrCreateTickingBlockEntity(T blockEntity) {
+        ImmutableBlockState blockState = blockEntity.blockState();
+        BlockEntityTicker<T> ticker = blockState.createBlockEntityTicker(this.world, blockEntity.type());
+        if (ticker != null) {
+            this.tickingBlockEntitiesByPos.compute(blockEntity.pos(), ((pos, previousTicker) -> {
+                TickingBlockEntity newTicker = new TickingBlockEntityImpl<>(this, blockEntity, ticker);
+                if (previousTicker != null) {
+                    previousTicker.setTicker(newTicker);
+                    return previousTicker;
+                } else {
+                    ReplaceableTickingBlockEntity replaceableTicker = new ReplaceableTickingBlockEntity(newTicker);
+                    this.world.addBlockEntityTicker(replaceableTicker);
+                    return replaceableTicker;
+                }
+            }));
+        } else {
+            this.removeBlockEntityTicker(blockEntity.pos());
+        }
+    }
+
+    private void removeBlockEntityTicker(BlockPos pos) {
+        ReplaceableTickingBlockEntity blockEntity = this.tickingBlockEntitiesByPos.remove(pos);
+        if (blockEntity != null) {
+            blockEntity.setTicker(DummyTickingBlockEntity.INSTANCE);
+        }
+    }
+
+    public void setBlockEntity(BlockEntity blockEntity) {
+        BlockPos pos = blockEntity.pos();
+        ImmutableBlockState blockState = this.getBlockState(pos);
+        if (!blockState.hasBlockEntity()) {
+            Debugger.BLOCK_ENTITY.debug(() -> "Failed to add invalid block entity " + blockEntity.saveAsTag() + " at " + pos);
+            return;
+        }
+        // 设置方块实体所在世界
+        blockEntity.setWorld(this.world);
+        blockEntity.setValid(true);
+        BlockEntity previous = this.blockEntities.put(pos, blockEntity);
+        // 标记旧的方块实体无效
+        if (previous != null && previous != blockEntity) {
+            previous.setValid(false);
+        }
+    }
+
+    @Nullable
+    public BlockEntity getBlockEntity(BlockPos pos, boolean create) {
+        BlockEntity blockEntity = this.blockEntities.get(pos);
+        if (blockEntity == null) {
+            if (create) {
+                blockEntity = createBlockEntity(pos);
+                if (blockEntity != null) {
+                    this.addBlockEntity(blockEntity);
+                }
+            }
+        } else {
+            if (!blockEntity.isValid()) {
+                this.blockEntities.remove(pos);
+                return null;
+            }
+        }
+        return blockEntity;
+    }
+
+    private BlockEntity createBlockEntity(BlockPos pos) {
+        ImmutableBlockState blockState = this.getBlockState(pos);
+        if (!blockState.hasBlockEntity()) {
+            return null;
+        }
+        return Objects.requireNonNull(blockState.behavior().getEntityBehavior()).createBlockEntity(pos, blockState);
+    }
+
+    public Map<BlockPos, BlockEntity> blockEntities() {
+        return Collections.unmodifiableMap(this.blockEntities);
     }
 
     public boolean dirty() {
@@ -69,9 +168,9 @@ public class CEChunk {
     }
 
     private void fillEmptySection() {
-        for (int i = 0; i < sections.length; ++i) {
-            if (sections[i] == null) {
-                sections[i] = new CESection(world.worldHeight().getSectionYFromSectionIndex(i),
+        for (int i = 0; i < this.sections.length; ++i) {
+            if (this.sections[i] == null) {
+                this.sections[i] = new CESection(this.world.worldHeight().getSectionYFromSectionIndex(i),
                         new PalettedContainer<>(null, EmptyBlock.STATE, PalettedContainer.PaletteProvider.CUSTOM_BLOCK_STATE));
             }
         }
@@ -93,17 +192,17 @@ public class CEChunk {
         }
     }
 
-    @Nullable
+    @NotNull
     public ImmutableBlockState getBlockState(BlockPos pos) {
         return getBlockState(pos.x(), pos.y(), pos.z());
     }
 
-    @Nullable
+    @NotNull
     public ImmutableBlockState getBlockState(int x, int y, int z) {
         int index = sectionIndex(SectionPos.blockToSectionCoord(y));
         CESection section = this.sections[index];
         if (section == null) {
-            return null;
+            return EmptyBlock.STATE;
         }
         return section.getBlockState((y & 15) << 8 | (z & 15) << 4 | x & 15);
     }
@@ -128,21 +227,21 @@ public class CEChunk {
 
     @NotNull
     public CEWorld world() {
-        return world;
+        return this.world;
     }
 
     @NotNull
     public ChunkPos chunkPos() {
-        return chunkPos;
+        return this.chunkPos;
     }
 
     @NotNull
     public CESection[] sections() {
-        return sections;
+        return this.sections;
     }
 
     public boolean isLoaded() {
-        return loaded;
+        return this.loaded;
     }
 
     public void load() {
@@ -154,6 +253,7 @@ public class CEChunk {
     public void unload() {
         if (!this.loaded) return;
         this.world.removeLoadedChunk(this);
+        this.clearAllBlockEntities();
         this.loaded = false;
     }
 }

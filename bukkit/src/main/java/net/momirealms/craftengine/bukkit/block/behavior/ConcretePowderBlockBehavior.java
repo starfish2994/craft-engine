@@ -48,7 +48,7 @@ public class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
         Optional<CustomBlock> optionalCustomBlock = BukkitBlockManager.instance().blockById(this.targetBlock);
         if (optionalCustomBlock.isPresent()) {
             CustomBlock customBlock = optionalCustomBlock.get();
-            this.defaultBlockState = customBlock.defaultState().customBlockState().handle();
+            this.defaultBlockState = customBlock.defaultState().customBlockState().literalObject();
             this.defaultImmutableBlockState = customBlock.defaultState();
         } else {
             CraftEngine.instance().logger().warn("Failed to create solid block " + this.targetBlock + " in ConcretePowderBlockBehavior");

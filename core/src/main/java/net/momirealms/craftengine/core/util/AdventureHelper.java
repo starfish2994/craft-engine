@@ -13,6 +13,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.json.JSONOptions;
 import net.kyori.adventure.text.serializer.json.legacyimpl.NBTLegacyHoverEventSerializer;
+import net.momirealms.craftengine.core.plugin.context.Context;
+import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.sparrow.nbt.Tag;
 import net.momirealms.sparrow.nbt.adventure.NBTComponentSerializer;
 import net.momirealms.sparrow.nbt.adventure.NBTSerializerOptions;
@@ -356,12 +358,15 @@ public class AdventureHelper {
         return AdventureHelper.plainTextContent(resultComponent);
     }
 
-    public static Component replaceText(Component text, Map<String, Component> replacements) {
+    public static Component replaceText(Component text, Map<String, ComponentProvider> replacements, Context context) {
         String patternString = replacements.keySet().stream()
                 .map(Pattern::quote)
                 .collect(Collectors.joining("|"));
         return text.replaceText(builder ->
                 builder.match(Pattern.compile(patternString))
-                .replacement((result, b) -> replacements.get(result.group())));
+                        .replacement((result, b) ->
+                                Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'")).apply(context)
+                        )
+        );
     }
 }

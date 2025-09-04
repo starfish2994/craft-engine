@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.pack.host.impl;
 
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.pack.host.ResourcePackHost;
@@ -99,9 +100,9 @@ public class LobFileHost implements ResourcePackHost {
     public String getSpaceUsageText() {
         if (this.accountInfo == null) return "Usage data not available";
         return String.format("Storage: %d/%d MB (%.1f%% used)",
-                this.accountInfo.getSpaceUsed() / 1_000_000,
-                this.accountInfo.getSpaceQuota() / 1_000_000,
-                (this.accountInfo.getSpaceUsed() * 100.0) / this.accountInfo.getSpaceQuota()
+                this.accountInfo.account.usage.spaceUsed / 1_000_000,
+                this.accountInfo.account.limits.spaceQuota / 1_000_000,
+                (this.accountInfo.account.usage.spaceUsed * 100.0) / this.accountInfo.account.limits.spaceQuota
         );
     }
 
@@ -172,7 +173,7 @@ public class LobFileHost implements ResourcePackHost {
                     .thenApply(response -> {
                         if (response.statusCode() == 200) {
                             AccountInfo info = GsonHelper.get().fromJson(response.body(), AccountInfo.class);
-                            if (info.isSuccess()) {
+                            if (info.success) {
                                 this.accountInfo = info;
                                 return info;
                             }
@@ -278,31 +279,33 @@ public class LobFileHost implements ResourcePackHost {
         }
     }
 
-    @SuppressWarnings({"all"})
-    public static class AccountInfo {
-        private boolean success;
-        private Map<String, Object> account_info;
-        private Map<String, Integer> account_limits;
-        private Map<String, Integer> account_usage;
+    public record AccountInfo(
+            boolean success,
+            Account account
+    ) {}
 
-        public String getEmail() {
-            return (String) this.account_info.get("email");
-        }
+    public record Account(
+            Info info,
+            Limits limits,
+            Usage usage
+    ) {}
 
-        public int getSpaceQuota() {
-            return this.account_limits.getOrDefault("space_quota", 0);
-        }
+    public record Info(
+            String email,
+            String level,
+            @SerializedName("api_key") String apiKey,
+            @SerializedName("time_created") String timeCreated
+    ) {}
 
-        public int getSpaceUsed() {
-            return this.account_usage.getOrDefault("space_used", 0);
-        }
+    public record Limits(
+            @SerializedName("space_quota") long spaceQuota,
+            @SerializedName("slots_quota") long slotsQuota,
+            @SerializedName("max_file_size") long maxFileSize,
+            @SerializedName("max_file_download_speed") long maxFileDownloadSpeed
+    ) {}
 
-        public int getSlotsUsed() {
-            return this.account_usage.getOrDefault("slots_used", 0);
-        }
-
-        public boolean isSuccess() {
-            return this.success;
-        }
-    }
+    public record Usage(
+            @SerializedName("space_used") long spaceUsed,
+            @SerializedName("slots_used") long slotsUsed
+    ) {}
 }

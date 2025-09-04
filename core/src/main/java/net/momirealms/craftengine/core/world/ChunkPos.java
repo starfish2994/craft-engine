@@ -65,8 +65,21 @@ public class ChunkPos {
         return longKey;
     }
 
+    public ChunkPos[] adjacentChunkPos() {
+        return adjacentChunkPos(this);
+    }
+
     public static long asLong(int chunkX, int chunkZ) {
         return (long) chunkX & 4294967295L | ((long) chunkZ & 4294967295L) << 32;
+    }
+
+    public static ChunkPos[] adjacentChunkPos(ChunkPos chunkPos) {
+        return new ChunkPos[] {
+                new ChunkPos(chunkPos.x, chunkPos.z - 1),
+                new ChunkPos(chunkPos.x, chunkPos.z + 1),
+                new ChunkPos(chunkPos.x + 1, chunkPos.z),
+                new ChunkPos(chunkPos.x - 1, chunkPos.z)
+        };
     }
 
     @Override

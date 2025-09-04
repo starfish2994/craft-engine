@@ -1,52 +1,78 @@
 package net.momirealms.craftengine.core.world;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.tick.TickingBlockEntity;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public abstract class CEWorld {
     public static final String REGION_DIRECTORY = "craftengine";
     protected final World world;
-    protected final Map<Long, CEChunk> loadedChunkMap;
+    protected final ConcurrentLong2ReferenceChainedHashTable<CEChunk> loadedChunkMap;
     protected final WorldDataStorage worldDataStorage;
-    protected final ReentrantReadWriteLock loadedChunkMapLock = new ReentrantReadWriteLock();
     protected final WorldHeight worldHeightAccessor;
     protected final Set<SectionPos> updatedSectionSet = ConcurrentHashMap.newKeySet(128);
-
-    private CEChunk lastChunk;
-    private long lastChunkPos;
+    protected final List<TickingBlockEntity> tickingBlockEntities = new ArrayList<>();
+    protected final List<TickingBlockEntity> pendingTickingBlockEntities = new ArrayList<>();
+    protected boolean isTickingBlockEntities = false;
+    protected SchedulerTask syncTickTask;
+    protected SchedulerTask asyncTickTask;
 
     public CEWorld(World world, StorageAdaptor adaptor) {
         this.world = world;
-        this.loadedChunkMap = new Long2ObjectOpenHashMap<>(1024, 0.5f);
+        this.loadedChunkMap = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(1024, 0.5f);
         this.worldDataStorage = adaptor.adapt(world);
         this.worldHeightAccessor = world.worldHeight();
-        this.lastChunkPos = ChunkPos.INVALID_CHUNK_POS;
     }
 
     public CEWorld(World world, WorldDataStorage dataStorage) {
         this.world = world;
-        this.loadedChunkMap = new Long2ObjectOpenHashMap<>(1024, 0.5f);
+        this.loadedChunkMap = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(1024, 0.5f);
         this.worldDataStorage = dataStorage;
         this.worldHeightAccessor = world.worldHeight();
-        this.lastChunkPos = ChunkPos.INVALID_CHUNK_POS;
+    }
+
+    public void setTicking(boolean ticking) {
+        if (ticking) {
+            if (this.syncTickTask == null || this.syncTickTask.cancelled()) {
+                this.syncTickTask = CraftEngine.instance().scheduler().sync().runRepeating(this::syncTick, 1, 1);
+            }
+            if (this.asyncTickTask == null || this.asyncTickTask.cancelled()) {
+                this.asyncTickTask = CraftEngine.instance().scheduler().sync().runAsyncRepeating(this::asyncTick, 1, 1);
+            }
+        } else {
+            if (this.syncTickTask != null && !this.syncTickTask.cancelled()) {
+                this.syncTickTask.cancel();
+            }
+            if (this.asyncTickTask != null && !this.asyncTickTask.cancelled()) {
+                this.asyncTickTask.cancel();
+            }
+        }
+    }
+
+    public String name() {
+        return this.world.name();
+    }
+
+    public UUID uuid() {
+        return this.world.uuid();
     }
 
     public void save() {
-        this.loadedChunkMapLock.readLock().lock();
         try {
-            for (Map.Entry<Long, CEChunk> entry : this.loadedChunkMap.entrySet()) {
+            for (ConcurrentLong2ReferenceChainedHashTable.TableEntry<CEChunk> entry : this.loadedChunkMap.entrySet()) {
                 CEChunk chunk = entry.getValue();
                 if (chunk.dirty()) {
                     worldDataStorage.writeChunkAt(new ChunkPos(entry.getKey()), chunk);
@@ -55,8 +81,6 @@ public abstract class CEWorld {
             }
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to save world chunks", e);
-        } finally {
-            this.loadedChunkMapLock.readLock().unlock();
         }
     }
 
@@ -65,44 +89,20 @@ public abstract class CEWorld {
     }
 
     public boolean isChunkLoaded(final long chunkPos) {
-        this.loadedChunkMapLock.readLock().lock();
-        try {
-            return loadedChunkMap.containsKey(chunkPos);
-        } finally {
-            this.loadedChunkMapLock.readLock().unlock();
-        }
+        return loadedChunkMap.containsKey(chunkPos);
     }
 
     public void addLoadedChunk(CEChunk chunk) {
-        this.loadedChunkMapLock.writeLock().lock();
-        try {
-            this.loadedChunkMap.put(chunk.chunkPos().longKey(), chunk);
-        } finally {
-            this.loadedChunkMapLock.writeLock().unlock();
-        }
+        this.loadedChunkMap.put(chunk.chunkPos().longKey(), chunk);
     }
 
     public void removeLoadedChunk(CEChunk chunk) {
-        this.loadedChunkMapLock.writeLock().lock();
-        try {
-            this.loadedChunkMap.remove(chunk.chunkPos().longKey());
-            if (this.lastChunk == chunk) {
-                this.lastChunk = null;
-                this.lastChunkPos = ChunkPos.INVALID_CHUNK_POS;
-            }
-        } finally {
-            this.loadedChunkMapLock.writeLock().unlock();
-        }
+        this.loadedChunkMap.remove(chunk.chunkPos().longKey());
     }
 
     @Nullable
     public CEChunk getChunkAtIfLoaded(long chunkPos) {
-        this.loadedChunkMapLock.readLock().lock();
-        try {
-            return getChunkAtIfLoadedMainThread(chunkPos);
-        } finally {
-            this.loadedChunkMapLock.readLock().unlock();
-        }
+        return this.loadedChunkMap.get(chunkPos);
     }
 
     @Nullable
@@ -111,27 +111,6 @@ public abstract class CEWorld {
     }
 
     @Nullable
-    public CEChunk getChunkAtIfLoadedMainThread(long chunkPos) {
-        if (chunkPos == this.lastChunkPos) {
-            return this.lastChunk;
-        }
-        CEChunk chunk = this.loadedChunkMap.get(chunkPos);
-        if (chunk != null) {
-            this.lastChunk = chunk;
-            this.lastChunkPos = chunkPos;
-        }
-        return chunk;
-    }
-
-    @Nullable
-    public CEChunk getChunkAtIfLoadedMainThread(int x, int z) {
-        return getChunkAtIfLoadedMainThread(ChunkPos.asLong(x, z));
-    }
-
-    public WorldHeight worldHeight() {
-        return worldHeightAccessor;
-    }
-
     public ImmutableBlockState getBlockStateAtIfLoaded(int x, int y, int z) {
         CEChunk chunk = getChunkAtIfLoaded(x >> 4, z >> 4);
         if (chunk == null) {
@@ -140,6 +119,7 @@ public abstract class CEWorld {
         return chunk.getBlockState(x, y, z);
     }
 
+    @Nullable
     public ImmutableBlockState getBlockStateAtIfLoaded(BlockPos blockPos) {
         CEChunk chunk = getChunkAtIfLoaded(blockPos.x() >> 4, blockPos.z() >> 4);
         if (chunk == null) {
@@ -149,7 +129,7 @@ public abstract class CEWorld {
     }
 
     public boolean setBlockStateAtIfLoaded(BlockPos blockPos, ImmutableBlockState blockState) {
-        if (worldHeightAccessor.isOutsideBuildHeight(blockPos)) {
+        if (this.worldHeightAccessor.isOutsideBuildHeight(blockPos)) {
             return false;
         }
         CEChunk chunk = getChunkAtIfLoaded(blockPos.x() >> 4, blockPos.z() >> 4);
@@ -158,6 +138,18 @@ public abstract class CEWorld {
         }
         chunk.setBlockState(blockPos, blockState);
         return true;
+    }
+
+    @Nullable
+    public BlockEntity getBlockEntityAtIfLoaded(BlockPos blockPos) {
+        if (this.worldHeightAccessor.isOutsideBuildHeight(blockPos)) {
+            return null;
+        }
+        CEChunk chunk = getChunkAtIfLoaded(blockPos.x() >> 4, blockPos.z() >> 4);
+        if (chunk == null) {
+            return null;
+        }
+        return chunk.getBlockEntity(blockPos, true);
     }
 
     public WorldDataStorage worldDataStorage() {
@@ -172,5 +164,48 @@ public abstract class CEWorld {
         this.updatedSectionSet.addAll(pos);
     }
 
-    public abstract void tick();
+    public WorldHeight worldHeight() {
+        return this.worldHeightAccessor;
+    }
+
+    public void syncTick() {
+        this.tickBlockEntities();
+        if (!Config.asyncLightUpdate()) {
+            this.updateLight();
+        }
+    }
+
+    public void asyncTick() {
+        if (Config.asyncLightUpdate()) {
+            this.updateLight();
+        }
+    }
+
+    public abstract void updateLight();
+
+    public void addBlockEntityTicker(TickingBlockEntity ticker) {
+        if (this.isTickingBlockEntities) {
+            this.pendingTickingBlockEntities.add(ticker);
+        } else {
+            this.tickingBlockEntities.add(ticker);
+        }
+    }
+
+    protected void tickBlockEntities() {
+        this.isTickingBlockEntities = true;
+        if (!this.pendingTickingBlockEntities.isEmpty()) {
+            this.tickingBlockEntities.addAll(this.pendingTickingBlockEntities);
+            this.pendingTickingBlockEntities.clear();
+        }
+        ReferenceOpenHashSet<TickingBlockEntity> toRemove = new ReferenceOpenHashSet<>();
+        for (TickingBlockEntity blockEntity : this.tickingBlockEntities) {
+            if (blockEntity.isValid()) {
+                blockEntity.tick();
+            } else {
+                toRemove.add(blockEntity);
+            }
+        }
+        this.tickingBlockEntities.removeAll(toRemove);
+        this.isTickingBlockEntities = false;
+    }
 }

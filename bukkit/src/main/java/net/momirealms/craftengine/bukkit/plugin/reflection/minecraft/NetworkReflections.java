@@ -1057,7 +1057,6 @@ public final class NetworkReflections {
             )
     );
 
-
     public static final Constructor<?> constructor$ClientboundMoveEntityPacket$PosRot = requireNonNull(
             ReflectionUtils.getTheOnlyConstructor(clazz$ClientboundMoveEntityPacket$PosRot)
     );
@@ -1255,7 +1254,17 @@ public final class NetworkReflections {
 
     // 1.20.2+
     public static final Constructor<?> constructor$DiscardedPayload = Optional.ofNullable(clazz$DiscardedPayload)
-            .map(ReflectionUtils::getTheOnlyConstructor)
+            .map(it -> {
+                if (VersionHelper.isOrAbove1_20_5()) {
+                    Constructor<?> constructor1 = ReflectionUtils.getConstructor(it, CoreReflections.clazz$ResourceLocation, ByteBuf.class);
+                    if (constructor1 != null) {
+                        return constructor1;
+                    }
+                    return ReflectionUtils.getConstructor(it, CoreReflections.clazz$ResourceLocation, byte[].class);
+                } else {
+                    return ReflectionUtils.getConstructor(it, CoreReflections.clazz$ResourceLocation);
+                }
+            })
             .orElse(null);
 
     public static final Class<?> clazz$ClientboundContainerSetContentPacket = requireNonNull(
@@ -1625,7 +1634,7 @@ public final class NetworkReflections {
     }
 
     // 1.20.2~1.20.4
-    public static final Class<?> clazz$UnknownPayload = MiscUtils.requireNonNullIf(
+    public static final Class<?> clazz$ServerboundCustomPayloadPacket$UnknownPayload = MiscUtils.requireNonNullIf(
             ReflectionUtils.getClazz(
                     BukkitReflectionUtils.assembleMCClass("network.protocol.common.ServerboundCustomPayloadPacket$UnknownPayload")
             ),
@@ -1633,18 +1642,18 @@ public final class NetworkReflections {
     );
 
     // 1.20.2~1.20.4
-    public static final Field field$UnknownPayload$id = Optional.ofNullable(clazz$UnknownPayload)
+    public static final Field field$ServerboundCustomPayloadPacket$UnknownPayload$id = Optional.ofNullable(clazz$ServerboundCustomPayloadPacket$UnknownPayload)
             .map(it -> ReflectionUtils.getDeclaredField(it, CoreReflections.clazz$ResourceLocation, 0))
             .orElse(null);
 
     // 1.20.2~1.20.4
-    public static final Field field$UnknownPayload$data = Optional.ofNullable(clazz$UnknownPayload)
+    public static final Field field$ServerboundCustomPayloadPacket$UnknownPayload$data = Optional.ofNullable(clazz$ServerboundCustomPayloadPacket$UnknownPayload)
             .map(it -> ReflectionUtils.getDeclaredField(it, ByteBuf.class, 0))
             .orElse(null);
 
     // 1.20.2~1.20.4
-    public static final Constructor<?> constructor$UnknownPayload = Optional.ofNullable(clazz$UnknownPayload)
-            .map(ReflectionUtils::getTheOnlyConstructor)
+    public static final Constructor<?> constructor$ServerboundCustomPayloadPacket$UnknownPayload = Optional.ofNullable(clazz$ServerboundCustomPayloadPacket$UnknownPayload)
+            .map(it -> ReflectionUtils.getConstructor(it, CoreReflections.clazz$ResourceLocation, ByteBuf.class))
             .orElse(null);
 
     // 1.21.5+
@@ -1654,5 +1663,12 @@ public final class NetworkReflections {
                     "network.HashedStack$ActualItem"
             ),
             VersionHelper.isOrAbove1_21_5()
+    );
+
+    public static final Class<?> clazz$ClientboundForgetLevelChunkPacket = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "network.protocol.game.PacketPlayOutUnloadChunk",
+                    "network.protocol.game.ClientboundForgetLevelChunkPacket"
+            )
     );
 }

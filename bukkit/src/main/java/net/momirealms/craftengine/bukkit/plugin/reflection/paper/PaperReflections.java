@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin.reflection.paper;
 
 import com.google.gson.Gson;
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
@@ -96,5 +97,24 @@ public final class PaperReflections {
 
     public static final Method method$BookMeta$page = requireNonNull(
             ReflectionUtils.getMethod(CraftBukkitReflections.clazz$BookMeta, void.class, int.class, clazz$AdventureComponent)
+    );
+
+    public static final Class<?> clazz$RegionizedPlayerChunkLoader$PlayerChunkLoaderData = requireNonNull(
+            ReflectionUtils.getClazz(
+                    "ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader$PlayerChunkLoaderData",
+                    "io.papermc.paper.chunk.system.RegionizedPlayerChunkLoader$PlayerChunkLoaderData"
+            )
+    );
+
+    public static final Field field$ServerPlayer$chunkLoader = requireNonNull(
+            ReflectionUtils.getDeclaredField(
+                    CoreReflections.clazz$ServerPlayer, PaperReflections.clazz$RegionizedPlayerChunkLoader$PlayerChunkLoaderData, 0
+            )
+    );
+
+    public static final Field field$RegionizedPlayerChunkLoader$PlayerChunkLoaderData$sentChunks = requireNonNull(
+            ReflectionUtils.getDeclaredField(
+                    clazz$RegionizedPlayerChunkLoader$PlayerChunkLoaderData, LongOpenHashSet.class, 0
+            )
     );
 }

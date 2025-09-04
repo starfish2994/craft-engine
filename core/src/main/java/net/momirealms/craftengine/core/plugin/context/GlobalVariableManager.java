@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,10 @@ public class GlobalVariableManager implements Manageable {
     @Override
     public void unload() {
         this.globalVariables.clear();
+    }
+
+    public Map<String, String> globalVariables() {
+        return Collections.unmodifiableMap(this.globalVariables);
     }
 
     public ConfigParser parser() {

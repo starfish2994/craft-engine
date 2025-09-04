@@ -51,7 +51,8 @@ public abstract class CraftEngine implements Plugin {
     protected PluginLogger logger;
     protected Config config;
     protected Platform platform;
-    protected ClassPathAppender classPathAppender;
+    protected ClassPathAppender sharedClassPathAppender;
+    protected ClassPathAppender privateClassPathAppender;
     protected DependencyManager dependencyManager;
     protected SchedulerAdapter<?> scheduler;
     protected NetworkManager networkManager;
@@ -338,8 +339,13 @@ public abstract class CraftEngine implements Plugin {
     }
 
     @Override
-    public ClassPathAppender classPathAppender() {
-        return classPathAppender;
+    public ClassPathAppender sharedClassPathAppender() {
+        return sharedClassPathAppender;
+    }
+
+    @Override
+    public ClassPathAppender privateClassPathAppender() {
+        return privateClassPathAppender;
     }
 
     @Override

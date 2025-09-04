@@ -19,11 +19,13 @@ public interface CustomBlock {
 
     Key id();
 
-    @Nullable LootTable<?> lootTable();
+    @Nullable
+    LootTable<?> lootTable();
 
     void execute(PlayerOptionalContext context, EventTrigger trigger);
 
-    @NotNull BlockStateVariantProvider variantProvider();
+    @NotNull
+    BlockStateVariantProvider variantProvider();
 
     List<ImmutableBlockState> getPossibleStates(CompoundTag nbt);
 

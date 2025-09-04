@@ -72,18 +72,20 @@ public class BukkitCraftEngine extends CraftEngine {
     private final Path dataFolderPath;
 
     protected BukkitCraftEngine(JavaPlugin plugin) {
-        this(new JavaPluginLogger(plugin.getLogger()), plugin.getDataFolder().toPath().toAbsolutePath(), new ReflectionClassPathAppender(plugin.getClass().getClassLoader()));
+        this(new JavaPluginLogger(plugin.getLogger()), plugin.getDataFolder().toPath().toAbsolutePath(),
+                new ReflectionClassPathAppender(plugin.getClass().getClassLoader()), new ReflectionClassPathAppender(plugin.getClass().getClassLoader()));
         this.setJavaPlugin(plugin);
     }
 
-    protected BukkitCraftEngine(PluginLogger logger, Path dataFolderPath, ClassPathAppender classPathAppender) {
+    protected BukkitCraftEngine(PluginLogger logger, Path dataFolderPath, ClassPathAppender sharedClassPathAppender, ClassPathAppender privateClassPathAppender) {
         super((p) -> {
             CraftEngineReloadEvent event = new CraftEngineReloadEvent((BukkitCraftEngine) p);
             EventUtils.fireAndForget(event);
         });
         instance = this;
         this.dataFolderPath = dataFolderPath;
-        super.classPathAppender = classPathAppender;
+        super.sharedClassPathAppender = sharedClassPathAppender;
+        super.privateClassPathAppender = privateClassPathAppender;
         super.logger = logger;
         super.platform = new BukkitPlatform();
         super.scheduler = new BukkitSchedulerAdapter(this);

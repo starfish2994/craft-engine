@@ -324,6 +324,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             // 结合variants
             JsonElement combinedVariant = GsonHelper.combine(variants);
             Map<String, JsonElement> overrideMap = AbstractBlockManager.this.blockStateOverrides.computeIfAbsent(blockId, k -> new HashMap<>());
+            AbstractBlockManager.this.tempVanillaBlockStateModels.put(registryId, combinedVariant);
             JsonElement previous = overrideMap.get(propertyNBT);
             if (previous != null && !previous.equals(combinedVariant)) {
                 throw new LocalizedResourceConfigException("warning.config.block.state.model.conflict", GsonHelper.get().toJson(combinedVariant), blockState, GsonHelper.get().toJson(previous));
@@ -397,8 +398,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 }
             } else {
                 // 其他情况则是完整的方块
-                BlockStateWrapper packedBlockState = createPackedBlockState(blockState);
-                if (packedBlockState == null || !packedBlockState.isVanillaBlock()) {
+                BlockStateWrapper packedBlockState = createBlockState(blockState);
+                if (packedBlockState == null) {
                     throw new LocalizedResourceConfigException("warning.config.block.state.invalid_vanilla", blockState);
                 }
                 registryId = packedBlockState.registryId();

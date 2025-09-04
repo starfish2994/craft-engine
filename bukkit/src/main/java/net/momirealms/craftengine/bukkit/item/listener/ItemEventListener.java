@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.item.listener;
 import io.papermc.paper.event.block.CompostItemEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
+import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.item.BukkitCustomItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
@@ -10,7 +11,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.bukkit.world.BukkitBlockInWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.AbstractBlockBehavior;
@@ -96,9 +97,10 @@ public class ItemEventListener implements Listener {
         Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
         PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                 .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
-                .withParameter(DirectContextParameters.EVENT, cancellable)
-                .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(event.getRightClicked().getLocation()))
                 .withParameter(DirectContextParameters.HAND, hand)
+                .withParameter(DirectContextParameters.EVENT, cancellable)
+                .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(entity))
+                .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(event.getRightClicked().getLocation()))
         );
         CustomItem<ItemStack> customItem = optionalCustomItem.get();
         customItem.execute(context, EventTrigger.RIGHT_CLICK);
@@ -162,7 +164,7 @@ public class ItemEventListener implements Listener {
 
             // fix client side issues
             if (action.isRightClick() && hitResult != null &&
-                    InteractUtils.willConsume(player, BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().handle()), hitResult, itemInHand)) {
+                    InteractUtils.willConsume(player, BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().literalObject()), hitResult, itemInHand)) {
                 player.updateInventory();
                 //PlayerUtils.resendItemInHand(player);
             }
@@ -171,7 +173,7 @@ public class ItemEventListener implements Listener {
             // run custom functions
             CustomBlock customBlock = immutableBlockState.owner().value();
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
-                    .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(block))
+                    .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                     .withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, immutableBlockState)
                     .withParameter(DirectContextParameters.HAND, hand)
                     .withParameter(DirectContextParameters.EVENT, dummy)
@@ -253,13 +255,13 @@ public class ItemEventListener implements Listener {
                     if (immutableBlockState != null) {
                         // client won't have sounds if the clientside block is interactable
                         // so we should check and resend sounds on BlockPlaceEvent
-                        BlockData craftBlockData = BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().handle());
+                        BlockData craftBlockData = BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().literalObject());
                         if (InteractUtils.isInteractable(player, craftBlockData, hitResult, itemInHand)) {
                             if (!serverPlayer.isSecondaryUseActive()) {
                                 serverPlayer.setResendSound();
                             }
                         } else {
-                            if (BlockStateUtils.isReplaceable(immutableBlockState.customBlockState().handle()) && !BlockStateUtils.isReplaceable(immutableBlockState.vanillaBlockState().handle())) {
+                            if (BlockStateUtils.isReplaceable(immutableBlockState.customBlockState().literalObject()) && !BlockStateUtils.isReplaceable(immutableBlockState.vanillaBlockState().literalObject())) {
                                 serverPlayer.setResendSwing();
                             }
                         }
@@ -316,7 +318,7 @@ public class ItemEventListener implements Listener {
                 if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
                     Cancellable dummy = Cancellable.dummy();
                     PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
-                            .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(block))
+                            .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                             .withOptionalParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, immutableBlockState)
                             .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
                             .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
@@ -337,7 +339,7 @@ public class ItemEventListener implements Listener {
         if (hasCustomItem && action == Action.LEFT_CLICK_BLOCK) {
             Cancellable dummy = Cancellable.dummy();
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
-                    .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(block))
+                    .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                     .withOptionalParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, immutableBlockState)
                     .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))

@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.block;
 
 import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
@@ -58,6 +59,8 @@ public abstract class AbstractCustomBlock implements CustomBlock {
             placements.add(Property.createStateForPlacement(propertyEntry.getKey(), propertyEntry.getValue()));
         }
         this.placementFunction = composite(placements);
+        EntityBlockBehavior entityBlockBehavior = this.behavior.getEntityBehavior();
+        boolean isEntityBlock = entityBlockBehavior != null;
         for (Map.Entry<String, BlockStateVariant> entry : variantMapper.entrySet()) {
             String nbtString = entry.getKey();
             CompoundTag tag = BlockNbtParser.deserialize(this, nbtString);
@@ -77,14 +80,18 @@ public abstract class AbstractCustomBlock implements CustomBlock {
             // Late init states
             ImmutableBlockState state = possibleStates.getFirst();
             state.setSettings(blockStateVariant.settings());
-            state.setVanillaBlockState((BlockStateWrapper.VanillaBlockState) BlockRegistryMirror.stateByRegistryId(vanillaStateRegistryId));
-            state.setCustomBlockState((BlockStateWrapper.CustomBlockState) BlockRegistryMirror.stateByRegistryId(blockStateVariant.internalRegistryId()));
+            state.setVanillaBlockState(BlockRegistryMirror.stateByRegistryId(vanillaStateRegistryId));
+            state.setCustomBlockState(BlockRegistryMirror.stateByRegistryId(blockStateVariant.internalRegistryId()));
         }
+
         // double check if there's any invalid state
         for (ImmutableBlockState state : this.variantProvider().states()) {
             state.setBehavior(this.behavior);
             if (state.settings() == null) {
                 state.setSettings(settings);
+            }
+            if (isEntityBlock) {
+                state.setBlockEntityType(entityBlockBehavior.blockEntityType());
             }
         }
         this.applyPlatformSettings();

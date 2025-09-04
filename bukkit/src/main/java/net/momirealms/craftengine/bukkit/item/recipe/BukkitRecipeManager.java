@@ -68,57 +68,35 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
                 return recipe;
             };
 
-    static {
-        try {
-            Key dyeRecipeId = Key.from("armor_dye");
-            MINECRAFT_RECIPE_REMOVER.accept(dyeRecipeId);
-            MINECRAFT_RECIPE_ADDER.apply(dyeRecipeId, RecipeInjector.createCustomDyeRecipe(dyeRecipeId));
-            Key repairRecipeId = Key.from("repair_item");
-            MINECRAFT_RECIPE_REMOVER.accept(repairRecipeId);
-            MINECRAFT_RECIPE_ADDER.apply(repairRecipeId, RecipeInjector.createRepairItemRecipe(repairRecipeId));
-            Key fireworkStarFadeRecipeId = Key.from("firework_star_fade");
-            MINECRAFT_RECIPE_REMOVER.accept(fireworkStarFadeRecipeId);
-            MINECRAFT_RECIPE_ADDER.apply(fireworkStarFadeRecipeId, RecipeInjector.createFireworkStarFadeRecipe(fireworkStarFadeRecipeId));
-        } catch (ReflectiveOperationException e) {
-            throw new ReflectionInitException("Failed to inject special recipes", e);
-        }
-    }
-
     private static final Map<Key, Function<Recipe<ItemStack>, Object>> ADD_RECIPE_FOR_MINECRAFT_RECIPE_HOLDER = Map.of(
             RecipeSerializers.SHAPED, recipe -> {
                 CustomShapedRecipe<ItemStack> shapedRecipe = (CustomShapedRecipe<ItemStack>) recipe;
                 Object mcRecipe = FastNMS.INSTANCE.createShapedRecipe(shapedRecipe);
-                modifyShapedRecipeIngredients(shapedRecipe, mcRecipe);
                 return MINECRAFT_RECIPE_ADDER.apply(recipe.id(), mcRecipe);
             },
             RecipeSerializers.SHAPELESS, recipe -> {
                 CustomShapelessRecipe<ItemStack> shapelessRecipe = (CustomShapelessRecipe<ItemStack>) recipe;
                 Object mcRecipe = FastNMS.INSTANCE.createShapelessRecipe(shapelessRecipe);
-                modifyShapelessRecipeIngredients(shapelessRecipe, mcRecipe);
                 return MINECRAFT_RECIPE_ADDER.apply(recipe.id(), mcRecipe);
             },
             RecipeSerializers.SMELTING, recipe -> {
                 CustomSmeltingRecipe<ItemStack> smeltingRecipe = (CustomSmeltingRecipe<ItemStack>) recipe;
                 Object mcRecipe = FastNMS.INSTANCE.createSmeltingRecipe(smeltingRecipe);
-                modifyCookingRecipeIngredient(smeltingRecipe, mcRecipe);
                 return MINECRAFT_RECIPE_ADDER.apply(recipe.id(), mcRecipe);
             },
             RecipeSerializers.BLASTING, recipe -> {
                 CustomBlastingRecipe<ItemStack> blastingRecipe = (CustomBlastingRecipe<ItemStack>) recipe;
                 Object mcRecipe = FastNMS.INSTANCE.createBlastingRecipe(blastingRecipe);
-                modifyCookingRecipeIngredient(blastingRecipe, mcRecipe);
                 return MINECRAFT_RECIPE_ADDER.apply(recipe.id(), mcRecipe);
             },
             RecipeSerializers.SMOKING, recipe -> {
                 CustomSmokingRecipe<ItemStack> smokingRecipe = (CustomSmokingRecipe<ItemStack>) recipe;
                 Object mcRecipe = FastNMS.INSTANCE.createSmokingRecipe(smokingRecipe);
-                modifyCookingRecipeIngredient(smokingRecipe, mcRecipe);
                 return MINECRAFT_RECIPE_ADDER.apply(recipe.id(), mcRecipe);
             },
             RecipeSerializers.CAMPFIRE_COOKING, recipe -> {
                 CustomCampfireRecipe<ItemStack> campfireRecipe = (CustomCampfireRecipe<ItemStack>) recipe;
                 Object mcRecipe = FastNMS.INSTANCE.createCampfireRecipe(campfireRecipe);
-                modifyCookingRecipeIngredient(campfireRecipe, mcRecipe);
                 return MINECRAFT_RECIPE_ADDER.apply(recipe.id(), mcRecipe);
             },
             RecipeSerializers.STONECUTTING, recipe -> {
@@ -217,7 +195,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
         }
     }
 
-    private static List<Object> getIngredientLooks(List<UniqueKey> holders) {
+    public static List<Object> getIngredientLooks(List<UniqueKey> holders) {
         List<Object> itemStacks = new ArrayList<>();
         for (UniqueKey holder : holders) {
             Optional<? extends BuildableItem<ItemStack>> buildableItem = BukkitItemManager.instance().getBuildableItem(holder.key());
@@ -229,6 +207,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
                 Item<ItemStack> barrier = BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, null);
                 assert barrier != null;
                 barrier.customNameJson(AdventureHelper.componentToJson(Component.text(holder.key().asString()).color(NamedTextColor.RED)));
+                itemStacks.add(barrier.getLiteralObject());
             }
         }
         return itemStacks;
@@ -481,6 +460,22 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
                 this.plugin.logger().warn("Failed to register recipe " + recipe.id().toString(), e);
             }
         }
+
+        // 重新注入特殊配方
+        try {
+            Key dyeRecipeId = Key.from("armor_dye");
+            MINECRAFT_RECIPE_REMOVER.accept(dyeRecipeId);
+            MINECRAFT_RECIPE_ADDER.apply(dyeRecipeId, RecipeInjector.createCustomDyeRecipe(dyeRecipeId));
+            Key repairRecipeId = Key.from("repair_item");
+            MINECRAFT_RECIPE_REMOVER.accept(repairRecipeId);
+            MINECRAFT_RECIPE_ADDER.apply(repairRecipeId, RecipeInjector.createRepairItemRecipe(repairRecipeId));
+            Key fireworkStarFadeRecipeId = Key.from("firework_star_fade");
+            MINECRAFT_RECIPE_REMOVER.accept(fireworkStarFadeRecipeId);
+            MINECRAFT_RECIPE_ADDER.apply(fireworkStarFadeRecipeId, RecipeInjector.createFireworkStarFadeRecipe(fireworkStarFadeRecipeId));
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to inject special recipes", e);
+        }
+
         try {
             // give flags back on 1.21.2+
             if (VersionHelper.isOrAbove1_21_2() && this.stolenFeatureFlagSet != null) {

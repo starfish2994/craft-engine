@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitBlockInWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.bukkit.Location;
@@ -29,8 +29,8 @@ public final class BukkitAdaptors {
         return new BukkitEntity(entity);
     }
 
-    public static BukkitBlockInWorld adapt(final Block block) {
-        return new BukkitBlockInWorld(block);
+    public static BukkitExistingBlock adapt(final Block block) {
+        return new BukkitExistingBlock(block);
     }
 
     public static Location toLocation(WorldPosition position) {

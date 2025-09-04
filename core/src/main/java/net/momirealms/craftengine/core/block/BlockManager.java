@@ -43,5 +43,5 @@ public interface BlockManager extends Manageable, ModelGenerator {
     ImmutableBlockState getImmutableBlockState(int stateId);
     
     @Nullable
-    BlockStateWrapper createPackedBlockState(String blockState);
+    BlockStateWrapper createBlockState(String blockState);
 }

@@ -1181,6 +1181,17 @@ public final class CoreReflections {
             )
     );
 
+    public static final Class<?> clazz$ServerLevel = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "server.level.WorldServer",
+                    "server.level.ServerLevel"
+            )
+    );
+
+    public static final Class<?> clazz$Explosion = requireNonNull(
+            ReflectionUtils.getClazz(BukkitReflectionUtils.assembleMCClass("world.level.Explosion"))
+    );
+
     public static final Constructor<?> constructor$StateDefinition$Builder = requireNonNull(
             ReflectionUtils.getTheOnlyConstructor(clazz$StateDefinition$Builder)
     );
@@ -1451,6 +1462,18 @@ public final class CoreReflections {
             ReflectionUtils.getInstanceDeclaredField(clazz$BlockBehaviour, float.class, 0)
     );
 
+    public static final Field field$BlockBehaviour$friction = requireNonNull(
+            ReflectionUtils.getInstanceDeclaredField(clazz$BlockBehaviour, float.class, 1)
+    );
+
+    public static final Field field$BlockBehaviour$speedFactor = requireNonNull(
+            ReflectionUtils.getInstanceDeclaredField(clazz$BlockBehaviour, float.class, 2)
+    );
+
+    public static final Field field$BlockBehaviour$jumpFactor = requireNonNull(
+            ReflectionUtils.getInstanceDeclaredField(clazz$BlockBehaviour, float.class, 3)
+    );
+
     public static final Field field$BlockBehaviour$soundType = requireNonNull(
             ReflectionUtils.getInstanceDeclaredField(clazz$BlockBehaviour, clazz$SoundType, 0)
     );
@@ -1545,6 +1568,15 @@ public final class CoreReflections {
                     "world.level.World",
                     "world.level.Level"
             )
+    );
+
+    public static final Method method$BlockBehaviour$hasAnalogOutputSignal = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, new String[]{"hasAnalogOutputSignal",
+            VersionHelper.isOrAbove1_20_5() ? "c_" : "d_"}, clazz$BlockState)
+    );
+
+    public static final Method method$BlockBehaviour$getAnalogOutputSignal = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos)
     );
 
     public static final Method method$Entity$level = requireNonNull(
@@ -1651,6 +1683,15 @@ public final class CoreReflections {
                     ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, clazz$BlockState, clazz$BlockState, clazz$Direction, clazz$BlockState, clazz$LevelAccessor, clazz$BlockPos, clazz$BlockPos)
     );
 
+    public static final Method method$BlockBehaviour$canSurvive = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, clazz$BlockState, clazz$LevelReader, clazz$BlockPos)
+    );
+
+    public static final Method method$BlockBehaviour$onExplosionHit = MiscUtils.requireNonNullIf(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, clazz$BlockState, VersionHelper.isOrAbove1_21_2() ? clazz$ServerLevel : clazz$Level, clazz$BlockPos, clazz$Explosion, BiConsumer.class),
+            VersionHelper.isOrAbove1_21()
+    );
+
     public static final Class<?> clazz$Fallable = requireNonNull(
             ReflectionUtils.getClazz(BukkitReflectionUtils.assembleMCClass("world.level.block.Fallable"))
     );
@@ -1671,6 +1712,14 @@ public final class CoreReflections {
                     "world.entity.item.EntityFallingBlock",
                     "world.entity.item.FallingBlockEntity"
             )
+    );
+
+    public static final Method method$Fallable$onLand = requireNonNull(
+            ReflectionUtils.getMethod(clazz$Fallable, void.class, clazz$Level, clazz$BlockPos, clazz$BlockState, clazz$BlockState, clazz$FallingBlockEntity)
+    );
+
+    public static final Method method$Fallable$onBrokenAfterFall = requireNonNull(
+            ReflectionUtils.getMethod(clazz$Fallable, void.class, clazz$Level, clazz$BlockPos, clazz$FallingBlockEntity)
     );
 
     public static final Method method$FallingBlockEntity$fall = requireNonNull(
@@ -2274,12 +2323,30 @@ public final class CoreReflections {
             )
     );
 
+    public static final Class<?> clazz$WorldlyContainerHolder = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.IInventoryHolder",
+                    "world.WorldlyContainerHolder"
+            )
+    );
+
     public static final Method method$BonemealableBlock$isValidBonemealTarget = requireNonNull(
             VersionHelper.isOrAbove1_20_2() ?
                     ReflectionUtils.getInstanceMethod(clazz$BonemealableBlock, boolean.class, clazz$LevelReader, clazz$BlockPos, clazz$BlockState) :
                     ReflectionUtils.getInstanceMethod(clazz$BonemealableBlock, boolean.class, clazz$LevelReader, clazz$BlockPos, clazz$BlockState, boolean.class)
     );
 
+    public static final Class<?> clazz$WorldlyContainer = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.IWorldInventory",
+                    "world.WorldlyContainer"
+            )
+    );
+
+
+    public static final Method method$WorldlyContainerHolder$getContainer = requireNonNull(
+            ReflectionUtils.getMethod(clazz$WorldlyContainerHolder, clazz$WorldlyContainer, clazz$BlockState, clazz$LevelAccessor, clazz$BlockPos)
+    );
     public static final Method method$BonemealableBlock$isBonemealSuccess = requireNonNull(
             ReflectionUtils.getMethod(clazz$BonemealableBlock, boolean.class, clazz$Level, clazz$RandomSource, clazz$BlockPos, clazz$BlockState)
     );
@@ -2957,13 +3024,6 @@ public final class CoreReflections {
             ReflectionUtils.getInstanceDeclaredField(clazz$ServerPlayer, clazz$ServerGamePacketListenerImpl, 0)
     );
 
-    public static final Class<?> clazz$ServerLevel = requireNonNull(
-            BukkitReflectionUtils.findReobfOrMojmapClass(
-                    "server.level.WorldServer",
-                    "server.level.ServerLevel"
-            )
-    );
-
     public static final Method method$ServerLevel$getNoiseBiome = requireNonNull(
             ReflectionUtils.getMethod(clazz$ServerLevel, clazz$Holder, int.class, int.class, int.class)
     );
@@ -3446,6 +3506,11 @@ public final class CoreReflections {
             ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"randomTick", "b"}, clazz$BlockState, clazz$ServerLevel, clazz$BlockPos, clazz$RandomSource)
     );
 
+    public static final Method method$BlockBehaviour$onPlace = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"onPlace", VersionHelper.isOrAbove1_21_5() ? "a" : "b"},
+                    clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$BlockState, boolean.class)
+    );
+
     public static final Class<?> clazz$InsideBlockEffectApplier = BukkitReflectionUtils.findReobfOrMojmapClass(
             "world.entity.InsideBlockEffectApplier",
             "world.entity.InsideBlockEffectApplier"
@@ -3600,12 +3665,6 @@ public final class CoreReflections {
             BukkitReflectionUtils.findReobfOrMojmapClass(
                     "world.level.block.BlockRedstoneWire",
                     "world.level.block.RedStoneWireBlock"
-            )
-    );
-
-    public static final Class<?> clazz$Explosion = requireNonNull(
-            ReflectionUtils.getClazz(
-                    BukkitReflectionUtils.assembleMCClass("world.level.Explosion")
             )
     );
 
@@ -3993,18 +4052,15 @@ public final class CoreReflections {
             ReflectionUtils.getStaticMethod(clazz$ArmorTrim, Optional.class, clazz$RegistryAccess, clazz$ItemStack);
 
     public static final Method method$BlockBehaviour$spawnAfterBreak = requireNonNull(
-            ReflectionUtils.getDeclaredMethod(
-                    clazz$BlockBehaviour, void.class, clazz$BlockState, clazz$ServerLevel, clazz$BlockPos, clazz$ItemStack, boolean.class
-            )
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, clazz$BlockState, clazz$ServerLevel, clazz$BlockPos, clazz$ItemStack, boolean.class)
     );
 
     // 1.20~1.21.4
     public static final Method method$BlockBehaviour$onRemove = MiscUtils.requireNonNullIf(
-            ReflectionUtils.getDeclaredMethod(
-                    clazz$BlockBehaviour, void.class, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$BlockState, boolean.class
-            ),
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"a", "onRemove"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$BlockState, boolean.class),
             !VersionHelper.isOrAbove1_21_5()
     );
+
     public static final Object instance$CollisionContext$empty;
 
     static {
@@ -4147,5 +4203,9 @@ public final class CoreReflections {
                     "world.level.storage.loot.entries.LootEntryType",
                     "world.level.storage.loot.entries.LootPoolEntryType"
             )
+    );
+
+    public static final Method method$BlockAndTintGetter$getLightEngine = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockAndTintGetter, clazz$LevelLightEngine)
     );
 }

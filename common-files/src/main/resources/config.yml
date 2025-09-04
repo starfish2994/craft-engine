@@ -29,7 +29,6 @@ resource-pack:
       seed: 0 # 0 = random seed
       fake-directory: false
       escape-unicode: false
-      break-json: false
       resource-location:
         enable: true
         random-namespace:
@@ -41,7 +40,6 @@ resource-pack:
           anti-unzip: false
         random-atlas:
           images-per-canvas: 32 # 0 = disable
-          use-double: true
         # Sometimes, some vanilla files that have been overwritten might be mistakenly obfuscated.
         # Please add the ignored textures/models/sounds here.
         bypass-textures:
@@ -190,16 +188,6 @@ block:
     extended-interaction-range: 0.5
 
 furniture:
-  # Automatically remove outdated furniture entities when a chunk is loaded.
-  handle-invalid-furniture-on-chunk-load:
-    # Enable/disable the cleanup system
-    enable: false
-    # Removes the specified invalid furniture
-    remove:
-      - "xxx:invalid_furniture"
-    # Converts the invalid furniture to a valid one
-    convert:
-      "namespace:furniture_a": "namespace:furniture_b"
   # Hide technical entities used for storing furniture metadata.
   # NOTE:
   # - These are INVISIBLE entities used internally for tracking furniture states
@@ -211,10 +199,14 @@ furniture:
   collision-entity-type: interaction
 
 emoji:
-  chat: true
-  book: true
-  anvil: true
-  sign: true
+  # Contexts where emoji parsing is enabled
+  contexts:
+    chat: true
+    book: true
+    anvil: true
+    sign: true
+  # Prevent lag or oversized packet when processing emoji-heavy content
+  max-emojis-per-parse: 16
 
 image:
   # Block image tags using minecraft:default font in these interfaces
@@ -366,15 +358,11 @@ gui:
       brewing:
         title: "<white><shift:-11><image:internal:brewing_recipe>"
 
-performance:
-  # Maximum chain update depth when fixing client visuals
-  max-note-block-chain-update-limit: 48
-  # Prevent lag or oversized packet when processing emoji-heavy content
-  max-emojis-per-parse: 16
-
 light-system:
   # Required for custom light-emitting blocks
   enable: true
+  # Async light update
+  async-update: true
 
 chunk-system:
   # With cache system, those frequently load/unload chunks would consume fewer resources on serialization
@@ -389,7 +377,7 @@ chunk-system:
   # Settings for injection
   injection:
     # Requires a restart to apply.
-    # SECTION: Inject the LevelChunkSection
+    # SECTION: Inject the LevelChunkSection (Use this if you have installed both FastAsyncWorldEdit and Axiom)
     # PALETTE: Inject the PalettedContainer
     target: PALETTE
     # Enables faster injection method
@@ -420,6 +408,16 @@ chunk-system:
   # server's CraftEngine internal data. Enabling this option will synchronize the data when the chunk is loaded.
   # (This option only slightly impacts performance, which has been fully optimized, so you don't need to worry too much.)
   sync-custom-blocks-on-chunk-load: false
+  # This system processes any invalid block when a chunk is loaded.
+  process-invalid-blocks:
+    enable: false
+    remove: []
+    convert: {}
+  # This system processes any invalid furniture when a chunk is loaded.
+  process-invalid-furniture:
+    enable: false
+    remove: []
+    convert: {}
 
 # Enables or disables debug mode
 debug:

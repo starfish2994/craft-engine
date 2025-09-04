@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.plugin.user;
 
+import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
 import com.google.common.collect.Lists;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -31,15 +32,18 @@ import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.util.IntIdentityList;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldEvents;
+import net.momirealms.craftengine.core.world.chunk.ChunkStatus;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -95,6 +99,7 @@ public class BukkitServerPlayer extends Player {
     private int resentSwingTick;
     // has fabric client mod or not
     private boolean hasClientMod = false;
+    private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaStateSize());
     // cache if player can break blocks
     private boolean clientSideCanBreak = true;
     // prevent AFK players from consuming too much CPU resource on predicting
@@ -108,8 +113,10 @@ public class BukkitServerPlayer extends Player {
     private double cachedInteractionRange;
     // cooldown data
     private CooldownData cooldownData;
-
-    private final Map<Integer, EntityPacketHandler> entityTypeView = new ConcurrentHashMap<>();
+    // tracked chunks
+    private ConcurrentLong2ReferenceChainedHashTable<ChunkStatus> trackedChunks;
+    // entity view
+    private Map<Integer, EntityPacketHandler> entityTypeView;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -131,6 +138,8 @@ public class BukkitServerPlayer extends Player {
         this.uuid = player.getUniqueId();
         this.name = player.getName();
         byte[] bytes = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(CooldownData.COOLDOWN_KEY), PersistentDataType.BYTE_ARRAY);
+        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(768, 0.5f);
+        this.entityTypeView = new ConcurrentHashMap<>(256);
         try {
             this.cooldownData = CooldownData.fromBytes(bytes);
         } catch (IOException e) {
@@ -175,6 +184,26 @@ public class BukkitServerPlayer extends Player {
     @Override
     public boolean isSneaking() {
         return platformPlayer().isSneaking();
+    }
+
+    @Override
+    public boolean isSwimming() {
+        return platformPlayer().isSwimming();
+    }
+
+    @Override
+    public boolean isClimbing() {
+        return platformPlayer().isClimbing();
+    }
+
+    @Override
+    public boolean isGliding() {
+        return platformPlayer().isGliding();
+    }
+
+    @Override
+    public boolean isFlying() {
+        return platformPlayer().isFlying();
     }
 
     @Override
@@ -351,8 +380,8 @@ public class BukkitServerPlayer extends Player {
             Object responsePacket;
             if (VersionHelper.isOrAbove1_20_2()) {
                 Object dataPayload;
-                if (NetworkReflections.clazz$UnknownPayload != null) {
-                    dataPayload = NetworkReflections.constructor$UnknownPayload.newInstance(channelResourceLocation, Unpooled.wrappedBuffer(data));
+                if (!VersionHelper.isOrAbove1_20_5()) {
+                    dataPayload = NetworkReflections.constructor$ServerboundCustomPayloadPacket$UnknownPayload.newInstance(channelResourceLocation, Unpooled.wrappedBuffer(data));
                 } else if (DiscardedPayload.useNewMethod) {
                     dataPayload = NetworkReflections.constructor$DiscardedPayload.newInstance(channelResourceLocation, data);
                 } else {
@@ -475,10 +504,7 @@ public class BukkitServerPlayer extends Player {
             ImmutableBlockState customState = optionalCustomState.get();
             Item<ItemStack> tool = getItemInHand(InteractionHand.MAIN_HAND);
             boolean isCorrectTool = FastNMS.INSTANCE.method$ItemStack$isCorrectToolForDrops(tool.getLiteralObject(), blockState);
-            // 如果自定义方块在服务端侧未使用正确地工具，那么需要还原挖掘速度
-            if (!isCorrectTool) {
-                progress *= (10f / 3f);
-            }
+            // 如果自定义方块在服务端侧未使用正确的工具，那么需要还原挖掘速度
             if (!BlockStateUtils.isCorrectTool(customState, tool)) {
                 progress *= customState.settings().incorrectToolSpeed();
             }
@@ -520,7 +546,7 @@ public class BukkitServerPlayer extends Player {
         if (custom && getDestroyProgress(state, pos) >= 1f) {
             BlockStateWrapper vanillaBlockState = immutableBlockState.vanillaBlockState();
             // if it's not an instant break on client side, we should resend level event
-            if (vanillaBlockState != null && getDestroyProgress(vanillaBlockState.handle(), pos) < 1f) {
+            if (vanillaBlockState != null && getDestroyProgress(vanillaBlockState.literalObject(), pos) < 1f) {
                 Object levelEventPacket = FastNMS.INSTANCE.constructor$ClientboundLevelEventPacket(
                         WorldEvents.BLOCK_BREAK_EFFECT, LocationUtils.toBlockPos(pos), BlockStateUtils.blockStateToId(state), false);
                 sendPacket(levelEventPacket, false);
@@ -682,7 +708,7 @@ public class BukkitServerPlayer extends Player {
                         // for simplified adventure break, switch mayBuild temporarily
                         if (isAdventureMode() && Config.simplifyAdventureBreakCheck()) {
                             // check the appearance state
-                            if (canBreak(hitPos, customState.vanillaBlockState().handle())) {
+                            if (canBreak(hitPos, customState.vanillaBlockState().literalObject())) {
                                 // Error might occur so we use try here
                                 try {
                                     FastNMS.INSTANCE.field$Player$mayBuild(serverPlayer, true);
@@ -886,12 +912,24 @@ public class BukkitServerPlayer extends Player {
         return resentSwingTick == gameTicks();
     }
 
+    @Override
     public boolean clientModEnabled() {
         return this.hasClientMod;
     }
 
+    @Override
     public void setClientModState(boolean enable) {
         this.hasClientMod = enable;
+    }
+
+    @Override
+    public void setClientBlockList(IntIdentityList blockList) {
+        this.blockList = blockList;
+    }
+
+    @Override
+    public IntIdentityList clientBlockList() {
+        return this.blockList;
     }
 
     @Override
@@ -935,8 +973,28 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void performCommand(String command) {
-        platformPlayer().performCommand(command);
+    public void performCommand(String command, boolean asOp) {
+        org.bukkit.entity.Player player = platformPlayer();
+        if (asOp) {
+            boolean isOp = player.isOp();
+            player.setOp(true);
+            try {
+                player.performCommand(command);
+            } catch (Throwable t) {
+                this.plugin.logger().warn("Failed to perform command '" + command + "' for " + this.name() + " as operator", t);
+            }
+            player.setOp(isOp);
+        } else {
+            player.performCommand(command);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("UnstableApiUsage")
+    public void performCommandAsEvent(String command) {
+        String formattedCommand = command.startsWith("/") ? command : "/" + command;
+        PlayerCommandPreprocessEvent event = new PlayerCommandPreprocessEvent(platformPlayer(), formattedCommand);
+        Bukkit.getPluginManager().callEvent(event);
     }
 
     @Override
@@ -946,11 +1004,6 @@ public class BukkitServerPlayer extends Player {
         } else {
             return LegacyAttributeUtils.getLuck(platformPlayer());
         }
-    }
-
-    @Override
-    public boolean isFlying() {
-        return platformPlayer().isFlying();
     }
 
     @Override
@@ -995,5 +1048,30 @@ public class BukkitServerPlayer extends Player {
     @Override
     public CooldownData cooldown() {
         return this.cooldownData;
+    }
+
+    @Override
+    public boolean isChunkTracked(long chunkPos) {
+        return this.trackedChunks.containsKey(chunkPos);
+    }
+
+    @Override
+    public ChunkStatus getTrackedChunk(long chunkPos) {
+        return this.trackedChunks.get(chunkPos);
+    }
+
+    @Override
+    public void addTrackedChunk(long chunkPos, ChunkStatus chunkStatus) {
+        this.trackedChunks.put(chunkPos, chunkStatus);
+    }
+
+    @Override
+    public void removeTrackedChunk(long chunkPos) {
+        this.trackedChunks.remove(chunkPos);
+    }
+
+    @Override
+    public void clearTrackedChunks() {
+        this.trackedChunks.clear();
     }
 }
