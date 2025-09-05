@@ -55,7 +55,7 @@ public class GlobalVariableManager implements Manageable {
         @Override
         public void parseObject(Pack pack, Path path, net.momirealms.craftengine.core.util.Key id, Object object) throws LocalizedException {
             if (object != null) {
-                globalVariables.put(id.value(), object.toString());
+                GlobalVariableManager.this.globalVariables.put(id.value(), object.toString());
             }
         }
     }

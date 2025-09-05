@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
-public class PlayerOptionalContext extends AbstractChainParameterContext implements Context {
+public class PlayerOptionalContext extends AbstractChainParameterContext implements PlayerContext {
     public static final PlayerOptionalContext EMPTY = new PlayerOptionalContext(null, ContextHolder.EMPTY);
     protected final Player player;
 
@@ -44,6 +44,7 @@ public class PlayerOptionalContext extends AbstractChainParameterContext impleme
         return new PlayerOptionalContext(player, new ContextHolder(Map.of(DirectContextParameters.PLAYER, () -> player)));
     }
 
+    @Override
     @Nullable
     public Player player() {
         return this.player;
