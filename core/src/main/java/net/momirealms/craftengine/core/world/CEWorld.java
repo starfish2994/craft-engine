@@ -17,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CEWorld {
     public static final String REGION_DIRECTORY = "craftengine";
@@ -25,10 +24,12 @@ public abstract class CEWorld {
     protected final ConcurrentLong2ReferenceChainedHashTable<CEChunk> loadedChunkMap;
     protected final WorldDataStorage worldDataStorage;
     protected final WorldHeight worldHeightAccessor;
-    protected final Set<SectionPos> updatedSectionSet = ConcurrentHashMap.newKeySet(128);
+    protected final List<SectionPos> pendingLightSections = new ArrayList<>(128);
+    protected final Set<SectionPos> lightSections = new HashSet<>(128);
     protected final List<TickingBlockEntity> tickingBlockEntities = new ArrayList<>();
     protected final List<TickingBlockEntity> pendingTickingBlockEntities = new ArrayList<>();
     protected boolean isTickingBlockEntities = false;
+    protected boolean isUpdatingLights = false;
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
 
@@ -163,12 +164,12 @@ public abstract class CEWorld {
         return worldDataStorage;
     }
 
-    public void sectionLightUpdated(SectionPos pos) {
-        this.updatedSectionSet.add(pos);
-    }
-
     public void sectionLightUpdated(Collection<SectionPos> pos) {
-        this.updatedSectionSet.addAll(pos);
+        if (this.isUpdatingLights) {
+            this.pendingLightSections.addAll(pos);
+        } else {
+            this.lightSections.addAll(pos);
+        }
     }
 
     public WorldHeight worldHeight() {
