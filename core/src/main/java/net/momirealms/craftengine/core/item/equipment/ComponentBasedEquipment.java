@@ -131,7 +131,7 @@ public class ComponentBasedEquipment extends AbstractEquipment implements Suppli
                         return new DyeableData(ResourceConfigUtils.getAsInt(data.get("color-when-undyed"), "color-when-undyed"));
                     }
                 }
-                return new DyeableData(null);
+                return null;
             }
 
             @Override
