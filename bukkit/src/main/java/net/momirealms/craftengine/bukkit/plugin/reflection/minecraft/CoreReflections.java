@@ -3671,11 +3671,12 @@ public final class CoreReflections {
     // 1.20.5+
     public static final Field field$ItemStack$CODEC = ReflectionUtils.getDeclaredField(clazz$ItemStack, "CODEC", "b");
 
-    public static final Codec<Object> instance$ItemStack$CODEC;
+    public static final Codec<Object> instance$ItemStack$CODEC = getItemStack$CODEC();
 
-    static {
+    @SuppressWarnings("unchecked")
+    private static Codec<Object> getItemStack$CODEC() {
         try {
-            instance$ItemStack$CODEC = VersionHelper.isOrAbove1_20_5() ? (Codec<Object>) field$ItemStack$CODEC.get(null) : null;
+            return VersionHelper.isOrAbove1_20_5() ? (Codec<Object>) field$ItemStack$CODEC.get(null) : null;
         } catch (ReflectiveOperationException e) {
             throw new ReflectionInitException("Failed to init ItemStack$CODEC", e);
         }
