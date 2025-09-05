@@ -1,8 +1,11 @@
 package net.momirealms.craftengine.bukkit.world;
 
 import net.momirealms.craftengine.bukkit.util.LightUtils;
+import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.BlockEntityRendererConfig;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.SectionPosUtils;
+import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.SectionPos;
 import net.momirealms.craftengine.core.world.World;
@@ -38,5 +41,10 @@ public class BukkitCEWorld extends CEWorld {
                     )
             );
         }
+    }
+
+    @Override
+    public BlockEntityRenderer createBlockEntityRenderer(BlockEntityRendererConfig config, BlockPos pos) {
+        return null;
     }
 }

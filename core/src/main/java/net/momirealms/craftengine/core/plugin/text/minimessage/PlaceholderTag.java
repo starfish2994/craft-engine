@@ -7,7 +7,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.PlayerContext;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

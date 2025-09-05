@@ -37,6 +37,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntityType
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.advancement.network.AdvancementHolder;
 import net.momirealms.craftengine.core.advancement.network.AdvancementProgress;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -64,6 +65,7 @@ import net.momirealms.craftengine.core.plugin.network.*;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.*;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.ChunkStatus;
 import net.momirealms.craftengine.core.world.chunk.Palette;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
@@ -261,14 +263,24 @@ public class PacketConsumers {
 
     public static final BiConsumer<NetWorkUser, ByteBufPacketEvent> FORGET_LEVEL_CHUNK = (user, event) -> {
         try {
+            BukkitServerPlayer player = (BukkitServerPlayer) user;
             FriendlyByteBuf buf = event.getBuffer();
+            CEWorld ceWorld = BukkitWorldManager.instance().getWorld(player.world().uuid());
             if (VersionHelper.isOrAbove1_20_2()) {
                 long chunkPos = buf.readLong();
                 user.removeTrackedChunk(chunkPos);
+                CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkPos);
+                if (ceChunk != null) {
+                    ceChunk.despawnBlockEntities(player);
+                }
             } else {
                 int x = buf.readInt();
                 int y = buf.readInt();
                 user.removeTrackedChunk(ChunkPos.asLong(x, y));
+                CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(x, y);
+                if (ceChunk != null) {
+                    ceChunk.despawnBlockEntities(player);
+                }
             }
         } catch (Exception e) {
             CraftEngine.instance().logger().warn("Failed to handle ClientboundForgetLevelChunkPacket", e);
@@ -401,6 +413,12 @@ public class PacketConsumers {
             ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
             // 记录加载的区块
             player.addTrackedChunk(chunkPos.longKey, new ChunkStatus());
+
+            CEWorld ceWorld = BukkitWorldManager.instance().getWorld(player.world().uuid());
+            CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);
+            if (ceChunk != null) {
+                ceChunk.spawnBlockEntities(player);
+            }
         } catch (Exception e) {
             CraftEngine.instance().logger().warn("Failed to handle ClientboundLevelChunkWithLightPacket", e);
         }

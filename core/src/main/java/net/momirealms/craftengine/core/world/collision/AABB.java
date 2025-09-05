@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.world.collision;
 
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.MCUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.EntityHitResult;
 import net.momirealms.craftengine.core.world.Vec3d;

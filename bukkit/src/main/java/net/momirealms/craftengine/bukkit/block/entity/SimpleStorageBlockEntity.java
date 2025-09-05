@@ -24,7 +24,6 @@ import org.bukkit.GameEvent;
 import org.bukkit.GameMode;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -200,6 +199,4 @@ public class SimpleStorageBlockEntity extends BlockEntity {
         }
         this.inventory.clear();
     }
-
-
 }

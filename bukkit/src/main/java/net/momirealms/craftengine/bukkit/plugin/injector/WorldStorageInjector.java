@@ -237,6 +237,10 @@ public final class WorldStorageInjector {
                         chunk.removeBlockEntity(pos);
                     }
                 }
+                if (previous.hasBlockEntityRenderer()) {
+                    BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                    chunk.removeBlockEntityRenderer(pos);
+                }
                 if (Config.enableLightSystem()) {
                     // 自定义块到原版块，只需要判断旧块是否和客户端一直
                     BlockStateWrapper wrapper = previous.vanillaBlockState();
@@ -266,6 +270,10 @@ public final class WorldStorageInjector {
                         chunk.removeBlockEntity(pos);
                     }
                 }
+                if (previousImmutableBlockState.hasBlockEntityRenderer()) {
+                    BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                    chunk.removeBlockEntityRenderer(pos);
+                }
             }
             if (newImmutableBlockState.hasBlockEntity()) {
                 BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
@@ -284,6 +292,10 @@ public final class WorldStorageInjector {
                     // 方块类型未变，仅更新状态，选择性更新ticker
                     chunk.replaceOrCreateTickingBlockEntity(blockEntity);
                 }
+            }
+            if (newImmutableBlockState.hasBlockEntityRenderer()) {
+                BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                chunk.addBlockEntityRenderer(pos, newImmutableBlockState);
             }
             // 如果新方块的光照属性和客户端认为的不同
             if (Config.enableLightSystem()) {

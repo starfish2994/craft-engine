@@ -12,15 +12,14 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public final class DefaultBlockEntitySerializer {
 
-    public static ListTag serialize(Map<BlockPos, BlockEntity> tiles) {
+    public static ListTag serialize(Collection<BlockEntity> entities) {
         ListTag result = new ListTag();
-        for (Map.Entry<BlockPos, BlockEntity> entry : tiles.entrySet()) {
-            BlockEntity entity = entry.getValue();
+        for (BlockEntity entity : entities) {
             if (entity.isValid()) {
                 result.add(entity.saveAsTag());
             }
