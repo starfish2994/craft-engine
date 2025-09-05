@@ -89,7 +89,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
 
         ImmutableBlockState blockStateToPlace = getPlacementState(context, block);
         if (blockStateToPlace == null) {
-            return InteractionResult.FAIL;
+            return InteractionResult.PASS;
         }
 
         BlockPos againstPos = context.getAgainstPos();
