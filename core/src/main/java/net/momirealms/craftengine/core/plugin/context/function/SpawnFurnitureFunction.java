@@ -85,11 +85,11 @@ public class SpawnFurnitureFunction<CTX extends Context> extends AbstractConditi
         @Override
         public Function<CTX> create(Map<String, Object> arguments) {
             Key furnitureId = Key.of(ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("furniture-id"), "warning.config.function.spawn_furniture.missing_furniture_id"));
-            NumberProvider x = NumberProviders.fromObject(arguments.getOrDefault("x", "<arg:furniture.x>"));
-            NumberProvider y = NumberProviders.fromObject(arguments.getOrDefault("y", "<arg:furniture.y>"));
-            NumberProvider z = NumberProviders.fromObject(arguments.getOrDefault("z", "<arg:furniture.z>"));
-            NumberProvider pitch = NumberProviders.fromObject(arguments.getOrDefault("pitch", "<arg:furniture.pitch>"));
-            NumberProvider yaw = NumberProviders.fromObject(arguments.getOrDefault("yaw", "<arg:furniture.yaw>"));
+            NumberProvider x = NumberProviders.fromObject(arguments.getOrDefault("x", "<arg:position.x>"));
+            NumberProvider y = NumberProviders.fromObject(arguments.getOrDefault("y", "<arg:position.y>"));
+            NumberProvider z = NumberProviders.fromObject(arguments.getOrDefault("z", "<arg:position.z>"));
+            NumberProvider pitch = NumberProviders.fromObject(arguments.getOrDefault("pitch", "<arg:position.pitch>"));
+            NumberProvider yaw = NumberProviders.fromObject(arguments.getOrDefault("yaw", "<arg:position.yaw>"));
             AnchorType anchorType = ResourceConfigUtils.getAsEnum(arguments.get("anchor-type"), AnchorType.class, null);
             boolean playSound = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("play-sound", true), "play-sound");
             return new SpawnFurnitureFunction<>(furnitureId, x, y, z, pitch, yaw, anchorType, playSound, getPredicates(arguments));
