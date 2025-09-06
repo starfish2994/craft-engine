@@ -263,6 +263,14 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
             itemManager.registerExternalItemSource(new ZaphkielSource());
             logHook("Zaphkiel");
         }
+        if (this.isPluginEnabled("HeadDatabase")) {
+            itemManager.registerExternalItemSource(new HeadDatabaseSource());
+            logHook("HeadDatabase");
+        }
+        if (this.isPluginEnabled("SX-Item")) {
+            itemManager.registerExternalItemSource(new SXItemSource());
+            logHook("SX-Item");
+        }
     }
 
     private Plugin getPlugin(String name) {
