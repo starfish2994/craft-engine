@@ -7,13 +7,10 @@ import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextPar
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Deque;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class ItemBuildContext extends PlayerOptionalContext {
     public static final ItemBuildContext EMPTY = new ItemBuildContext(null, ContextHolder.EMPTY);
-    private Deque<String> externalBuildStack;
 
     public ItemBuildContext(@Nullable Player player, @NotNull ContextHolder contexts) {
         super(player, contexts);
@@ -34,17 +31,5 @@ public class ItemBuildContext extends PlayerOptionalContext {
     public static ItemBuildContext of(@Nullable Player player) {
         if (player == null) return new ItemBuildContext(null, ContextHolder.EMPTY);
         return new ItemBuildContext(player, new ContextHolder(Map.of(DirectContextParameters.PLAYER, () -> player)));
-    }
-
-    @NotNull
-    public Deque<String> getExternalBuildStack() {
-        if (externalBuildStack == null) {
-            externalBuildStack = new ConcurrentLinkedDeque<>();
-        }
-        return externalBuildStack;
-    }
-
-    public void clearExternalBuildStack() {
-        externalBuildStack = null;
     }
 }
