@@ -84,7 +84,7 @@ public class CustomHitBox extends AbstractHitBox {
 
         @Override
         public HitBox create(Map<String, Object> arguments) {
-            Vector3f position = MiscUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position");
+            Vector3f position = ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position");
             float scale = ResourceConfigUtils.getAsFloat(arguments.getOrDefault("scale", 1), "scale");
             String type = (String) arguments.getOrDefault("entity-type", "slime");
             EntityType entityType = Registry.ENTITY_TYPE.get(new NamespacedKey("minecraft", type));

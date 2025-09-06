@@ -144,7 +144,7 @@ public class BukkitGuiManager implements GuiManager, Listener {
             simpleStorageBlockEntity.onPlayerClose(this.plugin.adapt(player));
         }
     }
-    
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onInventoryClose(PlayerQuitEvent event) {
         Player player = event.getPlayer();

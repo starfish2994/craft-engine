@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -15,8 +16,8 @@ public interface HitBoxFactory {
         return seats.stream()
                 .map(arg -> {
                     String[] split = arg.split(" ");
-                    if (split.length == 1) return new Seat(MiscUtils.getAsVector3f(split[0], "seats"), 0, false);
-                    return new Seat(MiscUtils.getAsVector3f(split[0], "seats"), Float.parseFloat(split[1]), true);
+                    if (split.length == 1) return new Seat(ResourceConfigUtils.getAsVector3f(split[0], "seats"), 0, false);
+                    return new Seat(ResourceConfigUtils.getAsVector3f(split[0], "seats"), Float.parseFloat(split[1]), true);
                 })
                 .toArray(Seat[]::new);
     }

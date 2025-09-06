@@ -32,7 +32,7 @@ public final class ImmutableBlockState extends BlockStateHolder {
     private BlockSettings settings;
     private BlockEntityType<? extends BlockEntity> blockEntityType;
     @Nullable
-    private BlockEntityRendererConfig rendererConfig;
+    private BlockEntityRendererConfig renderer;
 
     ImmutableBlockState(
             Holder<CustomBlock> owner,
@@ -71,7 +71,11 @@ public final class ImmutableBlockState extends BlockStateHolder {
 
     @Nullable
     public BlockEntityRendererConfig entityRenderer() {
-        return this.rendererConfig;
+        return this.renderer;
+    }
+
+    public void setEntityRenderer(@Nullable BlockEntityRendererConfig rendererConfig) {
+        this.renderer = rendererConfig;
     }
 
     @Override
@@ -94,7 +98,7 @@ public final class ImmutableBlockState extends BlockStateHolder {
     }
 
     public boolean hasBlockEntityRenderer() {
-        return this.rendererConfig != null;
+        return this.renderer != null;
     }
 
     public BlockStateWrapper customBlockState() {

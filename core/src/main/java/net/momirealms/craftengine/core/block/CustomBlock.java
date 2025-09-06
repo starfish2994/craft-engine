@@ -45,7 +45,7 @@ public interface CustomBlock {
 
         Builder events(Map<EventTrigger, List<Function<PlayerOptionalContext>>> events);
 
-        Builder appearances(Map<String, Integer> appearances);
+        Builder appearances(Map<String, BlockStateAppearance> appearances);
 
         Builder behavior(List<Map<String, Object>> behavior);
 

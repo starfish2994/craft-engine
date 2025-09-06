@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -54,7 +55,7 @@ public class DyedColorModifier<I> implements SimpleNetworkItemDataModifier<I> {
             if (arg instanceof Integer integer) {
                 return new DyedColorModifier<>(Color.fromDecimal(integer));
             } else {
-                Vector3f vector3f = MiscUtils.getAsVector3f(arg, "dyed-color");
+                Vector3f vector3f = ResourceConfigUtils.getAsVector3f(arg, "dyed-color");
                 return new DyedColorModifier<>(Color.fromVector3f(vector3f));
             }
         }

@@ -38,7 +38,7 @@ public abstract class AbstractCustomBlock implements CustomBlock {
             @NotNull Key id,
             @NotNull Holder.Reference<CustomBlock> holder,
             @NotNull Map<String, Property<?>> properties,
-            @NotNull Map<String, Integer> appearances,
+            @NotNull Map<String, BlockStateAppearance> appearances,
             @NotNull Map<String, BlockStateVariant> variantMapper,
             @NotNull BlockSettings settings,
             @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
@@ -72,16 +72,21 @@ public abstract class AbstractCustomBlock implements CustomBlock {
                 throw new LocalizedResourceConfigException("warning.config.block.state.property.invalid_format", nbtString);
             }
             BlockStateVariant blockStateVariant = entry.getValue();
-            int vanillaStateRegistryId = appearances.getOrDefault(blockStateVariant.appearance(), -1);
+
+            BlockStateAppearance blockStateAppearance = appearances.getOrDefault(blockStateVariant.appearance(), BlockStateAppearance.INVALID);
+            int stateId;
             // This should never happen
-            if (vanillaStateRegistryId == -1) {
-                vanillaStateRegistryId = appearances.values().iterator().next();
+            if (blockStateAppearance.isInvalid()) {
+                stateId = appearances.values().iterator().next().stateRegistryId();
+            } else {
+                stateId = blockStateAppearance.stateRegistryId();
             }
             // Late init states
             ImmutableBlockState state = possibleStates.getFirst();
             state.setSettings(blockStateVariant.settings());
-            state.setVanillaBlockState(BlockRegistryMirror.stateByRegistryId(vanillaStateRegistryId));
+            state.setVanillaBlockState(BlockRegistryMirror.stateByRegistryId(stateId));
             state.setCustomBlockState(BlockRegistryMirror.stateByRegistryId(blockStateVariant.internalRegistryId()));
+            blockStateAppearance.blockEntityRenderer().ifPresent(state::setEntityRenderer);
         }
 
         // double check if there's any invalid state

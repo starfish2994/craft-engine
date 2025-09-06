@@ -39,7 +39,7 @@ public final class BukkitCustomBlock extends AbstractCustomBlock {
             @NotNull Key id,
             @NotNull Holder.Reference<CustomBlock> holder,
             @NotNull Map<String, Property<?>> properties,
-            @NotNull Map<String, Integer> appearances,
+            @NotNull Map<String, BlockStateAppearance> appearances,
             @NotNull Map<String, BlockStateVariant> variantMapper,
             @NotNull BlockSettings settings,
             @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
@@ -200,7 +200,7 @@ public final class BukkitCustomBlock extends AbstractCustomBlock {
     public static class BuilderImpl implements Builder {
         protected final Key id;
         protected Map<String, Property<?>> properties;
-        protected Map<String, Integer> appearances;
+        protected Map<String, BlockStateAppearance> appearances;
         protected Map<String, BlockStateVariant> variantMapper;
         protected BlockSettings settings;
         protected List<Map<String, Object>> behavior;
@@ -218,7 +218,7 @@ public final class BukkitCustomBlock extends AbstractCustomBlock {
         }
 
         @Override
-        public Builder appearances(Map<String, Integer> appearances) {
+        public Builder appearances(Map<String, BlockStateAppearance> appearances) {
             this.appearances = appearances;
             return this;
         }

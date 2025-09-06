@@ -399,9 +399,9 @@ public class ItemSettings {
                 Key customTridentItemId = Key.of(ResourceConfigUtils.requireNonEmptyStringOrThrow(args.get("item"), "warning.config.item.settings.projectile.missing_item"));
                 ItemDisplayContext displayType = ItemDisplayContext.valueOf(args.getOrDefault("display-transform", "NONE").toString().toUpperCase(Locale.ENGLISH));
                 Billboard billboard = Billboard.valueOf(args.getOrDefault("billboard", "FIXED").toString().toUpperCase(Locale.ENGLISH));
-                Vector3f translation = MiscUtils.getAsVector3f(args.getOrDefault("translation", "0"), "translation");
-                Vector3f scale = MiscUtils.getAsVector3f(args.getOrDefault("scale", "1"), "scale");
-                Quaternionf rotation = MiscUtils.getAsQuaternionf(ResourceConfigUtils.get(args, "rotation-left", "rotation"), "rotation-left");
+                Vector3f translation = ResourceConfigUtils.getAsVector3f(args.getOrDefault("translation", "0"), "translation");
+                Vector3f scale = ResourceConfigUtils.getAsVector3f(args.getOrDefault("scale", "1"), "scale");
+                Quaternionf rotation = ResourceConfigUtils.getAsQuaternionf(ResourceConfigUtils.get(args, "rotation"), "rotation");
                 ProjectileType type = Optional.ofNullable(args.get("type")).map(String::valueOf).map(it -> ProjectileType.valueOf(it.toUpperCase(Locale.ENGLISH))).orElse(null);
                 double range = ResourceConfigUtils.getAsDouble(args.getOrDefault("range", 1), "range");
                 return settings -> settings.projectileMeta(new ProjectileMeta(customTridentItemId, displayType, billboard, scale, translation, rotation, range, type));
@@ -426,14 +426,14 @@ public class ItemSettings {
                 if (value instanceof Integer i) {
                     return settings -> settings.dyeColor(Color.fromDecimal(i));
                 } else {
-                    return settings -> settings.dyeColor(Color.fromVector3f(MiscUtils.getAsVector3f(value, "dye-color")));
+                    return settings -> settings.dyeColor(Color.fromVector3f(ResourceConfigUtils.getAsVector3f(value, "dye-color")));
                 }
             }));
             registerFactory("firework-color", (value -> {
                 if (value instanceof Integer i) {
                     return settings -> settings.fireworkColor(Color.fromDecimal(i));
                 } else {
-                    return settings -> settings.fireworkColor(Color.fromVector3f(MiscUtils.getAsVector3f(value, "firework-color")));
+                    return settings -> settings.fireworkColor(Color.fromVector3f(ResourceConfigUtils.getAsVector3f(value, "firework-color")));
                 }
             }));
             registerFactory("food", (value -> {

@@ -93,7 +93,7 @@ public class InteractionHitBox extends AbstractHitBox {
 
         @Override
         public HitBox create(Map<String, Object> arguments) {
-            Vector3f position = MiscUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position");
+            Vector3f position = ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position");
             float width;
             float height;
             if (arguments.containsKey("scale")) {
