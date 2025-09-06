@@ -85,6 +85,7 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     private final CraftEngine plugin;
+    private final Consumer<PackCacheData> cacheEventDispatcher;
     private final BiConsumer<Path, Path> eventDispatcher;
     private final Map<String, Pack> loadedPacks = new HashMap<>();
     private final Map<String, ConfigParser> sectionParsers = new HashMap<>();
@@ -94,8 +95,9 @@ public abstract class AbstractPackManager implements PackManager {
     protected BiConsumer<Path, Path> zipGenerator;
     protected ResourcePackHost resourcePackHost;
 
-    public AbstractPackManager(CraftEngine plugin, BiConsumer<Path, Path> eventDispatcher) {
+    public AbstractPackManager(CraftEngine plugin, Consumer<PackCacheData> cacheEventDispatcher, BiConsumer<Path, Path> eventDispatcher) {
         this.plugin = plugin;
+        this.cacheEventDispatcher = cacheEventDispatcher;
         this.eventDispatcher = eventDispatcher;
         this.zipGenerator = (p1, p2) -> {};
         Path resourcesFolder = this.plugin.dataFolderPath().resolve("resources");
@@ -267,7 +269,9 @@ public abstract class AbstractPackManager implements PackManager {
     @Override
     public void initCachedAssets() {
         try {
-            this.updateCachedAssets(null);
+            PackCacheData cacheData = new PackCacheData(plugin);
+            this.cacheEventDispatcher.accept(cacheData);
+            this.updateCachedAssets(cacheData, null);
         } catch (Exception e) {
             this.plugin.logger().warn("Failed to update cached assets", e);
         }
@@ -658,11 +662,15 @@ public abstract class AbstractPackManager implements PackManager {
         this.plugin.logger().info("Generating resource pack...");
         long time1 = System.currentTimeMillis();
 
+        // Create cache data
+        PackCacheData cacheData = new PackCacheData(plugin);
+        this.cacheEventDispatcher.accept(cacheData);
+
         // get the target location
         try (FileSystem fs = Jimfs.newFileSystem(Configuration.forCurrentPlatform())) {
             // firstly merge existing folders
             Path generatedPackPath = fs.getPath("resource_pack");
-            List<Pair<String, List<Path>>> duplicated = this.updateCachedAssets(fs);
+            List<Pair<String, List<Path>>> duplicated = this.updateCachedAssets(cacheData, fs);
             if (!duplicated.isEmpty()) {
                 plugin.logger().severe(AdventureHelper.miniMessage().stripTags(TranslationManager.instance().miniMessageTranslation("warning.config.pack.duplicated_files")));
                 int x = 1;
@@ -2136,7 +2144,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private List<Pair<String, List<Path>>> updateCachedAssets(@Nullable FileSystem fs) throws IOException {
+    private List<Pair<String, List<Path>>> updateCachedAssets(@NotNull PackCacheData cacheData, @Nullable FileSystem fs) throws IOException {
         Map<String, List<Path>> conflictChecker = new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()));
         Map<Path, CachedAssetFile> previousFiles = this.cachedAssetFiles;
         this.cachedAssetFiles = new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()));
@@ -2146,10 +2154,7 @@ public abstract class AbstractPackManager implements PackManager {
                 .filter(Pack::enabled)
                 .map(Pack::resourcePackFolder)
                 .toList());
-        folders.addAll(Config.foldersToMerge().stream()
-                .map(it -> this.plugin.dataFolderPath().getParent().resolve(it))
-                .filter(Files::exists)
-                .toList());
+        folders.addAll(cacheData.externalFolders());
         for (Path sourceFolder : folders) {
             if (Files.exists(sourceFolder)) {
                 Files.walkFileTree(sourceFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
@@ -2161,13 +2166,7 @@ public abstract class AbstractPackManager implements PackManager {
                 });
             }
         }
-        List<Path> externalZips = Config.zipsToMerge().stream()
-                .map(it -> this.plugin.dataFolderPath().getParent().resolve(it))
-                .filter(Files::exists)
-                .filter(Files::isRegularFile)
-                .filter(file -> file.getFileName().toString().endsWith(".zip"))
-                .toList();
-        for (Path zip : externalZips) {
+        for (Path zip : cacheData.externalZips()) {
             processZipFile(zip, zip.getParent(), fs, conflictChecker, previousFiles);
         }
 
