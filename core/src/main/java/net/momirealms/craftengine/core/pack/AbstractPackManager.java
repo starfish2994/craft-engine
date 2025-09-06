@@ -2144,7 +2144,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private List<Pair<String, List<Path>>> updateCachedAssets(@NotNull PackCacheData generateData, @Nullable FileSystem fs) throws IOException {
+    private List<Pair<String, List<Path>>> updateCachedAssets(@NotNull PackCacheData cacheData, @Nullable FileSystem fs) throws IOException {
         Map<String, List<Path>> conflictChecker = new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()));
         Map<Path, CachedAssetFile> previousFiles = this.cachedAssetFiles;
         this.cachedAssetFiles = new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()));
@@ -2154,7 +2154,7 @@ public abstract class AbstractPackManager implements PackManager {
                 .filter(Pack::enabled)
                 .map(Pack::resourcePackFolder)
                 .toList());
-        folders.addAll(generateData.externalFolders());
+        folders.addAll(cacheData.externalFolders());
         for (Path sourceFolder : folders) {
             if (Files.exists(sourceFolder)) {
                 Files.walkFileTree(sourceFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
@@ -2166,7 +2166,7 @@ public abstract class AbstractPackManager implements PackManager {
                 });
             }
         }
-        for (Path zip : generateData.externalZips()) {
+        for (Path zip : cacheData.externalZips()) {
             processZipFile(zip, zip.getParent(), fs, conflictChecker, previousFiles);
         }
 
