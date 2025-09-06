@@ -15,6 +15,7 @@ repositories {
     maven("https://repo.dmulloy2.net/repository/public/") // mcmmo required
     maven("https://repo.auxilor.io/repository/maven-public/") // eco
     maven("https://repo.hiusers.com/releases") // zaphkiel
+    maven("https://jitpack.io") // sxitem slimefun
 }
 
 dependencies {
@@ -72,6 +73,12 @@ dependencies {
     compileOnly("ink.ptms:ZaphkielAPI:2.1.0")
     // WorldGuard
     compileOnly(files("${rootProject.rootDir}/libs/worldguard-bukkit-7.0.14-dist.jar"))
+    // HeadDatabase
+    compileOnly("com.arcaniax:HeadDatabase-API:1.3.2")
+    // SXItem
+    compileOnly("com.github.Saukiya:SX-Item:4.4.6")
+    // Slimefun
+    compileOnly("io.github.Slimefun:Slimefun4:RC-32")
 }
 
 java {
