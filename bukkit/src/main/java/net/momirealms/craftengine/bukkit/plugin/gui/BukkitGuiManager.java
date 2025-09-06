@@ -22,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
 
@@ -140,6 +141,21 @@ public class BukkitGuiManager implements GuiManager, Listener {
             return;
         }
         if (event.getPlayer() instanceof Player player && holder.blockEntity() instanceof SimpleStorageBlockEntity simpleStorageBlockEntity) {
+            simpleStorageBlockEntity.onPlayerClose(this.plugin.adapt(player));
+        }
+    }
+    
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
+    public void onInventoryClose(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        org.bukkit.inventory.Inventory inventory = player.getInventory();
+        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory))) {
+            return;
+        }
+        if (!(inventory.getHolder() instanceof BlockEntityHolder holder)) {
+            return;
+        }
+        if (holder.blockEntity() instanceof SimpleStorageBlockEntity simpleStorageBlockEntity) {
             simpleStorageBlockEntity.onPlayerClose(this.plugin.adapt(player));
         }
     }
