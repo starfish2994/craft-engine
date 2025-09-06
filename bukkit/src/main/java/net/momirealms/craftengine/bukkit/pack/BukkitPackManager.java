@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.pack;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
+import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackCacheEvent;
 import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackGenerateEvent;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.ReloadCommand;
@@ -28,10 +29,17 @@ public class BukkitPackManager extends AbstractPackManager implements Listener {
     private final BukkitCraftEngine plugin;
 
     public BukkitPackManager(BukkitCraftEngine plugin) {
-        super(plugin, (rf, zp) -> {
-            AsyncResourcePackGenerateEvent endEvent = new AsyncResourcePackGenerateEvent(rf, zp);
-            EventUtils.fireAndForget(endEvent);
-        });
+        super(
+                plugin,
+                (cd) -> {
+                    AsyncResourcePackCacheEvent cacheEvent = new AsyncResourcePackCacheEvent(cd);
+                    EventUtils.fireAndForget(cacheEvent);
+                },
+                (rf, zp) -> {
+                    AsyncResourcePackGenerateEvent endEvent = new AsyncResourcePackGenerateEvent(rf, zp);
+                    EventUtils.fireAndForget(endEvent);
+                }
+        );
         this.plugin = plugin;
     }
 
