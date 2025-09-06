@@ -19,6 +19,7 @@ import java.util.function.Predicate;
  * Concurrent hashtable implementation supporting mapping UUID values onto non-null Object
  * values with support for multiple writer and multiple reader threads.
  */
+@SuppressWarnings("unchecked")
 public class ConcurrentUUID2ReferenceChainedHashTable<V> implements Iterable<ConcurrentUUID2ReferenceChainedHashTable.TableEntry<V>> {
     protected static final int DEFAULT_CAPACITY = 16;
     protected static final float DEFAULT_LOAD_FACTOR = 0.75f;
