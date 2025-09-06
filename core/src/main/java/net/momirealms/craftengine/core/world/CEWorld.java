@@ -78,7 +78,7 @@ public abstract class CEWorld {
             for (ConcurrentLong2ReferenceChainedHashTable.TableEntry<CEChunk> entry : this.loadedChunkMap.entrySet()) {
                 CEChunk chunk = entry.getValue();
                 if (chunk.dirty()) {
-                    worldDataStorage.writeChunkAt(new ChunkPos(entry.getKey()), chunk);
+                    this.worldDataStorage.writeChunkAt(new ChunkPos(entry.getKey()), chunk);
                     chunk.setDirty(false);
                 }
             }
@@ -205,15 +205,17 @@ public abstract class CEWorld {
             this.tickingBlockEntities.addAll(this.pendingTickingBlockEntities);
             this.pendingTickingBlockEntities.clear();
         }
-        ReferenceOpenHashSet<TickingBlockEntity> toRemove = new ReferenceOpenHashSet<>();
-        for (TickingBlockEntity blockEntity : this.tickingBlockEntities) {
-            if (blockEntity.isValid()) {
-                blockEntity.tick();
-            } else {
-                toRemove.add(blockEntity);
+        if (!this.tickingBlockEntities.isEmpty()) {
+            ReferenceOpenHashSet<TickingBlockEntity> toRemove = new ReferenceOpenHashSet<>();
+            for (TickingBlockEntity blockEntity : this.tickingBlockEntities) {
+                if (blockEntity.isValid()) {
+                    blockEntity.tick();
+                } else {
+                    toRemove.add(blockEntity);
+                }
             }
+            this.tickingBlockEntities.removeAll(toRemove);
         }
-        this.tickingBlockEntities.removeAll(toRemove);
         this.isTickingBlockEntities = false;
     }
 

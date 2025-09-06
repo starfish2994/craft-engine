@@ -66,9 +66,9 @@ resource-pack:
   remove-tinted-leaves-particle: true
   merge-external-folders:
     - ModelEngine/resource pack
-    - BetterModel/build
   merge-external-zip-files:
     - CustomNameplates/resourcepack.zip
+    - "BetterModel/build.zip"
   exclude-file-extensions: ["md", "psd", "bbmodel", "db", "ini"]
   # Exclude the shaders when generating the resource pack
   exclude-core-shaders: false

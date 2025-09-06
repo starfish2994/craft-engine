@@ -39,6 +39,8 @@ public class BukkitWorldManager implements WorldManager, Listener {
     private CEWorld[] worldArray;
     private StorageAdaptor storageAdaptor;
     private boolean initialized = false;
+    private UUID lastWorldUUID = null;
+    private CEWorld lastWorld = null;
 
     public BukkitWorldManager(BukkitCraftEngine plugin) {
         instance = this;
@@ -65,7 +67,15 @@ public class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public CEWorld getWorld(UUID uuid) {
-        return this.worlds.get(uuid);
+        if (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID)) {
+            return this.lastWorld;
+        }
+        CEWorld world = this.worlds.get(uuid);
+        if (world != null) {
+            this.lastWorldUUID = uuid;
+            this.lastWorld = world;
+        }
+        return world;
     }
 
     @Override
@@ -114,6 +124,8 @@ public class BukkitWorldManager implements WorldManager, Listener {
             }
         }
         this.worlds.clear();
+        this.lastWorld = null;
+        this.lastWorldUUID = null;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -123,9 +135,10 @@ public class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public void loadWorld(net.momirealms.craftengine.core.world.World world) {
-        if (this.worlds.containsKey(world.uuid())) return;
+        UUID uuid = world.uuid();
+        if (this.worlds.containsKey(uuid)) return;
         CEWorld ceWorld = new BukkitCEWorld(world, this.storageAdaptor);
-        this.worlds.put(world.uuid(), ceWorld);
+        this.worlds.put(uuid, ceWorld);
         this.resetWorldArray();
         for (Chunk chunk : ((World) world.platformWorld()).getLoadedChunks()) {
             handleChunkLoad(ceWorld, chunk);
@@ -135,8 +148,9 @@ public class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public void loadWorld(CEWorld world) {
-        if (this.worlds.containsKey(world.world().uuid())) return;
-        this.worlds.put(world.world().uuid(), world);
+        UUID uuid = world.world().uuid();
+        if (this.worlds.containsKey(uuid)) return;
+        this.worlds.put(uuid, world);
         this.resetWorldArray();
         for (Chunk chunk : ((World) world.world().platformWorld()).getLoadedChunks()) {
             handleChunkLoad(world, chunk);
@@ -163,8 +177,8 @@ public class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public void unloadWorld(net.momirealms.craftengine.core.world.World world) {
-        CEWorld ceWorld;
-        ceWorld = this.worlds.remove(world.uuid());
+        UUID uuid = world.uuid();
+        CEWorld ceWorld = this.worlds.remove(uuid);
         if (ceWorld == null) {
             return;
         }
@@ -172,6 +186,10 @@ public class BukkitWorldManager implements WorldManager, Listener {
         ceWorld.setTicking(false);
         for (Chunk chunk : ((World) world.platformWorld()).getLoadedChunks()) {
             handleChunkUnload(ceWorld, chunk);
+        }
+        if (uuid.equals(this.lastWorldUUID)) {
+            this.lastWorld = null;
+            this.lastWorldUUID = null;
         }
         try {
             ceWorld.worldDataStorage().close();
