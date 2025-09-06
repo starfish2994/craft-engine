@@ -86,7 +86,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     private final CraftEngine plugin;
     private final Consumer<PackCacheData> cacheEventDispatcher;
-    private final BiConsumer<Path, Path> eventDispatcher;
+    private final BiConsumer<Path, Path> generationEventDispatcher;
     private final Map<String, Pack> loadedPacks = new HashMap<>();
     private final Map<String, ConfigParser> sectionParsers = new HashMap<>();
     private final JsonObject vanillaAtlas;
@@ -95,10 +95,10 @@ public abstract class AbstractPackManager implements PackManager {
     protected BiConsumer<Path, Path> zipGenerator;
     protected ResourcePackHost resourcePackHost;
 
-    public AbstractPackManager(CraftEngine plugin, Consumer<PackCacheData> cacheEventDispatcher, BiConsumer<Path, Path> eventDispatcher) {
+    public AbstractPackManager(CraftEngine plugin, Consumer<PackCacheData> cacheEventDispatcher, BiConsumer<Path, Path> generationEventDispatcher) {
         this.plugin = plugin;
         this.cacheEventDispatcher = cacheEventDispatcher;
-        this.eventDispatcher = eventDispatcher;
+        this.generationEventDispatcher = generationEventDispatcher;
         this.zipGenerator = (p1, p2) -> {};
         Path resourcesFolder = this.plugin.dataFolderPath().resolve("resources");
         try {
@@ -663,7 +663,7 @@ public abstract class AbstractPackManager implements PackManager {
         long time1 = System.currentTimeMillis();
 
         // Create cache data
-        PackCacheData cacheData = new PackCacheData(plugin);
+        PackCacheData cacheData = new PackCacheData(this.plugin);
         this.cacheEventDispatcher.accept(cacheData);
 
         // get the target location
@@ -725,7 +725,7 @@ public abstract class AbstractPackManager implements PackManager {
             }
             long time4 = System.currentTimeMillis();
             this.plugin.logger().info("Created resource pack zip file in " + (time4 - time3) + "ms");
-            this.eventDispatcher.accept(generatedPackPath, finalPath);
+            this.generationEventDispatcher.accept(generatedPackPath, finalPath);
         }
     }
 

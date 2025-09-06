@@ -10,16 +10,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class PackCacheData {
-
     private final Set<Path> externalZips;
     private final Set<Path> externalFolders;
 
     PackCacheData(@NotNull CraftEngine plugin) {
-        externalFolders = Config.foldersToMerge().stream()
+        this.externalFolders = Config.foldersToMerge().stream()
                 .map(it -> plugin.dataFolderPath().getParent().resolve(it))
                 .filter(Files::exists)
                 .collect(Collectors.toSet());
-        externalZips = Config.zipsToMerge().stream()
+        this.externalZips = Config.zipsToMerge().stream()
                 .map(it -> plugin.dataFolderPath().getParent().resolve(it))
                 .filter(Files::exists)
                 .filter(Files::isRegularFile)
@@ -29,11 +28,11 @@ public class PackCacheData {
 
     @NotNull
     public Set<Path> externalFolders() {
-        return externalFolders;
+        return this.externalFolders;
     }
 
     @NotNull
     public Set<Path> externalZips() {
-        return externalZips;
+        return this.externalZips;
     }
 }

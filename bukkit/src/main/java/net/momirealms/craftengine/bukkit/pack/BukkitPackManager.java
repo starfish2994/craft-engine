@@ -107,7 +107,7 @@ public class BukkitPackManager extends AbstractPackManager implements Listener {
                     return;
                 }
                 if (dataList.size() == 1) {
-                    ResourcePackDownloadData data = dataList.get(0);
+                    ResourcePackDownloadData data = dataList.getFirst();
                     player.sendPacket(ResourcePackUtils.createPacket(data.uuid(), data.url(), data.sha1()), true);
                     player.addResourcePackUUID(data.uuid());
                 } else {

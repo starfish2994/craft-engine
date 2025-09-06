@@ -65,9 +65,9 @@ resource-pack:
   # Remove 1.21.5+ tinted_leaves particles
   remove-tinted-leaves-particle: true
   merge-external-folders:
-    - ModelEngine/resource pack
+    - "ModelEngine/resource pack"
   merge-external-zip-files:
-    - CustomNameplates/resourcepack.zip
+    - "CustomNameplates/resourcepack.zip"
     - "BetterModel/build.zip"
   exclude-file-extensions: ["md", "psd", "bbmodel", "db", "ini"]
   # Exclude the shaders when generating the resource pack

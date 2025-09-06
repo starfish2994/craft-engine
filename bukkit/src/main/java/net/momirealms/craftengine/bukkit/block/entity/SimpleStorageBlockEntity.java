@@ -15,10 +15,12 @@ import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.sound.SoundData;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
+import net.momirealms.sparrow.nbt.Tag;
 import org.bukkit.Bukkit;
 import org.bukkit.GameEvent;
 import org.bukkit.GameMode;
@@ -29,6 +31,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class SimpleStorageBlockEntity extends BlockEntity {
@@ -52,14 +55,21 @@ public class SimpleStorageBlockEntity extends BlockEntity {
         @Nullable ItemStack[] storageContents = this.inventory.getStorageContents();
         for (int i = 0; i < storageContents.length; i++) {
             if (storageContents[i] != null) {
-                int slot = i;
-                CoreReflections.instance$ItemStack$CODEC.encodeStart(MRegistryOps.SPARROW_NBT, FastNMS.INSTANCE.field$CraftItemStack$handle(storageContents[i]))
-                        .ifSuccess(success -> {
-                            CompoundTag itemTag = (CompoundTag) success;
-                            itemTag.putInt("slot", slot);
-                            itemsTag.add(itemTag);
-                        })
-                        .ifError(error -> CraftEngine.instance().logger().severe("Error while saving storage item: " + error));
+                if (VersionHelper.isOrAbove1_20_5()) {
+                    int slot = i;
+                    CoreReflections.instance$ItemStack$CODEC.encodeStart(MRegistryOps.SPARROW_NBT, FastNMS.INSTANCE.field$CraftItemStack$handle(storageContents[i]))
+                            .ifSuccess(success -> {
+                                CompoundTag itemTag = (CompoundTag) success;
+                                itemTag.putInt("slot", slot);
+                                itemsTag.add(itemTag);
+                            })
+                            .ifError(error -> CraftEngine.instance().logger().severe("Error while saving storage item: " + error));
+                } else {
+                    Object nmsTag = FastNMS.INSTANCE.method$itemStack$save(FastNMS.INSTANCE.field$CraftItemStack$handle(storageContents[i]), FastNMS.INSTANCE.constructor$CompoundTag());
+                    CompoundTag itemTag = (CompoundTag) MRegistryOps.NBT.convertTo(MRegistryOps.SPARROW_NBT, nmsTag);
+                    itemTag.putInt("slot", i);
+                    itemsTag.add(itemTag);
+                }
             }
         }
         tag.put("items", itemsTag);
@@ -68,16 +78,24 @@ public class SimpleStorageBlockEntity extends BlockEntity {
     @Override
     public void loadCustomData(CompoundTag tag) {
         ListTag itemsTag = Optional.ofNullable(tag.getList("items")).orElseGet(ListTag::new);
+        ItemStack[] storageContents = new ItemStack[this.behavior.rows() * 9];
         for (int i = 0; i < itemsTag.size(); i++) {
             CompoundTag itemTag = itemsTag.getCompound(i);
             int slot = itemTag.getInt("slot");
-            if (slot < 0 || slot >= this.behavior.rows() * 9) {
+            if (slot < 0 || slot >= storageContents.length) {
                 continue;
             }
-            CoreReflections.instance$ItemStack$CODEC.parse(MRegistryOps.SPARROW_NBT, itemTag)
-                    .resultOrPartial((s) -> CraftEngine.instance().logger().severe("Tried to load invalid item: '" + itemTag + "'. " + s))
-                    .ifPresent(nmsStack -> this.inventory.setItem(slot, FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsStack)));
+            if (VersionHelper.isOrAbove1_20_5()) {
+                CoreReflections.instance$ItemStack$CODEC.parse(MRegistryOps.SPARROW_NBT, itemTag)
+                        .resultOrPartial((s) -> CraftEngine.instance().logger().severe("Tried to load invalid item: '" + itemTag + "'. " + s))
+                        .ifPresent(nmsStack -> storageContents[slot] = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsStack));
+            } else {
+                Object nmsTag = MRegistryOps.SPARROW_NBT.convertTo(MRegistryOps.NBT, itemTag);
+                Object itemStack = FastNMS.INSTANCE.method$ItemStack$of(nmsTag);
+                storageContents[slot] = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(itemStack);
+            }
         }
+        this.inventory.setStorageContents(storageContents);
     }
 
     public Inventory inventory() {

@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.bukkit.compatibility.item;
 
+import me.arcaniax.hdb.api.HeadDatabaseAPI;
 import net.momirealms.craftengine.core.item.ExternalItemSource;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
-import me.arcaniax.hdb.api.HeadDatabaseAPI;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 

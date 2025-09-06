@@ -221,6 +221,7 @@ public final class WorldStorageInjector {
         CESection section = holder.ceSection();
         if (newState instanceof DelegatingBlockState delegatingBlockState) {
             ImmutableBlockState newImmutableBlockState = delegatingBlockState.blockState();
+            if (newImmutableBlockState == null) return;
             ImmutableBlockState previousImmutableBlockState = section.setBlockState(x, y, z, newImmutableBlockState);
             if (previousImmutableBlockState == newImmutableBlockState) return;
             // 处理  自定义块到自定义块或原版块到自定义块
@@ -282,7 +283,7 @@ public final class WorldStorageInjector {
             // 那么应该清空自定义块
             ImmutableBlockState previous = section.setBlockState(x, y, z, EmptyBlock.STATE);
             // 处理  自定义块 -> 原版块
-            if (!previous.isEmpty()) {
+            if (previous != null && !previous.isEmpty()) {
                 CEChunk chunk = holder.ceChunk();
                 chunk.setDirty(true);
                 if (previous.hasBlockEntity()) {
