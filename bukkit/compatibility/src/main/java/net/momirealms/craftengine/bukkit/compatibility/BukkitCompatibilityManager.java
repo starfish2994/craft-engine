@@ -271,6 +271,10 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
             itemManager.registerExternalItemSource(new SXItemSource());
             logHook("SX-Item");
         }
+        if (this.isPluginEnabled("Slimefun")) {
+            itemManager.registerExternalItemSource(new SlimefunSource());
+            logHook("Slimefun");
+        }
     }
 
     private Plugin getPlugin(String name) {

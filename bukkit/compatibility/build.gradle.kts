@@ -15,7 +15,7 @@ repositories {
     maven("https://repo.dmulloy2.net/repository/public/") // mcmmo required
     maven("https://repo.auxilor.io/repository/maven-public/") // eco
     maven("https://repo.hiusers.com/releases") // zaphkiel
-    maven("https://jitpack.io") // sxitem
+    maven("https://jitpack.io") // sxitem slimefun
 }
 
 dependencies {
@@ -77,6 +77,8 @@ dependencies {
     compileOnly("com.arcaniax:HeadDatabase-API:1.3.2")
     // SXItem
     compileOnly("com.github.Saukiya:SX-Item:4.4.6")
+    // Slimefun
+    compileOnly("io.github.Slimefun:Slimefun4:RC-32")
 }
 
 java {
