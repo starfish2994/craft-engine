@@ -261,7 +261,6 @@ public class RecipeEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onAnvilEvent(PrepareAnvilEvent event) {
-        if (event.getResult() == null) return;
         preProcess(event);
         processRepairable(event);
         processRename(event);
@@ -271,6 +270,7 @@ public class RecipeEventListener implements Listener {
     预处理会阻止一些不合理的原版材质造成的合并问题
      */
     private void preProcess(PrepareAnvilEvent event) {
+        if (event.getResult() == null) return;
         AnvilInventory inventory = event.getInventory();
         ItemStack first = inventory.getFirstItem();
         ItemStack second = inventory.getSecondItem();
@@ -320,7 +320,7 @@ public class RecipeEventListener implements Listener {
 
         if (firstCustom.isPresent()) {
             CustomItem<ItemStack> firstCustomItem = firstCustom.get();
-            if (firstCustomItem.settings().canRepair() == Tristate.FALSE) {
+            if (firstCustomItem.settings().repairable().anvilCombine() == Tristate.FALSE) {
                 event.setResult(null);
                 return;
             }
@@ -372,7 +372,7 @@ public class RecipeEventListener implements Listener {
         Key firstId = wrappedFirst.id();
         Optional<CustomItem<ItemStack>> optionalCustomTool = wrappedFirst.getCustomItem();
         // 物品无法被修复
-        if (optionalCustomTool.isPresent() && optionalCustomTool.get().settings().canRepair() == Tristate.FALSE) {
+        if (optionalCustomTool.isPresent() && optionalCustomTool.get().settings().repairable().anvilRepair() == Tristate.FALSE) {
             return;
         }
 
@@ -493,6 +493,7 @@ public class RecipeEventListener implements Listener {
      */
     @SuppressWarnings("UnstableApiUsage")
     private void processRename(PrepareAnvilEvent event) {
+        if (event.getResult() == null) return;
         AnvilInventory inventory = event.getInventory();
         ItemStack first = inventory.getFirstItem();
         if (ItemStackUtils.isEmpty(first)) {

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class ItemSettings {
     int fuelTime;
     Set<Key> tags = Set.of();
-    Tristate canRepair = Tristate.UNDEFINED;
+    Repairable repairable = Repairable.UNDEFINED;
     List<AnvilRepairItem> anvilRepairItems = List.of();
     boolean renameable = true;
     boolean canPlaceRelatedVanillaBlock = false;
@@ -89,7 +89,7 @@ public class ItemSettings {
         newSettings.fuelTime = settings.fuelTime;
         newSettings.tags = settings.tags;
         newSettings.equipment = settings.equipment;
-        newSettings.canRepair = settings.canRepair;
+        newSettings.repairable = settings.repairable;
         newSettings.anvilRepairItems = settings.anvilRepairItems;
         newSettings.renameable = settings.renameable;
         newSettings.canPlaceRelatedVanillaBlock = settings.canPlaceRelatedVanillaBlock;
@@ -128,8 +128,8 @@ public class ItemSettings {
         return canPlaceRelatedVanillaBlock;
     }
 
-    public Tristate canRepair() {
-        return canRepair;
+    public Repairable repairable() {
+        return repairable;
     }
 
     public int fuelTime() {
@@ -233,8 +233,8 @@ public class ItemSettings {
         return this;
     }
 
-    public ItemSettings canRepair(Tristate canRepair) {
-        this.canRepair = canRepair;
+    public ItemSettings repairable(Repairable repairable) {
+        this.repairable = repairable;
         return this;
     }
 
@@ -315,8 +315,14 @@ public class ItemSettings {
 
         static {
             registerFactory("repairable", (value -> {
-                boolean bool = ResourceConfigUtils.getAsBoolean(value, "repairable");
-                return settings -> settings.canRepair(bool ? Tristate.TRUE : Tristate.FALSE);
+                if (value instanceof Map<?,?> mapValue) {
+                    Map<String, Object> repairableData = ResourceConfigUtils.getAsMap(mapValue, "repairable");
+                    Repairable repairable = Repairable.fromMap(repairableData);
+                    return settings -> settings.repairable(repairable);
+                } else {
+                    boolean bool = ResourceConfigUtils.getAsBoolean(value, "repairable");
+                    return settings -> settings.repairable(bool ? Repairable.TRUE : Repairable.FALSE);
+                }
             }));
             registerFactory("enchantable", (value -> {
                 boolean bool = ResourceConfigUtils.getAsBoolean(value, "enchantable");
