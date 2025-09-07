@@ -86,6 +86,9 @@ paper {
         register("MythicMobs") { required = false }
         register("CustomFishing") { required = false }
         register("Zaphkiel") { required = false }
+        register("HeadDatabase") { required = false }
+        register("SX-Item") { required = false }
+        register("Slimefun") { required = false }
 
         // leveler
         register("AuraSkills") { required = false }
