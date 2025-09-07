@@ -24,14 +24,12 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
     private final Property<Boolean> litProperty;
     private final Property<Boolean> poweredProperty;
     private final boolean canOpenWithHand;
-    private final boolean redstoneToggleMode;
 
-    public LampBlockBehavior(CustomBlock block, Property<Boolean> litProperty, Property<Boolean> poweredProperty, boolean canOpenWithHand, boolean redstoneToggleMode) {
+    public LampBlockBehavior(CustomBlock block, Property<Boolean> litProperty, Property<Boolean> poweredProperty, boolean canOpenWithHand) {
         super(block);
         this.litProperty = litProperty;
         this.poweredProperty = poweredProperty;
         this.canOpenWithHand = canOpenWithHand;
-        this.redstoneToggleMode = redstoneToggleMode;
     }
 
     @Override
@@ -53,7 +51,7 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        if (this.canOpenWithHand || this.redstoneToggleMode) return state;
+        if (this.canOpenWithHand) return state;
         Object level = context.getLevel().serverWorld();
         state = state.with(this.litProperty, FastNMS.INSTANCE.method$SignalGetter$hasNeighborSignal(level, LocationUtils.toBlockPos(context.getClickedPos())));
         state = state.with(this.poweredProperty, FastNMS.INSTANCE.method$SignalGetter$hasNeighborSignal(level, LocationUtils.toBlockPos(context.getClickedPos())));
@@ -64,7 +62,7 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
     public void tick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         Object blockState = args[0];
         Object world = args[1];
-        if (this.canOpenWithHand || this.redstoneToggleMode || !CoreReflections.clazz$ServerLevel.isInstance(world)) return;
+        if (this.canOpenWithHand || !CoreReflections.clazz$ServerLevel.isInstance(world)) return;
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return;
         Object blockPos = args[2];
@@ -78,20 +76,6 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void onPlace(Object thisBlock, Object[] args, Callable<Object> superMethod) {
-        if (this.canOpenWithHand || !this.redstoneToggleMode) return;
-        Object state = args[0];
-        Object level = args[1];
-        Object pos = args[2];
-        Object oldState = args[3];
-        if (FastNMS.INSTANCE.method$BlockState$getBlock(oldState) != FastNMS.INSTANCE.method$BlockState$getBlock(state) && CoreReflections.clazz$ServerLevel.isInstance(level)) {
-            Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(state);
-            if (optionalCustomState.isEmpty()) return;
-            checkAndFlip(optionalCustomState.get(), level, pos);
-        }
-    }
-
-    @Override
     public void neighborChanged(Object thisBlock, Object[] args, Callable<Object> superMethod) {
         Object blockState = args[0];
         Object world = args[1];
@@ -101,10 +85,6 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
         Object blockPos = args[2];
         ImmutableBlockState customState = optionalCustomState.get();
         boolean lit = customState.get(this.litProperty);
-        if (this.redstoneToggleMode) {
-            checkAndFlip(customState, world, blockPos);
-            return;
-        }
         if (lit != FastNMS.INSTANCE.method$SignalGetter$hasNeighborSignal(world, blockPos)) {
             if (lit) {
                 FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(world, blockPos, thisBlock, 4);
@@ -117,19 +97,6 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
         }
     }
 
-    private void checkAndFlip(ImmutableBlockState customState, Object level, Object pos) {
-        boolean hasNeighborSignal = FastNMS.INSTANCE.method$SignalGetter$hasNeighborSignal(level, pos);
-        boolean isPowered = customState.get(this.poweredProperty);
-        if (hasNeighborSignal != isPowered) {
-            ImmutableBlockState blockState = customState;
-            if (!isPowered) {
-                blockState = blockState.cycle(this.litProperty);
-            }
-            FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, blockState.with(this.poweredProperty, hasNeighborSignal).customBlockState().literalObject(), 3);
-        }
-
-    }
-
     @SuppressWarnings("unchecked")
     public static class Factory implements BlockBehaviorFactory {
         @Override
@@ -137,8 +104,7 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
             Property<Boolean> lit = (Property<Boolean>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("lit"), "warning.config.block.behavior.lamp.missing_lit");
             Property<Boolean> powered = (Property<Boolean>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("powered"), "warning.config.block.behavior.lamp.missing_powered");
             boolean canOpenWithHand = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-open-with-hand", false), "can-open-with-hand");
-            boolean redstoneToggleMode = !canOpenWithHand && ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("redstone-toggle-mode", false), "redstone-toggle-mode");
-            return new LampBlockBehavior(block, lit, powered, canOpenWithHand, redstoneToggleMode);
+            return new LampBlockBehavior(block, lit, powered, canOpenWithHand);
         }
     }
 }

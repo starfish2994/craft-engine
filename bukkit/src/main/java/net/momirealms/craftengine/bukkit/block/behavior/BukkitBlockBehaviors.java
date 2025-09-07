@@ -29,6 +29,7 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
     public static final Key DOUBLE_HIGH_BLOCK = Key.from("craftengine:double_high_block");
     public static final Key CHANGE_OVER_TIME_BLOCK = Key.from("craftengine:change_over_time_block");
     public static final Key SIMPLE_STORAGE_BLOCK = Key.from("craftengine:simple_storage_block");
+    public static final Key TOGGLEABLE_LAMP_BLOCK = Key.from("craftengine:toggleable_lamp_block");
 
     public static void init() {
         register(EMPTY, (block, args) -> EmptyBlockBehavior.INSTANCE);
@@ -56,5 +57,6 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
         register(DOUBLE_HIGH_BLOCK, DoubleHighBlockBehavior.FACTORY);
         register(CHANGE_OVER_TIME_BLOCK, ChangeOverTimeBlockBehavior.FACTORY);
         register(SIMPLE_STORAGE_BLOCK, SimpleStorageBlockBehavior.FACTORY);
+        register(TOGGLEABLE_LAMP_BLOCK, ToggleableLampBlockBehavior.FACTORY);
     }
 }

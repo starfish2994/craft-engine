@@ -221,9 +221,6 @@ items#misc:
             lit:
               type: boolean
               default: false
-            powered:
-              type: boolean
-              default: false
           appearances:
             off:
               state: cactus:0
@@ -248,20 +245,12 @@ items#misc:
                     top: minecraft:block/custom/copper_coil_on
                     side: minecraft:block/custom/copper_coil_on_side
           variants:
-            lit=false,powered=false:
+            lit=false:
               appearance: 'off'
               id: 0
-            lit=true,powered=false:
+            lit=true:
               appearance: 'on'
               id: 1
-              settings:
-                luminance: 8
-            lit=false,powered=true:
-              appearance: 'off'
-              id: 2
-            lit=true,powered=true:
-              appearance: 'on'
-              id: 3
               settings:
                 luminance: 8
   default:pebble:
