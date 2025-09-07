@@ -305,6 +305,8 @@ warning.config.block.behavior.slab.missing_type: "<yellow>Issue found in file <a
 warning.config.block.behavior.stairs.missing_facing: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'facing' property for 'stairs_block' behavior.</yellow>"
 warning.config.block.behavior.stairs.missing_half: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'half' property for 'stairs_block' behavior.</yellow>"
 warning.config.block.behavior.stairs.missing_shape: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'shape' property for 'stairs_block' behavior.</yellow>"
+warning.config.block.behavior.bottom_half_stairs.missing_facing: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'facing' property for 'bottom_half_stairs_block' behavior.</yellow>"
+warning.config.block.behavior.bottom_half_stairs.missing_shape: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'shape' property for 'bottom_half_stairs_block' behavior.</yellow>"
 warning.config.block.behavior.pressure_plate.missing_powered: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'powered' property for 'pressure_plate_block' behavior.</yellow>"
 warning.config.block.behavior.grass.missing_feature: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'feature' argument for 'grass_block' behavior.</yellow>"
 warning.config.block.behavior.double_high.missing_half: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'half' property for 'double_block' behavior.</yellow>"

@@ -305,6 +305,8 @@ warning.config.block.behavior.slab.missing_type: "<yellow>在文件 <arg:0> 发�
 warning.config.block.behavior.stairs.missing_facing: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'stairs_block' 行为缺少必需的 'facing' 属性</yellow>"
 warning.config.block.behavior.stairs.missing_half: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'stairs_block' 行为缺少必需的 'half' 属性</yellow>"
 warning.config.block.behavior.stairs.missing_shape: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'stairs_block' 行为缺少必需的 'shape' 属性</yellow>"
+warning.config.block.behavior.bottom_half_stairs.missing_facing: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'bottom_half_stairs_block' 行为缺少必需的 'facing' 属性</yellow>"
+warning.config.block.behavior.bottom_half_stairs.missing_shape: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'bottom_half_stairs_block' 行为缺少必需的 'shape' 属性</yellow>"
 warning.config.block.behavior.pressure_plate.missing_powered: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'pressure_plate_block' 行为缺少必需的 'powered' 属性</yellow>"
 warning.config.block.behavior.grass.missing_feature: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'grass_block' 行为缺少必需的 'feature' 参数</yellow>"
 warning.config.block.behavior.double_high.missing_half: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'double_block' 行为缺少必需的 'half' 属性</yellow>"
