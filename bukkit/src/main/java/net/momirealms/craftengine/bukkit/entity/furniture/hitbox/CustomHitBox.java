@@ -8,7 +8,6 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkRefl
 import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;

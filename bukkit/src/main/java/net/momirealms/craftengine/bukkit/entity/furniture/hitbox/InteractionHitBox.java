@@ -7,7 +7,6 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflect
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntityTypes;
 import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;

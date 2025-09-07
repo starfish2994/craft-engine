@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.util.List;

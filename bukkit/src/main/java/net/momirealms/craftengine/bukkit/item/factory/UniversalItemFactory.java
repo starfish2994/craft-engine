@@ -190,7 +190,6 @@ public class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrapper> {
 
     @Override
     protected void maxDamage(LegacyItemWrapper item, Integer damage) {
-        throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override

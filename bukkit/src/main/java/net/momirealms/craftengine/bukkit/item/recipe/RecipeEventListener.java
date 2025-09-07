@@ -318,7 +318,6 @@ public class RecipeEventListener implements Listener {
             return;
         }
 
-
         if (firstCustom.isPresent()) {
             CustomItem<ItemStack> firstCustomItem = firstCustom.get();
             if (firstCustomItem.settings().canRepair() == Tristate.FALSE) {

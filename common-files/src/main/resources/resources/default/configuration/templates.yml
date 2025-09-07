@@ -3142,7 +3142,7 @@ templates#recipes:
     category: building
     group: planks
     ingredients:
-      A: '#default:${wood_type}_logs'
+      - '#default:${wood_type}_logs'
     result:
       id: default:${wood_type}_planks
       count: 4
