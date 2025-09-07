@@ -1851,9 +1851,13 @@ public abstract class AbstractPackManager implements PackManager {
                     }
                     JsonArray overrides = new JsonArray();
                     for (LegacyOverridesModel legacyOverridesModel : legacyOverridesModels) {
-                        overrides.add(legacyOverridesModel.toLegacyPredicateElement());
+                        if (legacyOverridesModel.hasPredicate()) {
+                            overrides.add(legacyOverridesModel.toLegacyPredicateElement());
+                        }
                     }
-                    itemJson.add("overrides", overrides);
+                    if (!overrides.isEmpty()) {
+                        itemJson.add("overrides", overrides);
+                    }
                 } catch (IOException e) {
                     this.plugin.logger().warn("Failed to read item json " + itemPath.toAbsolutePath());
                     continue;
@@ -1861,13 +1865,31 @@ public abstract class AbstractPackManager implements PackManager {
             } else {
                 // 如果路径不存在，则需要我们创建一个json对象，并对接model的路径
                 itemJson = new JsonObject();
-                LegacyOverridesModel firstModel = legacyOverridesModels.getFirst();
-                itemJson.addProperty("parent", firstModel.model());
-                JsonArray overrides = new JsonArray();
+
+                LegacyOverridesModel firstBaseModel = null;
+                List<JsonObject> overrideJsons = new ArrayList<>();
                 for (LegacyOverridesModel legacyOverridesModel : legacyOverridesModels) {
-                    overrides.add(legacyOverridesModel.toLegacyPredicateElement());
+                    if (!legacyOverridesModel.hasPredicate()) {
+                        if (firstBaseModel == null) {
+                            firstBaseModel = legacyOverridesModel;
+                        }
+                    } else {
+                        JsonObject legacyPredicateElement = legacyOverridesModel.toLegacyPredicateElement();
+                        overrideJsons.add(legacyPredicateElement);
+                    }
                 }
-                itemJson.add("overrides", overrides);
+                if (firstBaseModel == null) {
+                    firstBaseModel = legacyOverridesModels.getFirst();
+                }
+
+                itemJson.addProperty("parent", firstBaseModel.model());
+                if (!overrideJsons.isEmpty()) {
+                    JsonArray overrides = new JsonArray();
+                    for (JsonObject override : overrideJsons) {
+                        overrides.add(override);
+                    }
+                    itemJson.add("overrides", overrides);
+                }
             }
             try {
                 Files.createDirectories(itemPath.getParent());
