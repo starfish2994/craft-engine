@@ -22,13 +22,11 @@ import java.util.concurrent.Callable;
 public class LampBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final Property<Boolean> litProperty;
-    private final Property<Boolean> poweredProperty;
     private final boolean canOpenWithHand;
 
-    public LampBlockBehavior(CustomBlock block, Property<Boolean> litProperty, Property<Boolean> poweredProperty, boolean canOpenWithHand) {
+    public LampBlockBehavior(CustomBlock block, Property<Boolean> litProperty, boolean canOpenWithHand) {
         super(block);
         this.litProperty = litProperty;
-        this.poweredProperty = poweredProperty;
         this.canOpenWithHand = canOpenWithHand;
     }
 
@@ -42,7 +40,7 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
         FastNMS.INSTANCE.method$LevelWriter$setBlock(
                 context.getLevel().serverWorld(),
                 LocationUtils.toBlockPos(context.getClickedPos()),
-                state.cycle(behavior.litProperty).cycle(behavior.poweredProperty).customBlockState().literalObject(),
+                state.cycle(behavior.litProperty).customBlockState().literalObject(),
                 2
         );
         Optional.ofNullable(context.getPlayer()).ifPresent(p -> p.swingHand(context.getHand()));
@@ -54,7 +52,6 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
         if (this.canOpenWithHand) return state;
         Object level = context.getLevel().serverWorld();
         state = state.with(this.litProperty, FastNMS.INSTANCE.method$SignalGetter$hasNeighborSignal(level, LocationUtils.toBlockPos(context.getClickedPos())));
-        state = state.with(this.poweredProperty, FastNMS.INSTANCE.method$SignalGetter$hasNeighborSignal(level, LocationUtils.toBlockPos(context.getClickedPos())));
         return state;
     }
 
@@ -71,7 +68,7 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
             if (FastNMS.INSTANCE.method$CraftEventFactory$callRedstoneChange(world, blockPos, 0, 15).getNewCurrent() != 15) {
                 return;
             }
-            FastNMS.INSTANCE.method$LevelWriter$setBlock(world, blockPos, customState.cycle(this.litProperty).cycle(this.poweredProperty).customBlockState().literalObject(), 2);
+            FastNMS.INSTANCE.method$LevelWriter$setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().literalObject(), 2);
         }
     }
 
@@ -92,7 +89,7 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
                 if (FastNMS.INSTANCE.method$CraftEventFactory$callRedstoneChange(world, blockPos, 0, 15).getNewCurrent() != 15) {
                     return;
                 }
-                FastNMS.INSTANCE.method$LevelWriter$setBlock(world, blockPos, customState.cycle(this.litProperty).cycle(this.poweredProperty).customBlockState().literalObject(), 2);
+                FastNMS.INSTANCE.method$LevelWriter$setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().literalObject(), 2);
             }
         }
     }
@@ -102,9 +99,8 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             Property<Boolean> lit = (Property<Boolean>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("lit"), "warning.config.block.behavior.lamp.missing_lit");
-            Property<Boolean> powered = (Property<Boolean>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("powered"), "warning.config.block.behavior.lamp.missing_powered");
             boolean canOpenWithHand = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-open-with-hand", false), "can-open-with-hand");
-            return new LampBlockBehavior(block, lit, powered, canOpenWithHand);
+            return new LampBlockBehavior(block, lit, canOpenWithHand);
         }
     }
 }
