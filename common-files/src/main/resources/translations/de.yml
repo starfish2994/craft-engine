@@ -273,7 +273,7 @@ warning.config.block.behavior.missing_type: "<yellow>Problem in Datei <arg:0> ge
 warning.config.block.behavior.invalid_type: "<yellow>Problem in Datei <arg:0> gefunden - Der Block '<arg:1>' verwendet einen ungültigen Block-Behavior-Typ '<arg:2>'.</yellow>"
 warning.config.block.behavior.concrete.missing_solid: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt die erforderliche 'solid-block'-Option für das 'concrete_block'-Behavior.</yellow>"
 warning.config.block.behavior.crop.missing_age: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt die erforderliche 'age'-Property für das 'crop_block'-Behavior.</yellow>"
-warning.config.block.behavior.sugar_cane.missing_age: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt die erforderliche 'age'-Property für das 'sugar_cane_block'-Behavior.</yellow>"
+warning.config.block.behavior.vertical_crop.missing_age: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt die erforderliche 'age'-Property für das 'vertical_crop_block'-Behavior.</yellow>"
 warning.config.block.behavior.leaves.missing_persistent: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt die erforderliche 'persistent'-Property für das 'leaves_block'-Behavior.</yellow>"
 warning.config.block.behavior.leaves.missing_distance: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt die erforderliche 'distance'-Property für das 'leaves_block'-Behavior.</yellow>"
 warning.config.block.behavior.lamp.missing_lit: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt die erforderliche 'lit'-Property für das 'lamp_block'-Behavior.</yellow>"
