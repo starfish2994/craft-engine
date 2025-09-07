@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.pack.model.generation.display;
 
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import org.joml.Vector3f;
 

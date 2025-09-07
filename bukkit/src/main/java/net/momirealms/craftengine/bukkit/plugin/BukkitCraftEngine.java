@@ -89,11 +89,13 @@ public class BukkitCraftEngine extends CraftEngine {
         super.logger = logger;
         super.platform = new BukkitPlatform();
         super.scheduler = new BukkitSchedulerAdapter(this);
-        Class<?> compatibilityClass = Objects.requireNonNull(ReflectionUtils.getClazz(COMPATIBILITY_CLASS), "Compatibility class not found");
-        try {
-            super.compatibilityManager = (CompatibilityManager) Objects.requireNonNull(ReflectionUtils.getConstructor(compatibilityClass, 0)).newInstance(this);
-        } catch (ReflectiveOperationException e) {
-            logger().warn("Compatibility class could not be instantiated: " + compatibilityClass.getName());
+        Class<?> compatibilityClass = ReflectionUtils.getClazz(COMPATIBILITY_CLASS);
+        if (compatibilityClass != null) {
+            try {
+                super.compatibilityManager = (CompatibilityManager) Objects.requireNonNull(ReflectionUtils.getConstructor(compatibilityClass, 0)).newInstance(this);
+            } catch (ReflectiveOperationException e) {
+                logger().warn("Compatibility class could not be instantiated: " + compatibilityClass.getName());
+            }
         }
     }
 
