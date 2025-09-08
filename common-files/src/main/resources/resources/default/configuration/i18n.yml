@@ -47,6 +47,7 @@ i18n:
     item.flower_basket: Flower Basket
     item.chessboard_block: Chessboard Block
     item.safe_block: Safe Block
+    item.sofa: Sofa
     category.default.name: Default Assets
     category.default.lore: Contains the default configuration of CraftEngine
     category.palm_tree: Palm Tree
@@ -104,6 +105,7 @@ i18n:
     item.flower_basket: 花篮
     item.chessboard_block: 棋盘方块
     item.safe_block: 保险柜
+    item.sofa: 沙发
     category.default.name: 默认资产
     category.default.lore: 包含了CraftEngine的默认配置
     category.palm_tree: 棕榈树

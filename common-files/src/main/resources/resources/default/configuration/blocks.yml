@@ -555,6 +555,353 @@ items#misc:
             facing=west,open=true:
               appearance: west_open
               id: 29
+  default:sofa:
+    material: nether_brick
+    custom-model-data: 3008
+    data:
+      item-name: <!i><i18n:item.sofa>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sofa
+      generation:
+        parent: minecraft:block/custom/sofa
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          hardness: 2
+          resistance: 3
+          map-color: 56
+          burn-chance: 5
+          fire-spread-chance: 20
+          burnable: true
+          is-suffocating: false
+          is-redstone-conductor: false
+          push-reaction: BLOCK
+          instrument: BASS
+          sounds:
+            break: minecraft:block.wood.break
+            fall: minecraft:block.wood.fall
+            hit: minecraft:block.wood.hit
+            place: minecraft:block.wood.place
+            step: minecraft:block.wood.step
+        states:
+          properties:
+            waterlogged:
+              type: boolean
+              default: false
+          appearances:
+            waterlogged=false:
+              state: sculk_sensor[power=1,sculk_sensor_phase=inactive,waterlogged=false]
+              model:
+                path: minecraft:block/custom/sofa
+            waterlogged=true:
+              state: sculk_sensor[power=1,sculk_sensor_phase=inactive,waterlogged=true]
+              model:
+                path: minecraft:block/custom/sofa
+          variants:
+            waterlogged=false:
+              appearance: waterlogged=false
+              id: 0
+            waterlogged=true:
+              appearance: waterlogged=true
+              id: 1
+
+  default:connectable_sofa_straight:
+    material: nether_brick
+    custom-model-data: 3009
+    data:
+      item-name: <!i><i18n:item.sofa>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sofa_straight
+  default:connectable_sofa_inner:
+    material: nether_brick
+    custom-model-data: 3010
+    data:
+      item-name: <!i><i18n:item.sofa>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sofa_inner
+  default:connectable_sofa:
+    material: nether_brick
+    custom-model-data: 3011
+    data:
+      item-name: <!i><i18n:item.sofa>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sofa_straight
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          hardness: 2
+          resistance: 3
+          map-color: 56
+          burn-chance: 5
+          fire-spread-chance: 20
+          burnable: true
+          is-suffocating: false
+          is-redstone-conductor: false
+          push-reaction: BLOCK
+          instrument: BASS
+          sounds:
+            break: minecraft:block.wood.break
+            fall: minecraft:block.wood.fall
+            hit: minecraft:block.wood.hit
+            place: minecraft:block.wood.place
+            step: minecraft:block.wood.step
+        behavior:
+          type: sofa_block
+        states:
+          properties:
+            facing:
+              type: horizontal_direction
+            shape:
+              type: sofa_shape
+            waterlogged:
+              type: boolean
+              default: false
+          appearances:
+            facing=east,shape=straight,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_straight
+                yaw: 90
+            facing=north,shape=straight,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_straight
+            facing=south,shape=straight,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_straight
+                yaw: 180
+            facing=west,shape=straight,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_straight
+                yaw: 270
+            facing=east,shape=straight,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_straight
+                yaw: 90
+            facing=north,shape=straight,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_straight
+            facing=south,shape=straight,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_straight
+                yaw: 180
+            facing=west,shape=straight,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_straight
+                yaw: 270
+            facing=east,shape=inner_left,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+            facing=north,shape=inner_left,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 270
+            facing=south,shape=inner_left,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 90
+            facing=west,shape=inner_left,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 180
+            facing=east,shape=inner_left,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+            facing=north,shape=inner_left,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 270
+            facing=south,shape=inner_left,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 90
+            facing=west,shape=inner_left,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 180
+            facing=east,shape=inner_right,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 90
+            facing=north,shape=inner_right,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+            facing=south,shape=inner_right,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 180
+            facing=west,shape=inner_right,waterlogged=false:
+              state: barrier[waterlogged=false]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 270
+            facing=east,shape=inner_right,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 90
+            facing=north,shape=inner_right,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+            facing=south,shape=inner_right,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 180
+            facing=west,shape=inner_right,waterlogged=true:
+              state: barrier[waterlogged=true]
+              entity-renderer:
+                item: default:connectable_sofa_inner
+                yaw: 270
+          variants:
+            facing=east,shape=inner_left,waterlogged=false:
+              appearance: facing=east,shape=inner_left,waterlogged=false
+              id: 0
+            facing=east,shape=inner_right,waterlogged=false:
+              appearance: facing=east,shape=inner_right,waterlogged=false
+              id: 1
+            facing=east,shape=straight,waterlogged=false:
+              appearance: facing=east,shape=straight,waterlogged=false
+              id: 2
+            facing=north,shape=inner_left,waterlogged=false:
+              appearance: facing=north,shape=inner_left,waterlogged=false
+              id: 3
+            facing=north,shape=inner_right,waterlogged=false:
+              appearance: facing=north,shape=inner_right,waterlogged=false
+              id: 4
+            facing=north,shape=straight,waterlogged=false:
+              appearance: facing=north,shape=straight,waterlogged=false
+              id: 5
+            facing=south,shape=inner_left,waterlogged=false:
+              appearance: facing=south,shape=inner_left,waterlogged=false
+              id: 6
+            facing=south,shape=inner_right,waterlogged=false:
+              appearance: facing=south,shape=inner_right,waterlogged=false
+              id: 7
+            facing=south,shape=straight,waterlogged=false:
+              appearance: facing=south,shape=straight,waterlogged=false
+              id: 8
+            facing=west,shape=inner_left,waterlogged=false:
+              appearance: facing=west,shape=inner_left,waterlogged=false
+              id: 9
+            facing=west,shape=inner_right,waterlogged=false:
+              appearance: facing=west,shape=inner_right,waterlogged=false
+              id: 10
+            facing=west,shape=straight,waterlogged=false:
+              appearance: facing=west,shape=straight,waterlogged=false
+              id: 11
+            facing=east,shape=inner_left,waterlogged=true:
+              appearance: facing=east,shape=inner_left,waterlogged=true
+              id: 12
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=east,shape=inner_right,waterlogged=true:
+              appearance: facing=east,shape=inner_right,waterlogged=true
+              id: 13
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=east,shape=straight,waterlogged=true:
+              appearance: facing=east,shape=straight,waterlogged=true
+              id: 14
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=north,shape=inner_left,waterlogged=true:
+              appearance: facing=north,shape=inner_left,waterlogged=true
+              id: 15
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=north,shape=inner_right,waterlogged=true:
+              appearance: facing=north,shape=inner_right,waterlogged=true
+              id: 16
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=north,shape=straight,waterlogged=true:
+              appearance: facing=north,shape=straight,waterlogged=true
+              id: 17
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=south,shape=inner_left,waterlogged=true:
+              appearance: facing=south,shape=inner_left,waterlogged=true
+              id: 18
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=south,shape=inner_right,waterlogged=true:
+              appearance: facing=south,shape=inner_right,waterlogged=true
+              id: 19
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=south,shape=straight,waterlogged=true:
+              appearance: facing=south,shape=straight,waterlogged=true
+              id: 20
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=west,shape=inner_left,waterlogged=true:
+              appearance: facing=west,shape=inner_left,waterlogged=true
+              id: 21
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=west,shape=inner_right,waterlogged=true:
+              appearance: facing=west,shape=inner_right,waterlogged=true
+              id: 22
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
+            facing=west,shape=straight,waterlogged=true:
+              appearance: facing=west,shape=straight,waterlogged=true
+              id: 23
+              settings:
+                resistance: 1200.0
+                burnable: false
+                fluid-state: water
 recipes#misc:
   default:chinese_lantern:
     type: shaped

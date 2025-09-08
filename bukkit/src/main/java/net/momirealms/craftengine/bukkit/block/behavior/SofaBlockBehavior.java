@@ -10,7 +10,7 @@ import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.state.properties.StairsShape;
+import net.momirealms.craftengine.core.block.state.properties.SofaShape;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.HorizontalDirection;
@@ -22,12 +22,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-public class BottomHalfStairsBlockBehavior extends BukkitBlockBehavior {
+public class SofaBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final Property<HorizontalDirection> facingProperty;
-    private final Property<StairsShape> shapeProperty;
+    private final Property<SofaShape> shapeProperty;
 
-    public BottomHalfStairsBlockBehavior(CustomBlock block, Property<HorizontalDirection> facing, Property<StairsShape> shape) {
+    public SofaBlockBehavior(CustomBlock block, Property<HorizontalDirection> facing, Property<SofaShape> shape) {
         super(block);
         this.facingProperty = facing;
         this.shapeProperty = shape;
@@ -42,7 +42,7 @@ public class BottomHalfStairsBlockBehavior extends BukkitBlockBehavior {
             Object fluidState = FastNMS.INSTANCE.method$BlockGetter$getFluidState(context.getLevel().serverWorld(), LocationUtils.toBlockPos(clickedPos));
             blockState = blockState.with(this.waterloggedProperty, FastNMS.INSTANCE.method$FluidState$getType(fluidState) == MFluids.WATER);
         }
-        return blockState.with(this.shapeProperty, getStairsShape(blockState, context.getLevel().serverWorld(), clickedPos));
+        return blockState.with(this.shapeProperty, getSofaShape(blockState, context.getLevel().serverWorld(), clickedPos));
     }
 
     @Override
@@ -57,47 +57,31 @@ public class BottomHalfStairsBlockBehavior extends BukkitBlockBehavior {
             FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleFluidTick(args[updateShape$level], args[updateShape$blockPos], MFluids.WATER, 5);
         }
         Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2() ? args[4] : args[1]);
-        StairsShape stairsShape = getStairsShape(customState, level, LocationUtils.fromBlockPos(blockPos));
+        SofaShape sofaShape = getSofaShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
-                ? customState.with(this.shapeProperty, stairsShape).customBlockState().literalObject()
+                ? customState.with(this.shapeProperty, sofaShape).customBlockState().literalObject()
                 : superMethod.call();
     }
 
-    private StairsShape getStairsShape(ImmutableBlockState state, Object level, BlockPos pos) {
+    private SofaShape getSofaShape(ImmutableBlockState state, Object level, BlockPos pos) {
         Direction direction = state.get(this.facingProperty).toDirection();
-        Object relativeBlockState1 = FastNMS.INSTANCE.method$BlockGetter$getBlockState(level, LocationUtils.toBlockPos(pos.relative(direction)));
-        Optional<ImmutableBlockState> optionalCustomState1 = BlockStateUtils.getOptionalCustomBlockState(relativeBlockState1);
-        if (optionalCustomState1.isPresent()) {
-            ImmutableBlockState customState1 = optionalCustomState1.get();
-            Optional<BottomHalfStairsBlockBehavior> optionalStairsBlockBehavior = customState1.behavior().getAs(BottomHalfStairsBlockBehavior.class);
+        Object relativeBlockState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(level, LocationUtils.toBlockPos(pos.relative(direction.opposite())));
+        Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(relativeBlockState);
+        if (optionalCustomState.isPresent()) {
+            ImmutableBlockState customState = optionalCustomState.get();
+            Optional<SofaBlockBehavior> optionalStairsBlockBehavior = customState.behavior().getAs(SofaBlockBehavior.class);
             if (optionalStairsBlockBehavior.isPresent()) {
-                BottomHalfStairsBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
-                Direction direction1 = customState1.get(stairsBlockBehavior.facingProperty).toDirection();
-                if (direction1.axis() != state.get(this.facingProperty).toDirection().axis() && canTakeShape(state, level, pos, direction1.opposite())) {
+                SofaBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
+                Direction direction1 = customState.get(stairsBlockBehavior.facingProperty).toDirection();
+                if (direction1.axis() != state.get(this.facingProperty).toDirection().axis() && canTakeShape(state, level, pos, direction1)) {
                     if (direction1 == direction.counterClockWise()) {
-                        return StairsShape.OUTER_LEFT;
+                        return SofaShape.INNER_LEFT;
                     }
-                    return StairsShape.OUTER_RIGHT;
+                    return SofaShape.INNER_RIGHT;
                 }
             }
         }
-        Object relativeBlockState2 = FastNMS.INSTANCE.method$BlockGetter$getBlockState(level, LocationUtils.toBlockPos(pos.relative(direction.opposite())));
-        Optional<ImmutableBlockState> optionalCustomState2 = BlockStateUtils.getOptionalCustomBlockState(relativeBlockState2);
-        if (optionalCustomState2.isPresent()) {
-            ImmutableBlockState customState2 = optionalCustomState2.get();
-            Optional<BottomHalfStairsBlockBehavior> optionalStairsBlockBehavior = customState2.behavior().getAs(BottomHalfStairsBlockBehavior.class);
-            if (optionalStairsBlockBehavior.isPresent()) {
-                BottomHalfStairsBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
-                Direction direction2 = customState2.get(stairsBlockBehavior.facingProperty).toDirection();
-                if (direction2.axis() != state.get(this.facingProperty).toDirection().axis() && canTakeShape(state, level, pos, direction2)) {
-                    if (direction2 == direction.counterClockWise()) {
-                        return StairsShape.INNER_LEFT;
-                    }
-                    return StairsShape.INNER_RIGHT;
-                }
-            }
-        }
-        return StairsShape.STRAIGHT;
+        return SofaShape.STRAIGHT;
     }
 
     private boolean canTakeShape(ImmutableBlockState state, Object level, BlockPos pos, Direction face) {
@@ -107,11 +91,11 @@ public class BottomHalfStairsBlockBehavior extends BukkitBlockBehavior {
             return true;
         }
         ImmutableBlockState anotherState = optionalAnotherState.get();
-        Optional<BottomHalfStairsBlockBehavior> optionalBehavior = anotherState.behavior().getAs(BottomHalfStairsBlockBehavior.class);
+        Optional<SofaBlockBehavior> optionalBehavior = anotherState.behavior().getAs(SofaBlockBehavior.class);
         if (optionalBehavior.isEmpty()) {
             return true;
         }
-        BottomHalfStairsBlockBehavior anotherBehavior = optionalBehavior.get();
+        SofaBlockBehavior anotherBehavior = optionalBehavior.get();
         return anotherState.get(anotherBehavior.facingProperty) != state.get(this.facingProperty);
     }
 
@@ -120,9 +104,9 @@ public class BottomHalfStairsBlockBehavior extends BukkitBlockBehavior {
         @Override
         @SuppressWarnings("unchecked")
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
-            Property<HorizontalDirection> facing = (Property<HorizontalDirection>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("facing"), "warning.config.block.behavior.bottom_half_stairs.missing_facing");
-            Property<StairsShape> shape = (Property<StairsShape>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("shape"), "warning.config.block.behavior.bottom_half_stairs.missing_shape");
-            return new BottomHalfStairsBlockBehavior(block, facing, shape);
+            Property<HorizontalDirection> facing = (Property<HorizontalDirection>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("facing"), "warning.config.block.behavior.sofa.missing_facing");
+            Property<SofaShape> shape = (Property<SofaShape>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("shape"), "warning.config.block.behavior.sofa.missing_shape");
+            return new SofaBlockBehavior(block, facing, shape);
         }
     }
 }

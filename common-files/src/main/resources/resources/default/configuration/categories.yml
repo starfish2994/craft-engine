@@ -72,11 +72,12 @@ categories:
       - default:solid_gunpowder_block
       - default:ender_pearl_flower_seeds
       - default:gui_head_size_1
-      - default:gui_head_size_4
-      - minecraft:air
       - default:copper_coil
       - default:flame_elytra
       - default:cap
       - default:pebble
       - default:chessboard_block
       - default:safe_block
+      - default:sofa
+      - default:connectable_sofa
+      - default:gui_head_size_4
