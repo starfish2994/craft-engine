@@ -4209,4 +4209,12 @@ public final class CoreReflections {
     public static final Method method$BlockAndTintGetter$getLightEngine = requireNonNull(
             ReflectionUtils.getDeclaredMethod(clazz$BlockAndTintGetter, clazz$LevelLightEngine)
     );
+
+    public static final Method method$Block$fallOn = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$Block, void.class, clazz$Level, clazz$BlockState, clazz$BlockPos, clazz$Entity, VersionHelper.isOrAbove1_21_5() ? double.class : float.class)
+    );
+
+    public static final Method method$Block$updateEntityMovementAfterFallOn = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$Block, void.class, clazz$BlockGetter, clazz$Entity)
+    );
 }

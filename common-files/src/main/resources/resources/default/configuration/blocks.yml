@@ -585,6 +585,9 @@ items#misc:
             hit: minecraft:block.wood.hit
             place: minecraft:block.wood.place
             step: minecraft:block.wood.step
+        behavior:
+          type: bouncing_block
+          bounce-height: 0.66
         state:
           id: 0
           state: white_bed[facing=west,occupied=false,part=foot]
