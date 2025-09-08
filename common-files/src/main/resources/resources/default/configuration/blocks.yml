@@ -563,8 +563,6 @@ items#misc:
     model:
       type: minecraft:model
       path: minecraft:item/custom/sofa
-      generation:
-        parent: minecraft:block/custom/sofa
     behavior:
       type: block_item
       block:
@@ -587,28 +585,11 @@ items#misc:
             hit: minecraft:block.wood.hit
             place: minecraft:block.wood.place
             step: minecraft:block.wood.step
-        states:
-          properties:
-            waterlogged:
-              type: boolean
-              default: false
-          appearances:
-            waterlogged=false:
-              state: sculk_sensor[power=1,sculk_sensor_phase=inactive,waterlogged=false]
-              model:
-                path: minecraft:block/custom/sofa
-            waterlogged=true:
-              state: sculk_sensor[power=1,sculk_sensor_phase=inactive,waterlogged=true]
-              model:
-                path: minecraft:block/custom/sofa
-          variants:
-            waterlogged=false:
-              appearance: waterlogged=false
-              id: 0
-            waterlogged=true:
-              appearance: waterlogged=true
-              id: 1
-
+        state:
+          id: 0
+          state: white_bed[facing=west,occupied=false,part=foot]
+          entity-renderer:
+            item: default:sofa
   default:connectable_sofa_straight:
     material: nether_brick
     custom-model-data: 3009
