@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.world;
 
+import ca.spottedleaf.concurrentutil.collection.MultiThreadedQueue;
 import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CEWorld {
     public static final String REGION_DIRECTORY = "craftengine";
@@ -24,12 +26,12 @@ public abstract class CEWorld {
     protected final ConcurrentLong2ReferenceChainedHashTable<CEChunk> loadedChunkMap;
     protected final WorldDataStorage worldDataStorage;
     protected final WorldHeight worldHeightAccessor;
-    protected final List<SectionPos> pendingLightSections = new ArrayList<>(128);
-    protected final Set<SectionPos> lightSections = new HashSet<>(128);
+    protected List<SectionPos> pendingLightSections = new ArrayList<>();
+    protected final Set<SectionPos> lightSections = ConcurrentHashMap.newKeySet(128);
     protected final List<TickingBlockEntity> tickingBlockEntities = new ArrayList<>();
     protected final List<TickingBlockEntity> pendingTickingBlockEntities = new ArrayList<>();
-    protected boolean isTickingBlockEntities = false;
-    protected boolean isUpdatingLights = false;
+    protected volatile boolean isTickingBlockEntities = false;
+    protected volatile boolean isUpdatingLights = false;
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
 

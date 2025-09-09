@@ -125,7 +125,7 @@ public abstract class AbstractPackManager implements PackManager {
 
         loadInternalList("models", "block/", VANILLA_MODELS::add);
         loadInternalList("models", "item/", VANILLA_MODELS::add);
-
+        loadInternalList("models", "item/legacy/", key -> VANILLA_MODELS.add(Key.of(key.namespace(), "item/" + key.value().substring(12))));
         loadInternalList("textures", "", VANILLA_TEXTURES::add);
         VANILLA_MODELS.add(Key.of("minecraft", "builtin/entity"));
         VANILLA_MODELS.add(Key.of("minecraft", "item/player_head"));
@@ -171,7 +171,7 @@ public abstract class AbstractPackManager implements PackManager {
                 JsonArray fileList = listJson.getAsJsonArray("files");
                 for (JsonElement element : fileList) {
                     if (element instanceof JsonPrimitive primitive) {
-                        callback.accept(Key.of(prefix + FileUtils.pathWithoutExtension(primitive.getAsString())));
+                        callback.accept(Key.of("minecraft", prefix + FileUtils.pathWithoutExtension(primitive.getAsString())));
                     }
                 }
                 JsonArray directoryList = listJson.getAsJsonArray("directories");

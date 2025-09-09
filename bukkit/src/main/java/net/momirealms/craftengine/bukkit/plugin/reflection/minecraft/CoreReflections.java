@@ -917,7 +917,7 @@ public final class CoreReflections {
     );
 
     public static final Method method$IdMapper$add = requireNonNull(
-            ReflectionUtils.getMethod(clazz$IdMapper, void.class, Object.class)
+            ReflectionUtils.getMethod(clazz$IdMapper, void.class, new String[] {"add", "b"}, Object.class)
     );
 
     public static final Object instance$Block$BLOCK_STATE_REGISTRY;
