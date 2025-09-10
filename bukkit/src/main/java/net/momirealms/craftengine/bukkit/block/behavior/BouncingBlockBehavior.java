@@ -2,11 +2,13 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
+import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.Vec3d;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -25,13 +27,7 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
     @Override
     public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) {
         Object entity = args[3];
-        Object finalFallDistance;
-        if (VersionHelper.isOrAbove1_21_5()) {
-            double fallDistance = (double) args[4];
-            finalFallDistance = fallDistance * 0.5;
-        } else {
-            finalFallDistance = (float) args[4] * 0.5F;
-        }
+        Object finalFallDistance = VersionHelper.isOrAbove1_21_5() ? (double) args[4] * 0.5 : (float) args[4] * 0.5F;
         FastNMS.INSTANCE.method$Entity$causeFallDamage(
                 entity, finalFallDistance, 1.0F,
                 FastNMS.INSTANCE.method$DamageSources$fall(FastNMS.INSTANCE.method$Entity$damageSources(entity))
@@ -49,16 +45,12 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void bounceUp(Object entity) {
-        Object deltaMovement = FastNMS.INSTANCE.method$Entity$getDeltaMovement(entity);
-        if (FastNMS.INSTANCE.field$Vec3$y(deltaMovement) < 0.0) {
+        Vec3d deltaMovement = LocationUtils.fromVec(FastNMS.INSTANCE.method$Entity$getDeltaMovement(entity));
+        if (deltaMovement.y < 0.0) {
             double d = CoreReflections.clazz$LivingEntity.isInstance(entity) ? 1.0 : 0.8;
-            FastNMS.INSTANCE.method$Entity$setDeltaMovement(
-                    entity,
-                    FastNMS.INSTANCE.field$Vec3$x(deltaMovement),
-                    -FastNMS.INSTANCE.field$Vec3$y(deltaMovement) * this.bounceHeight * d,
-                    FastNMS.INSTANCE.field$Vec3$z(deltaMovement)
-            );
-            if (this.syncPlayerSelf) {
+            double y = -deltaMovement.y * this.bounceHeight * d;
+            FastNMS.INSTANCE.method$Entity$setDeltaMovement(entity, deltaMovement.x, y, deltaMovement.z);
+            if (CoreReflections.clazz$Player.isInstance(entity) && this.syncPlayerSelf && y > 0.032) { // 防抖
                 FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true);
             }
         }

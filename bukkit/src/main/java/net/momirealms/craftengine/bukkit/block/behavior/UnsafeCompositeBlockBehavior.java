@@ -347,7 +347,11 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior {
     @Override
     public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         for (AbstractBlockBehavior behavior : this.behaviors) {
-            behavior.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
+            if (behavior instanceof BouncingBlockBehavior bouncingBlockBehavior) {
+                bouncingBlockBehavior.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
+                return;
+            }
         }
+        super.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
     }
 }

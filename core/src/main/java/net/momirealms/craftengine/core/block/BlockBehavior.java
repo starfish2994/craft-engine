@@ -121,6 +121,7 @@ public abstract class BlockBehavior {
 
     // 1.21+ BlockState state, ServerLevel level, BlockPos pos, Explosion explosion, BiConsumer<ItemStack, BlockPos> dropConsumer
     public void onExplosionHit(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        superMethod.call();
     }
 
     // LevelAccessor level, BlockPos pos, BlockState state, FluidState fluidState
@@ -181,10 +182,12 @@ public abstract class BlockBehavior {
     // 1.20.1~1.21.4 Level world, BlockState state, BlockPos pos, Entity entity, float fallDistance
     // 1.21.5+ Level level, BlockState state, BlockPos pos, Entity entity, double fallDistance
     public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        superMethod.call();
     }
 
     // BlockGetter level, Entity entity
     public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        superMethod.call();
     }
 
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
