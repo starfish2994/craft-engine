@@ -44,7 +44,8 @@ public class BukkitWorld implements World {
     @Override
     public WorldHeight worldHeight() {
         if (this.worldHeight == null) {
-            this.worldHeight = WorldHeight.create(platformWorld().getMinHeight(), platformWorld().getMaxHeight() - platformWorld().getMinHeight());
+            org.bukkit.World bWorld = platformWorld();
+            this.worldHeight = WorldHeight.create(bWorld.getMinHeight(), bWorld.getMaxHeight() - bWorld.getMinHeight());
         }
         return this.worldHeight;
     }
