@@ -8,12 +8,13 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class ExternalModifier<I> implements ItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
-    private static final ThreadLocal<Deque<String>> BUILD_STACK = ThreadLocal.withInitial(ArrayDeque::new);
+    private static final ThreadLocal<Set<Dependency>> BUILD_STACK = ThreadLocal.withInitial(LinkedHashSet::new);
     private final String id;
     private final ExternalItemSource<I> provider;
 
@@ -38,21 +39,20 @@ public class ExternalModifier<I> implements ItemDataModifier<I> {
     @SuppressWarnings("unchecked")
     @Override
     public Item<I> apply(Item<I> item, ItemBuildContext context) {
-        String stackElement = provider.plugin() + "[id=" + id + "]";
-        Deque<String> buildStack = BUILD_STACK.get();
+        Dependency dependency = new Dependency(provider.plugin(), id);
+        Set<Dependency> buildStack = BUILD_STACK.get();
 
-        if (buildStack.contains(stackElement)) {
+        if (buildStack.contains(dependency)) {
             StringJoiner dependencyChain = new StringJoiner(" -> ");
-            buildStack.forEach(dependencyChain::add);
-            dependencyChain.add(stackElement);
-            CraftEngine.instance().logger().warn("Item '" + item.customId().orElseGet(item::id) +
-                    "' encountered circular dependency while building external item '" + this.id +
-                    "' (from plugin '" + provider.plugin() + "'). Dependency chain: " + dependencyChain
+            buildStack.forEach(element -> dependencyChain.add(element.toString()));
+            dependencyChain.add(dependency.toString());
+            CraftEngine.instance().logger().warn(
+                    "Failed to build '" + this.id + "' because of a dependency loop: " + dependencyChain
             );
             return item;
         }
 
-        buildStack.push(stackElement);
+        buildStack.add(dependency);
         try {
             I another = this.provider.build(this.id, context);
             if (another == null) {
@@ -62,11 +62,12 @@ public class ExternalModifier<I> implements ItemDataModifier<I> {
             Item<I> anotherWrapped = (Item<I>) CraftEngine.instance().itemManager().wrap(another);
             item.merge(anotherWrapped);
             return item;
+        } catch (Throwable e) {
+            CraftEngine.instance().logger().warn("Failed to build '" + this.id + "'", e);
+            return item;
         } finally {
-            buildStack.pop();
-            if (buildStack.isEmpty()) {
-                BUILD_STACK.remove();
-            }
+            buildStack.remove(dependency);
+            BUILD_STACK.remove();
         }
     }
 
@@ -80,6 +81,13 @@ public class ExternalModifier<I> implements ItemDataModifier<I> {
             String id = ResourceConfigUtils.requireNonEmptyStringOrThrow(data.get("id"), "warning.config.item.data.external.missing_id");
             ExternalItemSource<I> provider = (ExternalItemSource<I>) CraftEngine.instance().itemManager().getExternalItemSource(plugin.toLowerCase(Locale.ENGLISH));
             return new ExternalModifier<>(id, ResourceConfigUtils.requireNonNullOrThrow(provider, () -> new LocalizedResourceConfigException("warning.config.item.data.external.invalid_source", plugin)));
+        }
+    }
+
+    private record Dependency(String source, String id) {
+        @Override
+        public @NotNull String toString() {
+            return source + "[id=" + id + "]";
         }
     }
 }

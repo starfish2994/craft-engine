@@ -21,8 +21,8 @@ public class PackCacheData {
                         .map(it -> plugin.dataFolderPath().getParent().resolve(it))
                         .filter(Files::exists)
                         .collect(Collectors.toSet()),
-                add -> Debugger.RESOURCE_PACK.debug(() -> "Adding external folder: " + add),
-                remove -> Debugger.RESOURCE_PACK.debug(() -> "Removing external folder: " + remove),
+                add -> plugin.logger().info("Adding external folder: " + add),
+                remove -> plugin.logger().info("Removing external folder: " + remove),
                 true
         );
         this.externalZips = new SetMonitor<>(
@@ -32,8 +32,8 @@ public class PackCacheData {
                         .filter(Files::isRegularFile)
                         .filter(file -> file.getFileName().toString().endsWith(".zip"))
                         .collect(Collectors.toSet()),
-                add -> Debugger.RESOURCE_PACK.debug(() -> "Adding external zip: " + add),
-                remove -> Debugger.RESOURCE_PACK.debug(() -> "Removing external zip: " + remove),
+                add -> plugin.logger().info("Adding external zip: " + add),
+                remove -> plugin.logger().info("Removing external zip: " + remove),
                 true
         );
     }
