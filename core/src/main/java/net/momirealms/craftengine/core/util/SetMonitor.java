@@ -13,14 +13,9 @@ public class SetMonitor<E> implements Set<E> {
     private final Consumer<Object> removeConsumer;
 
     public SetMonitor(Set<E> set, Consumer<E> addConsumer, Consumer<Object> removeConsumer) {
-        this(set, addConsumer, removeConsumer, false);
-    }
-
-    public SetMonitor(Set<E> set, Consumer<E> addConsumer, Consumer<Object> removeConsumer, boolean skipInitialNotification) {
         this.set = set;
         this.addConsumer = addConsumer;
         this.removeConsumer = removeConsumer;
-        if (skipInitialNotification) return;
         for (E element : set) {
             this.addConsumer.accept(element);
         }
