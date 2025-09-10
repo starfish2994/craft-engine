@@ -188,9 +188,10 @@ public final class CraftEngineBlocks {
         if (dropLoot) {
             ContextHolder.Builder builder = new ContextHolder.Builder()
                     .withParameter(DirectContextParameters.POSITION, position);
-            BukkitServerPlayer serverPlayer = BukkitCraftEngine.instance().adapt(player);
+            BukkitServerPlayer serverPlayer = null;
             if (player != null) {
-                builder.withParameter(DirectContextParameters.PLAYER, serverPlayer);
+                serverPlayer = BukkitCraftEngine.instance().adapt(player);
+                builder.withOptionalParameter(DirectContextParameters.PLAYER, serverPlayer);
             }
             for (Item<?> item : state.getDrops(builder, world, serverPlayer)) {
                 world.dropItemNaturally(position, item);
