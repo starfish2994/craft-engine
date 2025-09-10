@@ -59,7 +59,7 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
                     y,
                     FastNMS.INSTANCE.field$Vec3$z(deltaMovement)
             );
-            if (this.syncPlayerSelf && y > 0.06271) { // 不知道为什么会抖
+            if (this.syncPlayerSelf && y > 0.0315) { // 不知道为什么会抖
                 FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true);
             }
         }
