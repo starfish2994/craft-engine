@@ -52,13 +52,15 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
         Object deltaMovement = FastNMS.INSTANCE.method$Entity$getDeltaMovement(entity);
         if (FastNMS.INSTANCE.field$Vec3$y(deltaMovement) < 0.0) {
             double d = CoreReflections.clazz$LivingEntity.isInstance(entity) ? 1.0 : 0.8;
+            double y = -FastNMS.INSTANCE.field$Vec3$y(deltaMovement) * this.bounceHeight * d;
+            System.out.println("deltaMovement=" + deltaMovement + ", d=" + d + ", y=" + y);
             FastNMS.INSTANCE.method$Entity$setDeltaMovement(
                     entity,
                     FastNMS.INSTANCE.field$Vec3$x(deltaMovement),
-                    -FastNMS.INSTANCE.field$Vec3$y(deltaMovement) * this.bounceHeight * d,
+                    y,
                     FastNMS.INSTANCE.field$Vec3$z(deltaMovement)
             );
-            if (this.syncPlayerSelf) {
+            if (this.syncPlayerSelf && y > 0.06271) { // 不知道为什么会抖
                 FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true);
             }
         }
