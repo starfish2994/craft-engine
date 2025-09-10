@@ -13,7 +13,7 @@ public class SXItemSource implements ExternalItemSource<ItemStack> {
 
     @Override
     public String plugin() {
-        return "sxitem";
+        return "sx-item";
     }
 
     @Nullable

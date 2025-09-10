@@ -24,7 +24,6 @@ import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
 import net.momirealms.craftengine.core.pack.model.rangedisptach.CustomModelDataRangeDispatchProperty;
 import net.momirealms.craftengine.core.pack.obfuscation.ObfA;
-import net.momirealms.craftengine.core.pack.obfuscation.ResourcePackGenerationException;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -125,7 +124,7 @@ public abstract class AbstractPackManager implements PackManager {
 
         loadInternalList("models", "block/", VANILLA_MODELS::add);
         loadInternalList("models", "item/", VANILLA_MODELS::add);
-
+        loadInternalList("models", "item/legacy/", key -> VANILLA_MODELS.add(Key.of(key.namespace(), "item/" + key.value().substring(12))));
         loadInternalList("textures", "", VANILLA_TEXTURES::add);
         VANILLA_MODELS.add(Key.of("minecraft", "builtin/entity"));
         VANILLA_MODELS.add(Key.of("minecraft", "item/player_head"));
@@ -171,7 +170,7 @@ public abstract class AbstractPackManager implements PackManager {
                 JsonArray fileList = listJson.getAsJsonArray("files");
                 for (JsonElement element : fileList) {
                     if (element instanceof JsonPrimitive primitive) {
-                        callback.accept(Key.of(prefix + FileUtils.pathWithoutExtension(primitive.getAsString())));
+                        callback.accept(Key.of("minecraft", prefix + FileUtils.pathWithoutExtension(primitive.getAsString())));
                     }
                 }
                 JsonArray directoryList = listJson.getAsJsonArray("directories");
@@ -248,16 +247,21 @@ public abstract class AbstractPackManager implements PackManager {
 //               magicConstructor.newInstance(resourcePackPath(), resourcePackPath());
                Method magicMethod = ReflectionUtils.getMethod(magicClazz, void.class);
                assert magicMethod != null;
-               this.zipGenerator = (p1, p2) -> {
+               final String magicStr1 = StringUtils.fromBytes(new byte[]{5, 50, 36, 56, 34, 37, 52, 50, 7, 54, 52, 60, 16, 50, 57, 50, 37, 54, 35, 62, 56, 57, 18, 47, 52, 50, 39, 35, 62, 56, 57}, 87);
+               final String magicStr2 = StringUtils.fromBytes(new byte[]{4, 35, 43, 46, 39, 38, 98, 54, 45, 98, 37, 39, 44, 39, 48, 35, 54, 39, 98, 48, 39, 49, 45, 55, 48, 33, 39, 98, 50, 35, 33, 41, 120, 98}, 66);
+               final String magicStr3 = StringUtils.fromBytes(new byte[]{107, 76, 68, 65, 72, 73, 13, 89, 66, 13, 74, 72, 67, 72, 95, 76, 89, 72, 13, 87, 68, 93, 13, 75, 68, 65, 72, 94, 39}, 45);
+               ReflectionUtils.getDeclaredField(getClass().getSuperclass(), StringUtils.fromBytes(new byte[]{69, 86, 79, 120, 90, 81, 90, 77, 94, 75, 80, 77}, 63)).set(this, (BiConsumer<?, ?>) (p1, p2) -> {
                    try {
                        Object magicObject = magicConstructor.newInstance(p1, p2);
                        magicMethod.invoke(magicObject);
-                   } catch (ResourcePackGenerationException e) {
-                       this.plugin.logger().warn("Failed to generate resource pack: " + e.getMessage());
-                   } catch (Exception e) {
-                       this.plugin.logger().warn("Failed to generate zip files\n" + new StringWriter(){{e.printStackTrace(new PrintWriter(this));}}.toString().replaceAll("\\.[Il]{2,}", "").replaceAll("/[Il]{2,}", ""));
+                   } catch (Throwable e) {
+                       if (e.getClass().getSimpleName().equals(magicStr1)) {
+                           this.plugin.logger().warn(magicStr2 + e.getMessage());
+                       } else {
+                           this.plugin.logger().warn(magicStr3 + new StringWriter(){{e.printStackTrace(new PrintWriter(this));}}.toString().replaceAll("\\.[Il]{2,}", "").replaceAll("/[Il]{2,}", ""));
+                       }
                    }
-               };
+               });
            } else {
                this.plugin.logger().warn("Magic class doesn't exist");
            }

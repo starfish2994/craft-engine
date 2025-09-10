@@ -7,14 +7,13 @@ import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.BlockEntityRendererConfig;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.SectionPosUtils;
-import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.CEWorld;
-import net.momirealms.craftengine.core.world.ChunkPos;
-import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BukkitCEWorld extends CEWorld {
 
@@ -39,8 +38,9 @@ public class BukkitCEWorld extends CEWorld {
             );
             super.lightSections.clear();
             super.isUpdatingLights = false;
-            super.lightSections.addAll(super.pendingLightSections);
-            super.pendingLightSections.clear();
+            List<SectionPos> pendingLightSections = super.pendingLightSections;
+            super.pendingLightSections = new ArrayList<>(Math.max(pendingLightSections.size() / 2, 8));
+            super.lightSections.addAll(pendingLightSections);
         }
     }
 
