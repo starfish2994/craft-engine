@@ -121,7 +121,6 @@ public abstract class BlockBehavior {
 
     // 1.21+ BlockState state, ServerLevel level, BlockPos pos, Explosion explosion, BiConsumer<ItemStack, BlockPos> dropConsumer
     public void onExplosionHit(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
-        superMethod.call();
     }
 
     // LevelAccessor level, BlockPos pos, BlockState state, FluidState fluidState
