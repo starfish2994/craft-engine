@@ -126,7 +126,7 @@ public class Int2ObjectBiMap<K> implements IndexedIterable<K> {
 
     private int findIndex(@Nullable K value, int id) {
         int i;
-        for(i = id; i < this.values.length; ++i) {
+        for (i = id; i < this.values.length; ++i) {
             if (this.values[i] == value) {
                 return i;
             }
@@ -136,7 +136,7 @@ public class Int2ObjectBiMap<K> implements IndexedIterable<K> {
             }
         }
 
-        for(i = 0; i < id; ++i) {
+        for (i = 0; i < id; ++i) {
             if (this.values[i] == value) {
                 return i;
             }

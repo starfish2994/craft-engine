@@ -29,7 +29,6 @@ public final class ImmutableBlockState extends BlockStateHolder {
     private BlockStateWrapper customBlockState;
     private BlockStateWrapper vanillaBlockState;
     private BlockBehavior behavior;
-    private Integer hashCode;
     private BlockSettings settings;
     private BlockEntityType<? extends BlockEntity> blockEntityType;
     @Nullable
@@ -78,27 +77,12 @@ public final class ImmutableBlockState extends BlockStateHolder {
         this.renderers = renderers;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ImmutableBlockState state)) return false;
-        return state.owner == this.owner && state.tag.equals(this.tag);
-    }
-
-    @Override
-    public int hashCode() {
-        if (this.hashCode == null) {
-            this.hashCode = getNbtToSave().hashCode();
-        }
-        return this.hashCode;
-    }
-
     public boolean hasBlockEntity() {
         return this.blockEntityType != null;
     }
 
     public boolean hasBlockEntityRenderer() {
-        return this.renderers != null;
+        return this.renderers != null ;
     }
 
     public BlockStateWrapper customBlockState() {
