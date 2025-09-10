@@ -53,7 +53,6 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
         if (FastNMS.INSTANCE.field$Vec3$y(deltaMovement) < 0.0) {
             double d = CoreReflections.clazz$LivingEntity.isInstance(entity) ? 1.0 : 0.8;
             double y = -FastNMS.INSTANCE.field$Vec3$y(deltaMovement) * this.bounceHeight * d;
-            System.out.println("deltaMovement=" + deltaMovement + ", d=" + d + ", y=" + y);
             FastNMS.INSTANCE.method$Entity$setDeltaMovement(
                     entity,
                     FastNMS.INSTANCE.field$Vec3$x(deltaMovement),
