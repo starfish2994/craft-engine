@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.AbstractBlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.special.TriggerOnceBlockBehavior;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.item.context.UseOnContext;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior {
+public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior implements TriggerOnceBlockBehavior {
     private final AbstractBlockBehavior[] behaviors;
 
     public UnsafeCompositeBlockBehavior(CustomBlock customBlock, List<AbstractBlockBehavior> behaviors) {
@@ -340,18 +341,22 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior {
     @Override
     public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         for (AbstractBlockBehavior behavior : this.behaviors) {
-            behavior.fallOn(thisBlock, args, superMethod);
+            if (behavior instanceof TriggerOnceBlockBehavior f) {
+                f.fallOn(thisBlock, args, superMethod);
+                return;
+            }
         }
+        TriggerOnceBlockBehavior.super.fallOn(thisBlock, args, superMethod);
     }
 
     @Override
     public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         for (AbstractBlockBehavior behavior : this.behaviors) {
-            if (behavior instanceof BouncingBlockBehavior bouncingBlockBehavior) {
-                bouncingBlockBehavior.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
+            if (behavior instanceof TriggerOnceBlockBehavior f) {
+                f.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
                 return;
             }
         }
-        super.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
+        TriggerOnceBlockBehavior.super.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
     }
 }

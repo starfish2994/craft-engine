@@ -178,17 +178,6 @@ public abstract class BlockBehavior {
     public void spawnAfterBreak(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
     }
 
-    // 1.20.1~1.21.4 Level world, BlockState state, BlockPos pos, Entity entity, float fallDistance
-    // 1.21.5+ Level level, BlockState state, BlockPos pos, Entity entity, double fallDistance
-    public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
-        superMethod.call();
-    }
-
-    // BlockGetter level, Entity entity
-    public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
-        superMethod.call();
-    }
-
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         return state;
     }

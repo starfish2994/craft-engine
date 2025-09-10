@@ -23,6 +23,7 @@ import net.momirealms.craftengine.core.block.BlockKeys;
 import net.momirealms.craftengine.core.block.BlockShape;
 import net.momirealms.craftengine.core.block.DelegatingBlock;
 import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.special.TriggerOnceBlockBehavior;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Key;
@@ -538,7 +539,7 @@ public final class BlockGenerator {
         public void intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
-                holder.value().onExplosionHit(thisObj, args, superMethod);
+                holder.value().onExplosionHit(thisObj, args, () -> null);
                 superMethod.call();
             } catch (Exception e) {
                 CraftEngine.instance().logger().severe("Failed to run onExplosionHit", e);
@@ -714,7 +715,11 @@ public final class BlockGenerator {
         public void intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
-                holder.value().fallOn(thisObj, args, superMethod);
+                if (holder.value() instanceof TriggerOnceBlockBehavior behavior) {
+                    behavior.fallOn(thisObj, args, superMethod);
+                } else {
+                    superMethod.call();
+                }
             } catch (Exception e) {
                 CraftEngine.instance().logger().severe("Failed to run fallOn", e);
             }
@@ -728,7 +733,11 @@ public final class BlockGenerator {
         public void intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
-                holder.value().updateEntityMovementAfterFallOn(thisObj, args, superMethod);
+                if (holder.value() instanceof TriggerOnceBlockBehavior behavior) {
+                    behavior.updateEntityMovementAfterFallOn(thisObj, args, superMethod);
+                } else {
+                    superMethod.call();
+                }
             } catch (Exception e) {
                 CraftEngine.instance().logger().severe("Failed to run updateEntityMovementAfterFallOn", e);
             }

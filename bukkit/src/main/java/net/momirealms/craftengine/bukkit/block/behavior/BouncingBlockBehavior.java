@@ -6,6 +6,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.special.TriggerOnceBlockBehavior;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -13,19 +14,22 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public class BouncingBlockBehavior extends BukkitBlockBehavior {
+public class BouncingBlockBehavior extends BukkitBlockBehavior implements TriggerOnceBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final double bounceHeight;
-    private final boolean syncPlayerSelf;
+    private final boolean fallDamage;
 
-    public BouncingBlockBehavior(CustomBlock customBlock, double bounceHeight, boolean syncPlayerSelf) {
+    public BouncingBlockBehavior(CustomBlock customBlock, double bounceHeight, boolean fallDamage) {
         super(customBlock);
         this.bounceHeight = bounceHeight;
-        this.syncPlayerSelf = syncPlayerSelf;
+        this.fallDamage = fallDamage;
     }
 
     @Override
     public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+        if (!this.fallDamage) {
+            return;
+        }
         Object entity = args[3];
         Object finalFallDistance = VersionHelper.isOrAbove1_21_5() ? (double) args[4] * 0.5 : (float) args[4] * 0.5F;
         FastNMS.INSTANCE.method$Entity$causeFallDamage(
@@ -50,7 +54,8 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
             double d = CoreReflections.clazz$LivingEntity.isInstance(entity) ? 1.0 : 0.8;
             double y = -deltaMovement.y * this.bounceHeight * d;
             FastNMS.INSTANCE.method$Entity$setDeltaMovement(entity, deltaMovement.x, y, deltaMovement.z);
-            if (CoreReflections.clazz$Player.isInstance(entity) && this.syncPlayerSelf && y > 0.032) { // 防抖
+            if (CoreReflections.clazz$Player.isInstance(entity) && y > 0.032) {
+                // 防抖
                 FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true);
             }
         }
@@ -61,8 +66,8 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             double bounceHeight = ResourceConfigUtils.getAsDouble(arguments.getOrDefault("bounce-height", 0.66), "bounce-height");
-            boolean syncPlayerSelf = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("sync-player-self", true), "sync-player-self");
-            return new BouncingBlockBehavior(block, bounceHeight, syncPlayerSelf);
+            boolean fallDamage = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("fall-damage", false), "fall-damage");
+            return new BouncingBlockBehavior(block, bounceHeight, fallDamage);
         }
     }
 }

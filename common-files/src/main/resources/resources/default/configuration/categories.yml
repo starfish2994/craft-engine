@@ -80,7 +80,7 @@ categories:
       - default:pebble
       - default:chessboard_block
       - default:safe_block
+      - default:sleeper_sofa
+      - minecraft:air
+      - minecraft:air
       - default:sofa
-      - minecraft:air
-      - minecraft:air
-      - default:connectable_sofa

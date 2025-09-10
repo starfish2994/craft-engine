@@ -555,23 +555,23 @@ items#misc:
             facing=west,open=true:
               appearance: west_open
               id: 29
-  default:sofa:
+  default:sleeper_sofa:
     material: nether_brick
     custom-model-data: 3008
     data:
       item-name: <!i><i18n:item.sofa>
     model:
       type: minecraft:model
-      path: minecraft:item/custom/sofa
+      path: minecraft:item/custom/sleeper_sofa
     behavior:
       type: block_item
       block:
         loot:
           template: default:loot_table/self
         settings:
-          hardness: 2
-          resistance: 3
-          map-color: 56
+          hardness: 0.5
+          resistance: 0.5
+          map-color: 27
           burn-chance: 5
           fire-spread-chance: 20
           burnable: true
@@ -595,40 +595,30 @@ items#misc:
           id: 0
           state: white_bed[facing=west,occupied=false,part=foot]
           entity-renderer:
-            item: default:sofa
-  default:connectable_sofa_straight:
+            item: default:sleeper_sofa
+  default:sofa_inner:
     material: nether_brick
     custom-model-data: 3009
-    data:
-      item-name: <!i><i18n:item.sofa>
     model:
       type: minecraft:model
-      path: minecraft:item/custom/sofa_straight
-  default:connectable_sofa_inner:
+      path: minecraft:item/custom/sofa_inner
+  default:sofa:
     material: nether_brick
     custom-model-data: 3010
     data:
       item-name: <!i><i18n:item.sofa>
     model:
       type: minecraft:model
-      path: minecraft:item/custom/sofa_inner
-  default:connectable_sofa:
-    material: nether_brick
-    custom-model-data: 3011
-    data:
-      item-name: <!i><i18n:item.sofa>
-    model:
-      type: minecraft:model
-      path: minecraft:item/custom/sofa_straight
+      path: minecraft:item/custom/sofa
     behavior:
       type: block_item
       block:
         loot:
           template: default:loot_table/self
         settings:
-          hardness: 2
-          resistance: 3
-          map-color: 56
+          hardness: 0.5
+          resistance: 0.5
+          map-color: 27
           burn-chance: 5
           fire-spread-chance: 20
           burnable: true
@@ -658,59 +648,59 @@ items#misc:
             facing=east,shape=straight:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_straight
+                item: default:sofa
                 yaw: 90
             facing=north,shape=straight:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_straight
+                item: default:sofa
             facing=south,shape=straight:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_straight
+                item: default:sofa
                 yaw: 180
             facing=west,shape=straight:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_straight
+                item: default:sofa
                 yaw: 270
             facing=east,shape=inner_left:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_inner
+                item: default:sofa_inner
             facing=north,shape=inner_left:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_inner
+                item: default:sofa_inner
                 yaw: 270
             facing=south,shape=inner_left:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_inner
+                item: default:sofa_inner
                 yaw: 90
             facing=west,shape=inner_left:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_inner
+                item: default:sofa_inner
                 yaw: 180
             facing=east,shape=inner_right:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_inner
+                item: default:sofa_inner
                 yaw: 90
             facing=north,shape=inner_right:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_inner
+                item: default:sofa_inner
             facing=south,shape=inner_right:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_inner
+                item: default:sofa_inner
                 yaw: 180
             facing=west,shape=inner_right:
               state: barrier[waterlogged=false]
               entity-renderer:
-                item: default:connectable_sofa_inner
+                item: default:sofa_inner
                 yaw: 270
           variants:
             facing=east,shape=inner_left:
