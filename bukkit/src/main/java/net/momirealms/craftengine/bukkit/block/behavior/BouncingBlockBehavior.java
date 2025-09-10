@@ -7,7 +7,6 @@ import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
-import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -15,10 +14,12 @@ import java.util.concurrent.Callable;
 public class BouncingBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final double bounceHeight;
+    private final boolean syncPlayerSelf;
 
-    public BouncingBlockBehavior(CustomBlock customBlock, double bounceHeight) {
+    public BouncingBlockBehavior(CustomBlock customBlock, double bounceHeight, boolean syncPlayerSelf) {
         super(customBlock);
         this.bounceHeight = bounceHeight;
+        this.syncPlayerSelf = syncPlayerSelf;
     }
 
     @Override
@@ -57,7 +58,9 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
                     -FastNMS.INSTANCE.field$Vec3$y(deltaMovement) * this.bounceHeight * d,
                     FastNMS.INSTANCE.field$Vec3$z(deltaMovement)
             );
-            FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true);
+            if (this.syncPlayerSelf) {
+                FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true);
+            }
         }
     }
 
@@ -66,7 +69,8 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             double bounceHeight = ResourceConfigUtils.getAsDouble(arguments.getOrDefault("bounce-height", 0.66), "bounce-height");
-            return new BouncingBlockBehavior(block, bounceHeight);
+            boolean syncPlayerSelf = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("sync-player-self", true), "sync-player-self");
+            return new BouncingBlockBehavior(block, bounceHeight, syncPlayerSelf);
         }
     }
 }
