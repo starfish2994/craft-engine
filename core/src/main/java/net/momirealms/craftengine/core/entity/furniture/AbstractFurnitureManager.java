@@ -59,6 +59,11 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     }
 
     @Override
+    public Map<Key, CustomFurniture> loadedFurniture() {
+        return Collections.unmodifiableMap(this.byId);
+    }
+
+    @Override
     public void unload() {
         this.byId.clear();
     }

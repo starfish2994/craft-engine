@@ -229,8 +229,8 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
     }
 
     @Override
-    public Collection<Key> items() {
-        return Collections.unmodifiableCollection(this.customItemsById.keySet());
+    public Map<Key, CustomItem<I>> loadedItems() {
+        return Collections.unmodifiableMap(this.customItemsById);
     }
 
     @Override

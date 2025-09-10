@@ -16,6 +16,10 @@ import java.util.Optional;
 
 public interface CustomItem<I> extends BuildableItem<I> {
 
+    /**
+     * Since CraftEngine allows users to add certain functionalities to vanilla items, this custom item might actually be a vanilla item.
+     * This will be refactored before the 1.0 release, but no changes will be made for now to ensure compatibility.
+     */
     boolean isVanillaItem();
 
     Key id();

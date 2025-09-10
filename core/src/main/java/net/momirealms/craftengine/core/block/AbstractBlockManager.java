@@ -86,7 +86,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     }
 
     @Override
-    public Map<Key, CustomBlock> blocks() {
+    public Map<Key, CustomBlock> loadedBlocks() {
         return Collections.unmodifiableMap(this.byId);
     }
 

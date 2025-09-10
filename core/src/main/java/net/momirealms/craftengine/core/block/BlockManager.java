@@ -24,7 +24,12 @@ public interface BlockManager extends Manageable, ModelGenerator {
 
     Map<Key, JsonElement> modBlockStates();
 
-    Map<Key, CustomBlock> blocks();
+    Map<Key, CustomBlock> loadedBlocks();
+
+    @Deprecated(forRemoval = true)
+    default Map<Key, CustomBlock> blocks() {
+        return loadedBlocks();
+    }
 
     Optional<CustomBlock> blockById(Key key);
 

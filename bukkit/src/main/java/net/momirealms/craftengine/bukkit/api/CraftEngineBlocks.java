@@ -27,9 +27,27 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 public final class CraftEngineBlocks {
 
     private CraftEngineBlocks() {}
+
+    /**
+     *
+     * Returns an unmodifiable map of all currently loaded custom blocks.
+     * The map keys represent unique identifiers, and the values are the corresponding CustomBlock instances.
+     *
+     * <p><strong>Important:</strong> Do not attempt to access this method during the onEnable phase
+     * as it will be empty. Instead, listen for the {@code CraftEngineReloadEvent} and use this method
+     * after the event is fired to obtain the complete block list.
+     *
+     * @return a non-null map containing all loaded custom blocks
+     */
+    @NotNull
+    public static Map<Key, CustomBlock> loadedBlocks() {
+        return BukkitBlockManager.instance().loadedBlocks();
+    }
 
     /**
      * Gets a custom block by ID

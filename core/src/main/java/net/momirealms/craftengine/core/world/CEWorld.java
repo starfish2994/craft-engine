@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.world;
 
-import ca.spottedleaf.concurrentutil.collection.MultiThreadedQueue;
 import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
