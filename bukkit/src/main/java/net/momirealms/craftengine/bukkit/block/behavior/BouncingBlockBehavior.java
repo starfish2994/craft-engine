@@ -7,8 +7,7 @@ import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -23,7 +22,7 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) {
         Object entity = args[3];
         Object finalFallDistance;
         if (VersionHelper.isOrAbove1_21_5()) {
@@ -42,6 +41,8 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
     public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         Object entity = args[1];
         if (FastNMS.INSTANCE.method$Entity$getSharedFlag(entity, 1)) {
+            superMethod.call();
+        } else {
             bounceUp(entity);
         }
     }
@@ -56,6 +57,7 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior {
                     -FastNMS.INSTANCE.field$Vec3$y(deltaMovement) * this.bounceHeight * d,
                     FastNMS.INSTANCE.field$Vec3$z(deltaMovement)
             );
+            FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true);
         }
     }
 

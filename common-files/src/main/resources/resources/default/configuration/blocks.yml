@@ -585,6 +585,8 @@ items#misc:
             hit: minecraft:block.wood.hit
             place: minecraft:block.wood.place
             step: minecraft:block.wood.step
+          tags:
+            - minecraft:mineable/axe
         behavior:
           type: bouncing_block
           bounce-height: 0.66
@@ -639,253 +641,113 @@ items#misc:
             hit: minecraft:block.wood.hit
             place: minecraft:block.wood.place
             step: minecraft:block.wood.step
-        behavior:
-          type: sofa_block
+          tags:
+            - minecraft:mineable/axe
+        behaviors:
+          - type: sofa_block
+          - type: bouncing_block
+            bounce-height: 0.66
         states:
           properties:
             facing:
               type: horizontal_direction
             shape:
               type: sofa_shape
-            waterlogged:
-              type: boolean
-              default: false
           appearances:
-            facing=east,shape=straight,waterlogged=false:
+            facing=east,shape=straight:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_straight
                 yaw: 90
-            facing=north,shape=straight,waterlogged=false:
+            facing=north,shape=straight:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_straight
-            facing=south,shape=straight,waterlogged=false:
+            facing=south,shape=straight:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_straight
                 yaw: 180
-            facing=west,shape=straight,waterlogged=false:
+            facing=west,shape=straight:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_straight
                 yaw: 270
-            facing=east,shape=straight,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_straight
-                yaw: 90
-            facing=north,shape=straight,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_straight
-            facing=south,shape=straight,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_straight
-                yaw: 180
-            facing=west,shape=straight,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_straight
-                yaw: 270
-            facing=east,shape=inner_left,waterlogged=false:
+            facing=east,shape=inner_left:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_inner
-            facing=north,shape=inner_left,waterlogged=false:
+            facing=north,shape=inner_left:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_inner
                 yaw: 270
-            facing=south,shape=inner_left,waterlogged=false:
+            facing=south,shape=inner_left:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_inner
                 yaw: 90
-            facing=west,shape=inner_left,waterlogged=false:
+            facing=west,shape=inner_left:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_inner
                 yaw: 180
-            facing=east,shape=inner_left,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_inner
-            facing=north,shape=inner_left,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_inner
-                yaw: 270
-            facing=south,shape=inner_left,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_inner
-                yaw: 90
-            facing=west,shape=inner_left,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_inner
-                yaw: 180
-            facing=east,shape=inner_right,waterlogged=false:
+            facing=east,shape=inner_right:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_inner
                 yaw: 90
-            facing=north,shape=inner_right,waterlogged=false:
+            facing=north,shape=inner_right:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_inner
-            facing=south,shape=inner_right,waterlogged=false:
+            facing=south,shape=inner_right:
               state: barrier[waterlogged=false]
               entity-renderer:
                 item: default:connectable_sofa_inner
                 yaw: 180
-            facing=west,shape=inner_right,waterlogged=false:
+            facing=west,shape=inner_right:
               state: barrier[waterlogged=false]
-              entity-renderer:
-                item: default:connectable_sofa_inner
-                yaw: 270
-            facing=east,shape=inner_right,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_inner
-                yaw: 90
-            facing=north,shape=inner_right,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_inner
-            facing=south,shape=inner_right,waterlogged=true:
-              state: barrier[waterlogged=true]
-              entity-renderer:
-                item: default:connectable_sofa_inner
-                yaw: 180
-            facing=west,shape=inner_right,waterlogged=true:
-              state: barrier[waterlogged=true]
               entity-renderer:
                 item: default:connectable_sofa_inner
                 yaw: 270
           variants:
-            facing=east,shape=inner_left,waterlogged=false:
-              appearance: facing=east,shape=inner_left,waterlogged=false
+            facing=east,shape=inner_left:
+              appearance: facing=east,shape=inner_left
               id: 0
-            facing=east,shape=inner_right,waterlogged=false:
-              appearance: facing=east,shape=inner_right,waterlogged=false
+            facing=east,shape=inner_right:
+              appearance: facing=east,shape=inner_right
               id: 1
-            facing=east,shape=straight,waterlogged=false:
-              appearance: facing=east,shape=straight,waterlogged=false
+            facing=east,shape=straight:
+              appearance: facing=east,shape=straight
               id: 2
-            facing=north,shape=inner_left,waterlogged=false:
-              appearance: facing=north,shape=inner_left,waterlogged=false
+            facing=north,shape=inner_left:
+              appearance: facing=north,shape=inner_left
               id: 3
-            facing=north,shape=inner_right,waterlogged=false:
-              appearance: facing=north,shape=inner_right,waterlogged=false
+            facing=north,shape=inner_right:
+              appearance: facing=north,shape=inner_right
               id: 4
-            facing=north,shape=straight,waterlogged=false:
-              appearance: facing=north,shape=straight,waterlogged=false
+            facing=north,shape=straight:
+              appearance: facing=north,shape=straight
               id: 5
-            facing=south,shape=inner_left,waterlogged=false:
-              appearance: facing=south,shape=inner_left,waterlogged=false
+            facing=south,shape=inner_left:
+              appearance: facing=south,shape=inner_left
               id: 6
-            facing=south,shape=inner_right,waterlogged=false:
-              appearance: facing=south,shape=inner_right,waterlogged=false
+            facing=south,shape=inner_right:
+              appearance: facing=south,shape=inner_right
               id: 7
-            facing=south,shape=straight,waterlogged=false:
-              appearance: facing=south,shape=straight,waterlogged=false
+            facing=south,shape=straight:
+              appearance: facing=south,shape=straight
               id: 8
-            facing=west,shape=inner_left,waterlogged=false:
-              appearance: facing=west,shape=inner_left,waterlogged=false
+            facing=west,shape=inner_left:
+              appearance: facing=west,shape=inner_left
               id: 9
-            facing=west,shape=inner_right,waterlogged=false:
-              appearance: facing=west,shape=inner_right,waterlogged=false
+            facing=west,shape=inner_right:
+              appearance: facing=west,shape=inner_right
               id: 10
-            facing=west,shape=straight,waterlogged=false:
-              appearance: facing=west,shape=straight,waterlogged=false
+            facing=west,shape=straight:
+              appearance: facing=west,shape=straight
               id: 11
-            facing=east,shape=inner_left,waterlogged=true:
-              appearance: facing=east,shape=inner_left,waterlogged=true
-              id: 12
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=east,shape=inner_right,waterlogged=true:
-              appearance: facing=east,shape=inner_right,waterlogged=true
-              id: 13
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=east,shape=straight,waterlogged=true:
-              appearance: facing=east,shape=straight,waterlogged=true
-              id: 14
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=north,shape=inner_left,waterlogged=true:
-              appearance: facing=north,shape=inner_left,waterlogged=true
-              id: 15
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=north,shape=inner_right,waterlogged=true:
-              appearance: facing=north,shape=inner_right,waterlogged=true
-              id: 16
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=north,shape=straight,waterlogged=true:
-              appearance: facing=north,shape=straight,waterlogged=true
-              id: 17
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=south,shape=inner_left,waterlogged=true:
-              appearance: facing=south,shape=inner_left,waterlogged=true
-              id: 18
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=south,shape=inner_right,waterlogged=true:
-              appearance: facing=south,shape=inner_right,waterlogged=true
-              id: 19
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=south,shape=straight,waterlogged=true:
-              appearance: facing=south,shape=straight,waterlogged=true
-              id: 20
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=west,shape=inner_left,waterlogged=true:
-              appearance: facing=west,shape=inner_left,waterlogged=true
-              id: 21
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=west,shape=inner_right,waterlogged=true:
-              appearance: facing=west,shape=inner_right,waterlogged=true
-              id: 22
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
-            facing=west,shape=straight,waterlogged=true:
-              appearance: facing=west,shape=straight,waterlogged=true
-              id: 23
-              settings:
-                resistance: 1200.0
-                burnable: false
-                fluid-state: water
 recipes#misc:
   default:chinese_lantern:
     type: shaped
