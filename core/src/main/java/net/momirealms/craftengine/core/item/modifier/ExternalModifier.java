@@ -44,10 +44,10 @@ public class ExternalModifier<I> implements ItemDataModifier<I> {
 
         if (buildStack.contains(dependency)) {
             StringJoiner dependencyChain = new StringJoiner(" -> ");
-            buildStack.forEach(element -> dependencyChain.add(element.toString()));
-            dependencyChain.add(dependency.toString());
+            buildStack.forEach(element -> dependencyChain.add(element.asString()));
+            dependencyChain.add(dependency.asString());
             CraftEngine.instance().logger().warn(
-                    "Failed to build '" + this.id + "' because of a dependency loop: " + dependencyChain
+                    "Failed to build '" + this.id + "' from plugin '" + provider.plugin() + "' due to dependency loop: " + dependencyChain
             );
             return item;
         }
@@ -63,7 +63,7 @@ public class ExternalModifier<I> implements ItemDataModifier<I> {
             item.merge(anotherWrapped);
             return item;
         } catch (Throwable e) {
-            CraftEngine.instance().logger().warn("Failed to build '" + this.id + "'", e);
+            CraftEngine.instance().logger().warn("Failed to build item '" + this.id + "' from plugin '" + provider.plugin() + "'", e);
             return item;
         } finally {
             buildStack.remove(dependency);
@@ -85,8 +85,8 @@ public class ExternalModifier<I> implements ItemDataModifier<I> {
     }
 
     private record Dependency(String source, String id) {
-        @Override
-        public @NotNull String toString() {
+
+        public @NotNull String asString() {
             return source + "[id=" + id + "]";
         }
     }
