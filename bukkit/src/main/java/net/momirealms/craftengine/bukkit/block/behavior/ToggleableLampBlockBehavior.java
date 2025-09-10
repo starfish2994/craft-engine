@@ -49,7 +49,7 @@ public class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     public void onPlace(Object thisBlock, Object[] args, Callable<Object> superMethod) {
-        if (this.canOpenWithHand) return;
+        if (this.poweredProperty == null) return;
         Object state = args[0];
         Object level = args[1];
         Object pos = args[2];
@@ -63,7 +63,7 @@ public class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     public void neighborChanged(Object thisBlock, Object[] args, Callable<Object> superMethod) {
-        if (this.canOpenWithHand) return;
+        if (this.poweredProperty == null) return;
         Object blockState = args[0];
         Object world = args[1];
         if (!CoreReflections.clazz$ServerLevel.isInstance(world)) return;
@@ -91,9 +91,9 @@ public class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
     public static class Factory implements BlockBehaviorFactory {
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
-            Property<Boolean> lit = (Property<Boolean>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("lit"), "warning.config.block.behavior.toggleable_lamp.missing_lit");
-            Property<Boolean> powered = (Property<Boolean>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("powered"), "warning.config.block.behavior.toggleable_lamp.missing_powered");
             boolean canOpenWithHand = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-open-with-hand", false), "can-open-with-hand");
+            Property<Boolean> lit = (Property<Boolean>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("lit"), "warning.config.block.behavior.toggleable_lamp.missing_lit");
+            Property<Boolean> powered = (Property<Boolean>) (canOpenWithHand ? block.getProperty("powered") : ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("powered"), "warning.config.block.behavior.toggleable_lamp.missing_powered"));
             return new ToggleableLampBlockBehavior(block, lit, powered, canOpenWithHand);
         }
     }

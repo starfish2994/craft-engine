@@ -7,6 +7,8 @@ import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
