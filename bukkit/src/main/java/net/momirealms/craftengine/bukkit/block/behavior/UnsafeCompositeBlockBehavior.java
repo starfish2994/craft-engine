@@ -336,4 +336,22 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior {
             behavior.spawnAfterBreak(thisBlock, args, superMethod);
         }
     }
+
+    @Override
+    public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        for (AbstractBlockBehavior behavior : this.behaviors) {
+            behavior.fallOn(thisBlock, args, superMethod);
+        }
+    }
+
+    @Override
+    public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        for (AbstractBlockBehavior behavior : this.behaviors) {
+            if (behavior instanceof BouncingBlockBehavior bouncingBlockBehavior) {
+                bouncingBlockBehavior.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
+                return;
+            }
+        }
+        super.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
+    }
 }

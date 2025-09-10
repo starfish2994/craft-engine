@@ -159,7 +159,14 @@ public final class BlockGenerator {
                 .intercept(MethodDelegation.to(PlayerWillDestroyInterceptor.INSTANCE))
                 // spawnAfterBreak
                 .method(ElementMatchers.is(CoreReflections.method$BlockBehaviour$spawnAfterBreak))
-                .intercept(MethodDelegation.to(SpawnAfterBreakInterceptor.INSTANCE));
+                .intercept(MethodDelegation.to(SpawnAfterBreakInterceptor.INSTANCE))
+                // fallOn
+                .method(ElementMatchers.is(CoreReflections.method$Block$fallOn))
+                .intercept(MethodDelegation.to(FallOnInterceptor.INSTANCE))
+                // updateEntityMovementAfterFallOn
+                .method(ElementMatchers.is(CoreReflections.method$Block$updateEntityMovementAfterFallOn))
+                .intercept(MethodDelegation.to(UpdateEntityMovementAfterFallOnInterceptor.INSTANCE))
+                ;
         // 1.21.5+
         if (CoreReflections.method$BlockBehaviour$affectNeighborsAfterRemoval != null) {
             builder = builder.method(ElementMatchers.is(CoreReflections.method$BlockBehaviour$affectNeighborsAfterRemoval))
@@ -696,6 +703,34 @@ public final class BlockGenerator {
                 holder.value().spawnAfterBreak(thisObj, args, superMethod);
             } catch (Exception e) {
                 CraftEngine.instance().logger().severe("Failed to run spawnAfterBreak", e);
+            }
+        }
+    }
+
+    public static class FallOnInterceptor {
+        public static final FallOnInterceptor INSTANCE = new FallOnInterceptor();
+
+        @RuntimeType
+        public void intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
+            ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
+            try {
+                holder.value().fallOn(thisObj, args, superMethod);
+            } catch (Exception e) {
+                CraftEngine.instance().logger().severe("Failed to run fallOn", e);
+            }
+        }
+    }
+
+    public static class UpdateEntityMovementAfterFallOnInterceptor {
+        public static final UpdateEntityMovementAfterFallOnInterceptor INSTANCE = new UpdateEntityMovementAfterFallOnInterceptor();
+
+        @RuntimeType
+        public void intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
+            ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
+            try {
+                holder.value().updateEntityMovementAfterFallOn(thisObj, args, superMethod);
+            } catch (Exception e) {
+                CraftEngine.instance().logger().severe("Failed to run updateEntityMovementAfterFallOn", e);
             }
         }
     }
