@@ -86,7 +86,7 @@ public abstract class AbstractCustomBlock implements CustomBlock {
             state.setSettings(blockStateVariant.settings());
             state.setVanillaBlockState(BlockRegistryMirror.stateByRegistryId(stateId));
             state.setCustomBlockState(BlockRegistryMirror.stateByRegistryId(blockStateVariant.internalRegistryId()));
-            blockStateAppearance.blockEntityRenderer().ifPresent(state::setEntityRenderer);
+            blockStateAppearance.blockEntityRenderer().ifPresent(state::setRenderers);
         }
 
         // double check if there's any invalid state

@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.registry;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.entity.BlockEntityType;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.block.properties.PropertyFactory;
 import net.momirealms.craftengine.core.entity.furniture.HitBoxFactory;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -89,4 +90,5 @@ public class Registries {
     public static final ResourceKey<Registry<ItemUpdaterType<?>>> ITEM_UPDATER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("item_updater_type"));
     public static final ResourceKey<Registry<NetworkCodec<FriendlyByteBuf, ? extends ModPacket>>> MOD_PACKET = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("mod_packet_type"));
     public static final ResourceKey<Registry<BlockEntityType<?>>> BLOCK_ENTITY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("block_entity_type"));
+    public static final ResourceKey<Registry<BlockEntityElementConfigFactory>> BLOCK_ENTITY_ELEMENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("block_entity_element_type"));
 }

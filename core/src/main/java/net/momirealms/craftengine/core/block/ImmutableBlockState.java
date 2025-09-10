@@ -4,7 +4,8 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityType;
-import net.momirealms.craftengine.core.block.entity.render.BlockEntityRendererConfig;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -32,7 +33,7 @@ public final class ImmutableBlockState extends BlockStateHolder {
     private BlockSettings settings;
     private BlockEntityType<? extends BlockEntity> blockEntityType;
     @Nullable
-    private BlockEntityRendererConfig renderer;
+    private BlockEntityElementConfig<? extends BlockEntityElement>[] renderers;
 
     ImmutableBlockState(
             Holder<CustomBlock> owner,
@@ -69,13 +70,12 @@ public final class ImmutableBlockState extends BlockStateHolder {
         return this == EmptyBlock.STATE;
     }
 
-    @Nullable
-    public BlockEntityRendererConfig entityRenderer() {
-        return this.renderer;
+    public BlockEntityElementConfig<? extends BlockEntityElement>[] renderers() {
+        return renderers;
     }
 
-    public void setEntityRenderer(@Nullable BlockEntityRendererConfig rendererConfig) {
-        this.renderer = rendererConfig;
+    public void setRenderers(BlockEntityElementConfig<? extends BlockEntityElement>[] renderers) {
+        this.renderers = renderers;
     }
 
     @Override
@@ -98,7 +98,7 @@ public final class ImmutableBlockState extends BlockStateHolder {
     }
 
     public boolean hasBlockEntityRenderer() {
-        return this.renderer != null;
+        return this.renderers != null;
     }
 
     public BlockStateWrapper customBlockState() {

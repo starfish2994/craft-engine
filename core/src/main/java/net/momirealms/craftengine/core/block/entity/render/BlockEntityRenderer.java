@@ -8,7 +8,11 @@ public abstract class BlockEntityRenderer {
 
     public abstract void despawn();
 
+    public abstract void update();
+
     public abstract void spawn(Player player);
 
     public abstract void despawn(Player player);
+
+    public abstract void update(Player player);
 }

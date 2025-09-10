@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.advancement.BukkitAdvancementManager;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.block.behavior.BukkitBlockBehaviors;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.element.BukkitBlockEntityElementConfigs;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
 import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.BukkitHitBoxTypes;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManager;
@@ -189,6 +190,7 @@ public class BukkitCraftEngine extends CraftEngine {
         BukkitBlockBehaviors.init();
         BukkitItemBehaviors.init();
         BukkitHitBoxTypes.init();
+        BukkitBlockEntityElementConfigs.init();
         PacketConsumers.initEntities(RegistryUtils.currentEntityTypeRegistrySize());
         super.packManager = new BukkitPackManager(this);
         super.senderFactory = new BukkitSenderFactory(this);

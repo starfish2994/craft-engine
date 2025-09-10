@@ -102,9 +102,9 @@ public abstract class CraftEngine implements Plugin {
     }
 
     protected void onPluginLoad() {
-        RecipeDisplayTypes.register();
-        SlotDisplayTypes.register();
-        LegacyRecipeTypes.register();
+        RecipeDisplayTypes.init();
+        SlotDisplayTypes.init();
+        LegacyRecipeTypes.init();
         ((Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
     }

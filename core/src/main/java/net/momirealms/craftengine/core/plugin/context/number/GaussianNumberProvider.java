@@ -10,8 +10,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class GaussianNumberProvider implements NumberProvider {
-    public static final FactoryImpl FACTORY = new FactoryImpl();
-
+    public static final Factory FACTORY = new Factory();
     private final double min;
     private final double max;
     private final double mean;
@@ -83,7 +82,7 @@ public class GaussianNumberProvider implements NumberProvider {
         return stdDev;
     }
 
-    public static class FactoryImpl implements NumberProviderFactory {
+    public static class Factory implements NumberProviderFactory {
 
         @Override
         public NumberProvider create(Map<String, Object> arguments) {

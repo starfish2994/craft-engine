@@ -4,8 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.momirealms.craftengine.core.block.entity.render.BlockEntityElement;
-import net.momirealms.craftengine.core.block.entity.render.BlockEntityRendererConfig;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigs;
 import net.momirealms.craftengine.core.block.properties.Properties;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.loot.LootTable;
@@ -168,8 +169,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     protected abstract CustomBlock.Builder platformBuilder(Key id);
 
-    protected abstract BlockEntityElement createBlockEntityElement(Map<String, Object> arguments);
-
     public class BlockParser implements ConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"blocks", "block"};
 
@@ -225,7 +224,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 // 获取原版外观的注册表id
                 int appearanceId = pluginFormattedBlockStateToRegistryId(ResourceConfigUtils.requireNonEmptyStringOrThrow(
                         stateSection.get("state"), "warning.config.block.state.missing_state"));
-                Optional<BlockEntityRendererConfig> blockEntityRenderer = parseBlockEntityRender(stateSection.get("entity-renderer"));
+                Optional<BlockEntityElementConfig<? extends BlockEntityElement>[]> blockEntityRenderer = parseBlockEntityRender(stateSection.get("entity-renderer"));
 
                 // 为原版外观赋予外观模型并检查模型冲突
                 this.arrangeModelForStateAndVerify(appearanceId, ResourceConfigUtils.get(stateSection, "model", "models"));
@@ -299,11 +298,12 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             return appearances;
         }
 
-        private Optional<BlockEntityRendererConfig> parseBlockEntityRender(Object arguments) {
+        @SuppressWarnings("unchecked")
+        private Optional<BlockEntityElementConfig<? extends BlockEntityElement>[]> parseBlockEntityRender(Object arguments) {
             if (arguments == null) return Optional.empty();
-            List<BlockEntityElement> elements = ResourceConfigUtils.parseConfigAsList(arguments, AbstractBlockManager.this::createBlockEntityElement);
-            if (elements.isEmpty()) return Optional.empty();
-            return Optional.of(new BlockEntityRendererConfig(elements.toArray(new BlockEntityElement[0])));
+            List<BlockEntityElementConfig<? extends BlockEntityElement>> blockEntityElementConfigs = ResourceConfigUtils.parseConfigAsList(arguments, BlockEntityElementConfigs::fromMap);
+            if (blockEntityElementConfigs.isEmpty()) return Optional.empty();
+            return Optional.of(blockEntityElementConfigs.toArray(new BlockEntityElementConfig[0]));
         }
 
         @NotNull

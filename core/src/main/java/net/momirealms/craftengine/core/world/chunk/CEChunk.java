@@ -5,7 +5,8 @@ import net.momirealms.craftengine.core.block.EmptyBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
-import net.momirealms.craftengine.core.block.entity.render.BlockEntityRendererConfig;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.tick.*;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
@@ -103,9 +104,13 @@ public class CEChunk {
     }
 
     public void addBlockEntityRenderer(BlockPos pos, ImmutableBlockState state) {
-        BlockEntityRendererConfig config = state.entityRenderer();
-        if (config != null) {
-            BlockEntityRenderer renderer = this.world.createBlockEntityRenderer(config, pos);
+        BlockEntityElementConfig<? extends BlockEntityElement>[] renderers = state.renderers();
+        if (renderers != null && renderers.length > 0) {
+            BlockEntityElement[] elements = new BlockEntityElement[renderers.length];
+            for (int i = 0; i < elements.length; i++) {
+                elements[i] = renderers[i].create(pos);
+            }
+            BlockEntityRenderer renderer = this.world.createBlockEntityRenderer(elements, pos);
             renderer.spawn();
             try {
                 this.renderLock.writeLock().lock();
