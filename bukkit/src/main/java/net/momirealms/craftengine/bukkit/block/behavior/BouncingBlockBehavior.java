@@ -18,20 +18,20 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior implements Trigge
     public static final Factory FACTORY = new Factory();
     private final double bounceHeight;
     private final boolean syncPlayerPosition;
-    private final boolean fallDamage;
+    private final double fallDamageMultiplier;
 
-    public BouncingBlockBehavior(CustomBlock customBlock, double bounceHeight, boolean syncPlayerPosition, boolean fallDamage) {
+    public BouncingBlockBehavior(CustomBlock customBlock, double bounceHeight, boolean syncPlayerPosition, double fallDamageMultiplier) {
         super(customBlock);
         this.bounceHeight = bounceHeight;
         this.syncPlayerPosition = syncPlayerPosition;
-        this.fallDamage = fallDamage;
+        this.fallDamageMultiplier = fallDamageMultiplier;
     }
 
     @Override
     public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) {
-        if (!this.fallDamage) return;
+        if (this.fallDamageMultiplier <= 0.0) return;
         Object entity = args[3];
-        Object finalFallDistance = VersionHelper.isOrAbove1_21_5() ? (double) args[4] * 0.5 : (float) args[4] * 0.5F;
+        Object finalFallDistance = VersionHelper.isOrAbove1_21_5() ? (double) args[4] * this.fallDamageMultiplier : (float) args[4] * this.fallDamageMultiplier;
         FastNMS.INSTANCE.method$Entity$causeFallDamage(
                 entity, finalFallDistance, 1.0F,
                 FastNMS.INSTANCE.method$DamageSources$fall(FastNMS.INSTANCE.method$Entity$damageSources(entity))
@@ -68,8 +68,8 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior implements Trigge
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             double bounceHeight = ResourceConfigUtils.getAsDouble(arguments.getOrDefault("bounce-height", 0.66), "bounce-height");
             boolean syncPlayerPosition = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("sync-player-position", true), "sync-player-position");
-            boolean fallDamage = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("fall-damage", false), "fall-damage");
-            return new BouncingBlockBehavior(block, bounceHeight, syncPlayerPosition, fallDamage);
+            double fallDamageMultiplier = ResourceConfigUtils.getAsDouble(arguments.getOrDefault("fall-damage-multiplier", 0.5), "fall-damage-multiplier");
+            return new BouncingBlockBehavior(block, bounceHeight, syncPlayerPosition, fallDamageMultiplier);
         }
     }
 }
