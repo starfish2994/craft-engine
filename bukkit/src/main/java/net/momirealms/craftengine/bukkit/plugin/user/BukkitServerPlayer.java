@@ -20,6 +20,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MMobEffects
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
+import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
@@ -233,6 +234,11 @@ public class BukkitServerPlayer extends Player {
     @Override
     public boolean canPlace(BlockPos pos, @Nullable Object state) {
         return AdventureModeUtils.canPlace(platformPlayer().getInventory().getItemInMainHand(), new Location(platformPlayer().getWorld(), pos.x(), pos.y(), pos.z()), state);
+    }
+
+    @Override
+    public void sendToast(Component text, Item<?> icon, AdvancementType type) {
+        this.plugin.advancementManager().sendToast(this, icon, text, type);
     }
 
     @Override

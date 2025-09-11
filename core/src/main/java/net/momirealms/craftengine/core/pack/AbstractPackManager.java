@@ -467,7 +467,7 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/pebble_1.json");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/pebble_2.json");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/pebble_3.json");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/item/custom/sofa_straight.json");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/item/custom/sleeper_sofa.json");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/item/custom/sofa_inner.json");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/item/custom/sofa.json");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/sofa.png");

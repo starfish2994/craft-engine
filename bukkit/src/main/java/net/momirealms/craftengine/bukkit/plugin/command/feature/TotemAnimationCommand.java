@@ -61,7 +61,7 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
                         handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.toString()));
                         return;
                     }
-                    Item<ItemStack> item = customItem.buildItem(ItemBuildContext.EMPTY);
+                    Item<ItemStack> item = customItem.buildItem(ItemBuildContext.empty());
                     if (VersionHelper.isOrAbove1_21_2()) {
                         if (context.flags().contains("sound_location")) {
                             String soundResourceLocation = context.flags().getValue("sound_location").get().toString();

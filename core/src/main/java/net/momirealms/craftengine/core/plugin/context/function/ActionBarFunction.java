@@ -33,7 +33,7 @@ public class ActionBarFunction<CTX extends Context> extends AbstractConditionalF
             });
         } else {
             for (Player viewer : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
                 viewer.sendActionBar(AdventureHelper.miniMessage().deserialize(this.message.get(relationalContext), relationalContext.tagResolvers()));
             }
         }

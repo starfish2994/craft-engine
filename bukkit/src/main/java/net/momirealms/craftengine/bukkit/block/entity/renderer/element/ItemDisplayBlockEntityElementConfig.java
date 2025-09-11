@@ -7,9 +7,9 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.entity.Billboard;
 import net.momirealms.craftengine.core.entity.ItemDisplayContext;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import org.joml.Quaternionf;
@@ -19,11 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementConfig<ItemDisplayBlockEntityElement> {
     public static final Factory FACTORY = new Factory();
-    private final LazyReference<List<Object>> lazyMetadataPacket;
-    private final LazyReference<Item<?>> item;
+    private final Function<Player, List<Object>> lazyMetadataPacket;
+    private final Function<Player, Item<?>> item;
     private final Vector3f scale;
     private final Vector3f position;
     private final Vector3f translation;
@@ -33,7 +34,7 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
     private final ItemDisplayContext displayContext;
     private final Billboard billboard;
 
-    public ItemDisplayBlockEntityElementConfig(LazyReference<Item<?>> item,
+    public ItemDisplayBlockEntityElementConfig(Function<Player, Item<?>> item,
                                                Vector3f scale,
                                                Vector3f position,
                                                Vector3f translation,
@@ -51,16 +52,16 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
         this.rotation = rotation;
         this.displayContext = displayContext;
         this.billboard = billboard;
-        this.lazyMetadataPacket = LazyReference.lazyReference(() -> {
+        this.lazyMetadataPacket = player -> {
             List<Object> dataValues = new ArrayList<>();
-            ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(item.get().getLiteralObject(), dataValues);
+            ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(item.apply(player).getLiteralObject(), dataValues);
             ItemDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(this.scale, dataValues);
             ItemDisplayEntityData.RotationLeft.addEntityDataIfNotDefaultValue(this.rotation, dataValues);
             ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);
             ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(this.translation, dataValues);
             ItemDisplayEntityData.DisplayType.addEntityDataIfNotDefaultValue(this.displayContext.id(), dataValues);
             return dataValues;
-        });
+        };
     }
 
     @Override
@@ -68,8 +69,8 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
         return new ItemDisplayBlockEntityElement(this, pos);
     }
 
-    public Item<?> item() {
-        return this.item.get();
+    public Item<?> item(Player player) {
+        return this.item.apply(player);
     }
 
     public Vector3f scale() {
@@ -104,8 +105,8 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
         return rotation;
     }
 
-    public LazyReference<List<Object>> metadataValues() {
-        return this.lazyMetadataPacket;
+    public List<Object> metadataValues(Player player) {
+        return this.lazyMetadataPacket.apply(player);
     }
 
     public static class Factory implements BlockEntityElementConfigFactory {
@@ -113,10 +114,9 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
         @SuppressWarnings("unchecked")
         @Override
         public <E extends BlockEntityElement> BlockEntityElementConfig<E> create(Map<String, Object> arguments) {
-            // todo item should not be null
-            Key itemId = Key.of(ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("item"), ""));
+            Key itemId = Key.of(ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("item"), "warning.config.block.state.entity_renderer.item_display.missing_item"));
             return (BlockEntityElementConfig<E>) new ItemDisplayBlockEntityElementConfig(
-                    LazyReference.lazyReference(() -> BukkitItemManager.instance().createWrappedItem(itemId, null)),
+                    player -> BukkitItemManager.instance().createWrappedItem(itemId, player),
                     ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("scale", 1f), "scale"),
                     ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("position", 0.5f), "position"),
                     ResourceConfigUtils.getAsVector3f(arguments.get("translation"), "translation"),

@@ -200,7 +200,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
         for (UniqueKey holder : holders) {
             Optional<? extends BuildableItem<ItemStack>> buildableItem = BukkitItemManager.instance().getBuildableItem(holder.key());
             if (buildableItem.isPresent()) {
-                ItemStack itemStack = buildableItem.get().buildItemStack(ItemBuildContext.EMPTY, 1);
+                ItemStack itemStack = buildableItem.get().buildItemStack(ItemBuildContext.empty(), 1);
                 Object nmsStack = FastNMS.INSTANCE.method$CraftItemStack$asNMSCopy(itemStack);
                 itemStacks.add(nmsStack);
             } else {
@@ -336,7 +336,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
         if (recipe instanceof CustomBrewingRecipe<ItemStack> brewingRecipe) {
             if (!VersionHelper.isOrAbove1_20_2()) return;
             PotionMix potionMix = new PotionMix(new NamespacedKey(id.namespace(), id.value()),
-                    brewingRecipe.result(ItemBuildContext.EMPTY),
+                    brewingRecipe.result(ItemBuildContext.empty()),
                     PotionMix.createPredicateChoice(container -> {
                         Item<ItemStack> wrapped = this.plugin.itemManager().wrap(container);
                         return brewingRecipe.container().test(UniqueIdItem.of(wrapped));

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context;
 
 import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -10,11 +11,32 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ContextHolder {
+    /**
+     * Use {@link #empty()} instead
+     */
+    @Deprecated(forRemoval = true, since = "0.0.63")
     public static final ContextHolder EMPTY = ContextHolder.builder().immutable(true).build();
+
     protected final Map<ContextKey<?>, Supplier<Object>> params;
+    private final boolean immutable;
+
+    public ContextHolder(Map<ContextKey<?>, Supplier<Object>> params, boolean immutable) {
+        this.params = immutable ? ImmutableMap.copyOf(params) : new HashMap<>(params);
+        this.immutable = immutable;
+    }
 
     public ContextHolder(Map<ContextKey<?>, Supplier<Object>> params) {
-        this.params = params;
+        this.params = new HashMap<>(params);
+        this.immutable = true;
+    }
+
+    @NotNull
+    public static ContextHolder empty() {
+        return ContextHolder.builder().build();
+    }
+
+    public boolean immutable() {
+        return this.immutable;
     }
 
     public boolean has(ContextKey<?> key) {
@@ -67,7 +89,7 @@ public class ContextHolder {
     }
 
     public static class Builder {
-        private final Map<ContextKey<?>, Supplier<Object>> params = new HashMap<>();
+        private final Map<ContextKey<?>, Supplier<Object>> params = new HashMap<>(8);
         private boolean immutable = false;
 
         public Builder() {}
@@ -113,7 +135,7 @@ public class ContextHolder {
         }
 
         public ContextHolder build() {
-            return new ContextHolder(this.immutable ? ImmutableMap.copyOf(this.params) : this.params);
+            return new ContextHolder(this.params, this.immutable);
         }
     }
 

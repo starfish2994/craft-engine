@@ -39,7 +39,7 @@ public class PotionEffectFunction<CTX extends Context> extends AbstractCondition
             });
         } else {
             for (Player target : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target));
                 target.addPotionEffect(this.potionEffectType, this.duration.getInt(relationalContext), this.amplifier.getInt(relationalContext), this.ambient, this.particles);
             }
         }

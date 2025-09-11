@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.entity.player;
 
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -8,7 +9,6 @@ import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.Position;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,6 +63,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract boolean canBreak(BlockPos pos, Object state);
 
     public abstract boolean canPlace(BlockPos pos, Object state);
+
+    public abstract void sendToast(Component text, Item<?> icon, AdvancementType type);
 
     public abstract void sendActionBar(Component text);
 

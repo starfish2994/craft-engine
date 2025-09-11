@@ -33,4 +33,5 @@ public final class CommonFunctions {
     public static final Key MYTHIC_MOBS_SKILL = Key.of("craftengine:mythic_mobs_skill");
     public static final Key TELEPORT = Key.of("craftengine:teleport");
     public static final Key TOAST = Key.of("craftengine:toast");
+    public static final Key SET_VARIABLE = Key.of("craftengine:set_variable");
 }

@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.Platform;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProviders;
@@ -11,19 +10,14 @@ import net.momirealms.craftengine.core.plugin.context.selector.PlayerSelector;
 import net.momirealms.craftengine.core.plugin.context.selector.PlayerSelectors;
 import net.momirealms.craftengine.core.plugin.context.text.TextProvider;
 import net.momirealms.craftengine.core.plugin.context.text.TextProviders;
-import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
-import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Text;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class TeleportFunction<CTX extends Context> extends AbstractConditionalFunction<CTX> {
     private final PlayerSelector<CTX> selector;
@@ -47,22 +41,21 @@ public class TeleportFunction<CTX extends Context> extends AbstractConditionalFu
         this.yaw = yaw;
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void runInternal(CTX ctx) {
         if (this.selector == null) {
-            ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> {
-                it.teleport(new WorldPosition(
-                        Optional.ofNullable(this.world).map(w -> w.get(ctx)).map(w -> CraftEngine.instance().platform().getWorld(w)).orElse(it.world()),
-                        this.x.getDouble(ctx),
-                        this.y.getDouble(ctx),
-                        this.z.getDouble(ctx),
-                        this.pitch.getFloat(ctx),
-                        this.yaw.getFloat(ctx))
-                );
-            });
+            ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> it.teleport(new WorldPosition(
+                    Optional.ofNullable(this.world).map(w -> w.get(ctx)).map(w -> CraftEngine.instance().platform().getWorld(w)).orElse(it.world()),
+                    this.x.getDouble(ctx),
+                    this.y.getDouble(ctx),
+                    this.z.getDouble(ctx),
+                    this.pitch.getFloat(ctx),
+                    this.yaw.getFloat(ctx))
+            ));
         } else {
             for (Player viewer : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
                 viewer.teleport(new WorldPosition(
                         Optional.ofNullable(this.world).map(w -> w.get(relationalContext)).map(w -> CraftEngine.instance().platform().getWorld(w)).orElse(viewer.world()),
                         this.x.getDouble(relationalContext),

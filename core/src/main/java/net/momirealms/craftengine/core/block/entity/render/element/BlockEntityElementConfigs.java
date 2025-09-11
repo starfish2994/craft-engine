@@ -23,8 +23,7 @@ public class BlockEntityElementConfigs {
         Key type = Optional.ofNullable(arguments.get("type")).map(String::valueOf).map(Key::of).orElse(ITEM_DISPLAY);
         BlockEntityElementConfigFactory factory = BuiltInRegistries.BLOCK_ENTITY_ELEMENT_TYPE.getValue(type);
         if (factory == null) {
-            // todo 发送消息
-            throw new LocalizedResourceConfigException("", type.toString());
+            throw new LocalizedResourceConfigException("warning.config.block.state.entity_renderer.invalid_type", type.toString());
         }
         return factory.create(arguments);
     }

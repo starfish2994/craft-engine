@@ -38,7 +38,7 @@ public class MessageFunction<CTX extends Context> extends AbstractConditionalFun
             });
         } else {
             for (Player viewer : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
                 for (TextProvider c : this.messages) {
                     viewer.sendMessage(AdventureHelper.miniMessage().deserialize(c.get(relationalContext), relationalContext.tagResolvers()), this.overlay);
                 }

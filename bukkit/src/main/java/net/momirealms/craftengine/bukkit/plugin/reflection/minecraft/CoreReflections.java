@@ -469,17 +469,17 @@ public final class CoreReflections {
     public static final Object instance$Direction$SOUTH;
     public static final Object instance$Direction$WEST;
     public static final Object instance$Direction$EAST;
-    public static final Object[] instance$Directions;
+    public static final Object[] instance$Direction$values;
 
     static {
         try {
-            instance$Directions = (Object[]) method$Direction$values.invoke(null);
-            instance$Direction$DOWN = instance$Directions[0];
-            instance$Direction$UP = instance$Directions[1];
-            instance$Direction$NORTH = instance$Directions[2];
-            instance$Direction$SOUTH = instance$Directions[3];
-            instance$Direction$WEST = instance$Directions[4];
-            instance$Direction$EAST = instance$Directions[5];
+            instance$Direction$values = (Object[]) method$Direction$values.invoke(null);
+            instance$Direction$DOWN = instance$Direction$values[0];
+            instance$Direction$UP = instance$Direction$values[1];
+            instance$Direction$NORTH = instance$Direction$values[2];
+            instance$Direction$SOUTH = instance$Direction$values[3];
+            instance$Direction$WEST = instance$Direction$values[4];
+            instance$Direction$EAST = instance$Direction$values[5];
         } catch (ReflectiveOperationException e) {
             throw new ReflectionInitException("Failed to init Direction", e);
         }
@@ -4217,4 +4217,176 @@ public final class CoreReflections {
     public static final Method method$Block$updateEntityMovementAfterFallOn = requireNonNull(
             ReflectionUtils.getDeclaredMethod(clazz$Block, void.class, clazz$BlockGetter, clazz$Entity)
     );
+
+    public static final Class<?> clazz$AdvancementRewards = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementRewards",
+                    "advancements.AdvancementRewards"
+            )
+    );
+
+    public static final Field field$AdvancementRewards$EMPTY = requireNonNull(
+            ReflectionUtils.getStaticDeclaredField(clazz$AdvancementRewards, clazz$AdvancementRewards, 0)
+    );
+
+    public static final Object instance$AdvancementRewards$EMPTY;
+
+    static {
+        try {
+            instance$AdvancementRewards$EMPTY = field$AdvancementRewards$EMPTY.get(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to initialize AdvancementRewards$EMPTY", e);
+        }
+    }
+
+    public static final Class<?> clazz$AdvancementRequirements = MiscUtils.requireNonNullIf(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementRequirements",
+                    "advancements.AdvancementRequirements"
+            ), VersionHelper.isOrAbove1_20_2()
+    );
+
+    public static final Constructor<?> constructor$AdvancementRequirements = Optional.ofNullable(clazz$AdvancementRequirements)
+            .map(it -> {
+                if (VersionHelper.isOrAbove1_20_3()) {
+                    return ReflectionUtils.getConstructor(it, List.class);
+                } else {
+                    return ReflectionUtils.getConstructor(it, String[][].class);
+                }
+            }).orElse(null);
+
+    public static final Class<?> clazz$AdvancementProgress = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementProgress",
+                    "advancements.AdvancementProgress"
+            )
+    );
+
+    public static final Constructor<?> constructor$AdvancementProgress = requireNonNull(
+            ReflectionUtils.getConstructor(clazz$AdvancementProgress)
+    );
+
+    public static final Method method$AdvancementProgress$update = requireNonNull(
+            VersionHelper.isOrAbove1_20_2() ?
+            ReflectionUtils.getMethod(clazz$AdvancementProgress, void.class, clazz$AdvancementRequirements) :
+            ReflectionUtils.getMethod(clazz$AdvancementProgress, void.class, Map.class, String[][].class)
+    );
+
+    public static final Class<?> clazz$AdvancementType = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementFrameType",
+                    VersionHelper.isOrAbove1_20_3() ? "advancements.AdvancementType" : "advancements.FrameType"
+            )
+    );
+
+    public static final Method method$AdvancementType$values = requireNonNull(
+            ReflectionUtils.getStaticMethod(clazz$AdvancementType, clazz$AdvancementType.arrayType())
+    );
+
+    public static final Object[] instance$AdvancementType$values;
+
+    static {
+        try {
+            instance$AdvancementType$values = (Object[]) method$AdvancementType$values.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to initialize AdvancementTypes", e);
+        }
+    }
+
+    public static final Class<?> clazz$DisplayInfo = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementDisplay",
+                    "advancements.DisplayInfo"
+            )
+    );
+
+    public static final Constructor<?> constructor$DisplayInfo = requireNonNull(
+            VersionHelper.isOrAbove1_20_3() ?
+            ReflectionUtils.getConstructor(clazz$DisplayInfo, clazz$ItemStack, clazz$Component, clazz$Component, Optional.class, clazz$AdvancementType, boolean.class, boolean.class, boolean.class) :
+            ReflectionUtils.getConstructor(clazz$DisplayInfo, clazz$ItemStack, clazz$Component, clazz$Component, clazz$ResourceLocation, clazz$AdvancementType, boolean.class, boolean.class, boolean.class)
+    );
+
+    public static final Class<?> clazz$Criterion = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.Criterion",
+                    "advancements.Criterion"
+            )
+    );
+
+    public static final Class<?> clazz$CriterionTrigger = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.CriterionTrigger",
+                    "advancements.CriterionTrigger"
+            )
+    );
+
+    public static final Class<?> clazz$CriterionTriggerInstance = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.CriterionInstance",
+                    "advancements.CriterionTriggerInstance"
+            )
+    );
+
+    public static final Class<?> clazz$ImpossibleTrigger = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.critereon.CriterionTriggerImpossible",
+                    "advancements.critereon.ImpossibleTrigger"
+            )
+    );
+
+    public static final Constructor<?> constructor$ImpossibleTrigger = requireNonNull(
+            ReflectionUtils.getConstructor(clazz$ImpossibleTrigger)
+    );
+
+    public static final Class<?> clazz$ImpossibleTrigger$TriggerInstance = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.critereon.CriterionTriggerImpossible$a",
+                    "advancements.critereon.ImpossibleTrigger$TriggerInstance"
+            )
+    );
+
+    public static final Constructor<?> constructor$Criterion = requireNonNull(
+            VersionHelper.isOrAbove1_20_2() ?
+            ReflectionUtils.getConstructor(clazz$Criterion, clazz$CriterionTrigger, clazz$CriterionTriggerInstance) :
+            ReflectionUtils.getConstructor(clazz$Criterion, clazz$CriterionTriggerInstance)
+    );
+
+    public static final Constructor<?> constructor$ImpossibleTrigger$TriggerInstance = requireNonNull(
+            ReflectionUtils.getConstructor(clazz$ImpossibleTrigger$TriggerInstance)
+    );
+
+    public static final Class<?> clazz$Advancement = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.Advancement",
+                    "advancements.Advancement"
+            )
+    );
+
+    public static final Constructor<?> constructor$Advancement = requireNonNull(
+            VersionHelper.isOrAbove1_20_2() ?
+            ReflectionUtils.getConstructor(clazz$Advancement, Optional.class, Optional.class, clazz$AdvancementRewards, Map.class, clazz$AdvancementRequirements, boolean.class) :
+            ReflectionUtils.getConstructor(clazz$Advancement, clazz$ResourceLocation, clazz$Advancement, clazz$DisplayInfo, clazz$AdvancementRewards, Map.class, String[][].class, boolean.class)
+    );
+
+    public static final Class<?> clazz$CriterionProgress = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.CriterionProgress",
+                    "advancements.CriterionProgress"
+            )
+    );
+
+    public static final Method method$AdvancementProgress$grantProgress = requireNonNull(
+            ReflectionUtils.getMethod(clazz$AdvancementProgress, boolean.class, new String[]{"grantProgress", "a"}, String.class)
+    );
+
+    public static final Class<?> clazz$AdvancementHolder = MiscUtils.requireNonNullIf(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementHolder",
+                    "advancements.AdvancementHolder"
+            ), VersionHelper.isOrAbove1_20_2()
+    );
+
+    public static final Constructor<?> constructor$AdvancementHolder = Optional.ofNullable(clazz$AdvancementHolder)
+            .map(it -> ReflectionUtils.getConstructor(it, clazz$ResourceLocation, clazz$Advancement))
+            .orElse(null);
 }

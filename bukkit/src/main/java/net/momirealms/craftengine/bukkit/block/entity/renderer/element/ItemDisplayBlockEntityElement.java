@@ -13,22 +13,21 @@ import java.util.List;
 import java.util.UUID;
 
 public class ItemDisplayBlockEntityElement implements BlockEntityElement {
+    private final ItemDisplayBlockEntityElementConfig config;
     private final Object cachedSpawnPacket;
     private final Object cachedDespawnPacket;
+    private final int entityId;
 
     public ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos) {
         int entityId = CoreReflections.instance$Entity$ENTITY_COUNTER.incrementAndGet();
         Vector3f position = config.position();
-        this.cachedSpawnPacket = FastNMS.INSTANCE.constructor$ClientboundBundlePacket(List.of(
-                FastNMS.INSTANCE.constructor$ClientboundAddEntityPacket(
-                        entityId, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
-                        config.xRot(), config.yRot(), MEntityTypes.ITEM_DISPLAY, 0, CoreReflections.instance$Vec3$Zero, 0
-                ),
-                FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(
-                        entityId, config.metadataValues().get()
-                )
-        ));
+        this.cachedSpawnPacket = FastNMS.INSTANCE.constructor$ClientboundAddEntityPacket(
+                entityId, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
+                config.xRot(), config.yRot(), MEntityTypes.ITEM_DISPLAY, 0, CoreReflections.instance$Vec3$Zero, 0
+        );
+        this.config = config;
         this.cachedDespawnPacket = FastNMS.INSTANCE.constructor$ClientboundRemoveEntitiesPacket(IntList.of(entityId));
+        this.entityId = entityId;
     }
 
     @Override
@@ -38,7 +37,7 @@ public class ItemDisplayBlockEntityElement implements BlockEntityElement {
 
     @Override
     public void spawn(Player player) {
-        player.sendPacket(this.cachedSpawnPacket, true);
+        player.sendPackets(List.of(this.cachedSpawnPacket, FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(this.entityId, this.config.metadataValues(player))), true);
     }
 
     @Override

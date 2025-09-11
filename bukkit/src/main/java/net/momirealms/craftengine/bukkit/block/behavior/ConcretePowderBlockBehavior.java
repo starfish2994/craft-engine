@@ -129,7 +129,7 @@ public class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
         Object mutablePos = CoreReflections.method$BlockPos$mutable.invoke(pos);
         int j = Direction.values().length;
         for (int k = 0; k < j; k++) {
-            Object direction = CoreReflections.instance$Directions[k];
+            Object direction = CoreReflections.instance$Direction$values[k];
             Object blockState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(level, mutablePos);
             if (direction != CoreReflections.instance$Direction$DOWN || canSolidify(blockState)) {
                 CoreReflections.method$MutableBlockPos$setWithOffset.invoke(mutablePos, pos, direction);

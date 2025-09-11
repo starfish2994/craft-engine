@@ -1671,4 +1671,10 @@ public final class NetworkReflections {
                     "network.protocol.game.ClientboundForgetLevelChunkPacket"
             )
     );
+
+    public static final Constructor<?> constructor$ClientboundUpdateAdvancementsPacket = requireNonNull(
+            VersionHelper.isOrAbove1_21_5() ?
+            ReflectionUtils.getConstructor(clazz$ClientboundUpdateAdvancementsPacket, boolean.class, Collection.class, Set.class, Map.class, boolean.class) :
+            ReflectionUtils.getConstructor(clazz$ClientboundUpdateAdvancementsPacket, boolean.class, Collection.class, Set.class, Map.class)
+    );
 }
