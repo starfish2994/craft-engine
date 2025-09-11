@@ -41,6 +41,7 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.advancement.network.AdvancementHolder;
 import net.momirealms.craftengine.core.advancement.network.AdvancementProgress;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.entity.furniture.HitBox;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.font.FontManager;
 import net.momirealms.craftengine.core.font.IllegalCharacterProcessResult;
@@ -1608,6 +1609,11 @@ public class PacketConsumers {
                     if (serverPlayer.isAdventureMode() ||
                             !furniture.isValid()) return;
 
+                    // todo 重构家具时候注意，需要准备加载好的hitbox类，以获取hitbox坐标
+                    if (!serverPlayer.canInteractPoint(new Vec3d(location.getX(), location.getY(), location.getZ()), 16d)) {
+                        return;
+                    }
+
                     FurnitureAttemptBreakEvent preBreakEvent = new FurnitureAttemptBreakEvent(serverPlayer.platformPlayer(), furniture);
                     if (EventUtils.fireAndCheckCancel(preBreakEvent))
                         return;
@@ -1641,6 +1647,7 @@ public class PacketConsumers {
                 float x = buf.readFloat();
                 float y = buf.readFloat();
                 float z = buf.readFloat();
+                // todo 这个是错误的，这是实体的相对位置而非绝对位置
                 Location interactionPoint = new Location(platformPlayer.getWorld(), x, y, z);
                 InteractionHand hand = buf.readVarInt() == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
                 boolean usingSecondaryAction = buf.readBoolean();
@@ -1657,6 +1664,11 @@ public class PacketConsumers {
 
                 mainThreadTask = () -> {
                     if (!furniture.isValid()) {
+                        return;
+                    }
+
+                    // todo 重构家具时候注意，需要准备加载好的hitbox类，以获取hitbox坐标
+                    if (!serverPlayer.canInteractPoint(new Vec3d(location.getX(), location.getY(), location.getZ()), 16d)) {
                         return;
                     }
 

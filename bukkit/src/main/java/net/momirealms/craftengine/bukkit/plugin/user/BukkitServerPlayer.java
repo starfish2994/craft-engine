@@ -516,6 +516,13 @@ public class BukkitServerPlayer extends Player {
         return (new AABB(pos)).distanceToSqr(this.getEyePosition()) < d * d;
     }
 
+    public boolean canInteractPoint(Vec3d pos, double distance) {
+        double d = this.getCachedInteractionRange() + distance;
+        System.out.println(Vec3d.distanceToSqr(this.getEyePosition(), pos));
+        System.out.println(d * d);
+        return Vec3d.distanceToSqr(this.getEyePosition(), pos) < d * d;
+    }
+
     public final Vec3d getEyePosition() {
         Location eyeLocation = this.platformPlayer().getEyeLocation();
         return new Vec3d(eyeLocation.getX(), eyeLocation.getY(), eyeLocation.getZ());
