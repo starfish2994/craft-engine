@@ -17,19 +17,19 @@ import java.util.concurrent.Callable;
 public class BouncingBlockBehavior extends BukkitBlockBehavior implements TriggerOnceBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final double bounceHeight;
+    private final boolean syncPlayerPosition;
     private final boolean fallDamage;
 
-    public BouncingBlockBehavior(CustomBlock customBlock, double bounceHeight, boolean fallDamage) {
+    public BouncingBlockBehavior(CustomBlock customBlock, double bounceHeight, boolean syncPlayerPosition, boolean fallDamage) {
         super(customBlock);
         this.bounceHeight = bounceHeight;
+        this.syncPlayerPosition = syncPlayerPosition;
         this.fallDamage = fallDamage;
     }
 
     @Override
     public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) {
-        if (!this.fallDamage) {
-            return;
-        }
+        if (!this.fallDamage) return;
         Object entity = args[3];
         Object finalFallDistance = VersionHelper.isOrAbove1_21_5() ? (double) args[4] * 0.5 : (float) args[4] * 0.5F;
         FastNMS.INSTANCE.method$Entity$causeFallDamage(
@@ -54,8 +54,9 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior implements Trigge
             double d = CoreReflections.clazz$LivingEntity.isInstance(entity) ? 1.0 : 0.8;
             double y = -deltaMovement.y * this.bounceHeight * d;
             FastNMS.INSTANCE.method$Entity$setDeltaMovement(entity, deltaMovement.x, y, deltaMovement.z);
-            if (CoreReflections.clazz$Player.isInstance(entity) && y > 0.032) {
-                // 防抖
+            if (CoreReflections.clazz$Player.isInstance(entity) && this.syncPlayerPosition
+                    && /* 防抖 -> */ y > 0.032 /* <- 防抖 */
+            ) {
                 FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true);
             }
         }
@@ -66,8 +67,9 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior implements Trigge
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             double bounceHeight = ResourceConfigUtils.getAsDouble(arguments.getOrDefault("bounce-height", 0.66), "bounce-height");
+            boolean syncPlayerPosition = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("sync-player-position", true), "sync-player-position");
             boolean fallDamage = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("fall-damage", false), "fall-damage");
-            return new BouncingBlockBehavior(block, bounceHeight, fallDamage);
+            return new BouncingBlockBehavior(block, bounceHeight, syncPlayerPosition, fallDamage);
         }
     }
 }
