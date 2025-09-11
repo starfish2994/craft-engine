@@ -8,6 +8,8 @@ import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.Position;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Player extends AbstractEntity implements NetWorkUser {
@@ -148,4 +150,6 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract void clearPotionEffects();
 
     public abstract CooldownData cooldown();
+
+    public abstract void teleport(WorldPosition worldPosition);
 }

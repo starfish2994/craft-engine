@@ -42,6 +42,7 @@ public class EventFunctions {
         register(CommonFunctions.REMOVE_FURNITURE, new RemoveFurnitureFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.REPLACE_FURNITURE, new ReplaceFurnitureFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.MYTHIC_MOBS_SKILL, new MythicMobsSkillFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.TELEPORT, new TeleportFunction.FactoryImpl<>(EventConditions::fromMap));
     }
 
     public static void register(Key key, FunctionFactory<PlayerOptionalContext> factory) {

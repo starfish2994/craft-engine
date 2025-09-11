@@ -31,4 +31,6 @@ public final class CommonFunctions {
     public static final Key REMOVE_FURNITURE = Key.of("craftengine:remove_furniture");
     public static final Key REPLACE_FURNITURE = Key.of("craftengine:replace_furniture");
     public static final Key MYTHIC_MOBS_SKILL = Key.of("craftengine:mythic_mobs_skill");
+    public static final Key TELEPORT = Key.of("craftengine:teleport");
+    public static final Key TOAST = Key.of("craftengine:toast");
 }

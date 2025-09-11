@@ -37,10 +37,8 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.IntIdentityList;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
-import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.World;
-import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.core.world.chunk.ChunkStatus;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import org.bukkit.*;
@@ -48,6 +46,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -1093,5 +1092,11 @@ public class BukkitServerPlayer extends Player {
     @Override
     public void clearTrackedChunks() {
         this.trackedChunks.clear();
+    }
+
+    @Override
+    public void teleport(WorldPosition worldPosition) {
+        Location location = new Location((org.bukkit.World) worldPosition.world().platformWorld(), worldPosition.x(), worldPosition.y(), worldPosition.z(), worldPosition.yRot(), worldPosition.xRot());
+        this.platformPlayer().teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
     }
 }
