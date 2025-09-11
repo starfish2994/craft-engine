@@ -20,7 +20,7 @@ public class BlockEntityElementConfigs {
     }
 
     public static <E extends BlockEntityElement> BlockEntityElementConfig<E> fromMap(Map<String, Object> arguments) {
-        Key type = Optional.ofNullable(arguments.get("type")).map(String::valueOf).map(Key::of).orElse(ITEM_DISPLAY);
+        Key type = Optional.ofNullable(arguments.get("type")).map(String::valueOf).map(it -> Key.withDefaultNamespace(it, "craftengine")).orElse(ITEM_DISPLAY);
         BlockEntityElementConfigFactory factory = BuiltInRegistries.BLOCK_ENTITY_ELEMENT_TYPE.getValue(type);
         if (factory == null) {
             throw new LocalizedResourceConfigException("warning.config.block.state.entity_renderer.invalid_type", type.toString());
