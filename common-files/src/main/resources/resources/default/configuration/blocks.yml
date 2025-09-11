@@ -590,7 +590,7 @@ items#misc:
         behavior:
           type: bouncing_block
           bounce-height: 0.66
-          sync-player-self: false
+          sync-player-position: false
         state:
           id: 0
           state: white_bed[facing=west,occupied=false,part=foot]
