@@ -76,7 +76,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private List<Key> blockRegisterOrder = new ObjectArrayList<>();
     // Event listeners
     private BlockEventListener blockEventListener;
-    private FallingBlockRemoveListener fallingBlockRemoveListener;
     // cached tag packet
     private Object cachedUpdateTagsPacket;
 
@@ -101,7 +100,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         if (enableNoteBlocks) {
             this.recordVanillaNoteBlocks();
         }
-        this.fallingBlockRemoveListener = VersionHelper.isOrAbove1_20_3() ? new FallingBlockRemoveListener() : null;
         this.stateId2ImmutableBlockStates = new ImmutableBlockState[this.customBlockCount];
         Arrays.fill(this.stateId2ImmutableBlockStates, EmptyBlock.INSTANCE.defaultState());
         this.resetPacketConsumers();
@@ -123,9 +121,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.blockEventListener, this.plugin.javaPlugin());
-        if (this.fallingBlockRemoveListener != null) {
-            Bukkit.getPluginManager().registerEvents(this.fallingBlockRemoveListener, this.plugin.javaPlugin());
-        }
     }
 
     @Override
@@ -145,7 +140,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void disable() {
         this.unload();
         HandlerList.unregisterAll(this.blockEventListener);
-        if (this.fallingBlockRemoveListener != null) HandlerList.unregisterAll(this.fallingBlockRemoveListener);
     }
 
     @Override

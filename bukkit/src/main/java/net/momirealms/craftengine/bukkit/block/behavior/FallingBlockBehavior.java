@@ -14,7 +14,6 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
-import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 
@@ -67,7 +66,7 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
             return;
         }
         Object blockState = args[0];
-        Object fallingBlockEntity = CoreReflections.method$FallingBlockEntity$fall.invoke(null, world, blockPos, blockState);
+        Object fallingBlockEntity = FastNMS.INSTANCE.createInjectedFallingBlockEntity(world, blockPos, blockState);
         if (this.hurtAmount > 0 && this.maxHurt > 0) {
             CoreReflections.method$FallingBlockEntity$setHurtsEntities.invoke(fallingBlockEntity, this.hurtAmount, this.maxHurt);
         }
@@ -76,8 +75,6 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void onBrokenAfterFall(Object thisBlock, Object[] args) throws Exception {
-        // Use EntityRemoveEvent for 1.20.3+
-        if (VersionHelper.isOrAbove1_20_3()) return;
         Object level = args[0];
         Object fallingBlockEntity = args[2];
         boolean cancelDrop = (boolean) CoreReflections.field$FallingBlockEntity$cancelDrop.get(fallingBlockEntity);
