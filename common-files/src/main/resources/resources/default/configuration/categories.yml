@@ -8,7 +8,6 @@ categories:
     list:
       - '#default:palm_tree'
       - '#default:topaz'
-      - '#default:furniture'
       - '#default:misc'
   default:palm_tree:
     name: <!i><green><i18n:category.palm_tree></green>
@@ -49,14 +48,6 @@ categories:
       - default:topaz_chestplate
       - default:topaz_leggings
       - default:topaz_boots
-  default:furniture:
-    name: <!i><#FFD700><i18n:category.furniture></#FFD700>
-    hidden: true
-    icon: default:flower_basket
-    list:
-      - default:bench
-      - default:wooden_chair
-      - default:flower_basket
   default:misc:
     name: <!i><gray><i18n:category.misc></gray>
     hidden: true
@@ -84,3 +75,6 @@ categories:
       - minecraft:air
       - default:sofa
       - default:table_lamp
+      - default:bench
+      - default:wooden_chair
+      - default:flower_basket

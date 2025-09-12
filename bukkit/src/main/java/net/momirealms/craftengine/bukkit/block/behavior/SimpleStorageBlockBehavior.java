@@ -51,7 +51,7 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
                                       SoundData openSound,
                                       SoundData closeSound,
                                       boolean hasAnalogOutputSignal,
-                                      Property<Boolean> openProperty) {
+                                      @Nullable Property<Boolean> openProperty) {
         super(customBlock);
         this.containerTitle = containerTitle;
         this.rows = rows;

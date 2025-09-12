@@ -1,0 +1,17 @@
+items:
+  $$>=1.21.2#flame_elytra:
+    default:flame_elytra:
+      material: elytra
+      custom-model-data: 1000
+      settings:
+        equippable:
+          slot: chest
+          asset-id: flame
+          wings: flame_elytra
+      data:
+        item-name: <!i><#FF8C00><i18n:item.flame_elytra>
+      model:
+        template: default:model/simplified_elytra
+        arguments:
+          path: minecraft:item/custom/flame_elytra
+          broken_path: minecraft:item/custom/broken_flame_elytra

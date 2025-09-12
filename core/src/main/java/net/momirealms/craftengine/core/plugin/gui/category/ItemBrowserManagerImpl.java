@@ -240,21 +240,27 @@ public class ItemBrowserManagerImpl implements ItemBrowserManager {
             if (it.charAt(0) == '#') {
                 String subCategoryId = it.substring(1);
                 Category subCategory = this.byId.get(Key.of(subCategoryId));
-                if (subCategory == null) return null;
-                Item<?> item = this.plugin.itemManager().createWrappedItem(subCategory.icon(), player);
-                if (ItemUtils.isEmpty(item)) {
-                    if (!subCategory.icon().equals(ItemKeys.AIR)) {
-                        item = this.plugin.itemManager().createWrappedItem(ItemKeys.BARRIER, player);
+                Item<?> item;
+                if (subCategory == null) {
+                    item = Objects.requireNonNull(this.plugin.itemManager().createWrappedItem(ItemKeys.BARRIER, player));
+                    item.customNameJson(AdventureHelper.componentToJson(Component.text(subCategoryId).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)));
+                } else {
+                    item = this.plugin.itemManager().createWrappedItem(subCategory.icon(), player);
+                    if (ItemUtils.isEmpty(item)) {
+                        if (!subCategory.icon().equals(ItemKeys.AIR)) {
+                            item = Objects.requireNonNull(this.plugin.itemManager().createWrappedItem(ItemKeys.BARRIER, player));
+                            item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(subCategory.displayName(), ItemBuildContext.EMPTY_RESOLVERS)));
+                            item.loreJson(subCategory.displayLore().stream().map(lore -> AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY_RESOLVERS))).toList());
+                        }
+                    } else {
                         item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(subCategory.displayName(), ItemBuildContext.EMPTY_RESOLVERS)));
                         item.loreJson(subCategory.displayLore().stream().map(lore -> AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY_RESOLVERS))).toList());
                     }
-                } else {
-                    item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(subCategory.displayName(), ItemBuildContext.EMPTY_RESOLVERS)));
-                    item.loreJson(subCategory.displayLore().stream().map(lore -> AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY_RESOLVERS))).toList());
                 }
                 return new ItemWithAction(item, (element, click) -> {
                     click.cancel();
                     player.playSound(Constants.SOUND_CLICK_BUTTON);
+                    if (subCategory == null) return;
                     openCategoryPage(click.clicker(), subCategory.id(), element.gui(), canOpenNoRecipePage);
                 });
             } else {

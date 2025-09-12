@@ -1,21 +1,15 @@
 package net.momirealms.craftengine.bukkit.block.entity.renderer.element;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
 import net.momirealms.craftengine.bukkit.entity.data.TextDisplayEntityData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.entity.Billboard;
-import net.momirealms.craftengine.core.entity.ItemDisplayContext;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
-import net.momirealms.craftengine.core.plugin.context.text.TextProvider;
 import net.momirealms.craftengine.core.util.AdventureHelper;
-import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import org.joml.Quaternionf;

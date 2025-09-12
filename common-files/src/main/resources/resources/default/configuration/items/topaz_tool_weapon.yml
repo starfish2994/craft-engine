@@ -1,35 +1,4 @@
-items#gui_head:
-  default:gui_head_size_1:
-    material: player_head
-    custom-model-data: 1000
-    model:
-      type: minecraft:special
-      path: minecraft:item/custom/gui_head_size_1
-      generation:
-        parent: minecraft:item/template_skull
-        gui-light: front
-        display:
-          gui:
-            translation: 0,8,0
-            scale: 2,2,2
-      model:
-        type: minecraft:player_head
-  default:gui_head_size_4:
-    material: player_head
-    custom-model-data: 1001
-    model:
-      type: minecraft:special
-      path: minecraft:item/custom/gui_head_size_4
-      generation:
-        parent: minecraft:item/template_skull
-        gui-light: front
-        display:
-          gui:
-            translation: 9,7,0
-            scale: 4,4,4
-      model:
-        type: minecraft:player_head
-items#topaz_gears:
+items:
   default:topaz_rod:
     material: fishing_rod
     custom-model-data: 1000
@@ -236,94 +205,7 @@ items#topaz_gears:
         on-false:
           type: minecraft:model
           path: minecraft:item/custom/topaz_trident_in_hand
-  $$>=1.21.2#flame_elytra:
-    default:flame_elytra:
-      material: elytra
-      custom-model-data: 1000
-      settings:
-        equippable:
-          slot: chest
-          asset-id: flame
-          wings: flame_elytra
-      data:
-        item-name: <!i><#FF8C00><i18n:item.flame_elytra>
-      model:
-        template: default:model/simplified_elytra
-        arguments:
-          path: minecraft:item/custom/flame_elytra
-          broken_path: minecraft:item/custom/broken_flame_elytra
-  default:cap:
-    material: leather_helmet
-    client-bound-material: leather_horse_armor
-    custom-model-data: 1000
-    data:
-      item-name: <!i><white><i18n:item.cap>
-      unbreakable: true
-      remove-components:
-        - attribute_modifiers
-    model:
-      type: minecraft:model
-      path: minecraft:item/custom/cap
-      tints:
-        - type: minecraft:dye
-          default: -6265536
-  default:topaz_helmet:
-    template:
-      - default:armor/topaz
-    arguments:
-      part: helmet
-      slot: head
-      material: topaz
-  default:topaz_chestplate:
-    template:
-      - default:armor/topaz
-    arguments:
-      part: chestplate
-      slot: chest
-      material: topaz
-  default:topaz_leggings:
-    template:
-      - default:armor/topaz
-    arguments:
-      part: leggings
-      slot: legs
-      material: topaz
-  default:topaz_boots:
-    template:
-      - default:armor/topaz
-    arguments:
-      part: boots
-      slot: feet
-      material: topaz
-templates:
-  default:armor/topaz:
-    material: chainmail_${part}
-    custom-model-data: 1000
-    data:
-      item-name: <!i><#FF8C00><i18n:item.topaz_${part}>
-      tooltip-style: minecraft:topaz
-    settings:
-      tags:
-        - default:topaz_tools
-        - minecraft:trimmable_armor
-      equipment:
-        asset-id: default:topaz
-        $$>=1.21.2:
-          slot: ${slot}
-    model:
-      template: default:model/armor_trim
-equipments#topaz:
-  $$>=1.21.2:
-    default:topaz:
-      type: component
-      humanoid: minecraft:topaz
-      humanoid-leggings: minecraft:topaz
-  $$<1.21.2:
-    default:topaz:
-      type: trim
-      humanoid: minecraft:entity/equipment/humanoid/topaz
-      humanoid-leggings: minecraft:entity/equipment/humanoid_leggings/topaz
-recipes#topaz:
+recipes:
   default:topaz_shovel:
     type: shaped
     category: equipment
@@ -388,52 +270,6 @@ recipes#topaz:
       B: minecraft:stick
     result:
       id: default:topaz_pickaxe
-      count: 1
-  default:topaz_helmet:
-    type: shaped
-    category: equipment
-    pattern:
-      - AAA
-      - A A
-    ingredients:
-      A: default:topaz
-    result:
-      id: default:topaz_helmet
-      count: 1
-  default:topaz_chestplate:
-    type: shaped
-    category: equipment
-    pattern:
-      - A A
-      - AAA
-      - AAA
-    ingredients:
-      A: default:topaz
-    result:
-      id: default:topaz_chestplate
-      count: 1
-  default:topaz_leggings:
-    type: shaped
-    category: equipment
-    pattern:
-      - AAA
-      - A A
-      - A A
-    ingredients:
-      A: default:topaz
-    result:
-      id: default:topaz_leggings
-      count: 1
-  default:topaz_boots:
-    type: shaped
-    category: equipment
-    pattern:
-      - A A
-      - A A
-    ingredients:
-      A: default:topaz
-    result:
-      id: default:topaz_boots
       count: 1
   default:topaz_bow:
     type: smithing_transform
