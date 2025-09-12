@@ -69,7 +69,6 @@ items#misc:
           overrides:
             tags:
               - minecraft:mineable/pickaxe
-              - minecraft:anvil
             sounds:
               break: minecraft:block.anvil.break
               step: minecraft:block.anvil.step
