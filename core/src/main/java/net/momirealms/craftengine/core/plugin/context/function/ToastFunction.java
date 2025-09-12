@@ -21,17 +21,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 public class ToastFunction<CTX extends Context> extends AbstractConditionalFunction<CTX> {
     private final PlayerSelector<CTX> selector;
-    private final TextProvider toast;
+    private final String toast;
     private final java.util.function.Function<Player, Item<?>> icon;
     private final AdvancementType advancementType;
 
     public ToastFunction(List<Condition<CTX>> predicates,
                          @Nullable PlayerSelector<CTX> selector,
-                         TextProvider toast,
+                         String toast,
                          java.util.function.Function<Player, Item<?>> icon,
                          AdvancementType advancementType) {
         super(predicates);
@@ -44,11 +43,11 @@ public class ToastFunction<CTX extends Context> extends AbstractConditionalFunct
     @Override
     public void runInternal(CTX ctx) {
         if (this.selector == null) {
-            ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> it.sendToast(AdventureHelper.miniMessage().deserialize(this.toast.get(ctx), ctx.tagResolvers()), this.icon.apply(it), this.advancementType));
+            ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> it.sendToast(AdventureHelper.miniMessage().deserialize(this.toast, ctx.tagResolvers()), this.icon.apply(it), this.advancementType));
         } else {
             for (Player viewer : this.selector.get(ctx)) {
                 RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
-                viewer.sendToast(AdventureHelper.miniMessage().deserialize(this.toast.get(relationalContext), relationalContext.tagResolvers()), this.icon.apply(viewer), this.advancementType);
+                viewer.sendToast(AdventureHelper.miniMessage().deserialize(this.toast, relationalContext.tagResolvers()), this.icon.apply(viewer), this.advancementType);
             }
         }
     }
@@ -78,7 +77,7 @@ public class ToastFunction<CTX extends Context> extends AbstractConditionalFunct
             return new ToastFunction<>(
                     getPredicates(arguments),
                     PlayerSelectors.fromObject(arguments.get("target"), conditionFactory()),
-                    TextProviders.fromString(toast),
+                    toast,
                     player -> CraftEngine.instance().itemManager().createWrappedItem(item, player),
                     advancementType
             );
