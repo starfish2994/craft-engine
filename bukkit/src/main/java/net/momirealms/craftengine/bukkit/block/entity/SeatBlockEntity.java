@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.bukkit.block.entity;
 
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.LegacyAttributeUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -35,13 +37,45 @@ public class SeatBlockEntity extends BlockEntity {
     }
 
     public static void tick(CEWorld world, BlockPos pos, ImmutableBlockState state, SeatBlockEntity seat) {
-        if (seat.seatEntities.isEmpty()) return;
-        for (Map.Entry<Entity, Player> entry : seat.seatEntities.entrySet()) {
+        int size = seat.seatEntities.size();
+        if (size == 0) return;
+        if (size == 1) {
+            // 99.9999%的情况下会命中这里
+            Map.Entry<Entity, Player> entry = seat.seatEntities.entrySet().iterator().next();
             Entity entity = entry.getKey();
-            if (!entity.getPassengers().isEmpty()) continue;
             Player player = entry.getValue();
-            seat.tryLeavingSeat(player, entity);
-            seat.seatEntities.remove(entity);
+            if (VersionHelper.isFolia()) {
+                entity.getScheduler().run(BukkitCraftEngine.instance().javaPlugin(), t -> {
+                    if (entity.getPassengers().isEmpty()) {
+                        seat.tryLeavingSeat(player, entity);
+                        seat.seatEntities.remove(entity);
+                    }
+                }, null);
+            } else {
+                if (entity.getPassengers().isEmpty()) {
+                    seat.tryLeavingSeat(player, entity);
+                    seat.seatEntities.remove(entity);
+                }
+            }
+            return;
+        }
+        for (Map.Entry<Entity, Player> entry : ImmutableList.copyOf(seat.seatEntities.entrySet())) {
+            // 几乎不可能命中这里，除非写出bug了
+            Entity entity = entry.getKey();
+            Player player = entry.getValue();
+            if (VersionHelper.isFolia()) {
+                entity.getScheduler().run(BukkitCraftEngine.instance().javaPlugin(), t -> {
+                    if (entity.getPassengers().isEmpty()) {
+                        seat.tryLeavingSeat(player, entity);
+                        seat.seatEntities.remove(entity);
+                    }
+                }, null);
+            } else {
+                if (entity.getPassengers().isEmpty()) {
+                    seat.tryLeavingSeat(player, entity);
+                    seat.seatEntities.remove(entity);
+                }
+            }
         }
     }
 

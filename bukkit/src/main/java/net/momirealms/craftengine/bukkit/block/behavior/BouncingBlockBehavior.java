@@ -65,7 +65,7 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior implements Trigge
                     Entity bukkitEntity = FastNMS.INSTANCE.method$Entity$getBukkitEntity(entity);
                     bukkitEntity.getScheduler().runDelayed(BukkitCraftEngine.instance().javaPlugin(),
                             r -> FastNMS.INSTANCE.field$Entity$hurtMarked(entity, true),
-                            () -> {}, 1L
+                            null, 1L
                     );
                 } else {
                     CraftEngine.instance().scheduler().sync().runLater(
