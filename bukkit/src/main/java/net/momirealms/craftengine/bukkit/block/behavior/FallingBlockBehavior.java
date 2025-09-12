@@ -77,23 +77,15 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
     public void onBrokenAfterFall(Object thisBlock, Object[] args) throws Exception {
         Object level = args[0];
         Object fallingBlockEntity = args[2];
-        boolean cancelDrop = (boolean) CoreReflections.field$FallingBlockEntity$cancelDrop.get(fallingBlockEntity);
-        if (cancelDrop) return;
-        Object blockState = CoreReflections.field$FallingBlockEntity$blockState.get(fallingBlockEntity);
-        Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        if (optionalCustomState.isEmpty()) return;
-        ImmutableBlockState customState = optionalCustomState.get();
-        net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
-        WorldPosition position = new WorldPosition(world, CoreReflections.field$Entity$xo.getDouble(fallingBlockEntity), CoreReflections.field$Entity$yo.getDouble(fallingBlockEntity), CoreReflections.field$Entity$zo.getDouble(fallingBlockEntity));
-        ContextHolder.Builder builder = ContextHolder.builder()
-                .withParameter(DirectContextParameters.FALLING_BLOCK, true)
-                .withParameter(DirectContextParameters.POSITION, position);
-        for (Item<Object> item : customState.getDrops(builder, world, null)) {
-            world.dropItemNaturally(position, item);
-        }
         Object entityData = CoreReflections.field$Entity$entityData.get(fallingBlockEntity);
         boolean isSilent = (boolean) CoreReflections.method$SynchedEntityData$get.invoke(entityData, CoreReflections.instance$Entity$DATA_SILENT);
         if (!isSilent) {
+            Object blockState = CoreReflections.field$FallingBlockEntity$blockState.get(fallingBlockEntity);
+            Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
+            if (optionalCustomState.isEmpty()) return;
+            ImmutableBlockState customState = optionalCustomState.get();
+            net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
+            WorldPosition position = new WorldPosition(world, CoreReflections.field$Entity$xo.getDouble(fallingBlockEntity), CoreReflections.field$Entity$yo.getDouble(fallingBlockEntity), CoreReflections.field$Entity$zo.getDouble(fallingBlockEntity));
             world.playBlockSound(position, customState.settings().sounds().destroySound());
         }
     }

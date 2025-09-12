@@ -90,59 +90,59 @@ items:
               type: sofa_shape
           appearances:
             facing=east,shape=straight:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa
                 yaw: 90
             facing=north,shape=straight:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa
             facing=south,shape=straight:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa
                 yaw: 180
             facing=west,shape=straight:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa
                 yaw: 270
             facing=east,shape=inner_left:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa_inner
             facing=north,shape=inner_left:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa_inner
                 yaw: 270
             facing=south,shape=inner_left:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa_inner
                 yaw: 90
             facing=west,shape=inner_left:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa_inner
                 yaw: 180
             facing=east,shape=inner_right:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa_inner
                 yaw: 90
             facing=north,shape=inner_right:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa_inner
             facing=south,shape=inner_right:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa_inner
                 yaw: 180
             facing=west,shape=inner_right:
-              state: barrier[waterlogged=false]
+              state: barrier
               entity-renderer:
                 item: default:sofa_inner
                 yaw: 270
