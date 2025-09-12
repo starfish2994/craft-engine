@@ -39,10 +39,10 @@ public class SeatBlockBehavior extends BukkitBlockBehavior implements EntityBloc
         if (player == null || player.isSecondaryUseActive()) {
             return InteractionResult.PASS;
         }
+        player.swingHand(context.getHand());
         CEWorld world = context.getLevel().storageWorld();
         BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(context.getClickedPos());
         if (!(blockEntity instanceof SeatBlockEntity seatBlockEntity) || !seatBlockEntity.seatEntities().isEmpty()) {
-            player.swingHand(context.getHand());
             return InteractionResult.PASS;
         }
         seatBlockEntity.spawnSeatEntityForPlayer(player.platformPlayer(), this.offset, this.yaw, this.limitPlayerRotation);
