@@ -82,12 +82,11 @@ public class SeatBlockEntity extends BlockEntity {
     @Override
     public void preRemove() {
         if (this.seatEntities.isEmpty()) return;
-        for (Map.Entry<Entity, Player> entry : this.seatEntities.entrySet()) {
-            Entity entity = entry.getKey();
-            entity.remove();
-            this.seatEntities.remove(entity);
+        try {
+            this.seatEntities.keySet().forEach(Entity::remove);
+        } finally {
+            this.seatEntities.clear();
         }
-        this.seatEntities.clear();
     }
 
     public void spawnSeatEntityForPlayer(@NotNull Player player, @NotNull Vector3f offset, float yaw, boolean limitPlayerRotation) {
