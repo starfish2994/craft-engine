@@ -69,7 +69,6 @@ items#misc:
           overrides:
             tags:
               - minecraft:mineable/pickaxe
-              - minecraft:anvil
             sounds:
               break: minecraft:block.anvil.break
               step: minecraft:block.anvil.step
@@ -587,10 +586,10 @@ items#misc:
             step: minecraft:block.wood.step
           tags:
             - minecraft:mineable/axe
-        behavior:
-          type: bouncing_block
-          bounce-height: 0.66
-          sync-player-position: false
+        behaviors:
+          - type: bouncing_block
+            bounce-height: 0.66
+            sync-player-position: false
         state:
           id: 0
           state: white_bed[facing=west,occupied=false,part=foot]
@@ -739,6 +738,116 @@ items#misc:
             facing=west,shape=straight:
               appearance: facing=west,shape=straight
               id: 11
+  default:table_lamp:
+    material: nether_brick
+    custom-model-data: 3011
+    data:
+      item-name: <!i><i18n:item.table_lamp>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/table_lamp
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          template:
+            - default:sound/metal
+          overrides:
+            hardness: 1
+            resistance: 1
+            replaceable: false
+            is-redstone-conductor: false
+            is-suffocating: false
+        behaviors:
+          - type: toggleable_lamp_block
+            can-open-with-hand: true
+          - type: sturdy_base_block
+            direction: down
+            support-types:
+              - full
+              - center
+        states:
+          properties:
+            lit:
+              type: boolean
+              default: false
+            facing:
+              type: 4-direction
+              default: north
+          appearances:
+            east_off:
+              state: barrier
+              entity-renderer:
+                item: default:table_lamp
+            north_off:
+              state: barrier
+              entity-renderer:
+                item: default:table_lamp
+                yaw: -90
+            south_off:
+              state: barrier
+              entity-renderer:
+                item: default:table_lamp
+                yaw: 90
+            west_off:
+              state: barrier
+              entity-renderer:
+                item: default:table_lamp
+                yaw: 180
+            east_on:
+              state: barrier
+              entity-renderer:
+                item: default:table_lamp
+            north_on:
+              state: barrier
+              entity-renderer:
+                item: default:table_lamp
+                yaw: -90
+            south_on:
+              state: barrier
+              entity-renderer:
+                item: default:table_lamp
+                yaw: 90
+            west_on:
+              state: barrier
+              entity-renderer:
+                item: default:table_lamp
+                yaw: 180
+          variants:
+            facing=east,lit=false:
+              appearance: east_off
+              id: 12
+            facing=north,lit=false:
+              appearance: north_off
+              id: 13
+            facing=south,lit=false:
+              appearance: south_off
+              id: 14
+            facing=west,lit=false:
+              appearance: west_off
+              id: 15
+            facing=east,lit=true:
+              appearance: east_on
+              id: 16
+              settings:
+                luminance: 15
+            facing=north,lit=true:
+              appearance: north_on
+              id: 17
+              settings:
+                luminance: 15
+            facing=south,lit=true:
+              appearance: south_on
+              id: 18
+              settings:
+                luminance: 15
+            facing=west,lit=true:
+              appearance: west_on
+              id: 19
+              settings:
+                luminance: 15
 recipes#misc:
   default:chinese_lantern:
     type: shaped

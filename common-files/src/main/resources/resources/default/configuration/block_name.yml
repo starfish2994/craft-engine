@@ -28,8 +28,8 @@ lang:
     block_name:default:copper_coil: Copper Coil
     block_name:default:chessboard_block: Chessboard Block
     block_name:default:safe_block: Safe Block
+    block_name:default:sleeper_sofa: Sofa
     block_name:default:sofa: Sofa
-    block_name:default:connectable_sofa: Sofa
   zh_cn:
     block_name:default:chinese_lantern: 灯笼
     block_name:default:netherite_anvil: 下界合金砧
@@ -56,5 +56,5 @@ lang:
     block_name:default:copper_coil: 铜线圈
     block_name:default:chessboard_block: 棋盘方块
     block_name:default:safe_block: 保险柜
+    block_name:default:sleeper_sofa: 沙发
     block_name:default:sofa: 沙发
-    block_name:default:connectable_sofa: 沙发
