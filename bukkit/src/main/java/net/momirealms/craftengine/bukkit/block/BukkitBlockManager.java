@@ -214,7 +214,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         for (ImmutableBlockState state : customBlock.variantProvider().states()) {
             ImmutableBlockState previous = this.stateId2ImmutableBlockStates[state.customBlockState().registryId() - BlockStateUtils.vanillaStateSize()];
             if (previous != null && !previous.isEmpty()) {
-                throw new LocalizedResourceConfigException("warning.config.block.state.bind_failed", state.toString(), previous.toString());
+                throw new LocalizedResourceConfigException("warning.config.block.state.bind_failed", state.toString(), previous.toString(), BlockStateUtils.getBlockOwnerIdFromState(previous.customBlockState().literalObject()).toString());
             }
             this.stateId2ImmutableBlockStates[state.customBlockState().registryId() - BlockStateUtils.vanillaStateSize()] = state;
             this.tempBlockAppearanceConvertor.put(state.customBlockState().registryId(), state.vanillaBlockState().registryId());
