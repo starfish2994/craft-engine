@@ -587,10 +587,13 @@ items#misc:
             step: minecraft:block.wood.step
           tags:
             - minecraft:mineable/axe
-        behavior:
-          type: bouncing_block
-          bounce-height: 0.66
-          sync-player-position: false
+        behaviors:
+          - type: bouncing_block
+            bounce-height: 0.66
+            sync-player-position: false
+          - type: seat_block
+            offset: 0,-0.5,0
+            limit-player-rotation: false
         state:
           id: 0
           state: white_bed[facing=west,occupied=false,part=foot]
@@ -638,6 +641,8 @@ items#misc:
           - type: sofa_block
           - type: bouncing_block
             bounce-height: 0.66
+          - type: seat_block
+            offset: 0,-0.45,0
         states:
           properties:
             facing:
