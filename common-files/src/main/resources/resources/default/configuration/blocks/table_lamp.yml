@@ -14,9 +14,9 @@ items:
           template: default:loot_table/self
         settings:
           template:
-            - default:sound/metal
+            - default:sound/lantern
           overrides:
-            hardness: 1
+            hardness: 0.5
             resistance: 1
             replaceable: false
             is-redstone-conductor: false
