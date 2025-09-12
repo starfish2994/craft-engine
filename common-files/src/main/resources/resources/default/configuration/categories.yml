@@ -52,10 +52,9 @@ categories:
   default:furniture:
     name: <!i><#FFD700><i18n:category.furniture></#FFD700>
     hidden: true
-    icon: default:table_lamp
+    icon: default:flower_basket
     list:
       - default:bench
-      - default:table_lamp
       - default:wooden_chair
       - default:flower_basket
   default:misc:
@@ -84,3 +83,4 @@ categories:
       - minecraft:air
       - minecraft:air
       - default:sofa
+      - default:table_lamp

@@ -42,57 +42,6 @@ items:
           template: default:loot_table/furniture
           arguments:
             item: default:bench
-  default:table_lamp:
-    material: nether_brick
-    custom-model-data: 2001
-    data:
-      item-name: <!i><i18n:item.table_lamp>
-    model:
-      type: minecraft:model
-      path: minecraft:item/custom/table_lamp
-    behavior:
-      type: furniture_item
-      furniture:
-        settings:
-          item: default:table_lamp
-          sounds:
-            break: minecraft:block.lantern.break
-            place: minecraft:block.lantern.place
-        placement:
-          ground:
-            loot-spawn-offset: 0,0.2,0
-            rules:
-              rotation: ANY
-              alignment: QUARTER
-            elements:
-              - item: default:table_lamp
-                display-transform: NONE
-                billboard: FIXED
-                translation: 0,0.5,0
-                rotation: 90
-            hitboxes:
-              - position: 0,0,0
-                type: interaction
-                blocks-building: true
-                width: 0.7
-                height: 0.1
-                interactive: true
-              - position: 0,0.1,-0.1
-                type: interaction
-                blocks-building: true
-                width: 0.1
-                height: 0.6
-                interactive: true
-              - position: 0,0.6,0.15
-                type: interaction
-                blocks-building: true
-                width: 0.4
-                height: 0.4
-                interactive: true
-        loot:
-          template: default:loot_table/furniture
-          arguments:
-            item: default:table_lamp
   default:wooden_chair:
     material: nether_brick
     custom-model-data: 2002
