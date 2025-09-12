@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.World;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -65,7 +66,7 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
     }
 
     @Override
-    public ItemDisplayBlockEntityElement create(BlockPos pos) {
+    public ItemDisplayBlockEntityElement create(World world, BlockPos pos) {
         return new ItemDisplayBlockEntityElement(this, pos);
     }
 

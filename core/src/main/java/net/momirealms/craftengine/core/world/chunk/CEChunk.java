@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.block.EmptyBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.tick.*;
@@ -26,7 +26,7 @@ public class CEChunk {
     public final CESection[] sections;
     public final WorldHeight worldHeightAccessor;
     public final Map<BlockPos, BlockEntity> blockEntities;
-    public final Map<BlockPos, BlockEntityRenderer> blockEntityRenderers;
+    public final Map<BlockPos, ConstantBlockEntityRenderer> blockEntityRenderers;
     private final ReentrantReadWriteLock renderLock = new ReentrantReadWriteLock();
     private volatile boolean dirty;
     private volatile boolean loaded;
@@ -80,7 +80,7 @@ public class CEChunk {
     public void spawnBlockEntities(Player player) {
         try {
             this.renderLock.readLock().lock();
-            for (BlockEntityRenderer renderer : this.blockEntityRenderers.values()) {
+            for (ConstantBlockEntityRenderer renderer : this.blockEntityRenderers.values()) {
                 renderer.spawn(player);
             }
         } finally {
@@ -91,7 +91,7 @@ public class CEChunk {
     public void despawnBlockEntities(Player player) {
         try {
             this.renderLock.readLock().lock();
-            for (BlockEntityRenderer renderer : this.blockEntityRenderers.values()) {
+            for (ConstantBlockEntityRenderer renderer : this.blockEntityRenderers.values()) {
                 renderer.despawn(player);
             }
         } finally {
@@ -104,13 +104,14 @@ public class CEChunk {
     }
 
     public void addBlockEntityRenderer(BlockPos pos, ImmutableBlockState state) {
-        BlockEntityElementConfig<? extends BlockEntityElement>[] renderers = state.renderers();
+        BlockEntityElementConfig<? extends BlockEntityElement>[] renderers = state.constantRenderers();
         if (renderers != null && renderers.length > 0) {
             BlockEntityElement[] elements = new BlockEntityElement[renderers.length];
+            World wrappedWorld = this.world.world();
             for (int i = 0; i < elements.length; i++) {
-                elements[i] = renderers[i].create(pos);
+                elements[i] = renderers[i].create(wrappedWorld, pos);
             }
-            BlockEntityRenderer renderer = this.world.createBlockEntityRenderer(elements, pos);
+            ConstantBlockEntityRenderer renderer = this.world.createBlockEntityRenderer(elements, wrappedWorld, pos);
             renderer.spawn();
             try {
                 this.renderLock.writeLock().lock();
@@ -124,7 +125,7 @@ public class CEChunk {
     public void removeBlockEntityRenderer(BlockPos pos) {
         try {
             this.renderLock.writeLock().lock();
-            BlockEntityRenderer removed = this.blockEntityRenderers.remove(pos);
+            ConstantBlockEntityRenderer removed = this.blockEntityRenderers.remove(pos);
             if (removed != null) {
                 removed.despawn();
             }
@@ -151,10 +152,14 @@ public class CEChunk {
             blockEntity.setValid(true);
             replaceOrCreateTickingBlockEntity(blockEntity);
         }
+        for (ConstantBlockEntityRenderer renderer : this.blockEntityRenderers.values()) {
+            renderer.activate();
+        }
     }
 
     public void deactivateAllBlockEntities() {
         this.blockEntities.values().forEach(e -> e.setValid(false));
+        this.blockEntityRenderers.values().forEach(ConstantBlockEntityRenderer::deactivate);
         this.tickingBlockEntitiesByPos.values().forEach((ticker) -> ticker.setTicker(DummyTickingBlockEntity.INSTANCE));
         this.tickingBlockEntitiesByPos.clear();
     }

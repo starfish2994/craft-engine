@@ -69,11 +69,11 @@ public final class ImmutableBlockState extends BlockStateHolder {
         return this == EmptyBlock.STATE;
     }
 
-    public BlockEntityElementConfig<? extends BlockEntityElement>[] renderers() {
-        return renderers;
+    public BlockEntityElementConfig<? extends BlockEntityElement>[] constantRenderers() {
+        return this.renderers;
     }
 
-    public void setRenderers(BlockEntityElementConfig<? extends BlockEntityElement>[] renderers) {
+    public void setConstantRenderers(BlockEntityElementConfig<? extends BlockEntityElement>[] renderers) {
         this.renderers = renderers;
     }
 
@@ -81,8 +81,8 @@ public final class ImmutableBlockState extends BlockStateHolder {
         return this.blockEntityType != null;
     }
 
-    public boolean hasBlockEntityRenderer() {
-        return this.renderers != null ;
+    public boolean hasConstantBlockEntityRenderer() {
+        return this.renderers != null;
     }
 
     public BlockStateWrapper customBlockState() {

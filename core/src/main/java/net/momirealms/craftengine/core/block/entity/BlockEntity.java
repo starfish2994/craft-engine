@@ -1,11 +1,13 @@
 package net.momirealms.craftengine.core.block.entity;
 
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.SectionPos;
 import net.momirealms.sparrow.nbt.CompoundTag;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class BlockEntity {
     protected final BlockPos pos;
@@ -94,6 +96,11 @@ public abstract class BlockEntity {
 
     public BlockPos pos() {
         return pos;
+    }
+
+    @Nullable
+    public ConstantBlockEntityRenderer[] getBlockEntityRenderers() {
+        return null;
     }
 
     public boolean isValidBlockState(ImmutableBlockState blockState) {

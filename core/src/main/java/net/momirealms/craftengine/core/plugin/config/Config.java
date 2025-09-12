@@ -104,7 +104,7 @@ public class Config {
     protected boolean chunk_system$restore_vanilla_blocks_on_chunk_unload;
     protected boolean chunk_system$restore_custom_blocks_on_chunk_load;
     protected boolean chunk_system$sync_custom_blocks_on_chunk_load;
-    protected boolean chunk_system$cache_system;
+    protected boolean chunk_system$cache_system = true;
     protected boolean chunk_system$injection$use_fast_method;
     protected boolean chunk_system$injection$target;
     protected boolean chunk_system$process_invalid_furniture$enable;

@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.compatibility.item.*;
 import net.momirealms.craftengine.bukkit.compatibility.legacy.slimeworld.LegacySlimeFormatStorageAdaptor;
 import net.momirealms.craftengine.bukkit.compatibility.leveler.*;
 import net.momirealms.craftengine.bukkit.compatibility.model.bettermodel.BetterModelModel;
+import net.momirealms.craftengine.bukkit.compatibility.model.bettermodel.BetterModelUtils;
 import net.momirealms.craftengine.bukkit.compatibility.model.modelengine.ModelEngineModel;
 import net.momirealms.craftengine.bukkit.compatibility.model.modelengine.ModelEngineUtils;
 import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicItemDropListener;
@@ -129,6 +130,14 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
         } else {
             EventConditions.register(worldGuardRegion, new AlwaysFalseCondition.FactoryImpl<>());
             LootConditions.register(worldGuardRegion, new AlwaysFalseCondition.FactoryImpl<>());
+        }
+        if (this.isPluginEnabled("BetterModel")) {
+            BetterModelUtils.registerConstantBlockEntityRender();
+            logHook("BetterModel");
+        }
+        if (this.isPluginEnabled("ModelEngine")) {
+            ModelEngineUtils.registerConstantBlockEntityRender();
+            logHook("ModelEngine");
         }
     }
 

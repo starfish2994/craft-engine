@@ -1,9 +1,9 @@
 package net.momirealms.craftengine.bukkit.world;
 
-import net.momirealms.craftengine.bukkit.block.entity.renderer.BukkitBlockEntityRenderer;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.BukkitConstantBlockEntityRenderer;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.LightUtils;
-import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.SectionPosUtils;
@@ -45,11 +45,7 @@ public class BukkitCEWorld extends CEWorld {
     }
 
     @Override
-    public BlockEntityRenderer createBlockEntityRenderer(BlockEntityElement[] elements, BlockPos pos) {
-        Object serverLevel = this.world.serverWorld();
-        Object chunkSource = FastNMS.INSTANCE.method$ServerLevel$getChunkSource(serverLevel);
-        long chunkKey = ChunkPos.asLong(pos.x() >> 4, pos.z() >> 4);
-        Object chunkHolder = FastNMS.INSTANCE.method$ServerChunkCache$getVisibleChunkIfPresent(chunkSource, chunkKey);
-        return new BukkitBlockEntityRenderer(new WeakReference<>(chunkHolder), elements);
+    public ConstantBlockEntityRenderer createBlockEntityRenderer(BlockEntityElement[] elements, World world, BlockPos pos) {
+        return new BukkitConstantBlockEntityRenderer(world, new ChunkPos(pos), elements);
     }
 }

@@ -39,8 +39,4 @@ public class ItemDisplayBlockEntityElement implements BlockEntityElement {
     public void spawn(Player player) {
         player.sendPackets(List.of(this.cachedSpawnPacket, FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(this.entityId, this.config.metadataValues(player))), true);
     }
-
-    @Override
-    public void update(Player player) {
-    }
 }

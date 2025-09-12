@@ -4,7 +4,7 @@ import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTabl
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.tick.TickingBlockEntity;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -89,7 +89,7 @@ public abstract class CEWorld {
     }
 
     public World world() {
-        return world;
+        return this.world;
     }
 
     public boolean isChunkLoaded(final long chunkPos) {
@@ -220,5 +220,5 @@ public abstract class CEWorld {
         this.isTickingBlockEntities = false;
     }
 
-    public abstract BlockEntityRenderer createBlockEntityRenderer(BlockEntityElement[] elements, BlockPos pos);
+    public abstract ConstantBlockEntityRenderer createBlockEntityRenderer(BlockEntityElement[] elements, World world, BlockPos pos);
 }

@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.World;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -61,7 +62,7 @@ public class TextDisplayBlockEntityElementConfig implements BlockEntityElementCo
     }
 
     @Override
-    public TextDisplayBlockEntityElement create(BlockPos pos) {
+    public TextDisplayBlockEntityElement create(World world, BlockPos pos) {
         return new TextDisplayBlockEntityElement(this, pos);
     }
 

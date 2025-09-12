@@ -241,7 +241,7 @@ public final class WorldStorageInjector {
                         chunk.removeBlockEntity(pos);
                     }
                 }
-                if (previousImmutableBlockState.hasBlockEntityRenderer()) {
+                if (previousImmutableBlockState.hasConstantBlockEntityRenderer()) {
                     BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                     chunk.removeBlockEntityRenderer(pos);
                 }
@@ -264,7 +264,7 @@ public final class WorldStorageInjector {
                     chunk.replaceOrCreateTickingBlockEntity(blockEntity);
                 }
             }
-            if (newImmutableBlockState.hasBlockEntityRenderer()) {
+            if (newImmutableBlockState.hasConstantBlockEntityRenderer()) {
                 BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                 chunk.addBlockEntityRenderer(pos, newImmutableBlockState);
             }
@@ -294,7 +294,7 @@ public final class WorldStorageInjector {
                         chunk.removeBlockEntity(pos);
                     }
                 }
-                if (previous.hasBlockEntityRenderer()) {
+                if (previous.hasConstantBlockEntityRenderer()) {
                     BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                     chunk.removeBlockEntityRenderer(pos);
                 }
