@@ -34,9 +34,9 @@ public class BouncingBlockBehavior extends BukkitBlockBehavior implements Trigge
     public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) {
         if (this.fallDamageMultiplier <= 0.0) return;
         Object entity = args[3];
-        Object finalFallDistance = VersionHelper.isOrAbove1_21_5() ? (double) args[4] * this.fallDamageMultiplier : (float) args[4] * (float) this.fallDamageMultiplier;
+        Number fallDistance = (Number) args[4];
         FastNMS.INSTANCE.method$Entity$causeFallDamage(
-                entity, finalFallDistance, 1.0F,
+                entity, fallDistance.doubleValue() * this.fallDamageMultiplier, 1.0F,
                 FastNMS.INSTANCE.method$DamageSources$fall(FastNMS.INSTANCE.method$Entity$damageSources(entity))
         );
     }
