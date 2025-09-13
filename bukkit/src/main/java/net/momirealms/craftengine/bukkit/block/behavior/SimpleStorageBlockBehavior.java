@@ -208,8 +208,8 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
             boolean canPlaceItem = true;
             boolean canTakeItem = true;
             if (hopperBehavior != null) {
-                canPlaceItem = ResourceConfigUtils.getAsBoolean(hopperBehavior.getOrDefault("can-place-item", true), "can-place-item");
-                canTakeItem = ResourceConfigUtils.getAsBoolean(hopperBehavior.getOrDefault("can-take-item", true), "can-take-item");
+                canPlaceItem = ResourceConfigUtils.getAsBoolean(hopperBehavior.getOrDefault("allow-input", true), "allow-input");
+                canTakeItem = ResourceConfigUtils.getAsBoolean(hopperBehavior.getOrDefault("allow-output", true), "allow-output");
             }
             Property<Boolean> property = (Property<Boolean>) block.getProperty("open");
             return new SimpleStorageBlockBehavior(block, title, rows, openSound, closeSound, hasAnalogOutputSignal, canPlaceItem, canTakeItem, property);

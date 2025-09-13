@@ -36,8 +36,8 @@ items:
             open: minecraft:block.iron_trapdoor.open
             close: minecraft:block.iron_trapdoor.close
           hopper-behavior:
-            can-place-item: true
-            can-take-item: false
+            allow-input: true
+            allow-output: false
         states:
           properties:
             facing:
