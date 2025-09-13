@@ -63,10 +63,11 @@ blocks:
         item: default:amethyst_standing_torch
         scale: 1.01
     behavior:
-      type: sturdy_base_block
-      direction: down
-      support-types:
-        - center
+      - type: sturdy_base_block
+        direction: down
+        support-types:
+          - center
+      - type: liquid_flowable_block
   default:amethyst_wall_torch:
     loot:
       template: default:loot_table/basic
@@ -83,7 +84,8 @@ blocks:
         luminance: 15
         item: default:amethyst_torch
     behavior:
-      type: directional_attached_block
+      - type: directional_attached_block
+      - type: liquid_flowable_block
     states:
       properties:
         facing:

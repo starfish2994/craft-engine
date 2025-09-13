@@ -90,7 +90,7 @@ public class BukkitGuiManager implements GuiManager, Listener {
     @Override
     public Inventory createInventory(Gui gui, int size) {
         CraftEngineGUIHolder holder = new CraftEngineGUIHolder(gui);
-        org.bukkit.inventory.Inventory inventory = FastNMS.INSTANCE.createCraftEngineWorldlyContainer(holder, size, false, false);
+        org.bukkit.inventory.Inventory inventory = FastNMS.INSTANCE.createSimpleStorageContainer(holder, size, false, false);
         holder.holder().bindValue(inventory);
         return new BukkitInventory(inventory);
     }

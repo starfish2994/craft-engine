@@ -41,7 +41,7 @@ public class SimpleStorageBlockEntity extends BlockEntity {
         super(BukkitBlockEntityTypes.SIMPLE_STORAGE, pos, blockState);
         this.behavior = super.blockState.behavior().getAs(SimpleStorageBlockBehavior.class).orElseThrow();
         BlockEntityHolder holder = new BlockEntityHolder(this);
-        this.inventory = FastNMS.INSTANCE.createCraftEngineWorldlyContainer(holder, this.behavior.rows() * 9, this.behavior.canPlaceItem(), this.behavior.canTakeItem());
+        this.inventory = FastNMS.INSTANCE.createSimpleStorageContainer(holder, this.behavior.rows() * 9, this.behavior.canPlaceItem(), this.behavior.canTakeItem());
         holder.setInventory(this.inventory);
     }
 
