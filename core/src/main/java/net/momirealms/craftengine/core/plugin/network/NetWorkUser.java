@@ -33,17 +33,17 @@ public interface NetWorkUser {
 
     boolean isNameVerified();
 
-    void setNameUnverified(String name);
+    void setUnverifiedName(String name);
 
-    void setNameVerified(String name);
+    void setVerifiedName(String name);
 
     UUID uuid();
 
     boolean isUUIDVerified();
 
-    void setUUIDUnverified(UUID uuid);
+    void setUnverifiedUUID(UUID uuid);
 
-    void setUUIDVerified(UUID uuid);
+    void setVerifiedUUID(UUID uuid);
 
     void sendPacket(Object packet, boolean immediately);
 

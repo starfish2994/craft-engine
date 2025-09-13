@@ -330,13 +330,13 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void setNameUnverified(String name) {
+    public void setUnverifiedName(String name) {
         if (this.isNameVerified) return;
         this.name = name;
     }
 
     @Override
-    public void setNameVerified(String name) {
+    public void setVerifiedName(String name) {
         if (this.isNameVerified) return;
         this.name = name;
         this.isNameVerified = true;
@@ -353,13 +353,13 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void setUUIDUnverified(UUID uuid) {
+    public void setUnverifiedUUID(UUID uuid) {
         if (this.isUUIDVerified) return;
         this.uuid = uuid;
     }
 
     @Override
-    public void setUUIDVerified(UUID uuid) {
+    public void setVerifiedUUID(UUID uuid) {
         if (this.isUUIDVerified) return;
         this.uuid = uuid;
         this.isUUIDVerified = true;

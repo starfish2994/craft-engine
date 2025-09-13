@@ -1240,17 +1240,17 @@ public class PacketConsumers {
         try {
             BukkitServerPlayer player = (BukkitServerPlayer) user;
             String name = (String) NetworkReflections.methodHandle$ServerboundHelloPacket$nameGetter.invokeExact(packet);
-            player.setNameUnverified(name);
+            player.setUnverifiedName(name);
             if (VersionHelper.isOrAbove1_20_2()) {
                 UUID uuid = (UUID) NetworkReflections.methodHandle$ServerboundHelloPacket$uuidGetter.invokeExact(packet);
-                player.setUUIDUnverified(uuid);
+                player.setUnverifiedUUID(uuid);
             } else {
                 @SuppressWarnings("unchecked")
                 Optional<UUID> uuid = (Optional<UUID>) NetworkReflections.methodHandle$ServerboundHelloPacket$uuidGetter.invokeExact(packet);
                 if (uuid.isPresent()) {
-                    player.setUUIDUnverified(uuid.get());
+                    player.setUnverifiedUUID(uuid.get());
                 } else {
-                    player.setUUIDUnverified(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8)));
+                    player.setUnverifiedUUID(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8)));
                 }
             }
         } catch (Throwable e) {
@@ -2561,8 +2561,8 @@ public class PacketConsumers {
     public static final TriConsumer<NetWorkUser, NMSPacketEvent, Object> LOGIN_FINISHED = (user, event, packet) -> {
         try {
             GameProfile gameProfile = FastNMS.INSTANCE.field$ClientboundLoginFinishedPacket$gameProfile(packet);
-            user.setNameVerified(gameProfile.getName());
-            user.setUUIDVerified(gameProfile.getId());
+            user.setVerifiedName(gameProfile.getName());
+            user.setVerifiedUUID(gameProfile.getId());
         } catch (Exception e) {
             CraftEngine.instance().logger().warn("Failed to handle ClientboundLoginFinishedPacket", e);
         }
