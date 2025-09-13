@@ -69,7 +69,7 @@ dependencies {
     compileOnly("com.willfp:libreforge:4.58.1")
     // AureliumSkills
     compileOnly("com.github.Archy-X:AureliumSkills:Beta1.3.21")
-    compileOnly(files('libs/ProtocolLib_5.3.0.jar'))
+    compileOnly(files('../../libs/ProtocolLib_5.3.0.jar'))
 }
 
 java {
