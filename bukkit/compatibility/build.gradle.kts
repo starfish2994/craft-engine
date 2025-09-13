@@ -52,8 +52,10 @@ dependencies {
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
     // MythicMobs
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
-    // McMMO
-    compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.2.038")
+    // McMMO - 排除其对ProtocolLib的依赖
+    compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.2.038") {
+        exclude group: 'com.comphenix.protocol', module: 'ProtocolLib'
+    }
     // MMOCore
     compileOnly("net.Indyuce:MMOCore-API:1.12.1-SNAPSHOT")
     // JobsReborn
@@ -67,6 +69,7 @@ dependencies {
     compileOnly("com.willfp:libreforge:4.58.1")
     // AureliumSkills
     compileOnly("com.github.Archy-X:AureliumSkills:Beta1.3.21")
+    compileOnly(files('libs/ProtocolLib_5.3.0.jar'))
 }
 
 java {
