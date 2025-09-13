@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntity;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
@@ -91,7 +90,7 @@ public class BukkitGuiManager implements GuiManager, Listener {
     @Override
     public Inventory createInventory(Gui gui, int size) {
         CraftEngineGUIHolder holder = new CraftEngineGUIHolder(gui);
-        org.bukkit.inventory.Inventory inventory = Bukkit.createInventory(holder, size);
+        org.bukkit.inventory.Inventory inventory = FastNMS.INSTANCE.createCraftEngineWorldlyContainer(holder, size, false, false);
         holder.holder().bindValue(inventory);
         return new BukkitInventory(inventory);
     }
