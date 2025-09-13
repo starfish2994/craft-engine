@@ -58,6 +58,6 @@ public final class InventoryUtils {
         if (inventory == null) return false;
         Object container = FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory);
         if (container == null) return false;
-        return CraftBukkitReflections.clazz$MinecraftInventory.isInstance(container) || StorageContainer.isInstance(container);
+        return CraftBukkitReflections.clazz$MinecraftInventory.isInstance(container) || container instanceof StorageContainer;
     }
 }
