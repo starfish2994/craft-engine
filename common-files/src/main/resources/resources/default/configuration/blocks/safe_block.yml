@@ -35,6 +35,9 @@ items:
           sounds:
             open: minecraft:block.iron_trapdoor.open
             close: minecraft:block.iron_trapdoor.close
+          hopper-behavior:
+            allow-input: true
+            allow-output: false
         states:
           properties:
             facing:

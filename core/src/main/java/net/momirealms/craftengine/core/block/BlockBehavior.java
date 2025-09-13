@@ -105,7 +105,7 @@ public abstract class BlockBehavior {
         return 0;
     }
 
-    // BlockState state, LevelReader world, BlockPos pos
+    // BlockState state, LevelAccessor level, BlockPos pos
     public Object getContainer(Object thisBlock, Object[] args) throws Exception {
         return null;
     }
