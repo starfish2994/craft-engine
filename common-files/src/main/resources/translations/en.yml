@@ -316,6 +316,7 @@ warning.config.block.behavior.pressure_plate.missing_powered: "<yellow>Issue fou
 warning.config.block.behavior.grass.missing_feature: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'feature' argument for 'grass_block' behavior.</yellow>"
 warning.config.block.behavior.double_high.missing_half: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'half' property for 'double_block' behavior.</yellow>"
 warning.config.block.behavior.change_over_time.missing_next_block: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'next_block' property for 'change_over_time_block' behavior.</yellow>"
+warning.config.block.behavior.wall_attached.missing_facing: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'facing' property for 'wall_attached_block' behavior.</yellow>"
 warning.config.model.generation.missing_parent: "<yellow>Issue found in file <arg:0> - The config '<arg:1>' is missing the required 'parent' argument in 'generation' section.</yellow>"
 warning.config.model.generation.conflict: "<yellow>Issue found in file <arg:0> - Failed to generate model for '<arg:1>' as two or more configurations attempt to generate different json models with the same path: '<arg:2>'.</yellow>"
 warning.config.model.generation.invalid_display_position: "<yellow>Issue found in file <arg:0> - The config '<arg:1>' is using an invalid display position '<arg:2>' in 'generation.display' section. Allowed display positions: [<arg:3>]</yellow>"

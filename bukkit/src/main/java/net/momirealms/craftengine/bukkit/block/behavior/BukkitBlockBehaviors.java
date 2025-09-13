@@ -32,6 +32,7 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
     public static final Key TOGGLEABLE_LAMP_BLOCK = Key.from("craftengine:toggleable_lamp_block");
     public static final Key SOFA_BLOCK = Key.from("craftengine:sofa_block");
     public static final Key BOUNCING_BLOCK = Key.from("craftengine:bouncing_block");
+    public static final Key WALL_ATTACHED_BLOCK = Key.from("craftengine:wall_attached_block");
 
     public static void init() {
         register(EMPTY, (block, args) -> EmptyBlockBehavior.INSTANCE);
@@ -62,5 +63,6 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
         register(TOGGLEABLE_LAMP_BLOCK, ToggleableLampBlockBehavior.FACTORY);
         register(SOFA_BLOCK, SofaBlockBehavior.FACTORY);
         register(BOUNCING_BLOCK, BouncingBlockBehavior.FACTORY);
+        register(WALL_ATTACHED_BLOCK, WallAttachedBlockBehavior.FACTORY);
     }
 }
