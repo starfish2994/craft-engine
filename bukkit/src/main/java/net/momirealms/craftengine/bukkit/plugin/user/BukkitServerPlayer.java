@@ -72,6 +72,8 @@ public class BukkitServerPlayer extends Player {
     private ChannelHandler connection;
     private String name;
     private UUID uuid;
+    private boolean isNameVerified;
+    private boolean isUUIDVerified;
     private ConnectionState decoderState;
     private ConnectionState encoderState;
     private boolean shouldProcessFinishConfiguration = true;
@@ -140,7 +142,9 @@ public class BukkitServerPlayer extends Player {
         this.playerRef = new WeakReference<>(player);
         this.serverPlayerRef = new WeakReference<>(FastNMS.INSTANCE.method$CraftPlayer$getHandle(player));
         this.uuid = player.getUniqueId();
+        this.isUUIDVerified = true;
         this.name = player.getName();
+        this.isNameVerified = true;
         byte[] bytes = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(CooldownData.COOLDOWN_KEY), PersistentDataType.BYTE_ARRAY);
         this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(768, 0.5f);
         this.entityTypeView = new ConcurrentHashMap<>(256);
@@ -321,9 +325,21 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void setName(String name) {
-        if (this.name != null) return;
+    public boolean isNameVerified() {
+        return this.isNameVerified;
+    }
+
+    @Override
+    public void setUnverifiedName(String name) {
+        if (this.isNameVerified) return;
         this.name = name;
+    }
+
+    @Override
+    public void setVerifiedName(String name) {
+        if (this.isNameVerified) return;
+        this.name = name;
+        this.isNameVerified = true;
     }
 
     @Override
@@ -332,9 +348,21 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void setUUID(UUID uuid) {
-        if (this.uuid != null) return;
+    public boolean isUUIDVerified() {
+        return this.isUUIDVerified;
+    }
+
+    @Override
+    public void setUnverifiedUUID(UUID uuid) {
+        if (this.isUUIDVerified) return;
         this.uuid = uuid;
+    }
+
+    @Override
+    public void setVerifiedUUID(UUID uuid) {
+        if (this.isUUIDVerified) return;
+        this.uuid = uuid;
+        this.isUUIDVerified = true;
     }
 
     @Override
