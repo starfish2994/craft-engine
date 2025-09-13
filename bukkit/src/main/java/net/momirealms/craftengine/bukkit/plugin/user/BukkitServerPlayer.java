@@ -497,7 +497,9 @@ public class BukkitServerPlayer extends Player {
 
     private void updateGUI() {
         org.bukkit.inventory.Inventory top = !VersionHelper.isOrAbove1_21() ? LegacyInventoryUtils.getTopInventory(platformPlayer()) : platformPlayer().getOpenInventory().getTopInventory();
-        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(FastNMS.INSTANCE.method$CraftInventory$getInventory(top))) {
+        Object container = FastNMS.INSTANCE.method$CraftInventory$getInventory(top);
+        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(container)
+                || !container.getClass().getSimpleName().equals("CraftEngineWorldlyContainer")) {
             return;
         }
         if (top.getHolder() instanceof CraftEngineGUIHolder holder) {

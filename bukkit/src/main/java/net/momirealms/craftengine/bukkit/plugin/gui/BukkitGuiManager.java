@@ -98,7 +98,9 @@ public class BukkitGuiManager implements GuiManager, Listener {
     @EventHandler(ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
-        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory))) {
+        Object container = FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory);
+        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(container)
+                || !container.getClass().getSimpleName().equals("CraftEngineWorldlyContainer")) {
             return;
         }
         if (!(inventory.getHolder() instanceof CraftEngineGUIHolder craftEngineGUIHolder)) {
@@ -116,7 +118,9 @@ public class BukkitGuiManager implements GuiManager, Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onInventoryDrag(InventoryDragEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
-        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory))) {
+        Object container = FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory);
+        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(container)
+                || !container.getClass().getSimpleName().equals("CraftEngineWorldlyContainer")) {
             return;
         }
         if (!(inventory.getHolder() instanceof CraftEngineGUIHolder)) {
@@ -134,7 +138,9 @@ public class BukkitGuiManager implements GuiManager, Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onInventoryClose(InventoryCloseEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
-        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory))) {
+        Object container = FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory);
+        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(container)
+                || !container.getClass().getSimpleName().equals("CraftEngineWorldlyContainer")) {
             return;
         }
         if (!(inventory.getHolder() instanceof BlockEntityHolder holder)) {
@@ -149,7 +155,9 @@ public class BukkitGuiManager implements GuiManager, Listener {
     public void onInventoryClose(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         org.bukkit.inventory.Inventory inventory = player.getInventory();
-        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory))) {
+        Object container = FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory);
+        if (!CraftBukkitReflections.clazz$MinecraftInventory.isInstance(container)
+                || !container.getClass().getSimpleName().equals("CraftEngineWorldlyContainer")) {
             return;
         }
         if (!(inventory.getHolder() instanceof BlockEntityHolder holder)) {
