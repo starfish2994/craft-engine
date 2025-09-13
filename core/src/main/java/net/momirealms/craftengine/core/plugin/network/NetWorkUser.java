@@ -31,11 +31,19 @@ public interface NetWorkUser {
 
     String name();
 
-    void setName(String name);
+    boolean isVerifiedName();
+
+    void setUnverifiedName(String name);
+
+    void setVerifiedName(String name);
 
     UUID uuid();
 
-    void setUUID(UUID uuid);
+    boolean isVerifiedUUID();
+
+    void setUnverifiedUUID(UUID uuid);
+
+    void setVerifiedUUID(UUID uuid);
 
     void sendPacket(Object packet, boolean immediately);
 
