@@ -204,13 +204,8 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
                 openSound = Optional.ofNullable(sounds.get("open")).map(obj -> SoundData.create(obj, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.ranged(0.9f, 1f))).orElse(null);
                 closeSound = Optional.ofNullable(sounds.get("close")).map(obj -> SoundData.create(obj, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.ranged(0.9f, 1f))).orElse(null);
             }
-            Map<String, Object> hopperBehavior = (Map<String, Object>) arguments.get("hopper-behavior");
-            boolean canPlaceItem = true;
-            boolean canTakeItem = true;
-            if (hopperBehavior != null) {
-                canPlaceItem = ResourceConfigUtils.getAsBoolean(hopperBehavior.getOrDefault("allow-input", true), "allow-input");
-                canTakeItem = ResourceConfigUtils.getAsBoolean(hopperBehavior.getOrDefault("allow-output", true), "allow-output");
-            }
+            boolean canPlaceItem = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("allow-input", true), "allow-input");
+            boolean canTakeItem = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("allow-output", true), "allow-output");
             Property<Boolean> property = (Property<Boolean>) block.getProperty("open");
             return new SimpleStorageBlockBehavior(block, title, rows, openSound, closeSound, hasAnalogOutputSignal, canPlaceItem, canTakeItem, property);
         }

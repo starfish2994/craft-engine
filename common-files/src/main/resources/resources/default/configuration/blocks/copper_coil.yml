@@ -24,7 +24,7 @@ items:
             replaceable: false
             is-redstone-conductor: true
             is-suffocating: true
-            instrument: BASEDRUM
+            instrument: basedrum
             map-color: 15
         behavior:
           type: lamp_block

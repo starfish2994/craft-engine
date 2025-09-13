@@ -22,43 +22,42 @@ import net.momirealms.craftengine.core.world.World;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public class SurfaceAttachedBlockBehavior extends BukkitBlockBehavior {
+public class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final Property<?> facingProperty;
-    private final boolean isDirection;
+    private final boolean isSixDirection;
 
-    public SurfaceAttachedBlockBehavior(CustomBlock customBlock, Property<?> facingProperty, boolean isDirection) {
+    public DirectionalAttachedBlockBehavior(CustomBlock customBlock, Property<?> facingProperty, boolean isSixDirection) {
         super(customBlock);
         this.facingProperty = facingProperty;
-        this.isDirection = isDirection;
+        this.isSixDirection = isSixDirection;
     }
 
     @Override
     public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return args[0];
-        SurfaceAttachedBlockBehavior behavior = state.behavior().getAs(SurfaceAttachedBlockBehavior.class).orElse(null);
+        DirectionalAttachedBlockBehavior behavior = state.behavior().getAs(DirectionalAttachedBlockBehavior.class).orElse(null);
         if (behavior == null) return state;
         boolean flag;
-        if (isDirection) {
+        if (isSixDirection) {
             Direction direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]).opposite();
             flag = direction == state.get(behavior.facingProperty);
         } else {
             HorizontalDirection direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]).opposite().toHorizontalDirection();
             flag = direction == state.get(behavior.facingProperty);
         }
-        return flag && !FastNMS.INSTANCE.method$BlockStateBase$canSurvive(args[0], args[updateShape$level], args[updateShape$blockPos])
-                ? MBlocks.AIR$defaultState : args[0];
+        return flag && !FastNMS.INSTANCE.method$BlockStateBase$canSurvive(args[0], args[updateShape$level], args[updateShape$blockPos]) ? MBlocks.AIR$defaultState : args[0];
     }
 
     @Override
     public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return false;
-        SurfaceAttachedBlockBehavior behavior = state.behavior().getAs(SurfaceAttachedBlockBehavior.class).orElse(null);
+        DirectionalAttachedBlockBehavior behavior = state.behavior().getAs(DirectionalAttachedBlockBehavior.class).orElse(null);
         if (behavior == null) return false;
         Direction direction;
-        if (isDirection) {
+        if (isSixDirection) {
             direction = ((Direction) state.get(behavior.facingProperty)).opposite();
         } else {
             direction = ((HorizontalDirection) state.get(behavior.facingProperty)).opposite().toDirection();
@@ -72,12 +71,12 @@ public class SurfaceAttachedBlockBehavior extends BukkitBlockBehavior {
     @SuppressWarnings("unchecked")
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        SurfaceAttachedBlockBehavior behavior = state.behavior().getAs(SurfaceAttachedBlockBehavior.class).orElse(null);
+        DirectionalAttachedBlockBehavior behavior = state.behavior().getAs(DirectionalAttachedBlockBehavior.class).orElse(null);
         if (behavior == null) return null;
         World level = context.getLevel();
         BlockPos clickedPos = context.getClickedPos();
         for (Direction direction : context.getNearestLookingDirections()) {
-            if (isDirection) {
+            if (isSixDirection) {
                 state = state.with((Property<Direction>) behavior.facingProperty, direction.opposite());
                 if (FastNMS.INSTANCE.method$BlockStateBase$canSurvive(state.customBlockState().literalObject(), level.serverWorld(), LocationUtils.toBlockPos(clickedPos))) {
                     return state;
@@ -102,7 +101,7 @@ public class SurfaceAttachedBlockBehavior extends BukkitBlockBehavior {
             if (!(isHorizontalDirection || isDirection)) {
                 throw new LocalizedResourceConfigException("warning.config.block.behavior.surface_attached.missing_facing");
             }
-            return new SurfaceAttachedBlockBehavior(block, facing, isDirection);
+            return new DirectionalAttachedBlockBehavior(block, facing, isDirection);
         }
     }
 }

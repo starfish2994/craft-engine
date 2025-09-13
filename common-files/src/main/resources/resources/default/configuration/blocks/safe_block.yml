@@ -19,8 +19,8 @@ items:
           resistance: 1200
           is-suffocating: true
           is-redstone-conductor: true
-          push-reaction: BLOCK
-          instrument: BASEDRUM
+          push-reaction: block
+          instrument: basedrum
           map-color: 6
           sounds:
             break: minecraft:block.stone.break
@@ -35,9 +35,8 @@ items:
           sounds:
             open: minecraft:block.iron_trapdoor.open
             close: minecraft:block.iron_trapdoor.close
-          hopper-behavior:
-            allow-input: true
-            allow-output: false
+          allow-input: true
+          allow-output: false
         states:
           properties:
             facing:
