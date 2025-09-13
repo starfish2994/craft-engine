@@ -12,10 +12,12 @@ items:
         textures:
           layer0: minecraft:block/custom/amethyst_torch
     behavior:
-      - type: block_item
+      - type: wall_block_item
         block: default:amethyst_wall_torch
       - type: block_item
         block: default:amethyst_torch
+      - type: block_item
+        block: default:amethyst_wall_torch
   default:amethyst_standing_torch:
     material: nether_brick
     custom-model-data: 3020
