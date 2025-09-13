@@ -1,8 +1,10 @@
 package net.momirealms.craftengine.bukkit.world;
 
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.sound.SoundSource;
@@ -21,6 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 public class BukkitWorld implements World {
@@ -128,5 +133,20 @@ public class BukkitWorld implements World {
     @Override
     public CEWorld storageWorld() {
         return BukkitWorldManager.instance().getWorld(uuid());
+    }
+
+    @Override
+    public List<Player> getTrackedBy(ChunkPos pos) {
+        Object serverLevel = serverWorld();
+        Object chunkSource = FastNMS.INSTANCE.method$ServerLevel$getChunkSource(serverLevel);
+        Object chunkHolder = FastNMS.INSTANCE.method$ServerChunkCache$getVisibleChunkIfPresent(chunkSource, pos.longKey);
+        if (chunkHolder == null) return Collections.emptyList();
+        List<Object> players = FastNMS.INSTANCE.method$ChunkHolder$getPlayers(chunkHolder);
+        if (players.isEmpty()) return Collections.emptyList();
+        List<Player> tracked = new ArrayList<>(players.size());
+        for (Object player : players) {
+            tracked.add(BukkitAdaptors.adapt(FastNMS.INSTANCE.method$ServerPlayer$getBukkitEntity(player)));
+        }
+        return tracked;
     }
 }

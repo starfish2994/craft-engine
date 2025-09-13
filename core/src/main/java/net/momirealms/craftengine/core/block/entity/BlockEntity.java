@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.block.entity;
 
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.DynamicBlockEntityRenderer;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
@@ -15,6 +15,8 @@ public abstract class BlockEntity {
     protected BlockEntityType<? extends BlockEntity> type;
     protected CEWorld world;
     protected boolean valid;
+    @Nullable
+    protected DynamicBlockEntityRenderer blockEntityRenderer;
 
     protected BlockEntity(BlockEntityType<? extends BlockEntity> type, BlockPos pos, ImmutableBlockState blockState) {
         this.pos = pos;
@@ -78,7 +80,11 @@ public abstract class BlockEntity {
     }
 
     public BlockEntityType<? extends BlockEntity> type() {
-        return type;
+        return this.type;
+    }
+
+    public @Nullable DynamicBlockEntityRenderer blockEntityRenderer() {
+        return blockEntityRenderer;
     }
 
     public static BlockPos readPosAndVerify(CompoundTag tag, ChunkPos chunkPos) {
@@ -95,12 +101,7 @@ public abstract class BlockEntity {
     }
 
     public BlockPos pos() {
-        return pos;
-    }
-
-    @Nullable
-    public ConstantBlockEntityRenderer[] getBlockEntityRenderers() {
-        return null;
+        return this.pos;
     }
 
     public boolean isValidBlockState(ImmutableBlockState blockState) {

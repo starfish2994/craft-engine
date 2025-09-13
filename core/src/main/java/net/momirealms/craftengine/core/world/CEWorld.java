@@ -4,8 +4,6 @@ import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTabl
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
-import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.tick.TickingBlockEntity;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -21,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CEWorld {
     public static final String REGION_DIRECTORY = "craftengine";
-    protected final World world;
+    public final World world;
     protected final ConcurrentLong2ReferenceChainedHashTable<CEChunk> loadedChunkMap;
     protected final WorldDataStorage worldDataStorage;
     protected final WorldHeight worldHeightAccessor;
@@ -219,6 +217,4 @@ public abstract class CEWorld {
         }
         this.isTickingBlockEntities = false;
     }
-
-    public abstract ConstantBlockEntityRenderer createBlockEntityRenderer(BlockEntityElement[] elements, World world, BlockPos pos);
 }
