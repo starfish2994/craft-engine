@@ -34,7 +34,7 @@ public final class BlocksAgent {
                 Method injectRegistries = plugin.getClass().getMethod("injectRegistries");
                 injectRegistries.invoke(plugin);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to inject registries", e);
+                e.printStackTrace();
             }
         }
     }

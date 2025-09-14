@@ -9,7 +9,7 @@ import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.bukkit.world.BukkitBlockInWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateOption;
@@ -73,7 +73,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
             return InteractionResult.FAIL;
         }
         if (!context.canPlace()) {
-            return InteractionResult.FAIL;
+            return InteractionResult.PASS;
         }
 
         Player player = context.getPlayer();
@@ -89,7 +89,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
 
         ImmutableBlockState blockStateToPlace = getPlacementState(context, block);
         if (blockStateToPlace == null) {
-            return InteractionResult.FAIL;
+            return InteractionResult.PASS;
         }
 
         BlockPos againstPos = context.getAgainstPos();
@@ -111,7 +111,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
                 } else {
                     ImmutableBlockState customState = optionalCustomState.get();
                     // custom block
-                    if (!AdventureModeUtils.canPlace(context.getItem(), context.getLevel(), againstPos, Config.simplifyAdventurePlaceCheck() ? customState.vanillaBlockState().handle() : againstBlockState)) {
+                    if (!AdventureModeUtils.canPlace(context.getItem(), context.getLevel(), againstPos, Config.simplifyAdventurePlaceCheck() ? customState.vanillaBlockState().literalObject() : againstBlockState)) {
                         return InteractionResult.FAIL;
                     }
                 }
@@ -157,7 +157,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
         WorldPosition position = new WorldPosition(context.getLevel(), pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5);
         Cancellable dummy = Cancellable.dummy();
         PlayerOptionalContext functionContext = PlayerOptionalContext.of(player, ContextHolder.builder()
-                .withParameter(DirectContextParameters.BLOCK, new BukkitBlockInWorld(bukkitBlock))
+                .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(bukkitBlock))
                 .withParameter(DirectContextParameters.POSITION, position)
                 .withParameter(DirectContextParameters.EVENT, dummy)
                 .withParameter(DirectContextParameters.HAND, context.getHand())
@@ -196,7 +196,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
         try {
             Player cePlayer = context.getPlayer();
             Object player = cePlayer != null ? cePlayer.serverPlayer() : null;
-            Object blockState = state.customBlockState().handle();
+            Object blockState = state.customBlockState().literalObject();
             Object blockPos = LocationUtils.toBlockPos(context.getClickedPos());
             Object voxelShape;
             if (VersionHelper.isOrAbove1_21_6()) {

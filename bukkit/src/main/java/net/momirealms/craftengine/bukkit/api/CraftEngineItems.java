@@ -8,9 +8,27 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 public final class CraftEngineItems {
 
     private CraftEngineItems() {}
+
+    /**
+     * Returns an unmodifiable map of all currently loaded custom items.
+     * The map keys represent unique identifiers, and the values are the corresponding CustomItem instances.
+     *
+     * <p><strong>Important:</strong> Do not attempt to access this method during the onEnable phase
+     * as it will be empty. Instead, listen for the {@code CraftEngineReloadEvent} and use this method
+     * after the event is fired to obtain the complete item list.
+     *
+     * @return a non-null map containing all loaded custom items
+     * @throws IllegalStateException if the BukkitItemManager instance is not available
+     */
+    @NotNull
+    public static Map<Key, CustomItem<ItemStack>> loadedItems() {
+        return BukkitItemManager.instance().loadedItems();
+    }
 
     /**
      * Gets a custom item by ID

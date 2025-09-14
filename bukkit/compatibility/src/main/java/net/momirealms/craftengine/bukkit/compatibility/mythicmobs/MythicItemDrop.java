@@ -33,7 +33,7 @@ public class MythicItemDrop extends ItemDrop implements IItemDrop {
 
     @Override
     public AbstractItemStack getDrop(DropMetadata dropMetadata, double amount) {
-        ItemBuildContext context = ItemBuildContext.EMPTY;
+        ItemBuildContext context = ItemBuildContext.empty();
         SkillCaster caster = dropMetadata.getCaster();
         if (caster != null && caster.getEntity() instanceof AbstractPlayer abstractPlayer) {
             Entity bukkitEntity = abstractPlayer.getBukkitEntity();

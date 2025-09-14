@@ -46,7 +46,7 @@ public class OpenWindowFunction<CTX extends Context> extends AbstractConditional
             for (Player viewer : this.selector.get(ctx)) {
                 CraftEngine.instance().guiManager().openInventory(viewer, this.guiType);
                 if (this.optionalTitle != null) {
-                    RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer, ContextHolder.EMPTY));
+                    RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
                     CraftEngine.instance().guiManager().updateInventoryTitle(viewer, AdventureHelper.miniMessage().deserialize(this.optionalTitle.get(relationalContext), relationalContext.tagResolvers()));
                 }
             }

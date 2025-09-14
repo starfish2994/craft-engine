@@ -105,7 +105,11 @@ public class AttributeModifiersModifier<I> implements SimpleNetworkItemDataModif
 
     @Override
     public Item<I> apply(Item<I> item, ItemBuildContext context) {
-        return item.attributeModifiers(this.modifiers.stream().map(it -> it.toAttributeModifier(context)).toList());
+        List<AttributeModifier> results = new ArrayList<>(this.modifiers.size());
+        for (PreModifier modifier : this.modifiers) {
+            results.add(modifier.toAttributeModifier(item, context));
+        }
+        return item.attributeModifiers(results);
     }
 
     @Override
@@ -125,12 +129,12 @@ public class AttributeModifiersModifier<I> implements SimpleNetworkItemDataModif
 
     public record PreModifier(String type,
                               AttributeModifier.Slot slot,
-                              Key id,
+                              Optional<Key> id,
                               NumberProvider amount,
                               AttributeModifier.Operation operation,
                               AttributeModifiersModifier.PreModifier.@Nullable PreDisplay display) {
 
-        public PreModifier(String type, AttributeModifier.Slot slot, Key id, NumberProvider amount, AttributeModifier.Operation operation, @Nullable PreDisplay display) {
+        public PreModifier(String type, AttributeModifier.Slot slot, Optional<Key> id, NumberProvider amount, AttributeModifier.Operation operation, @Nullable PreDisplay display) {
             this.amount = amount;
             this.type = type;
             this.slot = slot;
@@ -139,8 +143,9 @@ public class AttributeModifiersModifier<I> implements SimpleNetworkItemDataModif
             this.display = display;
         }
 
-        public AttributeModifier toAttributeModifier(ItemBuildContext context) {
-            return new AttributeModifier(type, slot, id, amount.getDouble(context), operation, display == null ? null : display.toDisplay(context));
+        public <I> AttributeModifier toAttributeModifier(Item<I> item, ItemBuildContext context) {
+            return new AttributeModifier(this.type, this.slot, this.id.orElseGet(() -> Key.of("craftengine", UUID.randomUUID().toString())),
+                    this.amount.getDouble(context), this.operation, this.display == null ? null : this.display.toDisplay(context));
         }
 
         public record PreDisplay(AttributeModifier.Display.Type type, String value) {
@@ -155,15 +160,11 @@ public class AttributeModifiersModifier<I> implements SimpleNetworkItemDataModif
 
         @Override
         public ItemDataModifier<I> create(Object arg) {
-            MutableInt mutableInt = new MutableInt(0);
             List<PreModifier> attributeModifiers = ResourceConfigUtils.parseConfigAsList(arg, (map) -> {
                 String type = ResourceConfigUtils.requireNonEmptyStringOrThrow(map.get("type"), "warning.config.item.data.attribute_modifiers.missing_type");
                 Key nativeType = AttributeModifiersModifier.getNativeAttributeName(Key.of(type));
                 AttributeModifier.Slot slot = AttributeModifier.Slot.valueOf(map.getOrDefault("slot", "any").toString().toUpperCase(Locale.ENGLISH));
-                Key id = Optional.ofNullable(map.get("id")).map(String::valueOf).map(Key::of).orElseGet(() -> {
-                    mutableInt.add(1);
-                    return Key.of("craftengine", "modifier_" + mutableInt.intValue());
-                });
+                Optional<Key> id = Optional.ofNullable(map.get("id")).map(String::valueOf).map(Key::of);
                 NumberProvider amount = NumberProviders.fromObject(ResourceConfigUtils.requireNonNullOrThrow(map.get("amount"), "warning.config.item.data.attribute_modifiers.missing_amount"));
                 AttributeModifier.Operation operation = AttributeModifier.Operation.valueOf(
                         ResourceConfigUtils.requireNonEmptyStringOrThrow(map.get("operation"), "warning.config.item.data.attribute_modifiers.missing_operation").toUpperCase(Locale.ENGLISH)

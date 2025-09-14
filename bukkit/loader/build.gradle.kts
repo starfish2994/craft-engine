@@ -21,6 +21,9 @@ dependencies {
     implementation(project(":bukkit:compatibility:legacy"))
     implementation(project(":common-files"))
 
+    // concurrentutil
+    implementation(files("${rootProject.rootDir}/libs/concurrentutil-${rootProject.properties["concurrent_util_version"]}.jar"))
+
     implementation("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     implementation("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
     implementation("net.momirealms:craft-engine-nms-helper:${rootProject.properties["nms_helper_version"]}")
@@ -47,7 +50,7 @@ bukkit {
     name = "CraftEngine"
     apiVersion = "1.20"
     authors = listOf("XiaoMoMi")
-    contributors = listOf("jhqwqmc", "iqtesterrr", "WhiteProject1", "Catnies", "xiaozhangup", "TamashiiMon")
+    contributors = listOf("https://github.com/Xiao-MoMi/craft-engine/graphs/contributors")
     softDepend = listOf("PlaceholderAPI", "WorldEdit", "FastAsyncWorldEdit", "Skript")
     foliaSupported = true
 }
@@ -77,5 +80,10 @@ tasks {
         relocate("com.google.common.jimfs", "net.momirealms.craftengine.libraries.jimfs")
         relocate("org.apache.commons", "net.momirealms.craftengine.libraries.commons")
         relocate("io.leangen.geantyref", "net.momirealms.craftengine.libraries.geantyref")
+        relocate("ca.spottedleaf.concurrentutil", "net.momirealms.craftengine.libraries.concurrentutil")
+        relocate("io.netty.handler.codec.http", "net.momirealms.craftengine.libraries.netty.handler.codec.http")
+        relocate("io.netty.handler.codec.rtsp", "net.momirealms.craftengine.libraries.netty.handler.codec.rtsp")
+        relocate("io.netty.handler.codec.spdy", "net.momirealms.craftengine.libraries.netty.handler.codec.spdy")
+        relocate("io.netty.handler.codec.http2", "net.momirealms.craftengine.libraries.netty.handler.codec.http2")
     }
 }

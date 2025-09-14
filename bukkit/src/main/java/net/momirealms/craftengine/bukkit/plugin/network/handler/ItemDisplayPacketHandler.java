@@ -4,9 +4,9 @@ import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.network.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
-import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import org.bukkit.inventory.ItemStack;
 
@@ -17,7 +17,7 @@ public class ItemDisplayPacketHandler implements EntityPacketHandler {
     public static final ItemDisplayPacketHandler INSTANCE = new ItemDisplayPacketHandler();
 
     @Override
-    public void handleSetEntityData(NetWorkUser user, ByteBufPacketEvent event) {
+    public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
         FriendlyByteBuf buf = event.getBuffer();
         int id = buf.readVarInt();
         boolean isChanged = false;

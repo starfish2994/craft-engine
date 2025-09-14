@@ -198,10 +198,17 @@ debug_is_chunk_persistent_loaded:
 
 debug_entity_id:
   enable: true
-  permission: ce.command.debug.debug_entity_id
+  permission: ce.command.debug.entity_id
   usage:
     - /craftengine debug entity-id
     - /ce debug entity-id
+
+debug_save_default_resources:
+  enable: true
+  permission: ce.command.debug.save_default_resources
+  usage:
+    - /craftengine debug save-default-resources
+    - /ce debug save-default-resources
 
 debug_test:
   enable: true

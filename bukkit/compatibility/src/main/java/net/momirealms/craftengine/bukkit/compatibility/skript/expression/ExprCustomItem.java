@@ -33,7 +33,6 @@ public class ExprCustomItem extends SimpleExpression<ItemType> {
     private Expression<?> itemIds;
 
     @Override
-    @SuppressWarnings("unchecked")
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         itemIds = exprs[0];
         return true;
@@ -49,7 +48,7 @@ public class ExprCustomItem extends SimpleExpression<ItemType> {
             if (object instanceof String string) {
                 CustomItem<ItemStack> customItem = CraftEngineItems.byId(Key.of(string));
                 if (customItem != null) {
-                    ItemType itemType = new ItemType(customItem.buildItemStack(ItemBuildContext.EMPTY));
+                    ItemType itemType = new ItemType(customItem.buildItemStack(ItemBuildContext.empty()));
                     items.add(itemType);
                 }
             }

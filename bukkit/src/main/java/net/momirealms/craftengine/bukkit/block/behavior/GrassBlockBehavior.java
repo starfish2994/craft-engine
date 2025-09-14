@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.FeatureUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitBlockInWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -59,7 +59,7 @@ public class GrassBlockBehavior extends BukkitBlockBehavior {
         }
         boolean sendParticles = false;
         ImmutableBlockState customState = optionalCustomState.get();
-        Object visualState = customState.vanillaBlockState().handle();
+        Object visualState = customState.vanillaBlockState().literalObject();
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (CoreReflections.clazz$BonemealableBlock.isInstance(visualStateBlock)) {
             boolean is = FastNMS.INSTANCE.method$BonemealableBlock$isValidBonemealTarget(visualStateBlock, level, blockPos, visualState);
@@ -86,12 +86,12 @@ public class GrassBlockBehavior extends BukkitBlockBehavior {
         if (ItemUtils.isEmpty(item) || !item.vanillaId().equals(ItemKeys.BONE_MEAL) || context.getPlayer().isAdventureMode())
             return InteractionResult.PASS;
         BlockPos pos = context.getClickedPos();
-        BukkitBlockInWorld upper = (BukkitBlockInWorld) context.getLevel().getBlockAt(pos.x(), pos.y() + 1, pos.z());
+        BukkitExistingBlock upper = (BukkitExistingBlock) context.getLevel().getBlockAt(pos.x(), pos.y() + 1, pos.z());
         Block block = upper.block();
         if (!block.isEmpty())
             return InteractionResult.PASS;
         boolean sendSwing = false;
-        Object visualState = state.vanillaBlockState().handle();
+        Object visualState = state.vanillaBlockState().literalObject();
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (CoreReflections.clazz$BonemealableBlock.isInstance(visualStateBlock)) {
             boolean is = FastNMS.INSTANCE.method$BonemealableBlock$isValidBonemealTarget(visualStateBlock, context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()), visualState);

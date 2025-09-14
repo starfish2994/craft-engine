@@ -27,10 +27,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 public final class CraftEngineFurniture {
 
     private CraftEngineFurniture() {}
+
+    /**
+     * Returns an unmodifiable map of all currently loaded custom furniture.
+     * The map keys represent unique identifiers, and the values are the corresponding CustomFurniture instances.
+     *
+     * <p><strong>Important:</strong> Do not attempt to access this method during the onEnable phase
+     * as it will be empty. Instead, listen for the {@code CraftEngineReloadEvent} and use this method
+     * after the event is fired to obtain the complete furniture list.
+     *
+     * @return a non-null map containing all loaded custom furniture
+     */
+    @NotNull
+    public static Map<Key, CustomFurniture> loadedFurniture() {
+        return BukkitFurnitureManager.instance().loadedFurniture();
+    }
 
     /**
      * Gets custom furniture by ID

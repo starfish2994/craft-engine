@@ -11,8 +11,8 @@ public record UnknownPayload(Key channel, ByteBuf rawPayload) implements Payload
 
     public static UnknownPayload from(Object payload) {
         try {
-            Object id = NetworkReflections.field$UnknownPayload$id.get(payload);
-            ByteBuf data = (ByteBuf) NetworkReflections.field$UnknownPayload$data.get(payload);
+            Object id = NetworkReflections.field$ServerboundCustomPayloadPacket$UnknownPayload$id.get(payload);
+            ByteBuf data = (ByteBuf) NetworkReflections.field$ServerboundCustomPayloadPacket$UnknownPayload$data.get(payload);
             Key channel = KeyUtils.resourceLocationToKey(id);
             return new UnknownPayload(channel, data);
         } catch (Exception e) {

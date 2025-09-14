@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public abstract class AbstractVanillaLootManager implements VanillaLootManager {
     protected final Map<Integer, VanillaLoot> blockLoots = new HashMap<>();
-    // TODO More entity NBT
+    // TODO 实现一个基于entity data的生物战利品系统
     protected final Map<Key, VanillaLoot> entityLoots = new HashMap<>();
 
     public AbstractVanillaLootManager() {

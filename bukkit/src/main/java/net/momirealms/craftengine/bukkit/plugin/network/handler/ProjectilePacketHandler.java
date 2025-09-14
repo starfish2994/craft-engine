@@ -6,6 +6,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.injector.ProtectedFieldVisitor;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntityTypes;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.Item;
@@ -38,7 +39,7 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
     }
 
     @Override
-    public void handleSetEntityData(NetWorkUser user, ByteBufPacketEvent event) {
+    public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
         FriendlyByteBuf buf = event.getBuffer();
         int id = buf.readVarInt();
         event.setChanged(true);
@@ -111,7 +112,7 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         Optional<CustomItem<ItemStack>> customItem = BukkitItemManager.instance().getCustomItem(this.projectile.metadata().item());
         if (customItem.isEmpty()) return itemDisplayValues;
         ProjectileMeta meta = this.projectile.metadata();
-        Item<ItemStack> displayedItem = customItem.get().buildItem(ItemBuildContext.EMPTY);
+        Item<ItemStack> displayedItem = customItem.get().buildItem(ItemBuildContext.empty());
         // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承
         displayedItem = this.projectile.item().mergeCopy(displayedItem);
         ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);

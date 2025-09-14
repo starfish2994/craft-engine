@@ -1,0 +1,697 @@
+items:
+  default:palm_log:
+    material: nether_brick
+    custom-model-data: 1000
+    settings:
+      fuel-time: 300
+      tags:
+        - default:palm_logs
+        - minecraft:logs
+        - minecraft:logs_that_burn
+    data:
+      item-name: <!i><i18n:item.palm_log>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_log
+      generation:
+        parent: minecraft:block/custom/palm_log
+    behavior:
+      type: block_item
+      block:
+        behavior:
+          type: strippable_block
+          stripped: default:stripped_palm_log
+        loot:
+          template: default:loot_table/self
+        settings:
+          template: default:settings/wood
+        states:
+          template: default:block_state/pillar
+          arguments:
+            base_block: note_block
+            texture_top_path: minecraft:block/custom/palm_log_top
+            texture_side_path: minecraft:block/custom/palm_log
+            model_vertical_path: minecraft:block/custom/palm_log
+            model_horizontal_path: minecraft:block/custom/palm_log_horizontal
+            vanilla_id:
+              type: self_increase_int
+              from: 0
+              to: 2
+            internal_id:
+              type: self_increase_int
+              from: 0
+              to: 2
+  default:stripped_palm_log:
+    material: nether_brick
+    custom-model-data: 1001
+    settings:
+      fuel-time: 300
+      tags:
+        - default:palm_logs
+        - minecraft:logs
+        - minecraft:logs_that_burn
+    data:
+      item-name: <!i><i18n:item.stripped_palm_log>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/stripped_palm_log
+      generation:
+        parent: minecraft:block/custom/stripped_palm_log
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          template: default:settings/wood
+        states:
+          template: default:block_state/pillar
+          arguments:
+            base_block: note_block
+            texture_top_path: minecraft:block/custom/stripped_palm_log_top
+            texture_side_path: minecraft:block/custom/stripped_palm_log
+            model_vertical_path: minecraft:block/custom/stripped_palm_log
+            model_horizontal_path: minecraft:block/custom/stripped_palm_log_horizontal
+            vanilla_id:
+              type: self_increase_int
+              from: 3
+              to: 5
+            internal_id:
+              type: self_increase_int
+              from: 3
+              to: 5
+  default:palm_wood:
+    material: nether_brick
+    custom-model-data: 1002
+    settings:
+      fuel-time: 300
+      tags:
+        - default:palm_logs
+        - minecraft:logs
+        - minecraft:logs_that_burn
+    data:
+      item-name: <!i><i18n:item.palm_wood>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_wood
+      generation:
+        parent: minecraft:block/custom/palm_wood
+    behavior:
+      type: block_item
+      block:
+        behavior:
+          type: strippable_block
+          stripped: default:stripped_palm_wood
+        loot:
+          template: default:loot_table/self
+        settings:
+          template: default:settings/wood
+        states:
+          template: default:block_state/pillar
+          arguments:
+            base_block: note_block
+            texture_top_path: minecraft:block/custom/palm_log
+            texture_side_path: minecraft:block/custom/palm_log
+            model_vertical_path: minecraft:block/custom/palm_wood
+            model_horizontal_path: minecraft:block/custom/palm_wood_horizontal
+            vanilla_id:
+              type: self_increase_int
+              from: 6
+              to: 8
+            internal_id:
+              type: self_increase_int
+              from: 6
+              to: 8
+  default:stripped_palm_wood:
+    material: nether_brick
+    custom-model-data: 1003
+    settings:
+      fuel-time: 300
+      tags:
+        - default:palm_logs
+        - minecraft:logs
+        - minecraft:logs_that_burn
+    data:
+      item-name: <!i><i18n:item.stripped_palm_wood>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/stripped_palm_wood
+      generation:
+        parent: minecraft:block/custom/stripped_palm_wood
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          template: default:settings/wood
+        states:
+          template: default:block_state/pillar
+          arguments:
+            base_block: note_block
+            texture_top_path: minecraft:block/custom/stripped_palm_log
+            texture_side_path: minecraft:block/custom/stripped_palm_log
+            model_vertical_path: minecraft:block/custom/stripped_palm_wood
+            model_horizontal_path: minecraft:block/custom/stripped_palm_wood_horizontal
+            vanilla_id:
+              type: self_increase_int
+              from: 9
+              to: 11
+            internal_id:
+              type: self_increase_int
+              from: 9
+              to: 11
+  default:palm_planks:
+    material: nether_brick
+    custom-model-data: 1004
+    settings:
+      fuel-time: 300
+      tags:
+        - minecraft:planks
+        - minecraft:wooden_tool_materials
+    data:
+      item-name: <!i><i18n:item.palm_planks>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_planks
+      generation:
+        parent: minecraft:block/custom/palm_planks
+    behavior:
+      type: block_item
+      block:
+        settings:
+          template: default:settings/planks
+        loot:
+          template: default:loot_table/self
+        state:
+          model:
+            template: default:model/simplified_cube_all
+            arguments:
+              path: minecraft:block/custom/palm_planks
+          id: 12
+          state: note_block:12
+  default:palm_sapling:
+    material: nether_brick
+    custom-model-data: 1005
+    settings:
+      fuel-time: 100
+    data:
+      item-name: <!i><i18n:item.palm_sapling>
+    model:
+      template: default:model/generated
+      arguments:
+        model: minecraft:item/custom/palm_sapling
+        texture: minecraft:block/custom/palm_sapling
+    behavior:
+      type: block_item
+      block:
+        settings:
+          template: default:settings/sapling
+        behaviors:
+          - type: bush_block
+            bottom-block-tags:
+              - minecraft:dirt
+              - minecraft:farmland
+              - minecraft:sand
+          - type: sapling_block
+            feature: minecraft:fancy_oak
+            bone-meal-success-chance: 0.45
+        loot:
+          template: default:loot_table/self
+        states:
+          properties:
+            stage:
+              type: int
+              default-value: 0
+              range: 0~1
+          appearances:
+            default:
+              state: oak_sapling:0
+              model:
+                path: minecraft:block/custom/palm_sapling
+                generation:
+                  parent: minecraft:block/cross
+                  textures:
+                    cross: minecraft:block/custom/palm_sapling
+          variants:
+            stage=0:
+              appearance: default
+              id: 0
+            stage=1:
+              appearance: default
+              id: 1
+  default:palm_leaves:
+    material: oak_leaves
+    custom-model-data: 1000
+    data:
+      item-name: <!i><i18n:item.palm_leaves>
+      components:
+        minecraft:block_state:
+          distance: '1'
+          persistent: 'false'
+          waterlogged: 'false'
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_leaves
+      generation:
+        parent: minecraft:block/custom/palm_leaves
+      tints:
+        - type: minecraft:constant
+          value: -12012264
+    behavior:
+      type: block_item
+      block:
+        behavior:
+          type: leaves_block
+        loot:
+          template: default:loot_table/leaves
+          arguments:
+            leaves: default:palm_leaves
+            sapling: default:palm_sapling
+        settings:
+          template: default:settings/leaves
+        states:
+          template: default:block_state/leaves
+          arguments:
+            default_state: oak_leaves[distance=1,persistent=false,waterlogged=false]
+            waterlogged_state: oak_leaves[distance=1,persistent=false,waterlogged=true]
+            model_path: minecraft:block/custom/palm_leaves
+            texture_path: minecraft:block/custom/palm_leaves
+            internal_id:
+              type: self_increase_int
+              from: 0
+              to: 27
+  default:palm_trapdoor:
+    material: nether_brick
+    custom-model-data: 1006
+    data:
+      item-name: <!i><i18n:item.palm_trapdoor>
+    settings:
+      fuel-time: 300
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_trapdoor
+      generation:
+        parent: minecraft:block/custom/palm_trapdoor_bottom
+    behavior:
+      type: block_item
+      block:
+        behavior:
+          type: trapdoor_block
+          can-open-with-hand: true
+          can-open-by-wind-charge: true
+          sounds:
+            open: minecraft:block.wooden_trapdoor.open
+            close: minecraft:block.wooden_trapdoor.close
+        loot:
+          template: default:loot_table/self
+        settings:
+          template:
+            - default:sound/wood
+          overrides:
+            map-color: 2
+            instrument: bass
+            hardness: 3.0
+            resistance: 3.0
+            burnable: true
+            tags:
+              - minecraft:mineable/axe
+              - minecraft:trapdoors
+        states:
+          template: default:block_state/trapdoor
+          arguments:
+            base_block: acacia_trapdoor
+            model_bottom_path: minecraft:block/custom/palm_trapdoor_bottom
+            model_bottom_generation:
+              parent: minecraft:block/template_orientable_trapdoor_bottom
+              textures:
+                texture: minecraft:block/custom/palm_trapdoor
+            model_open_path: minecraft:block/custom/palm_trapdoor_open
+            model_open_generation:
+              parent: minecraft:block/template_orientable_trapdoor_open
+              textures:
+                texture: minecraft:block/custom/palm_trapdoor
+            model_top_path: minecraft:block/custom/palm_trapdoor_top
+            model_top_generation:
+              parent: minecraft:block/template_orientable_trapdoor_top
+              textures:
+                texture: minecraft:block/custom/palm_trapdoor
+  default:palm_door:
+    material: nether_brick
+    custom-model-data: 1007
+    data:
+      item-name: <!i><i18n:item.palm_door>
+    settings:
+      fuel-time: 200
+    model:
+      template: default:model/simplified_generated
+      arguments:
+        path: minecraft:item/custom/palm_door
+    behavior:
+      type: double_high_block_item
+      block:
+        behavior:
+          type: door_block
+          can-open-with-hand: true
+          can-open-by-wind-charge: true
+          sounds:
+            open: minecraft:block.wooden_door.open
+            close: minecraft:block.wooden_door.close
+        loot:
+          template: default:loot_table/door
+        settings:
+          template:
+            - default:sound/wood
+          overrides:
+            push-reaction: destroy
+            map-color: 2
+            instrument: bass
+            hardness: 3.0
+            resistance: 3.0
+            burnable: true
+            tags:
+              - minecraft:wooden_doors
+              - minecraft:doors
+              - minecraft:mineable/axe
+        states:
+          template: default:block_state/door
+          arguments:
+            base_block: oak_door
+            model_top_left_path: minecraft:block/custom/palm_door_top_left
+            model_top_left_generation:
+              parent: minecraft:block/door_top_left
+              textures: &textures
+                bottom: minecraft:block/custom/palm_door_bottom
+                top: minecraft:block/custom/palm_door_top
+            model_top_right_path: minecraft:block/custom/palm_door_top_right
+            model_top_right_generation:
+              parent: minecraft:block/door_top_right
+              textures: *textures
+            model_top_left_open_path: minecraft:block/custom/palm_door_top_left_open
+            model_top_left_open_generation:
+              parent: minecraft:block/door_top_left_open
+              textures: *textures
+            model_top_right_open_path: minecraft:block/custom/palm_door_top_right_open
+            model_top_right_open_generation:
+              parent: minecraft:block/door_top_right_open
+              textures: *textures
+            model_bottom_left_path: minecraft:block/custom/palm_door_bottom_left
+            model_bottom_left_generation:
+              parent: minecraft:block/door_bottom_left
+              textures: *textures
+            model_bottom_right_path: minecraft:block/custom/palm_door_bottom_right
+            model_bottom_right_generation:
+              parent: minecraft:block/door_bottom_right
+              textures: *textures
+            model_bottom_left_open_path: minecraft:block/custom/palm_door_bottom_left_open
+            model_bottom_left_open_generation:
+              parent: minecraft:block/door_bottom_left_open
+              textures: *textures
+            model_bottom_right_open_path: minecraft:block/custom/palm_door_bottom_right_open
+            model_bottom_right_open_generation:
+              parent: minecraft:block/door_bottom_right_open
+              textures: *textures
+  default:palm_fence_gate:
+    material: nether_brick
+    custom-model-data: 1008
+    data:
+      item-name: <!i><i18n:item.palm_fence_gate>
+    settings:
+      fuel-time: 300
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_fence_gate
+      generation:
+        parent: minecraft:block/custom/palm_fence_gate
+    behavior:
+      type: block_item
+      block:
+        behaviors:
+          type: fence_gate_block
+          can-open-with-hand: true
+          can-open-by-wind-charge: true
+          sounds:
+            open: minecraft:block.fence_gate.open
+            close: minecraft:block.fence_gate.close
+        loot:
+          template: default:loot_table/self
+        settings:
+          template:
+            - default:sound/wood
+            - default:hardness/planks
+          overrides:
+            map-color: 2
+            instrument: bass
+            burnable: true
+            tags:
+              - minecraft:fence_gates
+              - minecraft:mineable/axe
+              - minecraft:unstable_bottom_center
+        states:
+          template: default:block_state/fence_gate
+          arguments:
+            base_block: oak_fence_gate
+            model_fence_gate_path: minecraft:block/custom/palm_fence_gate
+            model_fence_gate_generation:
+              parent: minecraft:block/template_fence_gate
+              textures: &textures
+                texture: minecraft:block/custom/palm_planks
+            model_fence_gate_open_path: minecraft:block/custom/palm_fence_gate_open
+            model_fence_gate_open_generation:
+              parent: minecraft:block/template_fence_gate_open
+              textures: *textures
+            model_fence_gate_wall_path: minecraft:block/custom/palm_fence_gate_wall
+            model_fence_gate_wall_generation:
+              parent: minecraft:block/template_fence_gate_wall
+              textures: *textures
+            model_fence_gate_wall_open_path: minecraft:block/custom/palm_fence_gate_wall_open
+            model_fence_gate_wall_open_generation:
+              parent: minecraft:block/template_fence_gate_wall_open
+              textures: *textures
+  default:palm_slab:
+    material: nether_brick
+    custom-model-data: 1009
+    data:
+      item-name: <!i><i18n:item.palm_slab>
+    settings:
+      fuel-time: 150
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_slab
+      generation:
+        parent: minecraft:block/custom/palm_slab
+    behavior:
+      type: block_item
+      block:
+        behaviors:
+          type: slab_block
+        loot:
+          template: default:loot_table/slab
+        settings:
+          template:
+            - default:sound/wood
+            - default:burn_data/planks
+            - default:hardness/planks
+          overrides:
+            map-color: 2
+            instrument: bass
+            tags:
+              - minecraft:wooden_slabs
+              - minecraft:slabs
+              - minecraft:mineable/axe
+        states:
+          template: default:block_state/slab
+          arguments:
+            base_block: petrified_oak_slab
+            model_bottom_path: minecraft:block/custom/palm_slab
+            model_bottom_generation:
+              parent: minecraft:block/slab
+              textures: &textures
+                bottom: minecraft:block/custom/palm_planks
+                side: minecraft:block/custom/palm_planks
+                top: minecraft:block/custom/palm_planks
+            model_top_path: minecraft:block/custom/palm_slab_top
+            model_top_generation:
+              parent: minecraft:block/slab_top
+              textures: *textures
+            model_double_path: minecraft:block/custom/palm_planks
+  default:palm_stairs:
+    material: nether_brick
+    custom-model-data: 1013
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_stairs
+      generation:
+        parent: minecraft:block/custom/palm_stairs
+    data:
+      item-name: <!i><i18n:item.palm_stairs>
+    settings:
+      fuel-time: 300
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          template:
+            - default:sound/wood
+            - default:hardness/planks
+            - default:burn_data/planks
+          overrides:
+            map-color: 2
+            instrument: bass
+            tags:
+              - minecraft:mineable/axe
+              - minecraft:stairs
+              - minecraft:wooden_stairs
+        behavior:
+          type: stairs_block
+        states:
+          template: default:block_state/stairs
+          arguments:
+            base_block: cut_copper_stairs
+            model_stairs_inner_path: minecraft:block/custom/palm_stairs_inner
+            model_stairs_inner_generation:
+              parent: minecraft:block/inner_stairs
+              textures: &textures
+                bottom: &block_texture minecraft:block/custom/palm_planks
+                side: *block_texture
+                top: *block_texture
+            model_stairs_outer_path: minecraft:block/custom/palm_stairs_outer
+            model_stairs_outer_generation:
+              parent: minecraft:block/outer_stairs
+              textures: *textures
+            model_stairs_path: minecraft:block/custom/palm_stairs
+            model_stairs_generation:
+              parent: minecraft:block/stairs
+              textures: *textures
+  default:palm_pressure_plate:
+    material: nether_brick
+    custom-model-data: 1014
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_pressure_plate
+      generation:
+        parent: minecraft:block/custom/palm_pressure_plate
+    data:
+      item-name: <!i><i18n:item.palm_pressure_plate>
+    settings:
+      fuel-time: 300
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          template:
+            - default:sound/wood
+            - default:hardness/planks
+          overrides:
+            burnable: true
+            push-reaction: destroy
+            map-color: 2
+            instrument: bass
+            tags:
+              - minecraft:mineable/axe
+              - minecraft:wall_post_override
+              - minecraft:wooden_pressure_plates
+              - minecraft:pressure_plates
+        behaviors:
+          type: pressure_plate_block
+          sensitivity: all
+          pressed-time: 20
+          sounds:
+            on: minecraft:block.wooden_pressure_plate.click_on
+            off: minecraft:block.wooden_pressure_plate.click_off
+        states:
+          template: default:block_state/pressure_plate
+          arguments:
+            normal_state: light_weighted_pressure_plate:0
+            powered_state: light_weighted_pressure_plate:1
+            normal_id: 0
+            powered_id: 1
+            model_normal_path: minecraft:block/custom/palm_pressure_plate
+            model_normal_generation:
+              parent: minecraft:block/pressure_plate_up
+              textures:
+                texture: minecraft:block/custom/palm_planks
+            model_powered_path: minecraft:block/custom/palm_pressure_plate_down
+            model_powered_generation:
+              parent: minecraft:block/pressure_plate_down
+              textures:
+                texture: minecraft:block/custom/palm_planks
+recipes:
+  default:palm_planks:
+    template: default:recipe/planks
+    arguments:
+      wood_type: palm
+  default:palm_wood:
+    template: default:recipe/log_2_wood
+    arguments:
+      wood_type: palm
+  default:stripped_palm_wood:
+    template: default:recipe/log_2_wood
+    arguments:
+      wood_type: stripped_palm
+  default:palm_trapdoor:
+    type: shaped
+    pattern:
+      - AAA
+      - AAA
+    ingredients:
+      A: default:palm_planks
+    result:
+      id: default:palm_trapdoor
+      count: 2
+  default:palm_door:
+    type: shaped
+    pattern:
+      - AA
+      - AA
+      - AA
+    ingredients:
+      A: default:palm_planks
+    result:
+      id: default:palm_door
+      count: 3
+  default:palm_fence_gate:
+    type: shaped
+    pattern:
+      - ABA
+      - ABA
+    ingredients:
+      A: minecraft:stick
+      B: default:palm_planks
+    result:
+      id: default:palm_fence_gate
+      count: 1
+  default:palm_slab:
+    type: shaped
+    pattern:
+      - AAA
+    ingredients:
+      A: default:palm_planks
+    result:
+      id: default:palm_slab
+      count: 6
+  default:palm_pressure_plate:
+    type: shaped
+    pattern:
+      - AA
+    ingredients:
+      A: default:palm_planks
+    result:
+      id: default:palm_pressure_plate
+      count: 1
+  $$>=1.20.3#palm_stairs:
+    default:palm_stairs:
+      type: shaped
+      pattern:
+        - 'A  '
+        - 'AA '
+        - 'AAA'
+      ingredients:
+        A: default:palm_planks
+      result:
+        id: default:palm_stairs
+        count: 4

@@ -31,11 +31,11 @@ public class BukkitBlockBehavior extends AbstractBlockBehavior {
                 Direction.Axis axis = blockState.get(axisProperty);
                 return switch (rotation) {
                     case COUNTERCLOCKWISE_90, CLOCKWISE_90 -> switch (axis) {
-                        case X -> blockState.with(axisProperty, Direction.Axis.Z).customBlockState().handle();
-                        case Z -> blockState.with(axisProperty, Direction.Axis.X).customBlockState().handle();
-                        default -> blockState.customBlockState().handle();
+                        case X -> blockState.with(axisProperty, Direction.Axis.Z).customBlockState().literalObject();
+                        case Z -> blockState.with(axisProperty, Direction.Axis.X).customBlockState().literalObject();
+                        default -> blockState.customBlockState().literalObject();
                     };
-                    default -> blockState.customBlockState().handle();
+                    default -> blockState.customBlockState().literalObject();
                 };
             };
         });
@@ -45,7 +45,7 @@ public class BukkitBlockBehavior extends AbstractBlockBehavior {
                 Property<HorizontalDirection> directionProperty = (Property<HorizontalDirection>) property;
                 behavior.rotateFunction = (thisBlock, blockState, rotation) ->
                         blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty).toDirection()).toHorizontalDirection())
-                                .customBlockState().handle();
+                                .customBlockState().literalObject();
                 behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
                     Rotation rotation = mirror.getRotation(blockState.get(directionProperty).toDirection());
                     return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
@@ -55,7 +55,7 @@ public class BukkitBlockBehavior extends AbstractBlockBehavior {
                 Property<Direction> directionProperty = (Property<Direction>) property;
                 behavior.rotateFunction = (thisBlock, blockState, rotation) ->
                         blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty)))
-                                .customBlockState().handle();
+                                .customBlockState().literalObject();
                 behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
                     Rotation rotation = mirror.getRotation(blockState.get(directionProperty));
                     return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
@@ -68,7 +68,7 @@ public class BukkitBlockBehavior extends AbstractBlockBehavior {
                 Property<HorizontalDirection> directionProperty = (Property<HorizontalDirection>) property;
                 behavior.rotateFunction = (thisBlock, blockState, rotation) ->
                         blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty).toDirection()).toHorizontalDirection())
-                                .customBlockState().handle();
+                                .customBlockState().literalObject();
                 behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
                     Rotation rotation = mirror.getRotation(blockState.get(directionProperty).toDirection());
                     return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
@@ -139,7 +139,7 @@ public class BukkitBlockBehavior extends AbstractBlockBehavior {
         if (optionalCustomState.isEmpty()) return CoreReflections.instance$ItemStack$EMPTY;
         ImmutableBlockState immutableBlockState = optionalCustomState.get();
         if (immutableBlockState.get(this.waterloggedProperty)) {
-            FastNMS.INSTANCE.method$LevelWriter$setBlock(world, pos, immutableBlockState.with(this.waterloggedProperty, false).customBlockState().handle(), 3);
+            FastNMS.INSTANCE.method$LevelWriter$setBlock(world, pos, immutableBlockState.with(this.waterloggedProperty, false).customBlockState().literalObject(), 3);
             return FastNMS.INSTANCE.constructor$ItemStack(MItems.WATER_BUCKET, 1);
         }
         return CoreReflections.instance$ItemStack$EMPTY;
@@ -154,7 +154,7 @@ public class BukkitBlockBehavior extends AbstractBlockBehavior {
         ImmutableBlockState immutableBlockState = optionalCustomState.get();
         Object fluidType = FastNMS.INSTANCE.method$FluidState$getType(args[3]);
         if (!immutableBlockState.get(this.waterloggedProperty) && fluidType == MFluids.WATER) {
-            FastNMS.INSTANCE.method$LevelWriter$setBlock(args[0], args[1], immutableBlockState.with(this.waterloggedProperty, true).customBlockState().handle(), 3);
+            FastNMS.INSTANCE.method$LevelWriter$setBlock(args[0], args[1], immutableBlockState.with(this.waterloggedProperty, true).customBlockState().literalObject(), 3);
             FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleFluidTick(args[0], args[1], fluidType, 5);
             return true;
         }
@@ -182,6 +182,6 @@ public class BukkitBlockBehavior extends AbstractBlockBehavior {
         if (optionalCustomState.isEmpty()) return false;
         BlockStateWrapper vanillaState = optionalCustomState.get().vanillaBlockState();
         if (vanillaState == null) return false;
-        return FastNMS.INSTANCE.method$BlockStateBase$isPathFindable(vanillaState.handle(), VersionHelper.isOrAbove1_20_5() ? null : args[1], VersionHelper.isOrAbove1_20_5() ? null : args[2], args[isPathFindable$type]);
+        return FastNMS.INSTANCE.method$BlockStateBase$isPathFindable(vanillaState.literalObject(), VersionHelper.isOrAbove1_20_5() ? null : args[1], VersionHelper.isOrAbove1_20_5() ? null : args[2], args[isPathFindable$type]);
     }
 }

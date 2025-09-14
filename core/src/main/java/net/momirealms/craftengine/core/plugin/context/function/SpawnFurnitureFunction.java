@@ -88,8 +88,8 @@ public class SpawnFurnitureFunction<CTX extends Context> extends AbstractConditi
             NumberProvider x = NumberProviders.fromObject(arguments.getOrDefault("x", "<arg:position.x>"));
             NumberProvider y = NumberProviders.fromObject(arguments.getOrDefault("y", "<arg:position.y>"));
             NumberProvider z = NumberProviders.fromObject(arguments.getOrDefault("z", "<arg:position.z>"));
-            NumberProvider pitch = NumberProviders.fromObject(arguments.getOrDefault("pitch", "<arg:pitch>"));
-            NumberProvider yaw = NumberProviders.fromObject(arguments.getOrDefault("yaw", "<arg:yaw>"));
+            NumberProvider pitch = NumberProviders.fromObject(arguments.getOrDefault("pitch", "<arg:position.pitch>"));
+            NumberProvider yaw = NumberProviders.fromObject(arguments.getOrDefault("yaw", "<arg:position.yaw>"));
             AnchorType anchorType = ResourceConfigUtils.getAsEnum(arguments.get("anchor-type"), AnchorType.class, null);
             boolean playSound = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("play-sound", true), "play-sound");
             return new SpawnFurnitureFunction<>(furnitureId, x, y, z, pitch, yaw, anchorType, playSound, getPredicates(arguments));

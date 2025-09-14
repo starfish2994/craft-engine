@@ -67,4 +67,8 @@ public interface PacketIds {
     int serverboundInteractPacket();
 
     int clientboundUpdateRecipesPacket();
+
+    int clientboundForgetLevelChunkPacket();
+
+    int serverboundCustomPayloadPacket();
 }

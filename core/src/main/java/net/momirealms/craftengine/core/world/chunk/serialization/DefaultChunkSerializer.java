@@ -9,8 +9,6 @@ import net.momirealms.sparrow.nbt.ListTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public final class DefaultChunkSerializer {
 
     @Nullable
@@ -28,7 +26,14 @@ public final class DefaultChunkSerializer {
         if (sections.isEmpty()) return null;
         CompoundTag chunkNbt = new CompoundTag();
         chunkNbt.put("sections", sections);
-        chunkNbt.put("block_entities", DefaultBlockEntitySerializer.serialize(chunk.blockEntities()));
+        ListTag blockEntities = DefaultBlockEntitySerializer.serialize(chunk.blockEntities());
+        if (!blockEntities.isEmpty()) {
+            chunkNbt.put("block_entities", blockEntities);
+        }
+        ListTag blockEntityRenders = DefaultBlockEntityRendererSerializer.serialize(chunk.constantBlockEntityRenderers());
+        if (!blockEntityRenders.isEmpty()) {
+            chunkNbt.put("block_entity_renderers", blockEntityRenders);
+        }
         return chunkNbt;
     }
 
@@ -46,7 +51,8 @@ public final class DefaultChunkSerializer {
                 }
             }
         }
-        ListTag blockEntities = Optional.ofNullable(chunkNbt.getList("block_entities")).orElse(new ListTag());
-        return new CEChunk(world, pos, sectionArray, DefaultBlockEntitySerializer.deserialize(blockEntities));
+        ListTag blockEntities = chunkNbt.getList("block_entities");
+        ListTag itemDisplayBlockRenders = chunkNbt.getList("block_entity_renderers");
+        return new CEChunk(world, pos, sectionArray, blockEntities, itemDisplayBlockRenders);
     }
 }

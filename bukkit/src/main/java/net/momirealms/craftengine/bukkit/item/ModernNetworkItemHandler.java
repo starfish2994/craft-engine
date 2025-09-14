@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.item;
 
-import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.*;
@@ -8,8 +7,11 @@ import net.momirealms.craftengine.core.item.modifier.ArgumentsModifier;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
+import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -64,7 +66,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) {
             if (!Config.interceptItem()) return Optional.empty();
-            return new OtherItem(wrapped, false).process();
+            return new OtherItem(wrapped, false).process(NetworkTextReplaceContext.of(player));
         } else {
             BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
             Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
@@ -74,7 +76,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             }
             if (!customItem.hasClientBoundDataModifier()) {
                 if (!Config.interceptItem() && !hasDifferentMaterial) return Optional.empty();
-                return new OtherItem(wrapped, hasDifferentMaterial).process();
+                return new OtherItem(wrapped, hasDifferentMaterial).process(NetworkTextReplaceContext.of(player));
             } else {
                 CompoundTag customData = Optional.ofNullable(wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA)).map(CompoundTag.class::cast).orElse(new CompoundTag());
                 CompoundTag arguments = customData.getCompound(ArgumentsModifier.ARGUMENTS_TAG);
@@ -97,16 +99,16 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 }
                 if (Config.interceptItem()) {
                     if (!tag.containsKey(ComponentIds.ITEM_NAME)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernItemName(wrapped, () -> tag);
-                        else processLegacyItemName(wrapped, () -> tag);
+                        if (VersionHelper.isOrAbove1_21_5()) processModernItemName(wrapped, () -> tag, context);
+                        else processLegacyItemName(wrapped, () -> tag, context);
                     }
                     if (!tag.containsKey(ComponentIds.CUSTOM_NAME)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernCustomName(wrapped, () -> tag);
-                        else processLegacyCustomName(wrapped, () -> tag);
+                        if (VersionHelper.isOrAbove1_21_5()) processModernCustomName(wrapped, () -> tag, context);
+                        else processLegacyCustomName(wrapped, () -> tag, context);
                     }
                     if (!tag.containsKey(ComponentIds.LORE)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernLore(wrapped, () -> tag);
-                        else processLegacyLore(wrapped, () -> tag);
+                        if (VersionHelper.isOrAbove1_21_5()) processModernLore(wrapped, () -> tag, context);
+                        else processLegacyLore(wrapped, () -> tag, context);
                     }
                 }
                 if (tag.isEmpty()) {
@@ -120,18 +122,18 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         }
     }
 
-    public static boolean processLegacyLore(Item<ItemStack> item, Supplier<CompoundTag> tag) {
+    public static boolean processLegacyLore(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
         Optional<List<String>> optionalLore = item.loreJson();
         if (optionalLore.isPresent()) {
             boolean changed = false;
             List<String> lore = optionalLore.get();
             List<String> newLore = new ArrayList<>(lore.size());
             for (String line : lore) {
-                Map<String, Component> tokens = CraftEngine.instance().fontManager().matchTags(line);
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
                 if (tokens.isEmpty()) {
                     newLore.add(line);
                 } else {
-                    newLore.add(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens)));
+                    newLore.add(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
                     changed = true;
                 }
             }
@@ -148,13 +150,13 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         return false;
     }
     
-    public static boolean processLegacyCustomName(Item<ItemStack> item, Supplier<CompoundTag> tag) {
+    public static boolean processLegacyCustomName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
         Optional<String> optionalCustomName = item.customNameJson();
         if (optionalCustomName.isPresent()) {
             String line = optionalCustomName.get();
-            Map<String, Component> tokens = CraftEngine.instance().fontManager().matchTags(line);
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
             if (!tokens.isEmpty()) {
-                item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens)));
+                item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
                 tag.get().put(ComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
                 return true;
             }
@@ -162,13 +164,13 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         return false;
     }
 
-    public static boolean processLegacyItemName(Item<ItemStack> item, Supplier<CompoundTag> tag) {
+    public static boolean processLegacyItemName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
         Optional<String> optionalItemName = item.itemNameJson();
         if (optionalItemName.isPresent()) {
             String line = optionalItemName.get();
-            Map<String, Component> tokens = CraftEngine.instance().fontManager().matchTags(line);
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
             if (!tokens.isEmpty()) {
-                item.itemNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens)));
+                item.itemNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
                 tag.get().put(ComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
                 return true;
             }
@@ -176,33 +178,33 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         return false;
     }
 
-    public static boolean processModernItemName(Item<ItemStack> item, Supplier<CompoundTag> tag) {
+    public static boolean processModernItemName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
         Tag nameTag = item.getSparrowNBTComponent(ComponentTypes.ITEM_NAME);
         if (nameTag == null) return false;
         String tagStr = nameTag.getAsString();
-        Map<String, Component> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(ComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens)));
+            item.setNBTComponent(ComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
             tag.get().put(ComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
         return false;
     }
 
-    public static boolean processModernCustomName(Item<ItemStack> item, Supplier<CompoundTag> tag) {
+    public static boolean processModernCustomName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
         Tag nameTag = item.getSparrowNBTComponent(ComponentTypes.CUSTOM_NAME);
         if (nameTag == null) return false;
         String tagStr = nameTag.getAsString();
-        Map<String, Component> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(ComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens)));
+            item.setNBTComponent(ComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
             tag.get().put(ComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
         return false;
     }
 
-    public static boolean processModernLore(Item<ItemStack> item, Supplier<CompoundTag> tagSupplier) {
+    public static boolean processModernLore(Item<ItemStack> item, Supplier<CompoundTag> tagSupplier, Context context) {
         Tag loreTag = item.getSparrowNBTComponent(ComponentTypes.LORE);
         boolean changed = false;
         if (!(loreTag instanceof ListTag listTag)) {
@@ -211,11 +213,11 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         ListTag newLore = new ListTag();
         for (Tag tag : listTag) {
             String tagStr = tag.getAsString();
-            Map<String, Component> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
             if (tokens.isEmpty()) {
                 newLore.add(tag);
             } else {
-                newLore.add(AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(tag), tokens)));
+                newLore.add(AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(tag), tokens, context)));
                 changed = true;
             }
         }
@@ -238,20 +240,20 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             this.forceReturn = forceReturn;
         }
 
-        public Optional<Item<ItemStack>> process() {
+        public Optional<Item<ItemStack>> process(Context context) {
             if (VersionHelper.isOrAbove1_21_5()) {
-                if (processModernLore(this.item, this::getOrCreateTag))
+                if (processModernLore(this.item, this::getOrCreateTag, context))
                     this.globalChanged = true;
-                if (processModernCustomName(this.item, this::getOrCreateTag))
+                if (processModernCustomName(this.item, this::getOrCreateTag, context))
                     this.globalChanged = true;
-                if (processModernItemName(this.item, this::getOrCreateTag))
+                if (processModernItemName(this.item, this::getOrCreateTag, context))
                     this.globalChanged = true;
             } else {
-                if (processLegacyLore(this.item, this::getOrCreateTag))
+                if (processLegacyLore(this.item, this::getOrCreateTag, context))
                     this.globalChanged = true;
-                if (processLegacyCustomName(this.item, this::getOrCreateTag))
+                if (processLegacyCustomName(this.item, this::getOrCreateTag, context))
                     this.globalChanged = true;
-                if (processLegacyItemName(this.item, this::getOrCreateTag))
+                if (processLegacyItemName(this.item, this::getOrCreateTag, context))
                     this.globalChanged = true;
             }
             if (this.globalChanged) {

@@ -44,7 +44,7 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
             if (FastNMS.INSTANCE.method$CraftEventFactory$callRedstoneChange(world, blockPos, 0, 15).getNewCurrent() != 15) {
                 return;
             }
-            FastNMS.INSTANCE.method$LevelWriter$setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().handle(), 2);
+            FastNMS.INSTANCE.method$LevelWriter$setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().literalObject(), 2);
         }
     }
 
@@ -64,7 +64,7 @@ public class LampBlockBehavior extends BukkitBlockBehavior {
                 if (FastNMS.INSTANCE.method$CraftEventFactory$callRedstoneChange(world, blockPos, 0, 15).getNewCurrent() != 15) {
                     return;
                 }
-                FastNMS.INSTANCE.method$LevelWriter$setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().handle(), 2);
+                FastNMS.INSTANCE.method$LevelWriter$setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().literalObject(), 2);
             }
         }
     }

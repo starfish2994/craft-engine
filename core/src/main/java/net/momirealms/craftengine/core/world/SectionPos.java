@@ -13,4 +13,8 @@ public class SectionPos extends Vec3i {
     public static SectionPos of(BlockPos pos) {
         return new SectionPos(pos.x() >> 4, pos.y() >> 4, pos.z() >> 4);
     }
+
+    public static int sectionRelative(int rel) {
+        return rel & 15;
+    }
 }

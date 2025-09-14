@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.item;
 
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.util.Key;
 
 public interface BuildableItem<I> {
@@ -27,18 +26,18 @@ public interface BuildableItem<I> {
     }
 
     default I buildItemStack() {
-        return buildItemStack(ItemBuildContext.EMPTY, 1);
+        return buildItemStack(ItemBuildContext.empty(), 1);
     }
 
     default I buildItemStack(int count) {
-        return buildItemStack(ItemBuildContext.EMPTY, count);
+        return buildItemStack(ItemBuildContext.empty(), count);
     }
 
     default I buildItemStack(Player player) {
-        return this.buildItemStack(new ItemBuildContext(player, ContextHolder.EMPTY), 1);
+        return this.buildItemStack(ItemBuildContext.of(player), 1);
     }
 
     default I buildItemStack(Player player, int count) {
-        return this.buildItemStack(new ItemBuildContext(player, ContextHolder.EMPTY), count);
+        return this.buildItemStack(ItemBuildContext.of(player), count);
     }
 }

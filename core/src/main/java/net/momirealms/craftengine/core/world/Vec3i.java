@@ -47,12 +47,12 @@ public class Vec3i implements Comparable<Vec3i> {
 
     @Override
     public boolean equals(Object object) {
-        return this == object || object instanceof Vec3i vec3i && this.x() == vec3i.x() && this.y() == vec3i.y() && this.z() == vec3i.z();
+        return this == object || object instanceof Vec3i vec3i && this.x == vec3i.x && this.y == vec3i.y && this.z == vec3i.z;
     }
 
     @Override
     public int hashCode() {
-        return (this.y() + this.z() * 31) * 31 + this.x();
+        return (this.y + this.z * 31) * 31 + this.x;
     }
 
     @Override

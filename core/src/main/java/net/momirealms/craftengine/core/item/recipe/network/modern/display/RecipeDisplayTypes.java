@@ -15,7 +15,10 @@ public final class RecipeDisplayTypes {
     public static final Key STONECUTTER = Key.of("stonecutter");
     public static final Key SMITHING = Key.of("smithing");
 
-    public static void register() {
+    public static void init() {
+    }
+
+    static {
         register(CRAFTING_SHAPELESS, new RecipeDisplay.Type(ShapelessCraftingRecipeDisplay::read));
         register(CRAFTING_SHAPED, new RecipeDisplay.Type(ShapedCraftingRecipeDisplay::read));
         register(FURNACE, new RecipeDisplay.Type(FurnaceRecipeDisplay::read));

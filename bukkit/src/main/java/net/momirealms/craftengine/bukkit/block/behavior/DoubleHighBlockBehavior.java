@@ -63,7 +63,7 @@ public class DoubleHighBlockBehavior extends BukkitBlockBehavior {
         World level = context.getLevel();
         BlockPos anotherHalfPos = context.getClickedPos().relative(Direction.UP);
         BlockStateWrapper blockStateWrapper = state.with(this.halfProperty, DoubleBlockHalf.UPPER).customBlockState();
-        FastNMS.INSTANCE.method$LevelWriter$setBlock(level.serverWorld(), LocationUtils.toBlockPos(anotherHalfPos), blockStateWrapper.handle(), UpdateOption.Flags.UPDATE_CLIENTS);
+        FastNMS.INSTANCE.method$LevelWriter$setBlock(level.serverWorld(), LocationUtils.toBlockPos(anotherHalfPos), blockStateWrapper.literalObject(), UpdateOption.Flags.UPDATE_CLIENTS);
     }
 
     @Override

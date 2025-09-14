@@ -5,10 +5,10 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityDataUtils;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.network.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
-import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import org.bukkit.inventory.ItemStack;
 
@@ -20,7 +20,7 @@ public class CommonItemPacketHandler implements EntityPacketHandler {
     private static long lastWarningTime = 0;
 
     @Override
-    public void handleSetEntityData(NetWorkUser user, ByteBufPacketEvent event) {
+    public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
         FriendlyByteBuf buf = event.getBuffer();
         int id = buf.readVarInt();
         boolean isChanged = false;

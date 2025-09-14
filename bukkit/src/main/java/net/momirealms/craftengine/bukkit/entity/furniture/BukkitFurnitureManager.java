@@ -15,7 +15,7 @@ import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.bukkit.*;
@@ -337,6 +337,7 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
         plugin.scheduler().sync().runDelayed(() -> tryLeavingSeat(player, entity), player.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     protected void tryLeavingSeat(@NotNull Player player, @NotNull Entity vehicle) {
         Integer baseFurniture = vehicle.getPersistentDataContainer().get(FURNITURE_SEAT_BASE_ENTITY_KEY, PersistentDataType.INTEGER);
         if (baseFurniture == null) return;
@@ -350,7 +351,7 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
             plugin.logger().warn("Failed to get vector3f for player " + player.getName() + "'s seat");
             return;
         }
-        Vector3f seatPos = MiscUtils.getAsVector3f(vector3f, "seat");
+        Vector3f seatPos = ResourceConfigUtils.getAsVector3f(vector3f, "seat");
         furniture.removeOccupiedSeat(seatPos);
 
         if (player.getVehicle() != null) return;
@@ -375,6 +376,7 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
         return (entity instanceof ArmorStand || entity instanceof ItemDisplay);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     private boolean isSafeLocation(Location location) {
         World world = location.getWorld();
         if (world == null) return false;
@@ -386,6 +388,7 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
         return world.getBlockAt(x, y + 1, z).isPassable();
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Nullable
     private Location findSafeLocationNearby(Location center) {
         World world = center.getWorld();

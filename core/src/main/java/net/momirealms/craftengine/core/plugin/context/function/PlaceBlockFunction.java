@@ -62,7 +62,7 @@ public class PlaceBlockFunction<CTX extends Context> extends AbstractConditional
             NumberProvider y = NumberProviders.fromObject(arguments.getOrDefault("y", "<arg:position.y>"));
             NumberProvider z = NumberProviders.fromObject(arguments.getOrDefault("z", "<arg:position.z>"));
             NumberProvider flags = Optional.ofNullable(arguments.get("update-flags")).map(NumberProviders::fromObject).orElse(NumberProviders.direct(UpdateOption.UPDATE_ALL.flags()));
-            return new PlaceBlockFunction<>(LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createPackedBlockState(state)), x, y, z, flags, getPredicates(arguments));
+            return new PlaceBlockFunction<>(LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(state)), x, y, z, flags, getPredicates(arguments));
         }
     }
 }

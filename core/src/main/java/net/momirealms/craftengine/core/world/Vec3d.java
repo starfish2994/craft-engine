@@ -45,6 +45,13 @@ public class Vec3d implements Position {
         return atLowerCornerWithOffset(vec, 0.5, deltaY, 0.5);
     }
 
+    public static double distanceToSqr(Vec3d vec1, Vec3d vec2) {
+        double dx = vec2.x - vec1.x;
+        double dy = vec2.y - vec1.y;
+        double dz = vec2.z - vec1.z;
+        return dx * dx + dy * dy + dz * dz;
+    }
+
     @Override
     public double x() {
         return x;

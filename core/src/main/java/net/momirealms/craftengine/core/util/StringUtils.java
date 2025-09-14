@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.core.util;
 
+import java.nio.charset.StandardCharsets;
+
 public final class StringUtils {
     private StringUtils() {}
 
@@ -38,5 +40,13 @@ public final class StringUtils {
             }
         }
         return new String(chars);
+    }
+
+    public static String fromBytes(byte[] bytes, int index) {
+        byte[] decodedBytes = new byte[bytes.length];
+        for (int i = 0; i < bytes.length; i++) {
+            decodedBytes[i] = (byte) (bytes[i] ^ ((byte) index));
+        }
+        return new String(decodedBytes, StandardCharsets.UTF_8);
     }
 }

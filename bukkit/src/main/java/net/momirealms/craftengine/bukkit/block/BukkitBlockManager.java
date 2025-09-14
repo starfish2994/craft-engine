@@ -76,7 +76,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private List<Key> blockRegisterOrder = new ObjectArrayList<>();
     // Event listeners
     private BlockEventListener blockEventListener;
-    private FallingBlockRemoveListener fallingBlockRemoveListener;
     // cached tag packet
     private Object cachedUpdateTagsPacket;
 
@@ -101,7 +100,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         if (enableNoteBlocks) {
             this.recordVanillaNoteBlocks();
         }
-        this.fallingBlockRemoveListener = VersionHelper.isOrAbove1_20_3() ? new FallingBlockRemoveListener() : null;
         this.stateId2ImmutableBlockStates = new ImmutableBlockState[this.customBlockCount];
         Arrays.fill(this.stateId2ImmutableBlockStates, EmptyBlock.INSTANCE.defaultState());
         this.resetPacketConsumers();
@@ -123,9 +121,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.blockEventListener, this.plugin.javaPlugin());
-        if (this.fallingBlockRemoveListener != null) {
-            Bukkit.getPluginManager().registerEvents(this.fallingBlockRemoveListener, this.plugin.javaPlugin());
-        }
     }
 
     @Override
@@ -145,7 +140,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void disable() {
         this.unload();
         HandlerList.unregisterAll(this.blockEventListener);
-        if (this.fallingBlockRemoveListener != null) HandlerList.unregisterAll(this.fallingBlockRemoveListener);
     }
 
     @Override
@@ -181,14 +175,14 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     @Nullable
     @Override
-    public BlockStateWrapper createPackedBlockState(String blockState) {
+    public BlockStateWrapper createBlockState(String blockState) {
         ImmutableBlockState state = BlockStateParser.deserialize(blockState);
         if (state != null) {
             return state.customBlockState();
         }
         try {
             BlockData blockData = Bukkit.createBlockData(blockState);
-            return BlockStateUtils.toPackedBlockState(blockData);
+            return BlockStateUtils.toBlockStateWrapper(blockData);
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -220,7 +214,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         for (ImmutableBlockState state : customBlock.variantProvider().states()) {
             ImmutableBlockState previous = this.stateId2ImmutableBlockStates[state.customBlockState().registryId() - BlockStateUtils.vanillaStateSize()];
             if (previous != null && !previous.isEmpty()) {
-                throw new LocalizedResourceConfigException("warning.config.block.state.bind_failed", state.toString(), previous.toString());
+                throw new LocalizedResourceConfigException("warning.config.block.state.bind_failed", state.toString(), previous.toString(), BlockStateUtils.getBlockOwnerIdFromState(previous.customBlockState().literalObject()).toString());
             }
             this.stateId2ImmutableBlockStates[state.customBlockState().registryId() - BlockStateUtils.vanillaStateSize()] = state;
             this.tempBlockAppearanceConvertor.put(state.customBlockState().registryId(), state.vanillaBlockState().registryId());
@@ -231,7 +225,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     @Override
     public Key getBlockOwnerId(BlockStateWrapper state) {
-        return BlockStateUtils.getBlockOwnerIdFromState(state.handle());
+        return BlockStateUtils.getBlockOwnerIdFromState(state.literalObject());
     }
 
     @Override
@@ -258,9 +252,9 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         int size = RegistryUtils.currentBlockRegistrySize();
         BlockStateWrapper[] states = new BlockStateWrapper[size];
         for (int i = 0; i < size; i++) {
-            states[i] = BlockStateWrapper.create(BlockStateUtils.idToBlockState(i), i, BlockStateUtils.isVanillaBlock(i));
+            states[i] = new BukkitBlockStateWrapper(BlockStateUtils.idToBlockState(i), i);
         }
-        BlockRegistryMirror.init(states, BlockStateWrapper.vanilla(MBlocks.STONE$defaultState, BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)));
+        BlockRegistryMirror.init(states, new BukkitBlockStateWrapper(MBlocks.STONE$defaultState, BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)));
     }
 
     private void registerEmptyBlock() {

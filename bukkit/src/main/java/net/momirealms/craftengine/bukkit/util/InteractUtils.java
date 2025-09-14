@@ -169,6 +169,7 @@ public final class InteractUtils {
         registerInteraction(BlockKeys.DAMAGED_ANVIL, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.FURNACE, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.CRAFTING_TABLE, (player, item, blockState, result) -> true);
+        registerInteraction(BlockKeys.CARTOGRAPHY_TABLE, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.STONECUTTER, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.SMITHING_TABLE, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.LOOM, (player, item, blockState, result) -> true);

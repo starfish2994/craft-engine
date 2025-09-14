@@ -12,10 +12,11 @@ import java.util.Objects;
 
 public class ConstantBoundRegistry<T> extends AbstractMappedRegistry<T> {
     protected final Reference2IntMap<T> toId = MCUtils.make(new Reference2IntOpenHashMap<>(), map -> map.defaultReturnValue(-1));
-    protected final Map<T, Holder.Reference<T>> byValue = new IdentityHashMap<>(512);
+    protected final Map<T, Holder.Reference<T>> byValue;
 
-    public ConstantBoundRegistry(ResourceKey<? extends Registry<T>> key) {
-        super(key);
+    public ConstantBoundRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize) {
+        super(key, expectedSize);
+        this.byValue = new IdentityHashMap<>(expectedSize);
     }
 
     @Override

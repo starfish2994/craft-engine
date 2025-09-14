@@ -1,48 +1,48 @@
 package net.momirealms.craftengine.core.world.chunk.serialization;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.momirealms.craftengine.core.block.BlockEntityState;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.BlockEntityType;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
+import net.momirealms.craftengine.core.registry.BuiltInRegistries;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
-import org.jetbrains.annotations.ApiStatus;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public final class DefaultBlockEntitySerializer {
 
-    @ApiStatus.Experimental
-    public static ListTag serialize(Map<Integer, BlockEntityState> tiles) {
+    public static ListTag serialize(Collection<BlockEntity> entities) {
         ListTag result = new ListTag();
-        Map<CompoundTag, int[]> nbtToPosMap = new Object2ObjectOpenHashMap<>(Math.max(tiles.size(), 10), 0.75f);
-        for (Map.Entry<Integer, BlockEntityState> entry : tiles.entrySet()) {
-            int pos = entry.getKey();
-            CompoundTag tag = entry.getValue().nbt();
-            int[] previous = nbtToPosMap.computeIfAbsent(tag, k -> new int[] {pos});
-            int[] newPoses = new int[previous.length + 1];
-            System.arraycopy(previous, 0, newPoses, 0, previous.length);
-            newPoses[previous.length] = pos;
-            nbtToPosMap.put(tag, newPoses);
-        }
-        for (Map.Entry<CompoundTag, int[]> entry : nbtToPosMap.entrySet()) {
-            CompoundTag blockEntityTag = new CompoundTag();
-            blockEntityTag.put("data", entry.getKey());
-            blockEntityTag.putIntArray("pos", entry.getValue());
-            result.add(blockEntityTag);
+        for (BlockEntity entity : entities) {
+            if (entity.isValid()) {
+                result.add(entity.saveAsTag());
+            }
         }
         return result;
     }
 
-    @ApiStatus.Experimental
-    public static Map<Integer, BlockEntityState> deserialize(ListTag tag) {
-        Map<Integer, BlockEntityState> result = new Object2ObjectOpenHashMap<>(Math.max(tag.size(), 16), 0.5f);
+    public static List<BlockEntity> deserialize(CEChunk chunk, ListTag tag) {
+        List<BlockEntity> blockEntities = new ArrayList<>(tag.size());
         for (int i = 0; i < tag.size(); i++) {
-            CompoundTag blockEntityTag = tag.getCompound(i);
-            CompoundTag data = blockEntityTag.getCompound("data");
-            int[] pos = blockEntityTag.getIntArray("pos");
-            for (int j = 0; j < pos.length; j++) {
-                result.put(j, new BlockEntityState(data));
+            CompoundTag data = tag.getCompound(i);
+            Key id = Key.of(data.getString("id"));
+            BlockEntityType<?> type = BuiltInRegistries.BLOCK_ENTITY_TYPE.getValue(id);
+            if (type == null) {
+                Debugger.BLOCK_ENTITY.debug(() -> "Unknown block entity type: " + id);
+            } else {
+                BlockPos pos = BlockEntity.readPosAndVerify(data, chunk.chunkPos());
+                ImmutableBlockState blockState = chunk.getBlockState(pos);
+                BlockEntity blockEntity = type.factory().create(pos, blockState);
+                blockEntity.loadCustomData(data);
+                blockEntities.add(blockEntity);
             }
         }
-        return result;
+        return blockEntities;
     }
 }

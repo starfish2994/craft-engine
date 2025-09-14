@@ -1,0 +1,16 @@
+items:
+  default:cap:
+    material: leather_helmet
+    client-bound-material: leather_horse_armor
+    custom-model-data: 1000
+    data:
+      item-name: <!i><white><i18n:item.cap>
+      unbreakable: true
+      remove-components:
+        - attribute_modifiers
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/cap
+      tints:
+        - type: minecraft:dye
+          default: -6265536

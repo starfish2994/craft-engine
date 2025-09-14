@@ -5,11 +5,14 @@ import net.momirealms.craftengine.core.util.Key;
 public final class CommonConditions {
     private CommonConditions() {}
 
-    public static final Key EMPTY = Key.of("craftengine:empty");
+    public static final Key ALWAYS_TRUE = Key.of("craftengine:always_true");
+    public static final Key ALWAYS_FALSE = Key.of("craftengine:always_false");
     public static final Key ALL_OF = Key.of("craftengine:all_of");
     public static final Key ANY_OF = Key.of("craftengine:any_of");
     public static final Key INVERTED = Key.of("craftengine:inverted");
     public static final Key MATCH_ITEM = Key.of("craftengine:match_item");
+    public static final Key MATCH_ENTITY = Key.of("craftengine:match_entity");
+    public static final Key MATCH_BLOCK = Key.of("craftengine:match_block");
     public static final Key MATCH_BLOCK_PROPERTY = Key.from("craftengine:match_block_property");
     public static final Key TABLE_BONUS = Key.from("craftengine:table_bonus");
     public static final Key SURVIVES_EXPLOSION = Key.from("craftengine:survives_explosion");
