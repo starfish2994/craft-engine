@@ -13,7 +13,7 @@ public abstract class BlockEntity {
     protected final BlockPos pos;
     protected ImmutableBlockState blockState;
     protected BlockEntityType<? extends BlockEntity> type;
-    protected CEWorld world;
+    public CEWorld world;
     protected boolean valid;
     @Nullable
     protected DynamicBlockEntityRenderer blockEntityRenderer;

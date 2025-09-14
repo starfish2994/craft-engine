@@ -31,8 +31,6 @@ public abstract class CEWorld {
     protected volatile boolean isUpdatingLights = false;
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
-    @SuppressWarnings("FieldCanBeLocal")
-    private int tileTickPosition;
 
     public CEWorld(World world, StorageAdaptor adaptor) {
         this.world = world;
@@ -207,12 +205,13 @@ public abstract class CEWorld {
             this.pendingTickingBlockEntities.clear();
         }
         if (!this.tickingBlockEntities.isEmpty()) {
-            for (this.tileTickPosition = 0; this.tileTickPosition < this.tickingBlockEntities.size(); this.tileTickPosition++) {
-                TickingBlockEntity blockEntity = this.tickingBlockEntities.get(this.tileTickPosition);
-                if (blockEntity.isValid()) {
-                    blockEntity.tick();
+            Object[] entities = this.tickingBlockEntities.elements();
+            for (int i = 0, size = this.tickingBlockEntities.size(); i < size; i++) {
+                TickingBlockEntity entity = (TickingBlockEntity) entities[i];
+                if (entity.isValid()) {
+                    entity.tick();
                 } else {
-                    this.tickingBlockEntities.markAsRemoved(this.tileTickPosition);
+                    this.tickingBlockEntities.markAsRemoved(i);
                 }
             }
             this.tickingBlockEntities.removeMarkedEntries();

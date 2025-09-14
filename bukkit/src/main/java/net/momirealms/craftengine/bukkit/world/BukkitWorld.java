@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.particle.ParticleData;
+import net.momirealms.craftengine.core.world.particle.ParticleType;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.SoundCategory;
@@ -106,8 +107,8 @@ public class BukkitWorld implements World {
     }
 
     @Override
-    public void spawnParticle(Position location, Key particle, int count, double xOffset, double yOffset, double zOffset, double speed, @Nullable ParticleData extraData, @NotNull Context context) {
-        Particle particleType = ParticleUtils.getParticle(particle);
+    public void spawnParticle(Position location, ParticleType particle, int count, double xOffset, double yOffset, double zOffset, double speed, @Nullable ParticleData extraData, @NotNull Context context) {
+        Particle particleType = (Particle) particle.platformParticle();
         if (particleType == null) return;
         org.bukkit.World platformWorld = platformWorld();
         platformWorld.spawnParticle(particleType, location.x(), location.y(), location.z(), count, xOffset, yOffset, zOffset, speed, extraData == null ? null : ParticleUtils.toBukkitParticleData(extraData, context, platformWorld, location.x(), location.y(), location.z()));
