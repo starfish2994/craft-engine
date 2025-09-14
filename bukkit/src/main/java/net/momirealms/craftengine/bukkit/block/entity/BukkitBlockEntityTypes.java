@@ -6,4 +6,6 @@ import net.momirealms.craftengine.core.block.entity.BlockEntityTypes;
 
 public class BukkitBlockEntityTypes extends BlockEntityTypes {
     public static final BlockEntityType<SimpleStorageBlockEntity> SIMPLE_STORAGE = register(BlockEntityTypeKeys.SIMPLE_STORAGE, SimpleStorageBlockEntity::new);
+    public static final BlockEntityType<ParticleBlockEntity> PARTICLE = register(BlockEntityTypeKeys.PARTICLE, ParticleBlockEntity::new);
+    public static final BlockEntityType<WallParticleBlockEntity> WALL_PARTICLE = register(BlockEntityTypeKeys.WALL_PARTICLE, WallParticleBlockEntity::new);
 }
