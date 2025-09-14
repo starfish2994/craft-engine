@@ -273,7 +273,7 @@ public abstract class AbstractPackManager implements PackManager {
     @Override
     public void initCachedAssets() {
         try {
-            PackCacheData cacheData = new PackCacheData(plugin);
+            PackCacheData cacheData = new PackCacheData(this.plugin);
             this.cacheEventDispatcher.accept(cacheData);
             this.updateCachedAssets(cacheData, null);
         } catch (Exception e) {
