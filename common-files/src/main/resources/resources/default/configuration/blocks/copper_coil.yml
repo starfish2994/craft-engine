@@ -26,8 +26,6 @@ items:
             is-suffocating: true
             instrument: basedrum
             map-color: 15
-            tags:
-              - minecraft:mineable/pickaxe
         behavior:
           type: lamp_block
         states:
