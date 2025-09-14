@@ -105,10 +105,9 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T extends BlockEntity> BlockEntityType<T> blockEntityType() {
-        return (BlockEntityType<T>) BukkitBlockEntityTypes.SIMPLE_STORAGE;
+        return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.SIMPLE_STORAGE);
     }
 
     @Override

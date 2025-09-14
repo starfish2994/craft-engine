@@ -34,6 +34,7 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
     public static final Key BOUNCING_BLOCK = Key.from("craftengine:bouncing_block");
     public static final Key DIRECTIONAL_ATTACHED_BLOCK = Key.from("craftengine:directional_attached_block");
     public static final Key LIQUID_FLOWABLE_BLOCK = Key.from("craftengine:liquid_flowable_block");
+    public static final Key PARTICLE_BLOCK = Key.from("craftengine:particle_block");
 
     public static void init() {
         register(EMPTY, (block, args) -> EmptyBlockBehavior.INSTANCE);
@@ -66,5 +67,6 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
         register(BOUNCING_BLOCK, BouncingBlockBehavior.FACTORY);
         register(DIRECTIONAL_ATTACHED_BLOCK, DirectionalAttachedBlockBehavior.FACTORY);
         register(LIQUID_FLOWABLE_BLOCK, LiquidFlowableBlockBehavior.FACTORY);
+        register(PARTICLE_BLOCK, ParticleBlockBehavior.FACTORY);
     }
 }
