@@ -18,7 +18,6 @@ public abstract class BaseParticleBlockEntity extends BlockEntity {
     }
 
     public static void tick(CEWorld ceWorld, BlockPos blockPos, ImmutableBlockState state, BaseParticleBlockEntity particle) {
-        if (true) return;
         particle.tickCount++;
         if (particle.tickCount % 10 != 0) return;
         particle.animateTick(state, ceWorld.world(), blockPos);
