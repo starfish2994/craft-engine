@@ -70,12 +70,18 @@ blocks:
         support-types:
           - center
       - type: liquid_flowable_block
-      - type: particle_block
+      - type: simple_particle_block
+        tick-interval: 10
         particles:
-          - type: smoke
-            location-offset: 0.5,0.7,0.5
-          - type: flame
-            location-offset: 0.5,0.7,0.5
+          - particle: smoke
+            x: 0.5
+            y: 0.7
+            z: 0.5
+          - particle: dust
+            color: 138,43,226
+            x: 0.5
+            y: 0.7
+            z: 0.5
   default:amethyst_wall_torch:
     loot:
       template: default:loot_table/basic
@@ -94,13 +100,17 @@ blocks:
     behavior:
       - type: directional_attached_block
       - type: liquid_flowable_block
-      - type: particle_block
-        in-wall: true
+      - type: wall_torch_particle_block
         particles:
-          - type: smoke
-            location-offset: 0.5,0.7,0.5
-          - type: flame
-            location-offset: 0.5,0.7,0.5
+          - particle: smoke
+            x: 0.27
+            y: 0.42
+            z: 0.27
+          - particle: dust
+            color: 138,43,226
+            x: 0.27
+            y: 0.42
+            z: 0.27
     states:
       properties:
         facing:

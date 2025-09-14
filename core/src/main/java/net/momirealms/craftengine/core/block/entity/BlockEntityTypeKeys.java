@@ -7,6 +7,6 @@ public final class BlockEntityTypeKeys {
 
     public static final Key UNSAFE_COMPOSITE = Key.of("craftengine:unsafe_composite");
     public static final Key SIMPLE_STORAGE = Key.of("craftengine:simple_storage");
-    public static final Key PARTICLE = Key.of("craftengine:particle");
-    public static final Key WALL_PARTICLE = Key.of("craftengine:wall_particle");
+    public static final Key SIMPLE_PARTICLE = Key.of("craftengine:simple_particle");
+    public static final Key WALL_TORCH_PARTICLE = Key.of("craftengine:wall_torch_particle");
 }
