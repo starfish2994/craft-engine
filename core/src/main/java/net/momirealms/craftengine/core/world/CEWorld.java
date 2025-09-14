@@ -1,13 +1,13 @@
 package net.momirealms.craftengine.core.world;
 
 import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.tick.TickingBlockEntity;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
+import net.momirealms.craftengine.core.util.BlockEntityTickersList;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
@@ -25,12 +25,14 @@ public abstract class CEWorld {
     protected final WorldHeight worldHeightAccessor;
     protected List<SectionPos> pendingLightSections = new ArrayList<>();
     protected final Set<SectionPos> lightSections = ConcurrentHashMap.newKeySet(128);
-    protected final List<TickingBlockEntity> tickingBlockEntities = new ArrayList<>();
+    protected final BlockEntityTickersList tickingBlockEntities = new BlockEntityTickersList();
     protected final List<TickingBlockEntity> pendingTickingBlockEntities = new ArrayList<>();
     protected volatile boolean isTickingBlockEntities = false;
     protected volatile boolean isUpdatingLights = false;
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
+    @SuppressWarnings("FieldCanBeLocal")
+    private int tileTickPosition;
 
     public CEWorld(World world, StorageAdaptor adaptor) {
         this.world = world;
@@ -205,15 +207,15 @@ public abstract class CEWorld {
             this.pendingTickingBlockEntities.clear();
         }
         if (!this.tickingBlockEntities.isEmpty()) {
-            ReferenceOpenHashSet<TickingBlockEntity> toRemove = new ReferenceOpenHashSet<>();
-            for (TickingBlockEntity blockEntity : this.tickingBlockEntities) {
+            for (this.tileTickPosition = 0; this.tileTickPosition < this.tickingBlockEntities.size(); this.tileTickPosition++) {
+                TickingBlockEntity blockEntity = this.tickingBlockEntities.get(this.tileTickPosition);
                 if (blockEntity.isValid()) {
                     blockEntity.tick();
                 } else {
-                    toRemove.add(blockEntity);
+                    this.tickingBlockEntities.markAsRemoved(this.tileTickPosition);
                 }
             }
-            this.tickingBlockEntities.removeAll(toRemove);
+            this.tickingBlockEntities.removeMarkedEntries();
         }
         this.isTickingBlockEntities = false;
     }
