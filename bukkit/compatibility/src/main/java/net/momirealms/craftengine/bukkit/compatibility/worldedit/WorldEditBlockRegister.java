@@ -90,7 +90,7 @@ public class WorldEditBlockRegister {
             if (state == null) return null;
 
             try {
-                String id = state.customBlockState().handle().toString();
+                String id = state.customBlockState().literalObject().toString();
                 int first = id.indexOf('{');
                 int last = id.indexOf('}');
                 if (first != -1 && last != -1 && last > first) {

@@ -29,7 +29,7 @@ public class SectionPosUtils {
         return nearby;
     }
 
-    public static Map<Long, BitSet> toMap(Set<SectionPos> sections, int minLightSection, int maxLightSection) {
+    public static Map<Long, BitSet> toMap(Collection<SectionPos> sections, int minLightSection, int maxLightSection) {
         int nBits = maxLightSection - minLightSection;
         Map<Long, BitSet> nearby = new Long2ObjectOpenHashMap<>(Math.max(8, sections.size() / 2), 0.5f);
         for (SectionPos section : sections) {

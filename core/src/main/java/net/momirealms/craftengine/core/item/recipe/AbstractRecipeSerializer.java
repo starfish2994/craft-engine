@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.item.recipe.result.PostProcessors;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -61,11 +62,33 @@ public abstract class AbstractRecipeSerializer<T, R extends Recipe<T>> implement
         return recipeCategory;
     }
 
+    @NotNull
     @SuppressWarnings({"unchecked"})
     protected CustomRecipeResult<T> parseResult(Map<String, Object> arguments) {
-        Map<String, Object> resultMap = MiscUtils.castToMap(arguments.get("result"), true);
+        Map<String, Object> resultMap = ResourceConfigUtils.getAsMapOrNull(arguments.get("result"), "result");
         if (resultMap == null) {
             throw new LocalizedResourceConfigException("warning.config.recipe.missing_result");
+        }
+        String id = ResourceConfigUtils.requireNonEmptyStringOrThrow(resultMap.get("id"), "warning.config.recipe.result.missing_id");
+        int count = ResourceConfigUtils.getAsInt(resultMap.getOrDefault("count", 1), "count");
+        BuildableItem<T> resultItem = (BuildableItem<T>) CraftEngine.instance().itemManager().getBuildableItem(Key.of(id)).orElseThrow(() -> new LocalizedResourceConfigException("warning.config.recipe.invalid_result", id));
+        if (resultItem.isEmpty()) {
+            throw new LocalizedResourceConfigException("warning.config.recipe.invalid_result", id);
+        }
+        List<PostProcessor<T>> processors = ResourceConfigUtils.parseConfigAsList(resultMap.get("post-processors"), PostProcessors::fromMap);
+        return new CustomRecipeResult<>(
+                resultItem,
+                count,
+                processors.isEmpty() ? null : processors.toArray(new PostProcessor[0])
+        );
+    }
+
+    @Nullable
+    @SuppressWarnings({"unchecked"})
+    protected CustomRecipeResult<T> parseVisualResult(Map<String, Object> arguments) {
+        Map<String, Object> resultMap = ResourceConfigUtils.getAsMapOrNull(arguments.get("visual-result"), "visual-result");
+        if (resultMap == null) {
+            return null;
         }
         String id = ResourceConfigUtils.requireNonEmptyStringOrThrow(resultMap.get("id"), "warning.config.recipe.result.missing_id");
         int count = ResourceConfigUtils.getAsInt(resultMap.getOrDefault("count", 1), "count");

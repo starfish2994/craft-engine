@@ -66,13 +66,13 @@ public class VerticalCropBlockBehavior extends BukkitBlockBehavior {
                 if (age >= this.ageProperty.max || RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
                     Object nextPos = this.direction ? LocationUtils.above(blockPos) : LocationUtils.below(blockPos);
                     if (VersionHelper.isOrAbove1_21_5()) {
-                        CraftBukkitReflections.method$CraftEventFactory$handleBlockGrowEvent.invoke(null, level, nextPos, super.customBlock.defaultState().customBlockState().handle(), UpdateOption.UPDATE_ALL.flags());
+                        CraftBukkitReflections.method$CraftEventFactory$handleBlockGrowEvent.invoke(null, level, nextPos, super.customBlock.defaultState().customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
                     } else {
-                        CraftBukkitReflections.method$CraftEventFactory$handleBlockGrowEvent.invoke(null, level, nextPos, super.customBlock.defaultState().customBlockState().handle());
+                        CraftBukkitReflections.method$CraftEventFactory$handleBlockGrowEvent.invoke(null, level, nextPos, super.customBlock.defaultState().customBlockState().literalObject());
                     }
-                    FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, currentState.with(this.ageProperty, this.ageProperty.min).customBlockState().handle(), UpdateOption.UPDATE_NONE.flags());
+                    FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, currentState.with(this.ageProperty, this.ageProperty.min).customBlockState().literalObject(), UpdateOption.UPDATE_NONE.flags());
                 } else if (RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
-                    FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, currentState.with(this.ageProperty, age + 1).customBlockState().handle(), UpdateOption.UPDATE_NONE.flags());
+                    FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, currentState.with(this.ageProperty, age + 1).customBlockState().literalObject(), UpdateOption.UPDATE_NONE.flags());
                 }
             }
         }
@@ -83,7 +83,7 @@ public class VerticalCropBlockBehavior extends BukkitBlockBehavior {
         @SuppressWarnings("unchecked")
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
-            Property<Integer> ageProperty = (Property<Integer>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("age"), "warning.config.block.behavior.sugar_cane.missing_age");
+            Property<Integer> ageProperty = (Property<Integer>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("age"), "warning.config.block.behavior.vertical_crop.missing_age");
             int maxHeight = ResourceConfigUtils.getAsInt(arguments.getOrDefault("max-height", 3), "max-height");
             boolean direction = arguments.getOrDefault("direction", "up").toString().equalsIgnoreCase("up");
             return new VerticalCropBlockBehavior(block, ageProperty, maxHeight,

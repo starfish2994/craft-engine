@@ -9,12 +9,15 @@ import java.util.*;
 
 public abstract class AbstractMappedRegistry<T> implements WritableRegistry<T> {
     protected final ResourceKey<? extends Registry<T>> key;
-    protected final Map<Key, Holder.Reference<T>> byResourceLocation = new HashMap<>(512);
-    protected final Map<ResourceKey<T>, Holder.Reference<T>> byResourceKey = new HashMap<>(512);
-    protected final List<Holder.Reference<T>> byId = new ArrayList<>(512);
+    protected final Map<Key, Holder.Reference<T>> byResourceLocation;
+    protected final Map<ResourceKey<T>, Holder.Reference<T>> byResourceKey;
+    protected final List<Holder.Reference<T>> byId;
 
-    protected AbstractMappedRegistry(ResourceKey<? extends Registry<T>> key) {
+    protected AbstractMappedRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize) {
         this.key = key;
+        this.byResourceLocation = new HashMap<>(expectedSize);
+        this.byResourceKey = new HashMap<>(expectedSize);
+        this.byId = new ArrayList<>(expectedSize);
     }
 
     @Override

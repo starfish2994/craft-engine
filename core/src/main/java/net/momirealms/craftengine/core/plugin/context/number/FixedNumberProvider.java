@@ -9,7 +9,7 @@ import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import java.util.Map;
 
 public class FixedNumberProvider implements NumberProvider {
-    public static final FactoryImpl FACTORY = new FactoryImpl();
+    public static final Factory FACTORY = new Factory();
     private final double value;
 
     public FixedNumberProvider(double value) {
@@ -35,7 +35,7 @@ public class FixedNumberProvider implements NumberProvider {
         return new FixedNumberProvider(value);
     }
 
-    public static class FactoryImpl implements NumberProviderFactory {
+    public static class Factory implements NumberProviderFactory {
 
         @Override
         public NumberProvider create(Map<String, Object> arguments) {

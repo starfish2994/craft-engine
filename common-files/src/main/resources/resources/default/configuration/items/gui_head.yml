@@ -1,0 +1,31 @@
+items:
+  default:gui_head_size_1:
+    material: player_head
+    custom-model-data: 1000
+    model:
+      type: minecraft:special
+      path: minecraft:item/custom/gui_head_size_1
+      generation:
+        parent: minecraft:item/template_skull
+        gui-light: front
+        display:
+          gui:
+            translation: 0,8,0
+            scale: 2,2,2
+      model:
+        type: minecraft:player_head
+  default:gui_head_size_4:
+    material: player_head
+    custom-model-data: 1001
+    model:
+      type: minecraft:special
+      path: minecraft:item/custom/gui_head_size_4
+      generation:
+        parent: minecraft:item/template_skull
+        gui-light: front
+        display:
+          gui:
+            translation: 9,7,0
+            scale: 4,4,4
+      model:
+        type: minecraft:player_head

@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
+import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.*;
 import org.ahocorasick.trie.Token;
 import org.ahocorasick.trie.Trie;
@@ -39,9 +40,9 @@ public abstract class AbstractFontManager implements FontManager {
     private final EmojiParser emojiParser;
     private OffsetFont offsetFont;
 
-    protected Trie imageTagTrie;
+    protected Trie networkTagTrie;
     protected Trie emojiKeywordTrie;
-    protected Map<String, Component> tagMapper;
+    protected Map<String, ComponentProvider> networkTagMapper;
     protected Map<String, Emoji> emojiMapper;
     protected List<Emoji> emojiList;
     protected List<String> allEmojiSuggestions;
@@ -57,6 +58,7 @@ public abstract class AbstractFontManager implements FontManager {
         this.offsetFont = Optional.ofNullable(plugin.config().settings().getSection("image.offset-characters"))
                 .map(OffsetFont::new)
                 .orElse(null);
+        this.networkTagMapper = new HashMap<>(1024);
     }
 
     @Override
@@ -65,6 +67,14 @@ public abstract class AbstractFontManager implements FontManager {
         this.images.clear();
         this.illegalChars.clear();
         this.emojis.clear();
+        this.networkTagTrie = null;
+        this.emojiKeywordTrie = null;
+        if (this.networkTagMapper != null) {
+            this.networkTagMapper.clear();
+        }
+        if (this.emojiMapper != null) {
+            this.emojiMapper.clear();
+        }
     }
 
     @Override
@@ -80,7 +90,10 @@ public abstract class AbstractFontManager implements FontManager {
     @Override
     public void delayedLoad() {
         Optional.ofNullable(this.fonts.get(DEFAULT_FONT)).ifPresent(font -> this.illegalChars.addAll(font.codepointsInUse()));
-        this.buildImageTagTrie();
+        this.registerImageTags();
+        this.registerShiftTags();
+        this.registerGlobalTags();
+        this.buildNetworkTagTrie();
         this.buildEmojiKeywordsTrie();
         this.emojiList = new ArrayList<>(this.emojis.values());
         this.allEmojiSuggestions = this.emojis.values().stream()
@@ -88,15 +101,48 @@ public abstract class AbstractFontManager implements FontManager {
                 .collect(Collectors.toList());
     }
 
+    private void registerGlobalTags() {
+        for (Map.Entry<String, String> entry : this.plugin.globalVariableManager().globalVariables().entrySet()) {
+            String globalTag = globalTag(entry.getKey());
+            this.networkTagMapper.put(globalTag, ComponentProvider.miniMessageOrConstant(entry.getValue()));
+            this.networkTagMapper.put("\\" + globalTag, ComponentProvider.constant(Component.text(entry.getValue())));
+        }
+    }
+
+    private void registerShiftTags() {
+        for (int i = -256; i <= 256; i++) {
+            String shiftTag = "<shift:" + i + ">";
+            this.networkTagMapper.put(shiftTag, ComponentProvider.constant(this.offsetFont.createOffset(i)));
+            this.networkTagMapper.put("\\" + shiftTag, ComponentProvider.constant(Component.text(shiftTag)));
+        }
+    }
+
+    private void registerImageTags() {
+        for (BitmapImage image : this.images.values()) {
+            String id = image.id().toString();
+            String simpleImageTag = imageTag(id);
+            this.networkTagMapper.put(simpleImageTag, ComponentProvider.constant(image.componentAt(0, 0)));
+            this.networkTagMapper.put("\\" + simpleImageTag, ComponentProvider.constant(Component.text(simpleImageTag)));
+            for (int i = 0; i < image.rows(); i++) {
+                for (int j = 0; j < image.columns(); j++) {
+                    String imageArgs = id + ":" + i + ":" + j;
+                    String imageTag = imageTag(imageArgs);
+                    this.networkTagMapper.put(imageTag, ComponentProvider.constant(image.componentAt(i, j)));
+                    this.networkTagMapper.put("\\" + imageTag, ComponentProvider.constant(Component.text(imageTag)));
+                }
+            }
+        }
+    }
+
     @Override
-    public Map<String, Component> matchTags(String json) {
-        if (this.imageTagTrie == null) {
+    public Map<String, ComponentProvider> matchTags(String json) {
+        if (this.networkTagTrie == null) {
             return Collections.emptyMap();
         }
-        Map<String, Component> tags = new HashMap<>();
-        for (Token token : this.imageTagTrie.tokenize(json)) {
+        Map<String, ComponentProvider> tags = new HashMap<>();
+        for (Token token : this.networkTagTrie.tokenize(json)) {
             if (token.isMatch()) {
-                tags.put(token.getFragment(), this.tagMapper.get(token.getFragment()));
+                tags.put(token.getFragment(), this.networkTagMapper.get(token.getFragment()));
             }
         }
         return tags;
@@ -218,9 +264,9 @@ public abstract class AbstractFontManager implements FontManager {
     public IllegalCharacterProcessResult processIllegalCharacters(String raw, char replacement) {
         boolean hasIllegal = false;
         // replace illegal image usage
-        Map<String, Component> tokens = matchTags(raw);
+        Map<String, ComponentProvider> tokens = matchTags(raw);
         if (!tokens.isEmpty()) {
-            for (Map.Entry<String, Component> entry : tokens.entrySet()) {
+            for (Map.Entry<String, ComponentProvider> entry : tokens.entrySet()) {
                 raw = raw.replace(entry.getKey(), String.valueOf(replacement));
                 hasIllegal = true;
             }
@@ -264,35 +310,19 @@ public abstract class AbstractFontManager implements FontManager {
                 .build();
     }
 
-    private void buildImageTagTrie() {
-        this.tagMapper = new HashMap<>(1024);
-        for (BitmapImage image : this.images.values()) {
-            String id = image.id().toString();
-            String simpleImageTag = imageTag(id);
-            this.tagMapper.put(simpleImageTag, image.componentAt(0, 0));
-            this.tagMapper.put("\\" + simpleImageTag, Component.text(simpleImageTag));
-            for (int i = 0; i < image.rows(); i++) {
-                for (int j = 0; j < image.columns(); j++) {
-                    String imageArgs = id + ":" + i + ":" + j;
-                    String imageTag = imageTag(imageArgs);
-                    this.tagMapper.put(imageTag, image.componentAt(i, j));
-                    this.tagMapper.put("\\" + imageTag, Component.text(imageTag));
-                }
-            }
-        }
-        for (int i = -256; i <= 256; i++) {
-            String shiftTag = "<shift:" + i + ">";
-            this.tagMapper.put(shiftTag, this.offsetFont.createOffset(i));
-            this.tagMapper.put("\\" + shiftTag, Component.text(shiftTag));
-        }
-        this.imageTagTrie = Trie.builder()
+    private void buildNetworkTagTrie() {
+        this.networkTagTrie = Trie.builder()
                 .ignoreOverlaps()
-                .addKeywords(this.tagMapper.keySet())
+                .addKeywords(this.networkTagMapper.keySet())
                 .build();
     }
 
     private static String imageTag(String text) {
         return "<image:" + text + ">";
+    }
+
+    private static String globalTag(String text) {
+        return "<global:" + text + ">";
     }
 
     @Override

@@ -86,10 +86,10 @@ public class LeavesBlockBehavior extends BukkitBlockBehavior {
                 LeavesBlockBehavior behavior = optionalBehavior.get();
                 ImmutableBlockState newState = behavior.updateDistance(customState, level, blockPos);
                 if (newState != customState) {
-                    if (blockState == newState.customBlockState().handle()) {
+                    if (blockState == newState.customBlockState().literalObject()) {
                         CoreReflections.method$BlockStateBase$updateNeighbourShapes.invoke(blockState, level, blockPos, UpdateOption.UPDATE_ALL.flags(), 512);
                     } else {
-                        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, newState.customBlockState().handle(), UpdateOption.UPDATE_ALL.flags());
+                        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, blockPos, newState.customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
                     }
                 }
             }
@@ -132,7 +132,7 @@ public class LeavesBlockBehavior extends BukkitBlockBehavior {
         Object mutablePos = CoreReflections.constructor$MutableBlockPos.newInstance();
         int j = Direction.values().length;
         for (int k = 0; k < j; ++k) {
-            Object direction = CoreReflections.instance$Directions[k];
+            Object direction = CoreReflections.instance$Direction$values[k];
             CoreReflections.method$MutableBlockPos$setWithOffset.invoke(mutablePos, blockPos, direction);
             Object blockState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(world, mutablePos);
             i = Math.min(i, getDistanceAt(blockState) + 1);

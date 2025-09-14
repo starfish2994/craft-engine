@@ -10,6 +10,8 @@ import java.util.Set;
 
 public final class LootEntryInjector {
 
+    private LootEntryInjector() {}
+
     public static void init() throws ReflectiveOperationException {
         Object registry = MBuiltInRegistries.LOOT_POOL_ENTRY_TYPE;
         CoreReflections.field$MappedRegistry$frozen.set(registry, false);

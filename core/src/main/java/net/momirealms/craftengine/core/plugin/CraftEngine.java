@@ -51,7 +51,8 @@ public abstract class CraftEngine implements Plugin {
     protected PluginLogger logger;
     protected Config config;
     protected Platform platform;
-    protected ClassPathAppender classPathAppender;
+    protected ClassPathAppender sharedClassPathAppender;
+    protected ClassPathAppender privateClassPathAppender;
     protected DependencyManager dependencyManager;
     protected SchedulerAdapter<?> scheduler;
     protected NetworkManager networkManager;
@@ -101,11 +102,12 @@ public abstract class CraftEngine implements Plugin {
     }
 
     protected void onPluginLoad() {
-        RecipeDisplayTypes.register();
-        SlotDisplayTypes.register();
-        LegacyRecipeTypes.register();
+        RecipeDisplayTypes.init();
+        SlotDisplayTypes.init();
+        LegacyRecipeTypes.init();
         ((Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
+        this.config.load();
     }
 
     public record ReloadResult(boolean success, long asyncTime, long syncTime) {
@@ -338,8 +340,13 @@ public abstract class CraftEngine implements Plugin {
     }
 
     @Override
-    public ClassPathAppender classPathAppender() {
-        return classPathAppender;
+    public ClassPathAppender sharedClassPathAppender() {
+        return sharedClassPathAppender;
+    }
+
+    @Override
+    public ClassPathAppender privateClassPathAppender() {
+        return privateClassPathAppender;
     }
 
     @Override

@@ -11,6 +11,7 @@ public final class EnchantmentUtils {
 
     @SuppressWarnings("unchecked")
     public static Map<String, Integer> toMap(Object itemEnchantments) throws ReflectiveOperationException {
+        if (itemEnchantments == null) return Map.of();
         Map<String, Integer> map = new HashMap<>();
         Map<Object, Integer> enchantments = (Map<Object, Integer>) CoreReflections.field$ItemEnchantments$enchantments.get(itemEnchantments);
 

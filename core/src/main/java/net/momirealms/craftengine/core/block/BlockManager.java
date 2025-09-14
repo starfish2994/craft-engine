@@ -24,7 +24,12 @@ public interface BlockManager extends Manageable, ModelGenerator {
 
     Map<Key, JsonElement> modBlockStates();
 
-    Map<Key, CustomBlock> blocks();
+    Map<Key, CustomBlock> loadedBlocks();
+
+    @Deprecated(forRemoval = true)
+    default Map<Key, CustomBlock> blocks() {
+        return loadedBlocks();
+    }
 
     Optional<CustomBlock> blockById(Key key);
 
@@ -43,5 +48,5 @@ public interface BlockManager extends Manageable, ModelGenerator {
     ImmutableBlockState getImmutableBlockState(int stateId);
     
     @Nullable
-    BlockStateWrapper createPackedBlockState(String blockState);
+    BlockStateWrapper createBlockState(String blockState);
 }

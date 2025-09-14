@@ -31,6 +31,11 @@ public class MCUtils {
         return value < (double) truncated ? truncated - 1 : truncated;
     }
 
+    public static int lerpDiscrete(float delta, int start, int end) {
+        int i = end - start;
+        return start + fastFloor(delta * (float) (i - 1)) + (delta > 0.0F ? 1 : 0);
+    }
+
     public static int murmurHash3Mixer(int value) {
         value ^= value >>> 16;
         value *= -2048144789;

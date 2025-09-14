@@ -1,0 +1,136 @@
+items:
+  default:safe_block:
+    material: nether_brick
+    custom-model-data: 3011
+    data:
+      item-name: <!i><i18n:item.safe_block>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/safe_block
+      generation:
+        parent: minecraft:block/custom/safe_block
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          hardness: 5
+          resistance: 1200
+          is-suffocating: true
+          is-redstone-conductor: true
+          push-reaction: block
+          instrument: basedrum
+          map-color: 6
+          sounds:
+            break: minecraft:block.stone.break
+            fall: minecraft:block.stone.fall
+            hit: minecraft:block.stone.hit
+            place: minecraft:block.stone.place
+            step: minecraft:block.stone.step
+        behavior:
+          type: simple_storage_block
+          title: "<i18n:item.safe_block>"
+          rows: 1
+          sounds:
+            open: minecraft:block.iron_trapdoor.open
+            close: minecraft:block.iron_trapdoor.close
+          allow-input: true
+          allow-output: false
+        states:
+          properties:
+            facing:
+              type: 4-direction
+              default: north
+            open:
+              type: boolean
+              default: false
+          appearances:
+            east:
+              state: note_block:22
+              model:
+                path: minecraft:block/custom/safe_block
+                y: 90
+                generation:
+                  parent: minecraft:block/orientable
+                  textures:
+                    front: minecraft:block/custom/safe_block_front
+                    side: minecraft:block/custom/safe_block_side
+                    top: minecraft:block/custom/safe_block_top
+            east_open:
+              state: note_block:23
+              model:
+                path: minecraft:block/custom/safe_block_open
+                y: 90
+                generation:
+                  parent: minecraft:block/orientable
+                  textures:
+                    front: minecraft:block/custom/safe_block_front_open
+                    side: minecraft:block/custom/safe_block_side
+                    top: minecraft:block/custom/safe_block_top
+            north:
+              state: note_block:24
+              model:
+                path: minecraft:block/custom/safe_block
+            north_open:
+              state: note_block:25
+              model:
+                path: minecraft:block/custom/safe_block_open
+            south:
+              state: note_block:26
+              model:
+                path: minecraft:block/custom/safe_block
+                y: 180
+            south_open:
+              state: note_block:27
+              model:
+                path: minecraft:block/custom/safe_block_open
+                y: 180
+            west:
+              state: note_block:28
+              model:
+                path: minecraft:block/custom/safe_block
+                y: 270
+            west_open:
+              state: note_block:29
+              model:
+                path: minecraft:block/custom/safe_block_open
+                y: 270
+          variants:
+            facing=east,open=false:
+              appearance: east
+              id: 22
+            facing=east,open=true:
+              appearance: east_open
+              id: 23
+            facing=north,open=false:
+              appearance: north
+              id: 24
+            facing=north,open=true:
+              appearance: north_open
+              id: 25
+            facing=south,open=false:
+              appearance: south
+              id: 26
+            facing=south,open=true:
+              appearance: south_open
+              id: 27
+            facing=west,open=false:
+              appearance: west
+              id: 28
+            facing=west,open=true:
+              appearance: west_open
+              id: 29
+recipes:
+  default:safe_block:
+    type: shaped
+    pattern:
+      - 'AAA'
+      - 'ABA'
+      - 'AAA'
+    ingredients:
+      A: minecraft:iron_ingot
+      B: ["minecraft:barrel", "minecraft:chest"]
+    result:
+      id: default:safe_block
+      count: 1

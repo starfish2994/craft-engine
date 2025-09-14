@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.util;
 
+import net.momirealms.craftengine.bukkit.block.BukkitBlockStateWrapper;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.ReflectionInitException;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
@@ -42,10 +43,10 @@ public final class BlockStateUtils {
         hasInit = true;
     }
 
-    public static BlockStateWrapper toPackedBlockState(BlockData blockData) {
+    public static BlockStateWrapper toBlockStateWrapper(BlockData blockData) {
         Object state = blockDataToBlockState(blockData);
         int id = blockStateToId(state);
-        return BlockStateWrapper.create(state, id, isVanillaBlock(id));
+        return new BukkitBlockStateWrapper(state, id);
     }
 
     public static boolean isCorrectTool(@NotNull ImmutableBlockState state, @Nullable Item<ItemStack> itemInHand) {
@@ -53,7 +54,7 @@ public final class BlockStateUtils {
         if (settings.requireCorrectTool()) {
             if (itemInHand == null || itemInHand.isEmpty()) return false;
             return settings.isCorrectTool(itemInHand.id()) ||
-                    (settings.respectToolComponent() && FastNMS.INSTANCE.method$ItemStack$isCorrectToolForDrops(itemInHand.getLiteralObject(), state.customBlockState().handle()));
+                    (settings.respectToolComponent() && FastNMS.INSTANCE.method$ItemStack$isCorrectToolForDrops(itemInHand.getLiteralObject(), state.customBlockState().literalObject()));
         }
         return true;
     }
@@ -145,8 +146,6 @@ public final class BlockStateUtils {
     }
 
     public static Object getBlockState(Block block) {
-        Object worldServer = FastNMS.INSTANCE.field$CraftWorld$ServerLevel(block.getWorld());
-        Object blockPos = LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ());
-        return FastNMS.INSTANCE.method$BlockGetter$getBlockState(worldServer, blockPos);
+        return FastNMS.INSTANCE.method$BlockGetter$getBlockState(FastNMS.INSTANCE.field$CraftWorld$ServerLevel(block.getWorld()), LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ()));
     }
 }

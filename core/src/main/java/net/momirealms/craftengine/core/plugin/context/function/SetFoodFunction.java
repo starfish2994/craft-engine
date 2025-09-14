@@ -33,7 +33,7 @@ public class SetFoodFunction<CTX extends Context> extends AbstractConditionalFun
             optionalPlayer.ifPresent(player -> player.setFoodLevel(this.add ? player.foodLevel() + this.count.getInt(ctx) : this.count.getInt(ctx)));
         } else {
             for (Player target : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target));
                 target.setFoodLevel(this.add ? target.foodLevel() + this.count.getInt(relationalContext) : this.count.getInt(relationalContext));
             }
         }

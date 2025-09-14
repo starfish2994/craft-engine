@@ -43,12 +43,9 @@ public final class DirectionUtils {
     }
 
     public static Direction fromNMSDirection(Object direction) {
-        try {
-            int index = (int) CoreReflections.method$Direction$ordinal.invoke(direction);
-            return Direction.values()[index];
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
+        Enum<?> directionEnum = (Enum<?>) direction;
+        int index = directionEnum.ordinal();
+        return Direction.values()[index];
     }
 
     public static boolean isYAxis(Object nmsDirection) {

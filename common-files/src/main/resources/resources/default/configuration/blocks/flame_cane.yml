@@ -1,0 +1,112 @@
+items:
+  default:flame_cane:
+    material: nether_brick
+    custom-model-data: 3005
+    data:
+      item-name: <!i><i18n:item.flame_cane>
+    model:
+      template: default:model/simplified_generated
+      arguments:
+        path: minecraft:item/custom/flame_cane
+    behavior:
+      type: block_item
+      block:
+        settings:
+          template:
+            - default:hardness/none
+            - default:sound/grass
+          overrides:
+            push-reaction: destroy
+            map-color: 15
+            is-randomly-ticking: true
+        behaviors:
+          - type: vertical_crop_block
+            max-height: 4
+            grow-speed: 0.333
+            direction: up
+          - type: bush_block
+            stackable: true
+            delay: 1
+            bottom-blocks:
+              - minecraft:netherrack
+              - minecraft:soul_sand
+              - minecraft:soul_soil
+              - minecraft:magma_block
+              - minecraft:warped_nylium
+              - minecraft:crimson_nylium
+              - minecraft:basalt
+          - type: near_liquid_block
+            liquid-type: lava
+            delay: 1
+            stackable: true
+            positions:
+              - -1,-1,0
+              - 1,-1,0
+              - 0,-1,-1
+              - 0,-1,1
+        loot:
+          template: default:loot_table/self
+        states:
+          properties:
+            age:
+              type: int
+              default: 0
+              range: 0~5
+          appearances:
+            default:
+              state: sugar_cane:2
+              models:
+                - path: minecraft:block/custom/flame_cane_1
+                  weight: 1
+                  generation:
+                    parent: minecraft:block/sugar_cane
+                    textures:
+                      cross: minecraft:block/custom/flame_cane_1
+                - path: minecraft:block/custom/flame_cane_2
+                  weight: 1
+                  generation:
+                    parent: minecraft:block/sugar_cane
+                    textures:
+                      cross: minecraft:block/custom/flame_cane_2
+          variants:
+            age=0:
+              appearance: default
+              id: 2
+            age=1:
+              appearance: default
+              id: 3
+            age=2:
+              appearance: default
+              id: 4
+            age=3:
+              appearance: default
+              id: 5
+            age=4:
+              appearance: default
+              id: 6
+            age=5:
+              appearance: default
+              id: 7
+recipes:
+  default:magma_cream:
+    type: shaped
+    pattern:
+      - ' A '
+      - 'ABA'
+      - ' A '
+    ingredients:
+      A: default:flame_cane
+      B: minecraft:slime_ball
+    result:
+      id: minecraft:magma_cream
+      count: 1
+  default:magma_block:
+    type: shapeless
+    ingredients:
+      A1: minecraft:cobblestone
+      A2: minecraft:cobblestone
+      B1: default:flame_cane
+      B2: default:flame_cane
+    result:
+      id: minecraft:magma_block
+      count: 2

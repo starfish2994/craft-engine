@@ -45,7 +45,7 @@ public class TitleFunction<CTX extends Context> extends AbstractConditionalFunct
             ));
         } else {
             for (Player viewer : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
                 viewer.sendTitle(
                         AdventureHelper.miniMessage().deserialize(this.main.get(relationalContext), relationalContext.tagResolvers()),
                         AdventureHelper.miniMessage().deserialize(this.sub.get(relationalContext), relationalContext.tagResolvers()),

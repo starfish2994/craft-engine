@@ -20,10 +20,11 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
     public CustomShapelessRecipe(Key id,
                                  boolean showNotification,
                                  CustomRecipeResult<T> result,
+                                 CustomRecipeResult<T> visualResult,
                                  String group,
                                  CraftingRecipeCategory category,
                                  List<Ingredient<T>> ingredients) {
-        super(id, showNotification, result, group, category);
+        super(id, showNotification, result, visualResult, group, category);
         this.ingredients = ingredients;
         this.placementInfo = PlacementInfo.create(ingredients);
     }
@@ -84,7 +85,9 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
             }
             return new CustomShapelessRecipe(id,
                     showNotification(arguments),
-                    parseResult(arguments), arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
+                    parseResult(arguments),
+                    parseVisualResult(arguments),
+                    arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
                     ingredients
             );
         }
@@ -93,7 +96,9 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
         public CustomShapelessRecipe<A> readJson(Key id, JsonObject json) {
             return new CustomShapelessRecipe<>(id,
                     true,
-                    parseResult(VANILLA_RECIPE_HELPER.craftingResult(json.getAsJsonObject("result"))), VANILLA_RECIPE_HELPER.readGroup(json), VANILLA_RECIPE_HELPER.craftingCategory(json),
+                    parseResult(VANILLA_RECIPE_HELPER.craftingResult(json.getAsJsonObject("result"))),
+                    null,
+                    VANILLA_RECIPE_HELPER.readGroup(json), VANILLA_RECIPE_HELPER.craftingCategory(json),
                     VANILLA_RECIPE_HELPER.shapelessIngredients(json.getAsJsonArray("ingredients")).stream().map(this::toIngredient).toList()
             );
         }

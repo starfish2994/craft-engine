@@ -169,4 +169,14 @@ public class PacketIds1_20 implements PacketIds {
     public int clientboundUpdateAdvancementsPacket() {
         return PacketIdFinder.clientboundByClazz(NetworkReflections.clazz$ClientboundUpdateAdvancementsPacket);
     }
+
+    @Override
+    public int clientboundForgetLevelChunkPacket() {
+        return PacketIdFinder.clientboundByClazz(NetworkReflections.clazz$ClientboundForgetLevelChunkPacket);
+    }
+
+    @Override
+    public int serverboundCustomPayloadPacket() {
+        return PacketIdFinder.serverboundByClazz(NetworkReflections.clazz$ServerboundCustomPayloadPacket);
+    }
 }

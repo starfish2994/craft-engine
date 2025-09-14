@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.BlockTags;
+import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -76,10 +77,7 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
     @SuppressWarnings("DuplicatedCode")
     @Override
     protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws Exception {
-        int y = FastNMS.INSTANCE.field$Vec3i$y(blockPos);
-        int x = FastNMS.INSTANCE.field$Vec3i$x(blockPos);
-        int z = FastNMS.INSTANCE.field$Vec3i$z(blockPos);
-        Object belowPos = FastNMS.INSTANCE.constructor$BlockPos(x, y - 1, z);
+        Object belowPos = LocationUtils.below(blockPos);
         Object belowState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(world, belowPos);
         return mayPlaceOn(belowState, world, belowPos);
     }

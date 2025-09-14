@@ -19,7 +19,7 @@ public class UniqueIdItem<T> {
 
     @NotNull
     public UniqueKey id() {
-        return uniqueId;
+        return this.uniqueId;
     }
 
     @NotNull
@@ -37,6 +37,6 @@ public class UniqueIdItem<T> {
 
     @Override
     public String toString() {
-        return "UniqueIdItem[" + "uniqueId=" + uniqueId + ", item=" + rawItem.getItem() + ']';
+        return "UniqueIdItem[" + "uniqueId=" + this.uniqueId + ", item=" + this.rawItem.getItem() + ']';
     }
 }

@@ -19,11 +19,13 @@ public interface CustomBlock {
 
     Key id();
 
-    @Nullable LootTable<?> lootTable();
+    @Nullable
+    LootTable<?> lootTable();
 
     void execute(PlayerOptionalContext context, EventTrigger trigger);
 
-    @NotNull BlockStateVariantProvider variantProvider();
+    @NotNull
+    BlockStateVariantProvider variantProvider();
 
     List<ImmutableBlockState> getPossibleStates(CompoundTag nbt);
 
@@ -43,7 +45,7 @@ public interface CustomBlock {
 
         Builder events(Map<EventTrigger, List<Function<PlayerOptionalContext>>> events);
 
-        Builder appearances(Map<String, Integer> appearances);
+        Builder appearances(Map<String, BlockStateAppearance> appearances);
 
         Builder behavior(List<Map<String, Object>> behavior);
 

@@ -29,7 +29,7 @@ public final class LocationUtils {
         return new Vec3d(
             FastNMS.INSTANCE.field$Vec3$x(vec),
             FastNMS.INSTANCE.field$Vec3$y(vec),
-            FastNMS.INSTANCE.field$Vec3$y(vec)
+            FastNMS.INSTANCE.field$Vec3$z(vec)
         );
     }
 

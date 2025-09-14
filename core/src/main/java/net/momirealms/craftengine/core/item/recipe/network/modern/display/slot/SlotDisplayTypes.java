@@ -18,7 +18,10 @@ public final class SlotDisplayTypes {
     public static final Key WITH_REMAINDER = Key.of("with_remainder");
     public static final Key COMPOSITE = Key.of("composite");
 
-    public static void register() {
+    public static void init() {
+    }
+
+    static {
         register(EMPTY, new SlotDisplay.Type(EmptySlotDisplay::read));
         register(ANY_FUEL, new SlotDisplay.Type(AnyFuelDisplay::read));
         register(ITEM, new SlotDisplay.Type(ItemSlotDisplay::read));

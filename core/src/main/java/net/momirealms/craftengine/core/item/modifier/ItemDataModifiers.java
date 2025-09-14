@@ -45,6 +45,7 @@ public final class ItemDataModifiers {
     public static final Key UNBREAKABLE = Key.of("craftengine:unbreakable");
     public static final Key DYNAMIC_LORE = Key.of("craftengine:dynamic-lore");
     public static final Key OVERWRITABLE_LORE = Key.of("craftengine:overwritable-lore");
+    public static final Key MAX_DAMAGE = Key.of("craftengine:max-damage");
 
     public static <T> void register(Key key, ItemDataModifierFactory<T> factory) {
         ((WritableRegistry<ItemDataModifierFactory<?>>) BuiltInRegistries.ITEM_DATA_MODIFIER_FACTORY)
@@ -83,6 +84,7 @@ public final class ItemDataModifiers {
             register(COMPONENTS, ComponentsModifier.FACTORY);
             register(REMOVE_COMPONENTS, RemoveComponentModifier.FACTORY);
             register(FOOD, FoodModifier.FACTORY);
+            register(MAX_DAMAGE, MaxDamageModifier.FACTORY);
         } else {
             register(CUSTOM_NAME, CustomNameModifier.FACTORY);
             register(ITEM_NAME, CustomNameModifier.FACTORY);

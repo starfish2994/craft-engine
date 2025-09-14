@@ -11,8 +11,9 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdFinder;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
+import net.momirealms.craftengine.bukkit.plugin.network.payload.PayloadHelper;
+import net.momirealms.craftengine.bukkit.plugin.reflection.leaves.LeavesReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.LeavesReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.LibraryReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
@@ -105,6 +106,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         this.packetIds = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
         // register packet handlers
         this.registerPacketHandlers();
+        PayloadHelper.registerDataTypes();
         // set up packet senders
         this.packetConsumer = FastNMS.INSTANCE::method$Connection$send;
         this.packetsConsumer = ((connection, packets, sendListener) -> {
@@ -202,7 +204,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         registerNMSPacketConsumer(PacketConsumers.RENAME_ITEM, NetworkReflections.clazz$ServerboundRenameItemPacket);
         registerNMSPacketConsumer(PacketConsumers.SIGN_UPDATE, NetworkReflections.clazz$ServerboundSignUpdatePacket);
         registerNMSPacketConsumer(PacketConsumers.EDIT_BOOK, NetworkReflections.clazz$ServerboundEditBookPacket);
-        registerNMSPacketConsumer(PacketConsumers.CUSTOM_PAYLOAD, NetworkReflections.clazz$ServerboundCustomPayloadPacket);
+        registerNMSPacketConsumer(PacketConsumers.CUSTOM_PAYLOAD_1_20_2, VersionHelper.isOrAbove1_20_2() ? NetworkReflections.clazz$ServerboundCustomPayloadPacket : null);
         registerNMSPacketConsumer(PacketConsumers.RESOURCE_PACK_RESPONSE, NetworkReflections.clazz$ServerboundResourcePackPacket);
         registerNMSPacketConsumer(PacketConsumers.ENTITY_EVENT, NetworkReflections.clazz$ClientboundEntityEventPacket);
         registerNMSPacketConsumer(PacketConsumers.MOVE_POS_AND_ROTATE_ENTITY, NetworkReflections.clazz$ClientboundMoveEntityPacket$PosRot);
@@ -213,6 +215,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         registerNMSPacketConsumer(PacketConsumers.LOGIN_FINISHED, NetworkReflections.clazz$ClientboundLoginFinishedPacket);
         registerNMSPacketConsumer(PacketConsumers.UPDATE_TAGS, NetworkReflections.clazz$ClientboundUpdateTagsPacket);
         registerNMSPacketConsumer(PacketConsumers.CONTAINER_CLICK_1_21_5, VersionHelper.isOrAbove1_21_5() ? NetworkReflections.clazz$ServerboundContainerClickPacket : null);
+        registerS2CByteBufPacketConsumer(PacketConsumers.FORGET_LEVEL_CHUNK, this.packetIds.clientboundForgetLevelChunkPacket());
         registerS2CByteBufPacketConsumer(PacketConsumers.LEVEL_CHUNK_WITH_LIGHT, this.packetIds.clientboundLevelChunkWithLightPacket());
         registerS2CByteBufPacketConsumer(PacketConsumers.SECTION_BLOCK_UPDATE, this.packetIds.clientboundSectionBlocksUpdatePacket());
         registerS2CByteBufPacketConsumer(PacketConsumers.BLOCK_UPDATE, this.packetIds.clientboundBlockUpdatePacket());
@@ -244,6 +247,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         registerC2SByteBufPacketConsumer(PacketConsumers.SET_CREATIVE_MODE_SLOT, this.packetIds.serverboundSetCreativeModeSlotPacket());
         registerC2SByteBufPacketConsumer(PacketConsumers.CONTAINER_CLICK_1_20, VersionHelper.isOrAbove1_21_5() ? -1 : this.packetIds.serverboundContainerClickPacket());
         registerC2SByteBufPacketConsumer(PacketConsumers.INTERACT_ENTITY, this.packetIds.serverboundInteractPacket());
+        registerC2SByteBufPacketConsumer(PacketConsumers.CUSTOM_PAYLOAD_1_20, VersionHelper.isOrAbove1_20_2() ? -1 : this.packetIds.serverboundCustomPayloadPacket());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

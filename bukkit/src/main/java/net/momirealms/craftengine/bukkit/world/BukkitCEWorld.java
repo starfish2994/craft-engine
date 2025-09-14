@@ -9,7 +9,8 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BukkitCEWorld extends CEWorld {
 
@@ -22,20 +23,21 @@ public class BukkitCEWorld extends CEWorld {
     }
 
     @Override
-    public void tick() {
-        HashSet<SectionPos> poses;
-        synchronized (super.updatedSectionSet) {
-            poses = new HashSet<>(super.updatedSectionSet);
-            super.updatedSectionSet.clear();
-        }
+    public void updateLight() {
         if (Config.enableLightSystem()) {
+            super.isUpdatingLights = true;
             LightUtils.updateChunkLight(
-                    (org.bukkit.World) world.platformWorld(),
-                    SectionPosUtils.toMap(poses,
-                            world.worldHeight().getMinSection() - 1,
-                            world.worldHeight().getMaxSection() + 1
+                    (org.bukkit.World) this.world.platformWorld(),
+                    SectionPosUtils.toMap(super.lightSections,
+                            this.world.worldHeight().getMinSection() - 1,
+                            this.world.worldHeight().getMaxSection() + 1
                     )
             );
+            super.lightSections.clear();
+            super.isUpdatingLights = false;
+            List<SectionPos> pendingLightSections = super.pendingLightSections;
+            super.pendingLightSections = new ArrayList<>(Math.max(pendingLightSections.size() / 2, 8));
+            super.lightSections.addAll(pendingLightSections);
         }
     }
 }

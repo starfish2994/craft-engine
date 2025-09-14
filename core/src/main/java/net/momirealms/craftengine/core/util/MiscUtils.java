@@ -1,13 +1,6 @@
 package net.momirealms.craftengine.core.util;
 
-import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class MiscUtils {
 
@@ -81,42 +74,6 @@ public class MiscUtils {
         return List.of();
     }
 
-    public static Vector3f getAsVector3f(Object o, String option) {
-        if (o == null) return new Vector3f();
-        if (o instanceof List<?> list && list.size() == 3) {
-            return new Vector3f(Float.parseFloat(list.get(0).toString()), Float.parseFloat(list.get(1).toString()), Float.parseFloat(list.get(2).toString()));
-        } else {
-            String stringFormat = o.toString();
-            String[] split = stringFormat.split(",");
-            if (split.length == 3) {
-                return new Vector3f(Float.parseFloat(split[0]), Float.parseFloat(split[1]), Float.parseFloat(split[2]));
-            } else if (split.length == 1) {
-                return new Vector3f(Float.parseFloat(split[0]));
-            } else {
-                throw new LocalizedResourceConfigException("warning.config.type.vector3f", stringFormat, option);
-            }
-        }
-    }
-
-    public static Quaternionf getAsQuaternionf(Object o, String option) {
-        if (o == null) return new Quaternionf();
-        if (o instanceof List<?> list && list.size() == 4) {
-            return new Quaternionf(Float.parseFloat(list.get(0).toString()), Float.parseFloat(list.get(1).toString()), Float.parseFloat(list.get(2).toString()), Float.parseFloat(list.get(3).toString()));
-        } else {
-            String stringFormat = o.toString();
-            String[] split = stringFormat.split(",");
-            if (split.length == 4) {
-                return new Quaternionf(Float.parseFloat(split[0]), Float.parseFloat(split[1]), Float.parseFloat(split[2]), Float.parseFloat(split[3]));
-            } else if (split.length == 3) {
-                return QuaternionUtils.toQuaternionf((float) Math.toRadians(Float.parseFloat(split[2])), (float) Math.toRadians(Float.parseFloat(split[1])), (float) Math.toRadians(Float.parseFloat(split[0])));
-            } else if (split.length == 1) {
-                return QuaternionUtils.toQuaternionf(0, (float) -Math.toRadians(Float.parseFloat(split[0])), 0);
-            } else {
-                throw new LocalizedResourceConfigException("warning.config.type.quaternionf", stringFormat, option);
-            }
-        }
-    }
-
     @SuppressWarnings("unchecked")
     public static void deepMergeMaps(Map<String, Object> baseMap, Map<String, Object> mapToMerge) {
         for (Map.Entry<String, Object> entry : mapToMerge.entrySet()) {
@@ -152,5 +109,18 @@ public class MiscUtils {
         } else {
             return o;
         }
+    }
+
+    public static boolean matchRegex(String id, Set<String> ids, boolean regexMatch) {
+        if (regexMatch) {
+            for (String regex : ids) {
+                if (id.matches(regex)) {
+                    return true;
+                }
+            }
+        } else {
+            return ids.contains(id);
+        }
+        return false;
     }
 }

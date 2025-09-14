@@ -15,21 +15,36 @@ public class Dependency {
     private final String rawArtifactId;
     private final List<Relocation> relocations;
     private final Predicate<Path> verifier;
+    private final boolean shared;
 
     public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations) {
+        this(id, groupId, artifactId, relocations, false);
+    }
+
+    public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations, boolean shared) {
         this.id = id;
         this.groupId = groupId;
         this.rawArtifactId = artifactId;
         this.relocations = relocations;
         this.verifier = (p) -> true;
+        this.shared = shared;
     }
 
     public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations, Predicate<Path> verifier) {
+        this(id, groupId, artifactId, relocations, verifier, false);
+    }
+
+    public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations, Predicate<Path> verifier, boolean shared) {
         this.id = id;
         this.groupId = groupId;
         this.rawArtifactId = artifactId;
         this.relocations = relocations;
         this.verifier = verifier;
+        this.shared = shared;
+    }
+
+    public boolean shared() {
+        return shared;
     }
 
     public boolean verify(Path remapped) {

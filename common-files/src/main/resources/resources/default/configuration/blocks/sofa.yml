@@ -1,0 +1,185 @@
+items:
+  default:sleeper_sofa:
+    material: nether_brick
+    custom-model-data: 3012
+    data:
+      item-name: <!i><i18n:item.sofa>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sleeper_sofa
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          hardness: 0.5
+          resistance: 0.5
+          map-color: 27
+          burn-chance: 5
+          fire-spread-chance: 20
+          burnable: true
+          is-suffocating: false
+          is-redstone-conductor: false
+          push-reaction: block
+          instrument: bass
+          sounds:
+            break: minecraft:block.wood.break
+            fall: minecraft:block.wood.fall
+            hit: minecraft:block.wood.hit
+            place: minecraft:block.wood.place
+            step: minecraft:block.wood.step
+          tags:
+            - minecraft:mineable/axe
+        behaviors:
+          - type: bouncing_block
+            bounce-height: 0.66
+            sync-player-position: false
+        state:
+          id: 0
+          state: white_bed[facing=west,occupied=false,part=foot]
+          entity-renderer:
+            item: default:sleeper_sofa
+  default:sofa_inner:
+    material: nether_brick
+    custom-model-data: 3013
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sofa_inner
+  default:sofa:
+    material: nether_brick
+    custom-model-data: 3014
+    data:
+      item-name: <!i><i18n:item.sofa>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sofa
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          hardness: 0.5
+          resistance: 0.5
+          map-color: 27
+          burn-chance: 5
+          fire-spread-chance: 20
+          burnable: true
+          is-suffocating: false
+          is-redstone-conductor: false
+          push-reaction: block
+          instrument: bass
+          sounds:
+            break: minecraft:block.wood.break
+            fall: minecraft:block.wood.fall
+            hit: minecraft:block.wood.hit
+            place: minecraft:block.wood.place
+            step: minecraft:block.wood.step
+          tags:
+            - minecraft:mineable/axe
+        behaviors:
+          - type: sofa_block
+          - type: bouncing_block
+            bounce-height: 0.66
+        states:
+          properties:
+            facing:
+              type: horizontal_direction
+            shape:
+              type: sofa_shape
+          appearances:
+            facing=east,shape=straight:
+              state: barrier
+              entity-renderer:
+                item: default:sofa
+                yaw: 90
+            facing=north,shape=straight:
+              state: barrier
+              entity-renderer:
+                item: default:sofa
+            facing=south,shape=straight:
+              state: barrier
+              entity-renderer:
+                item: default:sofa
+                yaw: 180
+            facing=west,shape=straight:
+              state: barrier
+              entity-renderer:
+                item: default:sofa
+                yaw: 270
+            facing=east,shape=inner_left:
+              state: barrier
+              entity-renderer:
+                item: default:sofa_inner
+            facing=north,shape=inner_left:
+              state: barrier
+              entity-renderer:
+                item: default:sofa_inner
+                yaw: 270
+            facing=south,shape=inner_left:
+              state: barrier
+              entity-renderer:
+                item: default:sofa_inner
+                yaw: 90
+            facing=west,shape=inner_left:
+              state: barrier
+              entity-renderer:
+                item: default:sofa_inner
+                yaw: 180
+            facing=east,shape=inner_right:
+              state: barrier
+              entity-renderer:
+                item: default:sofa_inner
+                yaw: 90
+            facing=north,shape=inner_right:
+              state: barrier
+              entity-renderer:
+                item: default:sofa_inner
+            facing=south,shape=inner_right:
+              state: barrier
+              entity-renderer:
+                item: default:sofa_inner
+                yaw: 180
+            facing=west,shape=inner_right:
+              state: barrier
+              entity-renderer:
+                item: default:sofa_inner
+                yaw: 270
+          variants:
+            facing=east,shape=inner_left:
+              appearance: facing=east,shape=inner_left
+              id: 0
+            facing=east,shape=inner_right:
+              appearance: facing=east,shape=inner_right
+              id: 1
+            facing=east,shape=straight:
+              appearance: facing=east,shape=straight
+              id: 2
+            facing=north,shape=inner_left:
+              appearance: facing=north,shape=inner_left
+              id: 3
+            facing=north,shape=inner_right:
+              appearance: facing=north,shape=inner_right
+              id: 4
+            facing=north,shape=straight:
+              appearance: facing=north,shape=straight
+              id: 5
+            facing=south,shape=inner_left:
+              appearance: facing=south,shape=inner_left
+              id: 6
+            facing=south,shape=inner_right:
+              appearance: facing=south,shape=inner_right
+              id: 7
+            facing=south,shape=straight:
+              appearance: facing=south,shape=straight
+              id: 8
+            facing=west,shape=inner_left:
+              appearance: facing=west,shape=inner_left
+              id: 9
+            facing=west,shape=inner_right:
+              appearance: facing=west,shape=inner_right
+              id: 10
+            facing=west,shape=straight:
+              appearance: facing=west,shape=straight
+              id: 11

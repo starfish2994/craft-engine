@@ -38,7 +38,7 @@ public class DebugGetBlockInternalIdCommand extends BukkitCommandFeature<Command
                     String data = context.get("id");
                     ImmutableBlockState state = BlockStateParser.deserialize(data);
                     if (state == null) return;
-                    context.sender().sendMessage(BlockStateUtils.getBlockOwnerIdFromState(state.customBlockState().handle()).toString());
+                    context.sender().sendMessage(BlockStateUtils.getBlockOwnerIdFromState(state.customBlockState().literalObject()).toString());
                 });
     }
 

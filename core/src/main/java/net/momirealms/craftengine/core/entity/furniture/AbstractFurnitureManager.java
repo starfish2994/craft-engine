@@ -59,6 +59,11 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     }
 
     @Override
+    public Map<Key, CustomFurniture> loadedFurniture() {
+        return Collections.unmodifiableMap(this.byId);
+    }
+
+    @Override
     public void unload() {
         this.byId.clear();
     }
@@ -98,7 +103,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                 // anchor type
                 AnchorType anchorType = AnchorType.valueOf(entry.getKey().toUpperCase(Locale.ENGLISH));
                 Map<String, Object> placementArguments = MiscUtils.castToMap(entry.getValue(), false);
-                Optional<Vector3f> optionalLootSpawnOffset = Optional.ofNullable(placementArguments.get("loot-spawn-offset")).map(it -> MiscUtils.getAsVector3f(it, "loot-spawn-offset"));
+                Optional<Vector3f> optionalLootSpawnOffset = Optional.ofNullable(placementArguments.get("loot-spawn-offset")).map(it -> ResourceConfigUtils.getAsVector3f(it, "loot-spawn-offset"));
                 // furniture display elements
                 List<FurnitureElement> elements = new ArrayList<>();
                 List<Map<String, Object>> elementConfigs = (List<Map<String, Object>>) placementArguments.getOrDefault("elements", List.of());
@@ -108,10 +113,10 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                             .applyDyedColor(ResourceConfigUtils.getAsBoolean(element.getOrDefault("apply-dyed-color", true), "apply-dyed-color"))
                             .billboard(ResourceConfigUtils.getOrDefault(element.get("billboard"), o -> Billboard.valueOf(o.toString().toUpperCase(Locale.ENGLISH)), Billboard.FIXED))
                             .transform(ResourceConfigUtils.getOrDefault(element.get("transform"), o -> ItemDisplayContext.valueOf(o.toString().toUpperCase(Locale.ENGLISH)), ItemDisplayContext.NONE))
-                            .scale(MiscUtils.getAsVector3f(element.getOrDefault("scale", "1"), "scale"))
-                            .position(MiscUtils.getAsVector3f(element.getOrDefault("position", "0"), "position"))
-                            .translation(MiscUtils.getAsVector3f(element.getOrDefault("translation", "0"), "translation"))
-                            .rotation(MiscUtils.getAsQuaternionf(element.getOrDefault("rotation", "0"), "rotation"))
+                            .scale(ResourceConfigUtils.getAsVector3f(element.getOrDefault("scale", "1"), "scale"))
+                            .position(ResourceConfigUtils.getAsVector3f(element.getOrDefault("position", "0"), "position"))
+                            .translation(ResourceConfigUtils.getAsVector3f(element.getOrDefault("translation", "0"), "translation"))
+                            .rotation(ResourceConfigUtils.getAsQuaternionf(element.getOrDefault("rotation", "0"), "rotation"))
                             .build();
                     elements.add(furnitureElement);
                 }

@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.advancement.BukkitAdvancementManager;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.block.behavior.BukkitBlockBehaviors;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.element.BukkitBlockEntityElementConfigs;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
 import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.BukkitHitBoxTypes;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManager;
@@ -72,26 +73,30 @@ public class BukkitCraftEngine extends CraftEngine {
     private final Path dataFolderPath;
 
     protected BukkitCraftEngine(JavaPlugin plugin) {
-        this(new JavaPluginLogger(plugin.getLogger()), plugin.getDataFolder().toPath().toAbsolutePath(), new ReflectionClassPathAppender(plugin.getClass().getClassLoader()));
+        this(new JavaPluginLogger(plugin.getLogger()), plugin.getDataFolder().toPath().toAbsolutePath(),
+                new ReflectionClassPathAppender(plugin.getClass().getClassLoader()), new ReflectionClassPathAppender(plugin.getClass().getClassLoader()));
         this.setJavaPlugin(plugin);
     }
 
-    protected BukkitCraftEngine(PluginLogger logger, Path dataFolderPath, ClassPathAppender classPathAppender) {
+    protected BukkitCraftEngine(PluginLogger logger, Path dataFolderPath, ClassPathAppender sharedClassPathAppender, ClassPathAppender privateClassPathAppender) {
         super((p) -> {
             CraftEngineReloadEvent event = new CraftEngineReloadEvent((BukkitCraftEngine) p);
             EventUtils.fireAndForget(event);
         });
         instance = this;
         this.dataFolderPath = dataFolderPath;
-        super.classPathAppender = classPathAppender;
+        super.sharedClassPathAppender = sharedClassPathAppender;
+        super.privateClassPathAppender = privateClassPathAppender;
         super.logger = logger;
         super.platform = new BukkitPlatform();
         super.scheduler = new BukkitSchedulerAdapter(this);
-        Class<?> compatibilityClass = Objects.requireNonNull(ReflectionUtils.getClazz(COMPATIBILITY_CLASS), "Compatibility class not found");
-        try {
-            super.compatibilityManager = (CompatibilityManager) Objects.requireNonNull(ReflectionUtils.getConstructor(compatibilityClass, 0)).newInstance(this);
-        } catch (ReflectiveOperationException e) {
-            logger().warn("Compatibility class could not be instantiated: " + compatibilityClass.getName());
+        Class<?> compatibilityClass = ReflectionUtils.getClazz(COMPATIBILITY_CLASS);
+        if (compatibilityClass != null) {
+            try {
+                super.compatibilityManager = (CompatibilityManager) Objects.requireNonNull(ReflectionUtils.getConstructor(compatibilityClass, 0)).newInstance(this);
+            } catch (ReflectiveOperationException e) {
+                logger().warn("Compatibility class could not be instantiated: " + compatibilityClass.getName());
+            }
         }
     }
 
@@ -185,6 +190,7 @@ public class BukkitCraftEngine extends CraftEngine {
         BukkitBlockBehaviors.init();
         BukkitItemBehaviors.init();
         BukkitHitBoxTypes.init();
+        BukkitBlockEntityElementConfigs.init();
         PacketConsumers.initEntities(RegistryUtils.currentEntityTypeRegistrySize());
         super.packManager = new BukkitPackManager(this);
         super.senderFactory = new BukkitSenderFactory(this);

@@ -1,0 +1,104 @@
+templates:
+  default:armor/topaz:
+    material: chainmail_${part}
+    custom-model-data: 1000
+    data:
+      item-name: <!i><#FF8C00><i18n:item.topaz_${part}>
+      tooltip-style: minecraft:topaz
+    settings:
+      tags:
+        - default:topaz_tools
+        - minecraft:trimmable_armor
+      equipment:
+        asset-id: default:topaz
+        $$>=1.21.2:
+          slot: ${slot}
+    model:
+      template: default:model/armor_trim
+items:
+  default:topaz_helmet:
+    template:
+      - default:armor/topaz
+    arguments:
+      part: helmet
+      slot: head
+      material: topaz
+  default:topaz_chestplate:
+    template:
+      - default:armor/topaz
+    arguments:
+      part: chestplate
+      slot: chest
+      material: topaz
+  default:topaz_leggings:
+    template:
+      - default:armor/topaz
+    arguments:
+      part: leggings
+      slot: legs
+      material: topaz
+  default:topaz_boots:
+    template:
+      - default:armor/topaz
+    arguments:
+      part: boots
+      slot: feet
+      material: topaz
+equipments:
+  $$>=1.21.2:
+    default:topaz:
+      type: component
+      humanoid: minecraft:topaz
+      humanoid-leggings: minecraft:topaz
+  $$<1.21.2:
+    default:topaz:
+      type: trim
+      humanoid: minecraft:entity/equipment/humanoid/topaz
+      humanoid-leggings: minecraft:entity/equipment/humanoid_leggings/topaz
+recipes:
+  default:topaz_helmet:
+    type: shaped
+    category: equipment
+    pattern:
+      - AAA
+      - A A
+    ingredients:
+      A: default:topaz
+    result:
+      id: default:topaz_helmet
+      count: 1
+  default:topaz_chestplate:
+    type: shaped
+    category: equipment
+    pattern:
+      - A A
+      - AAA
+      - AAA
+    ingredients:
+      A: default:topaz
+    result:
+      id: default:topaz_chestplate
+      count: 1
+  default:topaz_leggings:
+    type: shaped
+    category: equipment
+    pattern:
+      - AAA
+      - A A
+      - A A
+    ingredients:
+      A: default:topaz
+    result:
+      id: default:topaz_leggings
+      count: 1
+  default:topaz_boots:
+    type: shaped
+    category: equipment
+    pattern:
+      - A A
+      - A A
+    ingredients:
+      A: default:topaz
+    result:
+      id: default:topaz_boots
+      count: 1

@@ -21,7 +21,7 @@ dependencies {
     implementation("net.momirealms:sparrow-nbt-codec:${rootProject.properties["sparrow_nbt_version"]}")
     implementation("net.momirealms:sparrow-nbt-legacy-codec:${rootProject.properties["sparrow_nbt_version"]}")
     // S3
-    implementation("net.momirealms:craft-engine-s3:0.4")
+    implementation("net.momirealms:craft-engine-s3:0.5")
     // Util
     compileOnly("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     // Adventure
@@ -65,6 +65,8 @@ dependencies {
     compileOnly("com.mojang:brigadier:${rootProject.properties["mojang_brigadier_version"]}")
     // authlib
     compileOnly("com.mojang:authlib:${rootProject.properties["authlib_version"]}")
+    // concurrentutil
+    compileOnly("ca.spottedleaf:concurrentutil:${rootProject.properties["concurrent_util_version"]}")
 }
 
 java {
@@ -99,6 +101,10 @@ tasks {
         relocate("com.google.common.jimfs", "net.momirealms.craftengine.libraries.jimfs")
         relocate("org.apache.commons", "net.momirealms.craftengine.libraries.commons")
         relocate("io.leangen.geantyref", "net.momirealms.craftengine.libraries.geantyref")
+        relocate("io.netty.handler.codec.http", "net.momirealms.craftengine.libraries.netty.handler.codec.http")
+        relocate("io.netty.handler.codec.rtsp", "net.momirealms.craftengine.libraries.netty.handler.codec.rtsp")
+        relocate("io.netty.handler.codec.spdy", "net.momirealms.craftengine.libraries.netty.handler.codec.spdy")
+        relocate("io.netty.handler.codec.http2", "net.momirealms.craftengine.libraries.netty.handler.codec.http2")
     }
 }
 

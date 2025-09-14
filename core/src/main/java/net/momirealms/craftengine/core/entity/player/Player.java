@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.entity.player;
 
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -8,9 +9,8 @@ import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public abstract class Player extends AbstractEntity implements NetWorkUser {
     private static final Key TYPE = Key.of("minecraft:player");
@@ -25,10 +25,6 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     @Override
     public abstract Object serverPlayer();
-
-    public abstract void sendPackets(List<Object> packet, boolean immediately);
-
-    public abstract void sendPackets(List<Object> packet, boolean immediately, Runnable sendListener);
 
     public abstract float getDestroyProgress(Object blockState, BlockPos pos);
 
@@ -52,6 +48,14 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract boolean isSneaking();
 
+    public abstract boolean isSwimming();
+
+    public abstract boolean isClimbing();
+
+    public abstract boolean isGliding();
+
+    public abstract boolean isFlying();
+
     public abstract GameMode gameMode();
 
     public abstract void setGameMode(GameMode gameMode);
@@ -59,6 +63,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract boolean canBreak(BlockPos pos, Object state);
 
     public abstract boolean canPlace(BlockPos pos, Object state);
+
+    public abstract void sendToast(Component text, Item<?> icon, AdvancementType type);
 
     public abstract void sendActionBar(Component text);
 
@@ -104,11 +110,11 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void unloadCurrentResourcePack();
 
-    public abstract void performCommand(String command);
+    public abstract void performCommand(String command, boolean asOp);
+
+    public abstract void performCommandAsEvent(String command);
 
     public abstract double luck();
-
-    public abstract boolean isFlying();
 
     @Override
     public Key type() {
@@ -146,4 +152,6 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract void clearPotionEffects();
 
     public abstract CooldownData cooldown();
+
+    public abstract void teleport(WorldPosition worldPosition);
 }
