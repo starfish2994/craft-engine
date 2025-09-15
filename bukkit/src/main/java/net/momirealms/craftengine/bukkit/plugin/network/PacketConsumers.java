@@ -2504,7 +2504,7 @@ public class PacketConsumers {
             if (!user.isUUIDVerified()) {
                 if (Config.strictPlayerUuidValidation()) {
                     TranslationManager.instance().log("warning.network.resource_pack.unverified_uuid", user.name(), user.uuid().toString());
-                    user.kick(Component.translatable("disconnect.loginFailed"));
+                    user.kick(Component.translatable("disconnect.loginFailedInfo").arguments(Component.translatable("argument.uuid.invalid")));
                     return;
                 }
                 if (Config.debugResourcePack()) {
