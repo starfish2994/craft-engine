@@ -4,6 +4,8 @@ import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +25,9 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                                  CustomRecipeResult<T> visualResult,
                                  String group,
                                  CraftingRecipeCategory category,
-                                 List<Ingredient<T>> ingredients) {
-        super(id, showNotification, result, visualResult, group, category);
+                                 List<Ingredient<T>> ingredients,
+                                 Function<PlayerOptionalContext>[] craftingFunctions) {
+        super(id, showNotification, result, visualResult, group, category, craftingFunctions);
         this.ingredients = ingredients;
         this.placementInfo = PlacementInfo.create(ingredients);
     }
@@ -88,7 +91,8 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                     parseResult(arguments),
                     parseVisualResult(arguments),
                     arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
-                    ingredients
+                    ingredients,
+                    functions(arguments)
             );
         }
 
@@ -99,7 +103,8 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                     parseResult(VANILLA_RECIPE_HELPER.craftingResult(json.getAsJsonObject("result"))),
                     null,
                     VANILLA_RECIPE_HELPER.readGroup(json), VANILLA_RECIPE_HELPER.craftingCategory(json),
-                    VANILLA_RECIPE_HELPER.shapelessIngredients(json.getAsJsonArray("ingredients")).stream().map(this::toIngredient).toList()
+                    VANILLA_RECIPE_HELPER.shapelessIngredients(json.getAsJsonArray("ingredients")).stream().map(this::toIngredient).toList(),
+                    null
             );
         }
     }

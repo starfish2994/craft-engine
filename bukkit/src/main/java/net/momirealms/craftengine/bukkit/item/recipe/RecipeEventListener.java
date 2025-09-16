@@ -23,6 +23,8 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -619,7 +621,7 @@ public class RecipeEventListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCraftingFinish(CraftItemEvent event) {
         if (!Config.enableRecipeSystem()) return;
         org.bukkit.inventory.Recipe recipe = event.getRecipe();
@@ -634,14 +636,19 @@ public class RecipeEventListener implements Listener {
         if (!(optionalRecipe.get() instanceof CustomCraftingTableRecipe<ItemStack> craftingTableRecipe)) {
             return;
         }
-        if (!craftingTableRecipe.hasVisualResult()) {
-            return;
-        }
-        CraftingInput<ItemStack> input = getCraftingInput(inventory);
-        if (input == null) return;
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
+        if (!craftingTableRecipe.hasVisualResult()) {
+            CraftingInput<ItemStack> input = getCraftingInput(inventory);
+            inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
+        }
+        Function<PlayerOptionalContext>[] functions = craftingTableRecipe.craftingFunctions();
+        if (functions != null) {
+            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+            for (Function<PlayerOptionalContext> function : functions) {
+                function.run(context);
+            }
+        }
     }
 
     private CraftingInput<ItemStack> getCraftingInput(CraftingInventory inventory) {
