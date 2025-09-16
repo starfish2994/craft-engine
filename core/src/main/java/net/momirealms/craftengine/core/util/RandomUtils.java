@@ -22,6 +22,10 @@ public final class RandomUtils {
         return ThreadLocalRandom.current().nextBoolean();
     }
 
+    public static long generateRandomLong() {
+        return ThreadLocalRandom.current().nextLong();
+    }
+
     public static double triangle(double mode, double deviation) {
         return mode + deviation * (generateRandomDouble(0,1) - generateRandomDouble(0,1));
     }

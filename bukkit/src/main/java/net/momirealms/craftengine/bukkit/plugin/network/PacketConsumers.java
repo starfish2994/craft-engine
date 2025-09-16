@@ -502,6 +502,29 @@ public class PacketConsumers {
             int state = buf.readInt();
             boolean global = buf.readBoolean();
             int newState = user.clientModEnabled() ? remapMOD(state) : remap(state);
+            Object blockState = BlockStateUtils.idToBlockState(newState);
+            Object block = BlockStateUtils.getBlockOwner(blockState);
+            if (BukkitBlockManager.instance().isBlockSoundRemoved(block) && !FastNMS.INSTANCE.method$BlockStateBase$isAir(blockState)) {
+                Object soundType = FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(blockState);
+                Object breakSound = FastNMS.INSTANCE.field$SoundType$breakSound(soundType);
+                Key soundId = Key.of(FastNMS.INSTANCE.field$SoundEvent$location(breakSound).toString());
+                Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
+                if (mappedSoundId != null) {
+                    Object mappedBreakSound = FastNMS.INSTANCE.constructor$SoundEvent(KeyUtils.toResourceLocation(mappedSoundId), Optional.empty());
+                    Object mappedBreakSoundHolder = FastNMS.INSTANCE.method$Holder$direct(mappedBreakSound);
+                    Object packet = FastNMS.INSTANCE.constructor$ClientboundSoundPacket(
+                            mappedBreakSoundHolder,
+                            CoreReflections.instance$SoundSource$BLOCKS,
+                            blockPos.x() + 0.5,
+                            blockPos.y() + 0.5,
+                            blockPos.z() + 0.5,
+                            (FastNMS.INSTANCE.field$SoundType$volume(soundType) + 1.0F) / 2.0F,
+                            FastNMS.INSTANCE.field$SoundType$pitch(soundType) * 0.8F,
+                            RandomUtils.generateRandomLong()
+                    );
+                    user.sendPacket(packet, true);
+                }
+            }
             if (newState == state) {
                 return;
             }
