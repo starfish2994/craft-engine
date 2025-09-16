@@ -87,14 +87,15 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class PacketConsumers {
     private static BukkitNetworkManager.Handlers[] ADD_ENTITY_HANDLERS;
     private static int[] BLOCK_STATE_MAPPINGS;
     private static int[] MOD_BLOCK_STATE_MAPPINGS;
     private static IntIdentityList SERVER_BLOCK_LIST;
-    private static IntIdentityList CLIENT_BLOCK_LIST;
     private static IntIdentityList BIOME_LIST;
+    private static Consumer<PalettedContainer<Integer>> BIOME_MAPPER;
 
     public static void initEntities(int registrySize) {
         ADD_ENTITY_HANDLERS = new BukkitNetworkManager.Handlers[registrySize];
@@ -230,6 +231,16 @@ public class PacketConsumers {
         };
     }
 
+    public static void setBiomeMapper(Consumer<PalettedContainer<Integer>> mapper) {
+        BIOME_MAPPER = mapper;
+    }
+
+    public static void remapBiomes(PalettedContainer<Integer> biomes) {
+        if (BIOME_MAPPER != null) {
+            BIOME_MAPPER.accept(biomes);
+        }
+    }
+
     public static void initBlocks(Map<Integer, Integer> map, int registrySize) {
         int[] newMappings = new int[registrySize];
         for (int i = 0; i < registrySize; i++) {
@@ -250,7 +261,6 @@ public class PacketConsumers {
         BLOCK_STATE_MAPPINGS = newMappings;
         MOD_BLOCK_STATE_MAPPINGS = newMappingsMOD;
         SERVER_BLOCK_LIST = new IntIdentityList(registrySize);
-        CLIENT_BLOCK_LIST = new IntIdentityList(BlockStateUtils.vanillaStateSize());
         BIOME_LIST = new IntIdentityList(RegistryUtils.currentBiomeRegistrySize());
     }
 
@@ -340,6 +350,7 @@ public class PacketConsumers {
                     MCSection mcSection = new MCSection(user.clientBlockList(), SERVER_BLOCK_LIST, BIOME_LIST);
                     mcSection.readPacket(friendlyByteBuf);
                     PalettedContainer<Integer> container = mcSection.blockStateContainer();
+                    remapBiomes(mcSection.biomeContainer());
                     Palette<Integer> palette = container.data().palette();
                     if (palette.canRemap()) {
                         palette.remap(PacketConsumers::remapMOD);
@@ -363,6 +374,7 @@ public class PacketConsumers {
                     MCSection mcSection = new MCSection(user.clientBlockList(), SERVER_BLOCK_LIST, BIOME_LIST);
                     mcSection.readPacket(friendlyByteBuf);
                     PalettedContainer<Integer> container = mcSection.blockStateContainer();
+                    remapBiomes(mcSection.biomeContainer());
                     Palette<Integer> palette = container.data().palette();
                     if (palette.canRemap()) {
                         palette.remap(PacketConsumers::remap);
