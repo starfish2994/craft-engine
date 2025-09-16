@@ -50,10 +50,10 @@ public class DoubleHighBlockBehavior extends BukkitBlockBehavior {
         if (anotherHalfCustomState != null && !anotherHalfCustomState.isEmpty()) return blockState;
 
         // 破坏
-        BlockPos pos = LocationUtils.fromBlockPos(blockPos);
-        net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
-        WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(pos));
-        world.playBlockSound(position, customState.settings().sounds().breakSound());
+        // BlockPos pos = LocationUtils.fromBlockPos(blockPos);
+        // net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
+        // WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(pos));
+        // world.playBlockSound(position, customState.settings().sounds().breakSound()); // 下面触发事件也会有声音
         FastNMS.INSTANCE.method$LevelAccessor$levelEvent(level, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId());
         return MBlocks.AIR$defaultState;
     }

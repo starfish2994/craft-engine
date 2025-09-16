@@ -188,16 +188,14 @@ public final class CraftEngineBlocks {
      * @param player player who breaks the block
      * @param dropLoot whether to drop block loots
      * @param isMoving is moving
-     * @param playSound whether to play break sounds
-     * @param sendParticles whether to send break particles
+     * @param sendLevelEvent whether to send break particles and sounds
      * @return success or not
      */
     public static boolean remove(@NotNull Block block,
                                  @Nullable Player player,
                                  boolean isMoving,
                                  boolean dropLoot,
-                                 boolean playSound,
-                                 boolean sendParticles) {
+                                 boolean sendLevelEvent) {
         ImmutableBlockState state = getCustomBlockState(block);
         if (state == null || state.isEmpty()) return false;
         World world = new BukkitWorld(block.getWorld());
@@ -215,14 +213,32 @@ public final class CraftEngineBlocks {
                 world.dropItemNaturally(position, item);
             }
         }
-        if (playSound) {
-            world.playBlockSound(position, state.settings().sounds().breakSound());
-        }
-        if (sendParticles) {
+        if (sendLevelEvent) {
             FastNMS.INSTANCE.method$LevelAccessor$levelEvent(world.serverWorld(), WorldEvents.BLOCK_BREAK_EFFECT, LocationUtils.toBlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), state.customBlockState().registryId());
         }
         FastNMS.INSTANCE.method$Level$removeBlock(world.serverWorld(), LocationUtils.toBlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), isMoving);
         return true;
+    }
+
+    /**
+     * Removes a block from the world if it's custom
+     *
+     * @param block block to remove
+     * @param player player who breaks the block
+     * @param dropLoot whether to drop block loots
+     * @param isMoving is moving
+     * @param playSound whether to play break sounds
+     * @param sendParticles whether to send break particles
+     * @return success or not
+     */
+    @Deprecated
+    public static boolean remove(@NotNull Block block,
+                                 @Nullable Player player,
+                                 boolean isMoving,
+                                 boolean dropLoot,
+                                 boolean playSound,
+                                 boolean sendParticles) {
+        return remove(block, player, dropLoot, isMoving, playSound || sendParticles);
     }
 
     /**
