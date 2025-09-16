@@ -22,6 +22,8 @@ items:
           push-reaction: block
           instrument: basedrum
           map-color: 6
+          tags:
+            - minecraft:mineable/pickaxe
           sounds:
             break: minecraft:block.stone.break
             fall: minecraft:block.stone.fall

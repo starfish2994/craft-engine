@@ -614,7 +614,7 @@ public class RecipeEventListener implements Listener {
         if (input == null) return;
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        if (craftingTableRecipe.hasVisualResult()) {
+        if (craftingTableRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
             inventory.setResult(craftingTableRecipe.assembleVisual(input, ItemBuildContext.of(serverPlayer)));
         } else {
             inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
@@ -623,7 +623,7 @@ public class RecipeEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCraftingFinish(CraftItemEvent event) {
-        if (!Config.enableRecipeSystem()) return;
+        if (!Config.enableRecipeSystem() || !VersionHelper.PREMIUM) return;
         org.bukkit.inventory.Recipe recipe = event.getRecipe();
         if (!(recipe instanceof CraftingRecipe craftingRecipe)) return;
         Key recipeId = Key.of(craftingRecipe.getKey().namespace(), craftingRecipe.getKey().value());

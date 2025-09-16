@@ -21,9 +21,10 @@ items:
             replaceable: false
             is-redstone-conductor: false
             is-suffocating: false
+            support-shape: cobweb
         behaviors:
           - type: toggleable_lamp_block
-            can-open-with-hand: true
+            can-toggle-with-hand: true
           - type: sturdy_base_block
             direction: down
             support-types:
