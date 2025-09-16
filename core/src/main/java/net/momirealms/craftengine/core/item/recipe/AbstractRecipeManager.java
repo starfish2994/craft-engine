@@ -106,12 +106,14 @@ public abstract class AbstractRecipeManager<T> implements RecipeManager<T> {
         if (recipe instanceof AbstractedFixedResultRecipe<?> fixedResult) {
             this.byResult.computeIfAbsent(fixedResult.result().item().id(), k -> new ArrayList<>()).add(recipe);
         }
-        HashSet<Key> usedKeys = new HashSet<>();
-        for (Ingredient<T> ingredient : recipe.ingredientsInUse()) {
-            for (UniqueKey holder : ingredient.items()) {
-                Key key = holder.key();
-                if (usedKeys.add(key)) {
-                    this.byIngredient.computeIfAbsent(key, k -> new ArrayList<>()).add(recipe);
+        if (recipe.canBeSearchedByIngredients()) {
+            HashSet<Key> usedKeys = new HashSet<>();
+            for (Ingredient<T> ingredient : recipe.ingredientsInUse()) {
+                for (UniqueKey holder : ingredient.items()) {
+                    Key key = holder.key();
+                    if (usedKeys.add(key)) {
+                        this.byIngredient.computeIfAbsent(key, k -> new ArrayList<>()).add(recipe);
+                    }
                 }
             }
         }

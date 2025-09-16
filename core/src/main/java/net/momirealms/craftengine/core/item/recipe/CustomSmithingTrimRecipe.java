@@ -103,6 +103,11 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T> {
         return pattern;
     }
 
+    @Override
+    public boolean canBeSearchedByIngredients() {
+        return false;
+    }
+
     @SuppressWarnings({"DuplicatedCode"})
     public static class Serializer<A> extends AbstractRecipeSerializer<A, CustomSmithingTrimRecipe<A>> {
 
