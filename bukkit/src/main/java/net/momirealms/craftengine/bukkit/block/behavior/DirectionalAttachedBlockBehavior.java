@@ -153,12 +153,12 @@ public class DirectionalAttachedBlockBehavior extends AbstractCanSurviveBlockBeh
     @SuppressWarnings("DuplicatedCode")
     private static Tuple<List<Object>, Set<Object>, Set<String>> readTagsAndState(Map<String, Object> arguments) {
         List<Object> mcTags = new ArrayList<>();
-        for (String tag : MiscUtils.getAsStringList(arguments.getOrDefault("wall-block-tags", List.of()))) {
+        for (String tag : MiscUtils.getAsStringList(arguments.getOrDefault("attached-block-tags", List.of()))) {
             mcTags.add(BlockTags.getOrCreate(Key.of(tag)));
         }
         Set<Object> mcBlocks = new HashSet<>();
         Set<String> customBlocks = new HashSet<>();
-        for (String blockStateStr : MiscUtils.getAsStringList(arguments.getOrDefault("wall-blocks", List.of()))) {
+        for (String blockStateStr : MiscUtils.getAsStringList(arguments.getOrDefault("attached-blocks", List.of()))) {
             int index = blockStateStr.indexOf('[');
             Key blockType = index != -1 ? Key.from(blockStateStr.substring(0, index)) : Key.from(blockStateStr);
             Material material = Registry.MATERIAL.get(new NamespacedKey(blockType.namespace(), blockType.value()));
