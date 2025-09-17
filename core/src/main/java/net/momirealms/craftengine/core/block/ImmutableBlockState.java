@@ -152,9 +152,16 @@ public final class ImmutableBlockState extends BlockStateHolder {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends BlockEntity> BlockEntityTicker<T> createBlockEntityTicker(CEWorld world, BlockEntityType<? extends BlockEntity> type) {
+    public <T extends BlockEntity> BlockEntityTicker<T> createSyncBlockEntityTicker(CEWorld world, BlockEntityType<? extends BlockEntity> type) {
         EntityBlockBehavior blockBehavior = this.behavior.getEntityBehavior();
         if (blockBehavior == null) return null;
-        return (BlockEntityTicker<T>) blockBehavior.createBlockEntityTicker(world, this, type);
+        return (BlockEntityTicker<T>) blockBehavior.createSyncBlockEntityTicker(world, this, type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends BlockEntity> BlockEntityTicker<T> createAsyncBlockEntityTicker(CEWorld world, BlockEntityType<? extends BlockEntity> type) {
+        EntityBlockBehavior blockBehavior = this.behavior.getEntityBehavior();
+        if (blockBehavior == null) return null;
+        return (BlockEntityTicker<T>) blockBehavior.createAsyncBlockEntityTicker(world, this, type);
     }
 }

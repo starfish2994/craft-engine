@@ -3,7 +3,6 @@ package net.momirealms.craftengine.core.world.chunk.packet;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.IndexedIterable;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
-import net.momirealms.craftengine.core.world.chunk.ReadableContainer;
 
 public class MCSection {
     private short nonEmptyBlockCount;

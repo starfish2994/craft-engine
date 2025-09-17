@@ -25,9 +25,12 @@ public abstract class CEWorld {
     protected final WorldHeight worldHeightAccessor;
     protected List<SectionPos> pendingLightSections = new ArrayList<>();
     protected final Set<SectionPos> lightSections = ConcurrentHashMap.newKeySet(128);
-    protected final BlockEntityTickersList tickingBlockEntities = new BlockEntityTickersList();
-    protected final List<TickingBlockEntity> pendingTickingBlockEntities = new ArrayList<>();
-    protected volatile boolean isTickingBlockEntities = false;
+    protected final BlockEntityTickersList tickingSyncBlockEntities = new BlockEntityTickersList();
+    protected final List<TickingBlockEntity> pendingSyncTickingBlockEntities = new ArrayList<>();
+    protected final BlockEntityTickersList tickingAsyncBlockEntities = new BlockEntityTickersList();
+    protected final List<TickingBlockEntity> pendingAsyncTickingBlockEntities = new ArrayList<>();
+    protected volatile boolean isTickingSyncBlockEntities = false;
+    protected volatile boolean isTickingAsyncBlockEntities = false;
     protected volatile boolean isUpdatingLights = false;
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
@@ -176,13 +179,14 @@ public abstract class CEWorld {
     }
 
     public void syncTick() {
-        this.tickBlockEntities();
+        this.tickSyncBlockEntities();
         if (!Config.asyncLightUpdate()) {
             this.updateLight();
         }
     }
 
     public void asyncTick() {
+        this.tickAsyncBlockEntities();
         if (Config.asyncLightUpdate()) {
             this.updateLight();
         }
@@ -190,32 +194,61 @@ public abstract class CEWorld {
 
     public abstract void updateLight();
 
-    public void addBlockEntityTicker(TickingBlockEntity ticker) {
-        if (this.isTickingBlockEntities) {
-            this.pendingTickingBlockEntities.add(ticker);
+    public void addSyncBlockEntityTicker(TickingBlockEntity ticker) {
+        if (this.isTickingSyncBlockEntities) {
+            this.pendingSyncTickingBlockEntities.add(ticker);
         } else {
-            this.tickingBlockEntities.add(ticker);
+            this.tickingSyncBlockEntities.add(ticker);
         }
     }
 
-    protected void tickBlockEntities() {
-        this.isTickingBlockEntities = true;
-        if (!this.pendingTickingBlockEntities.isEmpty()) {
-            this.tickingBlockEntities.addAll(this.pendingTickingBlockEntities);
-            this.pendingTickingBlockEntities.clear();
+    public void addAsyncBlockEntityTicker(TickingBlockEntity ticker) {
+        if (this.isTickingAsyncBlockEntities) {
+            this.pendingAsyncTickingBlockEntities.add(ticker);
+        } else {
+            this.tickingAsyncBlockEntities.add(ticker);
         }
-        if (!this.tickingBlockEntities.isEmpty()) {
-            Object[] entities = this.tickingBlockEntities.elements();
-            for (int i = 0, size = this.tickingBlockEntities.size(); i < size; i++) {
+    }
+
+    protected void tickSyncBlockEntities() {
+        this.isTickingSyncBlockEntities = true;
+        if (!this.pendingSyncTickingBlockEntities.isEmpty()) {
+            this.tickingSyncBlockEntities.addAll(this.pendingSyncTickingBlockEntities);
+            this.pendingSyncTickingBlockEntities.clear();
+        }
+        if (!this.tickingSyncBlockEntities.isEmpty()) {
+            Object[] entities = this.tickingSyncBlockEntities.elements();
+            for (int i = 0, size = this.tickingSyncBlockEntities.size(); i < size; i++) {
                 TickingBlockEntity entity = (TickingBlockEntity) entities[i];
                 if (entity.isValid()) {
                     entity.tick();
                 } else {
-                    this.tickingBlockEntities.markAsRemoved(i);
+                    this.tickingSyncBlockEntities.markAsRemoved(i);
                 }
             }
-            this.tickingBlockEntities.removeMarkedEntries();
+            this.tickingSyncBlockEntities.removeMarkedEntries();
         }
-        this.isTickingBlockEntities = false;
+        this.isTickingSyncBlockEntities = false;
+    }
+
+    protected void tickAsyncBlockEntities() {
+        this.isTickingAsyncBlockEntities = true;
+        if (!this.pendingAsyncTickingBlockEntities.isEmpty()) {
+            this.tickingAsyncBlockEntities.addAll(this.pendingAsyncTickingBlockEntities);
+            this.pendingAsyncTickingBlockEntities.clear();
+        }
+        if (!this.tickingAsyncBlockEntities.isEmpty()) {
+            Object[] entities = this.tickingAsyncBlockEntities.elements();
+            for (int i = 0, size = this.tickingAsyncBlockEntities.size(); i < size; i++) {
+                TickingBlockEntity entity = (TickingBlockEntity) entities[i];
+                if (entity.isValid()) {
+                    entity.tick();
+                } else {
+                    this.tickingAsyncBlockEntities.markAsRemoved(i);
+                }
+            }
+            this.tickingAsyncBlockEntities.removeMarkedEntries();
+        }
+        this.isTickingAsyncBlockEntities = false;
     }
 }

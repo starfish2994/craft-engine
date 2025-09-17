@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
+import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
-import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
@@ -28,8 +28,9 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                               String group,
                               CraftingRecipeCategory category,
                               Pattern<T> pattern,
-                              Function<PlayerOptionalContext>[] craftingFunctions) {
-        super(id, showNotification, result, visualResult, group, category, craftingFunctions);
+                              Function<PlayerOptionalContext>[] craftingFunctions,
+                              Condition<PlayerOptionalContext> craftingCondition) {
+        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition);
         this.pattern = pattern;
         this.parsedPattern = pattern.parse();
     }
@@ -174,7 +175,8 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                     parseVisualResult(arguments),
                     arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
                     new Pattern<>(pattern.toArray(new String[0]), ingredients),
-                    functions(arguments)
+                    functions(arguments),
+                    conditions(arguments)
             );
         }
 
@@ -188,6 +190,7 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                     VANILLA_RECIPE_HELPER.readGroup(json),
                     VANILLA_RECIPE_HELPER.craftingCategory(json),
                     new Pattern<>(VANILLA_RECIPE_HELPER.craftingShapedPattern(json), ingredients),
+                    null,
                     null
             );
         }

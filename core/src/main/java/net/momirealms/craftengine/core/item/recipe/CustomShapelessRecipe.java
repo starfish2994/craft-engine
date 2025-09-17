@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
+import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
@@ -26,8 +27,9 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                                  String group,
                                  CraftingRecipeCategory category,
                                  List<Ingredient<T>> ingredients,
-                                 Function<PlayerOptionalContext>[] craftingFunctions) {
-        super(id, showNotification, result, visualResult, group, category, craftingFunctions);
+                                 Function<PlayerOptionalContext>[] craftingFunctions,
+                                 Condition<PlayerOptionalContext> craftingCondition) {
+        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition);
         this.ingredients = ingredients;
         this.placementInfo = PlacementInfo.create(ingredients);
     }
@@ -92,7 +94,8 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                     parseVisualResult(arguments),
                     arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
                     ingredients,
-                    functions(arguments)
+                    functions(arguments),
+                    conditions(arguments)
             );
         }
 
@@ -104,6 +107,7 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                     null,
                     VANILLA_RECIPE_HELPER.readGroup(json), VANILLA_RECIPE_HELPER.craftingCategory(json),
                     VANILLA_RECIPE_HELPER.shapelessIngredients(json.getAsJsonArray("ingredients")).stream().map(this::toIngredient).toList(),
+                    null,
                     null
             );
         }

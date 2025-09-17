@@ -8,7 +8,6 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
@@ -20,7 +19,8 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.PressurePlateSensitivity;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
-import net.momirealms.craftengine.core.world.*;
+import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.WorldEvents;
 import org.bukkit.GameEvent;
 import org.bukkit.util.Vector;
 
