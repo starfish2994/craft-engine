@@ -31,7 +31,6 @@ public abstract class CustomCraftingTableRecipe<T> extends AbstractGroupedRecipe
         this.craftingCondition = craftingCondition;
     }
 
-
     @Override
     public boolean canUse(PlayerOptionalContext context) {
         if (this.craftingCondition == null) return true;

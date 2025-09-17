@@ -39,9 +39,9 @@ public abstract class AbstractRecipeSerializer<T, R extends Recipe<T>> implement
     }
 
     protected Condition<PlayerOptionalContext> conditions(Map<String, Object> arguments) {
-        Object functions = ResourceConfigUtils.get(arguments, "conditions", "condition");
-        if (functions == null) return null;
-        List<Condition<PlayerOptionalContext>> conditionList = ResourceConfigUtils.parseConfigAsList(functions, EventConditions::fromMap);
+        Object conditions = ResourceConfigUtils.get(arguments, "conditions", "condition");
+        if (conditions == null) return null;
+        List<Condition<PlayerOptionalContext>> conditionList = ResourceConfigUtils.parseConfigAsList(conditions, EventConditions::fromMap);
         if (conditionList.isEmpty()) return null;
         if (conditionList.size() == 1) return conditionList.getFirst();
         return new AllOfCondition<>(conditionList);
