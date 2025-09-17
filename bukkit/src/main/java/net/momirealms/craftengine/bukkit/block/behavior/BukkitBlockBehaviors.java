@@ -36,6 +36,7 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
     public static final Key LIQUID_FLOWABLE_BLOCK = Key.from("craftengine:liquid_flowable_block");
     public static final Key SIMPLE_PARTICLE_BLOCK = Key.from("craftengine:simple_particle_block");
     public static final Key WALL_TORCH_PARTICLE_BLOCK = Key.from("craftengine:wall_torch_particle_block");
+    public static final Key FENCE_BLOCK = Key.from("craftengine:fence_block");
 
     public static void init() {
         register(EMPTY, (block, args) -> EmptyBlockBehavior.INSTANCE);
@@ -70,5 +71,6 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
         register(LIQUID_FLOWABLE_BLOCK, LiquidFlowableBlockBehavior.FACTORY);
         register(SIMPLE_PARTICLE_BLOCK, SimpleParticleBlockBehavior.FACTORY);
         register(WALL_TORCH_PARTICLE_BLOCK, WallTorchParticleBlockBehavior.FACTORY);
+        register(FENCE_BLOCK, FenceBlockBehavior.FACTORY);
     }
 }

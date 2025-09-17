@@ -4389,4 +4389,11 @@ public final class CoreReflections {
     public static final Constructor<?> constructor$AdvancementHolder = Optional.ofNullable(clazz$AdvancementHolder)
             .map(it -> ReflectionUtils.getConstructor(it, clazz$ResourceLocation, clazz$Advancement))
             .orElse(null);
+
+    public static final Class<?> clazz$FenceGateBlock = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.level.block.BlockFenceGate",
+                    "world.level.block.FenceGateBlock"
+            )
+    );
 }

@@ -55,4 +55,48 @@ public class BlockPos extends Vec3i {
     public BlockPos offset(int x, int y, int z) {
         return x == 0 && y == 0 && z == 0 ? this : new BlockPos(this.x() + x, this.y() + y, this.z() + z);
     }
+
+    public BlockPos immutable() {
+        return this;
+    }
+
+    @Override
+    public BlockPos north() {
+        return new BlockPos(this.x(), this.y(), this.z() - 1);
+    }
+
+    @Override
+    public BlockPos north(int distance) {
+        return distance == 0 ? this.immutable() : new BlockPos(this.x(), this.y(), this.z() - distance);
+    }
+
+    @Override
+    public BlockPos south() {
+        return new BlockPos(this.x(), this.y(), this.z() + 1);
+    }
+
+    @Override
+    public BlockPos south(int distance) {
+        return distance == 0 ? this.immutable() : new BlockPos(this.x(), this.y(), this.z() + distance);
+    }
+
+    @Override
+    public BlockPos west() {
+        return new BlockPos(this.x() - 1, this.y(), this.z());
+    }
+
+    @Override
+    public BlockPos west(int distance) {
+        return distance == 0 ? this.immutable() : new BlockPos(this.x() - distance, this.y(), this.z());
+    }
+
+    @Override
+    public BlockPos east() {
+        return new BlockPos(this.x() + 1, this.y(), this.z());
+    }
+
+    @Override
+    public BlockPos east(int distance) {
+        return distance == 0 ? this.immutable() : new BlockPos(this.x() + distance, this.y(), this.z());
+    }
 }
