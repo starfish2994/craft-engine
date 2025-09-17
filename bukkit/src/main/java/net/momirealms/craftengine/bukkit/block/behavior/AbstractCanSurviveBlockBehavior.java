@@ -7,7 +7,6 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -69,13 +68,8 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
             FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, blockPos, thisBlock, this.delay);
             return state;
         }
-        if (!canSurvive(thisBlock, new Object[] {state, level, blockPos}, () -> true)) {
-            // BlockPos pos = LocationUtils.fromBlockPos(blockPos);
-            ImmutableBlockState customState = optionalCustomState.get();
-            // net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
-            // WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(pos));
-            // world.playBlockSound(position, customState.settings().sounds().breakSound()); // 下面触发事件也会有声音
-            FastNMS.INSTANCE.method$LevelAccessor$levelEvent(level, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId());
+        if (!FastNMS.INSTANCE.method$BlockStateBase$canSurvive(state, level, blockPos)) {
+            FastNMS.INSTANCE.method$LevelAccessor$levelEvent(level, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, optionalCustomState.get().customBlockState().registryId());
             return MBlocks.AIR$defaultState;
         }
         return state;

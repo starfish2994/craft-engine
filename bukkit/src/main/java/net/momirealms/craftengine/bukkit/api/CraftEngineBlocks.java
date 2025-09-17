@@ -231,7 +231,7 @@ public final class CraftEngineBlocks {
      * @param sendParticles whether to send break particles
      * @return success or not
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public static boolean remove(@NotNull Block block,
                                  @Nullable Player player,
                                  boolean isMoving,
