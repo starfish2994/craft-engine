@@ -137,7 +137,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
     private static final String PACKET_DECODER = "craftengine_decoder";
 
     private final boolean hasModelEngine;
-    private final boolean hasViaVersion;
 
     private int[] blockStateRemapper;
     private int[] modBlockStateRemapper;
@@ -148,7 +147,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         this.s2cGamePacketListeners = new ByteBufferPacketListenerHolder[PlayPacketIdHelper.count(PacketFlow.CLIENTBOUND)];
         this.c2sGamePacketListeners = new ByteBufferPacketListenerHolder[PlayPacketIdHelper.count(PacketFlow.SERVERBOUND)];
         this.hasModelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine") != null;
-        this.hasViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         this.plugin = plugin;
         // set up packet id
         this.packetIds = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
@@ -534,13 +532,9 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         return hasModelEngine;
     }
 
-    public boolean hasViaVersion() {
-        return hasViaVersion;
-    }
-
     public void simulatePacket(@NotNull NetWorkUser player, Object packet) {
         Channel channel = player.nettyChannel();
-        if (channel.isOpen()) {
+        if (channel != null && channel.isOpen()) {
             List<String> handlerNames = channel.pipeline().names();
             if (handlerNames.contains("via-encoder")) {
                 channel.pipeline().context("via-decoder").fireChannelRead(packet);
@@ -673,9 +667,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         String encoderName = pipeline.names().contains("outbound_config") ? "outbound_config" : "encoder";
         pipeline.addBefore(encoderName, PACKET_ENCODER, new PluginChannelEncoder(user));
 
-        channel.closeFuture().addListener((ChannelFutureListener) future -> {
-            handleDisconnection(user.nettyChannel());
-        });
+        channel.closeFuture().addListener((ChannelFutureListener) future -> handleDisconnection(user.nettyChannel()));
         setUser(channel, user);
     }
 
@@ -933,7 +925,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
     private void decompress(ChannelHandlerContext ctx, ByteBuf input, ByteBuf output) {
         ChannelHandler decompressor = ctx.pipeline().get("decompress");
         if (decompressor != null) {
-            ByteBuf temp = (ByteBuf) callDecode(decompressor, ctx, input).get(0);
+            ByteBuf temp = (ByteBuf) callDecode(decompressor, ctx, input).getFirst();
             try {
                 output.clear().writeBytes(temp);
             } finally {
