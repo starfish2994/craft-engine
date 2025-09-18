@@ -45,8 +45,12 @@ public final class BlockStateUtils {
 
     public static BlockStateWrapper toBlockStateWrapper(BlockData blockData) {
         Object state = blockDataToBlockState(blockData);
-        int id = blockStateToId(state);
-        return new BukkitBlockStateWrapper(state, id);
+        return toBlockStateWrapper(state);
+    }
+
+    public static BlockStateWrapper toBlockStateWrapper(Object blockState) {
+        int id = blockStateToId(blockState);
+        return new BukkitBlockStateWrapper(blockState, id);
     }
 
     public static boolean isCorrectTool(@NotNull ImmutableBlockState state, @Nullable Item<ItemStack> itemInHand) {

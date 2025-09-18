@@ -9,6 +9,9 @@ public final class MTagKeys {
 
     public static final Object Item$WOOL = create(MRegistries.ITEM, "wool");
     public static final Object Block$WALLS = create(MRegistries.BLOCK, "walls");
+    public static final Object Block$SHULKER_BOXES = create(MRegistries.BLOCK, "shulker_boxes");
+    public static final Object Block$FENCES = create(MRegistries.BLOCK, "fences");
+    public static final Object Block$WOODEN_FENCES = create(MRegistries.BLOCK, "wooden_fences");
 
     private static Object create(Object registry, String location) {
         Object resourceLocation = FastNMS.INSTANCE.method$ResourceLocation$fromNamespaceAndPath("minecraft", location);

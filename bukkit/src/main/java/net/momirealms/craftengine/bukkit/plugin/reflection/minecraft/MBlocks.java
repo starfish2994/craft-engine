@@ -22,6 +22,11 @@ public final class MBlocks {
     public static final Object WATER$defaultState;
     public static final Object TNT;
     public static final Object TNT$defaultState;
+    public static final Object BARRIER;
+    public static final Object CARVED_PUMPKIN;
+    public static final Object JACK_O_LANTERN;
+    public static final Object MELON;
+    public static final Object PUMPKIN;
 
     private static Object getById(String id) {
         Object rl = FastNMS.INSTANCE.method$ResourceLocation$fromNamespaceAndPath("minecraft", id);
@@ -45,5 +50,10 @@ public final class MBlocks {
         WATER$defaultState = FastNMS.INSTANCE.method$Block$defaultState(WATER);
         TNT = getById("tnt");
         TNT$defaultState = FastNMS.INSTANCE.method$Block$defaultState(TNT);
+        BARRIER = getById("barrier");
+        CARVED_PUMPKIN = getById("carved_pumpkin");
+        JACK_O_LANTERN = getById("jack_o_lantern");
+        MELON = getById("melon");
+        PUMPKIN = getById("pumpkin");
     }
 }
