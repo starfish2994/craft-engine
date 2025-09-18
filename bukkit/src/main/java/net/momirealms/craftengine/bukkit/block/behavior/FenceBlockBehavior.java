@@ -33,7 +33,7 @@ public class FenceBlockBehavior extends BukkitBlockBehavior {
     private final BooleanProperty eastProperty;
     private final BooleanProperty southProperty;
     private final BooleanProperty westProperty;
-    private final Object selfBlockTag;
+    private final Object fenceBlockTag;
     private final Object connectableBlockTag;
     private final boolean canLeash;
 
@@ -42,7 +42,7 @@ public class FenceBlockBehavior extends BukkitBlockBehavior {
                               BooleanProperty eastProperty,
                               BooleanProperty southProperty,
                               BooleanProperty westProperty,
-                              Object selfBlockTag,
+                              Object fenceBlockTag,
                               Object connectableBlockTag,
                               boolean canLeash) {
         super(customBlock);
@@ -50,7 +50,7 @@ public class FenceBlockBehavior extends BukkitBlockBehavior {
         this.eastProperty = eastProperty;
         this.southProperty = southProperty;
         this.westProperty = westProperty;
-        this.selfBlockTag = selfBlockTag;
+        this.fenceBlockTag = fenceBlockTag;
         this.connectableBlockTag = connectableBlockTag;
         this.canLeash = canLeash;
     }
@@ -70,7 +70,7 @@ public class FenceBlockBehavior extends BukkitBlockBehavior {
 
     private boolean isSameFence(BlockStateWrapper state) {
         Object blockState = state.literalObject();
-        return FastNMS.INSTANCE.method$BlockStateBase$is(blockState, this.selfBlockTag)
+        return FastNMS.INSTANCE.method$BlockStateBase$is(blockState, this.fenceBlockTag)
                 && FastNMS.INSTANCE.method$BlockStateBase$is(blockState, this.connectableBlockTag)
                 == FastNMS.INSTANCE.method$BlockStateBase$is(this.customBlock.defaultState().customBlockState().literalObject(), this.connectableBlockTag);
     }
@@ -144,12 +144,12 @@ public class FenceBlockBehavior extends BukkitBlockBehavior {
             BooleanProperty east = (BooleanProperty) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("east"), "warning.config.block.behavior.fence.missing_east");
             BooleanProperty south = (BooleanProperty) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("south"), "warning.config.block.behavior.fence.missing_south");
             BooleanProperty west = (BooleanProperty) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("west"), "warning.config.block.behavior.fence.missing_west");
-            Object selfBlockTag = FastNMS.INSTANCE.method$TagKey$create(MRegistries.BLOCK, KeyUtils.toResourceLocation(Key.of(arguments.getOrDefault("self-block-tag", "minecraft:fences").toString())));
-            selfBlockTag = selfBlockTag != null ? selfBlockTag : MTagKeys.Block$FENCES;
+            Object fenceBlockTag = FastNMS.INSTANCE.method$TagKey$create(MRegistries.BLOCK, KeyUtils.toResourceLocation(Key.of(arguments.getOrDefault("fence-block-tag", "minecraft:fences").toString())));
+            fenceBlockTag = fenceBlockTag != null ? fenceBlockTag : MTagKeys.Block$FENCES;
             Object connectableBlockTag = FastNMS.INSTANCE.method$TagKey$create(MRegistries.BLOCK, KeyUtils.toResourceLocation(Key.of(arguments.getOrDefault("connectable-block-tag", "minecraft:wooden_fences").toString())));
             connectableBlockTag = connectableBlockTag != null ? connectableBlockTag : MTagKeys.Block$WOODEN_FENCES;
             boolean canLeash = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-leash", false), "can-leash");
-            return new FenceBlockBehavior(block, north, east, south, west, selfBlockTag, connectableBlockTag, canLeash);
+            return new FenceBlockBehavior(block, north, east, south, west, fenceBlockTag, connectableBlockTag, canLeash);
         }
     }
 }
