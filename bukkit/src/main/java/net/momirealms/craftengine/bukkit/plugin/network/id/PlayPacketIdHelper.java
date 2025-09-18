@@ -13,6 +13,7 @@ import java.util.*;
 public class PlayPacketIdHelper {
     // 1.20.5-latest
     private static final Map<PacketFlow, Map<String, Integer>> byName = new EnumMap<>(PacketFlow.class);
+    private static final Map<PacketFlow, String[]> byId = new EnumMap<>(PacketFlow.class);
     // 1.20-1.20.4
     private static final Map<PacketFlow, Map<Class<?>, Integer>> byClazz = new EnumMap<>(PacketFlow.class);
 
@@ -38,6 +39,15 @@ public class PlayPacketIdHelper {
                     byClazz.put(PacketFlow.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), entry.getValue());
                 }
             }
+            if (!byName.isEmpty()) {
+                for (Map.Entry<PacketFlow, Map<String, Integer>> entry : byName.entrySet()) {
+                    String[] ids = new String[entry.getValue().size()];
+                    for (Map.Entry<String, Integer> nameIdEntry : entry.getValue().entrySet()) {
+                        ids[nameIdEntry.getValue()] = nameIdEntry.getKey();
+                    }
+                    byId.put(entry.getKey(), ids);
+                }
+            }
         } catch (Exception e) {
             CraftEngine.instance().logger().warn("Failed to init packet registry", e);
         }
@@ -49,6 +59,10 @@ public class PlayPacketIdHelper {
         } else {
             return byClazz.getOrDefault(direction, Collections.emptyMap()).size();
         }
+    }
+
+    public static String byId(int id, PacketFlow direction) {
+        return byId.get(direction)[id];
     }
 
     public static int byName(String packetName, PacketFlow direction) {
