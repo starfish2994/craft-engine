@@ -219,24 +219,7 @@ image:
     chat: true
     command: true
     sign: true
-  # Allow <image:...> and <shift:...> tags in third-party plugins via packet manipulation
-  # ⚠️ Disable unused handlers to reduce async thread workload
-  intercept-packets:
-    system-chat: true
-    tab-list: true     # Tab list header and footer
-    player-info: true  # Player list in tab
-    set-score: true
-    actionbar: true
-    title: true
-    bossbar: true
-    container: true     # GUI
-    team: true          # Team prefix, suffix and display name
-    scoreboard: true
-    entity-name: false
-    armor-stand: true   # Legacy Holograms
-    text-display: true  # Modern Holograms
-    item: true
-    advancement: true
+
   # Defines Unicode characters used for <shift:xxx> positioning
   # - Must match the font defined in resource packs
   # - Do NOT modify unless you understand text rendering mechanics
@@ -286,6 +269,26 @@ image:
     64: '\uf843'
     128: '\uf844'
     256: '\uf845'
+
+network:
+  # Allow <image> <shift> <global> tags in third-party plugins via packet manipulation
+  # ⚠️ Disable unused handlers to reduce async thread workload
+  intercept-packets:
+    system-chat: true
+    tab-list: true     # Tab list header and footer
+    player-info: true  # Player list in tab
+    set-score: true
+    actionbar: true
+    title: true
+    bossbar: true
+    container: true     # GUI
+    team: true          # Team prefix, suffix and display name
+    scoreboard: true
+    entity-name: false
+    armor-stand: true   # Legacy Holograms
+    text-display: true  # Modern Holograms
+    item: true
+    advancement: true
 
 recipe:
   # Master switch for custom recipes
