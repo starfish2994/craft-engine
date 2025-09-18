@@ -167,6 +167,9 @@ public final class BlockGenerator {
                 // updateEntityMovementAfterFallOn
                 .method(ElementMatchers.is(CoreReflections.method$Block$updateEntityMovementAfterFallOn))
                 .intercept(MethodDelegation.to(UpdateEntityMovementAfterFallOnInterceptor.INSTANCE))
+                // stepOn
+                .method(ElementMatchers.is(CoreReflections.method$Block$stepOn))
+                .intercept(MethodDelegation.to(StepOnInterceptor.INSTANCE))
                 ;
         // 1.21.5+
         if (CoreReflections.method$BlockBehaviour$affectNeighborsAfterRemoval != null) {
@@ -704,6 +707,20 @@ public final class BlockGenerator {
                 holder.value().spawnAfterBreak(thisObj, args, superMethod);
             } catch (Exception e) {
                 CraftEngine.instance().logger().severe("Failed to run spawnAfterBreak", e);
+            }
+        }
+    }
+
+    public static class StepOnInterceptor {
+        public static final StepOnInterceptor INSTANCE = new StepOnInterceptor();
+
+        @RuntimeType
+        public void intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
+            ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
+            try {
+                holder.value().stepOn(thisObj, args, superMethod);
+            } catch (Exception e) {
+                CraftEngine.instance().logger().severe("Failed to run stepOn", e);
             }
         }
     }

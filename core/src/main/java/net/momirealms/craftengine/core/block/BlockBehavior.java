@@ -178,6 +178,11 @@ public abstract class BlockBehavior {
     public void spawnAfterBreak(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
     }
 
+    // Level level, BlockPos pos, BlockState state, Entity entity
+    public void stepOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        superMethod.call();
+    }
+
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         return state;
     }
