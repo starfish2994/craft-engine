@@ -1687,6 +1687,10 @@ public final class CoreReflections {
             ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, clazz$BlockState, clazz$LevelReader, clazz$BlockPos)
     );
 
+    public static final Method method$Block$stepOn = requireNonNull(
+            ReflectionUtils.getMethod(clazz$Block, void.class, new String[] {"stepOn", "a"}, clazz$Level, clazz$BlockPos, clazz$BlockState, clazz$Entity)
+    );
+
     public static final Method method$BlockBehaviour$onExplosionHit = MiscUtils.requireNonNullIf(
             ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, clazz$BlockState, VersionHelper.isOrAbove1_21_2() ? clazz$ServerLevel : clazz$Level, clazz$BlockPos, clazz$Explosion, BiConsumer.class),
             VersionHelper.isOrAbove1_21()
