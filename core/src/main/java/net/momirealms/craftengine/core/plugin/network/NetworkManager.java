@@ -22,6 +22,8 @@ public interface NetworkManager extends Manageable {
 
     Channel getChannel(Player player);
 
+    int remapBlockState(int stateId, boolean enableMod);
+
     Player[] onlineUsers();
 
     default void sendPacket(@NotNull NetWorkUser player, Object packet) {

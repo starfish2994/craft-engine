@@ -41,7 +41,7 @@ public class CommonItemPacketHandler implements EntityPacketHandler {
                 continue;
             }
             ItemStack itemStack = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsItemStack);
-            Optional<ItemStack> optional = BukkitItemManager.instance().s2c(itemStack, (BukkitServerPlayer) user);
+            Optional<ItemStack> optional = BukkitItemManager.instance().s2c(itemStack, user);
             if (optional.isEmpty()) continue;
             isChanged = true;
             itemStack = optional.get();

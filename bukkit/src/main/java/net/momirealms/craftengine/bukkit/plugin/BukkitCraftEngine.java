@@ -20,12 +20,10 @@ import net.momirealms.craftengine.bukkit.plugin.command.BukkitSenderFactory;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitGuiManager;
 import net.momirealms.craftengine.bukkit.plugin.injector.*;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
-import net.momirealms.craftengine.bukkit.plugin.network.PacketConsumers;
 import net.momirealms.craftengine.bukkit.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
-import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -146,8 +144,8 @@ public class BukkitCraftEngine extends CraftEngine {
             throw new InjectionException("Error initializing ProtectedFieldVisitor", e);
         }
         super.onPluginLoad();
-        super.blockManager.init();
         super.networkManager = new BukkitNetworkManager(this);
+        super.blockManager.init();
         super.itemManager = new BukkitItemManager(this);
         this.successfullyLoaded = true;
         super.compatibilityManager().onLoad();
@@ -191,7 +189,6 @@ public class BukkitCraftEngine extends CraftEngine {
         BukkitItemBehaviors.init();
         BukkitHitBoxTypes.init();
         BukkitBlockEntityElementConfigs.init();
-        PacketConsumers.initEntities(RegistryUtils.currentEntityTypeRegistrySize());
         super.packManager = new BukkitPackManager(this);
         super.senderFactory = new BukkitSenderFactory(this);
         super.recipeManager = new BukkitRecipeManager(this);

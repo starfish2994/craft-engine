@@ -10,7 +10,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
-import net.momirealms.craftengine.bukkit.plugin.network.PacketConsumers;
+import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
@@ -102,7 +102,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         }
         this.stateId2ImmutableBlockStates = new ImmutableBlockState[this.customBlockCount];
         Arrays.fill(this.stateId2ImmutableBlockStates, EmptyBlock.INSTANCE.defaultState());
-        this.resetPacketConsumers();
+        this.resetPacketListeners();
     }
 
     @Override
@@ -149,7 +149,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     @Override
     public void delayedLoad() {
-        this.resetPacketConsumers();
+        this.resetPacketListeners();
         super.delayedLoad();
     }
 
@@ -263,14 +263,14 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         holder.bindValue(emptyBlock);
     }
 
-    private void resetPacketConsumers() {
+    private void resetPacketListeners() {
         Map<Integer, Integer> finalMapping = new HashMap<>(this.blockAppearanceMapper);
         int stoneId = BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState);
         for (int custom : this.internalId2StateId.values()) {
             finalMapping.put(custom, stoneId);
         }
         finalMapping.putAll(this.tempBlockAppearanceConvertor);
-        PacketConsumers.initBlocks(finalMapping, RegistryUtils.currentBlockRegistrySize());
+        BukkitNetworkManager.instance().registerBlockStatePacketListeners(finalMapping, RegistryUtils.currentBlockRegistrySize());
     }
 
     private void initVanillaRegistry() {

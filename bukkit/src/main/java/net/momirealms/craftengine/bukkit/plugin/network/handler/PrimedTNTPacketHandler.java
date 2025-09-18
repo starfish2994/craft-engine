@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.entity.data.PrimedTntData;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
-import net.momirealms.craftengine.bukkit.plugin.network.PacketConsumers;
+import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -36,12 +36,7 @@ public class PrimedTNTPacketHandler implements EntityPacketHandler {
             if (entityDataId == PrimedTntData.BlockState.id()) {
                 Object blockState = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$value(packedItem);
                 int stateId = BlockStateUtils.blockStateToId(blockState);
-                int newStateId;
-                if (!user.clientModEnabled()) {
-                    newStateId = PacketConsumers.remap(stateId);
-                } else {
-                    newStateId = PacketConsumers.remapMOD(stateId);
-                }
+                int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
                 if (newStateId == stateId) continue;
                 Object serializer = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$serializer(packedItem);
                 packedItems.set(i, FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(
