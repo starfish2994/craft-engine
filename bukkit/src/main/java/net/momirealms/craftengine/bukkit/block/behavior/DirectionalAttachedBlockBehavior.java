@@ -137,11 +137,11 @@ public class DirectionalAttachedBlockBehavior extends AbstractCanSurviveBlockBeh
 
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
-            Property<?> facing = ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("facing"), "warning.config.block.behavior.surface_attached.missing_facing");
+            Property<?> facing = ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("facing"), "warning.config.block.behavior.directional_attached.missing_facing");
             boolean isHorizontalDirection = facing.valueClass() == HorizontalDirection.class;
             boolean isDirection = facing.valueClass() == Direction.class;
             if (!(isHorizontalDirection || isDirection)) {
-                throw new LocalizedResourceConfigException("warning.config.block.behavior.surface_attached.missing_facing");
+                throw new LocalizedResourceConfigException("warning.config.block.behavior.directional_attached.missing_facing");
             }
             Tuple<List<Object>, Set<Object>, Set<String>> tuple = readTagsAndState(arguments);
             int delay = ResourceConfigUtils.getAsInt(arguments.getOrDefault("delay", 0), "delay");

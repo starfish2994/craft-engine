@@ -313,7 +313,7 @@ warning.config.block.behavior.pressure_plate.missing_powered: "<yellow>在文件
 warning.config.block.behavior.grass.missing_feature: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'grass_block' 行为缺少必需的 'feature' 参数</yellow>"
 warning.config.block.behavior.double_high.missing_half: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'double_block' 行为缺少必需的 'half' 属性</yellow>"
 warning.config.block.behavior.change_over_time.missing_next_block: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'change_over_time_block' 行为缺少必需的 'next-block' 参数</yellow>"
-warning.config.block.behavior.surface_attached.missing_facing: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'surface_attached_block' 行为缺少必需的 'facing' 属性</yellow>"
+warning.config.block.behavior.directional_attached.missing_facing: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'directional_attached_block' 行为缺少必需的 'facing' 属性</yellow>"
 warning.config.block.behavior.wall_torch_particle.missing_facing: "<yellow>在文件 <arg:0> 发现问题 - 配置项 '<arg:1>' 的 'wall_torch_particle_block' 行为缺少必需的 'facing' 属性</yellow>"
 warning.config.block.behavior.fence.missing_north: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'fence_block' 行为缺少必需的 'north' 属性</yellow>"
 warning.config.block.behavior.fence.missing_east: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'fence_block' 行为缺少必需的 'east' 属性</yellow>"
