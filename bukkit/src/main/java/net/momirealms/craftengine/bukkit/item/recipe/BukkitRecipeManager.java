@@ -395,7 +395,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
 
             JsonObject jsonObject = entry.getValue();
             Key serializerType = Key.of(jsonObject.get("type").getAsString());
-            // noinspection unchecked
+            @SuppressWarnings("unchecked")
             RecipeSerializer<ItemStack, ? extends Recipe<ItemStack>> serializer = (RecipeSerializer<ItemStack, ? extends Recipe<ItemStack>>) BuiltInRegistries.RECIPE_SERIALIZER.getValue(serializerType);
             if (serializer == null) {
                 continue;

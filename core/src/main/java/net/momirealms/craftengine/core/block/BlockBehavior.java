@@ -55,18 +55,18 @@ public abstract class BlockBehavior {
         superMethod.call();
     }
 
-    // ServerLevel level, BlockPos pos, RandomSource random
+    // BlockState state, ServerLevel level, BlockPos pos, RandomSource random
     public void tick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         superMethod.call();
     }
 
-    // ServerLevel level, BlockPos pos, RandomSource random
+    // BlockState state, ServerLevel level, BlockPos pos, RandomSource random
     public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         superMethod.call();
     }
 
     // 1.20-1.20.4 BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify, UseOnContext context
-    // 1.20.5+ Level level, BlockPos pos, BlockState oldState, boolean movedByPiston
+    // 1.20.5+ BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston
     public void onPlace(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         superMethod.call();
     }
@@ -95,12 +95,12 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    //BlockState state
+    // BlockState state
     public boolean hasAnalogOutputSignal(Object thisBlock, Object[] args) throws Exception {
         return false;
     }
 
-    //BlockState state, Level level, BlockPos pos
+    // BlockState state, Level level, BlockPos pos
     public int getAnalogOutputSignal(Object thisBlock, Object[] args) throws Exception {
         return 0;
     }

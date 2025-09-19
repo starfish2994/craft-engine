@@ -12,6 +12,7 @@ import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bind.annotation.This;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
@@ -19,16 +20,18 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlockStateProperties;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBuiltInRegistries;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MLootContextParams;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
-import net.momirealms.craftengine.core.block.BlockSettings;
-import net.momirealms.craftengine.core.block.DelegatingBlockState;
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
+import net.momirealms.craftengine.core.util.ObjectHolder;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.World;
@@ -39,6 +42,8 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 
 public final class BlockStateGenerator {
     private static MethodHandle constructor$CraftEngineBlockState;
@@ -64,7 +69,21 @@ public final class BlockStateGenerator {
                 .method(ElementMatchers.is(CoreReflections.method$StateHolder$getValue))
                 .intercept(MethodDelegation.to(GetPropertyValueInterceptor.INSTANCE))
                 .method(ElementMatchers.is(CoreReflections.method$StateHolder$setValue))
-                .intercept(MethodDelegation.to(SetPropertyValueInterceptor.INSTANCE));
+                .intercept(MethodDelegation.to(SetPropertyValueInterceptor.INSTANCE))
+                .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isBlock))
+                .intercept(MethodDelegation.to(IsBlockInterceptor.INSTANCE))
+                .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isHolderSetBlock))
+                .intercept(MethodDelegation.to(IsHolderSetBlockInterceptor.INSTANCE));
+        if (CoreReflections.method$BlockStateBase$isHolderBlock != null) {
+            stateBuilder = stateBuilder
+                    .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isHolderBlock))
+                    .intercept(MethodDelegation.to(IsHolderBlockInterceptor.INSTANCE));
+        }
+        if (CoreReflections.method$BlockStateBase$isResourceKeyBlock != null) {
+            stateBuilder = stateBuilder
+                    .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isResourceKeyBlock))
+                    .intercept(MethodDelegation.to(IsResourceKeyBlockInterceptor.INSTANCE));
+        }
         Class<?> clazz$CraftEngineBlock = stateBuilder.make().load(BlockStateGenerator.class.getClassLoader()).getLoaded();
         constructor$CraftEngineBlockState = VersionHelper.isOrAbove1_20_5() ?
                 MethodHandles.publicLookup().in(clazz$CraftEngineBlock)
@@ -180,6 +199,78 @@ public final class BlockStateGenerator {
             Property<Boolean> waterloggedProperty = (Property<Boolean>) state.owner().value().getProperty("waterlogged");
             if (waterloggedProperty == null) return thisObj;
             return state.with(waterloggedProperty, (boolean) args[1]).customBlockState().literalObject();
+        }
+    }
+
+    public static class IsBlockInterceptor {
+        public static final IsBlockInterceptor INSTANCE = new IsBlockInterceptor();
+
+        @RuntimeType
+        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
+            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
+            ImmutableBlockState thisState = customState.blockState();
+            if (thisState == null) return false;
+            if (!(args[0] instanceof DelegatingBlock delegatingBlock)) return false;
+            BlockBehavior behavior = delegatingBlock.behaviorDelegate().value();
+            if (behavior == null) return false;
+            return behavior.block().equals(thisState.owner().value());
+        }
+    }
+
+    public static class IsHolderSetBlockInterceptor {
+        public static final IsHolderSetBlockInterceptor INSTANCE = new IsHolderSetBlockInterceptor();
+
+        @SuppressWarnings("unchecked")
+        @RuntimeType
+        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
+            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
+            ImmutableBlockState thisState = customState.blockState();
+            if (thisState == null) return false;
+            CustomBlock thisBlock = thisState.owner().value();
+            for (Object holder : (Iterable<Object>) args[0]) {
+                Object block = FastNMS.INSTANCE.method$Holder$value(holder);
+                if (!(block instanceof DelegatingBlock delegatingBlock)) continue;
+                BlockBehavior behavior = delegatingBlock.behaviorDelegate().value();
+                if (behavior == null) continue;
+                if (behavior.block().equals(thisBlock)) return true;
+            }
+            return false;
+        }
+    }
+
+    public static class IsHolderBlockInterceptor {
+        public static final IsHolderBlockInterceptor INSTANCE = new IsHolderBlockInterceptor();
+
+        @RuntimeType
+        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
+            Object block = FastNMS.INSTANCE.method$Holder$value(args[0]);
+            if (!(block instanceof DelegatingBlock delegatingBlock)) return false;
+            BlockBehavior behavior = delegatingBlock.behaviorDelegate().value();
+            if (behavior == null) return false;
+            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
+            ImmutableBlockState thisState = customState.blockState();
+            if (thisState == null) return false;
+            CustomBlock thisBlock = thisState.owner().value();
+            return behavior.block().equals(thisBlock);
+        }
+    }
+
+    public static class IsResourceKeyBlockInterceptor {
+        public static final IsResourceKeyBlockInterceptor INSTANCE = new IsResourceKeyBlockInterceptor();
+
+        @RuntimeType
+        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
+            Object block = FastNMS.INSTANCE.method$HolderGetter$getResourceKey(MBuiltInRegistries.BLOCK, args[0])
+                    .map(FastNMS.INSTANCE::method$Holder$value)
+                    .orElse(null);
+            if (!(block instanceof DelegatingBlock delegatingBlock)) return false;
+            BlockBehavior behavior = delegatingBlock.behaviorDelegate().value();
+            if (behavior == null) return false;
+            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
+            ImmutableBlockState thisState = customState.blockState();
+            if (thisState == null) return false;
+            CustomBlock thisBlock = thisState.owner().value();
+            return behavior.block().equals(thisBlock);
         }
     }
 
