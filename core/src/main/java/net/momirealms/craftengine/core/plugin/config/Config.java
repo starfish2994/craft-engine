@@ -123,6 +123,7 @@ public class Config {
     protected int block$predict_breaking_interval;
     protected double block$extended_interaction_range;
     protected boolean block$chunk_relighter;
+    protected int block$serverside_blocks;
 
     protected boolean recipe$enable;
     protected boolean recipe$disable_vanilla_recipes$all;
@@ -134,6 +135,7 @@ public class Config {
     protected boolean image$illegal_characters_filter$anvil;
     protected boolean image$illegal_characters_filter$sign;
     protected boolean image$illegal_characters_filter$book;
+
     protected boolean network$intercept_packets$system_chat;
     protected boolean network$intercept_packets$tab_list;
     protected boolean network$intercept_packets$actionbar;
@@ -392,6 +394,7 @@ public class Config {
         block$predict_breaking_interval = Math.max(config.getInt("block.predict-breaking.interval", 10), 1);
         block$extended_interaction_range = Math.max(config.getDouble("block.predict-breaking.extended-interaction-range", 0.5), 0.0);
         block$chunk_relighter = config.getBoolean("block.chunk-relighter", true);
+        block$serverside_blocks = config.getInt("block.serverside-blocks", 2000);
 
         // recipe
         recipe$enable = config.getBoolean("recipe.enable", true);
@@ -476,6 +479,10 @@ public class Config {
 
     public static boolean metrics() {
         return instance.metrics;
+    }
+
+    public static int serverSideBlocks() {
+        return instance.block$serverside_blocks;
     }
 
     public static boolean filterConfigurationPhaseDisconnect() {

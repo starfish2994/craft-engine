@@ -163,6 +163,8 @@ equipment:
     humanoid-leggings: minecraft:trims/entity/humanoid_leggings/chainmail
 
 block:
+  # This decides the amount of real blocks on serverside. Requires a restart to apply.
+  serverside-blocks: 2000
   # Enables the sound system, which prevents the client from hearing some non-custom block sounds and improves the client experience.
   sound-system:
     enable: true
