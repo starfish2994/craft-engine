@@ -2,8 +2,8 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntitySelector;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MGameEvent;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntitySelectors;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MGameEvents;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
@@ -138,7 +138,7 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
                 level, CoreReflections.clazz$AbstractArrow, FastNMS.INSTANCE.method$AABB$move(
                         FastNMS.INSTANCE.method$VoxelShape$bounds(FastNMS.INSTANCE.method$BlockState$getShape(
                                 state, level, pos, CoreReflections.instance$CollisionContext$empty
-                        )), pos), MEntitySelector.NO_SPECTATORS).stream().findFirst().orElse(null) : null;
+                        )), pos), MEntitySelectors.NO_SPECTATORS).stream().findFirst().orElse(null) : null;
         boolean flag = abstractArrow != null;
         ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (blockState == null) return;
@@ -148,8 +148,8 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
             updateNeighbours(thisBlock, blockState, level, pos);
             playSound(null, level, pos, flag);
             Object gameEvent = VersionHelper.isOrAbove1_20_5()
-                    ? FastNMS.INSTANCE.method$Holder$direct(flag ? MGameEvent.BLOCK_ACTIVATE : MGameEvent.BLOCK_DEACTIVATE)
-                    : flag ? MGameEvent.BLOCK_ACTIVATE : MGameEvent.BLOCK_DEACTIVATE;
+                    ? FastNMS.INSTANCE.method$Holder$direct(flag ? MGameEvents.BLOCK_ACTIVATE : MGameEvents.BLOCK_DEACTIVATE)
+                    : flag ? MGameEvents.BLOCK_ACTIVATE : MGameEvents.BLOCK_DEACTIVATE;
             FastNMS.INSTANCE.method$LevelAccessor$gameEvent(level, abstractArrow, gameEvent, pos);
         }
 
@@ -192,7 +192,7 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, state.with(this.poweredProperty, true).customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
         FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
         playSound(player, level, pos, true);
-        Object gameEvent = VersionHelper.isOrAbove1_20_5() ? FastNMS.INSTANCE.method$Holder$direct(MGameEvent.BLOCK_ACTIVATE) : MGameEvent.BLOCK_ACTIVATE;
+        Object gameEvent = VersionHelper.isOrAbove1_20_5() ? FastNMS.INSTANCE.method$Holder$direct(MGameEvents.BLOCK_ACTIVATE) : MGameEvents.BLOCK_ACTIVATE;
         FastNMS.INSTANCE.method$LevelAccessor$gameEvent(level, player, gameEvent, pos);
     }
 

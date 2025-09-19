@@ -4,7 +4,7 @@ import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntitySelector;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntitySelectors;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.function.Predicate;
 
 public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
@@ -113,7 +112,7 @@ public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         Object box = FastNMS.INSTANCE.method$AABB$move(CoreReflections.instance$BasePressurePlateBlock$TOUCH_AABB, pos);
         return !FastNMS.INSTANCE.method$EntityGetter$getEntitiesOfClass(
                 level, clazz, box,
-                MEntitySelector.NO_SPECTATORS.and(entity -> !FastNMS.INSTANCE.method$Entity$isIgnoringBlockTriggers(entity))
+                MEntitySelectors.NO_SPECTATORS.and(entity -> !FastNMS.INSTANCE.method$Entity$isIgnoringBlockTriggers(entity))
         ).isEmpty() ? 15 : 0;
     }
 
