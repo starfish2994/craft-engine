@@ -4406,4 +4406,8 @@ public final class CoreReflections {
                     BukkitReflectionUtils.assembleMCClass("world.level.gameevent.GameEvent")
             )
     );
+
+    public static final Method method$BlockStateBase$isBlock = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$Block)
+    );
 }
