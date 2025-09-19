@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.block.state.properties;
 
-public enum AttachFace {
+public enum AnchorType {
     FLOOR,
     WALL,
     CEILING

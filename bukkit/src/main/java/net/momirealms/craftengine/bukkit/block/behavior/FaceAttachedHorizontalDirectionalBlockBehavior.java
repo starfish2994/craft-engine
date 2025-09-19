@@ -11,7 +11,7 @@ import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.state.properties.AttachFace;
+import net.momirealms.craftengine.core.block.state.properties.AnchorType;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.HorizontalDirection;
@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
 
 public class FaceAttachedHorizontalDirectionalBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
-    private final Property<AttachFace> attachFaceProperty;
+    private final Property<AnchorType> anchorTypeProperty;
     private final Property<HorizontalDirection> facingProperty;
     private final List<Object> tagsCanSurviveOn;
     private final Set<Object> blockStatesCanSurviveOn;
@@ -39,14 +39,14 @@ public class FaceAttachedHorizontalDirectionalBlockBehavior extends BukkitBlockB
                                                           List<Object> tagsCanSurviveOn,
                                                           Set<Object> blockStatesCanSurviveOn,
                                                           Set<String> customBlocksCansSurviveOn,
-                                                          Property<AttachFace> attachFace,
+                                                          Property<AnchorType> anchorType,
                                                           Property<HorizontalDirection> facing) {
         super(customBlock);
         this.tagsCanSurviveOn = tagsCanSurviveOn;
         this.blockStatesCanSurviveOn = blockStatesCanSurviveOn;
         this.customBlocksCansSurviveOn = customBlocksCansSurviveOn;
         this.blacklistMode = blacklist;
-        this.attachFaceProperty = attachFace;
+        this.anchorTypeProperty = anchorType;
         this.facingProperty = facing;
     }
 
@@ -64,16 +64,16 @@ public class FaceAttachedHorizontalDirectionalBlockBehavior extends BukkitBlockB
     @SuppressWarnings("unchecked")
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        Property<AttachFace> face = (Property<AttachFace>) state.owner().value().getProperty("face");
+        Property<AnchorType> face = (Property<AnchorType>) state.owner().value().getProperty("face");
         Property<HorizontalDirection> facing = (Property<HorizontalDirection>) state.owner().value().getProperty("facing");
         if (face == null || facing == null) return null;
         for (Direction direction : context.getNearestLookingDirections()) {
             if (direction.axis() == Direction.Axis.Y) {
                 state = state
-                        .with(face, direction == Direction.UP ? AttachFace.CEILING : AttachFace.FLOOR)
+                        .with(face, direction == Direction.UP ? AnchorType.CEILING : AnchorType.FLOOR)
                         .with(facing, context.getHorizontalDirection().toHorizontalDirection());
             } else {
-                state = state.with(face, AttachFace.WALL).with(facing, direction.opposite().toHorizontalDirection());
+                state = state.with(face, AnchorType.WALL).with(facing, direction.opposite().toHorizontalDirection());
             }
             if (FastNMS.INSTANCE.method$BlockStateBase$canSurvive(state.customBlockState().literalObject(), context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()))) {
                 return state;
@@ -128,7 +128,7 @@ public class FaceAttachedHorizontalDirectionalBlockBehavior extends BukkitBlockB
         if (state == null) return null;
         FaceAttachedHorizontalDirectionalBlockBehavior behavior = state.behavior().getAs(FaceAttachedHorizontalDirectionalBlockBehavior.class).orElse(null);
         if (behavior == null) return null;
-        return switch (state.get(behavior.attachFaceProperty)) {
+        return switch (state.get(behavior.anchorTypeProperty)) {
             case CEILING -> Direction.DOWN;
             case FLOOR -> Direction.UP;
             default -> state.get(behavior.facingProperty).toDirection();
@@ -140,11 +140,11 @@ public class FaceAttachedHorizontalDirectionalBlockBehavior extends BukkitBlockB
         @SuppressWarnings("unchecked")
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
-            Property<AttachFace> attachFace = (Property<AttachFace>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("face"), "warning.config.block.behavior.face_attached_horizontal_directional.missing_face");
+            Property<AnchorType> anchorType = (Property<AnchorType>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("face"), "warning.config.block.behavior.face_attached_horizontal_directional.missing_face");
             Property<HorizontalDirection> facing = (Property<HorizontalDirection>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("facing"), "warning.config.block.behavior.face_attached_horizontal_directional.missing_facing");
             Tuple<List<Object>, Set<Object>, Set<String>> tuple = DirectionalAttachedBlockBehavior.readTagsAndState(arguments);
             boolean blacklistMode = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blacklist", true), "blacklist");
-            return new FaceAttachedHorizontalDirectionalBlockBehavior(block, blacklistMode, tuple.left(), tuple.mid(), tuple.right(), attachFace, facing);
+            return new FaceAttachedHorizontalDirectionalBlockBehavior(block, blacklistMode, tuple.left(), tuple.mid(), tuple.right(), anchorType, facing);
         }
     }
 }
