@@ -123,6 +123,7 @@ public class Config {
     protected int block$predict_breaking_interval;
     protected double block$extended_interaction_range;
     protected boolean block$chunk_relighter;
+    protected int block$serverside_blocks;
 
     protected boolean recipe$enable;
     protected boolean recipe$disable_vanilla_recipes$all;
@@ -134,21 +135,22 @@ public class Config {
     protected boolean image$illegal_characters_filter$anvil;
     protected boolean image$illegal_characters_filter$sign;
     protected boolean image$illegal_characters_filter$book;
-    protected boolean image$intercept_packets$system_chat;
-    protected boolean image$intercept_packets$tab_list;
-    protected boolean image$intercept_packets$actionbar;
-    protected boolean image$intercept_packets$title;
-    protected boolean image$intercept_packets$bossbar;
-    protected boolean image$intercept_packets$container;
-    protected boolean image$intercept_packets$team;
-    protected boolean image$intercept_packets$scoreboard;
-    protected boolean image$intercept_packets$entity_name;
-    protected boolean image$intercept_packets$text_display;
-    protected boolean image$intercept_packets$armor_stand;
-    protected boolean image$intercept_packets$player_info;
-    protected boolean image$intercept_packets$set_score;
-    protected boolean image$intercept_packets$item;
-    protected boolean image$intercept_packets$advancement;
+
+    protected boolean network$intercept_packets$system_chat;
+    protected boolean network$intercept_packets$tab_list;
+    protected boolean network$intercept_packets$actionbar;
+    protected boolean network$intercept_packets$title;
+    protected boolean network$intercept_packets$bossbar;
+    protected boolean network$intercept_packets$container;
+    protected boolean network$intercept_packets$team;
+    protected boolean network$intercept_packets$scoreboard;
+    protected boolean network$intercept_packets$entity_name;
+    protected boolean network$intercept_packets$text_display;
+    protected boolean network$intercept_packets$armor_stand;
+    protected boolean network$intercept_packets$player_info;
+    protected boolean network$intercept_packets$set_score;
+    protected boolean network$intercept_packets$item;
+    protected boolean network$intercept_packets$advancement;
 
     protected boolean item$client_bound_model;
     protected boolean item$non_italic_tag;
@@ -392,6 +394,7 @@ public class Config {
         block$predict_breaking_interval = Math.max(config.getInt("block.predict-breaking.interval", 10), 1);
         block$extended_interaction_range = Math.max(config.getDouble("block.predict-breaking.extended-interaction-range", 0.5), 0.0);
         block$chunk_relighter = config.getBoolean("block.chunk-relighter", true);
+        block$serverside_blocks = config.getInt("block.serverside-blocks", 2000);
 
         // recipe
         recipe$enable = config.getBoolean("recipe.enable", true);
@@ -405,21 +408,22 @@ public class Config {
         image$illegal_characters_filter$chat = config.getBoolean("image.illegal-characters-filter.chat", true);
         image$illegal_characters_filter$command = config.getBoolean("image.illegal-characters-filter.command", true);
         image$illegal_characters_filter$sign = config.getBoolean("image.illegal-characters-filter.sign", true);
-        image$intercept_packets$system_chat = config.getBoolean("image.intercept-packets.system-chat", true);
-        image$intercept_packets$tab_list = config.getBoolean("image.intercept-packets.tab-list", true);
-        image$intercept_packets$actionbar = config.getBoolean("image.intercept-packets.actionbar", true);
-        image$intercept_packets$title = config.getBoolean("image.intercept-packets.title", true);
-        image$intercept_packets$bossbar = config.getBoolean("image.intercept-packets.bossbar", true);
-        image$intercept_packets$container = config.getBoolean("image.intercept-packets.container", true);
-        image$intercept_packets$team = config.getBoolean("image.intercept-packets.team", true);
-        image$intercept_packets$scoreboard = config.getBoolean("image.intercept-packets.scoreboard", true);
-        image$intercept_packets$entity_name = config.getBoolean("image.intercept-packets.entity-name", false);
-        image$intercept_packets$text_display = config.getBoolean("image.intercept-packets.text-display", true);
-        image$intercept_packets$armor_stand = config.getBoolean("image.intercept-packets.armor-stand", true);
-        image$intercept_packets$player_info = config.getBoolean("image.intercept-packets.player-info", true);
-        image$intercept_packets$set_score = config.getBoolean("image.intercept-packets.set-score", true);
-        image$intercept_packets$item = config.getBoolean("image.intercept-packets.item", true);
-        image$intercept_packets$advancement = config.getBoolean("image.intercept-packets.advancement", true);
+        
+        network$intercept_packets$system_chat = config.getBoolean("network.intercept-packets.system-chat", true);
+        network$intercept_packets$tab_list = config.getBoolean("network.intercept-packets.tab-list", true);
+        network$intercept_packets$actionbar = config.getBoolean("network.intercept-packets.actionbar", true);
+        network$intercept_packets$title = config.getBoolean("network.intercept-packets.title", true);
+        network$intercept_packets$bossbar = config.getBoolean("network.intercept-packets.bossbar", true);
+        network$intercept_packets$container = config.getBoolean("network.intercept-packets.container", true);
+        network$intercept_packets$team = config.getBoolean("network.intercept-packets.team", true);
+        network$intercept_packets$scoreboard = config.getBoolean("network.intercept-packets.scoreboard", true);
+        network$intercept_packets$entity_name = config.getBoolean("network.intercept-packets.entity-name", false);
+        network$intercept_packets$text_display = config.getBoolean("network.intercept-packets.text-display", true);
+        network$intercept_packets$armor_stand = config.getBoolean("network.intercept-packets.armor-stand", true);
+        network$intercept_packets$player_info = config.getBoolean("network.intercept-packets.player-info", true);
+        network$intercept_packets$set_score = config.getBoolean("network.intercept-packets.set-score", true);
+        network$intercept_packets$item = config.getBoolean("network.intercept-packets.item", true);
+        network$intercept_packets$advancement = config.getBoolean("network.intercept-packets.advancement", true);
 
         // emoji
         emoji$contexts$chat = config.getBoolean("emoji.contexts.chat", true);
@@ -475,6 +479,10 @@ public class Config {
 
     public static boolean metrics() {
         return instance.metrics;
+    }
+
+    public static int serverSideBlocks() {
+        return instance.block$serverside_blocks;
     }
 
     public static boolean filterConfigurationPhaseDisconnect() {
@@ -729,63 +737,63 @@ public class Config {
     }
 
     public static boolean interceptSystemChat() {
-        return instance.image$intercept_packets$system_chat;
+        return instance.network$intercept_packets$system_chat;
     }
 
     public static boolean interceptTabList() {
-        return instance.image$intercept_packets$tab_list;
+        return instance.network$intercept_packets$tab_list;
     }
 
     public static boolean interceptActionBar() {
-        return instance.image$intercept_packets$actionbar;
+        return instance.network$intercept_packets$actionbar;
     }
 
     public static boolean interceptTitle() {
-        return instance.image$intercept_packets$title;
+        return instance.network$intercept_packets$title;
     }
 
     public static boolean interceptBossBar() {
-        return instance.image$intercept_packets$bossbar;
+        return instance.network$intercept_packets$bossbar;
     }
 
     public static boolean interceptContainer() {
-        return instance.image$intercept_packets$container;
+        return instance.network$intercept_packets$container;
     }
 
     public static boolean interceptTeam() {
-        return instance.image$intercept_packets$team;
+        return instance.network$intercept_packets$team;
     }
 
     public static boolean interceptEntityName() {
-        return instance.image$intercept_packets$entity_name;
+        return instance.network$intercept_packets$entity_name;
     }
 
     public static boolean interceptScoreboard() {
-        return instance.image$intercept_packets$scoreboard;
+        return instance.network$intercept_packets$scoreboard;
     }
 
     public static boolean interceptTextDisplay() {
-        return instance.image$intercept_packets$text_display;
+        return instance.network$intercept_packets$text_display;
     }
 
     public static boolean interceptArmorStand() {
-        return instance.image$intercept_packets$armor_stand;
+        return instance.network$intercept_packets$armor_stand;
     }
 
     public static boolean interceptPlayerInfo() {
-        return instance.image$intercept_packets$player_info;
+        return instance.network$intercept_packets$player_info;
     }
 
     public static boolean interceptSetScore() {
-        return instance.image$intercept_packets$set_score;
+        return instance.network$intercept_packets$set_score;
     }
 
     public static boolean interceptItem() {
-        return instance.image$intercept_packets$item;
+        return instance.network$intercept_packets$item;
     }
 
     public static boolean interceptAdvancement() {
-        return instance.image$intercept_packets$advancement;
+        return instance.network$intercept_packets$advancement;
     }
 
     public static boolean predictBreaking() {
