@@ -20,7 +20,6 @@ import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockR
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.loot.LootConditions;
@@ -33,7 +32,6 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldManager;
 import org.bukkit.Bukkit;
-import org.bukkit.Registry;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
@@ -252,8 +250,6 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
                 weBlockRegister.register(newBlockId);
             }
         } catch (Exception e) {
-            // 检查是不是有插件干预了注册表
-            if (Registry.MATERIAL.get(KeyUtils.toNamespacedKey(BukkitBlockManager.instance().blockRegisterOrder().getFirst())) != null) return;
             this.plugin.logger().warn("Failed to initialize world edit hook", e);
         }
     }

@@ -243,14 +243,14 @@ public final class BlockStateGenerator {
 
         @RuntimeType
         public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
-            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
-            ImmutableBlockState thisState = customState.blockState();
-            if (thisState == null) return false;
-            CustomBlock thisBlock = thisState.owner().value();
             Object block = FastNMS.INSTANCE.method$Holder$value(args[0]);
             if (!(block instanceof DelegatingBlock delegatingBlock)) return false;
             BlockBehavior behavior = delegatingBlock.behaviorDelegate().value();
             if (behavior == null) return false;
+            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
+            ImmutableBlockState thisState = customState.blockState();
+            if (thisState == null) return false;
+            CustomBlock thisBlock = thisState.owner().value();
             return behavior.block().equals(thisBlock);
         }
     }
@@ -260,16 +260,16 @@ public final class BlockStateGenerator {
 
         @RuntimeType
         public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
-            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
-            ImmutableBlockState thisState = customState.blockState();
-            if (thisState == null) return false;
-            CustomBlock thisBlock = thisState.owner().value();
             Object block = FastNMS.INSTANCE.method$HolderGetter$getResourceKey(MBuiltInRegistries.BLOCK, args[0])
                     .map(FastNMS.INSTANCE::method$Holder$value)
                     .orElse(null);
             if (!(block instanceof DelegatingBlock delegatingBlock)) return false;
             BlockBehavior behavior = delegatingBlock.behaviorDelegate().value();
             if (behavior == null) return false;
+            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
+            ImmutableBlockState thisState = customState.blockState();
+            if (thisState == null) return false;
+            CustomBlock thisBlock = thisState.owner().value();
             return behavior.block().equals(thisBlock);
         }
     }
