@@ -25,7 +25,7 @@ import java.util.Optional;
 
 public class MinecartPacketHandler implements EntityPacketHandler {
     public static final MinecartPacketHandler INSTANCE = new MinecartPacketHandler();
-    private static final BlockStateHandler BLOCK_STATE_HANDLER = VersionHelper.isOrAbove1_21_3() ? BlockStateHandler_1_21_3.INSTANCE : BlockStateHandler_1_20.INSTANCE;
+    private static final BlockStateHandler BLOCK_STATE_HANDLER = VersionHelper.isOrAbove1_21_5() ? BlockStateHandler_1_21_5.INSTANCE : BlockStateHandler_1_20.INSTANCE;
 
     @Override
     public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
@@ -69,8 +69,8 @@ public class MinecartPacketHandler implements EntityPacketHandler {
         Object handle(NetWorkUser user, Object packedItem, int entityDataId);
     }
 
-    static class BlockStateHandler_1_21_3 implements BlockStateHandler {
-        protected static final BlockStateHandler INSTANCE = new BlockStateHandler_1_21_3();
+    static class BlockStateHandler_1_21_5 implements BlockStateHandler {
+        protected static final BlockStateHandler INSTANCE = new BlockStateHandler_1_21_5();
 
         @Override
         public Object handle(NetWorkUser user, Object packedItem, int entityDataId) {
