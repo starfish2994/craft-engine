@@ -107,8 +107,8 @@ public class SimpleStorageBlockEntity extends BlockEntity {
             // 有非观察者的人，那么就不触发开启音效和事件
             if (!hasNoViewer(this.inventory.getViewers())) return;
             this.maxInteractionDistance = Math.max(player.getCachedInteractionRange(), this.maxInteractionDistance);
-            this.setOpen(player);
-            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(super.world.world().serverWorld(), LocationUtils.toBlockPos(this.pos), BlockStateUtils.getBlockOwner(this.blockState.customBlockState().literalObject()), 5);
+            ImmutableBlockState state = this.setOpen(player);
+            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(super.world.world().serverWorld(), LocationUtils.toBlockPos(this.pos), BlockStateUtils.getBlockOwner(state.customBlockState().literalObject()), 5);
         }
     }
 
@@ -127,8 +127,8 @@ public class SimpleStorageBlockEntity extends BlockEntity {
         }
     }
 
-    private void setOpen(@Nullable Player player) {
-        this.updateOpenBlockState(true);
+    private ImmutableBlockState setOpen(@Nullable Player player) {
+        ImmutableBlockState state = this.updateOpenBlockState(true);
         org.bukkit.World bukkitWorld = (org.bukkit.World) super.world.world().platformWorld();
         if (player != null) {
             bukkitWorld.sendGameEvent((org.bukkit.entity.Player) player.platformPlayer(), GameEvent.CONTAINER_OPEN, new Vector(this.pos.x(), this.pos.y(), this.pos.z()));
@@ -140,10 +140,11 @@ public class SimpleStorageBlockEntity extends BlockEntity {
         if (soundData != null) {
             super.world.world().playBlockSound(Vec3d.atCenterOf(this.pos), soundData);
         }
+        return state;
     }
 
-    private void setClose(@Nullable Player player) {
-        this.updateOpenBlockState(false);
+    private ImmutableBlockState setClose(@Nullable Player player) {
+        ImmutableBlockState state = this.updateOpenBlockState(false);
         org.bukkit.World bukkitWorld = (org.bukkit.World) super.world.world().platformWorld();
         if (player != null) {
             bukkitWorld.sendGameEvent((org.bukkit.entity.Player) player.platformPlayer(), GameEvent.CONTAINER_CLOSE, new Vector(this.pos.x(), this.pos.y(), this.pos.z()));
@@ -155,6 +156,7 @@ public class SimpleStorageBlockEntity extends BlockEntity {
         if (soundData != null) {
             super.world.world().playBlockSound(Vec3d.atCenterOf(this.pos), soundData);
         }
+        return state;
     }
 
     private boolean hasNoViewer(List<HumanEntity> viewers) {
@@ -170,16 +172,19 @@ public class SimpleStorageBlockEntity extends BlockEntity {
         return this.isValid() && this.inventory != null && this.behavior != null;
     }
 
-    public void updateOpenBlockState(boolean open) {
+    public ImmutableBlockState updateOpenBlockState(boolean open) {
         ImmutableBlockState state = super.world.getBlockStateAtIfLoaded(this.pos);
-        if (state == null || state.behavior() != this.behavior) return;
+        if (state == null || state.behavior() != this.behavior) return this.blockState;
         Property<Boolean> property = this.behavior.openProperty();
-        if (property == null) return;
-        super.world.world().setBlockAt(this.pos.x(), this.pos.y(), this.pos.z(), state.with(property, open), UpdateOption.UPDATE_ALL.flags());
+        if (property == null) return state;
+        state = state.with(property, open);
+        super.world.world().setBlockAt(this.pos.x(), this.pos.y(), this.pos.z(), state, UpdateOption.UPDATE_ALL.flags());
+        return state;
     }
 
     public void checkOpeners(Object level, Object pos, Object blockState) {
         if (!this.isValidContainer()) return;
+        Object tickState = blockState;
         double maxInteractionDistance = 0d;
         List<HumanEntity> viewers = this.inventory.getViewers();
         int validViewers = 0;
@@ -193,14 +198,14 @@ public class SimpleStorageBlockEntity extends BlockEntity {
         }
         boolean shouldOpen = validViewers != 0;
         if (shouldOpen && !this.openState) {
-            this.setOpen(null);
+            tickState = this.setOpen(null).customBlockState().literalObject();
         } else if (!shouldOpen && this.openState) {
-            this.setClose(null);
+            tickState = this.setClose(null).customBlockState().literalObject();
         }
 
         this.maxInteractionDistance = maxInteractionDistance;
         if (!viewers.isEmpty()) {
-            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, BlockStateUtils.getBlockOwner(blockState), 5);
+            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, BlockStateUtils.getBlockOwner(tickState), 5);
         }
     }
 

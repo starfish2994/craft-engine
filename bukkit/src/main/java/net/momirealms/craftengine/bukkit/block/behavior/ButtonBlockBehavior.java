@@ -53,8 +53,7 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
     @Override
     public InteractionResult useWithoutItem(UseOnContext context, ImmutableBlockState state) {
         if (!state.get(this.poweredProperty)) {
-            press(BlockStateUtils.getBlockOwner(state.customBlockState().literalObject()),
-                    state, context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()),
+            press(state, context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()),
                     context.getPlayer() != null ? context.getPlayer().serverPlayer() : null);
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
@@ -66,7 +65,7 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (blockState == null) return;
         if (FastNMS.INSTANCE.method$Explosion$canTriggerBlocks(args[3]) && !blockState.get(this.poweredProperty)) {
-            press(thisBlock, blockState, args[1], args[2], null);
+            press(blockState, args[1], args[2], null);
         }
     }
 
@@ -117,7 +116,7 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (blockState == null) return;
         if (blockState.get(this.poweredProperty)) {
-            checkPressed(thisBlock, state, level, pos);
+            checkPressed(state, level, pos);
         }
     }
 
@@ -129,11 +128,12 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (blockState == null) return;
         if (this.canButtonBeActivatedByArrows && !blockState.get(this.poweredProperty)) {
-            checkPressed(thisBlock, state, level, pos);
+            checkPressed(state, level, pos);
         }
     }
 
-    private void checkPressed(Object thisBlock, Object state, Object level, Object pos) {
+    private void checkPressed(Object state, Object level, Object pos) {
+        Object tickState = state;
         Object abstractArrow = this.canButtonBeActivatedByArrows ? FastNMS.INSTANCE.method$EntityGetter$getEntitiesOfClass(
                 level, CoreReflections.clazz$AbstractArrow, FastNMS.INSTANCE.method$AABB$move(
                         FastNMS.INSTANCE.method$VoxelShape$bounds(FastNMS.INSTANCE.method$BlockState$getShape(
@@ -144,8 +144,9 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         if (blockState == null) return;
         boolean poweredValue = blockState.get(this.poweredProperty);
         if (flag != poweredValue) {
-            FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, blockState.with(this.poweredProperty, flag).customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
-            updateNeighbours(thisBlock, blockState, level, pos);
+            tickState = blockState.with(this.poweredProperty, flag).customBlockState().literalObject();
+            FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, tickState, UpdateOption.UPDATE_ALL.flags());
+            updateNeighbours(BlockStateUtils.getBlockOwner(tickState), blockState, level, pos);
             playSound(null, level, pos, flag);
             Object gameEvent = VersionHelper.isOrAbove1_20_5()
                     ? FastNMS.INSTANCE.method$Holder$direct(flag ? MGameEvent.BLOCK_ACTIVATE : MGameEvent.BLOCK_DEACTIVATE)
@@ -154,7 +155,7 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         }
 
         if (flag) {
-            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
+            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, BlockStateUtils.getBlockOwner(tickState), this.ticksToStayPressed);
         }
     }
 
@@ -188,9 +189,10 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         return isOn ? this.buttonClickOnSound : this.buttonClickOffSound;
     }
 
-    private void press(Object thisBlock, ImmutableBlockState state, Object level, Object pos, @Nullable Object player) {
-        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, state.with(this.poweredProperty, true).customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
-        FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
+    private void press(ImmutableBlockState state, Object level, Object pos, @Nullable Object player) {
+        Object tickState = state.with(this.poweredProperty, true).customBlockState().literalObject();
+        FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, tickState, UpdateOption.UPDATE_ALL.flags());
+        FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, BlockStateUtils.getBlockOwner(tickState), this.ticksToStayPressed);
         playSound(player, level, pos, true);
         Object gameEvent = VersionHelper.isOrAbove1_20_5() ? FastNMS.INSTANCE.method$Holder$direct(MGameEvent.BLOCK_ACTIVATE) : MGameEvent.BLOCK_ACTIVATE;
         FastNMS.INSTANCE.method$LevelAccessor$gameEvent(level, player, gameEvent, pos);

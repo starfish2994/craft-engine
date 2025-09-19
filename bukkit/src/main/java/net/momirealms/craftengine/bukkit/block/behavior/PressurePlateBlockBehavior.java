@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.function.Predicate;
 
 public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
@@ -87,7 +86,7 @@ public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         Object state = args[0];
         int signalForState = this.getSignalForState(state);
         if (signalForState > 0) {
-            this.checkPressed(null, args[1], args[2], state, signalForState, thisBlock);
+            this.checkPressed(null, args[1], args[2], state, signalForState);
         }
     }
 
@@ -101,9 +100,7 @@ public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         Object state = args[0];
         int signalForState = this.getSignalForState(state);
         if (signalForState == 0) {
-            this.checkPressed(args[3], args[1], args[2], state, signalForState, thisBlock);
-        } else {
-            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(args[1], args[2], thisBlock, this.pressedTime);
+            this.checkPressed(args[3], args[1], args[2], state, signalForState);
         }
     }
 
@@ -125,16 +122,17 @@ public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         return optionalCustomState.get().with(this.poweredProperty, strength > 0).customBlockState().literalObject();
     }
 
-    private void checkPressed(@Nullable Object entity, Object level, Object pos, Object state, int currentSignal, Object thisBlock) {
+    private void checkPressed(@Nullable Object entity, Object level, Object pos, Object state, int currentSignal) {
+        Object tickState = state;
         int signalStrength = this.getSignalStrength(level, pos);
         boolean wasActive = currentSignal > 0;
         boolean isActive = signalStrength > 0;
 
         if (currentSignal != signalStrength) {
-            Object blockState = this.setSignalForState(state, signalStrength);
-            FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, blockState, 2);
-            this.updateNeighbours(level, pos, thisBlock);
-            FastNMS.INSTANCE.method$Level$setBlocksDirty(level, pos, state, blockState);
+            tickState = this.setSignalForState(state, signalStrength);
+            FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, tickState, 2);
+            this.updateNeighbours(level, pos, BlockStateUtils.getBlockOwner(tickState));
+            FastNMS.INSTANCE.method$Level$setBlocksDirty(level, pos, state, tickState);
         }
 
         org.bukkit.World craftWorld = FastNMS.INSTANCE.method$Level$getCraftWorld(level);
@@ -150,7 +148,7 @@ public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         }
 
         if (isActive) {
-            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, thisBlock, this.pressedTime);
+            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, BlockStateUtils.getBlockOwner(tickState), this.pressedTime);
         }
     }
 
