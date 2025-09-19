@@ -961,6 +961,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
      */
     public static class HelloListener implements NMSPacketListener {
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
             BukkitServerPlayer player = (BukkitServerPlayer) user;
@@ -984,7 +985,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             } else {
                 Optional<UUID> uuid;
                 try {
-                    // noinspection unchecked
                     uuid = (Optional<UUID>) NetworkReflections.methodHandle$ServerboundHelloPacket$uuidGetter.invokeExact(packet);
                 } catch (Throwable t) {
                     CraftEngine.instance().logger().severe("Failed to get uuid from ServerboundHelloPacket", t);
@@ -1478,6 +1478,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
     public static class EditBookListener implements NMSPacketListener {
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
             if (!Config.filterBook()) return;
@@ -1492,7 +1493,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
             List<String> pages;
             try {
-                // noinspection unchecked
                 pages = (List<String>) NetworkReflections.methodHandle$ServerboundEditBookPacket$pagesGetter.invokeExact(packet);
             } catch (Throwable t) {
                 CraftEngine.instance().logger().warn("Failed to get pages from ServerboundEditBookPacket", t);
@@ -1501,7 +1501,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             List<String> newPages = new ArrayList<>(pages.size());
             Optional<String> title;
             try {
-                // noinspection unchecked
                 title = (Optional<String>) NetworkReflections.methodHandle$ServerboundEditBookPacket$titleGetter.invokeExact(packet);
             } catch (Throwable t) {
                 CraftEngine.instance().logger().warn("Failed to get title from ServerboundEditBookPacket", t);
@@ -1733,6 +1732,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
     public static class FinishConfigurationListener implements NMSPacketListener {
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
             if (!VersionHelper.isOrAbove1_20_2() || !Config.sendPackOnJoin()) {
@@ -1793,7 +1793,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 }
                 Queue<Object> configurationTasks;
                 try {
-                    // noinspection unchecked
                     configurationTasks = (Queue<Object>) CoreReflections.methodHandle$ServerConfigurationPacketListenerImpl$configurationTasksGetter.invokeExact(packetListener);
                 } catch (Throwable e) {
                     CraftEngine.instance().logger().warn("Failed to get configuration tasks for player " + user.name(), e);
@@ -3665,7 +3664,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     Object packedItem = packedItems.get(i);
                     int entityDataId = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$id(packedItem);
                     if (entityDataId != BaseEntityData.CustomName.id()) continue;
-                    // noinspection unchecked
+                    @SuppressWarnings("unchecked")
                     Optional<Object> optionalTextComponent = (Optional<Object>) FastNMS.INSTANCE.field$SynchedEntityData$DataValue$value(packedItem);
                     if (optionalTextComponent.isEmpty()) continue;
                     Object textComponent = optionalTextComponent.get();

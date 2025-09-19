@@ -37,6 +37,8 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
     public static final Key SIMPLE_PARTICLE_BLOCK = Key.from("craftengine:simple_particle_block");
     public static final Key WALL_TORCH_PARTICLE_BLOCK = Key.from("craftengine:wall_torch_particle_block");
     public static final Key FENCE_BLOCK = Key.from("craftengine:fence_block");
+    public static final Key BUTTON_BLOCK = Key.from("craftengine:button_block");
+    public static final Key FACE_ATTACHED_HORIZONTAL_DIRECTIONAL_BLOCK = Key.from("craftengine:face_attached_horizontal_directional_block");
 
     public static void init() {
         register(EMPTY, (block, args) -> EmptyBlockBehavior.INSTANCE);
@@ -72,5 +74,7 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
         register(SIMPLE_PARTICLE_BLOCK, SimpleParticleBlockBehavior.FACTORY);
         register(WALL_TORCH_PARTICLE_BLOCK, WallTorchParticleBlockBehavior.FACTORY);
         register(FENCE_BLOCK, FenceBlockBehavior.FACTORY);
+        register(BUTTON_BLOCK, ButtonBlockBehavior.FACTORY);
+        register(FACE_ATTACHED_HORIZONTAL_DIRECTIONAL_BLOCK, FaceAttachedHorizontalDirectionalBlockBehavior.FACTORY);
     }
 }

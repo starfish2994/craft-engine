@@ -25,7 +25,7 @@ import org.bukkit.Registry;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-public class DirectionalAttachedBlockBehavior extends AbstractCanSurviveBlockBehavior {
+public class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final Property<?> facingProperty;
     private final boolean isSixDirection;
@@ -37,12 +37,11 @@ public class DirectionalAttachedBlockBehavior extends AbstractCanSurviveBlockBeh
     public DirectionalAttachedBlockBehavior(CustomBlock customBlock,
                                             Property<?> facingProperty,
                                             boolean isSixDirection,
-                                            int delay,
                                             boolean blacklist,
                                             List<Object> tagsCanSurviveOn,
                                             Set<Object> blockStatesCanSurviveOn,
                                             Set<String> customBlocksCansSurviveOn) {
-        super(customBlock, delay);
+        super(customBlock);
         this.facingProperty = facingProperty;
         this.isSixDirection = isSixDirection;
         this.tagsCanSurviveOn = tagsCanSurviveOn;
@@ -69,8 +68,8 @@ public class DirectionalAttachedBlockBehavior extends AbstractCanSurviveBlockBeh
     }
 
     @Override
-    protected boolean canSurvive(Object thisBlock, Object blockState, Object world, Object pos) throws Exception {
-        ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
+    public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return false;
         DirectionalAttachedBlockBehavior behavior = state.behavior().getAs(DirectionalAttachedBlockBehavior.class).orElse(null);
         if (behavior == null) return false;
@@ -80,10 +79,10 @@ public class DirectionalAttachedBlockBehavior extends AbstractCanSurviveBlockBeh
         } else {
             direction = ((HorizontalDirection) state.get(behavior.facingProperty)).opposite().toDirection();
         }
-        BlockPos blockPos = LocationUtils.fromBlockPos(pos).relative(direction);
+        BlockPos blockPos = LocationUtils.fromBlockPos(args[2]).relative(direction);
         Object nmsPos = LocationUtils.toBlockPos(blockPos);
-        Object nmsState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(world, nmsPos);
-        return FastNMS.INSTANCE.method$BlockStateBase$isFaceSturdy(nmsState, world, nmsPos, DirectionUtils.toNMSDirection(direction), CoreReflections.instance$SupportType$FULL)
+        Object nmsState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(args[1], nmsPos);
+        return FastNMS.INSTANCE.method$BlockStateBase$isFaceSturdy(nmsState, args[1], nmsPos, DirectionUtils.toNMSDirection(direction), CoreReflections.instance$SupportType$FULL)
                 && mayPlaceOn(nmsState);
     }
 
@@ -144,14 +143,13 @@ public class DirectionalAttachedBlockBehavior extends AbstractCanSurviveBlockBeh
                 throw new LocalizedResourceConfigException("warning.config.block.behavior.directional_attached.missing_facing");
             }
             Tuple<List<Object>, Set<Object>, Set<String>> tuple = readTagsAndState(arguments);
-            int delay = ResourceConfigUtils.getAsInt(arguments.getOrDefault("delay", 0), "delay");
             boolean blacklistMode = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blacklist", true), "blacklist");
-            return new DirectionalAttachedBlockBehavior(block, facing, isDirection, delay, blacklistMode, tuple.left(), tuple.mid(), tuple.right());
+            return new DirectionalAttachedBlockBehavior(block, facing, isDirection, blacklistMode, tuple.left(), tuple.mid(), tuple.right());
         }
     }
 
     @SuppressWarnings("DuplicatedCode")
-    private static Tuple<List<Object>, Set<Object>, Set<String>> readTagsAndState(Map<String, Object> arguments) {
+    public static Tuple<List<Object>, Set<Object>, Set<String>> readTagsAndState(Map<String, Object> arguments) {
         List<Object> mcTags = new ArrayList<>();
         for (String tag : MiscUtils.getAsStringList(arguments.getOrDefault("attached-block-tags", List.of()))) {
             mcTags.add(BlockTags.getOrCreate(Key.of(tag)));

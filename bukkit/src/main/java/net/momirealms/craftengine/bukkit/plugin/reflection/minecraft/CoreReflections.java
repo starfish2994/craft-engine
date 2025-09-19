@@ -4400,4 +4400,10 @@ public final class CoreReflections {
                     "world.level.block.FenceGateBlock"
             )
     );
+
+    public static final Class<?> clazz$GameEvent = requireNonNull(
+            ReflectionUtils.getClazz(
+                    BukkitReflectionUtils.assembleMCClass("world.level.gameevent.GameEvent")
+            )
+    );
 }
