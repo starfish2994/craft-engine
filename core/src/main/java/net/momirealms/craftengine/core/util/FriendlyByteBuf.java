@@ -14,6 +14,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.registry.Registry;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.sparrow.nbt.NBT;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
@@ -76,7 +77,7 @@ public class FriendlyByteBuf extends ByteBuf {
     public <T, C extends Collection<T>> C readCollection(IntFunction<C> collectionFactory, Reader<T> reader) {
         int i = this.readVarInt();
         C collection = collectionFactory.apply(i);
-        for(int j = 0; j < i; ++j) {
+        for (int j = 0; j < i; ++j) {
             collection.add(reader.apply(this));
         }
         return collection;
@@ -93,7 +94,7 @@ public class FriendlyByteBuf extends ByteBuf {
     public <T> T[] readArray(Reader<T> reader, Class<T> type) {
         int i = this.readVarInt();
         T[] array = (T[]) Array.newInstance(type, i);
-        for(int j = 0; j < i; ++j) {
+        for (int j = 0; j < i; ++j) {
             array[j] = reader.apply(this);
         }
         return array;
@@ -101,7 +102,7 @@ public class FriendlyByteBuf extends ByteBuf {
 
     public <T> void writeArray(T[] array, Writer<T> writer) {
         this.writeVarInt(array.length);
-        for(T t : array) {
+        for (T t : array) {
             writer.accept(this, t);
         }
     }
@@ -351,7 +352,7 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     public long[] readFixedSizeLongArray(long[] output) {
-        for(int i = 0; i < output.length; ++i) {
+        for (int i = 0; i < output.length; ++i) {
             output[i] = this.readLong();
         }
         return output;
@@ -473,12 +474,12 @@ public class FriendlyByteBuf extends ByteBuf {
 
     public void writeHolderSet(Either<List<Integer>, Key> holderSet) {
         holderSet.ifLeft(
-            ints -> {
-                writeVarInt(ints.size() + 1);
-                for (Integer anInt : ints) {
-                    writeVarInt(anInt);
+                ints -> {
+                    writeVarInt(ints.size() + 1);
+                    for (Integer anInt : ints) {
+                        writeVarInt(anInt);
+                    }
                 }
-            }
         ).ifRight(key -> {
             writeVarInt(0);
             writeKey(key);
@@ -599,11 +600,55 @@ public class FriendlyByteBuf extends ByteBuf {
 
     @SuppressWarnings("unchecked")
     public <T extends Enum<T>> T readEnumConstant(Class<T> enumClass) {
-        return (T)((Enum<T>[])enumClass.getEnumConstants())[this.readVarInt()];
+        return (T) ((Enum<T>[]) enumClass.getEnumConstants())[this.readVarInt()];
     }
 
     public FriendlyByteBuf writeEnumConstant(Enum<?> instance) {
         return this.writeVarInt(instance.ordinal());
+    }
+
+    public Vec3d readLpVec3() {
+        int unsignedByte = this.readUnsignedByte();
+        if (unsignedByte == 0) {
+            return Vec3d.ZERO;
+        } else {
+            int unsignedByte1 = this.readUnsignedByte();
+            long unsignedInt = this.readUnsignedInt();
+            long l = unsignedInt << 16 | (long) (unsignedByte1 << 8) | (long) unsignedByte;
+            long l1 = unsignedByte & 3;
+            if ((unsignedByte & 4) == 4) {
+                l1 |= ((long) this.readVarInt() & 4294967295L) << 2;
+            }
+            return new Vec3d(
+                    (Math.min((double) ((l >> 3) & 32767L), (double) 32766.0F) * (double) 2.0F / (double) 32766.0F - (double) 1.0F) * (double) l1,
+                    (Math.min((double) ((l >> 18) & 32767L), (double) 32766.0F) * (double) 2.0F / (double) 32766.0F - (double) 1.0F) * (double) l1,
+                    (Math.min((double) ((l >> 33) & 32767L), (double) 32766.0F) * (double) 2.0F / (double) 32766.0F - (double) 1.0F) * (double) l1
+            );
+        }
+    }
+
+    public void writeLpVec3(Vec3d vec3) {
+        double d = Double.isNaN(vec3.x) ? (double) 0.0F : Math.clamp(vec3.x, -1.7179869183E10, 1.7179869183E10);
+        double d1 = Double.isNaN(vec3.y) ? (double) 0.0F : Math.clamp(vec3.y, -1.7179869183E10, 1.7179869183E10);
+        double d2 = Double.isNaN(vec3.z) ? (double) 0.0F : Math.clamp(vec3.z, -1.7179869183E10, 1.7179869183E10);
+        double max = MCUtils.absMax(d, MCUtils.absMax(d1, d2));
+        if (max < 3.051944088384301E-5) {
+            this.writeByte(0);
+        } else {
+            long l = MCUtils.ceilLong(max);
+            boolean flag = (l & 3L) != l;
+            long l1 = flag ? l & 3L | 4L : l;
+            long l2 = (Math.round(((d / (double) l) * (double) 0.5F + (double) 0.5F) * (double) 32766.0F)) << 3;
+            long l3 = (Math.round(((d1 / (double) l) * (double) 0.5F + (double) 0.5F) * (double) 32766.0F)) << 18;
+            long l4 = (Math.round(((d2 / (double) l) * (double) 0.5F + (double) 0.5F) * (double) 32766.0F)) << 33;
+            long l5 = l1 | l2 | l3 | l4;
+            this.writeByte((byte) ((int) l5));
+            this.writeByte((byte) ((int) (l5 >> 8)));
+            this.writeInt((int) (l5 >> 16));
+            if (flag) {
+                this.writeVarInt((int) (l >> 2));
+            }
+        }
     }
 
     @FunctionalInterface

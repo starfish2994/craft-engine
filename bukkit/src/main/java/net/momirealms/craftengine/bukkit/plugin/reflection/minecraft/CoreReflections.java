@@ -667,9 +667,9 @@ public final class CoreReflections {
             )
     );
 
-    public static final Method method$SynchedEntityData$get = requireNonNull(
-            ReflectionUtils.getMethod(clazz$SynchedEntityData, Object.class, clazz$EntityDataAccessor)
-    );
+    // public static final Method method$SynchedEntityData$get = requireNonNull(
+    //         ReflectionUtils.getDeclaredMethod(clazz$SynchedEntityData, Object.class, new String[]{"get", VersionHelper.isOrAbove1_20_5() ? "a" : "b"}, clazz$EntityDataAccessor)
+    // );
 
     public static final Class<?> clazz$SynchedEntityData$DataValue = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
@@ -974,9 +974,9 @@ public final class CoreReflections {
             ReflectionUtils.getDeclaredField(clazz$PalettedContainer$Data, clazz$Palette, 0)
     );
 
-    public static final Method method$Palette$write = requireNonNull(
-            ReflectionUtils.getMethod(clazz$Palette, void.class, clazz$FriendlyByteBuf)
-    );
+    // public static final Method method$Palette$write = requireNonNull(
+    //         ReflectionUtils.getMethod(clazz$Palette, void.class, clazz$FriendlyByteBuf)
+    // );
 
     public static final Class<?> clazz$ChunkAccess = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
@@ -1576,7 +1576,9 @@ public final class CoreReflections {
     );
 
     public static final Method method$BlockBehaviour$getAnalogOutputSignal = requireNonNull(
-            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos)
+            VersionHelper.isOrAbove1_21_9()
+                    ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Direction)
+                    : ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos)
     );
 
     public static final Method method$Entity$level = requireNonNull(
@@ -3609,23 +3611,23 @@ public final class CoreReflections {
             clazz$Registry, clazz$HolderLookup$RegistryLookup, new String[]{"asLookup", "p"}
     );
 
-    public static final Field field$ServerEntity$broadcast = requireNonNull(
-            ReflectionUtils.getDeclaredField(
-                    clazz$ServerEntity, Consumer.class, 0
-            )
-    );
+    // public static final Field field$ServerEntity$broadcast = requireNonNull(
+    //         ReflectionUtils.getDeclaredField(
+    //                 clazz$ServerEntity, Consumer.class, 0
+    //         )
+    // );
 
-    public static final MethodHandle methodHandle$ServerEntity$broadcastSetter;
+    // public static final MethodHandle methodHandle$ServerEntity$broadcastSetter;
     public static final MethodHandle methodHandle$ServerEntity$updateIntervalSetter;
     public static final MethodHandle methodHandle$ServerPlayer$connectionGetter;
     public static final MethodHandle methodHandle$ServerPlayer$getAttributeMethod;
 
     static {
         try {
-            methodHandle$ServerEntity$broadcastSetter = requireNonNull(
-                    ReflectionUtils.unreflectSetter(field$ServerEntity$broadcast)
-                            .asType(MethodType.methodType(void.class, Object.class, Consumer.class))
-            );
+            // methodHandle$ServerEntity$broadcastSetter = requireNonNull(
+            //         ReflectionUtils.unreflectSetter(field$ServerEntity$broadcast)
+            //                 .asType(MethodType.methodType(void.class, Object.class, Consumer.class))
+            // );
             methodHandle$ServerEntity$updateIntervalSetter = requireNonNull(
                     ReflectionUtils.unreflectSetter(field$ServerEntity$updateInterval)
                             .asType(MethodType.methodType(void.class, Object.class, int.class))
