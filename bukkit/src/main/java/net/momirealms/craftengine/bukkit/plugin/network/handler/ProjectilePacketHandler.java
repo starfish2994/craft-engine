@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.MCUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.Vec3d;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -70,13 +71,14 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         double x = buf.readDouble();
         double y = buf.readDouble();
         double z = buf.readDouble();
+        Vec3d movement = VersionHelper.isOrAbove1_21_9() ? buf.readLpVec3() : null;
         byte xRot = buf.readByte();
         byte yRot = buf.readByte();
         byte yHeadRot = buf.readByte();
         int data = buf.readVarInt();
-        int xa = buf.readShort();
-        int ya = buf.readShort();
-        int za = buf.readShort();
+        int xa = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
+        int ya = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
+        int za = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
         event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
@@ -86,13 +88,14 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         buf.writeDouble(x);
         buf.writeDouble(y);
         buf.writeDouble(z);
+        if (VersionHelper.isOrAbove1_21_9()) buf.writeLpVec3(movement);
         buf.writeByte(MCUtils.packDegrees(MCUtils.clamp(-MCUtils.unpackDegrees(xRot), -90.0F, 90.0F)));
         buf.writeByte(MCUtils.packDegrees(-MCUtils.unpackDegrees(yRot)));
         buf.writeByte(yHeadRot);
         buf.writeVarInt(data);
-        buf.writeShort(xa);
-        buf.writeShort(ya);
-        buf.writeShort(za);
+        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(xa);
+        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(ya);
+        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(za);
     }
 
     private Object convertCustomProjectilePositionSyncPacket(Object packet) {

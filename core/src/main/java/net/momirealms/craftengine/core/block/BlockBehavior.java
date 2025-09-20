@@ -100,7 +100,8 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    // BlockState state, Level level, BlockPos pos
+    // 1.20.1~1.21.8 BlockState state, Level level, BlockPos pos
+    // 1.21.9+ BlockState state, Level level, BlockPos pos
     public int getAnalogOutputSignal(Object thisBlock, Object[] args) throws Exception {
         return 0;
     }

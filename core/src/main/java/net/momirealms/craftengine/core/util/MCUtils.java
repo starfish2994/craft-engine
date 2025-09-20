@@ -282,4 +282,13 @@ public class MCUtils {
     public static double clamp(double value, double min, double max) {
         return value < min ? min : Math.min(value, max);
     }
+
+    public static double absMax(double x, double y) {
+        return Math.max(Math.abs(x), Math.abs(y));
+    }
+
+    public static long ceilLong(double value) {
+        long l = (long)value;
+        return value > (double)l ? l + 1L : l;
+    }
 }

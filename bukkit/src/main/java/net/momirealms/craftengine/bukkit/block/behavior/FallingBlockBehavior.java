@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
+import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -75,8 +76,7 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
         Object level = args[0];
         Object fallingBlockEntity = args[2];
         Object entityData = CoreReflections.field$Entity$entityData.get(fallingBlockEntity);
-        boolean isSilent = (boolean) CoreReflections.method$SynchedEntityData$get.invoke(entityData, CoreReflections.instance$Entity$DATA_SILENT);
-        if (!isSilent) {
+        if (!BaseEntityData.Silent.get(entityData)) {
             Object blockState = CoreReflections.field$FallingBlockEntity$blockState.get(fallingBlockEntity);
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
             if (optionalCustomState.isEmpty()) return;
@@ -93,12 +93,11 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
         Object level = args[0];
         Object pos = args[1];
         Object entityData = CoreReflections.field$Entity$entityData.get(fallingBlock);
-        boolean isSilent = (boolean) CoreReflections.method$SynchedEntityData$get.invoke(entityData, CoreReflections.instance$Entity$DATA_SILENT);
         Object blockState = args[2];
         int stateId = BlockStateUtils.blockStateToId(blockState);
         ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockState(stateId);
         if (immutableBlockState == null || immutableBlockState.isEmpty()) return;
-        if (!isSilent) {
+        if (!BaseEntityData.Silent.get(entityData)) {
             net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
             world.playBlockSound(Vec3d.atCenterOf(LocationUtils.fromBlockPos(pos)), immutableBlockState.settings().sounds().landSound());
         }

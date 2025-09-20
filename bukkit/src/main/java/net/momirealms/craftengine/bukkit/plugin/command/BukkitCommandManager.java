@@ -60,7 +60,7 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
         ));
         final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
         manager.settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true);
-        if (manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+        if (manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER) && manager.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
             manager.registerBrigadier();
             manager.brigadierManager().setNativeNumberSuggestions(true);
         } else if (manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
