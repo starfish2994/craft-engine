@@ -26,11 +26,13 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
     protected final Set<String> customBlocksCansSurviveOn;
     protected final boolean blacklistMode;
     protected final boolean stackable;
+    protected final int stackableAmount;
 
-    public BushBlockBehavior(CustomBlock block, int delay, boolean blacklist, boolean stackable, List<Object> tagsCanSurviveOn, Set<Object> blockStatesCanSurviveOn, Set<String> customBlocksCansSurviveOn) {
+    public BushBlockBehavior(CustomBlock block, int delay, boolean blacklist, boolean stackable, int stackableAmount, List<Object> tagsCanSurviveOn, Set<Object> blockStatesCanSurviveOn, Set<String> customBlocksCansSurviveOn) {
         super(block, delay);
         this.blacklistMode = blacklist;
         this.stackable = stackable;
+        this.stackableAmount = stackableAmount;
         this.tagsCanSurviveOn = tagsCanSurviveOn;
         this.blockStatesCanSurviveOn = blockStatesCanSurviveOn;
         this.customBlocksCansSurviveOn = customBlocksCansSurviveOn;
@@ -42,9 +44,10 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             Tuple<List<Object>, Set<Object>, Set<String>> tuple = readTagsAndState(arguments, false);
             boolean stackable = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("stackable", false), "stackable");
+            int stackableAmount = ResourceConfigUtils.getAsInt(arguments.getOrDefault("stackable-amount", 0), "stackable-amount");
             int delay = ResourceConfigUtils.getAsInt(arguments.getOrDefault("delay", 0), "delay");
             boolean blacklistMode = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blacklist", false), "blacklist");
-            return new BushBlockBehavior(block, delay, blacklistMode, stackable, tuple.left(), tuple.mid(), tuple.right());
+            return new BushBlockBehavior(block, delay, blacklistMode, stackable, stackableAmount,tuple.left(), tuple.mid(), tuple.right());
         }
     }
 
@@ -96,7 +99,11 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
         } else {
             ImmutableBlockState belowCustomState = optionalCustomState.get();
             if (belowCustomState.owner().value() == super.customBlock) {
-                return this.stackable;
+                if (!stackable) return false;
+                if (this.stackableAmount > 0) {
+                    return mayStackOn(world, belowPos);
+                }
+                return true;
             }
             if (this.customBlocksCansSurviveOn.contains(belowCustomState.owner().value().id().toString())) {
                 return !this.blacklistMode;
@@ -106,5 +113,22 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
             }
         }
         return this.blacklistMode;
+    }
+
+    protected boolean mayStackOn(Object world, Object belowPos) {
+        int count = 0;
+        Object cursorPos = belowPos;
+
+        while (count <= this.stackableAmount) {
+            Object belowState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(world, cursorPos);
+            Optional<ImmutableBlockState> belowCustomState = BlockStateUtils.getOptionalCustomBlockState(belowState);
+            if (belowCustomState.isPresent() && belowCustomState.get().owner().value() == super.customBlock) {
+                count++;
+                cursorPos = LocationUtils.below(cursorPos);
+            } else {
+                break;
+            }
+        }
+        return count <= this.stackableAmount;
     }
 }
