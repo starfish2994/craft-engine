@@ -17,13 +17,11 @@ import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.util.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
-public class StemBlockBehavior extends BushBlockBehavior {
+public class StemBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final IntegerProperty ageProperty;
     private final Key fruit;
@@ -33,29 +31,19 @@ public class StemBlockBehavior extends BushBlockBehavior {
     private final Object blockMayPlaceFruit;
 
     public StemBlockBehavior(CustomBlock customBlock,
-                             int delay,
-                             boolean blacklist,
-                             List<Object> tagsCanSurviveOn,
-                             Set<Object> blockStatesCanSurviveOn,
-                             Set<String> customBlocksCansSurviveOn,
                              IntegerProperty ageProperty,
                              Key fruit,
                              Key attachedStem,
                              int minGrowLight,
                              Object tagMayPlaceFruit,
                              Object blockMayPlaceFruit) {
-        super(customBlock, delay, blacklist, false, tagsCanSurviveOn, blockStatesCanSurviveOn, customBlocksCansSurviveOn);
+        super(customBlock);
         this.ageProperty = ageProperty;
         this.fruit = fruit;
         this.attachedStem = attachedStem;
         this.minGrowLight = minGrowLight;
         this.tagMayPlaceFruit = tagMayPlaceFruit;
         this.blockMayPlaceFruit = blockMayPlaceFruit;
-    }
-
-    @Override
-    public boolean propagatesSkylightDown(Object thisBlock, Object[] args, Callable<Object> superMethod) {
-        return FastNMS.INSTANCE.field$FluidState$isEmpty(FastNMS.INSTANCE.field$BlockBehaviour$BlockStateBase$fluidState(args[0]));
     }
 
     @Override
@@ -139,16 +127,13 @@ public class StemBlockBehavior extends BushBlockBehavior {
 
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
-            Tuple<List<Object>, Set<Object>, Set<String>> tuple = readTagsAndState(arguments, false);
-            int delay = ResourceConfigUtils.getAsInt(arguments.getOrDefault("delay", 0), "delay");
-            boolean blacklistMode = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blacklist", false), "blacklist");
             IntegerProperty ageProperty = (IntegerProperty) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("age"), "warning.config.block.behavior.stem.missing_age");
             Key fruit = Key.of(ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("fruit"), "warning.config.block.behavior.stem.missing_fruit"));
             Key attachedStem = Key.of(ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("attached-stem"), "warning.config.block.behavior.stem.missing_attached_stem"));
             int minGrowLight = ResourceConfigUtils.getAsInt(arguments.getOrDefault("light-requirement", 9), "light-requirement");
             Object tagMayPlaceFruit = FastNMS.INSTANCE.method$TagKey$create(MRegistries.BLOCK, KeyUtils.toResourceLocation(Key.of(arguments.getOrDefault("may-place-fruit", "minecraft:dirt").toString())));
             Object blockMayPlaceFruit = FastNMS.INSTANCE.method$Registry$getValue(MBuiltInRegistries.BLOCK, KeyUtils.toResourceLocation(Key.of(arguments.getOrDefault("may-place-fruit", "minecraft:farmland").toString())));
-            return new StemBlockBehavior(block, delay, blacklistMode, tuple.left(), tuple.mid(), tuple.right(), ageProperty, fruit, attachedStem, minGrowLight, tagMayPlaceFruit, blockMayPlaceFruit);
+            return new StemBlockBehavior(block, ageProperty, fruit, attachedStem, minGrowLight, tagMayPlaceFruit, blockMayPlaceFruit);
         }
     }
 }

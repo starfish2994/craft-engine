@@ -11,38 +11,29 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.ResourceConfigUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
-public class AttachedStemBlockBehavior extends BushBlockBehavior {
+public class AttachedStemBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final Property<HorizontalDirection> facingProperty;
     private final Key fruit;
     private final Key stem;
 
     public AttachedStemBlockBehavior(CustomBlock customBlock,
-                                     int delay,
-                                     boolean blacklist,
-                                     List<Object> tagsCanSurviveOn,
-                                     Set<Object> blockStatesCanSurviveOn,
-                                     Set<String> customBlocksCansSurviveOn,
                                      Property<HorizontalDirection> facingProperty,
                                      Key fruit,
                                      Key stem) {
-        super(customBlock, delay, blacklist, false, tagsCanSurviveOn, blockStatesCanSurviveOn, customBlocksCansSurviveOn);
+        super(customBlock);
         this.facingProperty = facingProperty;
         this.fruit = fruit;
         this.stem = stem;
-    }
-
-    @Override
-    public boolean propagatesSkylightDown(Object thisBlock, Object[] args, Callable<Object> superMethod) {
-        return FastNMS.INSTANCE.field$FluidState$isEmpty(FastNMS.INSTANCE.field$BlockBehaviour$BlockStateBase$fluidState(args[0]));
     }
 
     @Override
@@ -97,14 +88,12 @@ public class AttachedStemBlockBehavior extends BushBlockBehavior {
 
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
-            Tuple<List<Object>, Set<Object>, Set<String>> tuple = readTagsAndState(arguments, false);
-            int delay = ResourceConfigUtils.getAsInt(arguments.getOrDefault("delay", 0), "delay");
-            boolean blacklistMode = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blacklist", false), "blacklist");
+
             @SuppressWarnings("unchecked")
             Property<HorizontalDirection> facingProperty = (Property<HorizontalDirection>) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("facing"), "warning.config.block.behavior.attached_stem.missing_facing");
             Key fruit = Key.of(ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("fruit"), "warning.config.block.behavior.attached_stem.missing_fruit"));
             Key stem = Key.of(ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("stem"), "warning.config.block.behavior.attached_stem.missing_stem"));
-            return new AttachedStemBlockBehavior(block, delay, blacklistMode, tuple.left(), tuple.mid(), tuple.right(), facingProperty, fruit, stem);
+            return new AttachedStemBlockBehavior(block, facingProperty, fruit, stem);
         }
     }
 }

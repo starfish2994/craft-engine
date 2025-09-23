@@ -381,14 +381,4 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior
         }
         FallOnBlockBehavior.super.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
     }
-
-    @Override
-    public boolean propagatesSkylightDown(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
-        for (AbstractBlockBehavior behavior : this.behaviors) {
-            if (!behavior.propagatesSkylightDown(thisBlock, args, superMethod)) {
-                return false;
-            }
-        }
-        return (boolean) superMethod.call();
-    }
 }

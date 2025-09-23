@@ -79,5 +79,6 @@ categories:
       - default:wooden_chair
       - default:flower_basket
       - default:amethyst_torch
-      - default:honeydew_item
-      - default:honeydew
+      - default:hami_melon_seeds
+      - default:hami_melon_slice
+      - default:hami_melon

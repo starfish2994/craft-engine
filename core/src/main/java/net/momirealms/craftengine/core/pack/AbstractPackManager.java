@@ -431,7 +431,7 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/configuration/blocks/topaz_ore.yml");
         plugin.saveResource("resources/default/configuration/blocks/netherite_anvil.yml");
         plugin.saveResource("resources/default/configuration/blocks/amethyst_torch.yml");
-        plugin.saveResource("resources/default/configuration/blocks/honeydew.yml");
+        plugin.saveResource("resources/default/configuration/blocks/hami_melon.yml");
         // assets
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/font/image/emojis.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/chinese_lantern.png");
@@ -538,10 +538,11 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/gui/sprites/tooltip/topaz_background.png.mcmeta");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/gui/sprites/tooltip/topaz_frame.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/gui/sprites/tooltip/topaz_frame.png.mcmeta");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/honeydew.png");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/honeydew_bottom.png");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/honeydew_top.png");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/honeydew_item.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/hami_melon.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/hami_melon_bottom.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/hami_melon_top.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_slice.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_seeds.png");
     }
 
     private TreeMap<ConfigParser, List<CachedConfigSection>> updateCachedConfigFiles() {
