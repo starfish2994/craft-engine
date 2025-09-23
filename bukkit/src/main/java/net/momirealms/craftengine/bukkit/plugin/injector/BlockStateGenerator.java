@@ -19,19 +19,16 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlockStateProperties;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBuiltInRegistries;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MLootContextParams;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.BlockSettings;
-import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.DelegatingBlockState;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
-import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.World;
@@ -69,19 +66,7 @@ public final class BlockStateGenerator {
                 .method(ElementMatchers.is(CoreReflections.method$StateHolder$setValue))
                 .intercept(MethodDelegation.to(SetPropertyValueInterceptor.INSTANCE))
                 .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isBlock))
-                .intercept(MethodDelegation.to(IsBlockInterceptor.INSTANCE))
-                .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isHolderSetBlock))
-                .intercept(MethodDelegation.to(IsHolderSetBlockInterceptor.INSTANCE));
-        if (CoreReflections.method$BlockStateBase$isHolderBlock != null) {
-            stateBuilder = stateBuilder
-                    .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isHolderBlock))
-                    .intercept(MethodDelegation.to(IsHolderBlockInterceptor.INSTANCE));
-        }
-        if (CoreReflections.method$BlockStateBase$isResourceKeyBlock != null) {
-            stateBuilder = stateBuilder
-                    .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isResourceKeyBlock))
-                    .intercept(MethodDelegation.to(IsResourceKeyBlockInterceptor.INSTANCE));
-        }
+                .intercept(MethodDelegation.to(IsBlockInterceptor.INSTANCE));
         Class<?> clazz$CraftEngineBlock = stateBuilder.make().load(BlockStateGenerator.class.getClassLoader()).getLoaded();
         constructor$CraftEngineBlockState = VersionHelper.isOrAbove1_20_5() ?
                 MethodHandles.publicLookup().in(clazz$CraftEngineBlock)
@@ -209,69 +194,6 @@ public final class BlockStateGenerator {
             ImmutableBlockState thisState = customState.blockState();
             if (thisState == null) return false;
             if (FastNMS.INSTANCE.method$Block$defaultState(args[0]) instanceof DelegatingBlockState holder) {
-                ImmutableBlockState holderState = holder.blockState();
-                if (holderState == null) return false;
-                return holderState.owner().equals(thisState.owner());
-            }
-            return false;
-        }
-    }
-
-    public static class IsHolderSetBlockInterceptor {
-        public static final IsHolderSetBlockInterceptor INSTANCE = new IsHolderSetBlockInterceptor();
-
-        @SuppressWarnings("unchecked")
-        @RuntimeType
-        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
-            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
-            ImmutableBlockState thisState = customState.blockState();
-            if (thisState == null) return false;
-            Holder<CustomBlock> owner = thisState.owner();
-            for (Object holder : (Iterable<Object>) args[0]) {
-                Object block = FastNMS.INSTANCE.method$Holder$value(holder);
-                if (block == null) continue;
-                if (!(FastNMS.INSTANCE.method$Block$defaultState(block) instanceof DelegatingBlockState customHolder))
-                    continue;
-                ImmutableBlockState holderState = customHolder.blockState();
-                if (holderState == null) continue;
-                return holderState.owner().equals(owner);
-            }
-            return false;
-        }
-    }
-
-    public static class IsHolderBlockInterceptor {
-        public static final IsHolderBlockInterceptor INSTANCE = new IsHolderBlockInterceptor();
-
-        @RuntimeType
-        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
-            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
-            ImmutableBlockState thisState = customState.blockState();
-            if (thisState == null) return false;
-            Object block = FastNMS.INSTANCE.method$Holder$value(args[0]);
-            if (block == null) return false;
-            if (FastNMS.INSTANCE.method$Block$defaultState(block) instanceof DelegatingBlockState holder) {
-                ImmutableBlockState holderState = holder.blockState();
-                if (holderState == null) return false;
-                return holderState.owner().equals(thisState.owner());
-            }
-            return false;
-        }
-    }
-
-    public static class IsResourceKeyBlockInterceptor {
-        public static final IsResourceKeyBlockInterceptor INSTANCE = new IsResourceKeyBlockInterceptor();
-
-        @RuntimeType
-        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
-            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
-            ImmutableBlockState thisState = customState.blockState();
-            if (thisState == null) return false;
-            Object block = FastNMS.INSTANCE.method$HolderGetter$getResourceKey(MBuiltInRegistries.BLOCK, args[0])
-                    .map(FastNMS.INSTANCE::method$Holder$value)
-                    .orElse(null);
-            if (block == null) return false;
-            if (FastNMS.INSTANCE.method$Block$defaultState(block) instanceof DelegatingBlockState holder) {
                 ImmutableBlockState holderState = holder.blockState();
                 if (holderState == null) return false;
                 return holderState.owner().equals(thisState.owner());
