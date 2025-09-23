@@ -693,6 +693,9 @@ templates#settings#hardness:
   default:hardness/planks:
     hardness: 2.0
     resistance: 3.0
+  default:hardness/button:
+    hardness: 0.5
+    resistance: 0.5
 
 # break level
 templates#settings#break_level:
