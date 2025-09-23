@@ -3138,6 +3138,257 @@ templates#block_states:
       powered=true:
         appearance: powered
         id: ${powered_id}
+  default:block_state/button:
+    properties:
+      powered:
+        type: boolean
+        default: false
+      face:
+        type: anchor_type
+        default: floor
+      facing:
+        type: 4-direction
+        default: north
+    appearances:
+      face=floor,facing=east,powered=true:
+        state: ${base_block}[face=floor,facing=east,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,90,0
+          scale: 1.0001
+          translation: 0,0.0001,0
+      face=floor,facing=west,powered=true:
+        state: ${base_block}[face=floor,facing=west,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,-90,0
+          scale: 1.0001
+          translation: 0,0.0001,0
+      face=floor,facing=east,powered=false:
+        state: ${base_block}[face=floor,facing=east,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,90,0
+          scale: 1.0001
+          translation: 0,0.0001,0
+      face=floor,facing=west,powered=false:
+        state: ${base_block}[face=floor,facing=west,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,-90,0
+          scale: 1.0001
+          translation: 0,0.0001,0
+      face=floor,facing=south,powered=true:
+        state: ${base_block}[face=floor,facing=south,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          scale: 1.0001
+          translation: 0,0.0001,0
+      face=floor,facing=north,powered=true:
+        state: ${base_block}[face=floor,facing=north,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,180,0
+          scale: 1.0001
+          translation: 0,0.0001,0
+      face=floor,facing=south,powered=false:
+        state: ${base_block}[face=floor,facing=south,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          scale: 1.0001
+          translation: 0,0.0001,0
+      face=floor,facing=north,powered=false:
+        state: ${base_block}[face=floor,facing=north,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,180,0
+          scale: 1.0001
+          translation: 0,0.0001,0
+      face=wall,facing=north,powered=true:
+        state: ${base_block}[face=wall,facing=north,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: -90,0,0
+          scale: 1.0001
+          translation: 0,0,-0.0001
+      face=wall,facing=south,powered=true:
+        state: ${base_block}[face=wall,facing=south,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 90,0,180
+          scale: 1.0001
+          translation: 0,0,0.0001
+      face=wall,facing=north,powered=false:
+        state: ${base_block}[face=wall,facing=north,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: -90,0,0
+          scale: 1.0001
+          translation: 0,0,-0.0001
+      face=wall,facing=south,powered=false:
+        state: ${base_block}[face=wall,facing=south,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 90,0,180
+          scale: 1.0001
+          translation: 0,0,0.0001
+      face=wall,facing=west,powered=true:
+        state: ${base_block}[face=wall,facing=west,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,90,90
+          scale: 1.0001
+          translation: -0.0001,0,0
+      face=wall,facing=east,powered=true:
+        state: ${base_block}[face=wall,facing=east,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,270,-90
+          scale: 1.0001
+          translation: 0.0001,0,0
+      face=wall,facing=west,powered=false:
+        state: ${base_block}[face=wall,facing=west,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,90,90
+          scale: 1.0001
+          translation: -0.0001,0,0
+      face=wall,facing=east,powered=false:
+        state: ${base_block}[face=wall,facing=east,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,270,-90
+          scale: 1.0001
+          translation: 0.0001,0,0
+      face=ceiling,facing=north,powered=true:
+        state: ${base_block}[face=ceiling,facing=north,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,180,180
+          scale: 1.0001
+          translation: 0,-0.0001,0
+      face=ceiling,facing=south,powered=true:
+        state: ${base_block}[face=ceiling,facing=south,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,0,180
+          scale: 1.0001
+          translation: 0,-0.0001,0
+      face=ceiling,facing=north,powered=false:
+        state: ${base_block}[face=ceiling,facing=north,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,180,180
+          scale: 1.0001
+          translation: 0,-0.0001,0
+      face=ceiling,facing=south,powered=false:
+        state: ${base_block}[face=ceiling,facing=south,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,0,180
+          scale: 1.0001
+          translation: 0,-0.0001,0
+      face=ceiling,facing=west,powered=true:
+        state: ${base_block}[face=ceiling,facing=west,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,90,180
+          scale: 1.0001
+          translation: 0,-0.0001,0
+      face=ceiling,facing=east,powered=true:
+        state: ${base_block}[face=ceiling,facing=east,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: -90,-90,-90
+          scale: 1.0001
+          translation: 0,-0.0001,0
+      face=ceiling,facing=west,powered=false:
+        state: ${base_block}[face=ceiling,facing=west,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,90,180
+          scale: 1.0001
+          translation: 0,-0.0001,0
+      face=ceiling,facing=east,powered=false:
+        state: ${base_block}[face=ceiling,facing=east,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: -90,-90,-90
+          scale: 1.0001
+          translation: 0,-0.0001,0
+    variants:
+      face=floor,facing=east,powered=true:
+        appearance: face=floor,facing=east,powered=true
+        id: ${internal_id}
+      face=floor,facing=west,powered=true:
+        appearance: face=floor,facing=west,powered=true
+        id: ${internal_id}
+      face=floor,facing=east,powered=false:
+        appearance: face=floor,facing=east,powered=false
+        id: ${internal_id}
+      face=floor,facing=west,powered=false:
+        appearance: face=floor,facing=west,powered=false
+        id: ${internal_id}
+      face=floor,facing=south,powered=true:
+        appearance: face=floor,facing=south,powered=true
+        id: ${internal_id}
+      face=floor,facing=north,powered=true:
+        appearance: face=floor,facing=north,powered=true
+        id: ${internal_id}
+      face=floor,facing=south,powered=false:
+        appearance: face=floor,facing=south,powered=false
+        id: ${internal_id}
+      face=floor,facing=north,powered=false:
+        appearance: face=floor,facing=north,powered=false
+        id: ${internal_id}
+      face=wall,facing=north,powered=true:
+        appearance: face=wall,facing=north,powered=true
+        id: ${internal_id}
+      face=wall,facing=south,powered=true:
+        appearance: face=wall,facing=south,powered=true
+        id: ${internal_id}
+      face=wall,facing=north,powered=false:
+        appearance: face=wall,facing=north,powered=false
+        id: ${internal_id}
+      face=wall,facing=south,powered=false:
+        appearance: face=wall,facing=south,powered=false
+        id: ${internal_id}
+      face=wall,facing=west,powered=true:
+        appearance: face=wall,facing=west,powered=true
+        id: ${internal_id}
+      face=wall,facing=east,powered=true:
+        appearance: face=wall,facing=east,powered=true
+        id: ${internal_id}
+      face=wall,facing=west,powered=false:
+        appearance: face=wall,facing=west,powered=false
+        id: ${internal_id}
+      face=wall,facing=east,powered=false:
+        appearance: face=wall,facing=east,powered=false
+        id: ${internal_id}
+      face=ceiling,facing=north,powered=true:
+        appearance: face=ceiling,facing=north,powered=true
+        id: ${internal_id}
+      face=ceiling,facing=south,powered=true:
+        appearance: face=ceiling,facing=south,powered=true
+        id: ${internal_id}
+      face=ceiling,facing=north,powered=false:
+        appearance: face=ceiling,facing=north,powered=false
+        id: ${internal_id}
+      face=ceiling,facing=south,powered=false:
+        appearance: face=ceiling,facing=south,powered=false
+        id: ${internal_id}
+      face=ceiling,facing=west,powered=true:
+        appearance: face=ceiling,facing=west,powered=true
+        id: ${internal_id}
+      face=ceiling,facing=east,powered=true:
+        appearance: face=ceiling,facing=east,powered=true
+        id: ${internal_id}
+      face=ceiling,facing=west,powered=false:
+        appearance: face=ceiling,facing=west,powered=false
+        id: ${internal_id}
+      face=ceiling,facing=east,powered=false:
+        appearance: face=ceiling,facing=east,powered=false
+        id: ${internal_id}
 # recipes
 templates#recipes:
   default:recipe/planks:
