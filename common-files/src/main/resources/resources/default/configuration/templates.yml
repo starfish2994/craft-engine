@@ -48,13 +48,13 @@ templates#models#block:
     generation:
       parent: minecraft:block/cube_column
       textures:
-        particle: minecraft:block/custom/block_particle
-        down: minecraft:block/custom/block_down
-        up: minecraft:block/custom/block_up
-        north: minecraft:block/custom/block_north
-        east: minecraft:block/custom/block_east
-        south: minecraft:block/custom/block_south
-        west: minecraft:block/custom/block_west
+        particle: ${particle_texture}
+        down: ${down_texture}
+        up: ${up_texture}
+        north: ${north_texture}
+        east: ${east_texture}
+        south: ${south_texture}
+        west: ${west_texture}
 
 # 2D items
 templates#models#2d:

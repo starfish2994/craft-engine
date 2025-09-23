@@ -4419,19 +4419,13 @@ public final class CoreReflections {
             ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$Block)
     );
 
-    public static final Method method$BlockStateBase$isHolderSetBlock = requireNonNull(
-            ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$HolderSet)
-    );
-
-    // 1.20.2+
-    public static final Method method$BlockStateBase$isHolderBlock = MiscUtils.requireNonNullIf(
-            ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$Holder),
-            VersionHelper.isOrAbove1_20_2()
-    );
-
-    // 1.20.3+
-    public static final Method method$BlockStateBase$isResourceKeyBlock = MiscUtils.requireNonNullIf(
-            ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$ResourceKey),
-            VersionHelper.isOrAbove1_20_3()
+    public static final Method method$BlockBehaviour$propagatesSkylightDown = requireNonNull(
+            VersionHelper.isOrAbove1_21_2()
+                    ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, new String[]{"propagatesSkylightDown", "e_"}, clazz$BlockState)
+                    : VersionHelper.isOrAbove1_20_5()
+                        ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, new String[]{"propagatesSkylightDown", "a_"}, clazz$BlockState, clazz$BlockGetter, clazz$BlockPos)
+                        : VersionHelper.isOrAbove1_20_4()
+                            ? ReflectionUtils.getDeclaredMethod(clazz$Block, boolean.class, new String[]{"propagatesSkylightDown", "a_"}, clazz$BlockState, clazz$BlockGetter, clazz$BlockPos)
+                            : ReflectionUtils.getDeclaredMethod(clazz$Block, boolean.class, new String[]{"propagatesSkylightDown", "c"}, clazz$BlockState, clazz$BlockGetter, clazz$BlockPos)
     );
 }

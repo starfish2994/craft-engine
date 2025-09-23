@@ -184,6 +184,12 @@ public abstract class BlockBehavior {
         superMethod.call();
     }
 
+    // 1.20.1~1.21.1 BlockState state, BlockGetter level, BlockPos pos
+    // 1.21.2+ BlockState state
+    public boolean propagatesSkylightDown(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        return (boolean) superMethod.call();
+    }
+
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         return state;
     }

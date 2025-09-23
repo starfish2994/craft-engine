@@ -49,6 +49,8 @@ i18n:
     item.safe_block: Safe Block
     item.sofa: Sofa
     item.amethyst_torch: Amethyst Torch
+    item.honeydew_item: Honeydew Slice
+    item.honeydew: Honeydew
     category.default.name: Default Assets
     category.default.lore: Contains the default configuration of CraftEngine
     category.palm_tree: Palm Tree
@@ -107,6 +109,8 @@ i18n:
     item.safe_block: 保险柜
     item.sofa: 沙发
     item.amethyst_torch: 紫水晶火把
+    item.honeydew_item: 哈密瓜片
+    item.honeydew: 哈密瓜
     category.default.name: 默认资产
     category.default.lore: 包含了CraftEngine的默认配置
     category.palm_tree: 棕榈树
@@ -149,6 +153,9 @@ lang:
     block_name:default:sofa: Sofa
     block_name:default:amethyst_torch: Amethyst Torch
     block_name:default:amethyst_wall_torch: Amethyst Torch
+    block_name:default:honeydew: Honeydew
+    block_name:default:honeydew_stem: Honeydew Stem
+    block_name:default:default:attached_honeydew_stem: Honeydew Stem
   zh_cn:
     block_name:default:chinese_lantern: 灯笼
     block_name:default:netherite_anvil: 下界合金砧
@@ -179,3 +186,6 @@ lang:
     block_name:default:sofa: 沙发
     block_name:default:amethyst_torch: 紫水晶火把
     block_name:default:amethyst_wall_torch: 紫水晶火把
+    block_name:default:honeydew: 哈密瓜
+    block_name:default:honeydew_stem: 哈密瓜茎
+    block_name:default:default:attached_honeydew_stem: 哈密瓜茎
