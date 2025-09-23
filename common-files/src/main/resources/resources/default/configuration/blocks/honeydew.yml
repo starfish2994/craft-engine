@@ -1,6 +1,7 @@
 items:
   default:honeydew_item:
     material: apple
+    custom-model-data: 1000
     data:
       item-name: <!i><i18n:item.honeydew_item>
     model:
@@ -12,6 +13,7 @@ items:
       block: default:honeydew_stem
   default:honeydew:
     material: nether_brick
+    custom-model-data: 3023
     data:
       item-name: <!i><i18n:item.honeydew>
     model:

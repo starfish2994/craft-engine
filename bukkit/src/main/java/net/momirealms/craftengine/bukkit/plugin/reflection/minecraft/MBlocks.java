@@ -6,7 +6,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 public final class MBlocks {
     private MBlocks() {}
 
-    public static final Object AIR = getById("air");;
+    public static final Object AIR = getById("air");
     public static final Object AIR$defaultState = FastNMS.INSTANCE.method$Block$defaultState(AIR);
     public static final Object STONE = getById("stone");
     public static final Object STONE$defaultState = FastNMS.INSTANCE.method$Block$defaultState(STONE);
