@@ -4434,4 +4434,14 @@ public final class CoreReflections {
             ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$ResourceKey),
             VersionHelper.isOrAbove1_20_3()
     );
+
+    public static final Method method$BlockBehaviour$propagatesSkylightDown = requireNonNull(
+            VersionHelper.isOrAbove1_21_2()
+                    ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, new String[]{"propagatesSkylightDown", "e_"}, clazz$BlockState)
+                    : VersionHelper.isOrAbove1_20_5()
+                        ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, new String[]{"propagatesSkylightDown", "a_"}, clazz$BlockState, clazz$BlockGetter, clazz$BlockPos)
+                        : VersionHelper.isOrAbove1_20_4()
+                            ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, new String[]{"propagatesSkylightDown", "a_"}, clazz$BlockState, clazz$BlockGetter, clazz$BlockPos)
+                            : ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, new String[]{"propagatesSkylightDown", "c"}, clazz$BlockState, clazz$BlockGetter, clazz$BlockPos)
+    );
 }

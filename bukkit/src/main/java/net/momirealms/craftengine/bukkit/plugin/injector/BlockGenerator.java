@@ -170,6 +170,9 @@ public final class BlockGenerator {
                 // stepOn
                 .method(ElementMatchers.is(CoreReflections.method$Block$stepOn))
                 .intercept(MethodDelegation.to(StepOnInterceptor.INSTANCE))
+                // propagatesSkylightDown
+                .method(ElementMatchers.is(CoreReflections.method$BlockBehaviour$propagatesSkylightDown))
+                .intercept(MethodDelegation.to(PropagatesSkylightDownInterceptor.INSTANCE))
                 ;
         // 1.21.5+
         if (CoreReflections.method$BlockBehaviour$affectNeighborsAfterRemoval != null) {
@@ -757,6 +760,21 @@ public final class BlockGenerator {
                 }
             } catch (Exception e) {
                 CraftEngine.instance().logger().severe("Failed to run updateEntityMovementAfterFallOn", e);
+            }
+        }
+    }
+
+    public static class PropagatesSkylightDownInterceptor {
+        public static final PropagatesSkylightDownInterceptor INSTANCE = new PropagatesSkylightDownInterceptor();
+
+        @RuntimeType
+        public boolean intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
+            ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
+            try {
+                return holder.value().propagatesSkylightDown(thisObj, args, superMethod);
+            } catch (Exception e) {
+                CraftEngine.instance().logger().severe("Failed to run propagatesSkylightDown", e);
+                return false;
             }
         }
     }
