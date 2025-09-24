@@ -27,6 +27,7 @@ public class ChimeBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     public void onProjectileHit(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+        if (hitSounds.isEmpty()) return;
         Pair<SoundData, Float> hitSound = hitSounds.get(RandomUtils.generateRandomInt(0, hitSounds.size()));
         Object blockPos = FastNMS.INSTANCE.field$BlockHitResult$blockPos(args[2]);
         Object sound = FastNMS.INSTANCE.constructor$SoundEvent(KeyUtils.toResourceLocation(hitSound.left().id()), Optional.empty());
