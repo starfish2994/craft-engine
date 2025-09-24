@@ -171,6 +171,6 @@ public abstract class Property<T extends Comparable<T>> {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("name", this.name).add("clazz", this.clazz).add("values", this.possibleValues()).toString();
+        return this.getClass().getSimpleName() + "{clazz=" + this.clazz + ", name='" + this.name + "', values=" + this.possibleValues() + '}';
     }
 }
