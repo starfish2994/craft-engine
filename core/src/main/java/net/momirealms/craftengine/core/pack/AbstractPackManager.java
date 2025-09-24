@@ -543,6 +543,7 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/hami_melon_top.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_slice.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_seeds.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/fence_side.json");
     }
 
     private TreeMap<ConfigParser, List<CachedConfigSection>> updateCachedConfigFiles() {
