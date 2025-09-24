@@ -2559,19 +2559,19 @@ public final class CoreReflections {
             ReflectionUtils.getMethod(clazz$BlockHitResult, clazz$BlockHitResult, clazz$BlockPos)
     );
 
-    public static final Field field$BlockHitResul$blockPos = requireNonNull(
+    public static final Field field$BlockHitResult$blockPos = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, clazz$BlockPos, 0)
     );
 
-    public static final Field field$BlockHitResul$direction = requireNonNull(
+    public static final Field field$BlockHitResult$direction = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, clazz$Direction, 0)
     );
 
-    public static final Field field$BlockHitResul$miss = requireNonNull(
+    public static final Field field$BlockHitResult$miss = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, boolean.class, 0)
     );
 
-    public static final Field field$BlockHitResul$inside = requireNonNull(
+    public static final Field field$BlockHitResult$inside = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, boolean.class, 1)
     );
 
@@ -4417,5 +4417,16 @@ public final class CoreReflections {
 
     public static final Method method$BlockStateBase$isBlock = requireNonNull(
             ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$Block)
+    );
+
+    public static final Class<?> clazz$Projectile = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.entity.projectile.IProjectile",
+                    "world.entity.projectile.Projectile"
+            )
+    );
+
+    public static final Method method$BlockBehaviour$onProjectileHit = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"onProjectileHit", "a"}, clazz$Level, clazz$BlockState, clazz$BlockHitResult, clazz$Projectile)
     );
 }

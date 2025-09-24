@@ -170,6 +170,9 @@ public final class BlockGenerator {
                 // stepOn
                 .method(ElementMatchers.is(CoreReflections.method$Block$stepOn))
                 .intercept(MethodDelegation.to(StepOnInterceptor.INSTANCE))
+                // onProjectileHit
+                .method(ElementMatchers.is(CoreReflections.method$BlockBehaviour$onProjectileHit))
+                .intercept(MethodDelegation.to(OnProjectileHitInterceptor.INSTANCE))
                 ;
         // 1.21.5+
         if (CoreReflections.method$BlockBehaviour$affectNeighborsAfterRemoval != null) {
@@ -757,6 +760,20 @@ public final class BlockGenerator {
                 }
             } catch (Exception e) {
                 CraftEngine.instance().logger().severe("Failed to run updateEntityMovementAfterFallOn", e);
+            }
+        }
+    }
+
+    public static class OnProjectileHitInterceptor {
+        public static final OnProjectileHitInterceptor INSTANCE = new OnProjectileHitInterceptor();
+
+        @RuntimeType
+        public void intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
+            ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
+            try {
+                holder.value().onProjectileHit(thisObj, args, superMethod);
+            } catch (Exception e) {
+                CraftEngine.instance().logger().severe("Failed to run onProjectileHit", e);
             }
         }
     }
