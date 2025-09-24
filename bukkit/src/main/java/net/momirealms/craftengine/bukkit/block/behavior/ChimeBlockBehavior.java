@@ -36,11 +36,8 @@ public class ChimeBlockBehavior extends BukkitBlockBehavior {
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             SoundData hitSound = SoundData.create(ResourceConfigUtils.requireNonNullOrThrow(
-                    Optional.ofNullable(arguments.get("sounds"))
-                            .flatMap(sounds -> Stream.of("projectile-hit", "chime")
-                                    .map(type -> ResourceConfigUtils.getAsMap(sounds, type).get(type))
-                                    .filter(Objects::nonNull)
-                                    .findFirst())
+                    Optional.ofNullable(ResourceConfigUtils.getAsMap(arguments.get("sounds"), "sounds"))
+                            .map(sounds -> ResourceConfigUtils.get(sounds, "projectile-hit", "chime"))
                             .orElse(null),
                     "warning.config.block.behavior.chime.missing_sounds_projectile_hit"
             ), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f));
