@@ -621,7 +621,7 @@ items:
               textures:
                 texture: minecraft:block/custom/palm_planks
 
-items#palm_fence:
+items#pfence:
   default:palm_fence:
     material: nether_brick
     custom-model-data: 1018
@@ -657,8 +657,7 @@ items#palm_fence:
         parent: minecraft:block/custom/fence_side
         textures:
           texture: minecraft:block/custom/palm_planks
-
-blocks#palm_fence:
+blocks#fence:
   default:palm_fence:
     loot:
       template: default:loot_table/self
@@ -694,6 +693,80 @@ blocks#palm_fence:
           type: self_increase_int
           from: 0
           to: 31
+
+items#button:
+  default:palm_button:
+    material: nether_brick
+    custom-model-data: 1015
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_button
+      generation:
+        parent: minecraft:block/button_inventory
+        textures:
+          texture: minecraft:block/custom/palm_planks
+    data:
+      item-name: <!i><i18n:item.palm_button>
+    settings:
+      fuel-time: 100
+    behavior:
+      type: block_item
+      block: default:palm_button
+  default:palm_button_pressed:
+    material: nether_brick
+    custom-model-data: 1016
+    model:
+      type: minecraft:model
+      path: minecraft:block/custom/palm_button_pressed
+      generation:
+        parent: minecraft:block/button_pressed
+        textures:
+          texture: minecraft:block/custom/palm_planks
+  default:palm_button_not_pressed:
+    material: nether_brick
+    custom-model-data: 1017
+    model:
+      type: minecraft:model
+      path: minecraft:block/custom/palm_button_not_pressed
+      generation:
+        parent: minecraft:block/button
+        textures:
+          texture: minecraft:block/custom/palm_planks
+blocks#button:
+  default:palm_button:
+    loot:
+      template: default:loot_table/self
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/button
+      overrides:
+        burnable: true
+        push-reaction: destroy
+        map-color: 2
+        instrument: harp
+        tags:
+          - minecraft:buttons
+          - minecraft:mineable/axe
+          - minecraft:wooden_buttons
+    behaviors:
+      - type: face_attached_horizontal_directional_block
+      - type: button_block
+        ticks-to-stay-pressed: 30
+        can-button-be-activated-by-arrows: true
+        sounds:
+          on: minecraft:block.wooden_button.click_on
+          off: minecraft:block.wooden_button.click_off
+    states:
+      template: default:block_state/button
+      arguments:
+        base_block: birch_button
+        pressed_item: default:palm_button_pressed
+        not_pressed_item: default:palm_button_not_pressed
+        internal_id:
+          type: self_increase_int
+          from: 0
+          to: 23
 
 recipes:
   default:palm_planks:

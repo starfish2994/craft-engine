@@ -17,18 +17,18 @@ categories:
       - default:palm_sapling
       - default:palm_leaves
       - default:palm_log
-      - default:stripped_palm_log
       - default:palm_wood
+      - default:stripped_palm_log
       - default:stripped_palm_wood
       - default:palm_planks
-      - default:palm_trapdoor
-      - default:palm_door
-      - default:palm_fence_gate
-      - default:palm_slab
       - default:palm_stairs
+      - default:palm_slab
+      - default:palm_fence
+      - default:palm_fence_gate
+      - default:palm_door
+      - default:palm_trapdoor
       - default:palm_pressure_plate
       - default:palm_button
-      - default:palm_fence
   default:topaz:
     name: <!i><#FF8C00><i18n:category.topaz></#FF8C00>
     hidden: true
