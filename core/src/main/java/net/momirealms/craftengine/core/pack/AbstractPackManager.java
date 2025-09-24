@@ -432,7 +432,6 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/configuration/blocks/netherite_anvil.yml");
         plugin.saveResource("resources/default/configuration/blocks/amethyst_torch.yml");
         plugin.saveResource("resources/default/configuration/blocks/hami_melon.yml");
-        plugin.saveResource("resources/default/configuration/blocks/mushroom.yml");
         // assets
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/font/image/emojis.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/chinese_lantern.png");
@@ -545,10 +544,6 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_slice.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_seeds.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/fence_side.json");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/mushroom.png");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/small_mushroom.json");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/medium_mushroom.json");
-        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/large_mushroom.json");
     }
 
     private TreeMap<ConfigParser, List<CachedConfigSection>> updateCachedConfigFiles() {

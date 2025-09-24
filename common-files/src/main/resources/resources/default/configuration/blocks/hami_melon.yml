@@ -96,95 +96,6 @@ blocks:
           south_texture: minecraft:block/custom/hami_melon
           west_texture: minecraft:block/custom/hami_melon
   default:hami_melon_stem:
-    loot:
-      pools:
-        - rolls: 1
-          entries:
-            - type: item
-              item: default:hami_melon_seeds
-              functions:
-                - type: set_count
-                  add: false
-                  conditions:
-                    - type: match_block_property
-                      properties:
-                        age: 0
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.06666667
-                - type: set_count
-                  add: false
-                  conditions:
-                    - type: match_block_property
-                      properties:
-                        age: 1
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.13333334
-                - type: set_count
-                  add: false
-                  conditions:
-                    - type: match_block_property
-                      properties:
-                        age: 2
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.2
-                - type: set_count
-                  add: false
-                  conditions:
-                    - type: match_block_property
-                      properties:
-                        age: 3
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.26666668
-                - type: set_count
-                  add: false
-                  conditions:
-                    - type: match_block_property
-                      properties:
-                        age: 4
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.33333334
-                - type: set_count
-                  add: false
-                  conditions:
-                    - type: match_block_property
-                      properties:
-                        age: 5
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.4
-                - type: set_count
-                  add: false
-                  conditions:
-                    - type: match_block_property
-                      properties:
-                        age: 6
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.46666667
-                - type: set_count
-                  add: false
-                  conditions:
-                    - type: match_block_property
-                      properties:
-                        age: 7
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.53333336
-          functions:
-            - type: explosion_decay
     settings:
       template:
         - default:sound/stem_crop
@@ -256,21 +167,6 @@ blocks:
           appearance: age=7
           id: 7
   default:attached_hami_melon_stem:
-    loot:
-      pools:
-        - rolls: 1
-          entries:
-            - type: item
-              item: default:hami_melon_seeds
-              functions:
-                - type: set_count
-                  add: false
-                  count:
-                    type: binomial
-                    extra: 3
-                    probability: 0.53333336
-          functions:
-            - type: explosion_decay
     settings:
       template:
         - default:sound/stem_crop
