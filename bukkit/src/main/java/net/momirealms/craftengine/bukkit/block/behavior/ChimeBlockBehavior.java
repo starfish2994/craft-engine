@@ -10,8 +10,10 @@ import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 
 public class ChimeBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
@@ -35,9 +37,12 @@ public class ChimeBlockBehavior extends BukkitBlockBehavior {
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             SoundData hitSound = SoundData.create(ResourceConfigUtils.requireNonNullOrThrow(
                     Optional.ofNullable(arguments.get("sounds"))
-                            .map(o -> ResourceConfigUtils.getAsMap(o , "hit").get("hit"))
+                            .flatMap(sounds -> Stream.of("projectile-hit", "chime")
+                                    .map(type -> ResourceConfigUtils.getAsMap(sounds, type).get(type))
+                                    .filter(Objects::nonNull)
+                                    .findFirst())
                             .orElse(null),
-                    "warning.config.block.behavior.chime.missing_sounds_hit"
+                    "warning.config.block.behavior.chime.missing_sounds_projectile_hit"
             ), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f));
             return new ChimeBlockBehavior(block, hitSound);
         }
