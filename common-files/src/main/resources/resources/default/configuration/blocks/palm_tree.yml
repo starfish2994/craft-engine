@@ -257,6 +257,7 @@ items:
           texture: minecraft:block/custom/palm_planks
   default:palm_fence:
     material: nether_brick
+    custom-model-data: 1018
     data:
       item-name: <!i><i18n:item.palm_fence>
     model:
@@ -271,6 +272,7 @@ items:
       block: default:palm_fence
   default:palm_fence_post:
     material: nether_brick
+    custom-model-data: 1019
     model:
       type: minecraft:model
       path: minecraft:block/custom/palm_fence_post
@@ -280,6 +282,7 @@ items:
           texture: minecraft:block/custom/palm_planks
   default:palm_fence_side:
     material: nether_brick
+    custom-model-data: 1020
     model:
       type: minecraft:model
       path: minecraft:block/custom/palm_fence_side
@@ -751,6 +754,8 @@ blocks:
           from: 0
           to: 23
   default:palm_fence:
+    loot:
+      template: default:loot_table/self
     settings:
       template:
         - default:hardness/planks
