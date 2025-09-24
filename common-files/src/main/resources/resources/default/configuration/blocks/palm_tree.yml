@@ -860,4 +860,4 @@ recipes:
       B: minecraft:stick
     result:
       id: default:palm_fence
-      count: 1
+      count: 3
