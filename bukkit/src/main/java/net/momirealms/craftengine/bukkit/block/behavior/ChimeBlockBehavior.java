@@ -37,7 +37,7 @@ public class ChimeBlockBehavior extends BukkitBlockBehavior {
                     Optional.ofNullable(arguments.get("sounds"))
                             .map(o -> ResourceConfigUtils.getAsMap(o , "hit").get("hit"))
                             .orElse(null),
-                    "warning.config.block.behavior.chime.missing_hit_sound"
+                    "warning.config.block.behavior.chime.missing_sounds_hit"
             ), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f));
             return new ChimeBlockBehavior(block, hitSound);
         }

@@ -20,10 +20,10 @@ import java.util.concurrent.Callable;
 
 public class BuddingBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
-    private final int growthChance;
+    private final float growthChance;
     private final List<Key> blocks;
 
-    public BuddingBlockBehavior(CustomBlock customBlock, int growthChance, List<Key> blocks) {
+    public BuddingBlockBehavior(CustomBlock customBlock, float growthChance, List<Key> blocks) {
         super(customBlock);
         this.growthChance = growthChance;
         this.blocks = blocks;
@@ -31,7 +31,7 @@ public class BuddingBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
-        if (RandomUtils.generateRandomInt(0, this.growthChance) != 0) return;
+        if (RandomUtils.generateRandomFloat(0, 1) >= growthChance) return;
         Object nmsDirection = CoreReflections.instance$Direction$values[RandomUtils.generateRandomInt(0, 6)];
         Direction direction = DirectionUtils.fromNMSDirection(nmsDirection);
         Object blockPos = FastNMS.INSTANCE.method$BlockPos$relative(args[2], nmsDirection);
@@ -90,7 +90,7 @@ public class BuddingBlockBehavior extends BukkitBlockBehavior {
 
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
-            int growthChance = ResourceConfigUtils.getAsInt(arguments.getOrDefault("growth-chance", 5), "growth-chance");
+            float growthChance = ResourceConfigUtils.getAsFloat(arguments.getOrDefault("growth-chance", 0.2), "growth-chance");
             List<Key> blocks = new ObjectArrayList<>();
             MiscUtils.getAsStringList(arguments.get("blocks")).forEach(s -> blocks.add(Key.of(s)));
             return new BuddingBlockBehavior(block, growthChance, blocks);
