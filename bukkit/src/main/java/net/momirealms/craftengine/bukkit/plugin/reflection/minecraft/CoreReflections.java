@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.reflection.minecraft;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
@@ -2559,19 +2560,19 @@ public final class CoreReflections {
             ReflectionUtils.getMethod(clazz$BlockHitResult, clazz$BlockHitResult, clazz$BlockPos)
     );
 
-    public static final Field field$BlockHitResul$blockPos = requireNonNull(
+    public static final Field field$BlockHitResult$blockPos = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, clazz$BlockPos, 0)
     );
 
-    public static final Field field$BlockHitResul$direction = requireNonNull(
+    public static final Field field$BlockHitResult$direction = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, clazz$Direction, 0)
     );
 
-    public static final Field field$BlockHitResul$miss = requireNonNull(
+    public static final Field field$BlockHitResult$miss = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, boolean.class, 0)
     );
 
-    public static final Field field$BlockHitResul$inside = requireNonNull(
+    public static final Field field$BlockHitResult$inside = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, boolean.class, 1)
     );
 
@@ -4417,5 +4418,20 @@ public final class CoreReflections {
 
     public static final Method method$BlockStateBase$isBlock = requireNonNull(
             ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$Block)
+    );
+
+    public static final Class<?> clazz$Projectile = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.entity.projectile.IProjectile",
+                    "world.entity.projectile.Projectile"
+            )
+    );
+
+    public static final Method method$BlockBehaviour$onProjectileHit = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"onProjectileHit", "a"}, clazz$Level, clazz$BlockState, clazz$BlockHitResult, clazz$Projectile)
+    );
+
+    public static final Field field$EnumProperty$values = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$EnumProperty, VersionHelper.isOrAbove1_21_2() ? List.class : ImmutableSet.class, 0)
     );
 }

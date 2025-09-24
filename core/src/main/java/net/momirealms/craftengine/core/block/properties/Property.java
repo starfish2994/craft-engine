@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.block.properties;
 
+import com.google.common.base.MoreObjects;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Direction;
@@ -166,5 +167,10 @@ public abstract class Property<T extends Comparable<T>> {
     @SuppressWarnings("unchecked")
     public static <T extends Comparable<T>> String formatValue(Property<T> property, Comparable<?> value) {
         return property.valueName((T) value);
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "{clazz=" + this.clazz + ", name='" + this.name + "', values=" + this.possibleValues() + '}';
     }
 }

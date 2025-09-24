@@ -69,16 +69,18 @@ blocks:
                       max: 9
                     - type: explosion_decay
     settings:
-      map-color: 19
-      hardness: 1
-      resistance: 1
-      push-reaction: DESTROY
-      is-suffocating: true
-      is-redstone-conductor: true
-      tags:
-        - minecraft:enderman_holdable
-        - minecraft:mineable/axe
-        - minecraft:sword_efficient
+      template:
+        - default:sound/wood
+        - default:hardness/melon
+      overrides:
+        map-color: 19
+        push-reaction: DESTROY
+        is-suffocating: true
+        is-redstone-conductor: true
+        tags:
+          - minecraft:enderman_holdable
+          - minecraft:mineable/axe
+          - minecraft:sword_efficient
     state:
       id: 30
       state: note_block:30
@@ -95,18 +97,20 @@ blocks:
           west_texture: minecraft:block/custom/hami_melon
   default:hami_melon_stem:
     settings:
-      map-color: 7
-      hardness: 0
-      resistance: 0
-      push-reaction: DESTROY
-      is-suffocating: false
-      is-redstone-conductor: false
-      item: default:hami_melon_item
-      is-randomly-ticking: true
-      tags:
-        - minecraft:bee_growables
-        - minecraft:crops
-        - minecraft:maintains_farmland
+      template:
+        - default:sound/stem_crop
+        - default:hardness/none
+      overrides:
+        map-color: 7
+        push-reaction: DESTROY
+        is-suffocating: false
+        is-redstone-conductor: false
+        item: default:hami_melon_seeds
+        is-randomly-ticking: true
+        tags:
+          - minecraft:bee_growables
+          - minecraft:crops
+          - minecraft:maintains_farmland
     behaviors:
       - type: stem_block
         fruit: default:hami_melon
@@ -164,16 +168,18 @@ blocks:
           id: 7
   default:attached_hami_melon_stem:
     settings:
-      map-color: 7
-      hardness: 0
-      resistance: 0
-      push-reaction: DESTROY
-      is-suffocating: false
-      is-redstone-conductor: false
-      item: default:hami_melon_seeds
-      is-randomly-ticking: true
-      tags:
-        - minecraft:maintains_farmland
+      template:
+        - default:sound/stem_crop
+        - default:hardness/none
+      overrides:
+        map-color: 7
+        push-reaction: DESTROY
+        is-suffocating: false
+        is-redstone-conductor: false
+        item: default:hami_melon_seeds
+        is-randomly-ticking: true
+        tags:
+          - minecraft:maintains_farmland
     behaviors:
       - type: attached_stem_block
         fruit: default:hami_melon

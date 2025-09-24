@@ -181,7 +181,10 @@ public abstract class BlockBehavior {
 
     // Level level, BlockPos pos, BlockState state, Entity entity
     public void stepOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
-        superMethod.call();
+    }
+
+    // Level level, BlockState state, BlockHitResult hit, Projectile projectile
+    public void onProjectileHit(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
     }
 
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {

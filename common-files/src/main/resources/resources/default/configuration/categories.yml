@@ -27,6 +27,8 @@ categories:
       - default:palm_slab
       - default:palm_stairs
       - default:palm_pressure_plate
+      - default:palm_button
+      - default:palm_fence
   default:topaz:
     name: <!i><#FF8C00><i18n:category.topaz></#FF8C00>
     hidden: true

@@ -620,6 +620,81 @@ items:
               parent: minecraft:block/pressure_plate_down
               textures:
                 texture: minecraft:block/custom/palm_planks
+
+items#palm_fence:
+  default:palm_fence:
+    material: nether_brick
+    custom-model-data: 1018
+    data:
+      item-name: <!i><i18n:item.palm_fence>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_fence_inventory
+      generation:
+        parent: minecraft:block/fence_inventory
+        textures:
+          texture: minecraft:block/custom/palm_planks
+    behavior:
+      type: block_item
+      block: default:palm_fence
+  default:palm_fence_post:
+    material: nether_brick
+    custom-model-data: 1019
+    model:
+      type: minecraft:model
+      path: minecraft:block/custom/palm_fence_post
+      generation:
+        parent: minecraft:block/fence_post
+        textures:
+          texture: minecraft:block/custom/palm_planks
+  default:palm_fence_side:
+    material: nether_brick
+    custom-model-data: 1020
+    model:
+      type: minecraft:model
+      path: minecraft:block/custom/palm_fence_side
+      generation:
+        parent: minecraft:block/custom/fence_side
+        textures:
+          texture: minecraft:block/custom/palm_planks
+
+blocks#palm_fence:
+  default:palm_fence:
+    loot:
+      template: default:loot_table/self
+    settings:
+      template:
+        - default:hardness/planks
+        - default:sound/wood
+      overrides:
+        burn-chance: 5
+        fire-spread-chance: 20
+        burnable: true
+        is-suffocating: false
+        is-redstone-conductor: false
+        push-reaction: NORMAL
+        instrument: BASS
+        map-color: 2
+        tags:
+          - minecraft:fences
+          - minecraft:mineable/axe
+          - minecraft:wooden_fences
+    behavior:
+      type: fence_block
+      self-tag: fences
+      connectable-tag: wooden_fences
+      can-leash: true
+    states:
+      template: default:block_state/fence
+      arguments:
+        base_block: oak_fence
+        fence_post_item: default:palm_fence_post
+        fence_side_item: default:palm_fence_side
+        internal_id:
+          type: self_increase_int
+          from: 0
+          to: 31
+
 recipes:
   default:palm_planks:
     template: default:recipe/planks
@@ -687,11 +762,29 @@ recipes:
     default:palm_stairs:
       type: shaped
       pattern:
-        - 'A  '
-        - 'AA '
-        - 'AAA'
+        - "A  "
+        - "AA "
+        - "AAA"
       ingredients:
         A: default:palm_planks
       result:
         id: default:palm_stairs
         count: 4
+  default:palm_button:
+    type: shapeless
+    ingredients:
+      - default:palm_planks
+    result:
+      id: default:palm_button
+      count: 1
+  default:palm_fence:
+    type: shaped
+    pattern:
+      - ABA
+      - ABA
+    ingredients:
+      A: default:palm_planks
+      B: minecraft:stick
+    result:
+      id: default:palm_fence
+      count: 1
