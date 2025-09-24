@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.reflection.minecraft;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
@@ -4428,5 +4429,9 @@ public final class CoreReflections {
 
     public static final Method method$BlockBehaviour$onProjectileHit = requireNonNull(
             ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"onProjectileHit", "a"}, clazz$Level, clazz$BlockState, clazz$BlockHitResult, clazz$Projectile)
+    );
+
+    public static final Field field$EnumProperty$values = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$EnumProperty, VersionHelper.isOrAbove1_21_2() ? List.class : ImmutableSet.class, 0)
     );
 }

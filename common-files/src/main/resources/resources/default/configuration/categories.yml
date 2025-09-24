@@ -29,6 +29,7 @@ categories:
       - default:palm_pressure_plate
       - default:palm_button
       - default:palm_fence
+      - default:infected_palm_log
   default:topaz:
     name: <!i><#FF8C00><i18n:category.topaz></#FF8C00>
     hidden: true
@@ -84,3 +85,6 @@ categories:
       - default:hami_melon_seeds
       - default:hami_melon_slice
       - default:hami_melon
+      - default:small_mushroom
+      - default:medium_mushroom
+      - default:large_mushroom

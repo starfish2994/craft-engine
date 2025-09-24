@@ -54,6 +54,10 @@ i18n:
     item.hami_melon_seeds: Hami Melon Seeds
     item.palm_button: Palm Button
     item.palm_fence: Palm Fence
+    item.infected_palm_log: Infected Palm Log
+    item.small_mushroom: Small Mushroom
+    item.medium_mushroom: Medium Mushroom
+    item.large_mushroom: Large Mushroom
     category.default.name: Default Assets
     category.default.lore: Contains the default configuration of CraftEngine
     category.palm_tree: Palm Tree
@@ -117,6 +121,10 @@ i18n:
     item.hami_melon_seeds: 哈密瓜种子
     item.palm_button: 棕榈木按钮
     item.palm_fence: 棕榈木栅栏
+    item.infected_palm_log: 菌蚀棕榈原木
+    item.small_mushroom: 小型蘑菇
+    item.medium_mushroom: 中型蘑菇
+    item.large_mushroom: 大型蘑菇
     category.default.name: 默认资产
     category.default.lore: 包含了CraftEngine的默认配置
     category.palm_tree: 棕榈树
@@ -164,6 +172,10 @@ lang:
     block_name:default:default:attached_hami_melon_stem: Hami Melon Stem
     block_name:default:palm_button: Palm Button
     block_name:default:palm_fence: Palm Fence
+    block_name:default:infected_palm_log: Infected Palm Log
+    block_name:default:small_mushroom: Small Mushroom
+    block_name:default:medium_mushroom: Medium Mushroom
+    block_name:default:large_mushroom: Large Mushroom
   zh_cn:
     block_name:default:chinese_lantern: 灯笼
     block_name:default:netherite_anvil: 下界合金砧
@@ -199,3 +211,7 @@ lang:
     block_name:default:default:attached_hami_melon_stem: 哈密瓜茎
     block_name:default:palm_button: 棕榈木按钮
     block_name:default:palm_fence: 棕榈木栅栏
+    block_name:default:infected_palm_log: 菌蚀棕榈原木
+    block_name:default:small_mushroom: 小型蘑菇
+    block_name:default:medium_mushroom: 中型蘑菇
+    block_name:default:large_mushroom: 大型蘑菇

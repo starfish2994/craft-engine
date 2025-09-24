@@ -1,0 +1,155 @@
+items:
+  default:infected_palm_log:
+    material: nether_brick
+    custom-model-data: 3025
+    settings:
+      fuel-time: 300
+      tags:
+        - default:palm_logs
+        - minecraft:logs
+        - minecraft:logs_that_burn
+    data:
+      item-name: <!i><i18n:item.infected_palm_log>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/palm_log
+      generation:
+        parent: minecraft:block/custom/palm_log
+    behavior:
+      type: block_item
+      block: default:infected_palm_log
+  default:small_mushroom:
+    material: nether_brick
+    custom-model-data: 3026
+    data:
+      item-name: <!i><i18n:item.small_mushroom>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/small_mushroom
+      generation:
+        parent: minecraft:block/custom/small_mushroom
+    behavior:
+      type: block_item
+      block: default:small_mushroom
+  default:medium_mushroom:
+    material: nether_brick
+    custom-model-data: 3027
+    data:
+      item-name: <!i><i18n:item.medium_mushroom>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/medium_mushroom
+      generation:
+        parent: minecraft:block/custom/medium_mushroom
+    behavior:
+      type: block_item
+      block: default:medium_mushroom
+  default:large_mushroom:
+    material: nether_brick
+    custom-model-data: 3028
+    data:
+      item-name: <!i><i18n:item.large_mushroom>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/large_mushroom
+      generation:
+        parent: minecraft:block/custom/large_mushroom
+    behavior:
+      type: block_item
+      block: default:large_mushroom
+
+blocks:
+  default:infected_palm_log:
+    behavior:
+      - type: strippable_block
+        stripped: default:stripped_palm_log
+      - type: budding_block
+        growth-chance: 5
+        blocks:
+          - default:small_mushroom
+          - default:medium_mushroom
+          - default:large_mushroom
+    loot:
+      template: default:loot_table/self
+    settings:
+      template: default:settings/wood
+      overrides:
+        is-randomly-ticking: true
+        map-color: 2
+    states:
+      template: default:block_state/pillar
+      arguments:
+        base_block: note_block
+        texture_top_path: minecraft:block/custom/palm_log_top
+        texture_side_path: minecraft:block/custom/palm_log
+        model_vertical_path: minecraft:block/custom/palm_log
+        model_horizontal_path: minecraft:block/custom/palm_log_horizontal
+        vanilla_id:
+          type: self_increase_int
+          from: 31
+          to: 33
+        internal_id:
+          type: self_increase_int
+          from: 31
+          to: 33
+  default:small_mushroom:
+    settings:
+      template:
+        - default:sound/crop
+        - default:hardness/none
+      overrides:
+        push-reaction: destroy
+        map-color: 26
+        luminance: 1
+        tags:
+          - minecraft:enderman_holdable
+          - minecraft:replaceable_by_mushrooms
+    behavior:
+      type: directional_attached_block
+    states:
+      template: default:block_state/mushroom
+      arguments:
+        base_block: dead_bubble_coral_wall_fan
+        model_path: minecraft:block/custom/small_mushroom
+  default:medium_mushroom:
+    behavior:
+      type: directional_attached_block
+    settings:
+      template:
+        - default:sound/crop
+        - default:hardness/none
+      overrides:
+        push-reaction: destroy
+        map-color: 26
+        luminance: 1
+        tags:
+          - minecraft:enderman_holdable
+          - minecraft:replaceable_by_mushrooms
+    states:
+      template: default:block_state/mushroom
+      arguments:
+        base_block: dead_horn_coral_wall_fan
+        model_path: minecraft:block/custom/medium_mushroom
+  default:large_mushroom:
+    loot:
+      template: default:loot_table/basic
+      arguments:
+        item: minecraft:brown_mushroom
+    behavior:
+      type: directional_attached_block
+    settings:
+      template:
+        - default:sound/crop
+        - default:hardness/none
+      overrides:
+        push-reaction: destroy
+        map-color: 26
+        luminance: 1
+        tags:
+          - minecraft:enderman_holdable
+          - minecraft:replaceable_by_mushrooms
+    states:
+      template: default:block_state/mushroom
+      arguments:
+        base_block: dead_fire_coral_wall_fan
+        model_path: minecraft:block/custom/large_mushroom

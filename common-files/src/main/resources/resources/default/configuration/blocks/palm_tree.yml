@@ -297,6 +297,8 @@ blocks:
       template: default:loot_table/self
     settings:
       template: default:settings/wood
+      overrides:
+        map-color: 2
     states:
       template: default:block_state/pillar
       arguments:
@@ -318,6 +320,8 @@ blocks:
       template: default:loot_table/self
     settings:
       template: default:settings/wood
+      overrides:
+        map-color: 2
     states:
       template: default:block_state/pillar
       arguments:
@@ -342,6 +346,8 @@ blocks:
       template: default:loot_table/self
     settings:
       template: default:settings/wood
+      overrides:
+        map-color: 2
     states:
       template: default:block_state/pillar
       arguments:
@@ -363,6 +369,8 @@ blocks:
       template: default:loot_table/self
     settings:
       template: default:settings/wood
+      overrides:
+        map-color: 2
     states:
       template: default:block_state/pillar
       arguments:
@@ -382,6 +390,8 @@ blocks:
   default:palm_planks:
     settings:
       template: default:settings/planks
+      overrides:
+        map-color: 2
     loot:
       template: default:loot_table/self
     state:
@@ -437,6 +447,8 @@ blocks:
         sapling: default:palm_sapling
     settings:
       template: default:settings/leaves
+      overrides:
+        map-color: 19
     states:
       template: default:block_state/leaves
       arguments:

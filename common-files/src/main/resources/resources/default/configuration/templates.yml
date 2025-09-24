@@ -3930,6 +3930,43 @@ templates#block_states:
           resistance: 1200.0
           burnable: false
           fluid-state: water
+  default:block_state/mushroom:
+    properties:
+      facing:
+        type: horizontal_direction
+    appearances:
+      north:
+        state: ${base_block}[waterlogged=false,facing=north]
+        model:
+          path: ${model_path}
+      east:
+        state: ${base_block}[waterlogged=false,facing=east]
+        model:
+          path: ${model_path}
+          y: 90
+      west:
+        state: ${base_block}[waterlogged=false,facing=west]
+        model:
+          path: ${model_path}
+          y: 270
+      south:
+        state: ${base_block}[waterlogged=false,facing=south]
+        model:
+          path: ${model_path}
+          y: 180
+    variants:
+      facing=north:
+        appearance: north
+        id: 0
+      facing=east:
+        appearance: east
+        id: 1
+      facing=west:
+        appearance: west
+        id: 2
+      facing=south:
+        appearance: south
+        id: 3
 # recipes
 templates#recipes:
   default:recipe/planks:
