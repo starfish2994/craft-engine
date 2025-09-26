@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.block.properties;
 
-import com.google.common.base.MoreObjects;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Direction;
