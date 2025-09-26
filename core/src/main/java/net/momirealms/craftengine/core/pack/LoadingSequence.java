@@ -4,6 +4,7 @@ public final class LoadingSequence {
     private LoadingSequence() {}
 
     public static final int TEMPLATE = 0;
+    public static final int BLOCK_STATE_MAPPING = 5;
     public static final int GLOBAL_VAR = 10;
     public static final int LANG = 20;
     public static final int TRANSLATION = 30;

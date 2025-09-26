@@ -3,12 +3,12 @@ package net.momirealms.craftengine.core.block;
 public class BlockStateVariant {
     private final String appearance;
     private final BlockSettings settings;
-    private final int internalId;
+    private final BlockStateWrapper blockState;
 
-    public BlockStateVariant(String appearance, BlockSettings settings, int internalId) {
+    public BlockStateVariant(String appearance, BlockSettings settings, BlockStateWrapper blockState) {
         this.appearance = appearance;
         this.settings = settings;
-        this.internalId = internalId;
+        this.blockState = blockState;
     }
 
     public String appearance() {
@@ -19,7 +19,7 @@ public class BlockStateVariant {
         return settings;
     }
 
-    public int internalRegistryId() {
-        return internalId;
+    public BlockStateWrapper blockState() {
+        return blockState;
     }
 }

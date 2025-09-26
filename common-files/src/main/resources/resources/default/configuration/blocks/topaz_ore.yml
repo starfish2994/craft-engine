@@ -1,7 +1,6 @@
 items:
   default:topaz_ore:
     material: nether_brick
-    custom-model-data: 3017
     data:
       item-name: <!i><i18n:item.topaz_ore>
     model:
@@ -14,7 +13,6 @@ items:
       block: default:topaz_ore
   default:deepslate_topaz_ore:
     material: nether_brick
-    custom-model-data: 3018
     data:
       item-name: <!i><i18n:item.deepslate_topaz_ore>
     model:
@@ -27,7 +25,6 @@ items:
       block: default:deepslate_topaz_ore
   default:topaz:
     material: nether_brick
-    custom-model-data: 3019
     settings:
       anvil-repair-item:
         - target:
@@ -53,7 +50,6 @@ blocks:
       arguments:
         break_power: 2
     state:
-      id: 13
       state: note_block:13
       model:
         template: default:model/simplified_cube_all
@@ -72,7 +68,6 @@ blocks:
       arguments:
         break_power: 2
     state:
-      id: 14
       state: note_block:14
       model:
         template: default:model/simplified_cube_all

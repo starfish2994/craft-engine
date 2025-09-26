@@ -22,6 +22,7 @@ import net.momirealms.craftengine.core.pack.model.select.TrimMaterialSelectPrope
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
@@ -267,7 +268,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
 
     protected abstract void registerArmorTrimPattern(Collection<Key> equipments);
 
-    public class EquipmentParser implements ConfigParser {
+    public class EquipmentParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"equipments", "equipment"};
 
         @Override
@@ -310,7 +311,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         }
     }
 
-    public class ItemParser implements ConfigParser {
+    public class ItemParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"items", "item"};
 
         private boolean isModernFormatRequired() {

@@ -44,6 +44,7 @@ public class Config {
     protected boolean checkUpdate;
     protected boolean metrics;
     protected boolean filterConfigurationPhaseDisconnect;
+    protected Locale forcedLocale;
 
     protected boolean debug$common;
     protected boolean debug$packet;
@@ -123,7 +124,7 @@ public class Config {
     protected int block$predict_breaking_interval;
     protected double block$extended_interaction_range;
     protected boolean block$chunk_relighter;
-    protected int block$serverside_blocks;
+    protected int block$serverside_blocks = -1;
 
     protected boolean recipe$enable;
     protected boolean recipe$disable_vanilla_recipes$all;
@@ -177,7 +178,7 @@ public class Config {
         instance = this;
     }
 
-    public void load() {
+    public boolean updateConfigCache() {
         // 文件不存在，则保存
         if (!Files.exists(this.configFilePath)) {
             this.plugin.saveResource("config.yml");
@@ -195,13 +196,20 @@ public class Config {
                         this.updateConfigVersion(configFileBytes);
                     }
                 }
-                // 加载配置文件
-                this.loadSettings();
                 this.lastModified = lastModified;
                 this.size = size;
+                return true;
             }
         } catch (IOException e) {
-            this.plugin.logger().severe("Failed to load config.yml", e);
+            this.plugin.logger().severe("Failed to update config.yml", e);
+        }
+        return false;
+    }
+
+    public void load() {
+        boolean isUpdated = updateConfigCache();
+        if (isUpdated) {
+            loadFullSettings();
         }
     }
 
@@ -240,9 +248,14 @@ public class Config {
         }
     }
 
-    private void loadSettings() {
+    public void loadForcedLocale() {
         YamlDocument config = settings();
-        plugin.translationManager().forcedLocale(TranslationManager.parseLocale(config.getString("forced-locale", "")));
+        forcedLocale = TranslationManager.parseLocale(config.getString("forced-locale", ""));
+    }
+
+    public void loadFullSettings() {
+        YamlDocument config = settings();
+        forcedLocale = TranslationManager.parseLocale(config.getString("forced-locale", ""));
 
         // basics
         metrics = config.getBoolean("metrics", false);
@@ -379,7 +392,7 @@ public class Config {
         equipment$sacrificed_vanilla_armor$humanoid_leggings = Key.of(config.getString("equipment.sacrificed-vanilla-armor.humanoid-leggings", "minecraft:trims/entity/humanoid_leggings/chainmail"));
 
         // item
-        item$client_bound_model = config.getBoolean("item.client-bound-model", false);
+        item$client_bound_model = config.getBoolean("item.client-bound-model", true) && VersionHelper.PREMIUM;
         item$non_italic_tag = config.getBoolean("item.non-italic-tag", false);
         item$update_triggers$attack = config.getBoolean("item.update-triggers.attack", false);
         item$update_triggers$click_in_inventory = config.getBoolean("item.update-triggers.click-in-inventory", false);
@@ -394,7 +407,10 @@ public class Config {
         block$predict_breaking_interval = Math.max(config.getInt("block.predict-breaking.interval", 10), 1);
         block$extended_interaction_range = Math.max(config.getDouble("block.predict-breaking.extended-interaction-range", 0.5), 0.0);
         block$chunk_relighter = config.getBoolean("block.chunk-relighter", true);
-        block$serverside_blocks = config.getInt("block.serverside-blocks", 2000);
+        if (firstTime) {
+            block$serverside_blocks = config.getInt("block.serverside-blocks", 2000);
+            if (block$serverside_blocks < 0) block$serverside_blocks = 0;
+        }
 
         // recipe
         recipe$enable = config.getBoolean("recipe.enable", true);
@@ -445,6 +461,10 @@ public class Config {
         return MinecraftVersion.parse(version);
     }
 
+    public static Locale forcedLocale() {
+        return instance.forcedLocale;
+    }
+
     public static String configVersion() {
         return instance.configVersion;
     }
@@ -462,6 +482,10 @@ public class Config {
     }
 
     public static boolean debugBlockEntity() {
+        return false;
+    }
+
+    public static boolean debugBlock() {
         return false;
     }
 

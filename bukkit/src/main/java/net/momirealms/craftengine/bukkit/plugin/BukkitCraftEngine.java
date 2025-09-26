@@ -102,9 +102,15 @@ public class BukkitCraftEngine extends CraftEngine {
         this.javaPlugin = javaPlugin;
     }
 
-    protected void setUpConfig() {
-        this.translationManager = new TranslationManagerImpl(this);
+    protected void setUpConfigAndLocale() {
         this.config = new Config(this);
+        this.config.updateConfigCache();
+        // 先读取语言后，再重载语言文件系统
+        this.config.loadForcedLocale();
+        this.translationManager = new TranslationManagerImpl(this);
+        this.translationManager.reload();
+        // 最后才加载完整的config配置
+        this.config.loadFullSettings();
     }
 
     public void injectRegistries() {

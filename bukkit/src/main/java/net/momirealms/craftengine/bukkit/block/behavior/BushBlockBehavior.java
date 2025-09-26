@@ -65,7 +65,7 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
             if (material != null) {
                 if (index == -1) {
                     // vanilla
-                    mcBlocks.addAll(BlockStateUtils.getAllVanillaBlockStates(blockType));
+                    mcBlocks.addAll(BlockStateUtils.getPossibleBlockStates(blockType));
                 } else {
                     mcBlocks.add(BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData(blockStateStr)));
                 }

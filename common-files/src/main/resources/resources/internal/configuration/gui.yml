@@ -74,7 +74,6 @@ images:
 templates:
   internal:icon/2d:
     material: arrow
-    custom-model-data: ${model_data}
     data:
       item-name: ${name}
       lore: ${lore}
@@ -93,7 +92,6 @@ items:
   internal:next_page_0:
     template: internal:icon/2d
     arguments:
-      model_data: 1000
       texture: next_page_0
       name: <!i><#FAFAD2><i18n:internal.next_page>
       lore:
@@ -101,7 +99,6 @@ items:
   internal:next_page_1:
     template: internal:icon/2d
     arguments:
-      model_data: 1001
       texture: next_page_1
       name: <!i><#808080><i18n:internal.next_page>
       lore:
@@ -109,7 +106,6 @@ items:
   internal:previous_page_0:
     template: internal:icon/2d
     arguments:
-      model_data: 1002
       texture: previous_page_0
       name: <!i><#FAFAD2><i18n:internal.previous_page>
       lore:
@@ -117,7 +113,6 @@ items:
   internal:previous_page_1:
     template: internal:icon/2d
     arguments:
-      model_data: 1003
       texture: previous_page_1
       name: <!i><#808080><i18n:internal.previous_page>
       lore:
@@ -125,34 +120,29 @@ items:
   internal:return:
     template: internal:icon/2d
     arguments:
-      model_data: 1004
       texture: return
       name: <!i><#DAA520><i18n:internal.return>
       lore: null
   internal:next_recipe_0:
     material: arrow
-    custom-model-data: 1000
     data:
       item-name: <!i><#FAFAD2><i18n:internal.next_recipe>
       lore:
         - <!i><#F5F5F5><arg:current_page>/<arg:max_page>
   internal:next_recipe_1:
     material: arrow
-    custom-model-data: 1001
     data:
       item-name: <!i><#808080><i18n:internal.next_recipe>
       lore:
         - <!i><#696969><arg:current_page>/<arg:max_page>
   internal:previous_recipe_0:
     material: arrow
-    custom-model-data: 1002
     data:
       item-name: <!i><#FAFAD2><i18n:internal.previous_recipe>
       lore:
         - <!i><#F5F5F5><arg:current_page>/<arg:max_page>
   internal:previous_recipe_1:
     material: arrow
-    custom-model-data: 1003
     data:
       item-name: <!i><#808080><i18n:internal.previous_recipe>
       lore:
@@ -160,7 +150,6 @@ items:
   internal:get_item:
     template: internal:icon/2d
     arguments:
-      model_data: 1005
       texture: get_item
       name: <!i><#DAA520><i18n:internal.get_item>
       lore:
@@ -169,7 +158,6 @@ items:
   internal:cooking_info:
     template: internal:icon/2d
     arguments:
-      model_data: 1006
       texture: cooking_info
       name: <!i><#FF8C00><i18n:internal.cooking_info>
       lore:
@@ -178,7 +166,6 @@ items:
   internal:exit:
     template: internal:icon/2d
     arguments:
-      model_data: 1007
       texture: exit
       name: <!i><#DAA520><i18n:internal.exit>
       lore: null

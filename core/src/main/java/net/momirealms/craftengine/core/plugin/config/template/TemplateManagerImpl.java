@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.plugin.config.template;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdObjectConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -36,7 +37,7 @@ public class TemplateManagerImpl implements TemplateManager {
         return this.templateParser;
     }
 
-    public class TemplateParser implements ConfigParser {
+    public class TemplateParser implements IdObjectConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"templates", "template"};
 
         @Override
@@ -47,11 +48,6 @@ public class TemplateManagerImpl implements TemplateManager {
         @Override
         public int loadingSequence() {
             return LoadingSequence.TEMPLATE;
-        }
-
-        @Override
-        public boolean supportsParsingObject() {
-            return true;
         }
 
         @Override

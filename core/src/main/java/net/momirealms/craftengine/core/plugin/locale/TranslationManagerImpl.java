@@ -7,9 +7,7 @@ import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.Plugin;
 import net.momirealms.craftengine.core.plugin.PluginProperties;
-import net.momirealms.craftengine.core.plugin.config.ConfigParser;
-import net.momirealms.craftengine.core.plugin.config.StringKeyConstructor;
-import net.momirealms.craftengine.core.plugin.config.TranslationConfigConstructor;
+import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.text.minimessage.IndexedArgumentTag;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +36,6 @@ public class TranslationManagerImpl implements TranslationManager {
     private final String langVersion;
     private final String[] supportedLanguages;
     private final Map<String, String> translationFallback = new LinkedHashMap<>();
-    private Locale forcedLocale = null;
     private Locale selectedLocale = DEFAULT_LOCALE;
     private MiniMessageTranslationRegistry registry;
     private final Map<String, I18NData> clientLangData = new HashMap<>();
@@ -68,11 +65,6 @@ public class TranslationManagerImpl implements TranslationManager {
     }
 
     @Override
-    public void forcedLocale(Locale locale) {
-        this.forcedLocale = locale;
-    }
-
-    @Override
     public void delayedLoad() {
         this.clientLangData.values().forEach(I18NData::processTranslations);
     }
@@ -98,8 +90,8 @@ public class TranslationManagerImpl implements TranslationManager {
     }
 
     private void setSelectedLocale() {
-        if (this.forcedLocale != null) {
-            this.selectedLocale = forcedLocale;
+        if (Config.forcedLocale() != null) {
+            this.selectedLocale = Config.forcedLocale();
             return;
         }
 
@@ -251,7 +243,7 @@ public class TranslationManagerImpl implements TranslationManager {
         }
     }
 
-    public class I18NParser implements ConfigParser {
+    public class I18NParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"i18n", "internationalization", "translation", "translations"};
 
         @Override
@@ -282,7 +274,7 @@ public class TranslationManagerImpl implements TranslationManager {
         }
     }
 
-    public class LangParser implements ConfigParser {
+    public class LangParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"lang", "language", "languages"};
 
         @Override

@@ -286,4 +286,14 @@ public final class CraftEngineBlocks {
     public static BlockData getBukkitBlockData(@NotNull ImmutableBlockState blockState) {
         return BlockStateUtils.fromBlockData(blockState.customBlockState().literalObject());
     }
+
+    /**
+     * Checks if the block state is a vanilla block state
+     *
+     * @param id state id
+     * @return is vanilla block or not
+     */
+    public static boolean isVanillaBlockState(int id) {
+        return BukkitBlockManager.instance().isVanillaBlockState(id);
+    }
 }

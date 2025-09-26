@@ -261,26 +261,33 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         }
     }
 
-    public void registerBlockStatePacketListeners(Map<Integer, Integer> map, int registrySize) {
-        int[] newMappings = new int[registrySize];
-        for (int i = 0; i < registrySize; i++) {
-            newMappings[i] = i;
-        }
-        int[] newMappingsMOD = Arrays.copyOf(newMappings, registrySize);
-        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
-            newMappings[entry.getKey()] = entry.getValue();
-            if (BlockStateUtils.isVanillaBlock((int) entry.getKey())) {
-                newMappingsMOD[entry.getKey()] = entry.getValue();
+    public void registerBlockStatePacketListeners(int[] blockStateMappings) {
+        int stoneId = BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState);
+        int vanillaBlocks = BlockStateUtils.vanillaBlockStateCount();
+        int[] newMappings = new int[blockStateMappings.length];
+        int[] newMappingsMOD = new int[blockStateMappings.length];
+        for (int i = 0; i < vanillaBlocks; i++) {
+            int mappedId = blockStateMappings[i];
+            if (mappedId != -1) {
+                newMappings[i] = mappedId;
+                newMappingsMOD[i] = mappedId;
+            } else {
+                newMappings[i] = i;
+                newMappingsMOD[i] = i;
             }
         }
-        for (int i = 0; i < newMappingsMOD.length; i++) {
-            if (BlockStateUtils.isVanillaBlock(i)) {
-                newMappingsMOD[i] = newMappings[i];
+        for (int i = vanillaBlocks; i < blockStateMappings.length; i++) {
+            int mappedId = blockStateMappings[i];
+            if (mappedId != -1) {
+                newMappings[i] = mappedId;
+            } else {
+                newMappings[i] = stoneId;
             }
+            newMappingsMOD[i] = i;
         }
         this.blockStateRemapper = newMappings;
         this.modBlockStateRemapper = newMappingsMOD;
-        registerS2CGamePacketListener(new LevelChunkWithLightListener(newMappings, newMappingsMOD, registrySize, RegistryUtils.currentBiomeRegistrySize()), this.packetIds.clientboundLevelChunkWithLightPacket(), "ClientboundLevelChunkWithLightPacket");
+        registerS2CGamePacketListener(new LevelChunkWithLightListener(newMappings, newMappingsMOD, newMappings.length, RegistryUtils.currentBiomeRegistrySize()), this.packetIds.clientboundLevelChunkWithLightPacket(), "ClientboundLevelChunkWithLightPacket");
         registerS2CGamePacketListener(new SectionBlockUpdateListener(newMappings, newMappingsMOD), this.packetIds.clientboundSectionBlocksUpdatePacket(), "ClientboundSectionBlocksUpdatePacket");
         registerS2CGamePacketListener(new BlockUpdateListener(newMappings, newMappingsMOD), this.packetIds.clientboundBlockUpdatePacket(), "ClientboundBlockUpdatePacket");
         registerS2CGamePacketListener(

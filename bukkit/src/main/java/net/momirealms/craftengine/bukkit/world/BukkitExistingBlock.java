@@ -64,7 +64,7 @@ public class BukkitExistingBlock implements ExistingBlock {
     @Override
     public @NotNull BlockStateWrapper blockState() {
         Object blockState = BlockStateUtils.getBlockState(this.block);
-        return BlockRegistryMirror.stateByRegistryId(BlockStateUtils.blockStateToId(blockState));
+        return BlockRegistryMirror.byId(BlockStateUtils.blockStateToId(blockState));
     }
 
     @Override

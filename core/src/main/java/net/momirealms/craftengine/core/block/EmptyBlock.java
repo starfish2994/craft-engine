@@ -15,8 +15,4 @@ public final class EmptyBlock extends AbstractCustomBlock {
         INSTANCE = this;
         STATE = defaultState();
     }
-
-    @Override
-    protected void applyPlatformSettings() {
-    }
 }

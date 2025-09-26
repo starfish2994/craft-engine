@@ -1,7 +1,6 @@
 items:
   default:pebble:
     material: nether_brick
-    custom-model-data: 3009
     data:
       item-name: <!i><i18n:item.pebble>
     model:
@@ -103,13 +102,10 @@ items:
             variants:
               pebble=1:
                 appearance: 'one'
-                id: 2
               pebble=2:
                 appearance: 'two'
-                id: 3
               pebble=3:
                 appearance: 'three'
-                id: 4
 recipes:
   default:pebble:
     type: shapeless

@@ -44,13 +44,11 @@ import java.util.Optional;
 
 public final class BlockEventListener implements Listener {
     private final BukkitCraftEngine plugin;
-    private final boolean enableNoteBlockCheck;
     private final BukkitBlockManager manager;
 
-    public BlockEventListener(BukkitCraftEngine plugin, BukkitBlockManager manager, boolean enableNoteBlockCheck) {
+    public BlockEventListener(BukkitCraftEngine plugin, BukkitBlockManager manager) {
         this.plugin = plugin;
         this.manager = manager;
-        this.enableNoteBlockCheck = enableNoteBlockCheck;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -276,7 +274,6 @@ public final class BlockEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockPhysics(BlockPhysicsEvent event) {
-        if (!this.enableNoteBlockCheck) return;
         // for vanilla blocks
         if (event.getChangedType() == Material.NOTE_BLOCK) {
             Block block = event.getBlock();

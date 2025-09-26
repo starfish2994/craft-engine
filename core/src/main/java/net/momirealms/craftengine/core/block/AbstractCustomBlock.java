@@ -61,6 +61,7 @@ public abstract class AbstractCustomBlock implements CustomBlock {
         this.placementFunction = composite(placements);
         EntityBlockBehavior entityBlockBehavior = this.behavior.getEntityBehavior();
         boolean isEntityBlock = entityBlockBehavior != null;
+
         for (Map.Entry<String, BlockStateVariant> entry : variantMapper.entrySet()) {
             String nbtString = entry.getKey();
             CompoundTag tag = BlockNbtParser.deserialize(this, nbtString);
@@ -72,20 +73,12 @@ public abstract class AbstractCustomBlock implements CustomBlock {
                 throw new LocalizedResourceConfigException("warning.config.block.state.property.invalid_format", nbtString);
             }
             BlockStateVariant blockStateVariant = entry.getValue();
-
-            BlockStateAppearance blockStateAppearance = appearances.getOrDefault(blockStateVariant.appearance(), BlockStateAppearance.INVALID);
-            int stateId;
-            // This should never happen
-            if (blockStateAppearance.isInvalid()) {
-                stateId = appearances.values().iterator().next().stateRegistryId();
-            } else {
-                stateId = blockStateAppearance.stateRegistryId();
-            }
+            BlockStateAppearance blockStateAppearance = appearances.get(blockStateVariant.appearance());
             // Late init states
             ImmutableBlockState state = possibleStates.getFirst();
             state.setSettings(blockStateVariant.settings());
-            state.setVanillaBlockState(BlockRegistryMirror.stateByRegistryId(stateId));
-            state.setCustomBlockState(BlockRegistryMirror.stateByRegistryId(blockStateVariant.internalRegistryId()));
+            state.setVanillaBlockState(blockStateAppearance.blockState());
+            state.setCustomBlockState(blockStateVariant.blockState());
             blockStateAppearance.blockEntityRenderer().ifPresent(state::setConstantRenderers);
         }
 
@@ -99,7 +92,6 @@ public abstract class AbstractCustomBlock implements CustomBlock {
                 state.setBlockEntityType(entityBlockBehavior.blockEntityType());
             }
         }
-        this.applyPlatformSettings();
     }
 
     protected BlockBehavior setupBehavior(List<Map<String, Object>> behaviorConfig) {
@@ -123,8 +115,6 @@ public abstract class AbstractCustomBlock implements CustomBlock {
             };
         };
     }
-
-    protected abstract void applyPlatformSettings();
 
     @Override
     public @Nullable LootTable<?> lootTable() {

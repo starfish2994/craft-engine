@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.block;
 
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.util.Key;
 
 public class BukkitBlockStateWrapper implements BlockStateWrapper {
     private final Object blockState;
@@ -19,5 +20,15 @@ public class BukkitBlockStateWrapper implements BlockStateWrapper {
     @Override
     public int registryId() {
         return this.registryId;
+    }
+
+    @Override
+    public String toString() {
+        return this.blockState.toString();
+    }
+
+    @Override
+    public Key ownerId() {
+        return null;
     }
 }

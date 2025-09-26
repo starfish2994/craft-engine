@@ -27,9 +27,7 @@ import net.momirealms.craftengine.core.pack.obfuscation.ObfA;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.config.ConfigParser;
-import net.momirealms.craftengine.core.plugin.config.StringKeyConstructor;
+import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.locale.I18NData;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
@@ -374,6 +372,7 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/internal/configuration/fix_client_visual.yml");
         plugin.saveResource("resources/internal/configuration/offset_chars.yml");
         plugin.saveResource("resources/internal/configuration/gui.yml");
+        plugin.saveResource("resources/internal/configuration/mappings.yml");
         plugin.saveResource("resources/internal/resourcepack/assets/minecraft/textures/font/offset/space_split.png");
         plugin.saveResource("resources/internal/resourcepack/assets/minecraft/textures/font/gui/custom/item_browser.png");
         plugin.saveResource("resources/internal/resourcepack/assets/minecraft/textures/font/gui/custom/category.png");
@@ -609,6 +608,7 @@ public abstract class AbstractPackManager implements PackManager {
         return cachedConfigs;
     }
 
+    // todo 本地化日志
     private void loadResourceConfigs(Predicate<ConfigParser> predicate) {
         long o1 = System.nanoTime();
         TreeMap<ConfigParser, List<CachedConfigSection>> cachedConfigs = this.updateCachedConfigFiles();
@@ -619,34 +619,62 @@ public abstract class AbstractPackManager implements PackManager {
             if (!predicate.test(parser)) continue;
             long t1 = System.nanoTime();
             parser.preProcess();
-            for (CachedConfigSection cached : entry.getValue()) {
-                for (Map.Entry<String, Object> configEntry : cached.config().entrySet()) {
-                    String key = configEntry.getKey();
-                    Key id = Key.withDefaultNamespace(key, cached.pack().namespace());
-                    try {
-                        if (parser.supportsParsingObject()) {
-                            // do not apply templates
-                            parser.parseObject(cached.pack(), cached.filePath(), id, configEntry.getValue());
-                        } else {
-                            if (configEntry.getValue() instanceof Map<?, ?> configSection0) {
-                                Map<String, Object> config = castToMap(configSection0, false);
-                                if ((boolean) config.getOrDefault("debug", false)) {
-                                    this.plugin.logger().info(GsonHelper.get().toJson(this.plugin.templateManager().applyTemplates(id, config)));
-                                }
-                                if ((boolean) config.getOrDefault("enable", true)) {
-                                    parser.parseSection(cached.pack(), cached.filePath(), id, MiscUtils.castToMap(this.plugin.templateManager().applyTemplates(id, config), false));
-                                }
-                            } else {
-                                TranslationManager.instance().log("warning.config.structure.not_section", cached.filePath().toString(), cached.prefix() + "." + key, configEntry.getValue().getClass().getSimpleName());
-                            }
+            switch (parser) {
+                case SectionConfigParser configParser -> {
+                    for (CachedConfigSection cached : entry.getValue()) {
+                        try {
+                            configParser.parseSection(cached.pack(), cached.filePath(), cached.config());
+                        } catch (LocalizedException e) {
+                            printWarningRecursively(e, cached.filePath(), cached.prefix());
+                        } catch (Exception e) {
+                            this.plugin.logger().warn("Unexpected error loading file " + cached.filePath() + " - '" + parser.sectionId()[0] + "'. Please find the cause according to the stacktrace or seek developer help. Additional info: " + GsonHelper.get().toJson(cached.config()), e);
                         }
-                    } catch (LocalizedException e) {
-                        printWarningRecursively(e, cached.filePath(), cached.prefix() + "." + key);
-                    } catch (Exception e) {
-                        this.plugin.logger().warn("Unexpected error loading file " + cached.filePath() + " - '" + parser.sectionId()[0] + "." + key + "'. Please find the cause according to the stacktrace or seek developer help. Additional info: " + GsonHelper.get().toJson(configEntry.getValue()), e);
                     }
                 }
+                case IdObjectConfigParser configParser -> {
+                    for (CachedConfigSection cached : entry.getValue()) {
+                        for (Map.Entry<String, Object> configEntry : cached.config().entrySet()) {
+                            String key = configEntry.getKey();
+                            Key id = Key.withDefaultNamespace(key, cached.pack().namespace());
+                            try {
+                                configParser.parseObject(cached.pack(), cached.filePath(), id, configEntry.getValue());
+                            } catch (LocalizedException e) {
+                                printWarningRecursively(e, cached.filePath(), cached.prefix() + "." + key);
+                            } catch (Exception e) {
+                                this.plugin.logger().warn("Unexpected error loading file " + cached.filePath() + " - '" + parser.sectionId()[0] + "." + key + "'. Please find the cause according to the stacktrace or seek developer help. Additional info: " + GsonHelper.get().toJson(configEntry.getValue()), e);
+                            }
+                        }
+                    }
+                }
+                case IdSectionConfigParser configParser -> {
+                    for (CachedConfigSection cached : entry.getValue()) {
+                        for (Map.Entry<String, Object> configEntry : cached.config().entrySet()) {
+                            String key = configEntry.getKey();
+                            Key id = Key.withDefaultNamespace(key, cached.pack().namespace());
+                            try {
+                                if (configEntry.getValue() instanceof Map<?, ?> configSection0) {
+                                    Map<String, Object> config = castToMap(configSection0, false);
+                                    if ((boolean) config.getOrDefault("debug", false)) {
+                                        this.plugin.logger().info(GsonHelper.get().toJson(this.plugin.templateManager().applyTemplates(id, config)));
+                                    }
+                                    if ((boolean) config.getOrDefault("enable", true)) {
+                                        configParser.parseSection(cached.pack(), cached.filePath(), id, MiscUtils.castToMap(this.plugin.templateManager().applyTemplates(id, config), false));
+                                    }
+                                } else {
+                                    TranslationManager.instance().log("warning.config.structure.not_section", cached.filePath().toString(), cached.prefix() + "." + key, configEntry.getValue().getClass().getSimpleName());
+                                }
+                            } catch (LocalizedException e) {
+                                printWarningRecursively(e, cached.filePath(), cached.prefix() + "." + key);
+                            } catch (Exception e) {
+                                this.plugin.logger().warn("Unexpected error loading file " + cached.filePath() + " - '" + parser.sectionId()[0] + "." + key + "'. Please find the cause according to the stacktrace or seek developer help. Additional info: " + GsonHelper.get().toJson(configEntry.getValue()), e);
+                            }
+                        }
+                    }
+                }
+                default -> {
+                }
             }
+
             parser.postProcess();
             long t2 = System.nanoTime();
             this.plugin.logger().info("Loaded " + parser.sectionId()[0] + " in " + String.format("%.2f", ((t2 - t1) / 1_000_000.0)) + " ms");
@@ -1722,7 +1750,7 @@ public abstract class AbstractPackManager implements PackManager {
             soundJson = new JsonObject();
         }
 
-        for (Map.Entry<Key, Key> mapper : plugin.blockManager().soundMapper().entrySet()) {
+        for (Map.Entry<Key, Key> mapper : plugin.blockManager().soundReplacements().entrySet()) {
             Key originalKey = mapper.getKey();
             JsonObject empty = new JsonObject();
             empty.add("sounds", new JsonArray());

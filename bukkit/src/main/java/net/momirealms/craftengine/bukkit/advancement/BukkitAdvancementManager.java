@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -105,7 +106,7 @@ public class BukkitAdvancementManager extends AbstractAdvancementManager {
         }
     }
 
-    public class AdvancementParser implements ConfigParser {
+    public class AdvancementParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"advancements", "advancement"};
 
         @Override

@@ -5,5 +5,7 @@ public enum PushReaction {
     DESTROY,
     BLOCK,
     IGNORE,
-    PUSH_ONLY
+    PUSH_ONLY;
+
+    public static final PushReaction[] VALUES = values();
 }

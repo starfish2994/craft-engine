@@ -1,7 +1,6 @@
 items:
   default:chessboard_block:
     material: nether_brick
-    custom-model-data: 3000
     data:
       item-name: <!i><i18n:item.chessboard_block>
     model:
@@ -60,16 +59,12 @@ items:
           variants:
             facing=east:
               appearance: east
-              id: 18
             facing=north:
               appearance: north
-              id: 19
             facing=south:
               appearance: south
-              id: 20
             facing=west:
               appearance: west
-              id: 21
 recipes:
   default:chessboard_block:
     type: shaped

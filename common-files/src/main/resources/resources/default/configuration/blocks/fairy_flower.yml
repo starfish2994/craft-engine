@@ -1,7 +1,6 @@
 items:
   default:fairy_flower:
     material: nether_brick
-    custom-model-data: 3004
     data:
       item-name: <!i><i18n:item.fairy_flower>
     model:
@@ -27,7 +26,6 @@ items:
         loot:
           template: default:loot_table/self
         state:
-          id: 0
           state: sugar_cane:0
           models:
             - path: minecraft:block/custom/fairy_flower_1

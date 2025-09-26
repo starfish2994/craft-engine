@@ -1,7 +1,6 @@
 items:
   default:ender_pearl_flower_seeds:
     material: nether_brick
-    custom-model-data: 3003
     data:
       item-name: <!i><i18n:item.ender_pearl_flower_seeds>
     model:
@@ -117,13 +116,10 @@ blocks:
       variants:
         age=0:
           appearance: stage_0
-          id: 0
         age=1:
           appearance: stage_1
-          id: 1
         age=2:
           appearance: stage_2
-          id: 8
 vanilla-loots:
   default:ender_pearl_flower_seeds_from_endermite:
     type: entity

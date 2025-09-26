@@ -104,7 +104,7 @@ public class BukkitServerPlayer extends Player {
     private int resentSwingTick;
     // has fabric client mod or not
     private boolean hasClientMod = false;
-    private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaStateSize());
+    private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaBlockStateCount());
     // cache if player can break blocks
     private boolean clientSideCanBreak = true;
     // prevent AFK players from consuming too much CPU resource on predicting

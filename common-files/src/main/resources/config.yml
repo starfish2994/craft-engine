@@ -139,7 +139,7 @@ resource-pack:
 
 item:
   # Make custom-model-data and item-model clientside by default
-  client-bound-model: false
+  client-bound-model: true
   # Add a <!i> tag on custom name and lore
   non-italic-tag: false
   # Determines when to trigger the item updater

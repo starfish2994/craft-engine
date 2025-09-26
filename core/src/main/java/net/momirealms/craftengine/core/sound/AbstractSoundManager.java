@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.*;
 
@@ -65,7 +66,7 @@ public abstract class AbstractSoundManager implements SoundManager {
 
     protected abstract void registerSounds(Collection<Key> sounds);
 
-    public class SongParser implements ConfigParser {
+    public class SongParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"jukebox_songs", "jukebox_song", "jukebox-songs", "jukebox-song"};
 
         @Override
@@ -92,7 +93,7 @@ public abstract class AbstractSoundManager implements SoundManager {
         }
     }
 
-    public class SoundParser implements ConfigParser {
+    public class SoundParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"sounds", "sound"};
 
         @Override

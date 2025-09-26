@@ -1,7 +1,6 @@
 items:
   default:copper_coil:
     material: nether_brick
-    custom-model-data: 3002
     data:
       item-name: <!i><i18n:item.copper_coil>
     model:
@@ -61,10 +60,8 @@ items:
           variants:
             lit=false:
               appearance: 'off'
-              id: 0
             lit=true:
               appearance: 'on'
-              id: 1
               settings:
                 luminance: 8
 recipes:

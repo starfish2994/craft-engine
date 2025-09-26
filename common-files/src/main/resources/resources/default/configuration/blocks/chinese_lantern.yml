@@ -1,7 +1,6 @@
 items:
   default:chinese_lantern:
     material: nether_brick
-    custom-model-data: 3001
     data:
       item-name: <!i><i18n:item.chinese_lantern>
     model:
@@ -26,7 +25,6 @@ items:
             luminance: 15
             map-color: 36
         state:
-          id: 15
           state: note_block:15
           model:
             path: minecraft:block/custom/chinese_lantern

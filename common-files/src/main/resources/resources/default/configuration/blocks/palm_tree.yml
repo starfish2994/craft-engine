@@ -1,7 +1,6 @@
 items:
   default:palm_log:
     material: nether_brick
-    custom-model-data: 1000
     settings:
       fuel-time: 300
       tags:
@@ -33,17 +32,8 @@ items:
             texture_side_path: minecraft:block/custom/palm_log
             model_vertical_path: minecraft:block/custom/palm_log
             model_horizontal_path: minecraft:block/custom/palm_log_horizontal
-            vanilla_id:
-              type: self_increase_int
-              from: 0
-              to: 2
-            internal_id:
-              type: self_increase_int
-              from: 0
-              to: 2
   default:stripped_palm_log:
     material: nether_brick
-    custom-model-data: 1001
     settings:
       fuel-time: 300
       tags:
@@ -72,17 +62,8 @@ items:
             texture_side_path: minecraft:block/custom/stripped_palm_log
             model_vertical_path: minecraft:block/custom/stripped_palm_log
             model_horizontal_path: minecraft:block/custom/stripped_palm_log_horizontal
-            vanilla_id:
-              type: self_increase_int
-              from: 3
-              to: 5
-            internal_id:
-              type: self_increase_int
-              from: 3
-              to: 5
   default:palm_wood:
     material: nether_brick
-    custom-model-data: 1002
     settings:
       fuel-time: 300
       tags:
@@ -114,17 +95,8 @@ items:
             texture_side_path: minecraft:block/custom/palm_log
             model_vertical_path: minecraft:block/custom/palm_wood
             model_horizontal_path: minecraft:block/custom/palm_wood_horizontal
-            vanilla_id:
-              type: self_increase_int
-              from: 6
-              to: 8
-            internal_id:
-              type: self_increase_int
-              from: 6
-              to: 8
   default:stripped_palm_wood:
     material: nether_brick
-    custom-model-data: 1003
     settings:
       fuel-time: 300
       tags:
@@ -153,17 +125,8 @@ items:
             texture_side_path: minecraft:block/custom/stripped_palm_log
             model_vertical_path: minecraft:block/custom/stripped_palm_wood
             model_horizontal_path: minecraft:block/custom/stripped_palm_wood_horizontal
-            vanilla_id:
-              type: self_increase_int
-              from: 9
-              to: 11
-            internal_id:
-              type: self_increase_int
-              from: 9
-              to: 11
   default:palm_planks:
     material: nether_brick
-    custom-model-data: 1004
     settings:
       fuel-time: 300
       tags:
@@ -188,11 +151,9 @@ items:
             template: default:model/simplified_cube_all
             arguments:
               path: minecraft:block/custom/palm_planks
-          id: 12
           state: note_block:12
   default:palm_sapling:
     material: nether_brick
-    custom-model-data: 1005
     settings:
       fuel-time: 100
     data:
@@ -236,13 +197,10 @@ items:
           variants:
             stage=0:
               appearance: default
-              id: 0
             stage=1:
               appearance: default
-              id: 1
   default:palm_leaves:
     material: oak_leaves
-    custom-model-data: 1000
     data:
       item-name: <!i><i18n:item.palm_leaves>
       components:
@@ -277,13 +235,8 @@ items:
             waterlogged_state: oak_leaves[distance=1,persistent=false,waterlogged=true]
             model_path: minecraft:block/custom/palm_leaves
             texture_path: minecraft:block/custom/palm_leaves
-            internal_id:
-              type: self_increase_int
-              from: 0
-              to: 27
   default:palm_trapdoor:
     material: nether_brick
-    custom-model-data: 1006
     data:
       item-name: <!i><i18n:item.palm_trapdoor>
     settings:
@@ -338,7 +291,6 @@ items:
                 texture: minecraft:block/custom/palm_trapdoor
   default:palm_door:
     material: nether_brick
-    custom-model-data: 1007
     data:
       item-name: <!i><i18n:item.palm_door>
     settings:
@@ -413,7 +365,6 @@ items:
               textures: *textures
   default:palm_fence_gate:
     material: nether_brick
-    custom-model-data: 1008
     data:
       item-name: <!i><i18n:item.palm_fence_gate>
     settings:
@@ -470,7 +421,6 @@ items:
               textures: *textures
   default:palm_slab:
     material: nether_brick
-    custom-model-data: 1009
     data:
       item-name: <!i><i18n:item.palm_slab>
     settings:
@@ -517,7 +467,6 @@ items:
             model_double_path: minecraft:block/custom/palm_planks
   default:palm_stairs:
     material: nether_brick
-    custom-model-data: 1013
     model:
       type: minecraft:model
       path: minecraft:item/custom/palm_stairs
@@ -567,7 +516,6 @@ items:
               textures: *textures
   default:palm_pressure_plate:
     material: nether_brick
-    custom-model-data: 1014
     model:
       type: minecraft:model
       path: minecraft:item/custom/palm_pressure_plate
@@ -608,8 +556,6 @@ items:
           arguments:
             normal_state: light_weighted_pressure_plate:0
             powered_state: light_weighted_pressure_plate:1
-            normal_id: 0
-            powered_id: 1
             model_normal_path: minecraft:block/custom/palm_pressure_plate
             model_normal_generation:
               parent: minecraft:block/pressure_plate_up
@@ -624,7 +570,6 @@ items:
 items#pfence:
   default:palm_fence:
     material: nether_brick
-    custom-model-data: 1018
     data:
       item-name: <!i><i18n:item.palm_fence>
     model:
@@ -639,7 +584,6 @@ items#pfence:
       block: default:palm_fence
   default:palm_fence_post:
     material: nether_brick
-    custom-model-data: 1019
     model:
       type: minecraft:model
       path: minecraft:block/custom/palm_fence_post
@@ -649,7 +593,6 @@ items#pfence:
           texture: minecraft:block/custom/palm_planks
   default:palm_fence_side:
     material: nether_brick
-    custom-model-data: 1020
     model:
       type: minecraft:model
       path: minecraft:block/custom/palm_fence_side
@@ -689,15 +632,10 @@ blocks#fence:
         base_block: oak_fence
         fence_post_item: default:palm_fence_post
         fence_side_item: default:palm_fence_side
-        internal_id:
-          type: self_increase_int
-          from: 0
-          to: 31
 
 items#button:
   default:palm_button:
     material: nether_brick
-    custom-model-data: 1015
     model:
       type: minecraft:model
       path: minecraft:item/custom/palm_button
@@ -714,7 +652,6 @@ items#button:
       block: default:palm_button
   default:palm_button_pressed:
     material: nether_brick
-    custom-model-data: 1016
     model:
       type: minecraft:model
       path: minecraft:block/custom/palm_button_pressed
@@ -724,7 +661,6 @@ items#button:
           texture: minecraft:block/custom/palm_planks
   default:palm_button_not_pressed:
     material: nether_brick
-    custom-model-data: 1017
     model:
       type: minecraft:model
       path: minecraft:block/custom/palm_button_not_pressed
@@ -763,10 +699,6 @@ blocks#button:
         base_block: birch_button
         pressed_item: default:palm_button_pressed
         not_pressed_item: default:palm_button_not_pressed
-        internal_id:
-          type: self_increase_int
-          from: 0
-          to: 23
 
 recipes:
   default:palm_planks:

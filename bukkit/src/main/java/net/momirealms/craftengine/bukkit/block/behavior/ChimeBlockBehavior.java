@@ -10,10 +10,8 @@ import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
 
 public class ChimeBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();

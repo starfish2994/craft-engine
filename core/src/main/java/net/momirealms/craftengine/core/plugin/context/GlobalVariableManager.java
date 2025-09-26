@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdObjectConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +35,7 @@ public class GlobalVariableManager implements Manageable {
         return this.parser;
     }
 
-    public class GlobalVariableParser implements ConfigParser {
+    public class GlobalVariableParser implements IdObjectConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"global-variables", "global-variable"};
 
         @Override
@@ -45,11 +46,6 @@ public class GlobalVariableManager implements Manageable {
         @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
-        }
-
-        @Override
-        public boolean supportsParsingObject() {
-            return true;
         }
 
         @Override

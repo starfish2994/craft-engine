@@ -242,9 +242,9 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
             if (id instanceof Map<?, ?> map) {
                 if (map.containsKey(key.toString())) {
                     // 防呆
-                    BukkitBlockManager.instance().parser().parseSection(pack, path, key, MiscUtils.castToMap(map.get(key.toString()), false));
+                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, key, MiscUtils.castToMap(map.get(key.toString()), false));
                 } else {
-                    BukkitBlockManager.instance().parser().parseSection(pack, path, key, MiscUtils.castToMap(map, false));
+                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, key, MiscUtils.castToMap(map, false));
                 }
                 return new BlockItemBehavior(key);
             } else {

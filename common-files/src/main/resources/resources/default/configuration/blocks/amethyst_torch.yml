@@ -1,7 +1,6 @@
 items:
   default:amethyst_torch:
     material: nether_brick
-    custom-model-data: 3020
     data:
       item-name: <!i><i18n:item.amethyst_torch>
     model:
@@ -20,7 +19,6 @@ items:
         block: default:amethyst_wall_torch
   default:amethyst_standing_torch:
     material: nether_brick
-    custom-model-data: 3021
     data:
       item-name: <!i><i18n:item.amethyst_torch>
     model:
@@ -32,7 +30,6 @@ items:
           torch: minecraft:block/custom/amethyst_torch
   default:amethyst_wall_torch:
     material: nether_brick
-    custom-model-data: 3022
     data:
       item-name: <!i><i18n:item.amethyst_torch>
     model:
@@ -59,7 +56,6 @@ blocks:
         luminance: 15
         item: default:amethyst_torch
     state:
-      id: 0
       state: redstone_torch[lit=false]
       entity-renderer:
         item: default:amethyst_standing_torch
@@ -146,16 +142,12 @@ blocks:
       variants:
         facing=north:
           appearance: north
-          id: 0
         facing=east:
           appearance: east
-          id: 1
         facing=west:
           appearance: west
-          id: 2
         facing=south:
           appearance: south
-          id: 3
 recipes:
   default:amethyst_torch:
     type: shaped

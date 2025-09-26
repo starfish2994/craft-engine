@@ -6,7 +6,7 @@ import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
@@ -31,7 +31,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     }
 
     @Override
-    public ConfigParser parser() {
+    public IdSectionConfigParser parser() {
         return this.furnitureParser;
     }
 
@@ -74,7 +74,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
     protected abstract CustomFurniture.Builder furnitureBuilder();
 
-    public class FurnitureParser implements ConfigParser {
+    public class FurnitureParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] { "furniture" };
 
         @Override

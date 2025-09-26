@@ -1,7 +1,6 @@
 items:
   default:hami_melon_slice:
     material: melon_slice
-    custom-model-data: 1000
     data:
       item-name: <!i><i18n:item.hami_melon_slice>
       $$>=1.20.5:
@@ -20,7 +19,6 @@ items:
         path: minecraft:item/custom/hami_melon_slice
   default:hami_melon:
     material: nether_brick
-    custom-model-data: 3023
     data:
       item-name: <!i><i18n:item.hami_melon>
     model:
@@ -32,7 +30,6 @@ items:
       block: default:hami_melon
   default:hami_melon_seeds:
     material: nether_brick
-    custom-model-data: 3024
     data:
       item-name: <!i><i18n:item.hami_melon_seeds>
     model:
@@ -82,7 +79,6 @@ blocks:
           - minecraft:mineable/axe
           - minecraft:sword_efficient
     state:
-      id: 30
       state: note_block:30
       model:
         template: default:model/cube
@@ -144,28 +140,20 @@ blocks:
       variants:
         age=0:
           appearance: age=0
-          id: 0
         age=1:
           appearance: age=1
-          id: 1
         age=2:
           appearance: age=2
-          id: 2
         age=3:
           appearance: age=3
-          id: 3
         age=4:
           appearance: age=4
-          id: 4
         age=5:
           appearance: age=5
-          id: 5
         age=6:
           appearance: age=6
-          id: 6
         age=7:
           appearance: age=7
-          id: 7
   default:attached_hami_melon_stem:
     settings:
       template:
@@ -205,16 +193,12 @@ blocks:
       variants:
         facing=east:
           appearance: facing=east
-          id: 0
         facing=south:
           appearance: facing=south
-          id: 1
         facing=west:
           appearance: facing=west
-          id: 2
         facing=north:
           appearance: facing=north
-          id: 3
 recipes:
   default:hami_melon:
     type: shaped

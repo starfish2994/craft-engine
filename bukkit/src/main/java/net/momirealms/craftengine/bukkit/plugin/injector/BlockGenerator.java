@@ -17,6 +17,8 @@ import net.momirealms.craftengine.bukkit.block.BukkitBlockShape;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistries;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.NoteBlockChainUpdateUtils;
 import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.BlockKeys;
@@ -197,6 +199,30 @@ public final class BlockGenerator {
         field$CraftEngineBlock$shape = clazz$CraftEngineBlock.getField("shapeHolder");
         field$CraftEngineBlock$isNoteBlock = clazz$CraftEngineBlock.getField("isClientSideNoteBlock");
         field$CraftEngineBlock$isTripwire = clazz$CraftEngineBlock.getField("isClientSideTripwire");
+    }
+
+    public static DelegatingBlock generateBlock(Key blockId) throws Throwable {
+        ObjectHolder<BlockBehavior> behaviorHolder = new ObjectHolder<>(EmptyBlockBehavior.INSTANCE);
+        ObjectHolder<BlockShape> shapeHolder = new ObjectHolder<>(STONE_SHAPE);
+        Object newBlockInstance = constructor$CraftEngineBlock.invoke(createEmptyBlockProperties(blockId));
+        field$CraftEngineBlock$behavior.set(newBlockInstance, behaviorHolder);
+        field$CraftEngineBlock$shape.set(newBlockInstance, shapeHolder);
+        Object stateDefinitionBuilder = CoreReflections.constructor$StateDefinition$Builder.newInstance(newBlockInstance);
+        Object stateDefinition = CoreReflections.method$StateDefinition$Builder$create.invoke(stateDefinitionBuilder,
+                (Function<Object, Object>) FastNMS.INSTANCE::method$Block$defaultState, BlockStateGenerator.instance$StateDefinition$Factory);
+        CoreReflections.field$Block$StateDefinition.set(newBlockInstance, stateDefinition);
+        CoreReflections.field$Block$defaultBlockState.set(newBlockInstance, ((ImmutableList<?>) CoreReflections.field$StateDefinition$states.get(stateDefinition)).getFirst());
+        return (DelegatingBlock) newBlockInstance;
+    }
+
+    private static Object createEmptyBlockProperties(Key id) throws ReflectiveOperationException {
+        Object blockProperties = CoreReflections.method$BlockBehaviour$Properties$of.invoke(null);
+        Object resourceLocation = KeyUtils.toResourceLocation(id);
+        Object resourceKey = FastNMS.INSTANCE.method$ResourceKey$create(MRegistries.BLOCK, resourceLocation);
+        if (CoreReflections.field$BlockBehaviour$Properties$id != null) {
+            CoreReflections.field$BlockBehaviour$Properties$id.set(blockProperties, resourceKey);
+        }
+        return blockProperties;
     }
 
     public static Object generateBlock(Key replacedBlock, Object ownerBlock, Object properties) throws Throwable {

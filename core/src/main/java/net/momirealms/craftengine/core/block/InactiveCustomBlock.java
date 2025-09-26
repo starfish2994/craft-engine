@@ -17,10 +17,6 @@ public final class InactiveCustomBlock extends AbstractCustomBlock {
     }
 
     @Override
-    protected void applyPlatformSettings() {
-    }
-
-    @Override
     public ImmutableBlockState getBlockState(CompoundTag nbt) {
         return this.cachedData.computeIfAbsent(nbt, k -> {
             ImmutableBlockState state = new ImmutableBlockState(super.holder, new Reference2ObjectArrayMap<>());
