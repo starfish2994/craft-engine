@@ -370,8 +370,8 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void playSound(Key sound, BlockPos blockPos, SoundSource source, float volume, float pitch) {
-        platformPlayer().playSound(new Location(null, blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5), sound.toString(), SoundUtils.toBukkit(source), volume, pitch);
+    public void playSound(Position pos, Key sound, SoundSource source, float volume, float pitch) {
+        platformPlayer().playSound(new Location(null, pos.x(), pos.y(), pos.z()), sound.toString(), SoundUtils.toBukkit(source), volume, pitch);
     }
 
     @Override
