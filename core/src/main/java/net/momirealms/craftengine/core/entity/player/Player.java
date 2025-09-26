@@ -6,9 +6,12 @@ import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.Position;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,7 +103,19 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void playSound(Key sound, SoundSource source, float volume, float pitch);
 
-    public abstract void playSound(Key sound, BlockPos pos, SoundSource source, float volume, float pitch);
+    public abstract void playSound(Position pos, Key sound, SoundSource source, float volume, float pitch);
+
+    public void playSound(BlockPos pos, Key sound, SoundSource source, float volume, float pitch) {
+        this.playSound(Vec3d.atCenterOf(pos), sound, source, volume, pitch);
+    }
+
+    public void playSound(BlockPos pos, SoundData data, SoundSource source) {
+        this.playSound(pos, data.id(), source, data.volume().get(), data.pitch().get());
+    }
+
+    public void playSound(Position pos, SoundData data, SoundSource source) {
+        this.playSound(pos, data.id(), source, data.volume().get(), data.pitch().get());
+    }
 
     public abstract void giveItem(Item<?> item);
 

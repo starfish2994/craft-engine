@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
+import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -168,7 +169,7 @@ public final class BlockEventListener implements Listener {
                 }
 
                 // play sound
-                world.playBlockSound(position, state.settings().sounds().breakSound());
+                serverPlayer.playSound(position, state.settings().sounds().breakSound(), SoundSource.BLOCK);
             }
         } else {
             // override vanilla block loots
@@ -193,7 +194,6 @@ public final class BlockEventListener implements Listener {
                     }
                 });
             }
-
             // sound system
             if (Config.enableSoundSystem()) {
                 Object ownerBlock = BlockStateUtils.getBlockOwner(blockState);
@@ -201,7 +201,7 @@ public final class BlockEventListener implements Listener {
                     try {
                         Object soundType = CoreReflections.field$BlockBehaviour$soundType.get(ownerBlock);
                         Object breakSound = CoreReflections.field$SoundType$breakSound.get(soundType);
-                        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), FastNMS.INSTANCE.field$SoundEvent$location(breakSound).toString(), SoundCategory.BLOCKS, 1f, 0.8f);
+                        player.playSound(block.getLocation().add(0.5, 0.5, 0.5), FastNMS.INSTANCE.field$SoundEvent$location(breakSound).toString(), SoundCategory.BLOCKS, 1f, 0.8f);
                     } catch (ReflectiveOperationException e) {
                         this.plugin.logger().warn("Failed to get sound type", e);
                     }
