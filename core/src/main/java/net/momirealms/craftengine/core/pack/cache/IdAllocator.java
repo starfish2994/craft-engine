@@ -20,7 +20,7 @@ public class IdAllocator {
     private final BiMap<String, Integer> forcedIdMap = HashBiMap.create(128);
     private final Map<String, Integer> cachedIdMap = new HashMap<>();
     private final BitSet occupiedIdSet = new BitSet();
-    private final Map<String, CompletableFuture<Integer>> pendingAllocations = new HashMap<>();
+    private final Map<String, CompletableFuture<Integer>> pendingAllocations = new LinkedHashMap<>();
 
     private int nextAutoId;
     private int minId;
@@ -206,10 +206,22 @@ public class IdAllocator {
      */
     public void saveToCache() throws IOException {
         FileUtils.createDirectoriesSafe(this.cacheFilePath.getParent());
-        GsonHelper.writeJsonFile(GsonHelper.get().toJsonTree(this.cachedIdMap), this.cacheFilePath);
+
+        // 创建按ID排序的TreeMap
+        Map<Integer, String> sortedById = new TreeMap<>();
+        for (Map.Entry<String, Integer> entry : this.cachedIdMap.entrySet()) {
+            sortedById.put(entry.getValue(), entry.getKey());
+        }
+
+        // 创建有序的JSON对象
+        JsonObject sortedJsonObject = new JsonObject();
+        for (Map.Entry<Integer, String> entry : sortedById.entrySet()) {
+            sortedJsonObject.addProperty(entry.getValue(), entry.getKey());
+        }
+
+        GsonHelper.writeJsonFile(sortedJsonObject, this.cacheFilePath);
     }
 
-    // 异常类保持不变，但建议也重命名以保持一致性
     public static class IdConflictException extends RuntimeException {
         public IdConflictException(String previousOwner, int id) {
             super("ID " + id + " is already occupied by: " + previousOwner);
