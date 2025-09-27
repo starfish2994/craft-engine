@@ -925,121 +925,17 @@ templates#block_states:
         model:
           path: ${model_path}
     variants:
-      distance=1,persistent=false,waterlogged=false:
+      waterlogged=false:
         appearance: default
-      distance=2,persistent=false,waterlogged=false:
-        appearance: default
-      distance=3,persistent=false,waterlogged=false:
-        appearance: default
-      distance=4,persistent=false,waterlogged=false:
-        appearance: default
-      distance=5,persistent=false,waterlogged=false:
-        appearance: default
-      distance=6,persistent=false,waterlogged=false:
-        appearance: default
-      distance=7,persistent=false,waterlogged=false:
-        appearance: default
+      waterlogged=true:
+        appearance: waterlogged
+        settings:
+          resistance: 1200.0
+          burnable: false
+          fluid-state: water
+      distance=7:
         settings:
           is-randomly-ticking: true
-      distance=1,persistent=true,waterlogged=false:
-        appearance: default
-      distance=2,persistent=true,waterlogged=false:
-        appearance: default
-      distance=3,persistent=true,waterlogged=false:
-        appearance: default
-      distance=4,persistent=true,waterlogged=false:
-        appearance: default
-      distance=5,persistent=true,waterlogged=false:
-        appearance: default
-      distance=6,persistent=true,waterlogged=false:
-        appearance: default
-      distance=7,persistent=true,waterlogged=false:
-        appearance: default
-      distance=1,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=2,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=3,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=4,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=5,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=6,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=7,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          is-randomly-ticking: true
-          fluid-state: water
-      distance=1,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=2,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=3,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=4,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=5,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=6,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=7,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
   # trapdoor block
   default:block_state/trapdoor:
     properties:
@@ -1223,259 +1119,131 @@ templates#block_states:
           x: 180
           y: 90
     variants:
-      facing=east,half=bottom,open=false,powered=false,waterlogged=false:
+      facing=east,half=bottom,open=false,waterlogged=false:
         appearance: facing=east,half=bottom,open=false,waterlogged=false
-      facing=east,half=bottom,open=false,powered=true,waterlogged=false:
-        appearance: facing=east,half=bottom,open=false,waterlogged=false
-      facing=east,half=bottom,open=true,powered=false,waterlogged=false:
+      facing=east,half=bottom,open=true,waterlogged=false:
         appearance: facing=east,half=bottom,open=true,waterlogged=false
-      facing=east,half=bottom,open=true,powered=true,waterlogged=false:
-        appearance: facing=east,half=bottom,open=true,waterlogged=false
-      facing=east,half=top,open=false,powered=false,waterlogged=false:
+      facing=east,half=top,open=false,waterlogged=false:
         appearance: facing=east,half=top,open=false,waterlogged=false
-      facing=east,half=top,open=false,powered=true,waterlogged=false:
-        appearance: facing=east,half=top,open=false,waterlogged=false
-      facing=east,half=top,open=true,powered=false,waterlogged=false:
+      facing=east,half=top,open=true,waterlogged=false:
         appearance: facing=east,half=top,open=true,waterlogged=false
-      facing=east,half=top,open=true,powered=true,waterlogged=false:
-        appearance: facing=east,half=top,open=true,waterlogged=false
-      facing=north,half=bottom,open=false,powered=false,waterlogged=false:
+      facing=north,half=bottom,open=false,waterlogged=false:
         appearance: facing=north,half=bottom,open=false,waterlogged=false
-      facing=north,half=bottom,open=false,powered=true,waterlogged=false:
-        appearance: facing=north,half=bottom,open=false,waterlogged=false
-      facing=north,half=bottom,open=true,powered=false,waterlogged=false:
+      facing=north,half=bottom,open=true,waterlogged=false:
         appearance: facing=north,half=bottom,open=true,waterlogged=false
-      facing=north,half=bottom,open=true,powered=true,waterlogged=false:
-        appearance: facing=north,half=bottom,open=true,waterlogged=false
-      facing=north,half=top,open=false,powered=false,waterlogged=false:
+      facing=north,half=top,open=false,waterlogged=false:
         appearance: facing=north,half=top,open=false,waterlogged=false
-      facing=north,half=top,open=false,powered=true,waterlogged=false:
-        appearance: facing=north,half=top,open=false,waterlogged=false
-      facing=north,half=top,open=true,powered=false,waterlogged=false:
+      facing=north,half=top,open=true,waterlogged=false:
         appearance: facing=north,half=top,open=true,waterlogged=false
-      facing=north,half=top,open=true,powered=true,waterlogged=false:
-        appearance: facing=north,half=top,open=true,waterlogged=false
-      facing=south,half=bottom,open=false,powered=false,waterlogged=false:
+      facing=south,half=bottom,open=false,waterlogged=false:
         appearance: facing=south,half=bottom,open=false,waterlogged=false
-      facing=south,half=bottom,open=false,powered=true,waterlogged=false:
-        appearance: facing=south,half=bottom,open=false,waterlogged=false
-      facing=south,half=bottom,open=true,powered=false,waterlogged=false:
+      facing=south,half=bottom,open=true,waterlogged=false:
         appearance: facing=south,half=bottom,open=true,waterlogged=false
-      facing=south,half=bottom,open=true,powered=true,waterlogged=false:
-        appearance: facing=south,half=bottom,open=true,waterlogged=false
-      facing=south,half=top,open=false,powered=false,waterlogged=false:
+      facing=south,half=top,open=false,waterlogged=false:
         appearance: facing=south,half=top,open=false,waterlogged=false
-      facing=south,half=top,open=false,powered=true,waterlogged=false:
-        appearance: facing=south,half=top,open=false,waterlogged=false
-      facing=south,half=top,open=true,powered=false,waterlogged=false:
+      facing=south,half=top,open=true,waterlogged=false:
         appearance: facing=south,half=top,open=true,waterlogged=false
-      facing=south,half=top,open=true,powered=true,waterlogged=false:
-        appearance: facing=south,half=top,open=true,waterlogged=false
-      facing=west,half=bottom,open=false,powered=false,waterlogged=false:
+      facing=west,half=bottom,open=false,waterlogged=false:
         appearance: facing=west,half=bottom,open=false,waterlogged=false
-      facing=west,half=bottom,open=false,powered=true,waterlogged=false:
-        appearance: facing=west,half=bottom,open=false,waterlogged=false
-      facing=west,half=bottom,open=true,powered=false,waterlogged=false:
+      facing=west,half=bottom,open=true,waterlogged=false:
         appearance: facing=west,half=bottom,open=true,waterlogged=false
-      facing=west,half=bottom,open=true,powered=true,waterlogged=false:
-        appearance: facing=west,half=bottom,open=true,waterlogged=false
-      facing=west,half=top,open=false,powered=false,waterlogged=false:
+      facing=west,half=top,open=false,waterlogged=false:
         appearance: facing=west,half=top,open=false,waterlogged=false
-      facing=west,half=top,open=false,powered=true,waterlogged=false:
-        appearance: facing=west,half=top,open=false,waterlogged=false
-      facing=west,half=top,open=true,powered=false,waterlogged=false:
+      facing=west,half=top,open=true,waterlogged=false:
         appearance: facing=west,half=top,open=true,waterlogged=false
-      facing=west,half=top,open=true,powered=true,waterlogged=false:
-        appearance: facing=west,half=top,open=true,waterlogged=false
-      facing=east,half=bottom,open=false,powered=false,waterlogged=true:
+      facing=east,half=bottom,open=false,waterlogged=true:
         appearance: facing=east,half=bottom,open=false,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=east,half=bottom,open=false,powered=true,waterlogged=true:
-        appearance: facing=east,half=bottom,open=false,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=east,half=bottom,open=true,powered=false,waterlogged=true:
+      facing=east,half=bottom,open=true,waterlogged=true:
         appearance: facing=east,half=bottom,open=true,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=east,half=bottom,open=true,powered=true,waterlogged=true:
-        appearance: facing=east,half=bottom,open=true,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=east,half=top,open=false,powered=false,waterlogged=true:
+      facing=east,half=top,open=false,waterlogged=true:
         appearance: facing=east,half=top,open=false,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=east,half=top,open=false,powered=true,waterlogged=true:
-        appearance: facing=east,half=top,open=false,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=east,half=top,open=true,powered=false,waterlogged=true:
+      facing=east,half=top,open=true,waterlogged=true:
         appearance: facing=east,half=top,open=true,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=east,half=top,open=true,powered=true,waterlogged=true:
-        appearance: facing=east,half=top,open=true,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=north,half=bottom,open=false,powered=false,waterlogged=true:
+      facing=north,half=bottom,open=false,waterlogged=true:
         appearance: facing=north,half=bottom,open=false,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=north,half=bottom,open=false,powered=true,waterlogged=true:
-        appearance: facing=north,half=bottom,open=false,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=north,half=bottom,open=true,powered=false,waterlogged=true:
+      facing=north,half=bottom,open=true,waterlogged=true:
         appearance: facing=north,half=bottom,open=true,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=north,half=bottom,open=true,powered=true,waterlogged=true:
-        appearance: facing=north,half=bottom,open=true,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=north,half=top,open=false,powered=false,waterlogged=true:
+      facing=north,half=top,open=false,waterlogged=true:
         appearance: facing=north,half=top,open=false,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=north,half=top,open=false,powered=true,waterlogged=true:
-        appearance: facing=north,half=top,open=false,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=north,half=top,open=true,powered=false,waterlogged=true:
+      facing=north,half=top,open=true,waterlogged=true:
         appearance: facing=north,half=top,open=true,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=north,half=top,open=true,powered=true,waterlogged=true:
-        appearance: facing=north,half=top,open=true,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=south,half=bottom,open=false,powered=false,waterlogged=true:
+      facing=south,half=bottom,open=false,waterlogged=true:
         appearance: facing=south,half=bottom,open=false,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=south,half=bottom,open=false,powered=true,waterlogged=true:
-        appearance: facing=south,half=bottom,open=false,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=south,half=bottom,open=true,powered=false,waterlogged=true:
+      facing=south,half=bottom,open=true,waterlogged=true:
         appearance: facing=south,half=bottom,open=true,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=south,half=bottom,open=true,powered=true,waterlogged=true:
-        appearance: facing=south,half=bottom,open=true,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=south,half=top,open=false,powered=false,waterlogged=true:
+      facing=south,half=top,open=false,waterlogged=true:
         appearance: facing=south,half=top,open=false,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=south,half=top,open=false,powered=true,waterlogged=true:
-        appearance: facing=south,half=top,open=false,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=south,half=top,open=true,powered=false,waterlogged=true:
+      facing=south,half=top,open=true,waterlogged=true:
         appearance: facing=south,half=top,open=true,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=south,half=top,open=true,powered=true,waterlogged=true:
-        appearance: facing=south,half=top,open=true,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=west,half=bottom,open=false,powered=false,waterlogged=true:
+      facing=west,half=bottom,open=false,waterlogged=true:
         appearance: facing=west,half=bottom,open=false,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=west,half=bottom,open=false,powered=true,waterlogged=true:
-        appearance: facing=west,half=bottom,open=false,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=west,half=bottom,open=true,powered=false,waterlogged=true:
+      facing=west,half=bottom,open=true,waterlogged=true:
         appearance: facing=west,half=bottom,open=true,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=west,half=bottom,open=true,powered=true,waterlogged=true:
-        appearance: facing=west,half=bottom,open=true,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=west,half=top,open=false,powered=false,waterlogged=true:
+      facing=west,half=top,open=false,waterlogged=true:
         appearance: facing=west,half=top,open=false,waterlogged=true
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=west,half=top,open=false,powered=true,waterlogged=true:
-        appearance: facing=west,half=top,open=false,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=west,half=top,open=true,powered=false,waterlogged=true:
+      facing=west,half=top,open=true,waterlogged=true:
         appearance: facing=west,half=top,open=true,waterlogged=true
         settings:
-          fluid-state: water
-      facing=west,half=top,open=true,powered=true,waterlogged=true:
-        appearance: facing=west,half=top,open=true,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
           fluid-state: water
   # door block
   default:block_state/door:
@@ -1654,133 +1422,69 @@ templates#block_states:
           path: ${model_top_right_open_path}
           y: 90
     variants:
-      facing=east,half=lower,hinge=left,open=false,powered=true:
+      facing=east,half=lower,hinge=left,open=false:
         appearance: facing=east,half=lower,hinge=left,open=false
-      facing=east,half=lower,hinge=left,open=false,powered=false:
-        appearance: facing=east,half=lower,hinge=left,open=false
-      facing=east,half=lower,hinge=right,open=false,powered=true:
+      facing=east,half=lower,hinge=right,open=false:
         appearance: facing=east,half=lower,hinge=right,open=false
-      facing=east,half=lower,hinge=right,open=false,powered=false:
-        appearance: facing=east,half=lower,hinge=right,open=false
-      facing=east,half=upper,hinge=left,open=false,powered=true:
+      facing=east,half=upper,hinge=left,open=false:
         appearance: facing=east,half=upper,hinge=left,open=false
-      facing=east,half=upper,hinge=left,open=false,powered=false:
-        appearance: facing=east,half=upper,hinge=left,open=false
-      facing=east,half=upper,hinge=right,open=false,powered=true:
+      facing=east,half=upper,hinge=right,open=false:
         appearance: facing=east,half=upper,hinge=right,open=false
-      facing=east,half=upper,hinge=right,open=false,powered=false:
-        appearance: facing=east,half=upper,hinge=right,open=false
-      facing=north,half=lower,hinge=left,open=false,powered=true:
+      facing=north,half=lower,hinge=left,open=false:
         appearance: facing=north,half=lower,hinge=left,open=false
-      facing=north,half=lower,hinge=left,open=false,powered=false:
-        appearance: facing=north,half=lower,hinge=left,open=false
-      facing=north,half=lower,hinge=right,open=false,powered=true:
+      facing=north,half=lower,hinge=right,open=false:
         appearance: facing=north,half=lower,hinge=right,open=false
-      facing=north,half=lower,hinge=right,open=false,powered=false:
-        appearance: facing=north,half=lower,hinge=right,open=false
-      facing=north,half=upper,hinge=left,open=false,powered=true:
+      facing=north,half=upper,hinge=left,open=false:
         appearance: facing=north,half=upper,hinge=left,open=false
-      facing=north,half=upper,hinge=left,open=false,powered=false:
-        appearance: facing=north,half=upper,hinge=left,open=false
-      facing=north,half=upper,hinge=right,open=false,powered=true:
+      facing=north,half=upper,hinge=right,open=false:
         appearance: facing=north,half=upper,hinge=right,open=false
-      facing=north,half=upper,hinge=right,open=false,powered=false:
-        appearance: facing=north,half=upper,hinge=right,open=false
-      facing=south,half=lower,hinge=left,open=false,powered=true:
+      facing=south,half=lower,hinge=left,open=false:
         appearance: facing=south,half=lower,hinge=left,open=false
-      facing=south,half=lower,hinge=left,open=false,powered=false:
-        appearance: facing=south,half=lower,hinge=left,open=false
-      facing=south,half=lower,hinge=right,open=false,powered=true:
+      facing=south,half=lower,hinge=right,open=false:
         appearance: facing=south,half=lower,hinge=right,open=false
-      facing=south,half=lower,hinge=right,open=false,powered=false:
-        appearance: facing=south,half=lower,hinge=right,open=false
-      facing=south,half=upper,hinge=left,open=false,powered=true:
+      facing=south,half=upper,hinge=left,open=false:
         appearance: facing=south,half=upper,hinge=left,open=false
-      facing=south,half=upper,hinge=left,open=false,powered=false:
-        appearance: facing=south,half=upper,hinge=left,open=false
-      facing=south,half=upper,hinge=right,open=false,powered=true:
+      facing=south,half=upper,hinge=right,open=false:
         appearance: facing=south,half=upper,hinge=right,open=false
-      facing=south,half=upper,hinge=right,open=false,powered=false:
-        appearance: facing=south,half=upper,hinge=right,open=false
-      facing=west,half=lower,hinge=left,open=false,powered=true:
+      facing=west,half=lower,hinge=left,open=false:
         appearance: facing=west,half=lower,hinge=left,open=false
-      facing=west,half=lower,hinge=left,open=false,powered=false:
-        appearance: facing=west,half=lower,hinge=left,open=false
-      facing=west,half=lower,hinge=right,open=false,powered=true:
+      facing=west,half=lower,hinge=right,open=false:
         appearance: facing=west,half=lower,hinge=right,open=false
-      facing=west,half=lower,hinge=right,open=false,powered=false:
-        appearance: facing=west,half=lower,hinge=right,open=false
-      facing=west,half=upper,hinge=left,open=false,powered=true:
+      facing=west,half=upper,hinge=left,open=false:
         appearance: facing=west,half=upper,hinge=left,open=false
-      facing=west,half=upper,hinge=left,open=false,powered=false:
-        appearance: facing=west,half=upper,hinge=left,open=false
-      facing=west,half=upper,hinge=right,open=false,powered=true:
+      facing=west,half=upper,hinge=right,open=false:
         appearance: facing=west,half=upper,hinge=right,open=false
-      facing=west,half=upper,hinge=right,open=false,powered=false:
-        appearance: facing=west,half=upper,hinge=right,open=false
-      facing=east,half=lower,hinge=left,open=true,powered=true:
+      facing=east,half=lower,hinge=left,open=true:
         appearance: facing=east,half=lower,hinge=left,open=true
-      facing=east,half=lower,hinge=left,open=true,powered=false:
-        appearance: facing=east,half=lower,hinge=left,open=true
-      facing=east,half=lower,hinge=right,open=true,powered=true:
+      facing=east,half=lower,hinge=right,open=true:
         appearance: facing=east,half=lower,hinge=right,open=true
-      facing=east,half=lower,hinge=right,open=true,powered=false:
-        appearance: facing=east,half=lower,hinge=right,open=true
-      facing=east,half=upper,hinge=left,open=true,powered=true:
+      facing=east,half=upper,hinge=left,open=true:
         appearance: facing=east,half=upper,hinge=left,open=true
-      facing=east,half=upper,hinge=left,open=true,powered=false:
-        appearance: facing=east,half=upper,hinge=left,open=true
-      facing=east,half=upper,hinge=right,open=true,powered=true:
+      facing=east,half=upper,hinge=right,open=true:
         appearance: facing=east,half=upper,hinge=right,open=true
-      facing=east,half=upper,hinge=right,open=true,powered=false:
-        appearance: facing=east,half=upper,hinge=right,open=true
-      facing=north,half=lower,hinge=left,open=true,powered=true:
+      facing=north,half=lower,hinge=left,open=true:
         appearance: facing=north,half=lower,hinge=left,open=true
-      facing=north,half=lower,hinge=left,open=true,powered=false:
-        appearance: facing=north,half=lower,hinge=left,open=true
-      facing=north,half=lower,hinge=right,open=true,powered=true:
+      facing=north,half=lower,hinge=right,open=true:
         appearance: facing=north,half=lower,hinge=right,open=true
-      facing=north,half=lower,hinge=right,open=true,powered=false:
-        appearance: facing=north,half=lower,hinge=right,open=true
-      facing=north,half=upper,hinge=left,open=true,powered=true:
+      facing=north,half=upper,hinge=left,open=true:
         appearance: facing=north,half=upper,hinge=left,open=true
-      facing=north,half=upper,hinge=left,open=true,powered=false:
-        appearance: facing=north,half=upper,hinge=left,open=true
-      facing=north,half=upper,hinge=right,open=true,powered=true:
+      facing=north,half=upper,hinge=right,open=true:
         appearance: facing=north,half=upper,hinge=right,open=true
-      facing=north,half=upper,hinge=right,open=true,powered=false:
-        appearance: facing=north,half=upper,hinge=right,open=true
-      facing=south,half=lower,hinge=left,open=true,powered=true:
+      facing=south,half=lower,hinge=left,open=true:
         appearance: facing=south,half=lower,hinge=left,open=true
-      facing=south,half=lower,hinge=left,open=true,powered=false:
-        appearance: facing=south,half=lower,hinge=left,open=true
-      facing=south,half=lower,hinge=right,open=true,powered=true:
+      facing=south,half=lower,hinge=right,open=true:
         appearance: facing=south,half=lower,hinge=right,open=true
-      facing=south,half=lower,hinge=right,open=true,powered=false:
-        appearance: facing=south,half=lower,hinge=right,open=true
-      facing=south,half=upper,hinge=left,open=true,powered=true:
+      facing=south,half=upper,hinge=left,open=true:
         appearance: facing=south,half=upper,hinge=left,open=true
-      facing=south,half=upper,hinge=left,open=true,powered=false:
-        appearance: facing=south,half=upper,hinge=left,open=true
-      facing=south,half=upper,hinge=right,open=true,powered=true:
+      facing=south,half=upper,hinge=right,open=true:
         appearance: facing=south,half=upper,hinge=right,open=true
-      facing=south,half=upper,hinge=right,open=true,powered=false:
-        appearance: facing=south,half=upper,hinge=right,open=true
-      facing=west,half=lower,hinge=left,open=true,powered=true:
+      facing=west,half=lower,hinge=left,open=true:
         appearance: facing=west,half=lower,hinge=left,open=true
-      facing=west,half=lower,hinge=left,open=true,powered=false:
-        appearance: facing=west,half=lower,hinge=left,open=true
-      facing=west,half=lower,hinge=right,open=true,powered=true:
+      facing=west,half=lower,hinge=right,open=true:
         appearance: facing=west,half=lower,hinge=right,open=true
-      facing=west,half=lower,hinge=right,open=true,powered=false:
-        appearance: facing=west,half=lower,hinge=right,open=true
-      facing=west,half=upper,hinge=left,open=true,powered=true:
+      facing=west,half=upper,hinge=left,open=true:
         appearance: facing=west,half=upper,hinge=left,open=true
-      facing=west,half=upper,hinge=left,open=true,powered=false:
-        appearance: facing=west,half=upper,hinge=left,open=true
-      facing=west,half=upper,hinge=right,open=true,powered=true:
-        appearance: facing=west,half=upper,hinge=right,open=true
-      facing=west,half=upper,hinge=right,open=true,powered=false:
+      facing=west,half=upper,hinge=right,open=true:
         appearance: facing=west,half=upper,hinge=right,open=true
   # fence gate block
   default:block_state/fence_gate:
