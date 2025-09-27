@@ -150,6 +150,11 @@ item:
     click-in-inventory: false # this option won't work for players in creative mode
     drop: false
     pick-up: false
+  # Decided the starting value for automatic custom model data assignment.
+  custom-model-data-starting-value:
+    default: 10000
+    overrides:
+      paper: 20000
 
 equipment:
   # The sacrificed-vanilla-armor argument determines which vanilla armor gets completely removed (loses all its trims)

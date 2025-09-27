@@ -20,7 +20,6 @@ import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
-import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.util.*;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
@@ -238,6 +237,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
         @Override
         public void parseSection(Pack pack, Path path, Map<String, Object> section) throws LocalizedException {
+            ExceptionCollector<LocalizedResourceConfigException> exceptionCollector = new ExceptionCollector<>();
             for (Map.Entry<String, Object> entry : section.entrySet()) {
                 String before = entry.getKey();
                 String after = entry.getValue().toString();
@@ -245,21 +245,25 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 BlockStateWrapper beforeState = createVanillaBlockState(before);
                 BlockStateWrapper afterState = createVanillaBlockState(before);
                 if (beforeState == null) {
-                    TranslationManager.instance().log("warning.config.block_state_mapping.invalid_state", path.toString(), before);
-                    return;
+                    exceptionCollector.add(new LocalizedResourceConfigException("warning.config.block_state_mapping.invalid_state", before));
+                    continue;
                 }
                 if (afterState == null) {
-                    TranslationManager.instance().log("warning.config.block_state_mapping.invalid_state", path.toString(), after);
-                    return;
+                    exceptionCollector.add(new LocalizedResourceConfigException("warning.config.block_state_mapping.invalid_state", after));
+                    continue;
                 }
                 int previous = AbstractBlockManager.this.blockStateMappings[beforeState.registryId()];
                 if (previous != -1 && previous != afterState.registryId()) {
-                    TranslationManager.instance().log("warning.config.block_state_mapping.conflict", path.toString(), beforeState.toString(), afterState.toString(), BlockRegistryMirror.byId(previous).toString());
-                    return;
+                    exceptionCollector.add(new LocalizedResourceConfigException("warning.config.block_state_mapping.conflict",
+                            beforeState.toString(),
+                            afterState.toString(),
+                            BlockRegistryMirror.byId(previous).toString()));
+                    continue;
                 }
                 AbstractBlockManager.this.blockStateMappings[beforeState.registryId()] = afterState.registryId();
                 AbstractBlockManager.this.blockStateArranger.computeIfAbsent(getBlockOwnerId(beforeState), k -> new ArrayList<>()).add(afterState);
             }
+            exceptionCollector.throwIfPresent();
         }
     }
 
@@ -277,19 +281,19 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             if (isVanillaBlock(id)) {
-                parseVanillaBlock(pack, path, id, section);
+                parseVanillaBlock(id, section);
             } else {
                 // check duplicated config
                 if (AbstractBlockManager.this.byId.containsKey(id)) {
                     throw new LocalizedResourceConfigException("warning.config.block.duplicate");
                 }
-                parseCustomBlock(pack, path, id, section);
+                parseCustomBlock(id, section);
             }
         }
 
-        private void parseVanillaBlock(Pack pack, Path path, Key id, Map<String, Object> section) {
+        private void parseVanillaBlock(Key id, Map<String, Object> section) {
             Map<String, Object> settings = MiscUtils.castToMap(section.get("settings"), true);
             if (settings != null) {
                 Object clientBoundTags = settings.get("client-bound-tags");
@@ -300,7 +304,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             }
         }
 
-        private void parseCustomBlock(Pack pack, Path path, Key id, Map<String, Object> section) {
+        private void parseCustomBlock(Key id, Map<String, Object> section) {
             // 获取方块设置
             BlockSettings settings = BlockSettings.fromMap(id, MiscUtils.castToMap(section.get("settings"), true));
             // 读取基础外观配置

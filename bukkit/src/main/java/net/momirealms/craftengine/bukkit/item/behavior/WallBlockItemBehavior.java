@@ -35,7 +35,7 @@ public class WallBlockItemBehavior extends BlockItemBehavior {
 
     public static class Factory implements ItemBehaviorFactory {
         @Override
-        public ItemBehavior create(Pack pack, Path path, Key key, Map<String, Object> arguments) {
+        public ItemBehavior create(Pack pack, Path path, String node, Key key, Map<String, Object> arguments) {
             Object id = arguments.get("block");
             if (id == null) {
                 throw new LocalizedResourceConfigException("warning.config.item.behavior.wall_block.missing_block", new IllegalArgumentException("Missing required parameter 'block' for wall_block_item behavior"));
@@ -43,9 +43,9 @@ public class WallBlockItemBehavior extends BlockItemBehavior {
             if (id instanceof Map<?, ?> map) {
                 if (map.containsKey(key.toString())) {
                     // 防呆
-                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, key, MiscUtils.castToMap(map.get(key.toString()), false));
+                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map.get(key.toString()), false));
                 } else {
-                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, key, MiscUtils.castToMap(map, false));
+                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map, false));
                 }
                 return new WallBlockItemBehavior(key);
             } else {

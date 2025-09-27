@@ -120,7 +120,7 @@ public class BukkitAdvancementManager extends AbstractAdvancementManager {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             if (advancements.containsKey(id)) {
                 throw new LocalizedResourceConfigException("warning.config.advancement.duplicate", path, id);
             }

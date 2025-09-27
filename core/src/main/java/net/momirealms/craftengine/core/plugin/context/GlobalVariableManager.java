@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.IdObjectConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
+import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -49,7 +50,7 @@ public class GlobalVariableManager implements Manageable {
         }
 
         @Override
-        public void parseObject(Pack pack, Path path, net.momirealms.craftengine.core.util.Key id, Object object) throws LocalizedException {
+        public void parseObject(Pack pack, Path path, String node, Key id, Object object) throws LocalizedException {
             if (object != null) {
                 GlobalVariableManager.this.globalVariables.put(id.value(), object.toString());
             }

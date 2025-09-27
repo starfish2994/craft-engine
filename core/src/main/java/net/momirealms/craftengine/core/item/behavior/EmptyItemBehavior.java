@@ -13,7 +13,7 @@ public class EmptyItemBehavior extends ItemBehavior {
     public static class Factory implements ItemBehaviorFactory {
 
         @Override
-        public ItemBehavior create(Pack pack, Path path, Key id, Map<String, Object> arguments) {
+        public ItemBehavior create(Pack pack, Path path, String node, Key id, Map<String, Object> arguments) {
             return INSTANCE;
         }
     }

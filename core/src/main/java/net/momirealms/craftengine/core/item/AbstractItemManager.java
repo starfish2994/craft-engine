@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.ResourceLocation;
+import net.momirealms.craftengine.core.pack.cache.IdAllocator;
 import net.momirealms.craftengine.core.pack.model.*;
 import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenerator;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
@@ -32,8 +33,10 @@ import net.momirealms.craftengine.core.util.*;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.type.Either;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -282,7 +285,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             if (AbstractItemManager.this.equipments.containsKey(id)) {
                 throw new LocalizedResourceConfigException("warning.config.equipment.duplicate");
             }
@@ -313,6 +316,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
 
     public class ItemParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"items", "item"};
+        private final Map<Key, IdAllocator> idAllocators = new HashMap<>();
 
         private boolean isModernFormatRequired() {
             return Config.packMaxVersion().isAtOrAbove(MinecraftVersions.V1_21_4);
@@ -320,6 +324,18 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
 
         private boolean needsLegacyCompatibility() {
             return Config.packMinVersion().isBelow(MinecraftVersions.V1_21_4);
+        }
+
+        private boolean needsCustomModelDataCompatibility() {
+            return Config.packMinVersion().isBelow(MinecraftVersions.V1_21_2);
+        }
+
+        private boolean needsItemModelCompatibility() {
+            return Config.packMaxVersion().isAbove(MinecraftVersions.V1_21_2);
+        }
+
+        public Map<Key, IdAllocator> idAllocators() {
+            return this.idAllocators;
         }
 
         @Override
@@ -333,261 +349,326 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void preProcess() {
+            this.idAllocators.clear();
+        }
+
+        @Override
+        public void postProcess() {
+            for (Map.Entry<Key, IdAllocator> entry : this.idAllocators.entrySet()) {
+                entry.getValue().processPendingAllocations();
+                try {
+                    entry.getValue().saveToCache();
+                } catch (IOException e) {
+                    AbstractItemManager.this.plugin.logger().warn("Error while saving custom model data allocation for material " + entry.getKey().asString(), e);
+                }
+            }
+        }
+
+        // 创建或获取已有的自动分配器
+        private IdAllocator getOrCreateIdAllocator(Key key) {
+            return this.idAllocators.computeIfAbsent(key, k -> {
+                IdAllocator newAllocator = new IdAllocator(plugin.dataFolderPath().resolve("cache").resolve("custom-model-data").resolve(k.value() + ".json"));
+                newAllocator.reset(Config.customModelDataStartingValue(k), 16_777_216);
+                try {
+                    newAllocator.loadFromCache();
+                } catch (IOException e) {
+                    AbstractItemManager.this.plugin.logger().warn("Error while loading custom model data from cache for material " + k.asString(), e);
+                }
+                return newAllocator;
+            });
+        }
+
+        @Override
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             if (AbstractItemManager.this.customItemsById.containsKey(id)) {
                 throw new LocalizedResourceConfigException("warning.config.item.duplicate");
             }
-
+            // 创建UniqueKey，仅缓存用
             UniqueKey uniqueId = UniqueKey.create(id);
             // 判断是不是原版物品
             boolean isVanillaItem = isVanillaItem(id);
-            Key material = Key.from(isVanillaItem ? id.value() : ResourceConfigUtils.requireNonEmptyStringOrThrow(section.get("material"), "warning.config.item.missing_material").toLowerCase(Locale.ENGLISH));
-            Key clientBoundMaterial = section.containsKey("client-bound-material") ? Key.from(section.get("client-bound-material").toString().toLowerCase(Locale.ENGLISH)) : material;
-            // 如果是原版物品，那么custom-model-data只能是0，即使用户设置了其他值
-            int customModelData = isVanillaItem ? 0 : ResourceConfigUtils.getAsInt(section.getOrDefault("custom-model-data", 0), "custom-model-data");
-            boolean clientBoundModel = section.containsKey("client-bound-model") ? ResourceConfigUtils.getAsBoolean(section.get("client-bound-model"), "client-bound-model") : Config.globalClientboundModel();
-            if (customModelData < 0) {
-                throw new LocalizedResourceConfigException("warning.config.item.invalid_custom_model_data", String.valueOf(customModelData));
-            }
-            if (customModelData > 16_777_216) {
-                throw new LocalizedResourceConfigException("warning.config.item.bad_custom_model_data", String.valueOf(customModelData));
-            }
 
-            // item-model值
-            Key itemModelKey = null;
+            // 读取服务端侧材质
+            Key material = isVanillaItem ? id : Key.from(ResourceConfigUtils.requireNonEmptyStringOrThrow(section.get("material"), "warning.config.item.missing_material").toLowerCase(Locale.ROOT));
+            // 读取客户端侧材质
+            Key clientBoundMaterial = VersionHelper.PREMIUM && section.containsKey("client-bound-material") ? Key.from(section.get("client-bound-material").toString().toLowerCase(Locale.ROOT)) : material;
 
-            CustomItem.Builder<I> itemBuilder = createPlatformItemBuilder(uniqueId, material, clientBoundMaterial);
-            boolean hasItemModelSection = section.containsKey("item-model");
+            // custom model data
+            CompletableFuture<Integer> customModelDataFuture;
 
-            // 如果custom-model-data不为0
-            if (customModelData > 0) {
-                if (clientBoundModel) itemBuilder.clientBoundDataModifier(new CustomModelDataModifier<>(customModelData));
-                else itemBuilder.dataModifier(new CustomModelDataModifier<>(customModelData));
-            }
-            // 如果没有item-model选项被配置，同时这个物品又含有 model 区域
-            else if (!hasItemModelSection && section.containsKey("model") && VersionHelper.isOrAbove1_21_2()) {
-                // 那么使用物品id当成item-model的值
-                itemModelKey = Key.from(section.getOrDefault("item-model", id.toString()).toString());
-                // 但是有个前提，id必须是有效的resource location
-                if (ResourceLocation.isValid(itemModelKey.toString())) {
-                    if (clientBoundModel) itemBuilder.clientBoundDataModifier(new ItemModelModifier<>(itemModelKey));
-                    else itemBuilder.dataModifier(new ItemModelModifier<>(itemModelKey));
-                } else {
-                    itemModelKey = null;
-                }
-            }
-
-            // 如果有item-model
-            if (hasItemModelSection && VersionHelper.isOrAbove1_21_2()) {
-                itemModelKey = Key.from(section.get("item-model").toString());
-                if (clientBoundModel) itemBuilder.clientBoundDataModifier(new ItemModelModifier<>(itemModelKey));
-                else itemBuilder.dataModifier(new ItemModelModifier<>(itemModelKey));
-            }
-
-            // 对于不重要的配置，可以仅警告，不返回
-            ExceptionCollector<LocalizedResourceConfigException> collector = new ExceptionCollector<>();
-
-            // 应用物品数据
-            try {
-                applyDataModifiers(MiscUtils.castToMap(section.get("data"), true), itemBuilder::dataModifier);
-            } catch (LocalizedResourceConfigException e) {
-                collector.add(e);
-            }
-            // 应用客户端侧数据
-            try {
-                if (VersionHelper.PREMIUM) {
-                    applyDataModifiers(MiscUtils.castToMap(section.get("client-bound-data"), true), itemBuilder::clientBoundDataModifier);
-                }
-            } catch (LocalizedResourceConfigException e) {
-                collector.add(e);
-            }
-
-            // 如果不是原版物品，那么加入ce的标识符
-            if (!isVanillaItem)
-                itemBuilder.dataModifier(new IdModifier<>(id));
-
-            // 事件
-            Map<EventTrigger, List<net.momirealms.craftengine.core.plugin.context.function.Function<PlayerOptionalContext>>> eventTriggerListMap;
-            try {
-                eventTriggerListMap = EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event"));
-            } catch (LocalizedResourceConfigException e) {
-                collector.add(e);
-                eventTriggerListMap = Map.of();
-            }
-
-            // 设置
-            ItemSettings settings;
-            try {
-                settings = Optional.ofNullable(ResourceConfigUtils.get(section, "settings"))
-                        .map(map -> ItemSettings.fromMap(MiscUtils.castToMap(map, true)))
-                        .map(it -> isVanillaItem ? it.canPlaceRelatedVanillaBlock(true) : it)
-                        .orElse(ItemSettings.of().canPlaceRelatedVanillaBlock(isVanillaItem));
-            } catch (LocalizedResourceConfigException e) {
-                collector.add(e);
-                settings = ItemSettings.of().canPlaceRelatedVanillaBlock(isVanillaItem);
-            }
-
-            // 行为
-            List<ItemBehavior> behaviors;
-            try {
-                behaviors = ItemBehaviors.fromObj(pack, path, id, ResourceConfigUtils.get(section, "behavior", "behaviors"));
-            } catch (LocalizedResourceConfigException e) {
-                collector.add(e);
-                behaviors = Collections.emptyList();
-            }
-
-            // 如果有物品更新器
-            if (section.containsKey("updater")) {
-                Map<String, Object> updater = ResourceConfigUtils.getAsMap(section.get("updater"), "updater");
-                List<ItemUpdateConfig.Version> versions = new ArrayList<>(2);
-                for (Map.Entry<String, Object> entry : updater.entrySet()) {
-                    try {
-                        int version = Integer.parseInt(entry.getKey());
-                        versions.add(new ItemUpdateConfig.Version(
-                                version,
-                                ResourceConfigUtils.parseConfigAsList(entry.getValue(), map -> ItemUpdaters.fromMap(id, map)).toArray(new ItemUpdater[0])
-                        ));
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
-                ItemUpdateConfig config = new ItemUpdateConfig(versions);
-                itemBuilder.updater(config);
-                itemBuilder.dataModifier(new ItemVersionModifier<>(config.maxVersion()));
-            }
-
-            // 构建自定义物品
-            CustomItem<I> customItem = itemBuilder
-                    .isVanillaItem(isVanillaItem)
-                    .behaviors(behaviors)
-                    .settings(settings)
-                    .events(eventTriggerListMap)
-                    .build();
-
-            // 添加到缓存
-            addCustomItem(customItem);
-
-            // 如果有类别，则添加
-            if (section.containsKey("category")) {
-                AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, MiscUtils.getAsStringList(section.get("category")).stream().map(Key::of).toList());
-            }
-
-            // 模型配置区域，如果这里被配置了，那么用户必须要配置custom-model-data或item-model
-            Map<String, Object> modelSection = MiscUtils.castToMap(section.get("model"), true);
-            Map<String, Object> legacyModelSection = MiscUtils.castToMap(section.get("legacy-model"), true);
-            if (modelSection == null && legacyModelSection == null) {
-                collector.throwIfPresent();
-                return;
-            }
-
-            boolean needsModelSection = isModernFormatRequired() || (needsLegacyCompatibility() && legacyModelSection == null);
-            // 只对自定义物品有这个限制
             if (!isVanillaItem) {
-                // 既没有模型值也没有item-model
-                if (customModelData == 0 && itemModelKey == null) {
-                    collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.missing_model_id"));
+                // 如果用户指定了，说明要手动分配，不管他是什么版本，都强制设置模型值
+                if (section.containsKey("custom-model-data")) {
+                    int customModelData = ResourceConfigUtils.getAsInt(section.getOrDefault("custom-model-data", 0), "custom-model-data");
+                    if (customModelData < 0) {
+                        throw new LocalizedResourceConfigException("warning.config.item.invalid_custom_model_data", String.valueOf(customModelData));
+                    }
+                    if (customModelData > 16_777_216) {
+                        throw new LocalizedResourceConfigException("warning.config.item.bad_custom_model_data", String.valueOf(customModelData));
+                    }
+                    customModelDataFuture = getOrCreateIdAllocator(clientBoundMaterial).assignFixedId(id.asString(), customModelData);
                 }
-            }
-
-            // 新版格式
-            ItemModel modernModel = null;
-            // 旧版格式
-            TreeSet<LegacyOverridesModel> legacyOverridesModels = null;
-            // 如果需要支持新版item model 或者用户需要旧版本兼容，但是没配置legacy-model
-            if (needsModelSection) {
-                // 1.21.4+必须要配置model区域，如果不需要高版本兼容，则可以只写legacy-model
-                if (modelSection == null) {
-                    collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.missing_model"));
-                    return;
-                }
-                try {
-                    modernModel = ItemModels.fromMap(modelSection);
-                    for (ModelGeneration generation : modernModel.modelsToGenerate()) {
-                        prepareModelGeneration(generation);
+                // 用户没指定custom-model-data，则看当前资源包版本兼容需求
+                else {
+                    // 如果最低版本要1.21.1以下支持
+                    if (needsCustomModelDataCompatibility()) {
+                        customModelDataFuture = getOrCreateIdAllocator(clientBoundMaterial).requestAutoId(id.asString());
                     }
-                } catch (LocalizedResourceConfigException e) {
-                    collector.addAndThrow(e);
-                }
-            }
-            // 如果需要旧版本兼容
-            if (needsLegacyCompatibility()) {
-                if (legacyModelSection != null) {
-                    try {
-                        LegacyItemModel legacyItemModel = LegacyItemModel.fromMap(legacyModelSection, customModelData);
-                        for (ModelGeneration generation : legacyItemModel.modelsToGenerate()) {
-                            prepareModelGeneration(generation);
-                        }
-                        legacyOverridesModels = new TreeSet<>(legacyItemModel.overrides());
-                    } catch (LocalizedResourceConfigException e) {
-                        collector.addAndThrow(e);
-                    }
-                } else {
-                    legacyOverridesModels = new TreeSet<>();
-                    processModelRecursively(modernModel, new LinkedHashMap<>(), legacyOverridesModels, clientBoundMaterial, customModelData);
-                    if (legacyOverridesModels.isEmpty()) {
-                        collector.add(new LocalizedResourceConfigException("warning.config.item.legacy_model.cannot_convert", path.toString(), id.asString()));
-                    }
-                }
-            }
-
-            // 自定义物品的model处理
-            if (!isVanillaItem) {
-                // 这个item-model是否存在，且是原版item-model
-                boolean isVanillaItemModel = itemModelKey != null && AbstractPackManager.PRESET_ITEMS.containsKey(itemModelKey);
-                // 使用了自定义模型值
-                if (customModelData != 0) {
-                    // 如果用户主动设置了item-model且为原版物品，则使用item-model为基础模型，否则使用其视觉材质对应的item-model
-                    Key finalBaseModel = isVanillaItemModel ? itemModelKey : clientBoundMaterial;
-                    // 检查cmd冲突
-                    Map<Integer, Key> conflict = AbstractItemManager.this.cmdConflictChecker.computeIfAbsent(finalBaseModel, k -> new HashMap<>());
-                    if (conflict.containsKey(customModelData)) {
-                        collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.custom_model_data_conflict", String.valueOf(customModelData), conflict.get(customModelData).toString()));
-                    }
-                    conflict.put(customModelData, id);
-                    // 添加新版item model
-                    if (isModernFormatRequired() && modernModel != null) {
-                        TreeMap<Integer, ModernItemModel> map = AbstractItemManager.this.modernOverrides.computeIfAbsent(finalBaseModel, k -> new TreeMap<>());
-                        map.put(customModelData, new ModernItemModel(
-                                modernModel,
-                                ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
-                                ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
-                        ));
-                    }
-                    // 添加旧版 overrides
-                    if (needsLegacyCompatibility() && legacyOverridesModels != null && !legacyOverridesModels.isEmpty()) {
-                        TreeSet<LegacyOverridesModel> lom = AbstractItemManager.this.legacyOverrides.computeIfAbsent(finalBaseModel, k -> new TreeSet<>());
-                        lom.addAll(legacyOverridesModels);
-                    }
-                } else if (isVanillaItemModel) {
-                    collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.item_model.conflict", itemModelKey.asString()));
-                }
-
-                // 使用了item-model组件，且不是原版物品的
-                if (itemModelKey != null && !isVanillaItemModel) {
-                    if (isModernFormatRequired() && modernModel != null) {
-                        AbstractItemManager.this.modernItemModels1_21_4.put(itemModelKey, new ModernItemModel(
-                                modernModel,
-                                ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
-                                ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
-                        ));
-                    }
-                    if (Config.packMaxVersion().isAtOrAbove(MinecraftVersions.V1_21_2) && needsLegacyCompatibility() && legacyOverridesModels != null && !legacyOverridesModels.isEmpty()) {
-                        TreeSet<LegacyOverridesModel> lom = AbstractItemManager.this.modernItemModels1_21_2.computeIfAbsent(itemModelKey, k -> new TreeSet<>());
-                        lom.addAll(legacyOverridesModels);
+                    // 否则不主动分配模型值
+                    else {
+                        customModelDataFuture = CompletableFuture.completedFuture(0);
                     }
                 }
             } else {
-                // 原版物品的item model覆写
-                if (isModernFormatRequired()) {
-                    AbstractItemManager.this.modernItemModels1_21_4.put(id, new ModernItemModel(
-                            modernModel,
-                            ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
-                            ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
-                    ));
-                }
+                // 原版物品不应该有这个
+                customModelDataFuture = CompletableFuture.completedFuture(0);
             }
 
-            // 抛出异常
-            collector.throwIfPresent();
+            // 是否使用客户端侧模型
+            boolean clientBoundModel = VersionHelper.PREMIUM && (section.containsKey("client-bound-model") ? ResourceConfigUtils.getAsBoolean(section.get("client-bound-model"), "client-bound-model") : Config.globalClientboundModel());
+
+            // 当模型值完成分配的时候
+            customModelDataFuture.thenAccept(customModelData -> ResourceConfigUtils.runCatching(path, node, () -> {
+
+                // item model
+                Key itemModel = null;
+
+                // 如果这个版本可以使用 item model
+                if (!isVanillaItem && needsItemModelCompatibility()) {
+                    // 如果用户主动设定了item model，那么肯定要设置
+                    if (section.containsKey("item-model")) {
+                        itemModel = Key.from(section.get("item-model").toString());
+                    }
+                    // 用户没设置item model也没设置custom model data，那么为他生成一个基于物品id的item model
+                    else if (customModelData == 0) {
+                        itemModel = id;
+                    }
+                    // 用户没设置item model但是有custom model data，那么就使用custom model data
+                }
+
+                CustomItem.Builder<I> itemBuilder = createPlatformItemBuilder(uniqueId, material, clientBoundMaterial);
+                if (customModelData > 0) {
+                    if (clientBoundModel) itemBuilder.clientBoundDataModifier(new CustomModelDataModifier<>(customModelData));
+                    else itemBuilder.dataModifier(new CustomModelDataModifier<>(customModelData));
+                }
+                if (itemModel != null) {
+                    if (clientBoundModel) itemBuilder.clientBoundDataModifier(new ItemModelModifier<>(itemModel));
+                    else itemBuilder.dataModifier(new ItemModelModifier<>(itemModel));
+                }
+
+                // 对于不重要的配置，可以仅警告，不返回
+                ExceptionCollector<LocalizedResourceConfigException> collector = new ExceptionCollector<>();
+
+                // 应用物品数据
+                try {
+                    applyDataModifiers(MiscUtils.castToMap(section.get("data"), true), itemBuilder::dataModifier);
+                } catch (LocalizedResourceConfigException e) {
+                    collector.add(e);
+                }
+
+                // 应用客户端侧数据
+                try {
+                    if (VersionHelper.PREMIUM) {
+                        applyDataModifiers(MiscUtils.castToMap(section.get("client-bound-data"), true), itemBuilder::clientBoundDataModifier);
+                    }
+                } catch (LocalizedResourceConfigException e) {
+                    collector.add(e);
+                }
+
+                // 如果不是原版物品，那么加入ce的标识符
+                if (!isVanillaItem)
+                    itemBuilder.dataModifier(new IdModifier<>(id));
+
+                // 事件
+                Map<EventTrigger, List<net.momirealms.craftengine.core.plugin.context.function.Function<PlayerOptionalContext>>> eventTriggerListMap;
+                try {
+                    eventTriggerListMap = EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event"));
+                } catch (LocalizedResourceConfigException e) {
+                    collector.add(e);
+                    eventTriggerListMap = Map.of();
+                }
+
+                // 设置
+                ItemSettings settings;
+                try {
+                    settings = Optional.ofNullable(ResourceConfigUtils.get(section, "settings"))
+                            .map(map -> ItemSettings.fromMap(MiscUtils.castToMap(map, true)))
+                            .map(it -> isVanillaItem ? it.canPlaceRelatedVanillaBlock(true) : it)
+                            .orElse(ItemSettings.of().canPlaceRelatedVanillaBlock(isVanillaItem));
+                } catch (LocalizedResourceConfigException e) {
+                    collector.add(e);
+                    settings = ItemSettings.of().canPlaceRelatedVanillaBlock(isVanillaItem);
+                }
+
+                // 行为
+                List<ItemBehavior> behaviors;
+                try {
+                    behaviors = ResourceConfigUtils.parseConfigAsList(ResourceConfigUtils.get(section, "behavior", "behaviors"), map -> ItemBehaviors.fromMap(pack, path, node, id, map));
+                } catch (LocalizedResourceConfigException e) {
+                    collector.add(e);
+                    behaviors = Collections.emptyList();
+                }
+
+                // 如果有物品更新器
+                if (section.containsKey("updater")) {
+                    Map<String, Object> updater = ResourceConfigUtils.getAsMap(section.get("updater"), "updater");
+                    List<ItemUpdateConfig.Version> versions = new ArrayList<>(2);
+                    for (Map.Entry<String, Object> entry : updater.entrySet()) {
+                        try {
+                            int version = Integer.parseInt(entry.getKey());
+                            versions.add(new ItemUpdateConfig.Version(
+                                    version,
+                                    ResourceConfigUtils.parseConfigAsList(entry.getValue(), map -> ItemUpdaters.fromMap(id, map)).toArray(new ItemUpdater[0])
+                            ));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                    ItemUpdateConfig config = new ItemUpdateConfig(versions);
+                    itemBuilder.updater(config);
+                    itemBuilder.dataModifier(new ItemVersionModifier<>(config.maxVersion()));
+                }
+
+                // 构建自定义物品
+                CustomItem<I> customItem = itemBuilder
+                        .isVanillaItem(isVanillaItem)
+                        .behaviors(behaviors)
+                        .settings(settings)
+                        .events(eventTriggerListMap)
+                        .build();
+
+                // 添加到缓存
+                addCustomItem(customItem);
+
+                // 如果有类别，则添加
+                if (section.containsKey("category")) {
+                    AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, MiscUtils.getAsStringList(section.get("category")).stream().map(Key::of).toList());
+                }
+
+                /*
+                 * ========================
+                 *
+                 *       模型配置分界线
+                 *
+                 * ========================
+                 */
+
+                // 模型配置区域，如果这里被配置了，那么用户必须要配置custom-model-data或item-model
+                Map<String, Object> modelSection = MiscUtils.castToMap(section.get("model"), true);
+                Map<String, Object> legacyModelSection = MiscUtils.castToMap(section.get("legacy-model"), true);
+                if (modelSection == null && legacyModelSection == null) {
+                    collector.throwIfPresent();
+                    return;
+                }
+
+                boolean needsModelSection = isModernFormatRequired() || (needsLegacyCompatibility() && legacyModelSection == null);
+                // 只对自定义物品有这个限制，既没有模型值也没有item-model
+                if (!isVanillaItem && customModelData == 0 && itemModel == null) {
+                    collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.missing_model_id"));
+                }
+
+                // 新版格式
+                ItemModel modernModel = null;
+                // 旧版格式
+                TreeSet<LegacyOverridesModel> legacyOverridesModels = null;
+                // 如果需要支持新版item model 或者用户需要旧版本兼容，但是没配置legacy-model
+                if (needsModelSection) {
+                    // 1.21.4+必须要配置model区域，如果不需要高版本兼容，则可以只写legacy-model
+                    if (modelSection == null) {
+                        collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.missing_model"));
+                        return;
+                    }
+                    try {
+                        modernModel = ItemModels.fromMap(modelSection);
+                        for (ModelGeneration generation : modernModel.modelsToGenerate()) {
+                            prepareModelGeneration(generation);
+                        }
+                    } catch (LocalizedResourceConfigException e) {
+                        collector.addAndThrow(e);
+                    }
+                }
+                // 如果需要旧版本兼容
+                if (needsLegacyCompatibility()) {
+                    if (legacyModelSection != null) {
+                        try {
+                            LegacyItemModel legacyItemModel = LegacyItemModel.fromMap(legacyModelSection, customModelData);
+                            for (ModelGeneration generation : legacyItemModel.modelsToGenerate()) {
+                                prepareModelGeneration(generation);
+                            }
+                            legacyOverridesModels = new TreeSet<>(legacyItemModel.overrides());
+                        } catch (LocalizedResourceConfigException e) {
+                            collector.addAndThrow(e);
+                        }
+                    } else {
+                        legacyOverridesModels = new TreeSet<>();
+                        processModelRecursively(modernModel, new LinkedHashMap<>(), legacyOverridesModels, clientBoundMaterial, customModelData);
+                        if (legacyOverridesModels.isEmpty()) {
+                            collector.add(new LocalizedResourceConfigException("warning.config.item.legacy_model.cannot_convert", path.toString(), id.asString()));
+                        }
+                    }
+                }
+
+                // 自定义物品的model处理
+                if (!isVanillaItem) {
+                    // 这个item-model是否存在，且是原版item-model
+                    boolean isVanillaItemModel = itemModel != null && AbstractPackManager.PRESET_ITEMS.containsKey(itemModel);
+                    // 使用了自定义模型值
+                    if (customModelData != 0) {
+                        // 如果用户主动设置了item-model且为原版物品，则使用item-model为基础模型，否则使用其视觉材质对应的item-model
+                        Key finalBaseModel = isVanillaItemModel ? itemModel : clientBoundMaterial;
+                        // 检查cmd冲突
+                        Map<Integer, Key> conflict = AbstractItemManager.this.cmdConflictChecker.computeIfAbsent(finalBaseModel, k -> new HashMap<>());
+                        if (conflict.containsKey(customModelData)) {
+                            collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.custom_model_data_conflict", String.valueOf(customModelData), conflict.get(customModelData).toString()));
+                        }
+                        conflict.put(customModelData, id);
+                        // 添加新版item model
+                        if (isModernFormatRequired() && modernModel != null) {
+                            TreeMap<Integer, ModernItemModel> map = AbstractItemManager.this.modernOverrides.computeIfAbsent(finalBaseModel, k -> new TreeMap<>());
+                            map.put(customModelData, new ModernItemModel(
+                                    modernModel,
+                                    ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
+                                    ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
+                            ));
+                        }
+                        // 添加旧版 overrides
+                        if (needsLegacyCompatibility() && legacyOverridesModels != null && !legacyOverridesModels.isEmpty()) {
+                            TreeSet<LegacyOverridesModel> lom = AbstractItemManager.this.legacyOverrides.computeIfAbsent(finalBaseModel, k -> new TreeSet<>());
+                            lom.addAll(legacyOverridesModels);
+                        }
+                    } else if (isVanillaItemModel) {
+                        collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.item_model.conflict", itemModel.asString()));
+                    }
+
+                    // 使用了item-model组件，且不是原版物品的
+                    if (itemModel != null && !isVanillaItemModel) {
+                        if (isModernFormatRequired() && modernModel != null) {
+                            AbstractItemManager.this.modernItemModels1_21_4.put(itemModel, new ModernItemModel(
+                                    modernModel,
+                                    ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
+                                    ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
+                            ));
+                        }
+                        if (Config.packMaxVersion().isAtOrAbove(MinecraftVersions.V1_21_2) && needsLegacyCompatibility() && legacyOverridesModels != null && !legacyOverridesModels.isEmpty()) {
+                            TreeSet<LegacyOverridesModel> lom = AbstractItemManager.this.modernItemModels1_21_2.computeIfAbsent(itemModel, k -> new TreeSet<>());
+                            lom.addAll(legacyOverridesModels);
+                        }
+                    }
+                } else {
+                    // 原版物品的item model覆写
+                    if (isModernFormatRequired()) {
+                        AbstractItemManager.this.modernItemModels1_21_4.put(id, new ModernItemModel(
+                                modernModel,
+                                ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
+                                ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
+                        ));
+                    }
+                }
+
+                // 抛出异常
+                collector.throwIfPresent();
+
+            }, () -> GsonHelper.get().toJson(section)));
         }
     }
 

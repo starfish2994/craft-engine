@@ -159,6 +159,8 @@ public class Config {
     protected boolean item$update_triggers$click_in_inventory;
     protected boolean item$update_triggers$drop;
     protected boolean item$update_triggers$pick_up;
+    protected int item$custom_model_data_starting_value$default;
+    protected Map<Key, Integer> item$custom_model_data_starting_value$overrides;
 
     protected String equipment$sacrificed_vanilla_armor$type;
     protected Key equipment$sacrificed_vanilla_armor$asset_id;
@@ -239,6 +241,7 @@ public class Config {
                             .addIgnoredRoute(PluginProperties.getValue("config"), "resource-pack.delivery.hosting", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "chunk-system.process-invalid-blocks.convert", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "chunk-system.process-invalid-furniture.convert", '.')
+                            .addIgnoredRoute(PluginProperties.getValue("config"), "item.custom-model-data-starting-value.overrides", '.')
                             .build());
         }
         try {
@@ -398,6 +401,22 @@ public class Config {
         item$update_triggers$click_in_inventory = config.getBoolean("item.update-triggers.click-in-inventory", false);
         item$update_triggers$drop = config.getBoolean("item.update-triggers.drop", false);
         item$update_triggers$pick_up = config.getBoolean("item.update-triggers.pick-up", false);
+        item$custom_model_data_starting_value$default = config.getInt("item.custom-model-data-starting-value.default", 10000);
+
+        Section customModelDataOverridesSection = config.getSection("item.custom-model-data-starting-value.overrides");
+        if (customModelDataOverridesSection != null) {
+            Map<Key, Integer> customModelDataOverrides = new HashMap<>();
+            for (Map.Entry<String, Object> entry : customModelDataOverridesSection.getStringRouteMappedValues(false).entrySet()) {
+                if (entry.getValue() instanceof String s) {
+                    customModelDataOverrides.put(Key.of(entry.getKey()), Integer.parseInt(s));
+                } else if (entry.getValue() instanceof Integer i) {
+                    customModelDataOverrides.put(Key.of(entry.getKey()), i);
+                }
+            }
+            item$custom_model_data_starting_value$overrides = customModelDataOverrides;
+        } else {
+            item$custom_model_data_starting_value$overrides = Map.of();
+        }
 
         // block
         block$sound_system$enable = config.getBoolean("block.sound-system.enable", true);
@@ -750,6 +769,13 @@ public class Config {
 
     public static boolean hideBaseEntity() {
         return instance.furniture$hide_base_entity;
+    }
+
+    public static int customModelDataStartingValue(Key material) {
+        if (instance.item$custom_model_data_starting_value$overrides.containsKey(material)) {
+            return instance.item$custom_model_data_starting_value$overrides.get(material);
+        }
+        return instance.item$custom_model_data_starting_value$default;
     }
 
     public static int compressionMethod() {

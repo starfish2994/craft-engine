@@ -135,10 +135,10 @@ public abstract class AbstractRecipeManager<T> implements RecipeManager<T> {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             if (!Config.enableRecipeSystem()) return;
             if (AbstractRecipeManager.this.byId.containsKey(id)) {
-                throw new LocalizedResourceConfigException("warning.config.recipe.duplicate", path, id);
+                throw new LocalizedResourceConfigException("warning.config.recipe.duplicate");
             }
             Recipe<T> recipe = RecipeSerializers.fromMap(id, section);
             try {

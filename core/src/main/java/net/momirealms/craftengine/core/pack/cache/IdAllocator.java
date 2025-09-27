@@ -1,0 +1,226 @@
+package net.momirealms.craftengine.core.pack.cache;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import net.momirealms.craftengine.core.util.FileUtils;
+import net.momirealms.craftengine.core.util.GsonHelper;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
+
+public class IdAllocator {
+    private final Path cacheFilePath;
+    private final BiMap<String, Integer> forcedIdMap = HashBiMap.create(128);
+    private final Map<String, Integer> cachedIdMap = new HashMap<>();
+    private final BitSet occupiedIdSet = new BitSet();
+    private final Map<String, CompletableFuture<Integer>> pendingAllocations = new HashMap<>();
+
+    private int nextAutoId;
+    private int minId;
+    private int maxId;
+
+    public IdAllocator(Path cacheFilePath) {
+        this.cacheFilePath = cacheFilePath;
+    }
+
+    /**
+     * 重置分配器状态
+     * @param minId 最小ID（包含）
+     * @param maxId 最大ID（包含）
+     */
+    public void reset(int minId, int maxId) {
+        this.minId = minId;
+        this.nextAutoId = minId;
+        this.maxId = maxId;
+        this.occupiedIdSet.clear();
+        this.forcedIdMap.clear();
+        this.pendingAllocations.clear();
+        this.cachedIdMap.clear();
+    }
+
+    /**
+     * 处理所有待分配的自动ID请求
+     */
+    public void processPendingAllocations() {
+        for (Map.Entry<String, CompletableFuture<Integer>> entry : this.pendingAllocations.entrySet()) {
+            String name = entry.getKey();
+            CompletableFuture<Integer> future = entry.getValue();
+
+            if (future.isDone()) {
+                continue; // 不应该发生的情况
+            }
+
+            // 优先尝试使用缓存的ID
+            Integer cachedId = this.cachedIdMap.get(name);
+            if (isIdAvailable(cachedId)) {
+                allocateId(name, cachedId, future);
+                continue;
+            }
+
+            // 分配新的自动ID
+            int newId = findNextAvailableId();
+            if (newId == -1) {
+                future.completeExceptionally(new IdExhaustedException(name, this.minId, this.maxId));
+                continue;
+            }
+
+            allocateId(name, newId, future);
+            this.cachedIdMap.put(name, newId);
+        }
+
+        this.pendingAllocations.clear();
+    }
+
+    private boolean isIdAvailable(Integer id) {
+        return id != null && id >= this.minId && id <= this.maxId
+                && !this.occupiedIdSet.get(id);
+    }
+
+    private void allocateId(String name, int id, CompletableFuture<Integer> future) {
+        this.occupiedIdSet.set(id);
+        future.complete(id);
+    }
+
+    private int findNextAvailableId() {
+        if (this.nextAutoId > this.maxId) {
+            return -1;
+        }
+
+        this.nextAutoId = this.occupiedIdSet.nextClearBit(this.nextAutoId);
+        return this.nextAutoId <= this.maxId ? this.nextAutoId : -1;
+    }
+
+    /**
+     * 强制分配指定ID，无视限制
+     * @param name 名称
+     * @param id 要分配的ID
+     * @return 分配结果的Future
+     */
+    public CompletableFuture<Integer> assignFixedId(String name, int id) {
+        // 检查ID是否被其他名称占用
+        String existingOwner = this.forcedIdMap.inverse().get(id);
+        if (existingOwner != null && !existingOwner.equals(name)) {
+            return CompletableFuture.failedFuture(new IdConflictException(existingOwner, id));
+        }
+
+        this.forcedIdMap.put(name, id);
+        this.cachedIdMap.remove(name); // 清除可能的缓存
+        this.occupiedIdSet.set(id);
+        return CompletableFuture.completedFuture(id);
+    }
+
+    /**
+     * 请求自动分配ID
+     * @param name 名称
+     * @return 分配结果的Future
+     */
+    public CompletableFuture<Integer> requestAutoId(String name) {
+        CompletableFuture<Integer> future = new CompletableFuture<>();
+        this.pendingAllocations.put(name, future);
+        return future;
+    }
+
+    /**
+     * 清理不再使用的ID
+     * @param shouldRemove 判断是否应该移除的谓词
+     * @return 被移除的ID数量
+     */
+    public int cleanupUnusedIds(Predicate<String> shouldRemove) {
+        List<String> idsToRemove = new ArrayList<>();
+        for (String id : this.cachedIdMap.keySet()) {
+            if (shouldRemove.test(id)) {
+                idsToRemove.add(id);
+            }
+        }
+
+        int removedCount = 0;
+        for (String id : idsToRemove) {
+            Integer removedId = this.cachedIdMap.remove(id);
+            if (removedId != null && !this.forcedIdMap.containsValue(removedId)) {
+                this.occupiedIdSet.clear(removedId);
+                removedCount++;
+            }
+        }
+        return removedCount;
+    }
+
+    /**
+     * 获取指定名称的ID
+     * @param name 名称
+     * @return ID，如果不存在返回null
+     */
+    public Integer getId(String name) {
+        Integer forcedId = this.forcedIdMap.get(name);
+        return forcedId != null ? forcedId : this.cachedIdMap.get(name);
+    }
+
+    /**
+     * 获取所有已分配的ID映射（不可修改）
+     */
+    public Map<String, Integer> getAllAllocatedIds() {
+        Map<String, Integer> result = new HashMap<>();
+        result.putAll(this.forcedIdMap);
+        result.putAll(this.cachedIdMap);
+        return Collections.unmodifiableMap(result);
+    }
+
+    /**
+     * 检查ID是否已被占用
+     */
+    public boolean isIdOccupied(int id) {
+        return this.occupiedIdSet.get(id);
+    }
+
+    /**
+     * 从文件加载缓存
+     */
+    public void loadFromCache() throws IOException {
+        if (!Files.exists(this.cacheFilePath)) {
+            return;
+        }
+
+        JsonElement element = GsonHelper.readJsonFile(this.cacheFilePath);
+        if (element instanceof JsonObject jsonObject) {
+            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                if (entry.getValue() instanceof JsonPrimitive primitive) {
+                    int id = primitive.getAsInt();
+                    this.cachedIdMap.put(entry.getKey(), id);
+                }
+            }
+        }
+    }
+
+    /**
+     * 保存缓存到文件
+     */
+    public void saveToCache() throws IOException {
+        FileUtils.createDirectoriesSafe(this.cacheFilePath.getParent());
+        GsonHelper.writeJsonFile(GsonHelper.get().toJsonTree(this.cachedIdMap), this.cacheFilePath);
+    }
+
+    // 异常类保持不变，但建议也重命名以保持一致性
+    public static class IdConflictException extends RuntimeException {
+        public IdConflictException(String previousOwner, int id) {
+            super("ID " + id + " is already occupied by: " + previousOwner);
+        }
+    }
+
+    public static class IdOutOfRangeException extends RuntimeException {
+        public IdOutOfRangeException(String name, int id, int min, int max) {
+            super("ID " + id + " for '" + name + "' is out of range. Valid range: " + min + "-" + max);
+        }
+    }
+
+    public static class IdExhaustedException extends RuntimeException {
+        public IdExhaustedException(String name, int min, int max) {
+            super("No available auto ID for '" + name + "'. All IDs in range " + min + "-" + max + " are occupied.");
+        }
+    }
+}

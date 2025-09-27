@@ -257,10 +257,10 @@ public class TranslationManagerImpl implements TranslationManager {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
             Locale locale = TranslationManager.parseLocale(id.value());
             if (locale == null) {
-                throw new LocalizedResourceConfigException("warning.config.i18n.unknown_locale", path, id);
+                throw new LocalizedResourceConfigException("warning.config.i18n.unknown_locale");
             }
 
             Map<String, String> bundle = new HashMap<>();
@@ -288,7 +288,7 @@ public class TranslationManagerImpl implements TranslationManager {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
             String langId = id.value().toLowerCase(Locale.ENGLISH);
             Map<String, String> sectionData = section.entrySet().stream()
                     .collect(Collectors.toMap(

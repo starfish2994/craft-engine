@@ -8,6 +8,6 @@ import java.nio.file.Path;
 
 public interface IdObjectConfigParser extends ConfigParser {
 
-    default void parseObject(Pack pack, Path path, Key id, Object object) throws LocalizedException {
+    default void parseObject(Pack pack, Path path, String node, Key id, Object object) throws LocalizedException {
     }
 }

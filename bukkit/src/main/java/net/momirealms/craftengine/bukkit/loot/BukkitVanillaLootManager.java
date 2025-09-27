@@ -105,7 +105,7 @@ public class BukkitVanillaLootManager extends AbstractVanillaLootManager impleme
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             String type = ResourceConfigUtils.requireNonEmptyStringOrThrow(section.get("type"), "warning.config.vanilla_loot.missing_type");
             VanillaLoot.Type typeEnum;
             try {

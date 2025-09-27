@@ -23,7 +23,7 @@ public class ItemBehaviors {
                 .register(ResourceKey.create(Registries.ITEM_BEHAVIOR_FACTORY.location(), key), factory);
     }
 
-    public static ItemBehavior fromMap(Pack pack, Path path, Key id, Map<String, Object> map) {
+    public static ItemBehavior fromMap(Pack pack, Path path, String node, Key id, Map<String, Object> map) {
         if (map == null || map.isEmpty()) return EmptyItemBehavior.INSTANCE;
         String type = ResourceConfigUtils.requireNonEmptyStringOrThrow(map.get("type"), "warning.config.item.behavior.missing_type");
         Key key = Key.withDefaultNamespace(type, Key.DEFAULT_NAMESPACE);
@@ -31,25 +31,6 @@ public class ItemBehaviors {
         if (factory == null) {
             throw new LocalizedResourceConfigException("warning.config.item.behavior.invalid_type", type);
         }
-        return factory.create(pack, path, id, map);
-    }
-
-    public static List<ItemBehavior> fromList(Pack pack, Path path, Key id, List<Map<String, Object>> list) {
-        List<ItemBehavior> behaviors = new ArrayList<>(list.size());
-        for (Map<String, Object> map : list) {
-            behaviors.add(fromMap(pack, path, id, map));
-        }
-        return behaviors;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static List<ItemBehavior> fromObj(Pack pack, Path path, Key id, Object behaviorObj) {
-        if (behaviorObj instanceof Map<?,?>) {
-            return List.of(fromMap(pack, path, id, MiscUtils.castToMap(behaviorObj, false)));
-        } else if (behaviorObj instanceof List<?>) {
-            return fromList(pack, path, id, (List<Map<String, Object>>) behaviorObj);
-        } else {
-            return List.of();
-        }
+        return factory.create(pack, path, node, id, map);
     }
 }
