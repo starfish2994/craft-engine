@@ -49,19 +49,23 @@ public class IdAllocator {
      * 处理所有待分配的自动ID请求
      */
     public void processPendingAllocations() {
+        for (Map.Entry<String, Integer> entry : this.cachedIdMap.entrySet()) {
+            CompletableFuture<Integer> future = this.pendingAllocations.get(entry.getKey());
+            if (future != null) {
+                int id = entry.getValue();
+                if (!isIdAvailable(id)) {
+                    continue;
+                }
+                allocateId(id, future);
+            }
+        }
+
         for (Map.Entry<String, CompletableFuture<Integer>> entry : this.pendingAllocations.entrySet()) {
             String name = entry.getKey();
             CompletableFuture<Integer> future = entry.getValue();
 
             if (future.isDone()) {
-                continue; // 不应该发生的情况
-            }
-
-            // 优先尝试使用缓存的ID
-            Integer cachedId = this.cachedIdMap.get(name);
-            if (isIdAvailable(cachedId)) {
-                allocateId(name, cachedId, future);
-                continue;
+                continue; // 已经在前面分配过了
             }
 
             // 分配新的自动ID
@@ -71,7 +75,7 @@ public class IdAllocator {
                 continue;
             }
 
-            allocateId(name, newId, future);
+            allocateId(newId, future);
             this.cachedIdMap.put(name, newId);
         }
 
@@ -83,7 +87,7 @@ public class IdAllocator {
                 && !this.occupiedIdSet.get(id);
     }
 
-    private void allocateId(String name, int id, CompletableFuture<Integer> future) {
+    private void allocateId(int id, CompletableFuture<Integer> future) {
         this.occupiedIdSet.set(id);
         future.complete(id);
     }
