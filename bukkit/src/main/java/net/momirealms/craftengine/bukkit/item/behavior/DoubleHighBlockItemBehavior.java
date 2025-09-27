@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.block.UpdateOption;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -43,15 +44,10 @@ public class DoubleHighBlockItemBehavior extends BlockItemBehavior {
         public ItemBehavior create(Pack pack, Path path, String node, Key key, Map<String, Object> arguments) {
             Object id = arguments.get("block");
             if (id == null) {
-                throw new LocalizedResourceConfigException("warning.config.item.behavior.double_high.missing_block", new IllegalArgumentException("Missing required parameter 'block' for double_high_block_item behavior"));
+                throw new LocalizedResourceConfigException("warning.config.item.behavior.double_high.missing_block");
             }
             if (id instanceof Map<?, ?> map) {
-                if (map.containsKey(key.toString())) {
-                    // 防呆
-                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map.get(key.toString()), false));
-                } else {
-                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map, false));
-                }
+                addPendingSection(pack, path, node, key, map);
                 return new DoubleHighBlockItemBehavior(key);
             } else {
                 return new DoubleHighBlockItemBehavior(Key.of(id.toString()));

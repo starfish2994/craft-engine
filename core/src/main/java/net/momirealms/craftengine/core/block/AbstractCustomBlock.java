@@ -1,9 +1,6 @@
 package net.momirealms.craftengine.core.block;
 
-import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
-import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
-import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.loot.LootTable;
@@ -11,7 +8,6 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -23,79 +19,31 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 public abstract class AbstractCustomBlock implements CustomBlock {
-    protected final Holder<CustomBlock> holder;
-    protected final Key id;
+    protected final Holder.Reference<CustomBlock> holder;
     protected final BlockStateVariantProvider variantProvider;
-    protected final Map<String, Property<?>> properties;
-    protected final BlockBehavior behavior;
     protected final BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> placementFunction;
     protected final ImmutableBlockState defaultState;
     protected final Map<EventTrigger, List<Function<PlayerOptionalContext>>> events;
     @Nullable
     protected final LootTable<?> lootTable;
+    protected BlockBehavior behavior = EmptyBlockBehavior.INSTANCE;
 
     protected AbstractCustomBlock(
-            @NotNull Key id,
             @NotNull Holder.Reference<CustomBlock> holder,
-            @NotNull Map<String, Property<?>> properties,
-            @NotNull Map<String, BlockStateAppearance> appearances,
-            @NotNull Map<String, BlockStateVariant> variantMapper,
-            @NotNull BlockSettings settings,
+            @NotNull BlockStateVariantProvider variantProvider,
             @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
-            @Nullable List<Map<String, Object>> behaviorConfig,
             @Nullable LootTable<?> lootTable
     ) {
-        holder.bindValue(this);
         this.holder = holder;
-        this.id = id;
         this.lootTable = lootTable;
-        this.properties = ImmutableMap.copyOf(properties);
         this.events = events;
-        this.variantProvider = new BlockStateVariantProvider(holder, ImmutableBlockState::new, properties);
+        this.variantProvider = variantProvider;
         this.defaultState = this.variantProvider.getDefaultState();
-        this.behavior = setupBehavior(behaviorConfig);
         List<BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState>> placements = new ArrayList<>(4);
-        for (Map.Entry<String, Property<?>> propertyEntry : this.properties.entrySet()) {
+        for (Map.Entry<String, Property<?>> propertyEntry : this.variantProvider.properties().entrySet()) {
             placements.add(Property.createStateForPlacement(propertyEntry.getKey(), propertyEntry.getValue()));
         }
         this.placementFunction = composite(placements);
-        EntityBlockBehavior entityBlockBehavior = this.behavior.getEntityBehavior();
-        boolean isEntityBlock = entityBlockBehavior != null;
-
-        for (Map.Entry<String, BlockStateVariant> entry : variantMapper.entrySet()) {
-            String nbtString = entry.getKey();
-            CompoundTag tag = BlockNbtParser.deserialize(this, nbtString);
-            if (tag == null) {
-                throw new LocalizedResourceConfigException("warning.config.block.state.property.invalid_format", nbtString);
-            }
-            List<ImmutableBlockState> possibleStates = this.getPossibleStates(tag);
-            if (possibleStates.size() != 1) {
-                throw new LocalizedResourceConfigException("warning.config.block.state.property.invalid_format", nbtString);
-            }
-            BlockStateVariant blockStateVariant = entry.getValue();
-            BlockStateAppearance blockStateAppearance = appearances.get(blockStateVariant.appearance());
-            // Late init states
-            ImmutableBlockState state = possibleStates.getFirst();
-            state.setSettings(blockStateVariant.settings());
-            state.setVanillaBlockState(blockStateAppearance.blockState());
-            state.setCustomBlockState(blockStateVariant.blockState());
-            blockStateAppearance.blockEntityRenderer().ifPresent(state::setConstantRenderers);
-        }
-
-        // double check if there's any invalid state
-        for (ImmutableBlockState state : this.variantProvider().states()) {
-            state.setBehavior(this.behavior);
-            if (state.settings() == null) {
-                state.setSettings(settings);
-            }
-            if (isEntityBlock) {
-                state.setBlockEntityType(entityBlockBehavior.blockEntityType());
-            }
-        }
-    }
-
-    protected BlockBehavior setupBehavior(List<Map<String, Object>> behaviorConfig) {
-        return EmptyBlockBehavior.INSTANCE;
     }
 
     private static BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> composite(List<BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState>> placements) {
@@ -137,28 +85,16 @@ public abstract class AbstractCustomBlock implements CustomBlock {
     @NotNull
     @Override
     public final Key id() {
-        return this.id;
+        return this.holder.key().location();
+    }
+
+    public void setBehavior(@Nullable BlockBehavior behavior) {
+        this.behavior = behavior;
     }
 
     @Override
     public List<ImmutableBlockState> getPossibleStates(CompoundTag nbt) {
-        List<ImmutableBlockState> tempStates = new ArrayList<>();
-        tempStates.add(defaultState());
-        for (Property<?> property : this.variantProvider.getDefaultState().getProperties()) {
-            Tag value = nbt.get(property.name());
-            if (value != null) {
-                tempStates.replaceAll(immutableBlockState -> ImmutableBlockState.with(immutableBlockState, property, property.unpack(value)));
-            } else {
-                List<ImmutableBlockState> newStates = new ArrayList<>();
-                for (ImmutableBlockState state : tempStates) {
-                    for (Object possibleValue : property.possibleValues()) {
-                        newStates.add(ImmutableBlockState.with(state, property, possibleValue));
-                    }
-                }
-                tempStates = newStates;
-            }
-        }
-        return tempStates;
+        return this.variantProvider.getPossibleStates(nbt);
     }
 
     @Override
@@ -179,12 +115,12 @@ public abstract class AbstractCustomBlock implements CustomBlock {
 
     @Override
     public @Nullable Property<?> getProperty(String name) {
-        return this.properties.get(name);
+        return this.variantProvider.getProperty(name);
     }
 
     @Override
     public @NotNull Collection<Property<?>> properties() {
-        return this.properties.values();
+        return this.variantProvider.properties().values();
     }
 
     @Override

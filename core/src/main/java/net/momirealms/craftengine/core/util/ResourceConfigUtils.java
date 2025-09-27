@@ -23,6 +23,13 @@ public final class ResourceConfigUtils {
         return raw != null ? function.apply(raw) : defaultValue;
     }
 
+    public static String getAsString(@Nullable Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        return raw.toString();
+    }
+
     public static <E extends Enum<E>> E getAsEnum(Object o, Class<E> clazz, E defaultValue) {
         if (o == null) {
             return defaultValue;

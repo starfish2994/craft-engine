@@ -28,6 +28,7 @@ import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.*;
 import org.incendo.cloud.suggestion.Suggestion;
@@ -424,17 +425,27 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
             }
 
             // 当模型值完成分配的时候
-            customModelDataFuture.whenComplete((customModelData, throwable) -> ResourceConfigUtils.runCatching(path, node, () -> {
-
+            customModelDataFuture.whenComplete((cmd, throwable) -> ResourceConfigUtils.runCatching(path, node, () -> {
+                int customModelData;
                 if (throwable != null) {
                     // 检测custom model data 冲突
                     if (throwable instanceof IdAllocator.IdConflictException exception) {
-                        throw new LocalizedResourceConfigException("warning.config.item.custom_model_data_conflict", String.valueOf(exception.id()), exception.previousOwner());
+                        if (section.containsKey("model") || section.containsKey("legacy-model")) {
+                            throw new LocalizedResourceConfigException("warning.config.item.custom_model_data.conflict", String.valueOf(exception.id()), exception.previousOwner());
+                        }
+                        customModelData = exception.id();
                     }
                     // custom model data 已被用尽，不太可能
                     else if (throwable instanceof IdAllocator.IdExhaustedException) {
-                        throw new LocalizedResourceConfigException("warning.config.item.custom_model_data_exhausted");
+                        throw new LocalizedResourceConfigException("warning.config.item.custom_model_data.exhausted");
                     }
+                    // 未知错误
+                    else {
+                        Debugger.ITEM.warn(() -> "Unknown error while allocating custom model data.", throwable);
+                        return;
+                    }
+                } else {
+                    customModelData = cmd;
                 }
 
                 // item model

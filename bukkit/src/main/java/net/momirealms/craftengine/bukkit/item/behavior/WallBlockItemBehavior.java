@@ -41,12 +41,7 @@ public class WallBlockItemBehavior extends BlockItemBehavior {
                 throw new LocalizedResourceConfigException("warning.config.item.behavior.wall_block.missing_block", new IllegalArgumentException("Missing required parameter 'block' for wall_block_item behavior"));
             }
             if (id instanceof Map<?, ?> map) {
-                if (map.containsKey(key.toString())) {
-                    // 防呆
-                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map.get(key.toString()), false));
-                } else {
-                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map, false));
-                }
+                addPendingSection(pack, path, node, key, map);
                 return new WallBlockItemBehavior(key);
             } else {
                 return new WallBlockItemBehavior(Key.of(id.toString()));

@@ -1,26 +1,10 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
-import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.command.CommandSender;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.context.CommandContext;
-import org.incendo.cloud.context.CommandInput;
-import org.incendo.cloud.parser.standard.StringParser;
-import org.incendo.cloud.suggestion.Suggestion;
-import org.incendo.cloud.suggestion.SuggestionProvider;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class DebugAppearanceStateUsageCommand extends BukkitCommandFeature<CommandSender> {
 

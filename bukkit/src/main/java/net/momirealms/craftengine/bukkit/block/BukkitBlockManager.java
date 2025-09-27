@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block;
 
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.momirealms.craftengine.bukkit.block.behavior.UnsafeCompositeBlockBehavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
@@ -16,15 +16,18 @@ import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.bukkit.util.TagUtils;
 import net.momirealms.craftengine.core.block.*;
+import net.momirealms.craftengine.core.block.behavior.AbstractBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.BlockBehaviors;
 import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
 import net.momirealms.craftengine.core.block.parser.BlockStateParser;
+import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
-import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Holder;
-import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
@@ -61,7 +64,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
         this.plugin = plugin;
         this.registerServerSideCustomBlocks(Config.serverSideBlocks());
-        this.registerEmptyBlock();
+        EmptyBlock.initialize();
         instance = this;
     }
 
@@ -112,6 +115,21 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void delayedLoad() {
         this.plugin.networkManager().registerBlockStatePacketListeners(this.blockStateMappings); // 重置方块映射表
         super.delayedLoad();
+    }
+
+    @Override
+    public BlockBehavior createBlockBehavior(CustomBlock customBlock, List<Map<String, Object>> behaviorConfig) {
+        if (behaviorConfig == null || behaviorConfig.isEmpty()) {
+            return new EmptyBlockBehavior();
+        } else if (behaviorConfig.size() == 1) {
+            return BlockBehaviors.fromMap(customBlock, behaviorConfig.getFirst());
+        } else {
+            List<AbstractBlockBehavior> behaviors = new ArrayList<>();
+            for (Map<String, Object> config : behaviorConfig) {
+                behaviors.add((AbstractBlockBehavior) BlockBehaviors.fromMap(customBlock, config));
+            }
+            return new UnsafeCompositeBlockBehavior(customBlock, behaviors);
+        }
     }
 
     @Override
@@ -258,17 +276,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         BlockRegistryMirror.init(states, new BukkitBlockStateWrapper(MBlocks.STONE$defaultState, BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)));
     }
 
-    private void registerEmptyBlock() {
-        Holder.Reference<CustomBlock> holder = ((WritableRegistry<CustomBlock>) BuiltInRegistries.BLOCK).registerForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), Key.withDefaultNamespace("empty")));
-        EmptyBlock emptyBlock = new EmptyBlock(Key.withDefaultNamespace("empty"), holder);
-        holder.bindValue(emptyBlock);
-    }
-
-    @Override
-    protected CustomBlock.Builder platformBuilder(Key id) {
-        return BukkitCustomBlock.builder(id);
-    }
-
     // 注册服务端侧的真实方块
     private void registerServerSideCustomBlocks(int count) {
         // 这个会影响全局调色盘
@@ -377,6 +384,14 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public int vanillaBlockStateCount() {
         return this.vanillaBlockStateCount;
+    }
+
+    @Override
+    protected CustomBlock createCustomBlock(@NotNull Holder.Reference<CustomBlock> holder, 
+                                            @NotNull BlockStateVariantProvider variantProvider,
+                                            @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                                            @Nullable LootTable<?> lootTable) {
+        return new BukkitCustomBlock(holder, variantProvider, events, lootTable);
     }
 
     public boolean isOpenableBlockSoundRemoved(Object blockOwner) {

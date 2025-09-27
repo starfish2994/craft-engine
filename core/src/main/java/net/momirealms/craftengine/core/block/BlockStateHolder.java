@@ -9,11 +9,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class BlockStateHolder {
-    protected final Holder<CustomBlock> owner;
+    protected final Holder.Reference<CustomBlock> owner;
     private final Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap;
     private Map<Property<?>, ImmutableBlockState[]> withMap;
 
-    public BlockStateHolder(Holder<CustomBlock> owner, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap) {
+    public BlockStateHolder(Holder.Reference<CustomBlock> owner, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap) {
         this.owner = owner;
         this.propertyMap = new Reference2ObjectArrayMap<>(propertyMap);
     }
@@ -39,9 +39,9 @@ public class BlockStateHolder {
     @Override
     public String toString() {
         if (this.propertyMap.isEmpty()) {
-            return this.owner.value().id().toString();
+            return this.owner.key().location().toString();
         }
-        return this.owner.value().id() + "[" + getPropertiesAsString() + "]";
+        return this.owner.key().location() + "[" + getPropertiesAsString() + "]";
     }
 
     public String getPropertiesAsString() {

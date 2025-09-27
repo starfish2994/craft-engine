@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
+import net.momirealms.craftengine.core.util.Pair;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,6 +58,9 @@ public class IdAllocator {
                     continue;
                 }
                 allocateId(id, future);
+            } else {
+                // 避免其他条目分配到过时的值上
+                this.occupiedIdSet.set(entry.getValue());
             }
         }
 
@@ -118,6 +122,18 @@ public class IdAllocator {
         this.cachedIdMap.remove(name); // 清除可能的缓存
         this.occupiedIdSet.set(id);
         return CompletableFuture.completedFuture(id);
+    }
+
+    public List<Pair<String, Integer>> getFixedIdsBetween(int minId, int maxId) {
+        BiMap<Integer, String> inverse = this.forcedIdMap.inverse();
+        List<Pair<String, Integer>> result = new ArrayList<>();
+        for (int i = minId; i <= maxId; i++) {
+            String s = inverse.get(i);
+            if (s != null) {
+                result.add(Pair.of(s, i));
+            }
+        }
+        return result;
     }
 
     /**
@@ -205,8 +221,6 @@ public class IdAllocator {
      * 保存缓存到文件
      */
     public void saveToCache() throws IOException {
-        FileUtils.createDirectoriesSafe(this.cacheFilePath.getParent());
-
         // 创建按ID排序的TreeMap
         Map<Integer, String> sortedById = new TreeMap<>();
         for (Map.Entry<String, Integer> entry : this.cachedIdMap.entrySet()) {
@@ -219,7 +233,14 @@ public class IdAllocator {
             sortedJsonObject.addProperty(entry.getValue(), entry.getKey());
         }
 
-        GsonHelper.writeJsonFile(sortedJsonObject, this.cacheFilePath);
+        if (sortedJsonObject.isEmpty()) {
+            if (Files.exists(this.cacheFilePath)) {
+                Files.delete(this.cacheFilePath);
+            }
+        } else {
+            FileUtils.createDirectoriesSafe(this.cacheFilePath.getParent());
+            GsonHelper.writeJsonFile(sortedJsonObject, this.cacheFilePath);
+        }
     }
 
     public static class IdConflictException extends RuntimeException {
