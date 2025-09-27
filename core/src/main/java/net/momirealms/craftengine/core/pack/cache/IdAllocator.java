@@ -223,20 +223,46 @@ public class IdAllocator {
     }
 
     public static class IdConflictException extends RuntimeException {
+        private final String previousOwner;
+        private final int id;
+
         public IdConflictException(String previousOwner, int id) {
             super("ID " + id + " is already occupied by: " + previousOwner);
+            this.previousOwner = previousOwner;
+            this.id = id;
         }
-    }
 
-    public static class IdOutOfRangeException extends RuntimeException {
-        public IdOutOfRangeException(String name, int id, int min, int max) {
-            super("ID " + id + " for '" + name + "' is out of range. Valid range: " + min + "-" + max);
+        public String previousOwner() {
+            return previousOwner;
+        }
+
+        public int id() {
+            return id;
         }
     }
 
     public static class IdExhaustedException extends RuntimeException {
+        private final String name;
+        private final int min;
+        private final int max;
+
         public IdExhaustedException(String name, int min, int max) {
             super("No available auto ID for '" + name + "'. All IDs in range " + min + "-" + max + " are occupied.");
+            this.name = name;
+            this.min = min;
+            this.max = max;
+        }
+
+        public String name() {
+            return name;
+        }
+
+        public int min() {
+            return min;
+        }
+
+        public int max() {
+            return max;
         }
     }
 }
