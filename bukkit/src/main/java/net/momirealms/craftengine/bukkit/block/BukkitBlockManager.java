@@ -6,15 +6,9 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
 import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBuiltInRegistries;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistries;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.*;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.KeyUtils;
-import net.momirealms.craftengine.bukkit.util.RegistryUtils;
-import net.momirealms.craftengine.bukkit.util.TagUtils;
+import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.AbstractBlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviors;
@@ -59,6 +53,8 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private final Set<Object> replacedBlockSounds = new HashSet<>();
     // 用于缓存string形式的方块状态到原版方块状态
     private final Map<String, Object> blockStateCache = new HashMap<>(1024);
+    // 用于临时存储可燃烧自定义方块的列表
+    private final List<DelegatingBlock> burnableBlocks = new ArrayList<>();
 
     public BukkitBlockManager(BukkitCraftEngine plugin) {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
@@ -95,6 +91,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         Arrays.fill(this.blockStateMappings, -1);
         this.previousClientBoundTags = this.clientBoundTags;
         this.clientBoundTags = new HashMap<>();
+        for (DelegatingBlock block : this.burnableBlocks) {
+            this.igniteOdds.remove(block);
+            this.burnOdds.remove(block);
+        }
+        this.burnableBlocks.clear();
         if (EmptyBlock.STATE != null)
             Arrays.fill(this.immutableBlockStates, EmptyBlock.STATE);
         for (DelegatingBlock block : this.customBlocks) {
@@ -249,6 +250,82 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             }
         } catch (Exception e) {
             this.plugin.logger().warn("Failed to initialize vanilla block settings", e);
+        }
+    }
+
+    @Override
+    protected void applyPlatformSettings(ImmutableBlockState state) {
+        DelegatingBlockState nmsState = (DelegatingBlockState) state.customBlockState().literalObject();
+        nmsState.setBlockState(state);
+        Object nmsVisualState = state.vanillaBlockState().literalObject();
+
+        BlockSettings settings = state.settings();
+        try {
+            CoreReflections.field$BlockStateBase$lightEmission.set(nmsState, settings.luminance());
+            CoreReflections.field$BlockStateBase$burnable.set(nmsState, settings.burnable());
+            CoreReflections.field$BlockStateBase$hardness.set(nmsState, settings.hardness());
+            CoreReflections.field$BlockStateBase$replaceable.set(nmsState, settings.replaceable());
+            Object mcMapColor = CoreReflections.method$MapColor$byId.invoke(null, settings.mapColor().id);
+            CoreReflections.field$BlockStateBase$mapColor.set(nmsState, mcMapColor);
+            CoreReflections.field$BlockStateBase$instrument.set(nmsState, CoreReflections.instance$NoteBlockInstrument$values[settings.instrument().ordinal()]);
+            CoreReflections.field$BlockStateBase$pushReaction.set(nmsState, CoreReflections.instance$PushReaction$values[settings.pushReaction().ordinal()]);
+            boolean canOcclude = settings.canOcclude() == Tristate.UNDEFINED ? BlockStateUtils.isOcclude(nmsVisualState) : settings.canOcclude().asBoolean();
+            CoreReflections.field$BlockStateBase$canOcclude.set(nmsState, canOcclude);
+            boolean useShapeForLightOcclusion = settings.useShapeForLightOcclusion() == Tristate.UNDEFINED ? CoreReflections.field$BlockStateBase$useShapeForLightOcclusion.getBoolean(nmsVisualState) : settings.useShapeForLightOcclusion().asBoolean();
+            CoreReflections.field$BlockStateBase$useShapeForLightOcclusion.set(nmsState, useShapeForLightOcclusion);
+            CoreReflections.field$BlockStateBase$isRedstoneConductor.set(nmsState, settings.isRedstoneConductor().asBoolean() ? ALWAYS_TRUE : ALWAYS_FALSE);
+            CoreReflections.field$BlockStateBase$isSuffocating.set(nmsState, settings.isSuffocating().asBoolean() ? ALWAYS_TRUE : ALWAYS_FALSE);
+            CoreReflections.field$BlockStateBase$isViewBlocking.set(nmsState, settings.isViewBlocking() == Tristate.UNDEFINED ? settings.isSuffocating().asBoolean() ? ALWAYS_TRUE : ALWAYS_FALSE : (settings.isViewBlocking().asBoolean() ? ALWAYS_TRUE : ALWAYS_FALSE));
+
+            DelegatingBlock nmsBlock = (DelegatingBlock) BlockStateUtils.getBlockOwner(nmsState);
+            ObjectHolder<BlockShape> shapeHolder = nmsBlock.shapeDelegate();
+            shapeHolder.bindValue(new BukkitBlockShape(nmsVisualState, Optional.ofNullable(state.settings().supportShapeBlockState()).map(it -> Objects.requireNonNull(createVanillaBlockState(it), "Illegal block state: " + it).literalObject()).orElse(null)));
+            ObjectHolder<BlockBehavior> behaviorHolder = nmsBlock.behaviorDelegate();
+            behaviorHolder.bindValue(state.behavior());
+
+            CoreReflections.field$BlockBehaviour$explosionResistance.set(nmsBlock, settings.resistance());
+            CoreReflections.field$BlockBehaviour$friction.set(nmsBlock, settings.friction());
+            CoreReflections.field$BlockBehaviour$speedFactor.set(nmsBlock, settings.speedFactor());
+            CoreReflections.field$BlockBehaviour$jumpFactor.set(nmsBlock, settings.jumpFactor());
+            CoreReflections.field$BlockBehaviour$soundType.set(nmsBlock, SoundUtils.toSoundType(settings.sounds()));
+
+            CoreReflections.method$BlockStateBase$initCache.invoke(nmsState);
+            boolean isConditionallyFullOpaque = canOcclude & useShapeForLightOcclusion;
+            if (!VersionHelper.isOrAbove1_21_2()) {
+                CoreReflections.field$BlockStateBase$isConditionallyFullOpaque.set(nmsState, isConditionallyFullOpaque);
+            }
+
+            if (VersionHelper.isOrAbove1_21_2()) {
+                int blockLight = settings.blockLight() != -1 ? settings.blockLight() : CoreReflections.field$BlockStateBase$lightBlock.getInt(nmsVisualState);
+                CoreReflections.field$BlockStateBase$lightBlock.set(nmsState, blockLight);
+                boolean propagatesSkylightDown = settings.propagatesSkylightDown() == Tristate.UNDEFINED ? CoreReflections.field$BlockStateBase$propagatesSkylightDown.getBoolean(nmsVisualState) : settings.propagatesSkylightDown().asBoolean();
+                CoreReflections.field$BlockStateBase$propagatesSkylightDown.set(nmsState, propagatesSkylightDown);
+            } else {
+                Object cache = CoreReflections.field$BlockStateBase$cache.get(nmsState);
+                int blockLight = settings.blockLight() != -1 ? settings.blockLight() : CoreReflections.field$BlockStateBase$Cache$lightBlock.getInt(CoreReflections.field$BlockStateBase$cache.get(nmsVisualState));
+                CoreReflections.field$BlockStateBase$Cache$lightBlock.set(cache, blockLight);
+                boolean propagatesSkylightDown = settings.propagatesSkylightDown() == Tristate.UNDEFINED ? CoreReflections.field$BlockStateBase$Cache$propagatesSkylightDown.getBoolean(CoreReflections.field$BlockStateBase$cache.get(nmsVisualState)) : settings.propagatesSkylightDown().asBoolean();
+                CoreReflections.field$BlockStateBase$Cache$propagatesSkylightDown.set(cache, propagatesSkylightDown);
+                if (!isConditionallyFullOpaque) {
+                    CoreReflections.field$BlockStateBase$opacityIfCached.set(nmsState, blockLight);
+                }
+            }
+
+            CoreReflections.field$BlockStateBase$fluidState.set(nmsState, settings.fluidState() ? MFluids.WATER$defaultState : MFluids.EMPTY$defaultState);
+            CoreReflections.field$BlockStateBase$isRandomlyTicking.set(nmsState, settings.isRandomlyTicking());
+            Object holder = BukkitCraftEngine.instance().blockManager().getMinecraftBlockHolder(state.customBlockState().registryId());
+            Set<Object> tags = new HashSet<>();
+            for (Key tag : settings.tags()) {
+                tags.add(CoreReflections.method$TagKey$create.invoke(null, MRegistries.BLOCK, KeyUtils.toResourceLocation(tag)));
+            }
+            CoreReflections.field$Holder$Reference$tags.set(holder, tags);
+            if (settings.burnable()) {
+                this.igniteOdds.put(nmsBlock, settings.burnChance());
+                this.burnOdds.put(nmsBlock, settings.fireSpreadChance());
+                this.burnableBlocks.add(nmsBlock);
+            }
+        } catch (ReflectiveOperationException e) {
+            this.plugin.logger().warn("Failed to apply platform block settings for block state " + state, e);
         }
     }
 

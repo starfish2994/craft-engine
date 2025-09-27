@@ -228,7 +228,6 @@ warning.config.block.state.property.invalid_format: "<yellow>Проблема н
 warning.config.block.state.missing_state: "<yellow>Проблема найдена в файле <arg:0> - В блоке '<arg:1>' отсутствует необходимый 'state' аргумент для 'state'.</yellow>"
 warning.config.block.state.missing_properties: "<yellow>Проблема найдена в файле <arg:0> - В блоке '<arg:1>' отсутствует необходимый 'properties' раздел для 'states'.</yellow>"
 warning.config.block.state.missing_appearances: "<yellow>Проблема найдена в файле <arg:0> - В блоке '<arg:1>' отсутствует необходимый 'appearances' раздел для 'states'.</yellow>"
-warning.config.block.state.missing_variants: "<yellow>Проблема найдена в файле <arg:0> - В блоке '<arg:1>' отсутствует необходимый 'variants' раздел для 'states'.</yellow>"
 warning.config.block.state.variant.invalid_appearance: "<yellow>Проблема найдена в файле <arg:0> - Блок '<arg:1>' имеет ошибку, что вариант '<arg:2>' использует несуществующий внешний вид '<arg:3>'.</yellow>"
 warning.config.block.state.invalid_vanilla: "<yellow>Проблема найдена в файле <arg:0> - Блок '<arg:1>' имеет недействительное состояние ванильного блока '<arg:2>'.</yellow>"
 warning.config.block.state.unavailable_vanilla: "<yellow>Проблема найдена в файле <arg:0> - Блок '<arg:1>' использует недоступное состояние ванильного блока '<arg:2>'. Пожалуйста, освободите это состояние в mappings.yml.</yellow>"

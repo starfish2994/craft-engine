@@ -8,9 +8,9 @@ public final class LoadingSequence {
     public static final int GLOBAL_VAR = 10;
     public static final int LANG = 20;
     public static final int TRANSLATION = 30;
-    public static final int BLOCK = 40;
-    public static final int EQUIPMENT = 50;
-    public static final int ITEM = 60;
+    public static final int EQUIPMENT = 40;
+    public static final int ITEM = 50;
+    public static final int BLOCK = 60;
     public static final int FURNITURE = 70;
     public static final int IMAGE = 80;
     public static final int RECIPE = 90;

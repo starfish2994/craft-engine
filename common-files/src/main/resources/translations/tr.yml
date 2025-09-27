@@ -176,7 +176,6 @@ warning.config.block.state.property.invalid_format: "<yellow><arg:0> dosyasında
 warning.config.block.state.missing_state: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu, 'state' için gerekli 'state' argümanı eksik.</yellow>"
 warning.config.block.state.missing_properties: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu, 'states' için gerekli 'properties' bölümü eksik.</yellow>"
 warning.config.block.state.missing_appearances: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu, 'states' için gerekli 'appearances' bölümü eksik.</yellow>"
-warning.config.block.state.missing_variants: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu, 'states' için gerekli 'variants' bölümü eksik.</yellow>"
 warning.config.block.state.variant.invalid_appearance: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğunda, '<arg:2>' varyantının var olmayan bir görünüm '<arg:3>' kullandığı bir hata var.</yellow>"
 warning.config.block.state.invalid_vanilla: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu geçersiz bir vanilya blok durumu '<arg:2>' kullanıyor.</yellow>"
 warning.config.block.state.unavailable_vanilla: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu kullanılamayan bir vanilya blok durumu '<arg:2>' kullanıyor. Lütfen bu durumu mappings.yml dosyasında serbest bırakın.</yellow>"

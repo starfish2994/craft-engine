@@ -267,7 +267,6 @@ warning.config.block.state.property.invalid_format: "<yellow>Issue found in file
 warning.config.block.state.missing_state: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'state' argument for 'state'.</yellow>"
 warning.config.block.state.missing_properties: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'properties' section for 'states'.</yellow>"
 warning.config.block.state.missing_appearances: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'appearances' section for 'states'.</yellow>"
-warning.config.block.state.missing_variants: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'variants' section for 'states'.</yellow>"
 warning.config.block.state.entity_renderer.invalid_type: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is using an invalid entity renderer type '<arg:2>'.</yellow>"
 warning.config.block.state.entity_renderer.item_display.missing_item: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'item' argument for 'item_display' entity renderer.</yellow>"
 warning.config.block.state.entity_renderer.text_display.missing_text: "<yellow>Issue found in file <arg:0> - The block '<arg:1>' is missing the required 'text' argument for 'text_display' entity renderer.</yellow>"

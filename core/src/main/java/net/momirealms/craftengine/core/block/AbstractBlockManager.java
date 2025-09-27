@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
@@ -14,7 +13,6 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Properties;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.item.AbstractItemManager;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
@@ -49,7 +47,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Predicate;
 
 public abstract class AbstractBlockManager extends AbstractModelGenerator implements BlockManager {
     protected final BlockParser blockParser;
@@ -150,7 +147,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         return Optional.ofNullable(this.byId.get(id));
     }
 
-    protected void addBlockInternal(CustomBlock customBlock) {
+    protected void addCustomBlock(CustomBlock customBlock) {
         // 绑定外观状态等
         for (ImmutableBlockState state : customBlock.variantProvider().states()) {
             int internalId = state.customBlockState().registryId();
@@ -159,6 +156,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             this.immutableBlockStates[index] = state;
             this.blockStateMappings[internalId] = appearanceId;
             this.appearanceToRealState.computeIfAbsent(appearanceId, k -> new IntArrayList()).add(internalId);
+            this.applyPlatformSettings(state);
             // generate mod assets
             if (Config.generateModAssets()) {
                 this.modBlockStateOverrides.put(getBlockOwnerId(state.customBlockState()), this.tempVanillaBlockStateModels.get(appearanceId));
@@ -166,6 +164,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         }
         this.byId.put(customBlock.id(), customBlock);
     }
+
+    protected abstract void applyPlatformSettings(ImmutableBlockState state);
 
     @Override
     public ConfigParser[] parsers() {
@@ -546,7 +546,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 }
 
                 // 添加方块
-                addBlockInternal(customBlock);
+                addCustomBlock(customBlock);
 
             }, () -> GsonHelper.get().toJson(section)));
         }

@@ -263,7 +263,6 @@ warning.config.block.state.property.invalid_format: "<yellow>在文件 <arg:0> �
 warning.config.block.state.missing_state: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'state' 缺少必需的 'state' 参数</yellow>"
 warning.config.block.state.missing_properties: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'states' 缺少必需的 'properties' 段落</yellow>"
 warning.config.block.state.missing_appearances: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'states' 缺少必需的 'appearances' 段落</yellow>"
-warning.config.block.state.missing_variants: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'states' 缺少必需的 'variants' 段落</yellow>"
 warning.config.block.state.variant.invalid_appearance: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的变体 '<arg:2>' 使用了不存在的 appearance '<arg:3>'</yellow>"
 warning.config.block.state.invalid_vanilla: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 使用了无效的原版方块状态 '<arg:2>'</yellow>"
 warning.config.block.state.unavailable_vanilla: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 使用了不可用的原版方块状态 '<arg:2>' 请在 mappings.yml 中释放该状态</yellow>"

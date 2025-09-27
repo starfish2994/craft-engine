@@ -1235,6 +1235,16 @@ public final class CoreReflections {
             ReflectionUtils.getMethod(clazz$PushReaction, new String[] { "values" })
     );
 
+    public static final Object[] instance$PushReaction$values;
+
+    static {
+        try {
+            instance$PushReaction$values = (Object[]) method$PushReaction$values.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to init PushReaction", e);
+        }
+    }
+
     public static final Class<?> clazz$NoteBlockInstrument = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
                     "world.level.block.state.properties.BlockPropertyInstrument",
@@ -1245,6 +1255,16 @@ public final class CoreReflections {
     public static final Method method$NoteBlockInstrument$values = requireNonNull(
             ReflectionUtils.getMethod(clazz$NoteBlockInstrument, new String[] { "values" })
     );
+
+    public static final Object[] instance$NoteBlockInstrument$values;
+
+    static {
+        try {
+            instance$NoteBlockInstrument$values = (Object[]) method$NoteBlockInstrument$values.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to init NoteBlockInstrument", e);
+        }
+    }
 
     public static final Class<?> clazz$BlockStateBase = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(

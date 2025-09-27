@@ -255,7 +255,6 @@ warning.config.block.state.property.invalid_format: "<yellow>Problem in Datei <a
 warning.config.block.state.missing_state: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt das erforderliche 'state'-Argument für 'state'.</yellow>"
 warning.config.block.state.missing_properties: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt der erforderliche 'properties'-Abschnitt für 'states'.</yellow>"
 warning.config.block.state.missing_appearances: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt der erforderliche 'appearances'-Abschnitt für 'states'.</yellow>"
-warning.config.block.state.missing_variants: "<yellow>Problem in Datei <arg:0> gefunden - Beim Block '<arg:1>' fehlt der erforderliche 'variants'-Abschnitt für 'states'.</yellow>"
 warning.config.block.state.variant.invalid_appearance: "<yellow>Problem in Datei <arg:0> gefunden - Der Block '<arg:1>' hat einen Fehler, dass die Variante '<arg:2>' eine nicht existierende Appearance '<arg:3>' verwendet.</yellow>"
 warning.config.block.state.invalid_vanilla: "<yellow>Problem in Datei <arg:0> gefunden - Der Block '<arg:1>' verwendet einen ungültigen Vanilla-Block-State '<arg:2>'.</yellow>"
 warning.config.block.state.unavailable_vanilla: "<yellow>Problem in Datei <arg:0> gefunden - Der Block '<arg:1>' verwendet einen nicht verfügbaren Vanilla-Block-State '<arg:2>'. Bitte gib diesen State in der mappings.yml frei.</yellow>"

@@ -178,7 +178,6 @@ warning.config.block.state.property.invalid_format: "<yellow>Problema encontrado
 warning.config.block.state.missing_state: "<yellow>Problema encontrado en el archivo <arg:0> - El bloque '<arg:1>' carece del argumento requerido 'state' para 'state'.</yellow>"
 warning.config.block.state.missing_properties: "<yellow>Problema encontrado en el archivo <arg:0> - El bloque '<arg:1>' carece de la sección requerida 'properties' para 'states'.</yellow>"
 warning.config.block.state.missing_appearances: "<yellow>Problema encontrado en el archivo <arg:0> - El bloque '<arg:1>' carece de la sección requerida 'appearances' para 'states'.</yellow>"
-warning.config.block.state.missing_variants: "<yellow>Problema encontrado en el archivo <arg:0> - El bloque '<arg:1>' carece de la sección requerida 'variants' para 'states'.</yellow>"
 warning.config.block.state.variant.invalid_appearance: "<yellow>Problema encontrado en el archivo <arg:0> - Hay un error en el bloque '<arg:1>' donde la variante '<arg:2>' está usando una apariencia inexistente '<arg:3>'.</yellow>"
 warning.config.block.state.invalid_vanilla: "<yellow>Problema encontrado en el archivo <arg:0> - El bloque '<arg:1>' está usando un estado de bloque vanilla inválido '<arg:2>'.</yellow>"
 warning.config.block.state.unavailable_vanilla: "<yellow>Problema encontrado en el archivo <arg:0> - El bloque '<arg:1>' está usando un estado de bloque vanilla no disponible '<arg:2>'. Por favor libera este estado en el archivo mappings.yml.</yellow>"
