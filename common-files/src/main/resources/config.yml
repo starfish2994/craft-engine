@@ -23,6 +23,7 @@ resource-pack:
       method-1: false
       method-2: false
       method-3: false # Enable this would increase the resource pack size by 0.67MB
+    # [Premium Exclusive]
     # Obfuscate your resource pack
     obfuscation:
       enable: false
@@ -50,9 +51,13 @@ resource-pack:
           - "@vanilla_models"
         bypass-sounds: []
         bypass-equipments: []
-  # Validate if there are any errors in the resource pack, such as missing textures or models
-  validate:
+  # Validate if there is any error in the resource pack, such as missing textures or models
+  # If your resource pack is compliant with the standard, you can disable validation to improve the resource pack generation speed.
+  validation:
     enable: true
+    # [Premium Exclusive]
+    # Fix images that are not within the texture atlas.
+    fix-atlas: true
   # Define the name of the overlay folders
   overlay-format: "ce_overlay_{version}"
   # Allowed values:
@@ -138,6 +143,7 @@ resource-pack:
         type: merge_atlas
 
 item:
+  # [Premium Exclusive]
   # Make custom-model-data and item-model clientside by default
   client-bound-model: true
   # Add a <!i> tag on custom name and lore

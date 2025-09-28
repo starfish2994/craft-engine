@@ -866,9 +866,6 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         }
                     }
-                    case "filter", "minecraft:filter" -> {
-                        // todo filter
-                    }
                     case "paletted_permutations", "minecraft:paletted_permutations" -> {
                         JsonArray textures = sourceJson.getAsJsonArray("textures");
                         if (textures == null) continue;
@@ -882,6 +879,9 @@ public abstract class AbstractPackManager implements PackManager {
                                 existing.accept(Key.of(texturePath.getAsString() + separator + permutation));
                             }
                         }
+                    }
+                    case "filter", "minecraft:filter" -> {
+                        // todo filter
                     }
                 }
             }
@@ -908,28 +908,32 @@ public abstract class AbstractPackManager implements PackManager {
         Set<Key> existingTextures = new HashSet<>(VANILLA_TEXTURES);
         Map<String, String> directoryMapper = new HashMap<>();
         processAtlas(this.vanillaAtlas, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
+        Map<Path, JsonObject> allAtlas = new HashMap<>();
 
         for (Path rootPath : rootPaths) {
             Path assetsPath = rootPath.resolve("assets");
             if (!Files.isDirectory(assetsPath)) continue;
+
+            Path atlasesFile = assetsPath.resolve("minecraft").resolve("atlases").resolve("blocks.json");
+            if (Files.exists(atlasesFile)) {
+                try {
+                    JsonObject atlasJsonObject = GsonHelper.readJsonFile(atlasesFile).getAsJsonObject();
+                    processAtlas(atlasJsonObject, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
+                    allAtlas.put(atlasesFile, atlasJsonObject);
+                } catch (IOException | JsonParseException e) {
+                    TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", atlasesFile.toAbsolutePath().toString());
+                }
+            }
+
             List<Path> namespaces;
             try {
                 namespaces = FileUtils.collectNamespaces(assetsPath);
             } catch (IOException e) {
-                plugin.logger().warn("Failed to collect namespaces for " + assetsPath.toAbsolutePath(), e);
+                this.plugin.logger().warn("Failed to collect namespaces for " + assetsPath.toAbsolutePath(), e);
                 return;
             }
-            for (Path namespacePath : namespaces) {
-                Path atlasesFile = namespacePath.resolve("atlases").resolve("blocks.json");
-                if (Files.exists(atlasesFile)) {
-                    try {
-                        JsonObject atlasJsonObject = GsonHelper.readJsonFile(atlasesFile).getAsJsonObject();
-                        processAtlas(atlasJsonObject, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
-                    } catch (IOException | JsonParseException e) {
-                        TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", atlasesFile.toAbsolutePath().toString());
-                    }
-                }
 
+            for (Path namespacePath : namespaces) {
                 Path fontPath = namespacePath.resolve("font");
                 if (Files.isDirectory(fontPath)) {
                     try {
@@ -1079,6 +1083,8 @@ public abstract class AbstractPackManager implements PackManager {
             TranslationManager.instance().log("warning.config.resource_pack.generation.missing_block_model", entry.getValue().stream().distinct().toList().toString(), modelPath);
         }
 
+        Set<Key> texturesToFix = new HashSet<>();
+
         // 验证贴图是否存在
         boolean enableObf = Config.enableObfuscation() && Config.enableRandomResourceLocation();
         label: for (Map.Entry<Key, Collection<Key>> entry : imageToModels.asMap().entrySet()) {
@@ -1108,7 +1114,48 @@ public abstract class AbstractPackManager implements PackManager {
                         continue label;
                     }
                 }
-                TranslationManager.instance().log("warning.config.resource_pack.generation.texture_not_in_atlas", key.toString());
+                if (Config.fixTextureAtlas()) {
+                    texturesToFix.add(key);
+                } else {
+                    TranslationManager.instance().log("warning.config.resource_pack.generation.texture_not_in_atlas", key.toString());
+                }
+            }
+        }
+
+        if (Config.fixTextureAtlas() && !texturesToFix.isEmpty()) {
+            List<JsonObject> sourcesToAdd = new ArrayList<>();
+            for (Key toFix : texturesToFix) {
+                JsonObject source = new JsonObject();
+                source.addProperty("type", "single");
+                source.addProperty("resource", toFix.asString());
+                sourcesToAdd.add(source);
+            }
+
+            Path defaultAtlas = path.resolve("assets").resolve("minecraft").resolve("atlases").resolve("blocks.json");
+            if (!allAtlas.containsKey(defaultAtlas)) {
+                allAtlas.put(defaultAtlas, new JsonObject());
+                try {
+                    Files.createDirectories(defaultAtlas.getParent());
+                } catch (IOException e) {
+                    this.plugin.logger().warn("could not create default atlas directory", e);
+                }
+            }
+
+            for (Map.Entry<Path, JsonObject> atlas : allAtlas.entrySet()) {
+                JsonObject right = atlas.getValue();
+                JsonArray sources = right.getAsJsonArray("sources");
+                if (sources == null) {
+                    sources = new JsonArray();
+                    right.add("sources", sources);
+                }
+                for (JsonObject source : sourcesToAdd) {
+                    sources.add(source);
+                }
+                try {
+                    GsonHelper.writeJsonFile(right, atlas.getKey());
+                } catch (IOException e) {
+                    this.plugin.logger().warn("Failed to write atlas to json file", e);
+                }
             }
         }
     }

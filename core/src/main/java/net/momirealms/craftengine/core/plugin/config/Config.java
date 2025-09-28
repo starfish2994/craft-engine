@@ -64,7 +64,8 @@ public class Config {
     protected boolean resource_pack$protection$crash_tools$method_2;
     protected boolean resource_pack$protection$crash_tools$method_3;
 
-    protected boolean resource_pack$validate$enable;
+    protected boolean resource_pack$validation$enable;
+    protected boolean resource_pack$validation$fix_atlas;
     protected boolean resource_pack$exclude_core_shaders;
 
     protected boolean resource_pack$protection$obfuscation$enable;
@@ -296,7 +297,7 @@ public class Config {
         resource_pack$protection$crash_tools$method_1 = config.getBoolean("resource-pack.protection.crash-tools.method-1", false);
         resource_pack$protection$crash_tools$method_2 = config.getBoolean("resource-pack.protection.crash-tools.method-2", false);
         resource_pack$protection$crash_tools$method_3 = config.getBoolean("resource-pack.protection.crash-tools.method-3", false);
-        resource_pack$protection$obfuscation$enable = config.getBoolean("resource-pack.protection.obfuscation.enable", false);
+        resource_pack$protection$obfuscation$enable = VersionHelper.PREMIUM && config.getBoolean("resource-pack.protection.obfuscation.enable", false);
         resource_pack$protection$obfuscation$seed = config.getLong("resource-pack.protection.obfuscation.seed", 0L);
         resource_pack$protection$obfuscation$fake_directory = config.getBoolean("resource-pack.protection.obfuscation.fake-directory", false);
         resource_pack$protection$obfuscation$escape_unicode = config.getBoolean("resource-pack.protection.obfuscation.escape-unicode", false);
@@ -313,7 +314,8 @@ public class Config {
         resource_pack$protection$obfuscation$resource_location$bypass_models = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-models");
         resource_pack$protection$obfuscation$resource_location$bypass_sounds = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-sounds");
         resource_pack$protection$obfuscation$resource_location$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-equipments");
-        resource_pack$validate$enable = config.getBoolean("resource-pack.validate.enable", true);
+        resource_pack$validation$enable = config.getBoolean("resource-pack.validation.enable", true);
+        resource_pack$validation$fix_atlas = VersionHelper.PREMIUM && config.getBoolean("resource-pack.validation.fix-atlas", true);
         resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);
         resource_pack$overlay_format = config.getString("resource-pack.overlay-format", "overlay_{version}");
         if (!resource_pack$overlay_format.contains("{version}")) {
@@ -895,7 +897,11 @@ public class Config {
     }
 
     public static boolean validateResourcePack() {
-        return instance.resource_pack$validate$enable;
+        return instance.resource_pack$validation$enable;
+    }
+
+    public static boolean fixTextureAtlas() {
+        return instance.resource_pack$validation$fix_atlas;
     }
 
     public static boolean excludeShaders() {
