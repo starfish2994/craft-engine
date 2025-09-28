@@ -18,7 +18,9 @@ import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.pack.ResourceLocation;
-import net.momirealms.craftengine.core.pack.cache.IdAllocator;
+import net.momirealms.craftengine.core.pack.allocator.BlockStateAllocator;
+import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
+import net.momirealms.craftengine.core.pack.allocator.BlockStateCandidate;
 import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenerator;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -68,8 +70,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final Map<Integer, List<Integer>> appearanceToRealState = new Int2ObjectOpenHashMap<>();
     // 用于note_block:0这样格式的自动分配
     protected final Map<Key, List<BlockStateWrapper>> blockStateArranger = new HashMap<>();
-    // 根据registry id找note_block:x中的x值
-    protected final Map<Integer, Integer> reversedBlockStateArranger = new HashMap<>();
     // 全方块状态映射文件，用于网络包映射
     protected final int[] blockStateMappings;
     // 原版方块状态数量
@@ -82,6 +82,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final ImmutableBlockState[] immutableBlockStates;
     // 原版方块的属性缓存
     protected final BlockSettings[] vanillaBlockSettings;
+    // 倒推缓存
+    protected final BlockStateCandidate[] reversedBlockStateArranger;
     // 临时存储哪些视觉方块被使用了
     protected final Set<BlockStateWrapper> tempVisualBlockStatesInUse = new HashSet<>();
     protected final Set<Key> tempVisualBlocksInUse = new HashSet<>();
@@ -99,6 +101,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.vanillaBlockSettings = new BlockSettings[vanillaBlockStateCount];
         this.immutableBlockStates = new ImmutableBlockState[customBlockCount];
         this.blockStateMappings = new int[customBlockCount + vanillaBlockStateCount];
+        this.reversedBlockStateArranger = new BlockStateCandidate[vanillaBlockStateCount];
         Arrays.fill(this.blockStateMappings, -1);
     }
 
@@ -127,10 +130,10 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.modBlockStateOverrides.clear();
         this.byId.clear();
         this.blockStateArranger.clear();
-        this.reversedBlockStateArranger.clear();
         this.appearanceToRealState.clear();
         Arrays.fill(this.blockStateMappings, -1);
         Arrays.fill(this.immutableBlockStates, EmptyBlock.STATE);
+        Arrays.fill(this.reversedBlockStateArranger, null);
     }
 
     @Override
@@ -272,9 +275,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     continue;
                 }
                 AbstractBlockManager.this.blockStateMappings[beforeState.registryId()] = afterState.registryId();
-                List<BlockStateWrapper> blockStateWrappers = AbstractBlockManager.this.blockStateArranger.computeIfAbsent(getBlockOwnerId(beforeState), k -> new ArrayList<>());
+                Key blockOwnerId = getBlockOwnerId(beforeState);
+                List<BlockStateWrapper> blockStateWrappers = AbstractBlockManager.this.blockStateArranger.computeIfAbsent(blockOwnerId, k -> new ArrayList<>());
                 blockStateWrappers.add(beforeState);
-                AbstractBlockManager.this.reversedBlockStateArranger.put(beforeState.registryId(), blockStateWrappers.size() - 1);
+                AbstractBlockManager.this.reversedBlockStateArranger[beforeState.registryId()] = blockParser.createVisualBlockCandidate(beforeState);
+
             }
             exceptionCollector.throwIfPresent();
         }
@@ -283,8 +288,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     public class BlockParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"blocks", "block"};
         private final IdAllocator internalIdAllocator;
-        private final Map<Key, IdAllocator> appearanceIdAllocators = new HashMap<>();
         private final List<PendingConfigSection> pendingConfigSections = new ArrayList<>();
+        private final BlockStateAllocator[] visualBlockStateAllocators = new BlockStateAllocator[AutoStateGroup.values().length];
 
         public BlockParser() {
             this.internalIdAllocator = new IdAllocator(AbstractBlockManager.this.plugin.dataFolderPath().resolve("cache").resolve("custom-block-states.json"));
@@ -292,6 +297,29 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
         public void addPendingConfigSection(PendingConfigSection section) {
             this.pendingConfigSections.add(section);
+        }
+
+        @Nullable
+        public BlockStateCandidate createVisualBlockCandidate(BlockStateWrapper blockState) {
+            List<AutoStateGroup> groups = AutoStateGroup.findGroups(blockState);
+            if (!groups.isEmpty()) {
+                BlockStateCandidate candidate = new BlockStateCandidate(blockState);
+                for (AutoStateGroup group : groups) {
+                    getOrCreateBlockStateAllocator(group).addCandidate(candidate);
+                }
+                return candidate;
+            }
+            return null;
+        }
+
+        private BlockStateAllocator getOrCreateBlockStateAllocator(AutoStateGroup group) {
+            int index = group.ordinal();
+            BlockStateAllocator visualBlockStateAllocator = this.visualBlockStateAllocators[index];
+            if (visualBlockStateAllocator == null) {
+                visualBlockStateAllocator = new BlockStateAllocator();
+                this.visualBlockStateAllocators[index] = visualBlockStateAllocator;
+            }
+            return visualBlockStateAllocator;
         }
 
         @Override
@@ -321,23 +349,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 );
             }
             this.pendingConfigSections.clear();
-        }
-
-        @Nullable
-        public IdAllocator getOrCreateAppearanceIdAllocator(Key type) {
-            if (!AbstractBlockManager.this.blockStateArranger.containsKey(type)) {
-                return null;
-            }
-            return this.appearanceIdAllocators.computeIfAbsent(type, k -> {
-                IdAllocator newAllocator = new IdAllocator(plugin.dataFolderPath().resolve("cache").resolve("visual-block-states").resolve(k.value() + ".json"));
-                newAllocator.reset(0, AbstractBlockManager.this.blockStateArranger.get(type).size());
-                try {
-                    newAllocator.loadFromCache();
-                } catch (IOException e) {
-                    AbstractBlockManager.this.plugin.logger().warn("Error while loading visual block states cache for block " + k.asString(), e);
-                }
-                return newAllocator;
-            });
         }
 
         @Override

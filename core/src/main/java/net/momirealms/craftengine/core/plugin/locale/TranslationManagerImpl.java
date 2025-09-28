@@ -2,16 +2,12 @@ package net.momirealms.craftengine.core.plugin.locale;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.core.block.AbstractBlockManager;
-import net.momirealms.craftengine.core.font.FontManager;
-import net.momirealms.craftengine.core.font.OffsetFont;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.Plugin;
 import net.momirealms.craftengine.core.plugin.PluginProperties;
 import net.momirealms.craftengine.core.plugin.config.*;
-import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.plugin.text.minimessage.ImageTag;
 import net.momirealms.craftengine.core.plugin.text.minimessage.IndexedArgumentTag;
 import net.momirealms.craftengine.core.plugin.text.minimessage.ShiftTag;

@@ -14,7 +14,7 @@ import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.ResourceLocation;
-import net.momirealms.craftengine.core.pack.cache.IdAllocator;
+import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.pack.model.*;
 import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenerator;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;

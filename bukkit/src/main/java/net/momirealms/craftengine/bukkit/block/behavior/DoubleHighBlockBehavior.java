@@ -9,7 +9,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.state.properties.DoubleBlockHalf;
+import net.momirealms.craftengine.core.block.properties.type.DoubleBlockHalf;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;

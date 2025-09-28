@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.pack.cache;
+package net.momirealms.craftengine.core.pack.allocator;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

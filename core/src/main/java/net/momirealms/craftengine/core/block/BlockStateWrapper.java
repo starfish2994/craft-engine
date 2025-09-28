@@ -9,4 +9,10 @@ public interface BlockStateWrapper {
     int registryId();
 
     Key ownerId();
+
+    <T> T getProperty(String propertyName);
+
+    boolean hasProperty(String propertyName);
+
+    String getAsString();
 }

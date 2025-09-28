@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.util;
 
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class CharacterUtils {

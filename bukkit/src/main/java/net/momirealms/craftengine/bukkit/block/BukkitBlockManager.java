@@ -353,10 +353,13 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private void initMirrorRegistry() {
         int size = RegistryUtils.currentBlockRegistrySize();
         BlockStateWrapper[] states = new BlockStateWrapper[size];
-        for (int i = 0; i < size; i++) {
-            states[i] = new BukkitBlockStateWrapper(BlockStateUtils.idToBlockState(i), i);
+        for (int i = 0; i < this.vanillaBlockStateCount; i++) {
+            states[i] = new BukkitVanillaBlockStateWrapper(BlockStateUtils.idToBlockState(i), i);
         }
-        BlockRegistryMirror.init(states, new BukkitBlockStateWrapper(MBlocks.STONE$defaultState, BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)));
+        for (int i = this.vanillaBlockStateCount; i < size; i++) {
+            states[i] = new BukkitCustomBlockStateWrapper(BlockStateUtils.idToBlockState(i), i);
+        }
+        BlockRegistryMirror.init(states, states[BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)]);
     }
 
     // 注册服务端侧的真实方块

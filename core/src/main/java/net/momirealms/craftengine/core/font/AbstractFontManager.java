@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.ResourceLocation;
-import net.momirealms.craftengine.core.pack.cache.IdAllocator;
+import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;

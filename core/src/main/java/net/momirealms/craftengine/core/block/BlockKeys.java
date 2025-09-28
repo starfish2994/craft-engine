@@ -246,6 +246,22 @@ public final class BlockKeys {
 
     public static final Key CACTUS = Key.of("minecraft:cactus");
 
+    public static final Key BROWN_MUSHROOM_BLOCK = Key.of("minecraft:brown_mushroom_block");
+    public static final Key RED_MUSHROOM_BLOCK = Key.of("minecraft:red_mushroom_block");
+    public static final Key MUSHROOM_STEM = Key.of("minecraft:mushroom_stem");
+
+    public static final Key OAK_LEAVES = Key.of("minecraft:oak_leaves");
+    public static final Key SPRUCE_LEAVES = Key.of("minecraft:spruce_leaves");
+    public static final Key BIRCH_LEAVES = Key.of("minecraft:birch_leaves");
+    public static final Key JUNGLE_LEAVES = Key.of("minecraft:jungle_leaves");
+    public static final Key ACACIA_LEAVES = Key.of("minecraft:acacia_leaves");
+    public static final Key DARK_OAK_LEAVES = Key.of("minecraft:dark_oak_leaves");
+    public static final Key MANGROVE_LEAVES = Key.of("minecraft:mangrove_leaves");
+    public static final Key CHERRY_LEAVES = Key.of("minecraft:cherry_leaves");
+    public static final Key PALE_OAK_LEAVES = Key.of("minecraft:pale_oak_leaves");
+    public static final Key AZALEA_LEAVES = Key.of("minecraft:azalea_leaves");
+    public static final Key FLOWERING_AZALEA_LEAVES = Key.of("minecraft:flowering_azalea_leaves");
+
     public static final List<Key> WOODEN_TRAPDOORS = List.of(OAK_TRAPDOOR, SPRUCE_TRAPDOOR, BIRCH_TRAPDOOR,
             ACACIA_TRAPDOOR, PALE_OAK_TRAPDOOR, DARK_OAK_TRAPDOOR, MANGROVE_TRAPDOOR, JUNGLE_TRAPDOOR);
     public static final List<Key> CHERRY_TRAPDOORS = List.of(CHERRY_TRAPDOOR);

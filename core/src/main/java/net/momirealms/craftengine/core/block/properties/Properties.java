@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.block.properties;
 
-import net.momirealms.craftengine.core.block.state.properties.*;
+import net.momirealms.craftengine.core.block.properties.type.*;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
@@ -40,7 +40,6 @@ public final class Properties {
         register(SLAB_TYPE, new EnumProperty.Factory<>(SlabType.class));
         register(SOFA_SHAPE, new EnumProperty.Factory<>(SofaShape.class));
         register(ANCHOR_TYPE, new EnumProperty.Factory<>(AnchorType.class));
-
     }
 
     public static void register(Key key, PropertyFactory factory) {
