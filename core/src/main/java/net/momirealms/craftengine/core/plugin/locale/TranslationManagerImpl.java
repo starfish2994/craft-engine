@@ -2,13 +2,19 @@ package net.momirealms.craftengine.core.plugin.locale;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.core.block.AbstractBlockManager;
+import net.momirealms.craftengine.core.font.FontManager;
+import net.momirealms.craftengine.core.font.OffsetFont;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.Plugin;
 import net.momirealms.craftengine.core.plugin.PluginProperties;
 import net.momirealms.craftengine.core.plugin.config.*;
+import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
+import net.momirealms.craftengine.core.plugin.text.minimessage.ImageTag;
 import net.momirealms.craftengine.core.plugin.text.minimessage.IndexedArgumentTag;
+import net.momirealms.craftengine.core.plugin.text.minimessage.ShiftTag;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +31,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class TranslationManagerImpl implements TranslationManager {
@@ -276,6 +283,10 @@ public class TranslationManagerImpl implements TranslationManager {
 
     public class LangParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"lang", "language", "languages"};
+        private final Function<String, String> langProcessor = s -> {
+            Component deserialize = AdventureHelper.miniMessage().deserialize(AdventureHelper.legacyToMiniMessage(s), ShiftTag.INSTANCE, ImageTag.INSTANCE);
+            return AdventureHelper.getLegacy().serialize(deserialize);
+        };
 
         @Override
         public int loadingSequence() {
@@ -293,7 +304,7 @@ public class TranslationManagerImpl implements TranslationManager {
             Map<String, String> sectionData = section.entrySet().stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            entry -> String.valueOf(entry.getValue())
+                            entry -> this.langProcessor.apply(String.valueOf(entry.getValue()))
                     ));
             TranslationManagerImpl.this.addClientTranslation(langId, sectionData);
         }

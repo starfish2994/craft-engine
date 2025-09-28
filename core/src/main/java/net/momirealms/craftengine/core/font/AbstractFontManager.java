@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.font;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.AbstractItemManager;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.ResourceLocation;
@@ -74,6 +73,11 @@ public abstract class AbstractFontManager implements FontManager {
                 .map(OffsetFont::new)
                 .orElse(null);
         this.networkTagMapper = new HashMap<>(1024);
+    }
+
+    @Override
+    public OffsetFont offsetFont() {
+        return offsetFont;
     }
 
     @Override

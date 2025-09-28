@@ -4,9 +4,8 @@ public final class LoadingSequence {
     private LoadingSequence() {}
 
     public static final int TEMPLATE = 0;
-    public static final int BLOCK_STATE_MAPPING = 5;
-    public static final int GLOBAL_VAR = 10;
-    public static final int LANG = 20;
+    public static final int BLOCK_STATE_MAPPING = 10;
+    public static final int GLOBAL_VAR = 20;
     public static final int TRANSLATION = 30;
     public static final int EQUIPMENT = 40;
     public static final int ITEM = 50;
@@ -20,4 +19,5 @@ public final class LoadingSequence {
     public static final int VANILLA_LOOTS = 130;
     public static final int EMOJI = 140;
     public static final int ADVANCEMENT = 150;
+    public static final int LANG = 160;
 }
