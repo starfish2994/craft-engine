@@ -121,7 +121,7 @@ public class Int2ObjectBiMap<K> implements IndexedIterable<K> {
     }
 
     private int getIdealIndex(@Nullable K value) {
-        return (MCUtils.idealHash(System.identityHashCode(value)) & Integer.MAX_VALUE) % this.values.length;
+        return (MiscUtils.idealHash(System.identityHashCode(value)) & Integer.MAX_VALUE) % this.values.length;
     }
 
     private int findIndex(@Nullable K value, int id) {

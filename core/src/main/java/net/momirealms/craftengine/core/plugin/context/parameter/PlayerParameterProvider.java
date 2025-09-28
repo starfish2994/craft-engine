@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.context.ChainParameterProvider;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,9 +21,9 @@ public class PlayerParameterProvider implements ChainParameterProvider<Player> {
         CONTEXT_FUNCTIONS.put(DirectContextParameters.PITCH, Entity::xRot);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.YAW, Entity::yRot);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.POSITION, Entity::position);
-        CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_X, p -> MCUtils.fastFloor(p.x()));
-        CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_Y, p -> MCUtils.fastFloor(p.y()));
-        CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_Z, p -> MCUtils.fastFloor(p.z()));
+        CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_X, p -> MiscUtils.fastFloor(p.x()));
+        CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_Y, p -> MiscUtils.fastFloor(p.y()));
+        CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_Z, p -> MiscUtils.fastFloor(p.z()));
         CONTEXT_FUNCTIONS.put(DirectContextParameters.FOOD, Player::foodLevel);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.SATURATION, Player::saturation);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.NAME, Player::name);

@@ -19,8 +19,7 @@ public class CharacterUtils {
         for (int i = 0, j = 0; j < count; i += 6, j++) {
             String hex = unicodeString.substring(i + 2, i + 6);
             try {
-                int codePoint = Integer.parseInt(hex, 16);
-                chars[j] = (char) codePoint;
+                chars[j] = (char) Integer.parseInt(hex, 16);
             } catch (NumberFormatException e) {
                 throw new LocalizedResourceConfigException("warning.config.image.invalid_hex_value", e, hex);
             }

@@ -442,7 +442,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                             return;
                         }
                     } catch (InterruptedException e) {
-                        AbstractBlockManager.this.plugin.logger().warn("Interrupted while parsing allocating internal block state", e);
+                        AbstractBlockManager.this.plugin.logger().warn("Interrupted while allocating internal block state for block " + id.asString(), e);
                         return;
                     }
                 }

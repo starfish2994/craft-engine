@@ -20,7 +20,7 @@ import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.AdventureHelper;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
@@ -166,7 +166,7 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
                     }
                 }
                 signal /= (float) inventory.getSize();
-                return MCUtils.lerpDiscrete(signal, 0, 15);
+                return MiscUtils.lerpDiscrete(signal, 0, 15);
             }
         }
         return 0;
@@ -194,7 +194,7 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             String title = arguments.getOrDefault("title", "").toString();
-            int rows = MCUtils.clamp(ResourceConfigUtils.getAsInt(arguments.getOrDefault("rows", 1), "rows"), 1, 6);
+            int rows = MiscUtils.clamp(ResourceConfigUtils.getAsInt(arguments.getOrDefault("rows", 1), "rows"), 1, 6);
             Map<String, Object> sounds = (Map<String, Object>) arguments.get("sounds");
             boolean hasAnalogOutputSignal = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("has-signal", true), "has-signal");
             SoundData openSound = null;

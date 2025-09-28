@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.world;
 
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 
 public class EntityHitResult {
     private final Direction direction;
@@ -23,9 +23,9 @@ public class EntityHitResult {
     }
 
     private BlockPos getBlockPos() {
-        int x = MCUtils.fastFloor(this.position.x);
-        int y = MCUtils.fastFloor(this.position.y);
-        int z = MCUtils.fastFloor(this.position.z);
+        int x = MiscUtils.fastFloor(this.position.x);
+        int y = MiscUtils.fastFloor(this.position.y);
+        int z = MiscUtils.fastFloor(this.position.z);
         if (this.direction == Direction.UP) {
             if (this.position.y % 1 == 0) {
                 y--;

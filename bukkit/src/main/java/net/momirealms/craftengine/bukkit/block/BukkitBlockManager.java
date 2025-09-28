@@ -362,7 +362,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     // 注册服务端侧的真实方块
     private void registerServerSideCustomBlocks(int count) {
         // 这个会影响全局调色盘
-        if (MCUtils.ceilLog2(this.vanillaBlockStateCount + count) == MCUtils.ceilLog2(this.vanillaBlockStateCount)) {
+        if (MiscUtils.ceilLog2(this.vanillaBlockStateCount + count) == MiscUtils.ceilLog2(this.vanillaBlockStateCount)) {
             PalettedContainer.NEED_DOWNGRADE = false;
         }
         try {

@@ -13,7 +13,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -42,7 +42,7 @@ public class MythicItemDrop extends ItemDrop implements IItemDrop {
                 context = ItemBuildContext.of(player);
             }
         }
-        int amountInt = MCUtils.fastFloor(amount + 0.5F);
+        int amountInt = MiscUtils.fastFloor(amount + 0.5F);
         ItemStack itemStack = this.customItem.buildItemStack(context, amountInt);
         return adapt(itemStack).amount(amountInt);
     }

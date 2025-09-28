@@ -320,6 +320,9 @@ public abstract class AbstractPackManager implements PackManager {
                     if (namespace.charAt(0) == '.') {
                         continue;
                     }
+                    if (!ResourceLocation.isValidNamespace(namespace)) {
+                        namespace = "minecraft";
+                    }
                     Path metaFile = path.resolve("pack.yml");
                     String description = null;
                     String version = null;

@@ -437,7 +437,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                     }
                     // custom model data 已被用尽，不太可能
                     else if (throwable instanceof IdAllocator.IdExhaustedException) {
-                        throw new LocalizedResourceConfigException("warning.config.item.custom_model_data.exhausted");
+                        throw new LocalizedResourceConfigException("warning.config.item.custom_model_data.exhausted", clientBoundMaterial.asString());
                     }
                     // 未知错误
                     else {

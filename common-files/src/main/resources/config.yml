@@ -175,7 +175,7 @@ equipment:
 
 block:
   # This decides the amount of real blocks on serverside. Requires a restart to apply.
-  serverside-blocks: 2000
+  serverside-blocks: 2025
   # Enables the sound system, which prevents the client from hearing some non-custom block sounds and improves the client experience.
   sound-system:
     enable: true
@@ -232,12 +232,17 @@ image:
     chat: true
     command: true
     sign: true
+  # Decided the starting value for automatic codepoint assignment.
+  codepoint-starting-value:
+    default: 19968
+    overrides:
+      minecraft:default: 57344  # 57344 ~ 63743 (U+E000 ~ U+F8FF)
 
   # Defines Unicode characters used for <shift:xxx> positioning
   # - Must match the font defined in resource packs
   # - Do NOT modify unless you understand text rendering mechanics
   offset-characters:
-    font: minecraft:offset_chars
+    font: minecraft:default
     -1: '\uf800'
     -2: '\uf801'
     -3: '\uf802'

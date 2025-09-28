@@ -585,7 +585,7 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     public BitSet readFixedBitSet(int size) {
-        byte[] byteArray = new byte[MCUtils.positiveCeilDiv(size, 8)];
+        byte[] byteArray = new byte[MiscUtils.positiveCeilDiv(size, 8)];
         this.readBytes(byteArray);
         return BitSet.valueOf(byteArray);
     }
@@ -595,7 +595,7 @@ public class FriendlyByteBuf extends ByteBuf {
             throw new EncoderException("BitSet length exceeds expected size (" + bitSet.length() + " > " + size + ")");
         }
         byte[] byteArray = bitSet.toByteArray();
-        this.writeBytes(Arrays.copyOf(byteArray, MCUtils.positiveCeilDiv(size, 8)));
+        this.writeBytes(Arrays.copyOf(byteArray, MiscUtils.positiveCeilDiv(size, 8)));
     }
 
     @SuppressWarnings("unchecked")
@@ -631,11 +631,11 @@ public class FriendlyByteBuf extends ByteBuf {
         double d = Double.isNaN(vec3.x) ? (double) 0.0F : Math.clamp(vec3.x, -1.7179869183E10, 1.7179869183E10);
         double d1 = Double.isNaN(vec3.y) ? (double) 0.0F : Math.clamp(vec3.y, -1.7179869183E10, 1.7179869183E10);
         double d2 = Double.isNaN(vec3.z) ? (double) 0.0F : Math.clamp(vec3.z, -1.7179869183E10, 1.7179869183E10);
-        double max = MCUtils.absMax(d, MCUtils.absMax(d1, d2));
+        double max = MiscUtils.absMax(d, MiscUtils.absMax(d1, d2));
         if (max < 3.051944088384301E-5) {
             this.writeByte(0);
         } else {
-            long l = MCUtils.ceilLong(max);
+            long l = MiscUtils.ceilLong(max);
             boolean flag = (l & 3L) != l;
             long l1 = flag ? l & 3L | 4L : l;
             long l2 = (Math.round(((d / (double) l) * (double) 0.5F + (double) 0.5F) * (double) 32766.0F)) << 3;
