@@ -674,7 +674,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 // 获取原版方块的id
                 Key block = split.length == 2 ? Key.of(split[0]) : Key.of(split[0], split[1]);
                 try {
-                    List<BlockStateWrapper> arranger =blockStateArranger.get(block);
+                    List<BlockStateWrapper> arranger = AbstractBlockManager.this.blockStateArranger.get(block);
                     if (arranger == null) {
                         throw new LocalizedResourceConfigException("warning.config.block.state.unavailable_vanilla", blockState);
                     }

@@ -55,6 +55,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -210,6 +211,19 @@ public class BukkitCraftEngine extends CraftEngine {
         super.furnitureManager = new BukkitFurnitureManager(this);
         super.onPluginEnable();
         super.compatibilityManager().onEnable();
+
+        // todo 未来版本移除
+        Path legacyFile1 = this.dataFolderPath().resolve("additional-real-blocks.yml");
+        Path legacyFile2 = this.dataFolderPath().resolve("mappings.yml");
+        if (Files.exists(legacyFile1)) {
+            try {
+                Files.delete(legacyFile1);
+                Files.deleteIfExists(legacyFile2);
+                this.saveResource("resources/internal/configuration/mappings.yml");
+            } catch (IOException e) {
+                this.logger.warn("Failed to delete legacy files", e);
+            }
+        }
     }
 
     @Override
