@@ -55,7 +55,7 @@ public class BukkitGuiManager implements GuiManager, Listener {
                 case ANVIL -> MenuType.ANVIL.create(bukkitPlayer).open();
                 case LOOM -> MenuType.LOOM.create(bukkitPlayer).open();
                 case ENCHANTMENT -> MenuType.ENCHANTMENT.create(bukkitPlayer).open();
-                case CRAFTING -> MenuType.CRAFTER_3X3.create(bukkitPlayer).open();
+                case CRAFTING -> MenuType.CRAFTING.create(bukkitPlayer).open();
                 case CARTOGRAPHY -> MenuType.CARTOGRAPHY_TABLE.create(bukkitPlayer).open();
                 case SMITHING -> MenuType.SMITHING.create(bukkitPlayer).open();
                 case GRINDSTONE -> MenuType.GRINDSTONE.create(bukkitPlayer).open();
