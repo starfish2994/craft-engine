@@ -178,7 +178,7 @@ warning.config.block.state.missing_properties: "<yellow><arg:0> dosyasında soru
 warning.config.block.state.missing_appearances: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu, 'states' için gerekli 'appearances' bölümü eksik.</yellow>"
 warning.config.block.state.variant.invalid_appearance: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğunda, '<arg:2>' varyantının var olmayan bir görünüm '<arg:3>' kullandığı bir hata var.</yellow>"
 warning.config.block.state.invalid_vanilla: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu geçersiz bir vanilya blok durumu '<arg:2>' kullanıyor.</yellow>"
-warning.config.block.state.unavailable_vanilla: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu kullanılamayan bir vanilya blok durumu '<arg:2>' kullanıyor. Lütfen bu durumu mappings.yml dosyasında serbest bırakın.</yellow>"
+warning.config.block.state.unavailable_vanilla: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu kullanılamayan bir vanilya blok durumu '<arg:2>' kullanıyor. Lütfen bu durumu block-state-mappings dosyasında serbest bırakın.</yellow>"
 warning.config.block.state.invalid_vanilla_id: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu, mevcut yuva aralığı '0~<arg:3>' aşan bir vanilya blok durumu '<arg:2>' kullanıyor.</yellow>"
 warning.config.block.state.id.conflict: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu, durum '<arg:3>' tarafından işgal edildiği için '<arg:2>' için gerçek blok durumu bağlamada başarısız oldu.</yellow>"
 warning.config.block.state.model.missing_path: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' bloğu, 'model' için gerekli 'path' seçeneği eksik.</yellow>"

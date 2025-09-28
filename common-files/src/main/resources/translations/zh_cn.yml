@@ -266,7 +266,7 @@ warning.config.block.state.missing_properties: "<yellow>在文件 <arg:0> 发现
 warning.config.block.state.missing_appearances: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的 'states' 缺少必需的 'appearances' 段落</yellow>"
 warning.config.block.state.variant.invalid_appearance: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 的变体 '<arg:2>' 使用了不存在的 appearance '<arg:3>'</yellow>"
 warning.config.block.state.invalid_vanilla: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 使用了无效的原版方块状态 '<arg:2>'</yellow>"
-warning.config.block.state.unavailable_vanilla: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 使用了不可用的原版方块状态 '<arg:2>' 请在 mappings.yml 中释放该状态</yellow>"
+warning.config.block.state.unavailable_vanilla: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 使用了不可用的原版方块状态 '<arg:2>' 请在 block-state-mappings 中释放该状态</yellow>"
 warning.config.block.state.invalid_vanilla_id: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 使用的原版方块状态 '<arg:2>' 超出可用槽位范围 '0~<arg:3>'</yellow>"
 warning.config.block.state.id.conflict: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 无法为 '<arg:2>' 绑定真实方块状态 '<arg:4>' 因该状态已被 '<arg:3>' 占用</yellow>"
 warning.config.block.state.invalid_id: "<yellow>在文件 <arg:0> 发现问题 - 方块 '<arg:1>' 使用的真实方块状态 '<arg:2>' 超出可用槽位范围 '0~<arg:3>' 如果槽位已用尽 请在 config.yml 中添加更多服务端侧方块</yellow>"

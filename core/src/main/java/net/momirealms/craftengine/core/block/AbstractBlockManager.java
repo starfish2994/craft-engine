@@ -383,6 +383,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             Map<String, Property<?>> properties = singleState ? Map.of() : parseBlockProperties(ResourceConfigUtils.getAsMap(ResourceConfigUtils.requireNonNullOrThrow(stateSection.get("properties"), "warning.config.block.state.missing_properties"), "properties"));
             // 注册方块容器
             Holder.Reference<CustomBlock> holder = ((WritableRegistry<CustomBlock>) BuiltInRegistries.BLOCK).getOrRegisterForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), id));
+            // 先绑定无效方块
+            holder.bindValue(new InactiveCustomBlock(holder));
 
             // 根据properties生成variant provider
             BlockStateVariantProvider variantProvider = new BlockStateVariantProvider(holder, (owner, propertyMap) -> {
@@ -455,8 +457,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                         LootTable.fromMap(ResourceConfigUtils.getAsMapOrNull(section.get("loot"), "loot"))
                 );
                 BlockBehavior blockBehavior = createBlockBehavior(customBlock, MiscUtils.getAsMapList(ResourceConfigUtils.get(section, "behavior", "behaviors")));
-                customBlock.setBehavior(blockBehavior);
-                holder.bindValue(customBlock);
 
                 // 单状态
                 if (singleState) {
@@ -554,6 +554,10 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 }));
                     }
                 }
+
+                // 一定要到最后再绑定
+                customBlock.setBehavior(blockBehavior);
+                holder.bindValue(customBlock);
 
                 // 添加方块
                 AbstractBlockManager.this.byId.put(customBlock.id(), customBlock);

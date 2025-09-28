@@ -74,8 +74,7 @@ public final class DefaultSectionSerializer {
                 key = Key.of(id);
             }
             Holder<CustomBlock> owner = BuiltInRegistries.BLOCK.get(key).orElseGet(() -> {
-                Holder.Reference<CustomBlock> holder = ((WritableRegistry<CustomBlock>) BuiltInRegistries.BLOCK).registerForHolder(
-                        ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), key));
+                Holder.Reference<CustomBlock> holder = ((WritableRegistry<CustomBlock>) BuiltInRegistries.BLOCK).registerForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), key));
                 InactiveCustomBlock inactiveBlock = new InactiveCustomBlock(holder);
                 holder.bindValue(inactiveBlock);
                 return holder;
