@@ -14,10 +14,7 @@ import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Properties;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.loot.LootTable;
-import net.momirealms.craftengine.core.pack.LoadingSequence;
-import net.momirealms.craftengine.core.pack.Pack;
-import net.momirealms.craftengine.core.pack.PendingConfigSection;
-import net.momirealms.craftengine.core.pack.ResourceLocation;
+import net.momirealms.craftengine.core.pack.*;
 import net.momirealms.craftengine.core.pack.cache.IdAllocator;
 import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenerator;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
@@ -65,8 +62,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final Map<Key, JsonElement> modBlockStateOverrides = new HashMap<>();
     // 根据外观查找真实状态，用于debug指令
     protected final Map<Integer, List<Integer>> appearanceToRealState = new Int2ObjectOpenHashMap<>();
-    // 声音映射表，和使用了哪些视觉方块有关
-    protected final Map<Key, Key> soundReplacements = new HashMap<>(512, 0.5f);
     // 用于note_block:0这样格式的自动分配
     protected final Map<Key, List<BlockStateWrapper>> blockStateArranger = new HashMap<>();
     // 根据registry id找note_block:x中的x值
@@ -83,6 +78,10 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final ImmutableBlockState[] immutableBlockStates;
     // 原版方块的属性缓存
     protected final BlockSettings[] vanillaBlockSettings;
+    // 临时存储哪些视觉方块被使用了
+    protected final Set<BlockStateWrapper> tempVisualBlocksInUse = new HashSet<>();
+    // 声音映射表，和使用了哪些视觉方块有关
+    protected Map<Key, Key> soundReplacements = Map.of();
 
     protected AbstractBlockManager(CraftEngine plugin, int vanillaBlockStateCount, int customBlockCount) {
         super(plugin);
@@ -122,7 +121,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.blockStateOverrides.clear();
         this.modBlockStateOverrides.clear();
         this.byId.clear();
-        this.soundReplacements.clear();
         this.blockStateArranger.clear();
         this.reversedBlockStateArranger.clear();
         this.appearanceToRealState.clear();
@@ -133,8 +131,9 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     @Override
     public void delayedLoad() {
         this.initSuggestions();
-        this.clearCache();
         this.resendTags();
+        this.processSounds();
+        this.clearCache();
     }
 
     @Override
@@ -145,24 +144,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     @Override
     public Optional<CustomBlock> blockById(Key id) {
         return Optional.ofNullable(this.byId.get(id));
-    }
-
-    protected void addCustomBlock(CustomBlock customBlock) {
-        // 绑定外观状态等
-        for (ImmutableBlockState state : customBlock.variantProvider().states()) {
-            int internalId = state.customBlockState().registryId();
-            int appearanceId = state.vanillaBlockState().registryId();
-            int index = internalId - this.vanillaBlockStateCount;
-            this.immutableBlockStates[index] = state;
-            this.blockStateMappings[internalId] = appearanceId;
-            this.appearanceToRealState.computeIfAbsent(appearanceId, k -> new IntArrayList()).add(internalId);
-            this.applyPlatformSettings(state);
-            // generate mod assets
-            if (Config.generateModAssets()) {
-                this.modBlockStateOverrides.put(getBlockOwnerId(state.customBlockState()), this.tempVanillaBlockStateModels.get(appearanceId));
-            }
-        }
-        this.byId.put(customBlock.id(), customBlock);
     }
 
     protected abstract void applyPlatformSettings(ImmutableBlockState state);
@@ -203,6 +184,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     protected void clearCache() {
         this.tempVanillaBlockStateModels.clear();
+        this.tempVisualBlocksInUse.clear();
     }
 
     protected void initSuggestions() {
@@ -237,6 +219,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected abstract void setVanillaBlockTags(Key id, List<String> tags);
 
     protected abstract int vanillaBlockStateCount();
+
+    protected abstract void processSounds();
 
     protected abstract CustomBlock createCustomBlock(@NotNull Holder.Reference<CustomBlock> holder,
                                                      @NotNull BlockStateVariantProvider variantProvider,
@@ -538,15 +522,34 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 boolean isEntityBlock = entityBlockBehavior != null;
 
                 // 绑定行为
-                for (ImmutableBlockState blockState : states) {
-                    blockState.setBehavior(blockBehavior);
+                for (ImmutableBlockState state : states) {
                     if (isEntityBlock) {
-                        blockState.setBlockEntityType(entityBlockBehavior.blockEntityType());
+                        state.setBlockEntityType(entityBlockBehavior.blockEntityType());
+                    }
+                    state.setBehavior(blockBehavior);
+                    int internalId = state.customBlockState().registryId();
+                    int appearanceId = state.vanillaBlockState().registryId();
+                    int index = internalId - AbstractBlockManager.this.vanillaBlockStateCount;
+                    AbstractBlockManager.this.immutableBlockStates[index] = state;
+                    AbstractBlockManager.this.blockStateMappings[internalId] = appearanceId;
+                    AbstractBlockManager.this.appearanceToRealState.computeIfAbsent(appearanceId, k -> new IntArrayList()).add(internalId);
+                    AbstractBlockManager.this.tempVisualBlocksInUse.add(state.vanillaBlockState());
+                    AbstractBlockManager.this.applyPlatformSettings(state);
+                    // generate mod assets
+                    if (Config.generateModAssets()) {
+                        AbstractBlockManager.this.modBlockStateOverrides.put(BlockManager.createCustomBlockKey(index), Optional.ofNullable(AbstractBlockManager.this.tempVanillaBlockStateModels.get(appearanceId))
+                                .orElseGet(() -> {
+                                    // 如果未指定模型，说明复用原版模型？但是部分模型是多部位模型，无法使用变体解决问题
+                                    // 未来需要靠mod重构彻底解决问题
+                                    JsonObject json = new JsonObject();
+                                    json.addProperty("model", "minecraft:block/air");
+                                    return json;
+                                }));
                     }
                 }
 
                 // 添加方块
-                addCustomBlock(customBlock);
+                AbstractBlockManager.this.byId.put(customBlock.id(), customBlock);
 
             }, () -> GsonHelper.get().toJson(section)));
         }

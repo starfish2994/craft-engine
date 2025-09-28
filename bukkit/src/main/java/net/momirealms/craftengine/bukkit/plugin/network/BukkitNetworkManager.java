@@ -1037,8 +1037,10 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 // not a custom block
                 if (BlockStateUtils.isVanillaBlock(stateId)) {
                     if (Config.enableSoundSystem()) {
-                        Object blockOwner = FastNMS.INSTANCE.method$BlockState$getBlock(blockState);
-                        if (BukkitBlockManager.instance().isBlockSoundRemoved(blockOwner)) {
+                        Object soundType = FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(blockState);
+                        Object soundEvent = FastNMS.INSTANCE.field$SoundType$hitSound(soundType);
+                        Object soundId = FastNMS.INSTANCE.field$SoundEvent$location(soundEvent);
+                        if (BukkitBlockManager.instance().isHitSoundMissing(soundId)) {
                             player.startMiningBlock(pos, blockState, null);
                             return;
                         }
@@ -2293,47 +2295,31 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             int state = buf.readInt();
             boolean global = buf.readBoolean();
             int newState = user.clientModEnabled() ? modBlockStateMapper[state] : blockStateMapper[state];
+            Object blockState = BlockStateUtils.idToBlockState(state);
+            Object soundType = FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(blockState);
+            Object soundEvent = FastNMS.INSTANCE.field$SoundType$breakSound(soundType);
+            Object rawSoundId = FastNMS.INSTANCE.field$SoundEvent$location(soundEvent);
             if (BlockStateUtils.isVanillaBlock(state)) {
-                Object blockState = BlockStateUtils.idToBlockState(state);
-                Object block = BlockStateUtils.getBlockOwner(blockState);
-                if (BukkitBlockManager.instance().isBlockSoundRemoved(block)) {
-                    Object soundType = FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(blockState);
-                    Object breakSound = FastNMS.INSTANCE.field$SoundType$breakSound(soundType);
-                    Key soundId = Key.of(FastNMS.INSTANCE.field$SoundEvent$location(breakSound).toString());
-                    Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
+                if (BukkitBlockManager.instance().isBreakSoundMissing(rawSoundId)) {
+                    Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(KeyUtils.resourceLocationToKey(rawSoundId));
                     if (mappedSoundId != null) {
-                        Object mappedBreakSound = FastNMS.INSTANCE.constructor$SoundEvent(KeyUtils.toResourceLocation(mappedSoundId), Optional.empty());
-                        Object mappedBreakSoundHolder = FastNMS.INSTANCE.method$Holder$direct(mappedBreakSound);
                         Object packet = FastNMS.INSTANCE.constructor$ClientboundSoundPacket(
-                                mappedBreakSoundHolder,
+                                FastNMS.INSTANCE.method$Holder$direct(FastNMS.INSTANCE.constructor$SoundEvent(KeyUtils.toResourceLocation(mappedSoundId), Optional.empty())),
                                 CoreReflections.instance$SoundSource$BLOCKS,
-                                blockPos.x() + 0.5,
-                                blockPos.y() + 0.5,
-                                blockPos.z() + 0.5,
-                                1f,
-                                0.8F,
+                                blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
                                 RandomUtils.generateRandomLong()
                         );
                         user.sendPacket(packet, true);
                     }
                 }
             } else {
-                Object blockState = BlockStateUtils.idToBlockState(state);
-                Object soundType = FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(blockState);
-                Object breakSound = FastNMS.INSTANCE.field$SoundType$breakSound(soundType);
-                Key soundId = Key.of(FastNMS.INSTANCE.field$SoundEvent$location(breakSound).toString());
+                Key soundId = KeyUtils.resourceLocationToKey(rawSoundId);
                 Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
                 Object finalSoundId = KeyUtils.toResourceLocation(mappedSoundId == null ? soundId : mappedSoundId);
-                Object mappedBreakSound = FastNMS.INSTANCE.constructor$SoundEvent(finalSoundId, Optional.empty());
-                Object mappedBreakSoundHolder = FastNMS.INSTANCE.method$Holder$direct(mappedBreakSound);
                 Object packet = FastNMS.INSTANCE.constructor$ClientboundSoundPacket(
-                        mappedBreakSoundHolder,
+                        FastNMS.INSTANCE.method$Holder$direct(FastNMS.INSTANCE.constructor$SoundEvent(finalSoundId, Optional.empty())),
                         CoreReflections.instance$SoundSource$BLOCKS,
-                        blockPos.x() + 0.5,
-                        blockPos.y() + 0.5,
-                        blockPos.z() + 0.5,
-                        1f,
-                        0.8F,
+                        blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
                         RandomUtils.generateRandomLong()
                 );
                 user.sendPacket(packet, true);

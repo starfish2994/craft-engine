@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.bukkit.block;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import net.momirealms.craftengine.bukkit.block.behavior.UnsafeCompositeBlockBehavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -31,6 +33,7 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 public final class BukkitBlockManager extends AbstractBlockManager {
@@ -40,7 +43,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private static BukkitBlockManager instance;
     private final BukkitCraftEngine plugin;
     // 事件监听器
-    private BlockEventListener blockEventListener;
+    private final BlockEventListener blockEventListener;
+    // 用于缓存string形式的方块状态到原版方块状态
+    private final Map<String, Object> blockStateCache = new HashMap<>(1024);
+    // 用于临时存储可燃烧自定义方块的列表
+    private final List<DelegatingBlock> burnableBlocks = new ArrayList<>();
     // 可燃烧的方块
     private Map<Object, Integer> igniteOdds;
     private Map<Object, Integer> burnOdds;
@@ -50,15 +57,15 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     // 缓存的原版方块tag包
     private Object cachedUpdateTagsPacket;
     // 被移除声音的原版方块
-    private final Set<Object> replacedBlockSounds = new HashSet<>();
-    // 用于缓存string形式的方块状态到原版方块状态
-    private final Map<String, Object> blockStateCache = new HashMap<>(1024);
-    // 用于临时存储可燃烧自定义方块的列表
-    private final List<DelegatingBlock> burnableBlocks = new ArrayList<>();
+    private Set<Object> missingPlaceSounds = Set.of();
+    private Set<Object> missingBreakSounds = Set.of();
+    private Set<Object> missingHitSounds = Set.of();
+    private Set<Object> missingStepSounds = Set.of();
 
     public BukkitBlockManager(BukkitCraftEngine plugin) {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
         this.plugin = plugin;
+        this.blockEventListener = new BlockEventListener(plugin, this);
         this.registerServerSideCustomBlocks(Config.serverSideBlocks());
         EmptyBlock.initialize();
         instance = this;
@@ -71,7 +78,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         this.initVanillaBlockSettings();
         this.deceiveBukkitRegistry();
         this.markVanillaNoteBlocks();
-        this.blockEventListener = new BlockEventListener(plugin, this);
         Arrays.fill(this.immutableBlockStates, EmptyBlock.INSTANCE.defaultState());
         this.plugin.networkManager().registerBlockStatePacketListeners(this.blockStateMappings); // 一定要预先初始化一次，预防id超出上限
     }
@@ -411,8 +417,20 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         this.clientBoundTags.put(FastNMS.INSTANCE.method$IdMap$getId(MBuiltInRegistries.BLOCK, block).orElseThrow(() -> new IllegalStateException("Block " + id + " not found")), tags);
     }
 
-    public boolean isBlockSoundRemoved(Object block) {
-        return this.replacedBlockSounds.contains(block);
+    public boolean isPlaceSoundMissing(Object sound) {
+        return this.missingPlaceSounds.contains(sound);
+    }
+
+    public boolean isBreakSoundMissing(Object sound) {
+        return this.missingBreakSounds.contains(sound);
+    }
+
+    public boolean isHitSoundMissing(Object sound) {
+        return this.missingHitSounds.contains(sound);
+    }
+
+    public boolean isStepSoundMissing(Object sound) {
+        return this.missingStepSounds.contains(sound);
     }
 
     private void unfreezeRegistry() {
@@ -461,6 +479,51 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public int vanillaBlockStateCount() {
         return this.vanillaBlockStateCount;
+    }
+
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    protected void processSounds() {
+        Set<Object> affectedBlockSoundTypes = new HashSet<>();
+        for (BlockStateWrapper vanillaBlockState : super.tempVisualBlocksInUse) {
+            affectedBlockSoundTypes.add(FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(vanillaBlockState.literalObject()));
+        }
+
+        Set<Object> placeSounds = new HashSet<>();
+        Set<Object> breakSounds = new HashSet<>();
+        Set<Object> stepSounds = new HashSet<>();
+        Set<Object> hitSounds = new HashSet<>();
+
+        for (Object soundType : affectedBlockSoundTypes) {
+            placeSounds.add(FastNMS.INSTANCE.field$SoundEvent$location(FastNMS.INSTANCE.field$SoundType$placeSound(soundType)));
+            breakSounds.add(FastNMS.INSTANCE.field$SoundEvent$location(FastNMS.INSTANCE.field$SoundType$breakSound(soundType)));
+            stepSounds.add(FastNMS.INSTANCE.field$SoundEvent$location(FastNMS.INSTANCE.field$SoundType$stepSound(soundType)));
+            hitSounds.add(FastNMS.INSTANCE.field$SoundEvent$location(FastNMS.INSTANCE.field$SoundType$hitSound(soundType)));
+        }
+
+        ImmutableMap.Builder<Key, Key> soundReplacementBuilder = ImmutableMap.builder();
+        for (Object soundId : placeSounds) {
+            Key previousId = KeyUtils.resourceLocationToKey(soundId);
+            soundReplacementBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
+        }
+        for (Object soundId : breakSounds) {
+            Key previousId = KeyUtils.resourceLocationToKey(soundId);
+            soundReplacementBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
+        }
+        for (Object soundId : stepSounds) {
+            Key previousId = KeyUtils.resourceLocationToKey(soundId);
+            soundReplacementBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
+        }
+        for (Object soundId : hitSounds) {
+            Key previousId = KeyUtils.resourceLocationToKey(soundId);
+            soundReplacementBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
+        }
+
+        this.missingPlaceSounds = placeSounds;
+        this.missingBreakSounds = breakSounds;
+        this.missingHitSounds = hitSounds;
+        this.missingStepSounds = stepSounds;
+        this.soundReplacements = soundReplacementBuilder.buildKeepingLast();
     }
 
     @Override
