@@ -14,7 +14,10 @@ import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Properties;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.loot.LootTable;
-import net.momirealms.craftengine.core.pack.*;
+import net.momirealms.craftengine.core.pack.LoadingSequence;
+import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.pack.PendingConfigSection;
+import net.momirealms.craftengine.core.pack.ResourceLocation;
 import net.momirealms.craftengine.core.pack.cache.IdAllocator;
 import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenerator;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
@@ -79,7 +82,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     // 原版方块的属性缓存
     protected final BlockSettings[] vanillaBlockSettings;
     // 临时存储哪些视觉方块被使用了
-    protected final Set<BlockStateWrapper> tempVisualBlocksInUse = new HashSet<>();
+    protected final Set<BlockStateWrapper> tempVisualBlockStatesInUse = new HashSet<>();
+    protected final Set<Key> tempVisualBlocksInUse = new HashSet<>();
     // 声音映射表，和使用了哪些视觉方块有关
     protected Map<Key, Key> soundReplacements = Map.of();
 
@@ -184,6 +188,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     protected void clearCache() {
         this.tempVanillaBlockStateModels.clear();
+        this.tempVisualBlockStatesInUse.clear();
         this.tempVisualBlocksInUse.clear();
     }
 
@@ -528,12 +533,14 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     }
                     state.setBehavior(blockBehavior);
                     int internalId = state.customBlockState().registryId();
-                    int appearanceId = state.vanillaBlockState().registryId();
+                    BlockStateWrapper visualState = state.vanillaBlockState();
+                    int appearanceId = visualState.registryId();
                     int index = internalId - AbstractBlockManager.this.vanillaBlockStateCount;
                     AbstractBlockManager.this.immutableBlockStates[index] = state;
                     AbstractBlockManager.this.blockStateMappings[internalId] = appearanceId;
                     AbstractBlockManager.this.appearanceToRealState.computeIfAbsent(appearanceId, k -> new IntArrayList()).add(internalId);
-                    AbstractBlockManager.this.tempVisualBlocksInUse.add(state.vanillaBlockState());
+                    AbstractBlockManager.this.tempVisualBlockStatesInUse.add(visualState);
+                    AbstractBlockManager.this.tempVisualBlocksInUse.add(getBlockOwnerId(visualState));
                     AbstractBlockManager.this.applyPlatformSettings(state);
                     // generate mod assets
                     if (Config.generateModAssets()) {

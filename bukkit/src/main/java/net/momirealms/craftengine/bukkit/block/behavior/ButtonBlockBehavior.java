@@ -134,26 +134,26 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void checkPressed(Object thisBlock, Object state, Object level, Object pos) {
-        Object abstractArrow = this.canButtonBeActivatedByArrows ? FastNMS.INSTANCE.method$EntityGetter$getEntitiesOfClass(
+        Object arrow = this.canButtonBeActivatedByArrows ? FastNMS.INSTANCE.method$EntityGetter$getEntitiesOfClass(
                 level, CoreReflections.clazz$AbstractArrow, FastNMS.INSTANCE.method$AABB$move(
                         FastNMS.INSTANCE.method$VoxelShape$bounds(FastNMS.INSTANCE.method$BlockState$getShape(
                                 state, level, pos, CoreReflections.instance$CollisionContext$empty
                         )), pos), MEntitySelectors.NO_SPECTATORS).stream().findFirst().orElse(null) : null;
-        boolean flag = abstractArrow != null;
+        boolean on = arrow != null;
         ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (blockState == null) return;
         boolean poweredValue = blockState.get(this.poweredProperty);
-        if (flag != poweredValue) {
-            FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, blockState.with(this.poweredProperty, flag).customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
+        if (on != poweredValue) {
+            FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, blockState.with(this.poweredProperty, on).customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
             updateNeighbours(thisBlock, blockState, level, pos);
-            playSound(null, level, pos, flag);
+            playSound(level, pos, on);
             Object gameEvent = VersionHelper.isOrAbove1_20_5()
-                    ? FastNMS.INSTANCE.method$Holder$direct(flag ? MGameEvents.BLOCK_ACTIVATE : MGameEvents.BLOCK_DEACTIVATE)
-                    : flag ? MGameEvents.BLOCK_ACTIVATE : MGameEvents.BLOCK_DEACTIVATE;
-            FastNMS.INSTANCE.method$LevelAccessor$gameEvent(level, abstractArrow, gameEvent, pos);
+                    ? FastNMS.INSTANCE.method$Holder$direct(on ? MGameEvents.BLOCK_ACTIVATE : MGameEvents.BLOCK_DEACTIVATE)
+                    : on ? MGameEvents.BLOCK_ACTIVATE : MGameEvents.BLOCK_DEACTIVATE;
+            FastNMS.INSTANCE.method$LevelAccessor$gameEvent(level, arrow, gameEvent, pos);
         }
 
-        if (flag) {
+        if (on) {
             FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
         }
     }
@@ -177,21 +177,21 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         FastNMS.INSTANCE.method$Level$updateNeighborsAt(level, FastNMS.INSTANCE.method$BlockPos$relative(pos, nmsDirection), thisBlock, orientation);
     }
 
-    private void playSound(@Nullable Object player, Object level, Object pos, boolean hitByArrow) {
-        SoundData soundData = getSound(hitByArrow);
+    private void playSound(Object level, Object pos, boolean on) {
+        SoundData soundData = getSound(on);
         if (soundData == null) return;
         Object sound = FastNMS.INSTANCE.constructor$SoundEvent(KeyUtils.toResourceLocation(soundData.id()), Optional.empty());
-        FastNMS.INSTANCE.method$LevelAccessor$playSound(level, player, pos, sound, CoreReflections.instance$SoundSource$BLOCKS, soundData.volume().get(), soundData.pitch().get());
+        FastNMS.INSTANCE.method$LevelAccessor$playSound(level, null, pos, sound, CoreReflections.instance$SoundSource$BLOCKS, soundData.volume().get(), soundData.pitch().get());
     }
 
-    private SoundData getSound(boolean isOn) {
-        return isOn ? this.buttonClickOnSound : this.buttonClickOffSound;
+    private SoundData getSound(boolean on) {
+        return on ? this.buttonClickOnSound : this.buttonClickOffSound;
     }
 
     private void press(Object thisBlock, ImmutableBlockState state, Object level, Object pos, @Nullable Object player) {
         FastNMS.INSTANCE.method$LevelWriter$setBlock(level, pos, state.with(this.poweredProperty, true).customBlockState().literalObject(), UpdateOption.UPDATE_ALL.flags());
         FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
-        playSound(player, level, pos, true);
+        playSound(level, pos, true);
         Object gameEvent = VersionHelper.isOrAbove1_20_5() ? FastNMS.INSTANCE.method$Holder$direct(MGameEvents.BLOCK_ACTIVATE) : MGameEvents.BLOCK_ACTIVATE;
         FastNMS.INSTANCE.method$LevelAccessor$gameEvent(level, player, gameEvent, pos);
     }
@@ -203,7 +203,7 @@ public class ButtonBlockBehavior extends BukkitBlockBehavior {
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             BooleanProperty powered = (BooleanProperty) ResourceConfigUtils.requireNonNullOrThrow(block.getProperty("powered"), "warning.config.block.behavior.button.missing_powered");
             int ticksToStayPressed = ResourceConfigUtils.getAsInt(arguments.getOrDefault("ticks-to-stay-pressed", 30), "ticks-to-stay-pressed");
-            boolean canButtonBeActivatedByArrows = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-button-be-activated-by-arrows", true), "can-button-be-activated-by-arrows");
+            boolean canButtonBeActivatedByArrows = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-be-activated-by-arrows", true), "can-be-activated-by-arrows");
             Map<String, Object> sounds = (Map<String, Object>) arguments.get("sounds");
             SoundData buttonClickOnSound = null;
             SoundData buttonClickOffSound = null;

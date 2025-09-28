@@ -2,6 +2,8 @@ package net.momirealms.craftengine.core.block;
 
 import net.momirealms.craftengine.core.util.Key;
 
+import java.util.List;
+
 public final class BlockKeys {
     private BlockKeys() {}
 
@@ -243,4 +245,33 @@ public final class BlockKeys {
     public static final Key BAMBOO_WALL_HANGING_SIGN = Key.of("minecraft:bamboo_wall_hanging_sign");
 
     public static final Key CACTUS = Key.of("minecraft:cactus");
+
+    public static final List<Key> WOODEN_TRAPDOORS = List.of(OAK_TRAPDOOR, SPRUCE_TRAPDOOR, BIRCH_TRAPDOOR,
+            ACACIA_TRAPDOOR, PALE_OAK_TRAPDOOR, DARK_OAK_TRAPDOOR, MANGROVE_TRAPDOOR, JUNGLE_TRAPDOOR);
+    public static final List<Key> CHERRY_TRAPDOORS = List.of(CHERRY_TRAPDOOR);
+    public static final List<Key> BAMBOO_TRAPDOORS = List.of(BAMBOO_TRAPDOOR);
+    public static final List<Key> NETHER_TRAPDOORS = List.of(WARPED_TRAPDOOR, CRIMSON_TRAPDOOR);
+    public static final List<Key> COPPER_TRAPDOORS = List.of(COPPER_TRAPDOOR, EXPOSED_COPPER_TRAPDOOR, WEATHERED_COPPER_TRAPDOOR, OXIDIZED_COPPER_DOOR,
+            WAXED_COPPER_TRAPDOOR, WAXED_EXPOSED_COPPER_TRAPDOOR, WAXED_WEATHERED_COPPER_TRAPDOOR, WAXED_OXIDIZED_COPPER_TRAPDOOR);
+
+    public static final List<Key> WOODEN_DOORS = List.of(OAK_DOOR, SPRUCE_DOOR, BIRCH_DOOR,
+            ACACIA_DOOR, PALE_OAK_DOOR, DARK_OAK_DOOR, MANGROVE_DOOR, JUNGLE_DOOR);
+    public static final List<Key> CHERRY_DOORS = List.of(CHERRY_DOOR);
+    public static final List<Key> BAMBOO_DOORS = List.of(BAMBOO_DOOR);
+    public static final List<Key> NETHER_DOORS = List.of(WARPED_DOOR, CRIMSON_DOOR);
+    public static final List<Key> COPPER_DOORS = List.of(COPPER_DOOR, EXPOSED_COPPER_DOOR, WEATHERED_COPPER_DOOR, OXIDIZED_COPPER_DOOR,
+            WAXED_COPPER_DOOR, WAXED_EXPOSED_COPPER_DOOR, WAXED_WEATHERED_COPPER_DOOR, WAXED_OXIDIZED_COPPER_DOOR);
+
+    public static final List<Key> WOODEN_FENCE_GATES = List.of(OAK_FENCE_GATE, SPRUCE_FENCE_GATE, BIRCH_FENCE_GATE,
+            ACACIA_FENCE_GATE, PALE_OAK_FENCE_GATE, DARK_OAK_FENCE_GATE, MANGROVE_FENCE_GATE, JUNGLE_FENCE_GATE);
+    public static final List<Key> CHERRY_FENCE_GATES = List.of(CHERRY_FENCE_GATE);
+    public static final List<Key> BAMBOO_FENCE_GATES = List.of(BAMBOO_FENCE_GATE);
+    public static final List<Key> NETHER_FENCE_GATES = List.of(WARPED_FENCE_GATE, CRIMSON_FENCE_GATE);
+
+    public static final List<Key> WOODEN_BUTTONS = List.of(OAK_BUTTON, SPRUCE_BUTTON, BIRCH_BUTTON, JUNGLE_BUTTON,
+            ACACIA_BUTTON, DARK_OAK_BUTTON, PALE_OAK_BUTTON, MANGROVE_BUTTON);
+    public static final List<Key> CHERRY_BUTTONS = List.of(CHERRY_BUTTON);
+    public static final List<Key> BAMBOO_BUTTONS = List.of(BAMBOO_BUTTON);
+    public static final List<Key> NETHER_BUTTONS = List.of(CRIMSON_BUTTON, WARPED_BUTTON);
+    public static final List<Key> STONE_BUTTONS = List.of(STONE_BUTTON, POLISHED_BLACKSTONE_BUTTON);
 }

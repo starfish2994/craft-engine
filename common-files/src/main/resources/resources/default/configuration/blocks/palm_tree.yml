@@ -689,7 +689,7 @@ blocks#button:
       - type: face_attached_horizontal_directional_block
       - type: button_block
         ticks-to-stay-pressed: 30
-        can-button-be-activated-by-arrows: true
+        can-be-activated-by-arrows: true
         sounds:
           on: minecraft:block.wooden_button.click_on
           off: minecraft:block.wooden_button.click_off

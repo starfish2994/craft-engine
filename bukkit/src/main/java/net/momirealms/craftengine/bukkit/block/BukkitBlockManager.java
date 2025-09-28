@@ -2,7 +2,6 @@ package net.momirealms.craftengine.bukkit.block;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import net.momirealms.craftengine.bukkit.block.behavior.UnsafeCompositeBlockBehavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -25,6 +24,7 @@ import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.sound.SoundData;
+import net.momirealms.craftengine.core.sound.SoundSet;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import org.bukkit.Bukkit;
@@ -33,7 +33,6 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 public final class BukkitBlockManager extends AbstractBlockManager {
@@ -61,6 +60,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private Set<Object> missingBreakSounds = Set.of();
     private Set<Object> missingHitSounds = Set.of();
     private Set<Object> missingStepSounds = Set.of();
+    private Set<Key> missingInteractSoundBlocks = Set.of();
 
     public BukkitBlockManager(BukkitCraftEngine plugin) {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
@@ -433,6 +433,10 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         return this.missingStepSounds.contains(sound);
     }
 
+    public boolean isInteractSoundMissing(Key blockType) {
+        return this.missingInteractSoundBlocks.contains(blockType);
+    }
+
     private void unfreezeRegistry() {
         try {
             CoreReflections.field$MappedRegistry$frozen.set(MBuiltInRegistries.BLOCK, false);
@@ -485,7 +489,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     protected void processSounds() {
         Set<Object> affectedBlockSoundTypes = new HashSet<>();
-        for (BlockStateWrapper vanillaBlockState : super.tempVisualBlocksInUse) {
+        for (BlockStateWrapper vanillaBlockState : super.tempVisualBlockStatesInUse) {
             affectedBlockSoundTypes.add(FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(vanillaBlockState.literalObject()));
         }
 
@@ -523,6 +527,23 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         this.missingBreakSounds = breakSounds;
         this.missingHitSounds = hitSounds;
         this.missingStepSounds = stepSounds;
+
+        Set<Key> missingInteractSoundBlocks = new HashSet<>();
+
+        for (SoundSet soundSet : SoundSet.getAllSoundSets()) {
+            for (Key block : soundSet.blocks()) {
+                if (super.tempVisualBlocksInUse.contains(block)) {
+                    Key openSound = soundSet.openSound();
+                    soundReplacementBuilder.put(openSound, Key.of(openSound.namespace(), "replaced." + openSound.value()));
+                    Key closeSound = soundSet.closeSound();
+                    soundReplacementBuilder.put(closeSound, Key.of(closeSound.namespace(), "replaced." + closeSound.value()));
+                    missingInteractSoundBlocks.addAll(soundSet.blocks());
+                    break;
+                }
+            }
+        }
+
+        this.missingInteractSoundBlocks = missingInteractSoundBlocks;
         this.soundReplacements = soundReplacementBuilder.buildKeepingLast();
     }
 
@@ -532,13 +553,5 @@ public final class BukkitBlockManager extends AbstractBlockManager {
                                             @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
                                             @Nullable LootTable<?> lootTable) {
         return new BukkitCustomBlock(holder, variantProvider, events, lootTable);
-    }
-
-    public boolean isOpenableBlockSoundRemoved(Object blockOwner) {
-        return false;
-    }
-
-    public SoundData getRemovedOpenableBlockSound(Object blockOwner, boolean b) {
-        return null;
     }
 }
