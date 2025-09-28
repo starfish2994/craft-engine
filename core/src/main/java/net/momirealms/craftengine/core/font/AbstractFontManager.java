@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -572,7 +573,7 @@ public abstract class AbstractFontManager implements FontManager {
                         codepoints = CharacterUtils.charsToCodePoints(charString.toCharArray());
                     }
                     for (int j = 0; j < codepoints.length; j++) {
-                        futureCodepoints.add(allocator.assignFixedId(id.asString() + ":" + i + ":" + j, codepoints[i]));
+                        futureCodepoints.add(allocator.assignFixedId(id.asString() + ":" + i + ":" + j, codepoints[j]));
                     }
                     if (tempColumns == -1) {
                         tempColumns = codepoints.length;
@@ -607,26 +608,32 @@ public abstract class AbstractFontManager implements FontManager {
                 }
             }
 
-            CompletableFutures.allOf(futureCodepoints).thenRun(() -> ResourceConfigUtils.runCatching(path, node, () -> {
+            CompletableFutures.allOf(futureCodepoints).whenComplete((v, t) -> ResourceConfigUtils.runCatching(path, node, () -> {
+                if (t != null) {
+                    if (t instanceof CompletionException e) {
+                        Throwable cause = e.getCause();
+                        if (cause instanceof IdAllocator.IdConflictException conflict) {
+                            throw new LocalizedResourceConfigException("warning.config.image.codepoint.conflict",
+                                    fontId.toString(),
+                                    CharacterUtils.encodeCharsToUnicode(Character.toChars(conflict.id())),
+                                    new String(Character.toChars(conflict.id())),
+                                    conflict.previousOwner()
+                            );
+                        } else if (cause instanceof IdAllocator.IdExhaustedException) {
+                            throw new LocalizedResourceConfigException("warning.config.image.codepoint.exhausted", fontId.asString());
+                        }
+                    }
+                    throw new RuntimeException("Unknown error occurred", t);
+                }
+
                 int[][] codepointGrid = new int[rows][columns];
+
                 for (int i = 0; i < rows; i++) {
                     for (int j = 0; j < columns; j++) {
                         try {
                             int codepoint = futureCodepoints.get(i * columns + j).get();
                             codepointGrid[i][j] = codepoint;
-                        } catch (ExecutionException e) {
-                            Throwable cause = e.getCause();
-                            if (cause instanceof IdAllocator.IdConflictException conflict) {
-                                throw new LocalizedResourceConfigException("warning.config.image.codepoint.conflict",
-                                        fontId.toString(),
-                                        CharacterUtils.encodeCharsToUnicode(Character.toChars(conflict.id())),
-                                        new String(Character.toChars(conflict.id())),
-                                        conflict.previousOwner()
-                                );
-                            } else if (cause instanceof IdAllocator.IdExhaustedException) {
-                                throw new LocalizedResourceConfigException("warning.config.image.codepoint.exhausted", fontId.asString());
-                            }
-                        } catch (InterruptedException e) {
+                        } catch (InterruptedException | ExecutionException e) {
                             AbstractFontManager.this.plugin.logger().warn("Interrupted while allocating codepoint for image " + id.asString(), e);
                             return;
                         }

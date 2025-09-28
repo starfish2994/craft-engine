@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractBlockManager extends AbstractModelGenerator implements BlockManager {
@@ -428,13 +429,9 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 }
             }
 
-            CompletableFutures.allOf(internalIdAllocators).thenRun(() -> ResourceConfigUtils.runCatching(path, node, () -> {
-                for (int i = 0; i < internalIdAllocators.size(); i++) {
-                    CompletableFuture<Integer> future = internalIdAllocators.get(i);
-                    try {
-                        int internalId = future.get();
-                        states.get(i).setCustomBlockState(BlockRegistryMirror.byId(internalId + AbstractBlockManager.this.vanillaBlockStateCount));
-                    } catch (ExecutionException e) {
+            CompletableFutures.allOf(internalIdAllocators).whenComplete((v, t) -> ResourceConfigUtils.runCatching(path, node, () -> {
+                if (t != null) {
+                    if (t instanceof CompletionException e) {
                         Throwable cause = e.getCause();
                         // 这里不会有conflict了，因为之前已经判断过了
                         if (cause instanceof IdAllocator.IdExhaustedException) {
@@ -443,7 +440,16 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                             Debugger.BLOCK.warn(() -> "Unknown error while allocating internal block state id.", cause);
                             return;
                         }
-                    } catch (InterruptedException e) {
+                    }
+                    throw new RuntimeException("Unknown error occurred", t);
+                }
+
+                for (int i = 0; i < internalIdAllocators.size(); i++) {
+                    CompletableFuture<Integer> future = internalIdAllocators.get(i);
+                    try {
+                        int internalId = future.get();
+                        states.get(i).setCustomBlockState(BlockRegistryMirror.byId(internalId + AbstractBlockManager.this.vanillaBlockStateCount));
+                    } catch (InterruptedException | ExecutionException e) {
                         AbstractBlockManager.this.plugin.logger().warn("Interrupted while allocating internal block state for block " + id.asString(), e);
                         return;
                     }
