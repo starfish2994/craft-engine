@@ -1,20 +1,25 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
+import net.momirealms.craftengine.core.block.AbstractBlockManager;
 import net.momirealms.craftengine.core.entity.Billboard;
 import net.momirealms.craftengine.core.entity.ItemDisplayContext;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
+import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.joml.Vector3f;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -31,7 +36,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     }
 
     @Override
-    public IdSectionConfigParser parser() {
+    public FurnitureParser parser() {
         return this.furnitureParser;
     }
 
@@ -76,6 +81,24 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
     public class FurnitureParser implements IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] { "furniture" };
+        private final List<PendingConfigSection> pendingConfigSections = new ArrayList<>();
+
+        public void addPendingConfigSection(PendingConfigSection section) {
+            this.pendingConfigSections.add(section);
+        }
+
+        @Override
+        public void preProcess() {
+            for (PendingConfigSection section : this.pendingConfigSections) {
+                ResourceConfigUtils.runCatching(
+                        section.path(),
+                        section.node(),
+                        () -> parseSection(section.pack(), section.path(), section.node(), section.id(), section.config()),
+                        () -> GsonHelper.get().toJson(section.config())
+                );
+            }
+            this.pendingConfigSections.clear();
+        }
 
         @Override
         public String[] sectionId() {

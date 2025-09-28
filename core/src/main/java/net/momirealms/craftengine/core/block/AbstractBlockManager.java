@@ -253,7 +253,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 String after = entry.getValue().toString();
                 // 先解析为唯一的wrapper
                 BlockStateWrapper beforeState = createVanillaBlockState(before);
-                BlockStateWrapper afterState = createVanillaBlockState(before);
+                BlockStateWrapper afterState = createVanillaBlockState(after);
                 if (beforeState == null) {
                     exceptionCollector.add(new LocalizedResourceConfigException("warning.config.block_state_mapping.invalid_state", before));
                     continue;
