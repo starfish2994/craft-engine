@@ -376,7 +376,7 @@ warning.config.resource_pack.item_model.conflict.vanilla: "<yellow>Не удал
 warning.config.resource_pack.item_model.already_exist: "<yellow>Не удалось создать модель элемента для '<arg:0>', потому что файл '<arg:1>' уже существует.</yellow>"
 warning.config.resource_pack.model.generation.already_exist: "<yellow>Не удалось создать модель, так как файл модели '<arg:0>' уже существует.</yellow>"
 warning.config.resource_pack.generation.missing_font_texture: "<yellow>В шрифте '<arg:0>' отсутствует обязательная текстура: '<arg:1>'</yellow>"
-warning.config.resource_pack.generation.texture_not_in_atlas: "<yellow>Текстура '<arg:0>' не указана в атласе. Вам нужно добавить путь к текстуре в атлас или включить 'obfuscation'/'fix-atlas' опцию в config.yml.</yellow>"
+warning.config.resource_pack.generation.texture_not_in_atlas: "<yellow>Текстура '<arg:0>' не указана в атласе. Вам нужно добавить путь к текстуре в атлас или включить 'fix-atlas' опцию в config.yml.</yellow>"
 warning.config.resource_pack.generation.missing_model_texture: "<yellow>В модели '<arg:0>' отсутствует текстура '<arg:1>'</yellow>"
 warning.config.resource_pack.generation.missing_item_model: "<yellow>В предмете '<arg:0>' отсутствует файл модели: '<arg:1>'</yellow>"
 warning.config.resource_pack.generation.missing_block_model: "<yellow>В блоке '<arg:0>' отсутствует файл модели: '<arg:1>'</yellow>"

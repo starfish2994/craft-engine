@@ -56,7 +56,8 @@ resource-pack:
   validation:
     enable: true
     # [Premium Exclusive]
-    # Fix images that are not within the texture atlas.
+    # Fix images that are not within the texture atlas. It is unreasonable to always rely on plugins to fix your mistakes.
+    # You should strive to make your resource pack more standardized after gaining some experience with resource packs.
     fix-atlas: true
   # Define the name of the overlay folders
   overlay-format: "ce_overlay_{version}"

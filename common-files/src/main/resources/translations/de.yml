@@ -407,7 +407,7 @@ warning.config.selector.invalid_target: "<yellow>Problem in Datei <arg:0> gefund
 warning.config.resource_pack.item_model.already_exist: "<yellow>Generierung des Item-Models für '<arg:0>' fehlgeschlagen, da die Datei '<arg:1>' bereits existiert.</yellow>"
 warning.config.resource_pack.model.generation.already_exist: "<yellow>Generierung des Models fehlgeschlagen, da die Model-Datei '<arg:0>' bereits existiert.</yellow>"
 warning.config.resource_pack.generation.missing_font_texture: "<yellow>Beim Font '<arg:0>' fehlt die erforderliche Textur: '<arg:1>'</yellow>"
-warning.config.resource_pack.generation.texture_not_in_atlas: "<yellow>Textur '<arg:0>' ist nicht im Atlas aufgeführt. Du musst den Texturpfad zum Atlas hinzufügen oder die 'obfuscation'/'fix-atlas'-Option in der config.yml aktivieren.</yellow>"
+warning.config.resource_pack.generation.texture_not_in_atlas: "<yellow>Textur '<arg:0>' ist nicht im Atlas aufgeführt. Du musst den Texturpfad zum Atlas hinzufügen oder die 'fix-atlas'-Option in der config.yml aktivieren.</yellow>"
 warning.config.resource_pack.generation.missing_model_texture: "<yellow>Beim Model '<arg:0>' fehlt die Textur '<arg:1>'</yellow>"
 warning.config.resource_pack.generation.missing_item_model: "<yellow>Beim Item '<arg:0>' fehlt die Model-Datei: '<arg:1>'</yellow>"
 warning.config.resource_pack.generation.missing_block_model: "<yellow>Beim Block-State '<arg:0>' fehlt die Model-Datei: '<arg:1>'</yellow>"
