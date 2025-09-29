@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.core.pack.allocator;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -15,6 +17,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class VisualBlockStateAllocator {
     private final Path cacheFilePath;
@@ -32,7 +35,9 @@ public class VisualBlockStateAllocator {
     }
 
     public void reset() {
-        Arrays.fill(this.pendingAllocationFutures, new ArrayList<>());
+        for (int i = 0; i < this.pendingAllocationFutures.length; i++) {
+            this.pendingAllocationFutures[i] = new ArrayList<>();
+        }
         this.cachedBlockStates.clear();
         this.pendingAllocations.clear();
     }
@@ -53,6 +58,19 @@ public class VisualBlockStateAllocator {
         return future;
     }
 
+    public List<String> cleanupUnusedIds(Predicate<BlockStateWrapper> shouldRemove) {
+        List<String> idsToRemove = new ArrayList<>();
+        for (Map.Entry<String, BlockStateWrapper> entry : this.cachedBlockStates.entrySet()) {
+            if (shouldRemove.test(entry.getValue())) {
+                idsToRemove.add(entry.getKey());
+            }
+        }
+        for (String id : idsToRemove) {
+            this.cachedBlockStates.remove(id);
+        }
+        return idsToRemove;
+    }
+
     public void processPendingAllocations() {
         // 先处理缓存的
         for (Map.Entry<String, BlockStateWrapper> entry : this.cachedBlockStates.entrySet()) {
@@ -64,12 +82,17 @@ public class VisualBlockStateAllocator {
                 if (!candidate.isUsed()) {
                     // 获取当前的安排任务
                     Pair<AutoStateGroup, CompletableFuture<BlockStateWrapper>> pair = this.pendingAllocations.get(entry.getKey());
-                    // 如果候选满足组，那么直接允许起飞
-                    if (pair != null && pair.left().test(candidate.blockState())) {
-                        pair.right().complete(candidate.blockState());
+                    if (pair != null) {
+                        // 如果候选满足组，那么直接允许起飞
+                        if (pair.left().test(candidate.blockState())) {
+                            pair.right().complete(candidate.blockState());
+                        } else {
+                            // 不满足候选组要求，那就等着分配新的吧
+                        }
+                    } else {
+                        // 尽管未被使用，该槽位也应该被占用，以避免被自动分配到
+                        candidate.setUsed();
                     }
-                    // 尽管未被使用，该槽位也应该被占用，以避免被自动分配到
-                    candidate.setUsed();
                 }
                 // 被使用了就随他去
             }

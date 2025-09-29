@@ -313,6 +313,14 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             this.pendingConfigSections.add(section);
         }
 
+        public IdAllocator internalIdAllocator() {
+            return internalIdAllocator;
+        }
+
+        public VisualBlockStateAllocator visualBlockStateAllocator() {
+            return visualBlockStateAllocator;
+        }
+
         @Override
         public void postProcess() {
             this.internalIdAllocator.processPendingAllocations();
@@ -514,7 +522,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     }
                 }
 
-                CompletableFutures.allOf(futureVisualStates.values()).whenComplete((v2, t2) -> {
+                CompletableFutures.allOf(futureVisualStates.values()).whenComplete((v2, t2) -> ResourceConfigUtils.runCatching(path, node, () -> {
                     if (t2 != null) {
                         if (t2 instanceof CompletionException e) {
                             Throwable cause = e.getCause();
@@ -635,7 +643,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
                     // 抛出次要警告
                     exceptionCollector.throwIfPresent();
-                });
+                }, () -> GsonHelper.get().toJson(section)));
             }, () -> GsonHelper.get().toJson(section)));
         }
 

@@ -1,14 +1,22 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
-import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
+import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
+import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.font.BitmapImage;
+import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
+import net.momirealms.craftengine.core.pack.allocator.VisualBlockStateAllocator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
+import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.ItemStack;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
@@ -18,11 +26,11 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DebugCleanCacheCommand extends BukkitCommandFeature<CommandSender> {
 
@@ -48,9 +56,14 @@ public class DebugCleanCacheCommand extends BukkitCommandFeature<CommandSender> 
                     switch (type) {
                         case "custom-model-data" -> {
                             BukkitItemManager instance = BukkitItemManager.instance();
-                            Set<String> ids = CraftEngineItems.loadedItems().keySet().stream().map(Key::toString).collect(Collectors.toSet());
+                            Map<Key, Set<String>> idsMap = new HashMap<>();
+                            for (CustomItem<ItemStack> item : instance.loadedItems().values()) {
+                                Set<String> ids = idsMap.computeIfAbsent(item.clientBoundMaterial(), k -> new HashSet<>());
+                                ids.add(item.id().asString());
+                            }
                             int total = 0;
-                            for (Map.Entry<Key, IdAllocator> entry : instance.itemParser().idAllocators().entrySet()) {
+                            for (Map.Entry<Key, IdAllocator> entry : getAllCachedCustomModelData().entrySet()) {
+                                Set<String> ids = idsMap.getOrDefault(entry.getKey(), Collections.emptySet());
                                 List<String> removed = entry.getValue().cleanupUnusedIds(i -> !ids.contains(i));
                                 total += removed.size();
                                 try {
@@ -60,18 +73,82 @@ public class DebugCleanCacheCommand extends BukkitCommandFeature<CommandSender> 
                                     return;
                                 }
                                 for (String id : removed) {
-                                    this.plugin().logger().info("Cleaned unused item: " + id);
+                                    this.plugin().logger().info("Cleaned unsued item: " + id);
                                 }
                             }
                             context.sender().sendMessage("Cleaned " + total + " unused custom model data");
                         }
-                        case "custom-block-states" -> {
-                        }
-                        case "visual-block-states" -> {
-                        }
                         case "font", "images" -> {
                             BukkitFontManager instance = this.plugin().fontManager();
-
+                            Map<Key, Set<String>> idsMap = new HashMap<>();
+                            for (BitmapImage image : instance.loadedImages().values()) {
+                                Set<String> ids = idsMap.computeIfAbsent(image.font(), k -> new HashSet<>());
+                                String id = image.id().toString();
+                                ids.add(id);
+                                for (int i = 0; i < image.rows(); i++) {
+                                    for (int j = 0; j < image.columns(); j++) {
+                                        String imageArgs = id + ":" + i + ":" + j;
+                                        ids.add(imageArgs);
+                                    }
+                                }
+                            }
+                            int total = 0;
+                            for (Map.Entry<Key, IdAllocator> entry : getAllCachedFont().entrySet()) {
+                                Key font = entry.getKey();
+                                Set<String> ids = idsMap.getOrDefault(font, Collections.emptySet());
+                                List<String> removed = entry.getValue().cleanupUnusedIds(i -> !ids.contains(i));
+                                try {
+                                    entry.getValue().saveToCache();
+                                } catch (IOException e) {
+                                    this.plugin().logger().warn("Error while saving codepoint allocation for font " + font.asString(), e);
+                                    return;
+                                }
+                                for (String id : removed) {
+                                    this.plugin().logger().info("Cleaned unsued image: " + id);
+                                }
+                                total += removed.size();
+                            }
+                            context.sender().sendMessage("Cleaned " + total + " unused codepoints");
+                        }
+                        case "custom-block-states" -> {
+                            BukkitBlockManager instance = BukkitBlockManager.instance();
+                            Set<String> ids = new HashSet<>();
+                            for (CustomBlock customBlock : instance.loadedBlocks().values()) {
+                                for (ImmutableBlockState state : customBlock.variantProvider().states()) {
+                                    ids.add(state.toString());
+                                }
+                            }
+                            IdAllocator idAllocator = instance.blockParser().internalIdAllocator();
+                            List<String> removed = idAllocator.cleanupUnusedIds(i -> !ids.contains(i));
+                            try {
+                                idAllocator.saveToCache();
+                            } catch (IOException e) {
+                                this.plugin().logger().warn("Error while saving custom block states allocation", e);
+                            }
+                            for (String id : removed) {
+                                this.plugin().logger().info("Cleaned unsued block state: " + id);
+                            }
+                            context.sender().sendMessage("Cleaned " + removed.size() + " unused custom block states");
+                        }
+                        case "visual-block-states" -> {
+                            BukkitBlockManager instance = BukkitBlockManager.instance();
+                            Set<BlockStateWrapper> ids = new HashSet<>();
+                            for (CustomBlock customBlock : instance.loadedBlocks().values()) {
+                                for (ImmutableBlockState state : customBlock.variantProvider().states()) {
+                                    ids.add(state.vanillaBlockState());
+                                }
+                            }
+                            VisualBlockStateAllocator visualBlockStateAllocator = instance.blockParser().visualBlockStateAllocator();
+                            List<String> removed = visualBlockStateAllocator.cleanupUnusedIds(i -> !ids.contains(i));
+                            try {
+                                visualBlockStateAllocator.saveToCache();
+                            } catch (IOException e) {
+                                this.plugin().logger().warn("Error while saving visual block states allocation", e);
+                            }
+                            for (String id : removed) {
+                                this.plugin().logger().info("Cleaned unsued block appearance: " + id);
+                            }
+                            context.sender().sendMessage("Cleaned " + removed.size() + " unused block state appearances");
                         }
                     }
                 });
@@ -80,5 +157,72 @@ public class DebugCleanCacheCommand extends BukkitCommandFeature<CommandSender> 
     @Override
     public String getFeatureID() {
         return "debug_clean_cache";
+    }
+
+    public Map<Key, IdAllocator> getAllCachedCustomModelData() {
+        Path cacheDir = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("custom-model-data");
+
+        Map<Key, IdAllocator> idAllocators = new HashMap<>();
+        try (Stream<Path> files = Files.list(cacheDir)) {
+            files.filter(this::isJsonFile)
+                    .forEach(file -> processIdAllocatorFile(cacheDir, file, idAllocators));
+
+        } catch (IOException e) {
+            CraftEngine.instance().logger().warn("Failed to process: " + cacheDir.getFileName(), e);
+        }
+
+        return idAllocators;
+    }
+
+    public Map<Key, IdAllocator> getAllCachedFont() {
+        Path cacheDir = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("font");
+
+        try {
+            List<Path> namespaces = FileUtils.collectNamespaces(cacheDir);
+            Map<Key, IdAllocator> idAllocators = new HashMap<>();
+
+            for (Path namespace : namespaces) {
+                processNamespace(namespace, idAllocators);
+            }
+            return idAllocators;
+
+        } catch (IOException e) {
+            CraftEngine.instance().logger().warn("Failed to load cached id allocators from: " + cacheDir, e);
+            return Collections.emptyMap();
+        }
+    }
+
+    private void processNamespace(Path namespace, Map<Key, IdAllocator> idAllocators) {
+        if (!Files.isDirectory(namespace)) {
+            return;
+        }
+
+        try (Stream<Path> files = Files.list(namespace)) {
+            files.filter(this::isJsonFile)
+                    .forEach(file -> processIdAllocatorFile(namespace, file, idAllocators));
+
+        } catch (IOException e) {
+            CraftEngine.instance().logger().warn("Failed to process namespace: " + namespace.getFileName(), e);
+        }
+    }
+
+    private boolean isJsonFile(Path file) {
+        return Files.isRegularFile(file) && file.getFileName().toString().endsWith(".json");
+    }
+
+    private void processIdAllocatorFile(Path namespace, Path file, Map<Key, IdAllocator> idAllocators) {
+        try {
+            String namespaceName = namespace.getFileName().toString();
+            String fileName = FileUtils.pathWithoutExtension(file.getFileName().toString());
+
+            Key font = Key.of(namespaceName, fileName);
+            IdAllocator allocator = new IdAllocator(file);
+            allocator.loadFromCache();
+
+            idAllocators.put(font, allocator);
+
+        } catch (Exception e) {
+            CraftEngine.instance().logger().warn("Failed to load id allocator from: " + file, e);
+        }
     }
 }
