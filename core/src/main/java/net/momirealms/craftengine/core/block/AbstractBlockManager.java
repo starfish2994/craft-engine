@@ -315,29 +315,29 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
         @Override
         public void postProcess() {
-            this.visualBlockStateAllocator.processPendingAllocations();
-            try {
-                this.visualBlockStateAllocator.saveToCache();
-            } catch (IOException e) {
-                AbstractBlockManager.this.plugin.logger().warn("Error while saving visual block states allocation", e);
-            }
             this.internalIdAllocator.processPendingAllocations();
             try {
                 this.internalIdAllocator.saveToCache();
             } catch (IOException e) {
                 AbstractBlockManager.this.plugin.logger().warn("Error while saving custom block states allocation", e);
             }
+            this.visualBlockStateAllocator.processPendingAllocations();
+            try {
+                this.visualBlockStateAllocator.saveToCache();
+            } catch (IOException e) {
+                AbstractBlockManager.this.plugin.logger().warn("Error while saving visual block states allocation", e);
+            }
         }
 
         @Override
         public void preProcess() {
+            this.internalIdAllocator.reset(0, Config.serverSideBlocks() - 1);
             this.visualBlockStateAllocator.reset();
             try {
                 this.visualBlockStateAllocator.loadFromCache();
             } catch (IOException e) {
                 AbstractBlockManager.this.plugin.logger().warn("Error while loading visual block states allocation cache", e);
             }
-            this.internalIdAllocator.reset(0, Config.serverSideBlocks() - 1);
             try {
                 this.internalIdAllocator.loadFromCache();
             } catch (IOException e) {
@@ -498,8 +498,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 appearanceName,
                                 this.visualBlockStateAllocator.assignFixedBlockState(appearanceName.isEmpty() ? id.asString() : id.asString() + ":" + appearanceName, parsePluginFormattedBlockState(appearanceSection.get("state").toString()))
                         );
-                    } else if (stateSection.containsKey("auto-state")) {
-                        String autoStateId = stateSection.get("auto-state").toString();
+                    } else if (appearanceSection.containsKey("auto-state")) {
+                        String autoStateId = appearanceSection.get("auto-state").toString();
                         AutoStateGroup group = AutoStateGroup.byId(autoStateId);
                         if (group == null) {
                             throw new LocalizedResourceConfigException("warning.config.block.state.invalid_auto_state", autoStateId, EnumUtils.toString(AutoStateGroup.values()));

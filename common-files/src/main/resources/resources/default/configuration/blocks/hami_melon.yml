@@ -79,7 +79,7 @@ blocks:
           - minecraft:mineable/axe
           - minecraft:sword_efficient
     state:
-      state: note_block:30
+      auto-state: solid
       model:
         template: default:model/cube
         arguments:
