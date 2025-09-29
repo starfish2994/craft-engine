@@ -1,7 +1,6 @@
 items:
   default:bench:
     material: nether_brick
-    custom-model-data: 2000
     data:
       item-name: <!i><i18n:item.bench>
     model:

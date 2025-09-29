@@ -8,7 +8,7 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +21,7 @@ public class AllPlayerSelector<CTX extends Context> implements PlayerSelector<CT
     private final Predicate<CTX> predicate;
 
     public AllPlayerSelector(List<Condition<CTX>> predicates) {
-        this.predicate = MCUtils.allOf(predicates);
+        this.predicate = MiscUtils.allOf(predicates);
     }
 
     public AllPlayerSelector() {

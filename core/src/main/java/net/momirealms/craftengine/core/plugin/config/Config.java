@@ -44,6 +44,7 @@ public class Config {
     protected boolean checkUpdate;
     protected boolean metrics;
     protected boolean filterConfigurationPhaseDisconnect;
+    protected Locale forcedLocale;
 
     protected boolean debug$common;
     protected boolean debug$packet;
@@ -63,7 +64,8 @@ public class Config {
     protected boolean resource_pack$protection$crash_tools$method_2;
     protected boolean resource_pack$protection$crash_tools$method_3;
 
-    protected boolean resource_pack$validate$enable;
+    protected boolean resource_pack$validation$enable;
+    protected boolean resource_pack$validation$fix_atlas;
     protected boolean resource_pack$exclude_core_shaders;
 
     protected boolean resource_pack$protection$obfuscation$enable;
@@ -123,7 +125,7 @@ public class Config {
     protected int block$predict_breaking_interval;
     protected double block$extended_interaction_range;
     protected boolean block$chunk_relighter;
-    protected int block$serverside_blocks;
+    protected int block$serverside_blocks = -1;
 
     protected boolean recipe$enable;
     protected boolean recipe$disable_vanilla_recipes$all;
@@ -135,6 +137,8 @@ public class Config {
     protected boolean image$illegal_characters_filter$anvil;
     protected boolean image$illegal_characters_filter$sign;
     protected boolean image$illegal_characters_filter$book;
+    protected int image$codepoint_starting_value$default;
+    protected Map<Key, Integer> image$codepoint_starting_value$overrides;
 
     protected boolean network$intercept_packets$system_chat;
     protected boolean network$intercept_packets$tab_list;
@@ -158,6 +162,8 @@ public class Config {
     protected boolean item$update_triggers$click_in_inventory;
     protected boolean item$update_triggers$drop;
     protected boolean item$update_triggers$pick_up;
+    protected int item$custom_model_data_starting_value$default;
+    protected Map<Key, Integer> item$custom_model_data_starting_value$overrides;
 
     protected String equipment$sacrificed_vanilla_armor$type;
     protected Key equipment$sacrificed_vanilla_armor$asset_id;
@@ -177,7 +183,7 @@ public class Config {
         instance = this;
     }
 
-    public void load() {
+    public boolean updateConfigCache() {
         // 文件不存在，则保存
         if (!Files.exists(this.configFilePath)) {
             this.plugin.saveResource("config.yml");
@@ -195,13 +201,20 @@ public class Config {
                         this.updateConfigVersion(configFileBytes);
                     }
                 }
-                // 加载配置文件
-                this.loadSettings();
                 this.lastModified = lastModified;
                 this.size = size;
+                return true;
             }
         } catch (IOException e) {
-            this.plugin.logger().severe("Failed to load config.yml", e);
+            this.plugin.logger().severe("Failed to update config.yml", e);
+        }
+        return false;
+    }
+
+    public void load() {
+        boolean isUpdated = updateConfigCache();
+        if (isUpdated) {
+            loadFullSettings();
         }
     }
 
@@ -231,6 +244,7 @@ public class Config {
                             .addIgnoredRoute(PluginProperties.getValue("config"), "resource-pack.delivery.hosting", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "chunk-system.process-invalid-blocks.convert", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "chunk-system.process-invalid-furniture.convert", '.')
+                            .addIgnoredRoute(PluginProperties.getValue("config"), "item.custom-model-data-starting-value.overrides", '.')
                             .build());
         }
         try {
@@ -240,9 +254,15 @@ public class Config {
         }
     }
 
-    private void loadSettings() {
+    public void loadForcedLocale() {
         YamlDocument config = settings();
-        plugin.translationManager().forcedLocale(TranslationManager.parseLocale(config.getString("forced-locale", "")));
+        forcedLocale = TranslationManager.parseLocale(config.getString("forced-locale", ""));
+    }
+
+    @SuppressWarnings("DuplicatedCode")
+    public void loadFullSettings() {
+        YamlDocument config = settings();
+        forcedLocale = TranslationManager.parseLocale(config.getString("forced-locale", ""));
 
         // basics
         metrics = config.getBoolean("metrics", false);
@@ -280,7 +300,7 @@ public class Config {
         resource_pack$protection$crash_tools$method_1 = config.getBoolean("resource-pack.protection.crash-tools.method-1", false);
         resource_pack$protection$crash_tools$method_2 = config.getBoolean("resource-pack.protection.crash-tools.method-2", false);
         resource_pack$protection$crash_tools$method_3 = config.getBoolean("resource-pack.protection.crash-tools.method-3", false);
-        resource_pack$protection$obfuscation$enable = config.getBoolean("resource-pack.protection.obfuscation.enable", false);
+        resource_pack$protection$obfuscation$enable = VersionHelper.PREMIUM && config.getBoolean("resource-pack.protection.obfuscation.enable", false);
         resource_pack$protection$obfuscation$seed = config.getLong("resource-pack.protection.obfuscation.seed", 0L);
         resource_pack$protection$obfuscation$fake_directory = config.getBoolean("resource-pack.protection.obfuscation.fake-directory", false);
         resource_pack$protection$obfuscation$escape_unicode = config.getBoolean("resource-pack.protection.obfuscation.escape-unicode", false);
@@ -297,7 +317,8 @@ public class Config {
         resource_pack$protection$obfuscation$resource_location$bypass_models = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-models");
         resource_pack$protection$obfuscation$resource_location$bypass_sounds = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-sounds");
         resource_pack$protection$obfuscation$resource_location$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-equipments");
-        resource_pack$validate$enable = config.getBoolean("resource-pack.validate.enable", true);
+        resource_pack$validation$enable = config.getBoolean("resource-pack.validation.enable", true);
+        resource_pack$validation$fix_atlas = VersionHelper.PREMIUM && config.getBoolean("resource-pack.validation.fix-atlas", true);
         resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);
         resource_pack$overlay_format = config.getString("resource-pack.overlay-format", "overlay_{version}");
         if (!resource_pack$overlay_format.contains("{version}")) {
@@ -379,12 +400,28 @@ public class Config {
         equipment$sacrificed_vanilla_armor$humanoid_leggings = Key.of(config.getString("equipment.sacrificed-vanilla-armor.humanoid-leggings", "minecraft:trims/entity/humanoid_leggings/chainmail"));
 
         // item
-        item$client_bound_model = config.getBoolean("item.client-bound-model", false);
+        item$client_bound_model = config.getBoolean("item.client-bound-model", true) && VersionHelper.PREMIUM;
         item$non_italic_tag = config.getBoolean("item.non-italic-tag", false);
         item$update_triggers$attack = config.getBoolean("item.update-triggers.attack", false);
         item$update_triggers$click_in_inventory = config.getBoolean("item.update-triggers.click-in-inventory", false);
         item$update_triggers$drop = config.getBoolean("item.update-triggers.drop", false);
         item$update_triggers$pick_up = config.getBoolean("item.update-triggers.pick-up", false);
+        item$custom_model_data_starting_value$default = config.getInt("item.custom-model-data-starting-value.default", 10000);
+
+        Section customModelDataOverridesSection = config.getSection("item.custom-model-data-starting-value.overrides");
+        if (customModelDataOverridesSection != null) {
+            Map<Key, Integer> customModelDataOverrides = new HashMap<>();
+            for (Map.Entry<String, Object> entry : customModelDataOverridesSection.getStringRouteMappedValues(false).entrySet()) {
+                if (entry.getValue() instanceof String s) {
+                    customModelDataOverrides.put(Key.of(entry.getKey()), Integer.parseInt(s));
+                } else if (entry.getValue() instanceof Integer i) {
+                    customModelDataOverrides.put(Key.of(entry.getKey()), i);
+                }
+            }
+            item$custom_model_data_starting_value$overrides = customModelDataOverrides;
+        } else {
+            item$custom_model_data_starting_value$overrides = Map.of();
+        }
 
         // block
         block$sound_system$enable = config.getBoolean("block.sound-system.enable", true);
@@ -394,7 +431,10 @@ public class Config {
         block$predict_breaking_interval = Math.max(config.getInt("block.predict-breaking.interval", 10), 1);
         block$extended_interaction_range = Math.max(config.getDouble("block.predict-breaking.extended-interaction-range", 0.5), 0.0);
         block$chunk_relighter = config.getBoolean("block.chunk-relighter", true);
-        block$serverside_blocks = config.getInt("block.serverside-blocks", 2000);
+        if (firstTime) {
+            block$serverside_blocks = Math.min(config.getInt("block.serverside-blocks", 2000), 10_0000);
+            if (block$serverside_blocks < 0) block$serverside_blocks = 0;
+        }
 
         // recipe
         recipe$enable = config.getBoolean("recipe.enable", true);
@@ -408,6 +448,22 @@ public class Config {
         image$illegal_characters_filter$chat = config.getBoolean("image.illegal-characters-filter.chat", true);
         image$illegal_characters_filter$command = config.getBoolean("image.illegal-characters-filter.command", true);
         image$illegal_characters_filter$sign = config.getBoolean("image.illegal-characters-filter.sign", true);
+
+        image$codepoint_starting_value$default = config.getInt("image.codepoint-starting-value.default", 0);
+        Section codepointOverridesSection = config.getSection("image.codepoint-starting-value.overrides");
+        if (codepointOverridesSection != null) {
+            Map<Key, Integer> codepointOverrides = new HashMap<>();
+            for (Map.Entry<String, Object> entry : codepointOverridesSection.getStringRouteMappedValues(false).entrySet()) {
+                if (entry.getValue() instanceof String s) {
+                    codepointOverrides.put(Key.of(entry.getKey()), Integer.parseInt(s));
+                } else if (entry.getValue() instanceof Integer i) {
+                    codepointOverrides.put(Key.of(entry.getKey()), i);
+                }
+            }
+            image$codepoint_starting_value$overrides = codepointOverrides;
+        } else {
+            image$codepoint_starting_value$overrides = Map.of();
+        }
         
         network$intercept_packets$system_chat = config.getBoolean("network.intercept-packets.system-chat", true);
         network$intercept_packets$tab_list = config.getBoolean("network.intercept-packets.tab-list", true);
@@ -445,6 +501,10 @@ public class Config {
         return MinecraftVersion.parse(version);
     }
 
+    public static Locale forcedLocale() {
+        return instance.forcedLocale;
+    }
+
     public static String configVersion() {
         return instance.configVersion;
     }
@@ -462,6 +522,10 @@ public class Config {
     }
 
     public static boolean debugBlockEntity() {
+        return false;
+    }
+
+    public static boolean debugBlock() {
         return false;
     }
 
@@ -728,6 +792,20 @@ public class Config {
         return instance.furniture$hide_base_entity;
     }
 
+    public static int customModelDataStartingValue(Key material) {
+        if (instance.item$custom_model_data_starting_value$overrides.containsKey(material)) {
+            return instance.item$custom_model_data_starting_value$overrides.get(material);
+        }
+        return instance.item$custom_model_data_starting_value$default;
+    }
+
+    public static int codepointStartingValue(Key font) {
+        if (instance.image$codepoint_starting_value$overrides.containsKey(font)) {
+            return instance.image$codepoint_starting_value$overrides.get(font);
+        }
+        return instance.image$codepoint_starting_value$default;
+    }
+
     public static int compressionMethod() {
         int id = instance.chunk_system$compression_method;
         if (id <= 0 || id > CompressionMethod.METHOD_COUNT) {
@@ -845,7 +923,11 @@ public class Config {
     }
 
     public static boolean validateResourcePack() {
-        return instance.resource_pack$validate$enable;
+        return instance.resource_pack$validation$enable;
+    }
+
+    public static boolean fixTextureAtlas() {
+        return instance.resource_pack$validation$fix_atlas;
     }
 
     public static boolean excludeShaders() {

@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.block.state.properties;
+package net.momirealms.craftengine.core.block.properties.type;
 
 public enum StairsShape {
     STRAIGHT,

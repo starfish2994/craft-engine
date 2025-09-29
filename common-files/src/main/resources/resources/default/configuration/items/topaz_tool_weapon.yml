@@ -1,7 +1,6 @@
 items:
   default:topaz_rod:
     material: fishing_rod
-    custom-model-data: 1000
     settings:
       tags:
         - default:topaz_tools
@@ -15,7 +14,6 @@ items:
         cast_path: minecraft:item/custom/topaz_rod_cast
   default:topaz_bow:
     material: bow
-    custom-model-data: 1000
     settings:
       tags:
         - default:topaz_tools
@@ -31,7 +29,6 @@ items:
         pulling_2_path: minecraft:item/custom/topaz_bow_pulling_2
   default:topaz_crossbow:
     material: crossbow
-    custom-model-data: 1000
     settings:
       tags:
         - default:topaz_tools
@@ -49,7 +46,6 @@ items:
         firework_path: minecraft:item/custom/topaz_crossbow_firework
   default:topaz_pickaxe:
     material: golden_pickaxe
-    custom-model-data: 1000
     settings:
       tags:
         - default:topaz_tools
@@ -64,7 +60,6 @@ items:
         path: minecraft:item/custom/topaz_pickaxe
   default:topaz_axe:
     material: golden_axe
-    custom-model-data: 1000
     settings:
       tags:
         - default:topaz_tools
@@ -79,7 +74,6 @@ items:
         path: minecraft:item/custom/topaz_axe
   default:topaz_hoe:
     material: golden_hoe
-    custom-model-data: 1000
     settings:
       tags:
         - default:topaz_tools
@@ -94,7 +88,6 @@ items:
         path: minecraft:item/custom/topaz_hoe
   default:topaz_shovel:
     material: golden_shovel
-    custom-model-data: 1000
     settings:
       tags:
         - default:topaz_tools
@@ -109,7 +102,6 @@ items:
         path: minecraft:item/custom/topaz_shovel
   default:topaz_sword:
     material: golden_sword
-    custom-model-data: 1000
     settings:
       tags:
         - default:topaz_tools
@@ -125,7 +117,6 @@ items:
   $$>=1.21.4#topaz_trident:
     default:topaz_trident:
       material: trident
-      custom-model-data: 1000
       settings:
         projectile:
           item: default:topaz_trident
@@ -176,7 +167,6 @@ items:
       client-bound-material:
         $$1.20.1~1.21.1: bow
         $$1.21.2~1.21.3: honey_bottle
-      custom-model-data: 1001
       data:
         item-name: <!i><#FF8C00><i18n:item.topaz_trident>
         components:

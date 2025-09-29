@@ -92,6 +92,8 @@ public abstract class CraftEngine implements Plugin {
     protected CraftEngine(Consumer<CraftEngine> reloadEventDispatcher) {
         instance = this;
         this.reloadEventDispatcher = reloadEventDispatcher;
+        ((Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
+        ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
     }
 
     public static CraftEngine instance() {
@@ -105,9 +107,6 @@ public abstract class CraftEngine implements Plugin {
         RecipeDisplayTypes.init();
         SlotDisplayTypes.init();
         LegacyRecipeTypes.init();
-        ((Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
-        ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
-        this.config.load();
     }
 
     public record ReloadResult(boolean success, long asyncTime, long syncTime) {
@@ -281,7 +280,7 @@ public abstract class CraftEngine implements Plugin {
         // register furniture parser
         this.packManager.registerConfigSectionParser(this.furnitureManager.parser());
         // register block parser
-        this.packManager.registerConfigSectionParser(this.blockManager.parser());
+        this.packManager.registerConfigSectionParsers(this.blockManager.parsers());
         // register recipe parser
         this.packManager.registerConfigSectionParser(this.recipeManager.parser());
         // register category parser

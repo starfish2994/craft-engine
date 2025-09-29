@@ -56,7 +56,8 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
                 new ListResourceCommand(this, plugin),
                 new UploadPackCommand(this, plugin),
                 new SendResourcePackCommand(this, plugin),
-                new DebugSaveDefaultResourcesCommand(this, plugin)
+                new DebugSaveDefaultResourcesCommand(this, plugin),
+                new DebugCleanCacheCommand(this, plugin)
         ));
         final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
         manager.settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true);

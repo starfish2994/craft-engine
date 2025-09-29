@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.block.state;
+package net.momirealms.craftengine.core.block;
 
 import java.util.Collection;
 

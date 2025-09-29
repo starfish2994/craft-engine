@@ -16,7 +16,7 @@ import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.NMSPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
 import org.bukkit.inventory.ItemStack;
@@ -89,8 +89,8 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         buf.writeDouble(y);
         buf.writeDouble(z);
         if (VersionHelper.isOrAbove1_21_9()) buf.writeLpVec3(movement);
-        buf.writeByte(MCUtils.packDegrees(MCUtils.clamp(-MCUtils.unpackDegrees(xRot), -90.0F, 90.0F)));
-        buf.writeByte(MCUtils.packDegrees(-MCUtils.unpackDegrees(yRot)));
+        buf.writeByte(MiscUtils.packDegrees(MiscUtils.clamp(-MiscUtils.unpackDegrees(xRot), -90.0F, 90.0F)));
+        buf.writeByte(MiscUtils.packDegrees(-MiscUtils.unpackDegrees(yRot)));
         buf.writeByte(yHeadRot);
         buf.writeVarInt(data);
         if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(xa);
@@ -142,12 +142,12 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         short xa = FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$xa(packet);
         short ya = FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$ya(packet);
         short za = FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$za(packet);
-        float xRot = MCUtils.unpackDegrees(FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$xRot(packet));
-        float yRot = MCUtils.unpackDegrees(FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$yRot(packet));
+        float xRot = MiscUtils.unpackDegrees(FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$xRot(packet));
+        float yRot = MiscUtils.unpackDegrees(FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$yRot(packet));
         boolean onGround = FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$onGround(packet);
         return FastNMS.INSTANCE.constructor$ClientboundMoveEntityPacket$PosRot(
                 entityId, xa, ya, za,
-                MCUtils.packDegrees(-yRot), MCUtils.packDegrees(MCUtils.clamp(-xRot, -90.0F, 90.0F)),
+                MiscUtils.packDegrees(-yRot), MiscUtils.packDegrees(MiscUtils.clamp(-xRot, -90.0F, 90.0F)),
                 onGround
         );
     }

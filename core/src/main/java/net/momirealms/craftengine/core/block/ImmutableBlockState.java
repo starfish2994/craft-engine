@@ -35,7 +35,7 @@ public final class ImmutableBlockState extends BlockStateHolder {
     private BlockEntityElementConfig<? extends BlockEntityElement>[] renderers;
 
     ImmutableBlockState(
-            Holder<CustomBlock> owner,
+            Holder.Reference<CustomBlock> owner,
             Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap
     ) {
         super(owner, propertyMap);
@@ -129,7 +129,7 @@ public final class ImmutableBlockState extends BlockStateHolder {
     public CompoundTag toNbtToSave(CompoundTag properties) {
         CompoundTag tag = new CompoundTag();
         tag.put("properties", properties);
-        tag.put("id", NBT.createString(this.owner.value().id().asString()));
+        tag.put("id", NBT.createString(this.owner.key().location().asString()));
         return tag;
     }
 

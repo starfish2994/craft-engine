@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProviders;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -48,7 +48,7 @@ public class RunFunction<CTX extends Context> extends AbstractConditionalFunctio
                     for (Function<CTX> function : functions) {
                         function.run(ctx);
                     }
-                }, delay, pos.world().platformWorld(), MCUtils.fastFloor(pos.x()) >> 4, MCUtils.fastFloor(pos.z()) >> 4);
+                }, delay, pos.world().platformWorld(), MiscUtils.fastFloor(pos.x()) >> 4, MiscUtils.fastFloor(pos.z()) >> 4);
             }
         }
     }

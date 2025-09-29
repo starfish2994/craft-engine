@@ -104,7 +104,7 @@ public class BukkitServerPlayer extends Player {
     private int resentSwingTick;
     // has fabric client mod or not
     private boolean hasClientMod = false;
-    private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaStateSize());
+    private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaBlockStateCount());
     // cache if player can break blocks
     private boolean clientSideCanBreak = true;
     // prevent AFK players from consuming too much CPU resource on predicting
@@ -717,9 +717,8 @@ public class BukkitServerPlayer extends Player {
 
             // send hit sound if the sound is removed
             if (currentTick - this.lastHitBlockTime > 3) {
-                Object blockOwner = FastNMS.INSTANCE.method$BlockState$getBlock(destroyedState);
-                Object soundType = CoreReflections.field$BlockBehaviour$soundType.get(blockOwner);
-                Object soundEvent = CoreReflections.field$SoundType$hitSound.get(soundType);
+                Object soundType = FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(destroyedState);
+                Object soundEvent = FastNMS.INSTANCE.field$SoundType$hitSound(soundType);
                 Object soundId = FastNMS.INSTANCE.field$SoundEvent$location(soundEvent);
                 player.playSound(location, soundId.toString(), SoundCategory.BLOCKS, 0.5F, 0.5F);
                 this.lastHitBlockTime = currentTick;

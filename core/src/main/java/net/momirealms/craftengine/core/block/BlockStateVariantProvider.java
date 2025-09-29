@@ -8,6 +8,8 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.util.Pair;
+import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +25,7 @@ public final class BlockStateVariantProvider {
     private final ImmutableList<ImmutableBlockState> states;
     private final Holder<CustomBlock> owner;
 
-    public BlockStateVariantProvider(Holder<CustomBlock> owner, Factory<Holder<CustomBlock>, ImmutableBlockState> factory, Map<String, Property<?>> propertiesMap) {
+    public BlockStateVariantProvider(Holder.Reference<CustomBlock> owner, Factory<Holder.Reference<CustomBlock>, ImmutableBlockState> factory, Map<String, Property<?>> propertiesMap) {
         this.owner = owner;
         this.properties = ImmutableSortedMap.copyOf(propertiesMap);
 
@@ -59,6 +61,27 @@ public final class BlockStateVariantProvider {
         this.states = ImmutableList.copyOf(list);
     }
 
+    public List<ImmutableBlockState> getPossibleStates(CompoundTag nbt) {
+        List<ImmutableBlockState> tempStates = new ArrayList<>();
+        ImmutableBlockState defaultState = getDefaultState();
+        tempStates.add(defaultState);
+        for (Property<?> property : defaultState.getProperties()) {
+            Tag value = nbt.get(property.name());
+            if (value != null) {
+                tempStates.replaceAll(immutableBlockState -> ImmutableBlockState.with(immutableBlockState, property, property.unpack(value)));
+            } else {
+                List<ImmutableBlockState> newStates = new ArrayList<>();
+                for (ImmutableBlockState state : tempStates) {
+                    for (Object possibleValue : property.possibleValues()) {
+                        newStates.add(ImmutableBlockState.with(state, property, possibleValue));
+                    }
+                }
+                tempStates = newStates;
+            }
+        }
+        return tempStates;
+    }
+
     public interface Factory<O, S> {
         S create(O owner, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap);
     }
@@ -78,6 +101,11 @@ public final class BlockStateVariantProvider {
 
     public Holder<CustomBlock> owner() {
         return this.owner;
+    }
+
+    @NotNull
+    public ImmutableSortedMap<String, Property<?>> properties() {
+        return this.properties;
     }
 
     @Nullable

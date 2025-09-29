@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.plugin.config.template;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdObjectConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -36,7 +37,7 @@ public class TemplateManagerImpl implements TemplateManager {
         return this.templateParser;
     }
 
-    public class TemplateParser implements ConfigParser {
+    public class TemplateParser extends IdObjectConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"templates", "template"};
 
         @Override
@@ -50,14 +51,9 @@ public class TemplateManagerImpl implements TemplateManager {
         }
 
         @Override
-        public boolean supportsParsingObject() {
-            return true;
-        }
-
-        @Override
-        public void parseObject(Pack pack, Path path, Key id, Object obj) {
+        public void parseObject(Pack pack, Path path, String node, Key id, Object obj) {
             if (templates.containsKey(id)) {
-                throw new LocalizedResourceConfigException("warning.config.template.duplicate", path.toString(), id.toString());
+                throw new LocalizedResourceConfigException("warning.config.template.duplicate");
             }
             // 预处理会将 string类型的键或值解析为ArgumentString，以加速模板应用。所以处理后不可能存在String类型。
             templates.put(id, preprocessUnknownValue(obj));

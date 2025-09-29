@@ -171,7 +171,7 @@ public class ShulkerHitBox extends AbstractHitBox {
     }
 
     private static float getPhysicalPeek(float peek) {
-        return 0.5F - MCUtils.sin((0.5F + peek) * 3.1415927F) * 0.5F;
+        return 0.5F - MiscUtils.sin((0.5F + peek) * 3.1415927F) * 0.5F;
     }
 
     public boolean interactionEntity() {

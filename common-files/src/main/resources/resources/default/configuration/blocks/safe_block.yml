@@ -1,7 +1,6 @@
 items:
   default:safe_block:
     material: nether_brick
-    custom-model-data: 3011
     data:
       item-name: <!i><i18n:item.safe_block>
     model:
@@ -49,7 +48,7 @@ items:
               default: false
           appearances:
             east:
-              state: note_block:22
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block
                 y: 90
@@ -60,7 +59,7 @@ items:
                     side: minecraft:block/custom/safe_block_side
                     top: minecraft:block/custom/safe_block_top
             east_open:
-              state: note_block:23
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
                 y: 90
@@ -71,58 +70,50 @@ items:
                     side: minecraft:block/custom/safe_block_side
                     top: minecraft:block/custom/safe_block_top
             north:
-              state: note_block:24
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block
             north_open:
-              state: note_block:25
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
             south:
-              state: note_block:26
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block
                 y: 180
             south_open:
-              state: note_block:27
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
                 y: 180
             west:
-              state: note_block:28
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block
                 y: 270
             west_open:
-              state: note_block:29
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
                 y: 270
           variants:
             facing=east,open=false:
               appearance: east
-              id: 22
             facing=east,open=true:
               appearance: east_open
-              id: 23
             facing=north,open=false:
               appearance: north
-              id: 24
             facing=north,open=true:
               appearance: north_open
-              id: 25
             facing=south,open=false:
               appearance: south
-              id: 26
             facing=south,open=true:
               appearance: south_open
-              id: 27
             facing=west,open=false:
               appearance: west
-              id: 28
             facing=west,open=true:
               appearance: west_open
-              id: 29
 recipes:
   default:safe_block:
     type: shaped

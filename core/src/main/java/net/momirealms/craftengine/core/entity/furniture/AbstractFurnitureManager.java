@@ -5,10 +5,12 @@ import net.momirealms.craftengine.core.entity.ItemDisplayContext;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
+import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
@@ -31,7 +33,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     }
 
     @Override
-    public ConfigParser parser() {
+    public FurnitureParser parser() {
         return this.furnitureParser;
     }
 
@@ -74,8 +76,26 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
     protected abstract CustomFurniture.Builder furnitureBuilder();
 
-    public class FurnitureParser implements ConfigParser {
+    public class FurnitureParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] { "furniture" };
+        private final List<PendingConfigSection> pendingConfigSections = new ArrayList<>();
+
+        public void addPendingConfigSection(PendingConfigSection section) {
+            this.pendingConfigSections.add(section);
+        }
+
+        @Override
+        public void preProcess() {
+            for (PendingConfigSection section : this.pendingConfigSections) {
+                ResourceConfigUtils.runCatching(
+                        section.path(),
+                        section.node(),
+                        () -> parseSection(section.pack(), section.path(), section.node(), section.id(), section.config()),
+                        () -> GsonHelper.get().toJson(section.config())
+                );
+            }
+            this.pendingConfigSections.clear();
+        }
 
         @Override
         public String[] sectionId() {
@@ -89,8 +109,8 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
         @SuppressWarnings("unchecked")
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
-            if (byId.containsKey(id)) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
+            if (AbstractFurnitureManager.this.byId.containsKey(id)) {
                 throw new LocalizedResourceConfigException("warning.config.furniture.duplicate");
             }
             EnumMap<AnchorType, CustomFurniture.Placement> placements = new EnumMap<>(AnchorType.class);

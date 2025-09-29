@@ -1,8 +1,6 @@
 items:
   default:gui_head_size_1:
     material: player_head
-    custom-model-data: 1000
-    item-model: default:gui_head_size_1
     model:
       type: minecraft:special
       path: minecraft:item/custom/gui_head_size_1
@@ -17,8 +15,6 @@ items:
         type: minecraft:player_head
   default:gui_head_size_4:
     material: player_head
-    custom-model-data: 1001
-    item-model: default:gui_head_size_4
     model:
       type: minecraft:special
       path: minecraft:item/custom/gui_head_size_4

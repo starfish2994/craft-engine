@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.block;
 
 import net.momirealms.craftengine.core.sound.SoundData;
-import net.momirealms.craftengine.core.util.Key;
 
 import java.util.Map;
 
@@ -15,25 +14,20 @@ public final class BlockSounds {
     Land 0.3 1
     Destroy 1 1
      */
-    public static final SoundData EMPTY_SOUND = new SoundData(Key.of("minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_1);
-    public static final BlockSounds EMPTY = new BlockSounds(EMPTY_SOUND, EMPTY_SOUND, EMPTY_SOUND, EMPTY_SOUND, EMPTY_SOUND, EMPTY_SOUND, EMPTY_SOUND);
+    public static final BlockSounds EMPTY = new BlockSounds(SoundData.EMPTY, SoundData.EMPTY, SoundData.EMPTY, SoundData.EMPTY, SoundData.EMPTY);
 
     private final SoundData breakSound;
     private final SoundData stepSound;
     private final SoundData placeSound;
     private final SoundData hitSound;
     private final SoundData fallSound;
-    private final SoundData landSound;
-    private final SoundData destroySound;
 
-    public BlockSounds(SoundData breakSound, SoundData stepSound, SoundData placeSound, SoundData hitSound, SoundData fallSound, SoundData landSound, SoundData destroySound) {
+    public BlockSounds(SoundData breakSound, SoundData stepSound, SoundData placeSound, SoundData hitSound, SoundData fallSound) {
         this.breakSound = breakSound;
         this.stepSound = stepSound;
         this.placeSound = placeSound;
         this.hitSound = hitSound;
         this.fallSound = fallSound;
-        this.landSound = landSound;
-        this.destroySound = destroySound;
     }
 
     public static BlockSounds fromMap(Map<String, Object> map) {
@@ -43,14 +37,8 @@ public final class BlockSounds {
                 SoundData.create(map.getOrDefault("step", "minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_0_15, SoundData.SoundValue.FIXED_1),
                 SoundData.create(map.getOrDefault("place", "minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_0_8),
                 SoundData.create(map.getOrDefault("hit", "minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.FIXED_0_5),
-                SoundData.create(map.getOrDefault("fall", "minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.FIXED_0_75),
-                SoundData.create(map.getOrDefault("land", "minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_0_3, SoundData.SoundValue.FIXED_1),
-                SoundData.create(map.getOrDefault("destroy", "minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_1)
+                SoundData.create(map.getOrDefault("fall", "minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.FIXED_0_75)
         );
-    }
-
-    public SoundData destroySound() {
-        return destroySound;
     }
 
     public SoundData breakSound() {
@@ -67,10 +55,6 @@ public final class BlockSounds {
 
     public SoundData hitSound() {
         return hitSound;
-    }
-
-    public SoundData landSound() {
-        return landSound;
     }
 
     public SoundData fallSound() {

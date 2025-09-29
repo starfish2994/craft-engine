@@ -1,7 +1,6 @@
 items:
   default:wooden_chair:
     material: nether_brick
-    custom-model-data: 2005
     data:
       item-name: <!i><i18n:item.wooden_chair>
     model:

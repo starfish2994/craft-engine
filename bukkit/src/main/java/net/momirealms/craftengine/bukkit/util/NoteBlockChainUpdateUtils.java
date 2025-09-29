@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.util;
 
+import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 
 public final class NoteBlockChainUpdateUtils {
@@ -11,7 +12,7 @@ public final class NoteBlockChainUpdateUtils {
         if (times-- < 0) return;
         Object relativePos = FastNMS.INSTANCE.method$BlockPos$relative(blockPos, direction);
         Object state = FastNMS.INSTANCE.method$BlockGetter$getBlockState(level, relativePos);
-        if (BlockStateUtils.isClientSideNoteBlock(state)) {
+        if (BukkitBlockManager.CLIENT_SIDE_NOTE_BLOCKS.contains(state)) {
             FastNMS.INSTANCE.method$ServerChunkCache$blockChanged(chunkSource, relativePos);
             noteBlockChainUpdate(level, chunkSource, direction, relativePos, times);
         }

@@ -2,7 +2,6 @@ items:
   $$>=1.21.2#flame_elytra:
     default:flame_elytra:
       material: elytra
-      custom-model-data: 1000
       settings:
         equippable:
           slot: chest

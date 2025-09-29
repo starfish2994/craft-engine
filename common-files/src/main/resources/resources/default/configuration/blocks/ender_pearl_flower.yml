@@ -1,7 +1,6 @@
 items:
   default:ender_pearl_flower_seeds:
     material: nether_brick
-    custom-model-data: 3003
     data:
       item-name: <!i><i18n:item.ender_pearl_flower_seeds>
     model:
@@ -91,7 +90,7 @@ blocks:
           range: 0~2
       appearances:
         stage_0:
-          state: tripwire:1
+          auto-state: lower_tripwire
           models:
             - path: minecraft:block/custom/ender_pearl_flower_stage_0
               generation:
@@ -99,7 +98,7 @@ blocks:
                 textures:
                   cross: minecraft:block/custom/ender_pearl_flower_stage_0
         stage_1:
-          state: tripwire:0
+          auto-state: higher_tripwire
           models:
             - path: minecraft:block/custom/ender_pearl_flower_stage_1
               generation:
@@ -107,7 +106,7 @@ blocks:
                 textures:
                   cross: minecraft:block/custom/ender_pearl_flower_stage_1
         stage_2:
-          state: sugar_cane:3
+          auto-state: sugar_cane
           models:
             - path: minecraft:block/custom/ender_pearl_flower_stage_2
               generation:
@@ -117,13 +116,10 @@ blocks:
       variants:
         age=0:
           appearance: stage_0
-          id: 0
         age=1:
           appearance: stage_1
-          id: 1
         age=2:
           appearance: stage_2
-          id: 8
 vanilla-loots:
   default:ender_pearl_flower_seeds_from_endermite:
     type: entity

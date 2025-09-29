@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.loot.VanillaLoot;
 import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
@@ -90,8 +91,8 @@ public class BukkitVanillaLootManager extends AbstractVanillaLootManager impleme
         return this.vanillaLootParser;
     }
 
-    public class VanillaLootParser implements ConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"vanilla-loots", "vanilla-loot", "vanilla_loots", "vanilla_loot"};
+    public class VanillaLootParser extends IdSectionConfigParser {
+        public static final String[] CONFIG_SECTION_NAME = new String[] {"vanilla-loots", "vanilla-loot"};
 
         @Override
         public int loadingSequence() {
@@ -104,7 +105,7 @@ public class BukkitVanillaLootManager extends AbstractVanillaLootManager impleme
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             String type = ResourceConfigUtils.requireNonEmptyStringOrThrow(section.get("type"), "warning.config.vanilla_loot.missing_type");
             VanillaLoot.Type typeEnum;
             try {
@@ -126,7 +127,7 @@ public class BukkitVanillaLootManager extends AbstractVanillaLootManager impleme
                             VanillaLoot vanillaLoot = blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
                             vanillaLoot.addLootTable(lootTable);
                         } else {
-                            for (Object blockState : BlockStateUtils.getAllVanillaBlockStates(Key.of(target))) {
+                            for (Object blockState : BlockStateUtils.getPossibleBlockStates(Key.of(target))) {
                                 if (blockState == MBlocks.AIR$defaultState) {
                                     throw new LocalizedResourceConfigException("warning.config.vanilla_loot.block.invalid_target", target);
                                 }

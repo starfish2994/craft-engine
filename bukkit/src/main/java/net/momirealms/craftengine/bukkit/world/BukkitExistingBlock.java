@@ -7,11 +7,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MFluids;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.BlockRegistryMirror;
-import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.CustomBlock;
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.state.StatePropertyAccessor;
+import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.ExistingBlock;
@@ -64,7 +60,7 @@ public class BukkitExistingBlock implements ExistingBlock {
     @Override
     public @NotNull BlockStateWrapper blockState() {
         Object blockState = BlockStateUtils.getBlockState(this.block);
-        return BlockRegistryMirror.stateByRegistryId(BlockStateUtils.blockStateToId(blockState));
+        return BlockRegistryMirror.byId(BlockStateUtils.blockStateToId(blockState));
     }
 
     @Override
