@@ -81,6 +81,16 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     @Override
+    public Map<Key, BitmapImage> loadedImages() {
+        return Collections.unmodifiableMap(this.images);
+    }
+
+    @Override
+    public Map<Key, Emoji> emojis() {
+        return Collections.unmodifiableMap(this.emojis);
+    }
+
+    @Override
     public void unload() {
         this.fonts.clear();
         this.images.clear();

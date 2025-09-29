@@ -69,6 +69,14 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         ItemDataModifiers.init();
     }
 
+    public ItemParser itemParser() {
+        return itemParser;
+    }
+
+    public EquipmentParser equipmentParser() {
+        return equipmentParser;
+    }
+
     protected static void registerVanillaItemExtraBehavior(ItemBehavior behavior, Key... items) {
         for (Key key : items) {
             VANILLA_ITEM_EXTRA_BEHAVIORS.computeIfAbsent(key, k -> new ArrayList<>()).add(behavior);

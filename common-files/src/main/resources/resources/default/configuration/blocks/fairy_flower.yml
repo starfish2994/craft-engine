@@ -26,7 +26,7 @@ items:
         loot:
           template: default:loot_table/self
         state:
-          state: sugar_cane:0
+          auto-state: sugar_cane
           models:
             - path: minecraft:block/custom/fairy_flower_1
               weight: 100

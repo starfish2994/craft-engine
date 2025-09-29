@@ -348,6 +348,11 @@ public class BukkitCraftEngine extends CraftEngine {
         return (BukkitPackManager) packManager;
     }
 
+    @Override
+    public BukkitFontManager fontManager() {
+        return (BukkitFontManager) fontManager;
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void saveResource(String resourcePath) {

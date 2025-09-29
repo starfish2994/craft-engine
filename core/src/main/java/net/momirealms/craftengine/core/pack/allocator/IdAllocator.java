@@ -152,7 +152,7 @@ public class IdAllocator {
      * @param shouldRemove 判断是否应该移除的谓词
      * @return 被移除的ID数量
      */
-    public int cleanupUnusedIds(Predicate<String> shouldRemove) {
+    public List<String> cleanupUnusedIds(Predicate<String> shouldRemove) {
         List<String> idsToRemove = new ArrayList<>();
         for (String id : this.cachedIdMap.keySet()) {
             if (shouldRemove.test(id)) {
@@ -160,15 +160,13 @@ public class IdAllocator {
             }
         }
 
-        int removedCount = 0;
         for (String id : idsToRemove) {
             Integer removedId = this.cachedIdMap.remove(id);
             if (removedId != null && !this.forcedIdMap.containsValue(removedId)) {
                 this.occupiedIdSet.clear(removedId);
-                removedCount++;
             }
         }
-        return removedCount;
+        return idsToRemove;
     }
 
     /**

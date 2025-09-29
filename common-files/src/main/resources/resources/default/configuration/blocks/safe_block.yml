@@ -48,7 +48,7 @@ items:
               default: false
           appearances:
             east:
-              state: note_block:22
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block
                 y: 90
@@ -59,7 +59,7 @@ items:
                     side: minecraft:block/custom/safe_block_side
                     top: minecraft:block/custom/safe_block_top
             east_open:
-              state: note_block:23
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
                 y: 90
@@ -70,30 +70,30 @@ items:
                     side: minecraft:block/custom/safe_block_side
                     top: minecraft:block/custom/safe_block_top
             north:
-              state: note_block:24
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block
             north_open:
-              state: note_block:25
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
             south:
-              state: note_block:26
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block
                 y: 180
             south_open:
-              state: note_block:27
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
                 y: 180
             west:
-              state: note_block:28
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block
                 y: 270
             west_open:
-              state: note_block:29
+              auto-state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
                 y: 270

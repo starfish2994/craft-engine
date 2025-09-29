@@ -25,7 +25,7 @@ items:
             luminance: 15
             map-color: 36
         state:
-          state: note_block:15
+          auto-state: solid
           model:
             path: minecraft:block/custom/chinese_lantern
             generation:

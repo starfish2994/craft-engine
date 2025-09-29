@@ -34,7 +34,7 @@ items:
               default: north
           appearances:
             east:
-              state: note_block:18
+              auto-state: solid
               model:
                 path: minecraft:block/custom/chessboard_block
                 y: 270
@@ -43,16 +43,16 @@ items:
                   textures:
                     pattern: minecraft:block/custom/chessboard_block
             north:
-              state: note_block:19
+              auto-state: solid
               model:
                 path: minecraft:block/custom/chessboard_block
                 y: 180
             south:
-              state: note_block:20
+              auto-state: solid
               model:
                 path: minecraft:block/custom/chessboard_block
             west:
-              state: note_block:21
+              auto-state: solid
               model:
                 path: minecraft:block/custom/chessboard_block
                 y: 90

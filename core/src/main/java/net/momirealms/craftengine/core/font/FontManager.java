@@ -48,6 +48,10 @@ public interface FontManager extends Manageable {
 
     OffsetFont offsetFont();
 
+    Map<Key, BitmapImage> loadedImages();
+
+    Map<Key, Emoji> emojis();
+
     ConfigParser[] parsers();
 
     default EmojiTextProcessResult replaceMiniMessageEmoji(@NotNull String miniMessage, @Nullable Player player) {

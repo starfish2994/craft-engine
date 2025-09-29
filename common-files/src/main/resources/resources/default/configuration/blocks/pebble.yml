@@ -58,7 +58,7 @@ items:
                 default: 1
             appearances:
               one:
-                state: tripwire:2
+                auto-state: lower_tripwire
                 models:
                   - path: minecraft:block/custom/pebble_1
                     weight: 1
@@ -72,7 +72,7 @@ items:
                     weight: 1
                     y: 270
               two:
-                state: tripwire:3
+                auto-state: lower_tripwire
                 models:
                   - path: minecraft:block/custom/pebble_2
                     weight: 1
@@ -86,7 +86,7 @@ items:
                     weight: 1
                     y: 270
               three:
-                state: tripwire:4
+                auto-state: higher_tripwire
                 models:
                   - path: minecraft:block/custom/pebble_3
                     weight: 1

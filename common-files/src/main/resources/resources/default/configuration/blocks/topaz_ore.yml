@@ -50,7 +50,7 @@ blocks:
       arguments:
         break_power: 2
     state:
-      state: note_block:13
+      auto-state: solid
       model:
         template: default:model/simplified_cube_all
         arguments:

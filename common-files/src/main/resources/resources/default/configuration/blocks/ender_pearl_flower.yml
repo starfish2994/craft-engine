@@ -90,7 +90,7 @@ blocks:
           range: 0~2
       appearances:
         stage_0:
-          state: tripwire:1
+          auto-state: lower_tripwire
           models:
             - path: minecraft:block/custom/ender_pearl_flower_stage_0
               generation:
@@ -98,7 +98,7 @@ blocks:
                 textures:
                   cross: minecraft:block/custom/ender_pearl_flower_stage_0
         stage_1:
-          state: tripwire:0
+          auto-state: higher_tripwire
           models:
             - path: minecraft:block/custom/ender_pearl_flower_stage_1
               generation:
@@ -106,7 +106,7 @@ blocks:
                 textures:
                   cross: minecraft:block/custom/ender_pearl_flower_stage_1
         stage_2:
-          state: sugar_cane:3
+          auto-state: sugar_cane
           models:
             - path: minecraft:block/custom/ender_pearl_flower_stage_2
               generation:

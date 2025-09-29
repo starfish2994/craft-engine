@@ -27,7 +27,7 @@ items:
             instrument: snare
             map-color: 45
         state:
-          state: note_block:16
+          auto-state: solid
           model:
             path: minecraft:block/custom/gunpowder_block
             generation:
@@ -59,7 +59,7 @@ items:
             instrument: basedrum
             map-color: 45
         state:
-          state: note_block:17
+          auto-state: solid
           model:
             path: minecraft:block/custom/solid_gunpowder_block
             generation:

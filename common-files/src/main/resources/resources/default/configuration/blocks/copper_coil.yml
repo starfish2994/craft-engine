@@ -36,7 +36,7 @@ items:
               default: false
           appearances:
             off:
-              state: cactus:0
+              auto-state: cactus
               model:
                 path: minecraft:block/custom/copper_coil
                 generation:
@@ -47,7 +47,7 @@ items:
                     top: minecraft:block/custom/copper_coil
                     side: minecraft:block/custom/copper_coil_side
             on:
-              state: cactus:1
+              auto-state: cactus
               model:
                 path: minecraft:block/custom/copper_coil_on
                 generation:

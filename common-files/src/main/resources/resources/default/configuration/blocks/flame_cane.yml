@@ -53,7 +53,7 @@ items:
               range: 0~5
           appearances:
             default:
-              state: sugar_cane:2
+              auto-state: sugar_cane
               models:
                 - path: minecraft:block/custom/flame_cane_1
                   weight: 1

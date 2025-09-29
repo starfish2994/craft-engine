@@ -7,6 +7,7 @@ import java.util.List;
 public final class BlockKeys {
     private BlockKeys() {}
 
+    public static final Key SUGAR_CANE = Key.of("minecraft:sugar_cane");
     public static final Key NOTE_BLOCK = Key.of("minecraft:note_block");
     public static final Key TRIPWIRE = Key.of("minecraft:tripwire");
     public static final Key CRAFTING_TABLE = Key.of("minecraft:crafting_table");
@@ -261,6 +262,15 @@ public final class BlockKeys {
     public static final Key PALE_OAK_LEAVES = Key.of("minecraft:pale_oak_leaves");
     public static final Key AZALEA_LEAVES = Key.of("minecraft:azalea_leaves");
     public static final Key FLOWERING_AZALEA_LEAVES = Key.of("minecraft:flowering_azalea_leaves");
+
+    public static final Key OAK_SAPLING = Key.of("minecraft:oak_sapling");
+    public static final Key SPRUCE_SAPLING = Key.of("minecraft:spruce_sapling");
+    public static final Key BIRCH_SAPLING = Key.of("minecraft:birch_sapling");
+    public static final Key JUNGLE_SAPLING = Key.of("minecraft:jungle_sapling");
+    public static final Key DARK_OAK_SAPLING = Key.of("minecraft:dark_oak_sapling");
+    public static final Key ACACIA_SAPLING = Key.of("minecraft:acacia_sapling");
+    public static final Key CHERRY_SAPLING = Key.of("minecraft:cherry_sapling");
+    public static final Key PALE_OAK_SAPLING = Key.of("minecraft:pale_oak_sapling");
 
     public static final List<Key> WOODEN_TRAPDOORS = List.of(OAK_TRAPDOOR, SPRUCE_TRAPDOOR, BIRCH_TRAPDOOR,
             ACACIA_TRAPDOOR, PALE_OAK_TRAPDOOR, DARK_OAK_TRAPDOOR, MANGROVE_TRAPDOOR, JUNGLE_TRAPDOOR);

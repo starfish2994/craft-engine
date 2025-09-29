@@ -44,7 +44,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     // 事件监听器
     private final BlockEventListener blockEventListener;
     // 用于缓存string形式的方块状态到原版方块状态
-    private final Map<String, Object> blockStateCache = new HashMap<>(1024);
+    private final Map<String, BlockStateWrapper> blockStateCache = new HashMap<>(1024);
     // 用于临时存储可燃烧自定义方块的列表
     private final List<DelegatingBlock> burnableBlocks = new ArrayList<>();
     // 可燃烧的方块
@@ -169,25 +169,22 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     @Override
     public BlockStateWrapper createVanillaBlockState(String blockState) {
-        Object state = parseBlockState(blockState);
-        if (state == null) return null;
-        return BlockStateUtils.toBlockStateWrapper(state);
+        return this.blockStateCache.computeIfAbsent(blockState, k -> {
+            Object state = parseBlockState(k);
+            if (state == null) return null;
+            return BlockStateUtils.toBlockStateWrapper(state);
+        });
     }
 
     @Nullable
     private Object parseBlockState(String state) {
-        if (this.blockStateCache.containsKey(state)) {
-            return this.blockStateCache.get(state);
-        }
         try {
             Object registryOrLookUp = MBuiltInRegistries.BLOCK;
             if (CoreReflections.method$Registry$asLookup != null) {
                 registryOrLookUp = CoreReflections.method$Registry$asLookup.invoke(registryOrLookUp);
             }
             Object result = CoreReflections.method$BlockStateParser$parseForBlock.invoke(null, registryOrLookUp, state, false);
-            Object resultState = CoreReflections.method$BlockStateParser$BlockResult$blockState.invoke(result);
-            this.blockStateCache.put(state, resultState);
-            return resultState;
+            return CoreReflections.method$BlockStateParser$BlockResult$blockState.invoke(result);
         } catch (Exception e) {
             Debugger.BLOCK.warn(() -> "Failed to create block state: " + state, e);
             return null;

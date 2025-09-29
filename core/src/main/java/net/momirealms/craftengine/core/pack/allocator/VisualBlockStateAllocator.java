@@ -1,0 +1,152 @@
+package net.momirealms.craftengine.core.pack.allocator;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import net.momirealms.craftengine.core.block.AutoStateGroup;
+import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.util.FileUtils;
+import net.momirealms.craftengine.core.util.GsonHelper;
+import net.momirealms.craftengine.core.util.Pair;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+
+public class VisualBlockStateAllocator {
+    private final Path cacheFilePath;
+    private final Map<String, BlockStateWrapper> cachedBlockStates = new HashMap<>();
+    private final Map<String, Pair<AutoStateGroup, CompletableFuture<BlockStateWrapper>>> pendingAllocations = new LinkedHashMap<>();
+    @SuppressWarnings("unchecked")
+    private final List<Pair<String, CompletableFuture<BlockStateWrapper>>>[] pendingAllocationFutures = new List[AutoStateGroup.values().length];
+    private final BlockStateCandidate[] candidates;
+    private final Function<String, BlockStateWrapper> factory;
+
+    public VisualBlockStateAllocator(Path cacheFilePath, BlockStateCandidate[] candidates, Function<String, BlockStateWrapper> factory) {
+        this.cacheFilePath = cacheFilePath;
+        this.candidates = candidates;
+        this.factory = factory;
+    }
+
+    public void reset() {
+        Arrays.fill(this.pendingAllocationFutures, new ArrayList<>());
+        this.cachedBlockStates.clear();
+        this.pendingAllocations.clear();
+    }
+
+    public CompletableFuture<BlockStateWrapper> assignFixedBlockState(String name, BlockStateWrapper state) {
+        this.cachedBlockStates.remove(name);
+        BlockStateCandidate candidate = this.candidates[state.registryId()];
+        if (candidate != null) {
+            candidate.setUsed();
+        }
+        return CompletableFuture.completedFuture(state);
+    }
+
+    public CompletableFuture<BlockStateWrapper> requestAutoState(String name, AutoStateGroup group) {
+        CompletableFuture<BlockStateWrapper> future = new CompletableFuture<>();
+        this.pendingAllocations.put(name, new Pair<>(group, future));
+        this.pendingAllocationFutures[group.ordinal()].add(Pair.of(name, future));
+        return future;
+    }
+
+    public void processPendingAllocations() {
+        // 先处理缓存的
+        for (Map.Entry<String, BlockStateWrapper> entry : this.cachedBlockStates.entrySet()) {
+            int registryId = entry.getValue().registryId();
+            // 检查候选方块是否可用
+            BlockStateCandidate candidate = this.candidates[registryId];
+            if (candidate != null) {
+                // 未被使用
+                if (!candidate.isUsed()) {
+                    // 获取当前的安排任务
+                    Pair<AutoStateGroup, CompletableFuture<BlockStateWrapper>> pair = this.pendingAllocations.get(entry.getKey());
+                    // 如果候选满足组，那么直接允许起飞
+                    if (pair != null && pair.left().test(candidate.blockState())) {
+                        pair.right().complete(candidate.blockState());
+                    }
+                    // 尽管未被使用，该槽位也应该被占用，以避免被自动分配到
+                    candidate.setUsed();
+                }
+                // 被使用了就随他去
+            }
+            // 没有候选也随他去
+        }
+
+        this.pendingAllocations.clear();
+
+        for (AutoStateGroup group : AutoStateGroup.values()) {
+            List<Pair<String, CompletableFuture<BlockStateWrapper>>> pendingAllocationFuture = this.pendingAllocationFutures[group.ordinal()];
+            for (Pair<String, CompletableFuture<BlockStateWrapper>> pair : pendingAllocationFuture) {
+                BlockStateCandidate nextCandidate = group.findNextCandidate();
+                if (nextCandidate != null) {
+                    nextCandidate.setUsed();
+                    this.cachedBlockStates.put(pair.left(), nextCandidate.blockState());
+                    pair.right().complete(nextCandidate.blockState());
+                } else {
+                    pair.right().completeExceptionally(new StateExhaustedException(group));
+                }
+            }
+        }
+    }
+
+    public static class StateExhaustedException extends RuntimeException {
+        private final AutoStateGroup group;
+
+        public StateExhaustedException(AutoStateGroup group) {
+            this.group = group;
+        }
+
+        public AutoStateGroup group() {
+            return group;
+        }
+    }
+
+    /**
+     * 从文件加载缓存
+     */
+    public void loadFromCache() throws IOException {
+        if (!Files.exists(this.cacheFilePath)) {
+            return;
+        }
+        JsonElement element = GsonHelper.readJsonFile(this.cacheFilePath);
+        if (element instanceof JsonObject jsonObject) {
+            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                if (entry.getValue() instanceof JsonPrimitive primitive) {
+                    String id = primitive.getAsString();
+                    BlockStateWrapper state = this.factory.apply(id);
+                    if (state != null) {
+                        this.cachedBlockStates.put(entry.getKey(), state);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 保存缓存到文件
+     */
+    public void saveToCache() throws IOException {
+        // 创建按ID排序的TreeMap
+        Map<BlockStateWrapper, String> sortedById = new TreeMap<>();
+        for (Map.Entry<String, BlockStateWrapper> entry : this.cachedBlockStates.entrySet()) {
+            sortedById.put(entry.getValue(), entry.getKey());
+        }
+        // 创建有序的JSON对象
+        JsonObject sortedJsonObject = new JsonObject();
+        for (Map.Entry<BlockStateWrapper, String> entry : sortedById.entrySet()) {
+            sortedJsonObject.addProperty(entry.getValue(), entry.getKey().getAsString());
+        }
+        if (sortedJsonObject.isEmpty()) {
+            if (Files.exists(this.cacheFilePath)) {
+                Files.delete(this.cacheFilePath);
+            }
+        } else {
+            FileUtils.createDirectoriesSafe(this.cacheFilePath.getParent());
+            GsonHelper.writeJsonFile(sortedJsonObject, this.cacheFilePath);
+        }
+    }
+}

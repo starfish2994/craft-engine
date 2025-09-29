@@ -23,4 +23,16 @@ public abstract class AbstractBlockStateWrapper implements BlockStateWrapper {
     public String toString() {
         return this.blockState.toString();
     }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BlockStateWrapper that)) return false;
+        return this.registryId == that.registryId();
+    }
+
+    @Override
+    public int hashCode() {
+        return this.registryId;
+    }
 }

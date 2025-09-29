@@ -862,7 +862,7 @@ templates#block_states:
         default: y
     appearances:
       axisY:
-        state: ${base_block}
+        auto-state: solid
         model:
           path: ${model_vertical_path}
           generation:
@@ -871,7 +871,7 @@ templates#block_states:
               end: ${texture_top_path}
               side: ${texture_side_path}
       axisX:
-        state: ${base_block}
+        auto-state: solid
         model:
           x: 90
           y: 90
@@ -882,7 +882,7 @@ templates#block_states:
               end: ${texture_top_path}
               side: ${texture_side_path}
       axisZ:
-        state: ${base_block}
+        auto-state: solid
         model:
           x: 90
           path: ${model_horizontal_path}
@@ -913,7 +913,7 @@ templates#block_states:
         range: 1~7
     appearances:
       default:
-        state: ${default_state}
+        auto-state: leaves
         model:
           path: ${model_path}
           generation:
@@ -921,7 +921,7 @@ templates#block_states:
             textures:
               all: ${texture_path}
       waterlogged:
-        state: ${waterlogged_state}
+        auto-state: waterlogged_leaves
         model:
           path: ${model_path}
     variants:
@@ -2231,6 +2231,11 @@ templates#block_states:
           x: 180
           y: 180
     variants:
+      waterlogged=true:
+        settings:
+          resistance: 1200.0
+          burnable: false
+          fluid-state: water
       facing=east,half=bottom,shape=inner_left,waterlogged=false:
         appearance: facing=east,half=bottom,shape=inner_left,waterlogged=false
       facing=east,half=bottom,shape=inner_right,waterlogged=false:
@@ -2313,244 +2318,85 @@ templates#block_states:
         appearance: facing=west,half=top,shape=straight,waterlogged=false
       facing=east,half=bottom,shape=inner_left,waterlogged=true:
         appearance: facing=east,half=bottom,shape=inner_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=bottom,shape=inner_right,waterlogged=true:
         appearance: facing=east,half=bottom,shape=inner_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=bottom,shape=outer_left,waterlogged=true:
         appearance: facing=east,half=bottom,shape=outer_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=bottom,shape=outer_right,waterlogged=true:
         appearance: facing=east,half=bottom,shape=outer_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=bottom,shape=straight,waterlogged=true:
         appearance: facing=east,half=bottom,shape=straight,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=inner_left,waterlogged=true:
         appearance: facing=east,half=top,shape=inner_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=inner_right,waterlogged=true:
         appearance: facing=east,half=top,shape=inner_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=outer_left,waterlogged=true:
         appearance: facing=east,half=top,shape=outer_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=outer_right,waterlogged=true:
         appearance: facing=east,half=top,shape=outer_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=straight,waterlogged=true:
         appearance: facing=east,half=top,shape=straight,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=inner_left,waterlogged=true:
         appearance: facing=north,half=bottom,shape=inner_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=inner_right,waterlogged=true:
         appearance: facing=north,half=bottom,shape=inner_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=outer_left,waterlogged=true:
         appearance: facing=north,half=bottom,shape=outer_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=outer_right,waterlogged=true:
         appearance: facing=north,half=bottom,shape=outer_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=straight,waterlogged=true:
         appearance: facing=north,half=bottom,shape=straight,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=inner_left,waterlogged=true:
         appearance: facing=north,half=top,shape=inner_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=inner_right,waterlogged=true:
         appearance: facing=north,half=top,shape=inner_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=outer_left,waterlogged=true:
         appearance: facing=north,half=top,shape=outer_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=outer_right,waterlogged=true:
         appearance: facing=north,half=top,shape=outer_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=straight,waterlogged=true:
         appearance: facing=north,half=top,shape=straight,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=inner_left,waterlogged=true:
         appearance: facing=south,half=bottom,shape=inner_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=inner_right,waterlogged=true:
         appearance: facing=south,half=bottom,shape=inner_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=outer_left,waterlogged=true:
         appearance: facing=south,half=bottom,shape=outer_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=outer_right,waterlogged=true:
         appearance: facing=south,half=bottom,shape=outer_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=straight,waterlogged=true:
         appearance: facing=south,half=bottom,shape=straight,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=inner_left,waterlogged=true:
         appearance: facing=south,half=top,shape=inner_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=inner_right,waterlogged=true:
         appearance: facing=south,half=top,shape=inner_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=outer_left,waterlogged=true:
         appearance: facing=south,half=top,shape=outer_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=outer_right,waterlogged=true:
         appearance: facing=south,half=top,shape=outer_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=straight,waterlogged=true:
         appearance: facing=south,half=top,shape=straight,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=inner_left,waterlogged=true:
         appearance: facing=west,half=bottom,shape=inner_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=inner_right,waterlogged=true:
         appearance: facing=west,half=bottom,shape=inner_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=outer_left,waterlogged=true:
         appearance: facing=west,half=bottom,shape=outer_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=outer_right,waterlogged=true:
         appearance: facing=west,half=bottom,shape=outer_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=straight,waterlogged=true:
         appearance: facing=west,half=bottom,shape=straight,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=inner_left,waterlogged=true:
         appearance: facing=west,half=top,shape=inner_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=inner_right,waterlogged=true:
         appearance: facing=west,half=top,shape=inner_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=outer_left,waterlogged=true:
         appearance: facing=west,half=top,shape=outer_left,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=outer_right,waterlogged=true:
         appearance: facing=west,half=top,shape=outer_right,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=straight,waterlogged=true:
         appearance: facing=west,half=top,shape=straight,waterlogged=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
+
   # pressure plate block
   default:block_state/pressure_plate:
     properties:
@@ -3171,6 +3017,11 @@ templates#block_states:
           - item: ${fence_side_item}
             rotation: 270
     variants:
+      waterlogged=true:
+        settings:
+          resistance: 1200.0
+          burnable: false
+          fluid-state: water
       east=false,north=false,south=false,waterlogged=false,west=false:
         appearance: east=false,north=false,south=false,waterlogged=false,west=false
       east=true,north=false,south=false,waterlogged=false,west=false:
@@ -3205,100 +3056,37 @@ templates#block_states:
         appearance: east=true,north=true,south=true,waterlogged=false,west=true
       east=false,north=false,south=false,waterlogged=true,west=false:
         appearance: east=false,north=false,south=false,waterlogged=true,west=false
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=true,north=false,south=false,waterlogged=true,west=false:
         appearance: east=true,north=false,south=false,waterlogged=true,west=false
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=false,north=true,south=false,waterlogged=true,west=false:
         appearance: east=false,north=true,south=false,waterlogged=true,west=false
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=false,north=false,south=true,waterlogged=true,west=false:
         appearance: east=false,north=false,south=true,waterlogged=true,west=false
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=false,north=false,south=false,waterlogged=true,west=true:
         appearance: east=false,north=false,south=false,waterlogged=true,west=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=true,north=true,south=false,waterlogged=true,west=false:
         appearance: east=true,north=true,south=false,waterlogged=true,west=false
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=true,north=false,south=true,waterlogged=true,west=false:
         appearance: east=true,north=false,south=true,waterlogged=true,west=false
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=true,north=false,south=false,waterlogged=true,west=true:
         appearance: east=true,north=false,south=false,waterlogged=true,west=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=false,north=true,south=true,waterlogged=true,west=false:
         appearance: east=false,north=true,south=true,waterlogged=true,west=false
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=false,north=true,south=false,waterlogged=true,west=true:
         appearance: east=false,north=true,south=false,waterlogged=true,west=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=false,north=false,south=true,waterlogged=true,west=true:
         appearance: east=false,north=false,south=true,waterlogged=true,west=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=true,north=true,south=true,waterlogged=true,west=false:
         appearance: east=true,north=true,south=true,waterlogged=true,west=false
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=true,north=true,south=false,waterlogged=true,west=true:
         appearance: east=true,north=true,south=false,waterlogged=true,west=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=true,north=false,south=true,waterlogged=true,west=true:
         appearance: east=true,north=false,south=true,waterlogged=true,west=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=false,north=true,south=true,waterlogged=true,west=true:
         appearance: east=false,north=true,south=true,waterlogged=true,west=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       east=true,north=true,south=true,waterlogged=true,west=true:
         appearance: east=true,north=true,south=true,waterlogged=true,west=true
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
+
 # recipes
 templates#recipes:
   default:recipe/planks:
