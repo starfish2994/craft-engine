@@ -124,6 +124,10 @@ public class IdAllocator {
         return CompletableFuture.completedFuture(id);
     }
 
+    public boolean isForced(String name) {
+        return this.forcedIdMap.containsKey(name);
+    }
+
     public List<Pair<String, Integer>> getFixedIdsBetween(int minId, int maxId) {
         BiMap<Integer, String> inverse = this.forcedIdMap.inverse();
         List<Pair<String, Integer>> result = new ArrayList<>();

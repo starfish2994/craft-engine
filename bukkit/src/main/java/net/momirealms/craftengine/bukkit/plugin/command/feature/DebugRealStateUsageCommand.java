@@ -1,10 +1,21 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
+import net.momirealms.craftengine.core.block.BlockManager;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DebugRealStateUsageCommand extends BukkitCommandFeature<CommandSender> {
 
@@ -15,45 +26,33 @@ public class DebugRealStateUsageCommand extends BukkitCommandFeature<CommandSend
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder
-//                .required("id", StringParser.stringComponent(StringParser.StringMode.GREEDY_FLAG_YIELDING).suggestionProvider(new SuggestionProvider<>() {
-//                    @Override
-//                    public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
-//                        return CompletableFuture.completedFuture(plugin().blockManager().blockAppearanceArranger().keySet().stream().map(it -> Suggestion.suggestion(it.toString())).toList());
-//                    }
-//                }))
                 .handler(context -> {
-//                    String data = context.get("id");
-//                    BukkitBlockManager blockManager = plugin().blockManager();
-//                    Key baseBlockId = Key.of(data);
-//                    List<Integer> reals = blockManager.realBlockArranger().get(baseBlockId);
-//                    if (reals == null) return;
-//                    int i = 0;
-//                    Component block = Component.text(baseBlockId + ": ");
-//                    plugin().senderFactory().wrap(context.sender()).sendMessage(block);
-//
-//                    List<Component> batch = new ArrayList<>(100);
-//                    for (int real : reals) {
-//                        ImmutableBlockState state = blockManager.getImmutableBlockStateUnsafe(real);
-//                        if (state.isEmpty()) {
-//                            Component hover = Component.text("craftengine:" + baseBlockId.value() + "_" + i).color(NamedTextColor.GREEN);
-//                            batch.add(Component.text("|").color(NamedTextColor.GREEN).hoverEvent(HoverEvent.showText(hover)));
-//                        } else {
-//                            Component hover = Component.text("craftengine:" + baseBlockId.value() + "_" + i).color(NamedTextColor.RED);
-//                            hover = hover.append(Component.newline()).append(Component.text(state.toString()).color(NamedTextColor.GRAY));
-//                            batch.add(Component.text("|").color(NamedTextColor.RED).hoverEvent(HoverEvent.showText(hover)));
-//                        }
-//                        i++;
-//                        if (batch.size() == 100) {
-//                            plugin().senderFactory().wrap(context.sender())
-//                                    .sendMessage(Component.text("").children(batch));
-//                            batch.clear();
-//                        }
-//                    }
-//                    if (!batch.isEmpty()) {
-//                        plugin().senderFactory().wrap(context.sender())
-//                                .sendMessage(Component.text("").children(batch));
-//                        batch.clear();
-//                    }
+                    BukkitBlockManager blockManager = plugin().blockManager();
+                    plugin().senderFactory().wrap(context.sender()).sendMessage(Component.text("Serverside block state usage:"));
+                    List<Component> batch = new ArrayList<>(100);
+                    IdAllocator idAllocator = blockManager.blockParser().internalIdAllocator();
+                    for (int i = 0; i < Config.serverSideBlocks(); i++) {
+                        ImmutableBlockState state = blockManager.getImmutableBlockStateUnsafe(i + blockManager.vanillaBlockStateCount());
+                        if (state.isEmpty()) {
+                            Component hover = Component.text(BlockManager.createCustomBlockKey(i).asString()).color(NamedTextColor.GREEN);
+                            batch.add(Component.text("|").color(NamedTextColor.GREEN).hoverEvent(HoverEvent.showText(hover)));
+                        } else {
+                            NamedTextColor namedTextColor = idAllocator.isForced(state.toString()) ? NamedTextColor.RED : NamedTextColor.YELLOW;
+                            Component hover = Component.text(BlockManager.createCustomBlockKey(i).asString()).color(namedTextColor);
+                            hover = hover.append(Component.newline()).append(Component.text(state.toString()).color(NamedTextColor.GRAY));
+                            batch.add(Component.text("|").color(namedTextColor).hoverEvent(HoverEvent.showText(hover)));
+                        }
+                        if (batch.size() == 100) {
+                            plugin().senderFactory().wrap(context.sender())
+                                    .sendMessage(Component.text("").children(batch));
+                            batch.clear();
+                        }
+                    }
+                    if (!batch.isEmpty()) {
+                        plugin().senderFactory().wrap(context.sender())
+                                .sendMessage(Component.text("").children(batch));
+                        batch.clear();
+                    }
                 });
     }
 

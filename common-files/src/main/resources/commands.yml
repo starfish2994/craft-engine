@@ -152,7 +152,9 @@ debug_real_state_usage:
   permission: ce.command.debug.state_usage
   usage:
     - /craftengine debug real-state-usage
+    - /craftengine debug serverside-state-usage
     - /ce debug real-state-usage
+    - /ce debug serverside-state-usage
 
 debug_item_data:
   enable: true

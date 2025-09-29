@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.block;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -153,6 +152,10 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     @Override
     public Optional<CustomBlock> blockById(Key id) {
         return Optional.ofNullable(this.byId.get(id));
+    }
+
+    public Map<Key, List<BlockStateWrapper>> blockStateArranger() {
+        return this.blockStateArranger;
     }
 
     protected abstract void applyPlatformSettings(ImmutableBlockState state);

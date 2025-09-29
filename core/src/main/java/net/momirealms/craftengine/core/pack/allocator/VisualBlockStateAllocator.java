@@ -1,7 +1,5 @@
 package net.momirealms.craftengine.core.pack.allocator;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -27,6 +25,7 @@ public class VisualBlockStateAllocator {
     private final List<Pair<String, CompletableFuture<BlockStateWrapper>>>[] pendingAllocationFutures = new List[AutoStateGroup.values().length];
     private final BlockStateCandidate[] candidates;
     private final Function<String, BlockStateWrapper> factory;
+    private final Set<BlockStateWrapper> forcedStates = new HashSet<>();
 
     public VisualBlockStateAllocator(Path cacheFilePath, BlockStateCandidate[] candidates, Function<String, BlockStateWrapper> factory) {
         this.cacheFilePath = cacheFilePath;
@@ -40,10 +39,16 @@ public class VisualBlockStateAllocator {
         }
         this.cachedBlockStates.clear();
         this.pendingAllocations.clear();
+        this.forcedStates.clear();
+    }
+
+    public boolean isForcedState(final BlockStateWrapper state) {
+        return this.forcedStates.contains(state);
     }
 
     public CompletableFuture<BlockStateWrapper> assignFixedBlockState(String name, BlockStateWrapper state) {
         this.cachedBlockStates.remove(name);
+        this.forcedStates.add(state);
         BlockStateCandidate candidate = this.candidates[state.registryId()];
         if (candidate != null) {
             candidate.setUsed();

@@ -32,7 +32,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class AbstractFontManager implements FontManager {
     private final CraftEngine plugin;
