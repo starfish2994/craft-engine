@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.pack.allocator.VisualBlockStateAllocator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.command.CommandSender;
@@ -165,7 +166,7 @@ public class DebugCleanCacheCommand extends BukkitCommandFeature<CommandSender> 
         Map<Key, IdAllocator> idAllocators = new HashMap<>();
         try (Stream<Path> files = Files.list(cacheDir)) {
             files.filter(this::isJsonFile)
-                    .forEach(file -> processIdAllocatorFile(cacheDir, file, idAllocators));
+                    .forEach(file -> processIdAllocatorFile("minecraft", file, idAllocators));
 
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to process: " + cacheDir.getFileName(), e);
@@ -199,7 +200,7 @@ public class DebugCleanCacheCommand extends BukkitCommandFeature<CommandSender> 
 
         try (Stream<Path> files = Files.list(namespace)) {
             files.filter(this::isJsonFile)
-                    .forEach(file -> processIdAllocatorFile(namespace, file, idAllocators));
+                    .forEach(file -> processIdAllocatorFile(namespace.getFileName().toString(), file, idAllocators));
 
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to process namespace: " + namespace.getFileName(), e);
@@ -210,9 +211,8 @@ public class DebugCleanCacheCommand extends BukkitCommandFeature<CommandSender> 
         return Files.isRegularFile(file) && file.getFileName().toString().endsWith(".json");
     }
 
-    private void processIdAllocatorFile(Path namespace, Path file, Map<Key, IdAllocator> idAllocators) {
+    private void processIdAllocatorFile(String namespaceName, Path file, Map<Key, IdAllocator> idAllocators) {
         try {
-            String namespaceName = namespace.getFileName().toString();
             String fileName = FileUtils.pathWithoutExtension(file.getFileName().toString());
 
             Key font = Key.of(namespaceName, fileName);
