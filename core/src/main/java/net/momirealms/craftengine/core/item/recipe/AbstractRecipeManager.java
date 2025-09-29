@@ -121,7 +121,7 @@ public abstract class AbstractRecipeManager<T> implements RecipeManager<T> {
         return true;
     }
 
-    public class RecipeParser implements IdSectionConfigParser {
+    public class RecipeParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"recipes", "recipe"};
 
         @Override

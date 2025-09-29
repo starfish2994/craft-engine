@@ -246,7 +246,7 @@ public class TranslationManagerImpl implements TranslationManager {
         }
     }
 
-    public class I18NParser implements IdSectionConfigParser {
+    public class I18NParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"i18n", "internationalization", "translation", "translations"};
 
         @Override
@@ -277,7 +277,7 @@ public class TranslationManagerImpl implements TranslationManager {
         }
     }
 
-    public class LangParser implements IdSectionConfigParser {
+    public class LangParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"lang", "language", "languages"};
         private final Function<String, String> langProcessor = s -> {
             Component deserialize = AdventureHelper.miniMessage().deserialize(AdventureHelper.legacyToMiniMessage(s), ShiftTag.INSTANCE, ImageTag.INSTANCE);

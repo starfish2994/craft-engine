@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack;
 public final class LoadingSequence {
     private LoadingSequence() {}
 
+    // 模板第一位
     public static final int TEMPLATE = 0;
     public static final int BLOCK_STATE_MAPPING = 10;
     public static final int GLOBAL_VAR = 20;

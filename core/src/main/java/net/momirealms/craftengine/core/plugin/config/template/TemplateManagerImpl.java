@@ -37,7 +37,7 @@ public class TemplateManagerImpl implements TemplateManager {
         return this.templateParser;
     }
 
-    public class TemplateParser implements IdObjectConfigParser {
+    public class TemplateParser extends IdObjectConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"templates", "template"};
 
         @Override

@@ -18,4 +18,9 @@ public abstract class AbstractBlockStateWrapper implements BlockStateWrapper {
     public int registryId() {
         return this.registryId;
     }
+
+    @Override
+    public String toString() {
+        return this.blockState.toString();
+    }
 }

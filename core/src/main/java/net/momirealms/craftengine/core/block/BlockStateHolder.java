@@ -18,7 +18,7 @@ public class BlockStateHolder {
         this.propertyMap = new Reference2ObjectArrayMap<>(propertyMap);
     }
 
-    public Holder.Reference<CustomBlock> owner() {
+    public Holder<CustomBlock> owner() {
         return this.owner;
     }
 

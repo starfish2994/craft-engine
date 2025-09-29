@@ -106,7 +106,7 @@ public class BukkitAdvancementManager extends AbstractAdvancementManager {
         }
     }
 
-    public class AdvancementParser implements IdSectionConfigParser {
+    public class AdvancementParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"advancements", "advancement"};
 
         @Override

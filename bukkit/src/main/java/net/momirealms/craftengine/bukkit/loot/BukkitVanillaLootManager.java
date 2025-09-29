@@ -91,7 +91,7 @@ public class BukkitVanillaLootManager extends AbstractVanillaLootManager impleme
         return this.vanillaLootParser;
     }
 
-    public class VanillaLootParser implements IdSectionConfigParser {
+    public class VanillaLootParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"vanilla-loots", "vanilla-loot"};
 
         @Override

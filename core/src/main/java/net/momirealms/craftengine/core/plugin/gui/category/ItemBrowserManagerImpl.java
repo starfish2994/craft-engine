@@ -96,7 +96,7 @@ public class ItemBrowserManagerImpl implements ItemBrowserManager {
         return Optional.ofNullable(this.byId.get(key));
     }
 
-    public class CategoryParser implements IdSectionConfigParser {
+    public class CategoryParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"categories", "category"};
 
         @Override

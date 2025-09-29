@@ -86,6 +86,7 @@ public abstract class AbstractPackManager implements PackManager {
     private final BiConsumer<Path, Path> generationEventDispatcher;
     private final Map<String, Pack> loadedPacks = new HashMap<>();
     private final Map<String, ConfigParser> sectionParsers = new HashMap<>();
+    private final TreeSet<ConfigParser> sortedParsers = new TreeSet<>();
     private final JsonObject vanillaAtlas;
     private Map<Path, CachedConfigFile> cachedConfigFiles = Collections.emptyMap();
     private Map<Path, CachedAssetFile> cachedAssetFiles = Collections.emptyMap();
@@ -293,6 +294,7 @@ public abstract class AbstractPackManager implements PackManager {
         for (String id : parser.sectionId()) {
             this.sectionParsers.put(id, parser);
         }
+        this.sortedParsers.add(parser);
         return true;
     }
 
@@ -548,10 +550,9 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/fence_side.json");
     }
 
-    private TreeMap<ConfigParser, List<CachedConfigSection>> updateCachedConfigFiles() {
-        TreeMap<ConfigParser, List<CachedConfigSection>> cachedConfigs = new TreeMap<>();
+    private void updateCachedConfigFiles() {
         Map<Path, CachedConfigFile> previousFiles = this.cachedConfigFiles;
-        this.cachedConfigFiles = new Object2ObjectOpenHashMap<>(32);
+        this.cachedConfigFiles = new HashMap<>(64, 0.5f);
         for (Pack pack : loadedPacks()) {
             if (!pack.enabled()) continue;
             Path configurationFolderPath = pack.configurationFolder();
@@ -596,9 +597,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 }
                             }
                             for (Map.Entry<String, Object> entry : cachedFile.config().entrySet()) {
-                                processConfigEntry(entry, path, cachedFile.pack(), (p, c) ->
-                                        cachedConfigs.computeIfAbsent(p, k -> new ArrayList<>()).add(c)
-                                );
+                                processConfigEntry(entry, path, cachedFile.pack(), ConfigParser::addConfig);
                             }
                         }
                         return FileVisitResult.CONTINUE;
@@ -608,76 +607,20 @@ public abstract class AbstractPackManager implements PackManager {
                 this.plugin.logger().severe("Error while reading config file", e);
             }
         }
-        return cachedConfigs;
     }
 
     private void loadResourceConfigs(Predicate<ConfigParser> predicate) {
         long o1 = System.nanoTime();
-        TreeMap<ConfigParser, List<CachedConfigSection>> cachedConfigs = this.updateCachedConfigFiles();
+        this.updateCachedConfigFiles();
         long o2 = System.nanoTime();
         this.plugin.logger().info("Loaded packs. Took " + String.format("%.2f", ((o2 - o1) / 1_000_000.0)) + " ms");
-        for (Map.Entry<ConfigParser, List<CachedConfigSection>> entry : cachedConfigs.entrySet()) {
-            ConfigParser parser = entry.getKey();
+        for (ConfigParser parser : this.sortedParsers) {
             if (!predicate.test(parser)) continue;
             long t1 = System.nanoTime();
             parser.preProcess();
-            switch (parser) {
-                case SectionConfigParser configParser -> {
-                    for (CachedConfigSection cached : entry.getValue()) {
-                        ResourceConfigUtils.runCatching(
-                                cached.filePath(),
-                                cached.prefix(),
-                                () -> configParser.parseSection(cached.pack(), cached.filePath(), cached.config()),
-                                () -> GsonHelper.get().toJson(cached.config())
-                        );
-                    }
-                }
-                case IdObjectConfigParser configParser -> {
-                    for (CachedConfigSection cached : entry.getValue()) {
-                        for (Map.Entry<String, Object> configEntry : cached.config().entrySet()) {
-                            String key = configEntry.getKey();
-                            Key id = Key.withDefaultNamespace(key, cached.pack().namespace());
-                            String node = cached.prefix() + "." + key;
-                            ResourceConfigUtils.runCatching(
-                                    cached.filePath(),
-                                    node,
-                                    () -> configParser.parseObject(cached.pack(), cached.filePath(), node, id, configEntry.getValue()),
-                                    () -> GsonHelper.get().toJson(configEntry.getValue())
-                            );
-                        }
-                    }
-                }
-                case IdSectionConfigParser configParser -> {
-                    for (CachedConfigSection cached : entry.getValue()) {
-                        for (Map.Entry<String, Object> configEntry : cached.config().entrySet()) {
-                            String key = configEntry.getKey();
-                            Key id = Key.withDefaultNamespace(key, cached.pack().namespace());
-                            if (!(configEntry.getValue() instanceof Map<?, ?> section)) {
-                                TranslationManager.instance().log("warning.config.structure.not_section",
-                                        cached.filePath().toString(), cached.prefix() + "." + key, configEntry.getValue().getClass().getSimpleName());
-                                continue;
-                            }
-                            Map<String, Object> config = castToMap(section, false);
-                            if ((boolean) config.getOrDefault("debug", false)) {
-                                this.plugin.logger().info(GsonHelper.get().toJson(this.plugin.templateManager().applyTemplates(id, config)));
-                            }
-                            if (!(boolean) config.getOrDefault("enable", true)) {
-                                continue;
-                            }
-                            String node = cached.prefix() + "." + key;
-                            ResourceConfigUtils.runCatching(
-                                    cached.filePath(),
-                                    node,
-                                    () -> configParser.parseSection(cached.pack(), cached.filePath(), node, id, MiscUtils.castToMap(this.plugin.templateManager().applyTemplates(id, config), false)),
-                                    () -> GsonHelper.get().toJson(section)
-                            );
-                        }
-                    }
-                }
-                default -> {
-                }
-            }
+            parser.loadAll();
             parser.postProcess();
+            parser.clear();
             long t2 = System.nanoTime();
             this.plugin.logger().info("Loaded " + parser.sectionId()[0] + " in " + String.format("%.2f", ((t2 - t1) / 1_000_000.0)) + " ms");
         }
@@ -2252,9 +2195,9 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     private List<Pair<String, List<Path>>> updateCachedAssets(@NotNull PackCacheData cacheData, @Nullable FileSystem fs) throws IOException {
-        Map<String, List<Path>> conflictChecker = new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()));
+        Map<String, List<Path>> conflictChecker = new HashMap<>(Math.max(128, this.cachedAssetFiles.size()), 0.6f);
         Map<Path, CachedAssetFile> previousFiles = this.cachedAssetFiles;
-        this.cachedAssetFiles = new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()));
+        this.cachedAssetFiles = new HashMap<>(Math.max(128, this.cachedAssetFiles.size()), 0.6f);
 
         List<Path> folders = new ArrayList<>();
         folders.addAll(loadedPacks().stream()

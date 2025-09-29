@@ -270,7 +270,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
 
     protected abstract void registerArmorTrimPattern(Collection<Key> equipments);
 
-    public class EquipmentParser implements IdSectionConfigParser {
+    public class EquipmentParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"equipments", "equipment"};
 
         @Override
@@ -313,7 +313,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         }
     }
 
-    public class ItemParser implements IdSectionConfigParser {
+    public class ItemParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"items", "item"};
         private final Map<Key, IdAllocator> idAllocators = new HashMap<>();
 

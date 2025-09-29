@@ -36,7 +36,7 @@ public class GlobalVariableManager implements Manageable {
         return this.parser;
     }
 
-    public class GlobalVariableParser implements IdObjectConfigParser {
+    public class GlobalVariableParser extends IdObjectConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"global-variables", "global-variable"};
 
         @Override

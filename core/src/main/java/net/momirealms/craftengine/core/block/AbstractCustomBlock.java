@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 public abstract class AbstractCustomBlock implements CustomBlock {
+    protected final Key id;
     protected final Holder.Reference<CustomBlock> holder;
     protected final BlockStateVariantProvider variantProvider;
     protected final BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> placementFunction;
@@ -34,6 +35,7 @@ public abstract class AbstractCustomBlock implements CustomBlock {
             @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
             @Nullable LootTable<?> lootTable
     ) {
+        this.id = holder.key().location();
         this.holder = holder;
         this.lootTable = lootTable;
         this.events = events;
@@ -85,7 +87,7 @@ public abstract class AbstractCustomBlock implements CustomBlock {
     @NotNull
     @Override
     public final Key id() {
-        return this.holder.key().location();
+        return this.id;
     }
 
     public void setBehavior(@Nullable BlockBehavior behavior) {

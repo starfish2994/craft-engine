@@ -66,8 +66,8 @@ public abstract class AbstractSoundManager implements SoundManager {
 
     protected abstract void registerSounds(Collection<Key> sounds);
 
-    public class SongParser implements IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"jukebox_songs", "jukebox_song", "jukebox-songs", "jukebox-song"};
+    public class SongParser extends IdSectionConfigParser {
+        public static final String[] CONFIG_SECTION_NAME = new String[] {"jukebox-songs", "jukebox-song", "jukebox_songs", "jukebox_song"};
 
         @Override
         public int loadingSequence() {
@@ -93,7 +93,7 @@ public abstract class AbstractSoundManager implements SoundManager {
         }
     }
 
-    public class SoundParser implements IdSectionConfigParser {
+    public class SoundParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"sounds", "sound"};
 
         @Override

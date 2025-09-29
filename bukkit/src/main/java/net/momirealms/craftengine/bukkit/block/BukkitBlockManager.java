@@ -75,7 +75,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void init() {
         this.initMirrorRegistry();
         this.initFireBlock();
-        this.initVanillaBlockSettings();
         this.deceiveBukkitRegistry();
         this.markVanillaNoteBlocks();
         Arrays.fill(this.immutableBlockStates, EmptyBlock.INSTANCE.defaultState());
@@ -94,7 +93,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public void unload() {
         super.unload();
-        Arrays.fill(this.blockStateMappings, -1);
         this.previousClientBoundTags = this.clientBoundTags;
         this.clientBoundTags = new HashMap<>();
         for (DelegatingBlock block : this.burnableBlocks) {
@@ -218,44 +216,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             this.burnOdds = (Map<Object, Integer>) CoreReflections.field$FireBlock$burnOdds.get(MBlocks.FIRE);
         } catch (IllegalAccessException e) {
             this.plugin.logger().warn("Failed to get ignite odds", e);
-        }
-    }
-
-    private void initVanillaBlockSettings() {
-        try {
-            for (int i = 0; i < this.vanillaBlockStateCount; i++) {
-                Object blockState = BlockStateUtils.idToBlockState(i);
-                // 确保缓存已被激活
-                CoreReflections.method$BlockStateBase$initCache.invoke(blockState);
-                BlockSettings settings = BlockSettings.of()
-                        .pushReaction(PushReaction.VALUES[((Enum<?>) CoreReflections.field$BlockStateBase$pushReaction.get(blockState)).ordinal()])
-                        .mapColor(MapColor.get(CoreReflections.field$MapColor$id.getInt(CoreReflections.field$BlockStateBase$mapColor.get(blockState))))
-                        .canOcclude(FastNMS.INSTANCE.method$BlockStateBase$canOcclude(blockState) ? Tristate.TRUE : Tristate.FALSE)
-                        .isRandomlyTicking(CoreReflections.field$BlockStateBase$isRandomlyTicking.getBoolean(blockState))
-                        .hardness(CoreReflections.field$BlockStateBase$hardness.getFloat(blockState))
-                        .replaceable(CoreReflections.field$BlockStateBase$replaceable.getBoolean(blockState))
-                        .burnable(CoreReflections.field$BlockStateBase$burnable.getBoolean(blockState))
-                        .luminance(CoreReflections.field$BlockStateBase$lightEmission.getInt(blockState))
-                        .instrument(Instrument.VALUES[((Enum<?>) CoreReflections.field$BlockStateBase$instrument.get(blockState)).ordinal()])
-                        .pushReaction(PushReaction.VALUES[((Enum<?>) CoreReflections.field$BlockStateBase$pushReaction.get(blockState)).ordinal()]);
-                Object block = BlockStateUtils.getBlockOwner(blockState);
-                settings.resistance(CoreReflections.field$BlockBehaviour$explosionResistance.getFloat(block))
-                        .friction(CoreReflections.field$BlockBehaviour$friction.getFloat(block))
-                        .speedFactor(CoreReflections.field$BlockBehaviour$speedFactor.getFloat(block))
-                        .jumpFactor(CoreReflections.field$BlockBehaviour$jumpFactor.getFloat(block))
-                        .sounds(toBlockSounds(CoreReflections.field$BlockBehaviour$soundType.get(block)));
-                if (VersionHelper.isOrAbove1_21_2()) {
-                    settings.blockLight(CoreReflections.field$BlockStateBase$lightBlock.getInt(blockState));
-                    settings.propagatesSkylightDown(CoreReflections.field$BlockStateBase$propagatesSkylightDown.getBoolean(blockState) ? Tristate.TRUE : Tristate.FALSE);
-                } else {
-                    Object cache = CoreReflections.field$BlockStateBase$cache.get(blockState);
-                    settings.blockLight(CoreReflections.field$BlockStateBase$Cache$lightBlock.getInt(cache));
-                    settings.propagatesSkylightDown(CoreReflections.field$BlockStateBase$Cache$propagatesSkylightDown.getBoolean(cache) ? Tristate.TRUE : Tristate.FALSE);
-                }
-                this.vanillaBlockSettings[i] = settings;
-            }
-        } catch (Exception e) {
-            this.plugin.logger().warn("Failed to initialize vanilla block settings", e);
         }
     }
 

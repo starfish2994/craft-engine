@@ -16,7 +16,7 @@ public class BukkitCustomBlockStateWrapper extends AbstractBlockStateWrapper {
 
     @Override
     public Key ownerId() {
-        return getImmutableBlockState().map(state -> state.owner().key().location()).orElseGet(() -> BlockStateUtils.getBlockOwnerIdFromState(super.blockState));
+        return getImmutableBlockState().map(state -> state.owner().value().id()).orElseGet(() -> BlockStateUtils.getBlockOwnerIdFromState(super.blockState));
     }
 
     @SuppressWarnings("unchecked")

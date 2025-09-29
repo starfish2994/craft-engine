@@ -232,7 +232,7 @@ public abstract class AbstractFontManager implements FontManager {
                     emoji.content(),
                     PlayerOptionalContext.of(player, ContextHolder.builder()
                             .withOptionalParameter(EmojiParameters.EMOJI, emoji.emojiImage())
-                            .withParameter(EmojiParameters.KEYWORD, emoji.keywords().get(0))
+                            .withParameter(EmojiParameters.KEYWORD, emoji.keywords().getFirst())
                     ).tagResolvers())
             );
             if (emojis.size() >= maxTimes) break;
@@ -390,7 +390,7 @@ public abstract class AbstractFontManager implements FontManager {
         return this.fonts.computeIfAbsent(key, Font::new);
     }
 
-    public class EmojiParser implements IdSectionConfigParser {
+    public class EmojiParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"emoji", "emojis"};
 
         @Override
@@ -457,7 +457,7 @@ public abstract class AbstractFontManager implements FontManager {
         }
     }
 
-    public class ImageParser implements IdSectionConfigParser {
+    public class ImageParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"images", "image"};
         private final Map<Key, IdAllocator> idAllocators = new HashMap<>();
 
@@ -577,7 +577,11 @@ public abstract class AbstractFontManager implements FontManager {
                         codepoints = CharacterUtils.charsToCodePoints(charString.toCharArray());
                     }
                     for (int j = 0; j < codepoints.length; j++) {
-                        futureCodepoints.add(allocator.assignFixedId(id.asString() + ":" + i + ":" + j, codepoints[j]));
+                        if (codepoints[j] == 0) {
+                            futureCodepoints.add(CompletableFuture.completedFuture(0));
+                        } else {
+                            futureCodepoints.add(allocator.assignFixedId(id.asString() + ":" + i + ":" + j, codepoints[j]));
+                        }
                     }
                     if (tempColumns == -1) {
                         tempColumns = codepoints.length;
@@ -607,7 +611,11 @@ public abstract class AbstractFontManager implements FontManager {
                     }
                     columns = codepoints.length;
                     for (int i = 0; i < codepoints.length; i++) {
-                        futureCodepoints.add(allocator.assignFixedId(id.asString() + ":0:" + i, codepoints[i]));
+                        if (codepoints[i] == 0) {
+                            futureCodepoints.add(CompletableFuture.completedFuture(0));
+                        } else {
+                            futureCodepoints.add(allocator.assignFixedId(id.asString() + ":0:" + i, codepoints[i]));
+                        }
                     }
                 }
             }

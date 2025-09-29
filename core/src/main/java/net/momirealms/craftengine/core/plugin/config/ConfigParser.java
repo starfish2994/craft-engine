@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config;
 
+import net.momirealms.craftengine.core.pack.CachedConfigSection;
 import org.jetbrains.annotations.NotNull;
 
 public interface ConfigParser extends Comparable<ConfigParser> {
@@ -18,4 +19,10 @@ public interface ConfigParser extends Comparable<ConfigParser> {
 
     default void preProcess() {
     }
+
+    void addConfig(CachedConfigSection section);
+
+    void loadAll();
+
+    void clear();
 }

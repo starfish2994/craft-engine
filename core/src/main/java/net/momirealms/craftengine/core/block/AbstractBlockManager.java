@@ -19,8 +19,8 @@ import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.pack.ResourceLocation;
 import net.momirealms.craftengine.core.pack.allocator.BlockStateAllocator;
-import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.pack.allocator.BlockStateCandidate;
+import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenerator;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -80,8 +80,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final Object[] customBlockHolders;
     // 自定义状态列表，会随着重载变化
     protected final ImmutableBlockState[] immutableBlockStates;
-    // 原版方块的属性缓存
-    protected final BlockSettings[] vanillaBlockSettings;
     // 倒推缓存
     protected final BlockStateCandidate[] reversedBlockStateArranger;
     // 临时存储哪些视觉方块被使用了
@@ -98,7 +96,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.customBlocks = new DelegatingBlock[customBlockCount];
         this.customBlockHolders = new Object[customBlockCount];
         this.customBlockStates = new DelegatingBlockState[customBlockCount];
-        this.vanillaBlockSettings = new BlockSettings[vanillaBlockStateCount];
         this.immutableBlockStates = new ImmutableBlockState[customBlockCount];
         this.blockStateMappings = new int[customBlockCount + vanillaBlockStateCount];
         this.reversedBlockStateArranger = new BlockStateCandidate[vanillaBlockStateCount];
@@ -236,7 +233,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                                      @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
                                                      @Nullable LootTable<?> lootTable);
 
-    public class BlockStateMappingParser implements SectionConfigParser {
+    public class BlockStateMappingParser extends SectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"block-state-mappings", "block-state-mapping"};
 
         @Override
@@ -285,7 +282,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         }
     }
 
-    public class BlockParser implements IdSectionConfigParser {
+    public class BlockParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"blocks", "block"};
         private final IdAllocator internalIdAllocator;
         private final List<PendingConfigSection> pendingConfigSections = new ArrayList<>();
@@ -618,9 +615,10 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 }
             }
             // 拆分方块id与属性
-            String blockState = blockStateWrapper.toString();
-            Key blockId = Key.of(blockState.substring(blockState.indexOf('{') + 1, blockState.lastIndexOf('}')));
-            String propertyNBT = blockState.substring(blockState.indexOf('[') + 1, blockState.lastIndexOf(']'));
+            String blockState = blockStateWrapper.getAsString();
+            int firstIndex = blockState.indexOf('[');
+            Key blockId = firstIndex == -1 ? Key.of(blockState) : Key.of(blockState.substring(0, firstIndex));
+            String propertyNBT = firstIndex == -1 ? "" : blockState.substring(firstIndex + 1, blockState.lastIndexOf(']'));
             // 结合variants
             JsonElement combinedVariant = GsonHelper.combine(variants);
             Map<String, JsonElement> overrideMap = AbstractBlockManager.this.blockStateOverrides.computeIfAbsent(blockId, k -> new HashMap<>());

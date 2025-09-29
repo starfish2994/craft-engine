@@ -933,7 +933,7 @@ templates#block_states:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      distance=7:
+      distance=7,persistent=false:
         settings:
           is-randomly-ticking: true
   # trapdoor block

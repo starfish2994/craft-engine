@@ -76,7 +76,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
     protected abstract CustomFurniture.Builder furnitureBuilder();
 
-    public class FurnitureParser implements IdSectionConfigParser {
+    public class FurnitureParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] { "furniture" };
         private final List<PendingConfigSection> pendingConfigSections = new ArrayList<>();
 
@@ -110,7 +110,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
         @SuppressWarnings("unchecked")
         @Override
         public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
-            if (byId.containsKey(id)) {
+            if (AbstractFurnitureManager.this.byId.containsKey(id)) {
                 throw new LocalizedResourceConfigException("warning.config.furniture.duplicate");
             }
             EnumMap<AnchorType, CustomFurniture.Placement> placements = new EnumMap<>(AnchorType.class);
