@@ -34,4 +34,5 @@ public final class CommonFunctions {
     public static final Key TELEPORT = Key.of("craftengine:teleport");
     public static final Key TOAST = Key.of("craftengine:toast");
     public static final Key SET_VARIABLE = Key.of("craftengine:set_variable");
+    public static final Key DAMAGE = Key.of("craftengine:damage");
 }

@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
@@ -45,6 +47,8 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -506,7 +510,7 @@ public class BukkitServerPlayer extends Player {
         if (this.gameTicks % 20 == 0) {
             this.updateGUI();
         }
-        if (this.isDestroyingBlock)  {
+        if (this.isDestroyingBlock) {
             this.tickBlockDestroy();
         }
         if (Config.predictBreaking() && !this.isDestroyingCustomBlock) {
@@ -1132,5 +1136,12 @@ public class BukkitServerPlayer extends Player {
     public void teleport(WorldPosition worldPosition) {
         Location location = new Location((org.bukkit.World) worldPosition.world().platformWorld(), worldPosition.x(), worldPosition.y(), worldPosition.z(), worldPosition.yRot(), worldPosition.xRot());
         this.platformPlayer().teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+    }
+
+    @Override
+    public void damage(double amount, Key damageType) {
+        @SuppressWarnings("deprecation")
+        DamageType type = Registry.DAMAGE_TYPE.get(KeyUtils.toNamespacedKey(damageType));
+        this.platformPlayer().damage(amount, DamageSource.builder(type != null ? type : DamageType.GENERIC).build());
     }
 }
