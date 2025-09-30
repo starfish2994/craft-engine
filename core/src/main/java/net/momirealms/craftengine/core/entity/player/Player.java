@@ -169,4 +169,6 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract CooldownData cooldown();
 
     public abstract void teleport(WorldPosition worldPosition);
+
+    public abstract void damage(double amount, Key damageType);
 }
