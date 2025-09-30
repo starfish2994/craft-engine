@@ -338,7 +338,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         }
 
         private boolean needsItemModelCompatibility() {
-            return Config.packMaxVersion().isAtOrAbove(MinecraftVersions.V1_21_2);
+            return Config.packMaxVersion().isAtOrAbove(MinecraftVersions.V1_21_2) && VersionHelper.isOrAbove1_21_2(); //todo 能否通过客户端包解决问题
         }
 
         public Map<Key, IdAllocator> idAllocators() {
@@ -403,6 +403,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
 
             // custom model data
             CompletableFuture<Integer> customModelDataFuture;
+            boolean forceCustomModelData;
 
             if (!isVanillaItem) {
                 // 如果用户指定了，说明要手动分配，不管他是什么版本，都强制设置模型值
@@ -415,9 +416,11 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                         throw new LocalizedResourceConfigException("warning.config.item.bad_custom_model_data", String.valueOf(customModelData));
                     }
                     customModelDataFuture = getOrCreateIdAllocator(clientBoundMaterial).assignFixedId(id.asString(), customModelData);
+                    forceCustomModelData = true;
                 }
                 // 用户没指定custom-model-data，则看当前资源包版本兼容需求
                 else {
+                    forceCustomModelData = false;
                     // 如果最低版本要1.21.1以下支持
                     if (needsCustomModelDataCompatibility()) {
                         customModelDataFuture = getOrCreateIdAllocator(clientBoundMaterial).requestAutoId(id.asString());
@@ -428,6 +431,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                     }
                 }
             } else {
+                forceCustomModelData = false;
                 // 原版物品不应该有这个
                 customModelDataFuture = CompletableFuture.completedFuture(0);
             }
@@ -458,15 +462,17 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
 
                 // item model
                 Key itemModel = null;
+                boolean forceItemModel = false;
 
                 // 如果这个版本可以使用 item model
                 if (!isVanillaItem && needsItemModelCompatibility()) {
                     // 如果用户主动设定了item model，那么肯定要设置
                     if (section.containsKey("item-model")) {
                         itemModel = Key.from(section.get("item-model").toString());
+                        forceItemModel = true;
                     }
                     // 用户没设置item model也没设置custom model data，那么为他生成一个基于物品id的item model
-                    else if (customModelData == 0) {
+                    else if (customModelData == 0 || Config.alwaysUseItemModel()) {
                         itemModel = id;
                     }
                     // 用户没设置item model但是有custom model data，那么就使用custom model data
@@ -476,11 +482,17 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 boolean clientBoundModel = VersionHelper.PREMIUM && (section.containsKey("client-bound-model") ? ResourceConfigUtils.getAsBoolean(section.get("client-bound-model"), "client-bound-model") : Config.globalClientboundModel());
 
                 CustomItem.Builder<I> itemBuilder = createPlatformItemBuilder(uniqueId, material, clientBoundMaterial);
-                if (customModelData > 0) {
+
+                // 模型配置区域，如果这里被配置了，那么用户必须要配置custom-model-data或item-model
+                Map<String, Object> modelSection = MiscUtils.castToMap(section.get("model"), true);
+                Map<String, Object> legacyModelSection = MiscUtils.castToMap(section.get("legacy-model"), true);
+                boolean hasModelSection = modelSection != null || legacyModelSection != null;
+
+                if (customModelData > 0 && (hasModelSection || forceCustomModelData)) {
                     if (clientBoundModel) itemBuilder.clientBoundDataModifier(new CustomModelDataModifier<>(customModelData));
                     else itemBuilder.dataModifier(new CustomModelDataModifier<>(customModelData));
                 }
-                if (itemModel != null) {
+                if (itemModel != null && (hasModelSection || forceItemModel)) {
                     if (clientBoundModel) itemBuilder.clientBoundDataModifier(new ItemModelModifier<>(itemModel));
                     else itemBuilder.dataModifier(new ItemModelModifier<>(itemModel));
                 }
@@ -586,10 +598,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                     return;
                 }
 
-                // 模型配置区域，如果这里被配置了，那么用户必须要配置custom-model-data或item-model
-                Map<String, Object> modelSection = MiscUtils.castToMap(section.get("model"), true);
-                Map<String, Object> legacyModelSection = MiscUtils.castToMap(section.get("legacy-model"), true);
-                if (modelSection == null && legacyModelSection == null) {
+                if (!hasModelSection) {
                     collector.throwIfPresent();
                     return;
                 }
