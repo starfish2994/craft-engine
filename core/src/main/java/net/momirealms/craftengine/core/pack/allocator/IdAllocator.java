@@ -235,7 +235,7 @@ public class IdAllocator {
             sortedJsonObject.addProperty(entry.getValue(), entry.getKey());
         }
 
-        if (sortedJsonObject.isEmpty()) {
+        if (sortedJsonObject.asMap().isEmpty()) {
             if (Files.exists(this.cacheFilePath)) {
                 Files.delete(this.cacheFilePath);
             }

@@ -168,7 +168,7 @@ public class VisualBlockStateAllocator {
         for (Map.Entry<BlockStateWrapper, String> entry : sortedById.entrySet()) {
             sortedJsonObject.addProperty(entry.getValue(), entry.getKey().getAsString());
         }
-        if (sortedJsonObject.isEmpty()) {
+        if (sortedJsonObject.asMap().isEmpty()) {
             if (Files.exists(this.cacheFilePath)) {
                 Files.delete(this.cacheFilePath);
             }
