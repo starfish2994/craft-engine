@@ -54,7 +54,12 @@ public interface ItemManager<T> extends Manageable, ModelGenerator {
 
     Item<T> fromByteArray(byte[] bytes);
 
-    Collection<Key> items();
+    Map<Key, CustomItem<T>> loadedItems();
+
+    @Deprecated(forRemoval = true)
+    default Collection<Key> items() {
+        return loadedItems().keySet();
+    }
 
     ExternalItemSource<T> getExternalItemSource(String name);
 

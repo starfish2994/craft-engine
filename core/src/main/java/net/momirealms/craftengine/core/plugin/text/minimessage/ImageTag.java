@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.Context;
 import net.kyori.adventure.text.minimessage.ParsingException;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -12,7 +11,6 @@ import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Optional;
 
 public class ImageTag implements TagResolver {
@@ -34,9 +32,9 @@ public class ImageTag implements TagResolver {
             if (arguments.hasNext()) {
                 int row = arguments.popOr("No argument row provided").asInt().orElseThrow(() -> ctx.newException("Invalid argument number", arguments));
                 int column = arguments.popOr("No argument column provided").asInt().orElseThrow(() -> ctx.newException("Invalid argument number", arguments));
-                return Tag.selfClosingInserting(Component.empty().children(List.of(optional.get().componentAt(row,column))));
+                return Tag.selfClosingInserting(optional.get().componentAt(row,column));
             } else {
-                return Tag.selfClosingInserting(Component.empty().children(List.of(optional.get().componentAt(0,0))));
+                return Tag.selfClosingInserting(optional.get().componentAt(0,0));
             }
         } else {
             throw ctx.newException("Invalid image id", arguments);

@@ -146,7 +146,7 @@ public class GrassBlockBehavior extends BukkitBlockBehavior {
                 }
                 if (FastNMS.INSTANCE.method$BlockStateBase$isAir(currentState)) {
                     Object chunkGenerator = CoreReflections.method$ServerChunkCache$getGenerator.invoke(FastNMS.INSTANCE.method$ServerLevel$getChunkSource(world));
-                    Object placedFeature = CoreReflections.method$Holder$value.invoke(holder.get());
+                    Object placedFeature = FastNMS.INSTANCE.method$Holder$value(holder.get());
                     CoreReflections.method$PlacedFeature$place.invoke(placedFeature, world, chunkGenerator, random, nmsCurrentPos);
                 }
             }

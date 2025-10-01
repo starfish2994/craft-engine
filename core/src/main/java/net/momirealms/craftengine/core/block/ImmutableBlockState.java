@@ -1,6 +1,12 @@
 package net.momirealms.craftengine.core.block;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
+import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.BlockEntityType;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
+import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
@@ -8,6 +14,7 @@ import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.registry.Holder;
+import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.NBT;
@@ -22,11 +29,13 @@ public final class ImmutableBlockState extends BlockStateHolder {
     private BlockStateWrapper customBlockState;
     private BlockStateWrapper vanillaBlockState;
     private BlockBehavior behavior;
-    private Integer hashCode;
     private BlockSettings settings;
+    private BlockEntityType<? extends BlockEntity> blockEntityType;
+    @Nullable
+    private BlockEntityElementConfig<? extends BlockEntityElement>[] renderers;
 
     ImmutableBlockState(
-            Holder<CustomBlock> owner,
+            Holder.Reference<CustomBlock> owner,
             Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap
     ) {
         super(owner, propertyMap);
@@ -48,23 +57,32 @@ public final class ImmutableBlockState extends BlockStateHolder {
         this.settings = settings;
     }
 
+    public BlockEntityType<? extends BlockEntity> blockEntityType() {
+        return blockEntityType;
+    }
+
+    public void setBlockEntityType(BlockEntityType<? extends BlockEntity> blockEntityType) {
+        this.blockEntityType = blockEntityType;
+    }
+
     public boolean isEmpty() {
         return this == EmptyBlock.STATE;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ImmutableBlockState state)) return false;
-        return state.owner == this.owner && state.tag.equals(this.tag);
+    public BlockEntityElementConfig<? extends BlockEntityElement>[] constantRenderers() {
+        return this.renderers;
     }
 
-    @Override
-    public int hashCode() {
-        if (this.hashCode == null) {
-            this.hashCode = getNbtToSave().hashCode();
-        }
-        return this.hashCode;
+    public void setConstantRenderers(BlockEntityElementConfig<? extends BlockEntityElement>[] renderers) {
+        this.renderers = renderers;
+    }
+
+    public boolean hasBlockEntity() {
+        return this.blockEntityType != null;
+    }
+
+    public boolean hasConstantBlockEntityRenderer() {
+        return this.renderers != null;
     }
 
     public BlockStateWrapper customBlockState() {
@@ -111,7 +129,7 @@ public final class ImmutableBlockState extends BlockStateHolder {
     public CompoundTag toNbtToSave(CompoundTag properties) {
         CompoundTag tag = new CompoundTag();
         tag.put("properties", properties);
-        tag.put("id", NBT.createString(this.owner.value().id().asString()));
+        tag.put("id", NBT.createString(this.owner.key().location().asString()));
         return tag;
     }
 
@@ -131,5 +149,19 @@ public final class ImmutableBlockState extends BlockStateHolder {
         LootTable<Object> lootTable = (LootTable<Object>) block.lootTable();
         if (lootTable == null) return List.of();
         return lootTable.getRandomItems(builder.withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, this).build(), world, player);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends BlockEntity> BlockEntityTicker<T> createSyncBlockEntityTicker(CEWorld world, BlockEntityType<? extends BlockEntity> type) {
+        EntityBlockBehavior blockBehavior = this.behavior.getEntityBehavior();
+        if (blockBehavior == null) return null;
+        return (BlockEntityTicker<T>) blockBehavior.createSyncBlockEntityTicker(world, this, type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends BlockEntity> BlockEntityTicker<T> createAsyncBlockEntityTicker(CEWorld world, BlockEntityType<? extends BlockEntity> type) {
+        EntityBlockBehavior blockBehavior = this.behavior.getEntityBehavior();
+        if (blockBehavior == null) return null;
+        return (BlockEntityTicker<T>) blockBehavior.createAsyncBlockEntityTicker(world, this, type);
     }
 }

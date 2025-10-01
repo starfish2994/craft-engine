@@ -1,9 +1,10 @@
 package net.momirealms.craftengine.core.world;
 
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 
 public class BlockPos extends Vec3i {
+    public static final BlockPos ZERO = new BlockPos(0, 0, 0);
 
     public BlockPos(int x, int y, int z) {
         super(x, y, z);
@@ -22,7 +23,7 @@ public class BlockPos extends Vec3i {
     }
 
     public static BlockPos fromVec3d(Vec3d vec) {
-        return new BlockPos(MCUtils.fastFloor(vec.x), MCUtils.fastFloor(vec.y), MCUtils.fastFloor(vec.z));
+        return new BlockPos(MiscUtils.fastFloor(vec.x), MiscUtils.fastFloor(vec.y), MiscUtils.fastFloor(vec.z));
     }
 
     public static BlockPos of(long packedPos) {
@@ -53,5 +54,49 @@ public class BlockPos extends Vec3i {
 
     public BlockPos offset(int x, int y, int z) {
         return x == 0 && y == 0 && z == 0 ? this : new BlockPos(this.x() + x, this.y() + y, this.z() + z);
+    }
+
+    public BlockPos immutable() {
+        return this;
+    }
+
+    @Override
+    public BlockPos north() {
+        return new BlockPos(this.x(), this.y(), this.z() - 1);
+    }
+
+    @Override
+    public BlockPos north(int distance) {
+        return distance == 0 ? this.immutable() : new BlockPos(this.x(), this.y(), this.z() - distance);
+    }
+
+    @Override
+    public BlockPos south() {
+        return new BlockPos(this.x(), this.y(), this.z() + 1);
+    }
+
+    @Override
+    public BlockPos south(int distance) {
+        return distance == 0 ? this.immutable() : new BlockPos(this.x(), this.y(), this.z() + distance);
+    }
+
+    @Override
+    public BlockPos west() {
+        return new BlockPos(this.x() - 1, this.y(), this.z());
+    }
+
+    @Override
+    public BlockPos west(int distance) {
+        return distance == 0 ? this.immutable() : new BlockPos(this.x() - distance, this.y(), this.z());
+    }
+
+    @Override
+    public BlockPos east() {
+        return new BlockPos(this.x() + 1, this.y(), this.z());
+    }
+
+    @Override
+    public BlockPos east(int distance) {
+        return distance == 0 ? this.immutable() : new BlockPos(this.x() + distance, this.y(), this.z());
     }
 }

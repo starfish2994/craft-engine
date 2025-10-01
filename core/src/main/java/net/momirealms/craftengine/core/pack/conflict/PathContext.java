@@ -18,6 +18,6 @@ public class PathContext extends AbstractCommonContext {
     }
 
     public static PathContext of(Path path) {
-        return new PathContext(ContextHolder.EMPTY, path);
+        return new PathContext(ContextHolder.empty(), path);
     }
 }

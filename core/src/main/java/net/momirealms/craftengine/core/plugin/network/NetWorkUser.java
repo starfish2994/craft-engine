@@ -4,8 +4,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.plugin.Plugin;
+import net.momirealms.craftengine.core.util.IntIdentityList;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.world.ChunkPos;
+import net.momirealms.craftengine.core.world.chunk.ChunkStatus;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,11 +31,19 @@ public interface NetWorkUser {
 
     String name();
 
-    void setName(String name);
+    boolean isNameVerified();
+
+    void setUnverifiedName(String name);
+
+    void setVerifiedName(String name);
 
     UUID uuid();
 
-    void setUUID(UUID uuid);
+    boolean isUUIDVerified();
+
+    void setUnverifiedUUID(UUID uuid);
+
+    void setVerifiedUUID(UUID uuid);
 
     void sendPacket(Object packet, boolean immediately);
 
@@ -78,9 +87,18 @@ public interface NetWorkUser {
 
     boolean shouldProcessFinishConfiguration();
 
-    boolean isChunkTracked(ChunkPos chunkPos);
+    boolean isChunkTracked(long chunkPos);
 
-    void setChunkTrackStatus(ChunkPos chunkPos, boolean tracked);
+    ChunkStatus getTrackedChunk(long chunkPos);
+
+    void addTrackedChunk(long chunkPos, ChunkStatus chunkStatus);
 
     void clearTrackedChunks();
+
+    void removeTrackedChunk(long chunkPos);
+
+    @Nullable
+    IntIdentityList clientBlockList();
+
+    void setClientBlockList(IntIdentityList integers);
 }

@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.item.recipe.Recipe;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.locale.MessageConstants;
+import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -30,7 +31,7 @@ public class SearchUsagePlayerCommand extends BukkitCommandFeature<CommandSender
                     Player player = context.sender();
                     BukkitServerPlayer serverPlayer = plugin().adapt(player);
                     Item<?> item = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
-                    if (item.isEmpty()) {
+                    if (ItemUtils.isEmpty(item)) {
                         handleFeedback(context, MessageConstants.COMMAND_SEARCH_USAGE_NO_ITEM);
                         return;
                     }

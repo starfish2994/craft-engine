@@ -32,9 +32,11 @@ public interface DelegatingBlock {
      */
     ObjectHolder<BlockBehavior> behaviorDelegate();
 
+    // 其实是错误的做法
     @Deprecated
     boolean isNoteBlock();
 
+    // 其实是错误的做法
     @Deprecated
     boolean isTripwire();
 }

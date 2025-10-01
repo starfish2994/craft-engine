@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
-import net.momirealms.craftengine.core.util.MCUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
 
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ public abstract class AbstractConditionalFunction<CTX extends Context> implement
 
     public AbstractConditionalFunction(List<Condition<CTX>> predicates) {
         this.predicates = predicates;
-        this.compositePredicates = MCUtils.allOf(predicates);
+        this.compositePredicates = MiscUtils.allOf(predicates);
     }
 
     @Override

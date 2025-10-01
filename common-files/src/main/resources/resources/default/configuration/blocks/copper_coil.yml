@@ -1,0 +1,79 @@
+items:
+  default:copper_coil:
+    material: nether_brick
+    data:
+      item-name: <!i><i18n:item.copper_coil>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/copper_coil
+      generation:
+        parent: minecraft:block/custom/copper_coil
+    behavior:
+      type: block_item
+      block:
+        loot:
+          template: default:loot_table/self
+        settings:
+          template:
+            - default:sound/metal
+            - default:pickaxe_power/level_1
+          overrides:
+            hardness: 3.0
+            resistance: 4.5
+            replaceable: false
+            is-redstone-conductor: true
+            is-suffocating: true
+            instrument: basedrum
+            map-color: 15
+            tags:
+              - minecraft:mineable/pickaxe
+        behavior:
+          type: lamp_block
+        states:
+          properties:
+            lit:
+              type: boolean
+              default: false
+          appearances:
+            off:
+              auto-state: cactus
+              model:
+                path: minecraft:block/custom/copper_coil
+                generation:
+                  parent: minecraft:block/cactus
+                  textures:
+                    particle: minecraft:block/custom/copper_coil
+                    bottom: minecraft:block/custom/copper_coil
+                    top: minecraft:block/custom/copper_coil
+                    side: minecraft:block/custom/copper_coil_side
+            on:
+              auto-state: cactus
+              model:
+                path: minecraft:block/custom/copper_coil_on
+                generation:
+                  parent: minecraft:block/cactus
+                  textures:
+                    particle: minecraft:block/custom/copper_coil_on
+                    bottom: minecraft:block/custom/copper_coil_on
+                    top: minecraft:block/custom/copper_coil_on
+                    side: minecraft:block/custom/copper_coil_on_side
+          variants:
+            lit=false:
+              appearance: 'off'
+            lit=true:
+              appearance: 'on'
+              settings:
+                luminance: 8
+recipes:
+  default:copper_coil:
+    type: shaped
+    pattern:
+      - AAA
+      - ABA
+      - AAA
+    ingredients:
+      A: minecraft:copper_ingot
+      B: minecraft:redstone
+    result:
+      id: default:copper_coil
+      count: 1

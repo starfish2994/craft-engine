@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -10,6 +11,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.sender.Sender;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -44,15 +46,14 @@ public class DebugTargetBlockCommand extends BukkitCommandFeature<CommandSender>
                     Sender sender = plugin().senderFactory().wrap(context.sender());
                     sender.sendMessage(Component.text(bData));
                     int id = BlockStateUtils.blockStateToId(blockState);
-
-                    Object holder = BukkitBlockManager.instance().getMinecraftBlockHolder(id);
-                    if (holder != null) {
+                    if (!BlockStateUtils.isVanillaBlock(id)) {
+                        Object holder = BukkitBlockManager.instance().getMinecraftBlockHolder(id);
                         ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockState(id);
                         if (immutableBlockState != null) {
                             sender.sendMessage(Component.text(immutableBlockState.toString()));
                         }
                         ImmutableBlockState dataInCache = plugin().worldManager().getWorld(block.getWorld().getUID()).getBlockStateAtIfLoaded(LocationUtils.toBlockPos(block.getLocation()));
-                        sender.sendMessage(Component.text("cache-state: " + !dataInCache.isEmpty()));
+                        sender.sendMessage(Component.text("cache-state: " + (dataInCache != null && !dataInCache.isEmpty())));
                         try {
                             @SuppressWarnings("unchecked")
                             Set<Object> tags = (Set<Object>) CoreReflections.field$Holder$Reference$tags.get(holder);

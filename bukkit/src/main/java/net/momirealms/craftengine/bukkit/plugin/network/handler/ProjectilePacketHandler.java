@@ -16,8 +16,9 @@ import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.NMSPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.Vec3d;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -70,13 +71,14 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         double x = buf.readDouble();
         double y = buf.readDouble();
         double z = buf.readDouble();
+        Vec3d movement = VersionHelper.isOrAbove1_21_9() ? buf.readLpVec3() : null;
         byte xRot = buf.readByte();
         byte yRot = buf.readByte();
         byte yHeadRot = buf.readByte();
         int data = buf.readVarInt();
-        int xa = buf.readShort();
-        int ya = buf.readShort();
-        int za = buf.readShort();
+        int xa = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
+        int ya = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
+        int za = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
         event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
@@ -86,13 +88,14 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         buf.writeDouble(x);
         buf.writeDouble(y);
         buf.writeDouble(z);
-        buf.writeByte(MCUtils.packDegrees(MCUtils.clamp(-MCUtils.unpackDegrees(xRot), -90.0F, 90.0F)));
-        buf.writeByte(MCUtils.packDegrees(-MCUtils.unpackDegrees(yRot)));
+        if (VersionHelper.isOrAbove1_21_9()) buf.writeLpVec3(movement);
+        buf.writeByte(MiscUtils.packDegrees(MiscUtils.clamp(-MiscUtils.unpackDegrees(xRot), -90.0F, 90.0F)));
+        buf.writeByte(MiscUtils.packDegrees(-MiscUtils.unpackDegrees(yRot)));
         buf.writeByte(yHeadRot);
         buf.writeVarInt(data);
-        buf.writeShort(xa);
-        buf.writeShort(ya);
-        buf.writeShort(za);
+        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(xa);
+        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(ya);
+        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(za);
     }
 
     private Object convertCustomProjectilePositionSyncPacket(Object packet) {
@@ -112,7 +115,7 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         Optional<CustomItem<ItemStack>> customItem = BukkitItemManager.instance().getCustomItem(this.projectile.metadata().item());
         if (customItem.isEmpty()) return itemDisplayValues;
         ProjectileMeta meta = this.projectile.metadata();
-        Item<ItemStack> displayedItem = customItem.get().buildItem(ItemBuildContext.EMPTY);
+        Item<ItemStack> displayedItem = customItem.get().buildItem(ItemBuildContext.empty());
         // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承
         displayedItem = this.projectile.item().mergeCopy(displayedItem);
         ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);
@@ -139,12 +142,12 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         short xa = FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$xa(packet);
         short ya = FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$ya(packet);
         short za = FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$za(packet);
-        float xRot = MCUtils.unpackDegrees(FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$xRot(packet));
-        float yRot = MCUtils.unpackDegrees(FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$yRot(packet));
+        float xRot = MiscUtils.unpackDegrees(FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$xRot(packet));
+        float yRot = MiscUtils.unpackDegrees(FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$yRot(packet));
         boolean onGround = FastNMS.INSTANCE.field$ClientboundMoveEntityPacket$onGround(packet);
         return FastNMS.INSTANCE.constructor$ClientboundMoveEntityPacket$PosRot(
                 entityId, xa, ya, za,
-                MCUtils.packDegrees(-yRot), MCUtils.packDegrees(MCUtils.clamp(-xRot, -90.0F, 90.0F)),
+                MiscUtils.packDegrees(-yRot), MiscUtils.packDegrees(MiscUtils.clamp(-xRot, -90.0F, 90.0F)),
                 onGround
         );
     }

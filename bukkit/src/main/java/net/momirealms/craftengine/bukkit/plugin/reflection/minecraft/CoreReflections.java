@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.reflection.minecraft;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
@@ -469,17 +470,17 @@ public final class CoreReflections {
     public static final Object instance$Direction$SOUTH;
     public static final Object instance$Direction$WEST;
     public static final Object instance$Direction$EAST;
-    public static final Object[] instance$Directions;
+    public static final Object[] instance$Direction$values;
 
     static {
         try {
-            instance$Directions = (Object[]) method$Direction$values.invoke(null);
-            instance$Direction$DOWN = instance$Directions[0];
-            instance$Direction$UP = instance$Directions[1];
-            instance$Direction$NORTH = instance$Directions[2];
-            instance$Direction$SOUTH = instance$Directions[3];
-            instance$Direction$WEST = instance$Directions[4];
-            instance$Direction$EAST = instance$Directions[5];
+            instance$Direction$values = (Object[]) method$Direction$values.invoke(null);
+            instance$Direction$DOWN = instance$Direction$values[0];
+            instance$Direction$UP = instance$Direction$values[1];
+            instance$Direction$NORTH = instance$Direction$values[2];
+            instance$Direction$SOUTH = instance$Direction$values[3];
+            instance$Direction$WEST = instance$Direction$values[4];
+            instance$Direction$EAST = instance$Direction$values[5];
         } catch (ReflectiveOperationException e) {
             throw new ReflectionInitException("Failed to init Direction", e);
         }
@@ -667,9 +668,9 @@ public final class CoreReflections {
             )
     );
 
-    public static final Method method$SynchedEntityData$get = requireNonNull(
-            ReflectionUtils.getMethod(clazz$SynchedEntityData, Object.class, clazz$EntityDataAccessor)
-    );
+    // public static final Method method$SynchedEntityData$get = requireNonNull(
+    //         ReflectionUtils.getDeclaredMethod(clazz$SynchedEntityData, Object.class, new String[]{"get", VersionHelper.isOrAbove1_20_5() ? "a" : "b"}, clazz$EntityDataAccessor)
+    // );
 
     public static final Class<?> clazz$SynchedEntityData$DataValue = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
@@ -917,7 +918,7 @@ public final class CoreReflections {
     );
 
     public static final Method method$IdMapper$add = requireNonNull(
-            ReflectionUtils.getMethod(clazz$IdMapper, void.class, Object.class)
+            ReflectionUtils.getMethod(clazz$IdMapper, void.class, new String[] {"add", "b"}, Object.class)
     );
 
     public static final Object instance$Block$BLOCK_STATE_REGISTRY;
@@ -974,9 +975,9 @@ public final class CoreReflections {
             ReflectionUtils.getDeclaredField(clazz$PalettedContainer$Data, clazz$Palette, 0)
     );
 
-    public static final Method method$Palette$write = requireNonNull(
-            ReflectionUtils.getMethod(clazz$Palette, void.class, clazz$FriendlyByteBuf)
-    );
+    // public static final Method method$Palette$write = requireNonNull(
+    //         ReflectionUtils.getMethod(clazz$Palette, void.class, clazz$FriendlyByteBuf)
+    // );
 
     public static final Class<?> clazz$ChunkAccess = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
@@ -1219,6 +1220,10 @@ public final class CoreReflections {
             ReflectionUtils.getStaticMethod(clazz$MapColor, clazz$MapColor, int.class)
     );
 
+    public static final Field field$MapColor$id = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$MapColor, int.class, 1)
+    );
+
     public static final Class<?> clazz$PushReaction = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
                     "world.level.material.EnumPistonReaction",
@@ -1230,6 +1235,16 @@ public final class CoreReflections {
             ReflectionUtils.getMethod(clazz$PushReaction, new String[] { "values" })
     );
 
+    public static final Object[] instance$PushReaction$values;
+
+    static {
+        try {
+            instance$PushReaction$values = (Object[]) method$PushReaction$values.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to init PushReaction", e);
+        }
+    }
+
     public static final Class<?> clazz$NoteBlockInstrument = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
                     "world.level.block.state.properties.BlockPropertyInstrument",
@@ -1240,6 +1255,16 @@ public final class CoreReflections {
     public static final Method method$NoteBlockInstrument$values = requireNonNull(
             ReflectionUtils.getMethod(clazz$NoteBlockInstrument, new String[] { "values" })
     );
+
+    public static final Object[] instance$NoteBlockInstrument$values;
+
+    static {
+        try {
+            instance$NoteBlockInstrument$values = (Object[]) method$NoteBlockInstrument$values.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to init NoteBlockInstrument", e);
+        }
+    }
 
     public static final Class<?> clazz$BlockStateBase = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
@@ -1290,7 +1315,6 @@ public final class CoreReflections {
     public static final Field field$BlockStateBase$mapColor = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockStateBase, clazz$MapColor, 0)
     );
-
 
     public static final Field field$BlockStateBase$instrument = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockStateBase, clazz$NoteBlockInstrument, 0)
@@ -1570,6 +1594,17 @@ public final class CoreReflections {
             )
     );
 
+    public static final Method method$BlockBehaviour$hasAnalogOutputSignal = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, new String[]{"hasAnalogOutputSignal",
+            VersionHelper.isOrAbove1_20_5() ? "c_" : "d_"}, clazz$BlockState)
+    );
+
+    public static final Method method$BlockBehaviour$getAnalogOutputSignal = requireNonNull(
+            VersionHelper.isOrAbove1_21_9()
+                    ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Direction)
+                    : ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos)
+    );
+
     public static final Method method$Entity$level = requireNonNull(
             ReflectionUtils.getMethod(clazz$Entity, clazz$Level)
     );
@@ -1676,6 +1711,10 @@ public final class CoreReflections {
 
     public static final Method method$BlockBehaviour$canSurvive = requireNonNull(
             ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, clazz$BlockState, clazz$LevelReader, clazz$BlockPos)
+    );
+
+    public static final Method method$Block$stepOn = requireNonNull(
+            ReflectionUtils.getMethod(clazz$Block, void.class, new String[] {"stepOn", "a"}, clazz$Level, clazz$BlockPos, clazz$BlockState, clazz$Entity)
     );
 
     public static final Method method$BlockBehaviour$onExplosionHit = MiscUtils.requireNonNullIf(
@@ -2314,12 +2353,30 @@ public final class CoreReflections {
             )
     );
 
+    public static final Class<?> clazz$WorldlyContainerHolder = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.IInventoryHolder",
+                    "world.WorldlyContainerHolder"
+            )
+    );
+
     public static final Method method$BonemealableBlock$isValidBonemealTarget = requireNonNull(
             VersionHelper.isOrAbove1_20_2() ?
                     ReflectionUtils.getInstanceMethod(clazz$BonemealableBlock, boolean.class, clazz$LevelReader, clazz$BlockPos, clazz$BlockState) :
                     ReflectionUtils.getInstanceMethod(clazz$BonemealableBlock, boolean.class, clazz$LevelReader, clazz$BlockPos, clazz$BlockState, boolean.class)
     );
 
+    public static final Class<?> clazz$WorldlyContainer = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.IWorldInventory",
+                    "world.WorldlyContainer"
+            )
+    );
+
+
+    public static final Method method$WorldlyContainerHolder$getContainer = requireNonNull(
+            ReflectionUtils.getMethod(clazz$WorldlyContainerHolder, clazz$WorldlyContainer, clazz$BlockState, clazz$LevelAccessor, clazz$BlockPos)
+    );
     public static final Method method$BonemealableBlock$isBonemealSuccess = requireNonNull(
             ReflectionUtils.getMethod(clazz$BonemealableBlock, boolean.class, clazz$Level, clazz$RandomSource, clazz$BlockPos, clazz$BlockState)
     );
@@ -2526,19 +2583,19 @@ public final class CoreReflections {
             ReflectionUtils.getMethod(clazz$BlockHitResult, clazz$BlockHitResult, clazz$BlockPos)
     );
 
-    public static final Field field$BlockHitResul$blockPos = requireNonNull(
+    public static final Field field$BlockHitResult$blockPos = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, clazz$BlockPos, 0)
     );
 
-    public static final Field field$BlockHitResul$direction = requireNonNull(
+    public static final Field field$BlockHitResult$direction = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, clazz$Direction, 0)
     );
 
-    public static final Field field$BlockHitResul$miss = requireNonNull(
+    public static final Field field$BlockHitResult$miss = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, boolean.class, 0)
     );
 
-    public static final Field field$BlockHitResul$inside = requireNonNull(
+    public static final Field field$BlockHitResult$inside = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, boolean.class, 1)
     );
 
@@ -3578,23 +3635,23 @@ public final class CoreReflections {
             clazz$Registry, clazz$HolderLookup$RegistryLookup, new String[]{"asLookup", "p"}
     );
 
-    public static final Field field$ServerEntity$broadcast = requireNonNull(
-            ReflectionUtils.getDeclaredField(
-                    clazz$ServerEntity, Consumer.class, 0
-            )
-    );
+    // public static final Field field$ServerEntity$broadcast = requireNonNull(
+    //         ReflectionUtils.getDeclaredField(
+    //                 clazz$ServerEntity, Consumer.class, 0
+    //         )
+    // );
 
-    public static final MethodHandle methodHandle$ServerEntity$broadcastSetter;
+    // public static final MethodHandle methodHandle$ServerEntity$broadcastSetter;
     public static final MethodHandle methodHandle$ServerEntity$updateIntervalSetter;
     public static final MethodHandle methodHandle$ServerPlayer$connectionGetter;
     public static final MethodHandle methodHandle$ServerPlayer$getAttributeMethod;
 
     static {
         try {
-            methodHandle$ServerEntity$broadcastSetter = requireNonNull(
-                    ReflectionUtils.unreflectSetter(field$ServerEntity$broadcast)
-                            .asType(MethodType.methodType(void.class, Object.class, Consumer.class))
-            );
+            // methodHandle$ServerEntity$broadcastSetter = requireNonNull(
+            //         ReflectionUtils.unreflectSetter(field$ServerEntity$broadcast)
+            //                 .asType(MethodType.methodType(void.class, Object.class, Consumer.class))
+            // );
             methodHandle$ServerEntity$updateIntervalSetter = requireNonNull(
                     ReflectionUtils.unreflectSetter(field$ServerEntity$updateInterval)
                             .asType(MethodType.methodType(void.class, Object.class, int.class))
@@ -3627,6 +3684,10 @@ public final class CoreReflections {
             ReflectionUtils.getDeclaredField(clazz$FireBlock, Object2IntMap.class, 0)
     );
 
+    public static final Field field$FireBlock$burnOdds = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$FireBlock, Object2IntMap.class, 1)
+    );
+
     public static final Class<?> clazz$EnchantmentMenu = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
                     "world.inventory.ContainerEnchantTable",
@@ -3644,11 +3705,12 @@ public final class CoreReflections {
     // 1.20.5+
     public static final Field field$ItemStack$CODEC = ReflectionUtils.getDeclaredField(clazz$ItemStack, "CODEC", "b");
 
-    public static final Codec<?> instance$ItemStack$CODEC;
+    public static final Codec<Object> instance$ItemStack$CODEC = getItemStack$CODEC();
 
-    static {
+    @SuppressWarnings("unchecked")
+    private static Codec<Object> getItemStack$CODEC() {
         try {
-            instance$ItemStack$CODEC = VersionHelper.isOrAbove1_20_5() ? (Codec<?>) field$ItemStack$CODEC.get(null) : null;
+            return VersionHelper.isOrAbove1_20_5() ? (Codec<Object>) field$ItemStack$CODEC.get(null) : null;
         } catch (ReflectiveOperationException e) {
             throw new ReflectionInitException("Failed to init ItemStack$CODEC", e);
         }
@@ -4176,5 +4238,227 @@ public final class CoreReflections {
                     "world.level.storage.loot.entries.LootEntryType",
                     "world.level.storage.loot.entries.LootPoolEntryType"
             )
+    );
+
+    public static final Method method$BlockAndTintGetter$getLightEngine = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockAndTintGetter, clazz$LevelLightEngine)
+    );
+
+    public static final Method method$Block$fallOn = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$Block, void.class, clazz$Level, clazz$BlockState, clazz$BlockPos, clazz$Entity, VersionHelper.isOrAbove1_21_5() ? double.class : float.class)
+    );
+
+    public static final Method method$Block$updateEntityMovementAfterFallOn = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$Block, void.class, clazz$BlockGetter, clazz$Entity)
+    );
+
+    public static final Class<?> clazz$AdvancementRewards = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementRewards",
+                    "advancements.AdvancementRewards"
+            )
+    );
+
+    public static final Field field$AdvancementRewards$EMPTY = requireNonNull(
+            ReflectionUtils.getStaticDeclaredField(clazz$AdvancementRewards, clazz$AdvancementRewards, 0)
+    );
+
+    public static final Object instance$AdvancementRewards$EMPTY;
+
+    static {
+        try {
+            instance$AdvancementRewards$EMPTY = field$AdvancementRewards$EMPTY.get(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to initialize AdvancementRewards$EMPTY", e);
+        }
+    }
+
+    public static final Class<?> clazz$AdvancementRequirements = MiscUtils.requireNonNullIf(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementRequirements",
+                    "advancements.AdvancementRequirements"
+            ), VersionHelper.isOrAbove1_20_2()
+    );
+
+    public static final Constructor<?> constructor$AdvancementRequirements = Optional.ofNullable(clazz$AdvancementRequirements)
+            .map(it -> {
+                if (VersionHelper.isOrAbove1_20_3()) {
+                    return ReflectionUtils.getConstructor(it, List.class);
+                } else {
+                    return ReflectionUtils.getConstructor(it, String[][].class);
+                }
+            }).orElse(null);
+
+    public static final Class<?> clazz$AdvancementProgress = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementProgress",
+                    "advancements.AdvancementProgress"
+            )
+    );
+
+    public static final Constructor<?> constructor$AdvancementProgress = requireNonNull(
+            ReflectionUtils.getConstructor(clazz$AdvancementProgress)
+    );
+
+    public static final Method method$AdvancementProgress$update = requireNonNull(
+            VersionHelper.isOrAbove1_20_2() ?
+            ReflectionUtils.getMethod(clazz$AdvancementProgress, void.class, clazz$AdvancementRequirements) :
+            ReflectionUtils.getMethod(clazz$AdvancementProgress, void.class, Map.class, String[][].class)
+    );
+
+    public static final Class<?> clazz$AdvancementType = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementFrameType",
+                    VersionHelper.isOrAbove1_20_3() ? "advancements.AdvancementType" : "advancements.FrameType"
+            )
+    );
+
+    public static final Method method$AdvancementType$values = requireNonNull(
+            ReflectionUtils.getStaticMethod(clazz$AdvancementType, clazz$AdvancementType.arrayType())
+    );
+
+    public static final Object[] instance$AdvancementType$values;
+
+    static {
+        try {
+            instance$AdvancementType$values = (Object[]) method$AdvancementType$values.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to initialize AdvancementTypes", e);
+        }
+    }
+
+    public static final Class<?> clazz$DisplayInfo = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementDisplay",
+                    "advancements.DisplayInfo"
+            )
+    );
+
+    public static final Constructor<?> constructor$DisplayInfo = requireNonNull(
+            VersionHelper.isOrAbove1_20_3() ?
+            ReflectionUtils.getConstructor(clazz$DisplayInfo, clazz$ItemStack, clazz$Component, clazz$Component, Optional.class, clazz$AdvancementType, boolean.class, boolean.class, boolean.class) :
+            ReflectionUtils.getConstructor(clazz$DisplayInfo, clazz$ItemStack, clazz$Component, clazz$Component, clazz$ResourceLocation, clazz$AdvancementType, boolean.class, boolean.class, boolean.class)
+    );
+
+    public static final Class<?> clazz$Criterion = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.Criterion",
+                    "advancements.Criterion"
+            )
+    );
+
+    public static final Class<?> clazz$CriterionTrigger = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.CriterionTrigger",
+                    "advancements.CriterionTrigger"
+            )
+    );
+
+    public static final Class<?> clazz$CriterionTriggerInstance = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.CriterionInstance",
+                    "advancements.CriterionTriggerInstance"
+            )
+    );
+
+    public static final Class<?> clazz$ImpossibleTrigger = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.critereon.CriterionTriggerImpossible",
+                    "advancements.critereon.ImpossibleTrigger"
+            )
+    );
+
+    public static final Constructor<?> constructor$ImpossibleTrigger = requireNonNull(
+            ReflectionUtils.getConstructor(clazz$ImpossibleTrigger)
+    );
+
+    public static final Class<?> clazz$ImpossibleTrigger$TriggerInstance = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.critereon.CriterionTriggerImpossible$a",
+                    "advancements.critereon.ImpossibleTrigger$TriggerInstance"
+            )
+    );
+
+    public static final Constructor<?> constructor$Criterion = requireNonNull(
+            VersionHelper.isOrAbove1_20_2() ?
+            ReflectionUtils.getConstructor(clazz$Criterion, clazz$CriterionTrigger, clazz$CriterionTriggerInstance) :
+            ReflectionUtils.getConstructor(clazz$Criterion, clazz$CriterionTriggerInstance)
+    );
+
+    public static final Constructor<?> constructor$ImpossibleTrigger$TriggerInstance = requireNonNull(
+            ReflectionUtils.getConstructor(clazz$ImpossibleTrigger$TriggerInstance)
+    );
+
+    public static final Class<?> clazz$Advancement = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.Advancement",
+                    "advancements.Advancement"
+            )
+    );
+
+    public static final Constructor<?> constructor$Advancement = requireNonNull(
+            VersionHelper.isOrAbove1_20_2() ?
+            ReflectionUtils.getConstructor(clazz$Advancement, Optional.class, Optional.class, clazz$AdvancementRewards, Map.class, clazz$AdvancementRequirements, boolean.class) :
+            ReflectionUtils.getConstructor(clazz$Advancement, clazz$ResourceLocation, clazz$Advancement, clazz$DisplayInfo, clazz$AdvancementRewards, Map.class, String[][].class, boolean.class)
+    );
+
+    public static final Class<?> clazz$CriterionProgress = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.CriterionProgress",
+                    "advancements.CriterionProgress"
+            )
+    );
+
+    public static final Method method$AdvancementProgress$grantProgress = requireNonNull(
+            ReflectionUtils.getMethod(clazz$AdvancementProgress, boolean.class, new String[]{"grantProgress", "a"}, String.class)
+    );
+
+    public static final Class<?> clazz$AdvancementHolder = MiscUtils.requireNonNullIf(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "advancements.AdvancementHolder",
+                    "advancements.AdvancementHolder"
+            ), VersionHelper.isOrAbove1_20_2()
+    );
+
+    public static final Constructor<?> constructor$AdvancementHolder = Optional.ofNullable(clazz$AdvancementHolder)
+            .map(it -> ReflectionUtils.getConstructor(it, clazz$ResourceLocation, clazz$Advancement))
+            .orElse(null);
+
+    public static final Class<?> clazz$FenceGateBlock = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.level.block.BlockFenceGate",
+                    "world.level.block.FenceGateBlock"
+            )
+    );
+
+    public static final Class<?> clazz$GameEvent = requireNonNull(
+            ReflectionUtils.getClazz(
+                    BukkitReflectionUtils.assembleMCClass("world.level.gameevent.GameEvent")
+            )
+    );
+
+    public static final Class<?> clazz$HolderSet = requireNonNull(
+            ReflectionUtils.getClazz(
+                    BukkitReflectionUtils.assembleMCClass("core.HolderSet")
+            )
+    );
+
+    public static final Method method$BlockStateBase$isBlock = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$Block)
+    );
+
+    public static final Class<?> clazz$Projectile = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.entity.projectile.IProjectile",
+                    "world.entity.projectile.Projectile"
+            )
+    );
+
+    public static final Method method$BlockBehaviour$onProjectileHit = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"onProjectileHit", "a"}, clazz$Level, clazz$BlockState, clazz$BlockHitResult, clazz$Projectile)
+    );
+
+    public static final Field field$EnumProperty$values = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$EnumProperty, VersionHelper.isOrAbove1_21_2() ? List.class : ImmutableSet.class, 0)
     );
 }

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.pack;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
+import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackCacheEvent;
 import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackGenerateEvent;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.ReloadCommand;
@@ -28,10 +29,17 @@ public class BukkitPackManager extends AbstractPackManager implements Listener {
     private final BukkitCraftEngine plugin;
 
     public BukkitPackManager(BukkitCraftEngine plugin) {
-        super(plugin, (rf, zp) -> {
-            AsyncResourcePackGenerateEvent endEvent = new AsyncResourcePackGenerateEvent(rf, zp);
-            EventUtils.fireAndForget(endEvent);
-        });
+        super(
+                plugin,
+                (cd) -> {
+                    AsyncResourcePackCacheEvent cacheEvent = new AsyncResourcePackCacheEvent(cd);
+                    EventUtils.fireAndForget(cacheEvent);
+                },
+                (rf, zp) -> {
+                    AsyncResourcePackGenerateEvent endEvent = new AsyncResourcePackGenerateEvent(rf, zp);
+                    EventUtils.fireAndForget(endEvent);
+                }
+        );
         this.plugin = plugin;
     }
 
@@ -45,6 +53,7 @@ public class BukkitPackManager extends AbstractPackManager implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (Config.sendPackOnJoin() && !VersionHelper.isOrAbove1_20_2()) {
             Player player = BukkitAdaptors.adapt(event.getPlayer());
+            if (player == null) return;
             this.sendResourcePack(player);
         }
     }
@@ -81,7 +90,7 @@ public class BukkitPackManager extends AbstractPackManager implements Listener {
                 return;
             }
             if (!Config.sendPackOnUpload()) return;
-            CraftEngine.instance().logger().info("Complete uploading resource pack");
+            CraftEngine.instance().logger().info("Completed uploading resource pack");
             for (BukkitServerPlayer player : this.plugin.networkManager().onlineUsers()) {
                 sendResourcePack(player);
             }
@@ -98,7 +107,7 @@ public class BukkitPackManager extends AbstractPackManager implements Listener {
                     return;
                 }
                 if (dataList.size() == 1) {
-                    ResourcePackDownloadData data = dataList.get(0);
+                    ResourcePackDownloadData data = dataList.getFirst();
                     player.sendPacket(ResourcePackUtils.createPacket(data.uuid(), data.url(), data.sha1()), true);
                     player.addResourcePackUUID(data.uuid());
                 } else {

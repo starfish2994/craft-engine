@@ -5,12 +5,14 @@ import net.momirealms.craftengine.bukkit.compatibility.item.*;
 import net.momirealms.craftengine.bukkit.compatibility.legacy.slimeworld.LegacySlimeFormatStorageAdaptor;
 import net.momirealms.craftengine.bukkit.compatibility.leveler.*;
 import net.momirealms.craftengine.bukkit.compatibility.model.bettermodel.BetterModelModel;
+import net.momirealms.craftengine.bukkit.compatibility.model.bettermodel.BetterModelUtils;
 import net.momirealms.craftengine.bukkit.compatibility.model.modelengine.ModelEngineModel;
 import net.momirealms.craftengine.bukkit.compatibility.model.modelengine.ModelEngineUtils;
 import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicItemDropListener;
 import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicSkillHelper;
 import net.momirealms.craftengine.bukkit.compatibility.papi.PlaceholderAPIUtils;
 import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsEventListeners;
+import net.momirealms.craftengine.bukkit.compatibility.region.WorldGuardRegionCondition;
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
 import net.momirealms.craftengine.bukkit.compatibility.viaversion.ViaVersionUtils;
@@ -18,11 +20,16 @@ import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockR
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.loot.LootConditions;
 import net.momirealms.craftengine.core.plugin.compatibility.CompatibilityManager;
 import net.momirealms.craftengine.core.plugin.compatibility.LevelerProvider;
 import net.momirealms.craftengine.core.plugin.compatibility.ModelProvider;
+import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.condition.AlwaysFalseCondition;
+import net.momirealms.craftengine.core.plugin.context.event.EventConditions;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldManager;
@@ -116,6 +123,23 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
             BukkitItemManager.instance().registerExternalItemSource(new MythicMobsSource());
             new MythicItemDropListener(this.plugin);
             logHook("MythicMobs");
+        }
+        Key worldGuardRegion = Key.of("worldguard:region");
+        if (this.isPluginEnabled("WorldGuard")) {
+            EventConditions.register(worldGuardRegion, new WorldGuardRegionCondition.FactoryImpl<>());
+            LootConditions.register(worldGuardRegion, new WorldGuardRegionCondition.FactoryImpl<>());
+            logHook("WorldGuard");
+        } else {
+            EventConditions.register(worldGuardRegion, new AlwaysFalseCondition.FactoryImpl<>());
+            LootConditions.register(worldGuardRegion, new AlwaysFalseCondition.FactoryImpl<>());
+        }
+        if (this.isPluginEnabled("BetterModel")) {
+            BetterModelUtils.registerConstantBlockEntityRender();
+            logHook("BetterModel");
+        }
+        if (this.isPluginEnabled("ModelEngine")) {
+            ModelEngineUtils.registerConstantBlockEntityRender();
+            logHook("ModelEngine");
         }
     }
 
@@ -224,8 +248,8 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
     private void initWorldEditHook() {
         WorldEditBlockRegister weBlockRegister = new WorldEditBlockRegister(BukkitBlockManager.instance(), false);
         try {
-            for (Key newBlockId : BukkitBlockManager.instance().blockRegisterOrder()) {
-                weBlockRegister.register(newBlockId);
+            for (int i = 0; i < Config.serverSideBlocks(); i++) {
+                weBlockRegister.register(BlockManager.createCustomBlockKey(i));
             }
         } catch (Exception e) {
             this.plugin.logger().warn("Failed to initialize world edit hook", e);
@@ -249,6 +273,18 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.isPluginEnabled("Zaphkiel")) {
             itemManager.registerExternalItemSource(new ZaphkielSource());
             logHook("Zaphkiel");
+        }
+        if (this.isPluginEnabled("HeadDatabase")) {
+            itemManager.registerExternalItemSource(new HeadDatabaseSource());
+            logHook("HeadDatabase");
+        }
+        if (this.isPluginEnabled("SX-Item")) {
+            itemManager.registerExternalItemSource(new SXItemSource());
+            logHook("SX-Item");
+        }
+        if (this.isPluginEnabled("Slimefun")) {
+            itemManager.registerExternalItemSource(new SlimefunSource());
+            logHook("Slimefun");
         }
     }
 

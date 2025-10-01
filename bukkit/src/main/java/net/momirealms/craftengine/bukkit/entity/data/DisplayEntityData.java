@@ -15,10 +15,10 @@ public class DisplayEntityData<T> extends BaseEntityData<T> {
     public static final DisplayEntityData<Integer> TransformationInterpolationDuration = of(DisplayEntityData.class, EntityDataValue.Serializers$INT, 0, VersionHelper.isOrAbove1_20_2());
     public static final DisplayEntityData<Integer> PositionRotationInterpolationDuration = of(DisplayEntityData.class, EntityDataValue.Serializers$INT, 0, VersionHelper.isOrAbove1_20_2());
 
-    public static final DisplayEntityData<Object> Translation = of(DisplayEntityData.class, EntityDataValue.Serializers$VECTOR3, new Vector3f(0f), true);
-    public static final DisplayEntityData<Object> Scale = of(DisplayEntityData.class, EntityDataValue.Serializers$VECTOR3, new Vector3f(1f), true);
-    public static final DisplayEntityData<Object> RotationLeft = of(DisplayEntityData.class, EntityDataValue.Serializers$QUATERNION, new Quaternionf(0f, 0f, 0f, 1f), true);
-    public static final DisplayEntityData<Object> RotationRight = of(DisplayEntityData.class, EntityDataValue.Serializers$QUATERNION, new Quaternionf(0f, 0f, 0f, 1f), true);
+    public static final DisplayEntityData<Vector3f> Translation = of(DisplayEntityData.class, EntityDataValue.Serializers$VECTOR3, new Vector3f(0f), true);
+    public static final DisplayEntityData<Vector3f> Scale = of(DisplayEntityData.class, EntityDataValue.Serializers$VECTOR3, new Vector3f(1f), true);
+    public static final DisplayEntityData<Quaternionf> RotationLeft = of(DisplayEntityData.class, EntityDataValue.Serializers$QUATERNION, new Quaternionf(0f, 0f, 0f, 1f), true);
+    public static final DisplayEntityData<Quaternionf> RotationRight = of(DisplayEntityData.class, EntityDataValue.Serializers$QUATERNION, new Quaternionf(0f, 0f, 0f, 1f), true);
     /**
      * 	Billboard Constraints (0 = FIXED, 1 = VERTICAL, 2 = HORIZONTAL, 3 = CENTER)
      */

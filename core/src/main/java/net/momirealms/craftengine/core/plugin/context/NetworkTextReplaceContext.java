@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.plugin.text.minimessage.*;
 
 import java.util.Map;
 
-public final class NetworkTextReplaceContext extends AbstractChainParameterContext {
+public final class NetworkTextReplaceContext extends AbstractChainParameterContext implements PlayerContext {
     private final Player player;
 
     public NetworkTextReplaceContext(Player player) {
@@ -19,6 +19,7 @@ public final class NetworkTextReplaceContext extends AbstractChainParameterConte
         return new NetworkTextReplaceContext(player);
     }
 
+    @Override
     public Player player() {
         return player;
     }

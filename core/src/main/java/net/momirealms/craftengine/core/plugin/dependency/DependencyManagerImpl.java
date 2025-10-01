@@ -22,7 +22,8 @@ import java.util.stream.Stream;
 public class DependencyManagerImpl implements DependencyManager {
     private final DependencyRegistry registry;
     private final Path cacheDirectory;
-    private final ClassPathAppender classPathAppender;
+    private final ClassPathAppender sharedClassPathAppender;
+    private final ClassPathAppender privateClassPathAppender;
     private final Map<Dependency, Path> loaded = Collections.synchronizedMap(new HashMap<>());
     private final Map<Set<Dependency>, IsolatedClassLoader> loaders = new HashMap<>();
     private final RelocationHandler relocationHandler;
@@ -33,7 +34,8 @@ public class DependencyManagerImpl implements DependencyManager {
         this.plugin = plugin;
         this.registry = new DependencyRegistry();
         this.cacheDirectory = setupCacheDirectory(plugin);
-        this.classPathAppender = plugin.classPathAppender();
+        this.sharedClassPathAppender = plugin.sharedClassPathAppender();
+        this.privateClassPathAppender = plugin.privateClassPathAppender();
         this.loadingExecutor = plugin.scheduler().async();
         this.relocationHandler = new RelocationHandler(this);
     }
@@ -108,8 +110,14 @@ public class DependencyManagerImpl implements DependencyManager {
 
         this.loaded.put(dependency, file);
 
-        if (this.classPathAppender != null && this.registry.shouldAutoLoad(dependency)) {
-            this.classPathAppender.addJarToClasspath(file);
+        if (dependency.shared()) {
+            if (this.sharedClassPathAppender != null && this.registry.shouldAutoLoad(dependency)) {
+                this.sharedClassPathAppender.addJarToClasspath(file);
+            }
+        } else {
+            if (this.privateClassPathAppender != null && this.registry.shouldAutoLoad(dependency)) {
+                this.privateClassPathAppender.addJarToClasspath(file);
+            }
         }
     }
 

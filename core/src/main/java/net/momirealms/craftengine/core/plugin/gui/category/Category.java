@@ -26,9 +26,7 @@ public class Category implements Comparable<Category> {
     }
 
     public void addMember(String member) {
-        if (!this.members.contains(member)) {
-            this.members.add(member);
-        }
+        this.members.add(member);
     }
 
     public Key id() {

@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.block;
 
+import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.Item;
@@ -10,6 +11,7 @@ import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -22,6 +24,14 @@ public abstract class BlockBehavior {
             return Optional.of((T) this);
         }
         return Optional.empty();
+    }
+
+    @Nullable
+    public EntityBlockBehavior getEntityBehavior() {
+        if (this instanceof EntityBlockBehavior behavior) {
+            return behavior;
+        }
+        return null;
     }
 
     // BlockState state, Rotation rotation
@@ -45,18 +55,18 @@ public abstract class BlockBehavior {
         superMethod.call();
     }
 
-    // ServerLevel level, BlockPos pos, RandomSource random
+    // BlockState state, ServerLevel level, BlockPos pos, RandomSource random
     public void tick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         superMethod.call();
     }
 
-    // ServerLevel level, BlockPos pos, RandomSource random
+    // BlockState state, ServerLevel level, BlockPos pos, RandomSource random
     public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         superMethod.call();
     }
 
     // 1.20-1.20.4 BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify, UseOnContext context
-    // 1.20.5+ Level level, BlockPos pos, BlockState oldState, boolean movedByPiston
+    // 1.20.5+ BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston
     public void onPlace(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         superMethod.call();
     }
@@ -83,6 +93,22 @@ public abstract class BlockBehavior {
     // LevelReader level, BlockPos pos, BlockState state
     public boolean isValidBoneMealTarget(Object thisBlock, Object[] args) throws Exception {
         return false;
+    }
+
+    // BlockState state
+    public boolean hasAnalogOutputSignal(Object thisBlock, Object[] args) throws Exception {
+        return false;
+    }
+
+    // 1.20.1~1.21.8 BlockState state, Level level, BlockPos pos
+    // 1.21.9+ BlockState state, Level level, BlockPos pos
+    public int getAnalogOutputSignal(Object thisBlock, Object[] args) throws Exception {
+        return 0;
+    }
+
+    // BlockState state, LevelAccessor level, BlockPos pos
+    public Object getContainer(Object thisBlock, Object[] args) throws Exception {
+        return null;
     }
 
     // Level level, RandomSource random, BlockPos pos, BlockState state
@@ -151,6 +177,14 @@ public abstract class BlockBehavior {
 
     // BlockState state, ServerLevel level, BlockPos pos, ItemStack stack, boolean dropExperience
     public void spawnAfterBreak(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    }
+
+    // Level level, BlockPos pos, BlockState state, Entity entity
+    public void stepOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    }
+
+    // Level level, BlockState state, BlockHitResult hit, Projectile projectile
+    public void onProjectileHit(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
     }
 
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {

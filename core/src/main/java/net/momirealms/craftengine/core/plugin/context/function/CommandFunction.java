@@ -45,7 +45,7 @@ public class CommandFunction<CTX extends Context> extends AbstractConditionalFun
                         ));
             } else {
                 for (Player viewer : this.selector.get(ctx)) {
-                    RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer, ContextHolder.EMPTY));
+                    RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
                     executeCommands(relationalContext, this.asEvent ? viewer::performCommandAsEvent : command1 -> viewer.performCommand(command1, this.asOp));
                 }
             }

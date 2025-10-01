@@ -10,7 +10,9 @@ public enum Debugger {
     PACKET(Config::debugPacket),
     FURNITURE(Config::debugFurniture),
     RESOURCE_PACK(Config::debugResourcePack),
-    ITEM(Config::debugItem);
+    ITEM(Config::debugItem),
+    BLOCK(Config::debugBlock),
+    BLOCK_ENTITY(Config::debugBlockEntity);
 
     private final Supplier<Boolean> condition;
 
@@ -26,7 +28,11 @@ public enum Debugger {
 
     public void warn(Supplier<String> message, Throwable e) {
         if (this.condition.get()) {
-            CraftEngine.instance().logger().warn("[DEBUG] " + message.get(), e);
+            if (e != null) {
+                CraftEngine.instance().logger().warn("[DEBUG] " + message.get(), e);
+            } else {
+                CraftEngine.instance().logger().warn("[DEBUG] " + message.get());
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
-import net.momirealms.craftengine.core.sound.SoundData;
+import net.momirealms.craftengine.core.sound.SoundSet;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.BlockHitResult;
@@ -41,6 +41,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Openable;
+import org.bukkit.block.data.Powerable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -219,14 +220,29 @@ public class ItemEventListener implements Listener {
             }
         } else {
             if (Config.enableSoundSystem() && hitResult != null) {
-                Object blockOwner = FastNMS.INSTANCE.method$BlockState$getBlock(blockState);
-                if (this.plugin.blockManager().isOpenableBlockSoundRemoved(blockOwner)) {
+                Key blockOwner = BlockStateUtils.getBlockOwnerIdFromState(blockState);
+                if (this.plugin.blockManager().isInteractSoundMissing(blockOwner)) {
                     boolean hasItem = player.getInventory().getItemInMainHand().getType() != Material.AIR || player.getInventory().getItemInOffHand().getType() != Material.AIR;
                     boolean flag = player.isSneaking() && hasItem;
                     if (!flag) {
                         if (blockData instanceof Openable openable) {
-                            SoundData soundData = this.plugin.blockManager().getRemovedOpenableBlockSound(blockOwner, !openable.isOpen());
-                            serverPlayer.playSound(soundData.id(), SoundSource.BLOCK, soundData.volume().get(), soundData.pitch().get());
+                            SoundSet soundSet = SoundSet.getByBlock(blockOwner);
+                            if (soundSet != null) {
+                                serverPlayer.playSound(
+                                        Vec3d.atCenterOf(hitResult.getBlockPos()),
+                                        openable.isOpen() ? soundSet.closeSound() : soundSet.openSound(),
+                                        SoundSource.BLOCK,
+                                        1, RandomUtils.generateRandomFloat(0.9f, 1));
+                            }
+                        } else if (blockData instanceof Powerable powerable && !powerable.isPowered()) {
+                            SoundSet soundSet = SoundSet.getByBlock(blockOwner);
+                            if (soundSet != null) {
+                                serverPlayer.playSound(
+                                        Vec3d.atCenterOf(hitResult.getBlockPos()),
+                                        soundSet.openSound(),
+                                        SoundSource.BLOCK,
+                                        1, RandomUtils.generateRandomFloat(0.9f, 1));
+                            }
                         }
                     }
                 }
@@ -458,9 +474,9 @@ public class ItemEventListener implements Listener {
         if (foodData == null) return;
         event.setCancelled(true);
         int oldFoodLevel = player.getFoodLevel();
-        if (foodData.nutrition() != 0) player.setFoodLevel(MCUtils.clamp(oldFoodLevel + foodData.nutrition(), 0, 20));
+        if (foodData.nutrition() != 0) player.setFoodLevel(MiscUtils.clamp(oldFoodLevel + foodData.nutrition(), 0, 20));
         float oldSaturation = player.getSaturation();
-        if (foodData.saturation() != 0) player.setSaturation(MCUtils.clamp(oldSaturation, 0, 10));
+        if (foodData.saturation() != 0) player.setSaturation(MiscUtils.clamp(oldSaturation, 0, 10));
     }
 
     private boolean cancelEventIfHasInteraction(PlayerInteractEvent event, BukkitServerPlayer player, InteractionHand hand) {

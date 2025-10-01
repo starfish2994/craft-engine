@@ -12,7 +12,7 @@ import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import java.util.Map;
 
 public class ExpressionNumberProvider implements NumberProvider {
-    public static final FactoryImpl FACTORY = new FactoryImpl();
+    public static final Factory FACTORY = new Factory();
     private final String expr;
 
     public ExpressionNumberProvider(String expr) {
@@ -52,7 +52,7 @@ public class ExpressionNumberProvider implements NumberProvider {
         return this.expr;
     }
 
-    public static class FactoryImpl implements NumberProviderFactory {
+    public static class Factory implements NumberProviderFactory {
 
         @Override
         public NumberProvider create(Map<String, Object> arguments) {

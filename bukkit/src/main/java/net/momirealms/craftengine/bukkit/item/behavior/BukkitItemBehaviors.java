@@ -12,6 +12,7 @@ public class BukkitItemBehaviors extends ItemBehaviors {
     public static final Key COMPOSTABLE_ITEM = Key.from("craftengine:compostable_item");
     public static final Key AXE_ITEM = Key.from("craftengine:axe_item");
     public static final Key DOUBLE_HIGH_BLOCK_ITEM = Key.from("craftengine:double_high_block_item");
+    public static final Key WALL_BLOCK_ITEM = Key.from("craftengine:wall_block_item");
     public static final Key COMPASS_ITEM = Key.from("craftengine:compass_item");
     public static final Key ENDER_EYE_ITEM = Key.from("craftengine:ender_eye_item");
     public static final Key END_CRYSTAL_ITEM = Key.from("craftengine:end_crystal_item");
@@ -25,6 +26,7 @@ public class BukkitItemBehaviors extends ItemBehaviors {
         register(COMPOSTABLE_ITEM, CompostableItemBehavior.FACTORY);
         register(AXE_ITEM, AxeItemBehavior.FACTORY);
         register(DOUBLE_HIGH_BLOCK_ITEM, DoubleHighBlockItemBehavior.FACTORY);
+        register(WALL_BLOCK_ITEM, WallBlockItemBehavior.FACTORY);
         register(COMPASS_ITEM, CompassItemBehavior.FACTORY);
         register(ENDER_EYE_ITEM, EnderEyeItemBehavior.FACTORY);
         register(END_CRYSTAL_ITEM, EndCrystalItemBehavior.FACTORY);

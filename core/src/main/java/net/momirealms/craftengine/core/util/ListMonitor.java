@@ -13,14 +13,13 @@ public class ListMonitor<T> implements List<T> {
     private final List<T> list;
     private final Consumer<T> addConsumer;
     private final Consumer<Object> removeConsumer;
-
     public ListMonitor(List<T> list, Consumer<T> addConsumer, Consumer<Object> removeConsumer) {
-        for (T key : list) {
-            addConsumer.accept(key);
-        }
         this.list = list;
         this.addConsumer = addConsumer;
         this.removeConsumer = removeConsumer;
+        for (T key : list) {
+            this.addConsumer.accept(key);
+        }
     }
 
     public List<T> list() {

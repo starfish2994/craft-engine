@@ -5,11 +5,11 @@ import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.momirealms.craftengine.bukkit.plugin.agent.RuntimePatcher;
-import net.momirealms.craftengine.bukkit.plugin.classpath.PaperClassPathAppender;
+import net.momirealms.craftengine.bukkit.plugin.classpath.BukkitClassPathAppender;
+import net.momirealms.craftengine.bukkit.plugin.classpath.PaperPluginClassPathAppender;
 import net.momirealms.craftengine.core.plugin.logger.PluginLogger;
 import net.momirealms.craftengine.core.plugin.logger.Slf4jPluginLogger;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
-import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,14 +39,24 @@ public class PaperCraftEngineBootstrap implements PluginBootstrap {
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Failed to getLogger", e);
         }
-        this.plugin = new BukkitCraftEngine(
-                logger,
-                context.getDataDirectory(),
-                new PaperClassPathAppender(this.getClass().getClassLoader())
-        );
+        try {
+            this.plugin = new BukkitCraftEngine(
+                    logger,
+                    context.getDataDirectory(),
+                    new BukkitClassPathAppender(),
+                    new PaperPluginClassPathAppender(this.getClass().getClassLoader())
+            );
+        } catch (UnsupportedOperationException e) {
+            this.plugin = new BukkitCraftEngine(
+                    logger,
+                    context.getDataDirectory(),
+                    new PaperPluginClassPathAppender(this.getClass().getClassLoader()),
+                    new PaperPluginClassPathAppender(this.getClass().getClassLoader())
+            );
+        }
         this.plugin.applyDependencies();
-        this.plugin.setUpConfig();
-        if (VersionHelper.isOrAbove1_21_4()) {
+        this.plugin.setUpConfigAndLocale();
+        if (isDatapackDiscoveryAvailable()) {
             new ModernEventHandler(context, this.plugin).register();
         } else {
             try {
@@ -55,6 +65,16 @@ public class PaperCraftEngineBootstrap implements PluginBootstrap {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to patch server", e);
             }
+        }
+    }
+
+    private static boolean isDatapackDiscoveryAvailable() {
+        try {
+            Class<?> eventsClass = Class.forName("io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents");
+            eventsClass.getField("DATAPACK_DISCOVERY");
+            return true;
+        } catch (ClassNotFoundException | NoSuchFieldException e) {
+            return false;
         }
     }
 

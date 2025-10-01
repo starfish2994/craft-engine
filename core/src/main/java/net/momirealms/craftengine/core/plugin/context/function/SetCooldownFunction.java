@@ -41,7 +41,7 @@ public class SetCooldownFunction<CTX extends Context> extends AbstractConditiona
             });
         } else {
             for (Player target : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target));
                 long millis = TimeUtils.parseToMillis(this.time.get(relationalContext));
                 CooldownData data = target.cooldown();
                 if (this.add) data.addCooldown(this.id, millis);

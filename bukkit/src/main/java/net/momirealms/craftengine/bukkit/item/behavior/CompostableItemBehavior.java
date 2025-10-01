@@ -79,7 +79,7 @@ public class CompostableItemBehavior extends ItemBehavior {
 
     public static class Factory implements ItemBehaviorFactory {
         @Override
-        public ItemBehavior create(Pack pack, Path path, Key key, Map<String, Object> arguments) {
+        public ItemBehavior create(Pack pack, Path path, String node, Key key, Map<String, Object> arguments) {
             double chance = ResourceConfigUtils.getAsDouble(arguments.getOrDefault("chance", 0.55), "chance");
             return new CompostableItemBehavior(chance);
         }

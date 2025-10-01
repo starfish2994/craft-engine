@@ -21,12 +21,12 @@ public class QuaternionUtils {
     }
 
     public static Quaternionf toQuaternionf(float yaw, float pitch, float roll) {
-        float cy = MCUtils.cos(yaw * 0.5f);
-        float sy = MCUtils.sin(yaw * 0.5f);
-        float cp = MCUtils.cos(pitch * 0.5f);
-        float sp = MCUtils.sin(pitch * 0.5f);
-        float cr = MCUtils.cos(roll * 0.5f);
-        float sr = MCUtils.sin(roll * 0.5f);
+        float cy = MiscUtils.cos(yaw * 0.5f);
+        float sy = MiscUtils.sin(yaw * 0.5f);
+        float cp = MiscUtils.cos(pitch * 0.5f);
+        float sp = MiscUtils.sin(pitch * 0.5f);
+        float cr = MiscUtils.cos(roll * 0.5f);
+        float sr = MiscUtils.sin(roll * 0.5f);
         float w = cr * cp * cy + sr * sp * sy;
         float x = sr * cp * cy - cr * sp * sy;
         float y = cr * sp * cy + sr * cp * sy;

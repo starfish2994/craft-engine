@@ -1,0 +1,50 @@
+items:
+  default:fairy_flower:
+    material: nether_brick
+    data:
+      item-name: <!i><i18n:item.fairy_flower>
+    model:
+      template: default:model/simplified_generated
+      arguments:
+        path: minecraft:item/custom/fairy_flower
+    behavior:
+      type: block_item
+      block:
+        settings:
+          template:
+            - default:hardness/none
+            - default:sound/grass
+          overrides:
+            item: default:fairy_flower
+            push-reaction: destroy
+            map-color: 19
+        behavior:
+          type: bush_block
+          bottom-block-tags:
+            - minecraft:dirt
+            - minecraft:farmland
+        loot:
+          template: default:loot_table/self
+        state:
+          auto-state: sugar_cane
+          models:
+            - path: minecraft:block/custom/fairy_flower_1
+              weight: 100
+            - path: minecraft:block/custom/fairy_flower_2
+              weight: 5
+              generation:
+                parent: minecraft:block/custom/fairy_flower_1
+                textures:
+                  '0': minecraft:block/custom/fairy_flower_2
+            - path: minecraft:block/custom/fairy_flower_3
+              weight: 5
+              generation:
+                parent: minecraft:block/custom/fairy_flower_1
+                textures:
+                  '0': minecraft:block/custom/fairy_flower_3
+            - path: minecraft:block/custom/fairy_flower_4
+              weight: 5
+              generation:
+                parent: minecraft:block/custom/fairy_flower_1
+                textures:
+                  '0': minecraft:block/custom/fairy_flower_4

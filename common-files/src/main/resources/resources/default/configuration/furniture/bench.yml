@@ -1,0 +1,43 @@
+items:
+  default:bench:
+    material: nether_brick
+    data:
+      item-name: <!i><i18n:item.bench>
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/bench
+    behavior:
+      type: furniture_item
+      furniture:
+        settings:
+          item: default:bench
+          sounds:
+            break: minecraft:block.bamboo_wood.break
+            place: minecraft:block.bamboo_wood.place
+        placement:
+          ground:
+            loot-spawn-offset: 0.5,0.5,0
+            rules:
+              rotation: FOUR
+              alignment: CENTER
+            elements:
+              - item: default:bench
+                display-transform: NONE
+                billboard: FIXED
+                position: 0.5,0,0
+                translation: 0,0.5,0
+            hitboxes:
+              - position: 0,0,0
+                type: shulker
+                direction: east
+                peek: 100
+                blocks-building: true
+                interactive: true
+                interaction-entity: true
+                seats:
+                  - 0,0,-0.1 0
+                  - 1,0,-0.1 0
+        loot:
+          template: default:loot_table/furniture
+          arguments:
+            item: default:bench

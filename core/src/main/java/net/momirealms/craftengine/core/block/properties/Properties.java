@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.block.properties;
 
-import net.momirealms.craftengine.core.block.state.properties.*;
+import net.momirealms.craftengine.core.block.properties.type.*;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
@@ -21,6 +21,8 @@ public final class Properties {
     public static final Key HINGE = Key.of("craftengine:hinge");
     public static final Key STAIRS_SHAPE = Key.of("craftengine:stairs_shape");
     public static final Key SLAB_TYPE = Key.of("craftengine:slab_type");
+    public static final Key SOFA_SHAPE = Key.of("craftengine:sofa_shape");
+    public static final Key ANCHOR_TYPE = Key.of("craftengine:anchor_type");
 
     static {
         register(BOOLEAN, BooleanProperty.FACTORY);
@@ -36,6 +38,8 @@ public final class Properties {
         register(HINGE, new EnumProperty.Factory<>(DoorHinge.class));
         register(STAIRS_SHAPE, new EnumProperty.Factory<>(StairsShape.class));
         register(SLAB_TYPE, new EnumProperty.Factory<>(SlabType.class));
+        register(SOFA_SHAPE, new EnumProperty.Factory<>(SofaShape.class));
+        register(ANCHOR_TYPE, new EnumProperty.Factory<>(AnchorType.class));
     }
 
     public static void register(Key key, PropertyFactory factory) {

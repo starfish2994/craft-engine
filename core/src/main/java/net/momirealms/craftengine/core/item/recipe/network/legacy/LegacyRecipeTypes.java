@@ -35,7 +35,10 @@ public final class LegacyRecipeTypes {
     public static final Key SMITHING_TRIM = Key.of("smithing_trim");
     public static final Key DECORATED_POT_RECIPE = Key.of("crafting_decorated_pot");
 
-    public static void register() {
+    public static void init() {
+    }
+
+    static {
         register(SHAPED_RECIPE, new LegacyRecipe.Type(LegacyShapedRecipe::read));
         register(SHAPELESS_RECIPE, new LegacyRecipe.Type(LegacyShapelessRecipe::read));
         register(ARMOR_DYE, new LegacyRecipe.Type(LegacyCustomRecipe::read));

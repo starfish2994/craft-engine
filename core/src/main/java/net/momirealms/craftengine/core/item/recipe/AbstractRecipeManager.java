@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.UniqueKey;
@@ -106,19 +107,21 @@ public abstract class AbstractRecipeManager<T> implements RecipeManager<T> {
         if (recipe instanceof AbstractedFixedResultRecipe<?> fixedResult) {
             this.byResult.computeIfAbsent(fixedResult.result().item().id(), k -> new ArrayList<>()).add(recipe);
         }
-        HashSet<Key> usedKeys = new HashSet<>();
-        for (Ingredient<T> ingredient : recipe.ingredientsInUse()) {
-            for (UniqueKey holder : ingredient.items()) {
-                Key key = holder.key();
-                if (usedKeys.add(key)) {
-                    this.byIngredient.computeIfAbsent(key, k -> new ArrayList<>()).add(recipe);
+        if (recipe.canBeSearchedByIngredients()) {
+            HashSet<Key> usedKeys = new HashSet<>();
+            for (Ingredient<T> ingredient : recipe.ingredientsInUse()) {
+                for (UniqueKey holder : ingredient.items()) {
+                    Key key = holder.key();
+                    if (usedKeys.add(key)) {
+                        this.byIngredient.computeIfAbsent(key, k -> new ArrayList<>()).add(recipe);
+                    }
                 }
             }
         }
         return true;
     }
 
-    public class RecipeParser implements ConfigParser {
+    public class RecipeParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"recipes", "recipe"};
 
         @Override
@@ -132,10 +135,10 @@ public abstract class AbstractRecipeManager<T> implements RecipeManager<T> {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             if (!Config.enableRecipeSystem()) return;
             if (AbstractRecipeManager.this.byId.containsKey(id)) {
-                throw new LocalizedResourceConfigException("warning.config.recipe.duplicate", path, id);
+                throw new LocalizedResourceConfigException("warning.config.recipe.duplicate");
             }
             Recipe<T> recipe = RecipeSerializers.fromMap(id, section);
             try {

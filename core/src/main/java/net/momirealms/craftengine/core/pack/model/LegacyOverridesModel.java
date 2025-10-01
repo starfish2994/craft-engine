@@ -27,7 +27,7 @@ public class LegacyOverridesModel implements Comparable<LegacyOverridesModel> {
     }
 
     public boolean hasPredicate() {
-        return !predicate.isEmpty();
+        return predicate != null && !predicate.isEmpty();
     }
 
     public String model() {

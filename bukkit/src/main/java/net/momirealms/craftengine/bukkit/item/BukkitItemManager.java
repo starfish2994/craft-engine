@@ -20,7 +20,6 @@ import net.momirealms.craftengine.core.item.recipe.DatapackRecipeResult;
 import net.momirealms.craftengine.core.item.recipe.UniqueIdItem;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.util.*;
@@ -337,7 +336,7 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
 
     @Override
     public ItemStack buildCustomItemStack(Key id, Player player) {
-        return Optional.ofNullable(this.customItemsById.get(id)).map(it -> it.buildItemStack(new ItemBuildContext(player, ContextHolder.EMPTY), 1)).orElse(null);
+        return Optional.ofNullable(this.customItemsById.get(id)).map(it -> it.buildItemStack(ItemBuildContext.of(player), 1)).orElse(null);
     }
 
     @Override

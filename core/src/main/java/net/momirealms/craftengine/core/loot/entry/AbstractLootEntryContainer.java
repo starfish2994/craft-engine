@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.loot.entry;
 import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -14,7 +14,7 @@ public abstract class AbstractLootEntryContainer<T> implements LootEntryContaine
 
     protected AbstractLootEntryContainer(List<Condition<LootContext>> conditions) {
         this.conditions = conditions;
-        this.compositeCondition = MCUtils.allOf(conditions);
+        this.compositeCondition = MiscUtils.allOf(conditions);
     }
 
     @Override

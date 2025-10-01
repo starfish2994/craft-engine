@@ -424,6 +424,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     @Override
     protected Optional<Enchantment> getEnchantment(ComponentItemWrapper item, Key key) {
         Object enchant = item.getComponentExact(ComponentTypes.ENCHANTMENTS);
+        if (enchant == null) return Optional.empty();
         try {
             Map<String, Integer> map = EnchantmentUtils.toMap(enchant);
             Integer level = map.get(key.toString());

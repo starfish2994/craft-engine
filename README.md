@@ -54,10 +54,10 @@ The code you contribute will be open-sourced under the GPLv3 license. If you pre
 3. Once done, submit a **pull request** to **dev** branch for review. We appreciate your contributions!
 
 ## Differences Between Versions
-| Version           | Official Support | Max Players | Dev Builds |
-|-------------------|------------------|-------------|------------|
-| Community Edition | ❌ No             | 30          | ❌ No       |
-| Premium Edition   | ✔️ Yes           | Unlimited   | ✔️ Yes     |
+| Version           | Official Support | Exclusive Features | Dev Builds |
+|-------------------|------------------|--------------------|------------|
+| Community Edition | ❌ No             | ❌ No               | ❌ No       |
+| Premium Edition   | ✔️ Yes           | ✔️ Yes             | ✔️ Yes     |
 
 ### 💖 Support the Developer
 Help sustain CraftEngine's development by going Premium!
@@ -75,7 +75,7 @@ repositories {
 ```
 ```kotlin
 dependencies {
-    compileOnly("net.momirealms:craft-engine-core:0.0.63")
-    compileOnly("net.momirealms:craft-engine-bukkit:0.0.63")
+    compileOnly("net.momirealms:craft-engine-core:0.0.64")
+    compileOnly("net.momirealms:craft-engine-bukkit:0.0.64")
 }
 ```

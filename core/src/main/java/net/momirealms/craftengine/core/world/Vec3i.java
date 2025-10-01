@@ -47,12 +47,12 @@ public class Vec3i implements Comparable<Vec3i> {
 
     @Override
     public boolean equals(Object object) {
-        return this == object || object instanceof Vec3i vec3i && this.x() == vec3i.x() && this.y() == vec3i.y() && this.z() == vec3i.z();
+        return this == object || object instanceof Vec3i vec3i && this.x == vec3i.x && this.y == vec3i.y && this.z == vec3i.z;
     }
 
     @Override
     public int hashCode() {
-        return (this.y() + this.z() * 31) * 31 + this.x();
+        return (this.y + this.z * 31) * 31 + this.x;
     }
 
     @Override
@@ -92,4 +92,37 @@ public class Vec3i implements Comparable<Vec3i> {
             return this.y() - vec3i.y();
         }
     }
+
+    public Vec3i north() {
+        return this.north(1);
+    }
+
+    public Vec3i north(int distance) {
+        return this.relative(Direction.NORTH, distance);
+    }
+
+    public Vec3i south() {
+        return this.south(1);
+    }
+
+    public Vec3i south(int distance) {
+        return this.relative(Direction.SOUTH, distance);
+    }
+
+    public Vec3i west() {
+        return this.west(1);
+    }
+
+    public Vec3i west(int distance) {
+        return this.relative(Direction.WEST, distance);
+    }
+
+    public Vec3i east() {
+        return this.east(1);
+    }
+
+    public Vec3i east(int distance) {
+        return this.relative(Direction.EAST, distance);
+    }
+
 }

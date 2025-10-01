@@ -9,7 +9,6 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntityType
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.World;
@@ -124,7 +123,7 @@ public class HappyGhastHitBox extends AbstractHitBox {
             boolean blocksBuilding = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blocks-building", true), "blocks-building");
             return new HappyGhastHitBox(
                     HitBoxFactory.getSeats(arguments),
-                    MiscUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position"),
+                    ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position"),
                     scale, canUseOn, blocksBuilding, canBeHitByProjectile, hardCollision
             );
         }

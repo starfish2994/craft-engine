@@ -26,7 +26,7 @@ public class I18NData {
                 if (blockOptional.isPresent()) {
                     List<ImmutableBlockState> states = blockOptional.get().variantProvider().states();
                     if (states.size() == 1) {
-                        return List.of("block." + stateToRealBlockId(states.get(0)));
+                        return List.of("block." + stateToRealBlockId(states.getFirst()));
                     } else {
                         ArrayList<String> processed = new ArrayList<>();
                         for (ImmutableBlockState state : states) {

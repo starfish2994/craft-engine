@@ -240,7 +240,7 @@ public final class RecipeInjector {
         if (input2.count() != 1 || !isDamageableItem(input2)) return false;
         if (!input1.id().equals(input2.id())) return false;
         Optional<CustomItem<ItemStack>> customItem = input1.getCustomItem();
-        return customItem.isEmpty() || customItem.get().settings().canRepair() != Tristate.FALSE;
+        return customItem.isEmpty() || customItem.get().settings().repairable().craftingTable() != Tristate.FALSE;
     }
 
     private static boolean isDamageableItem(Item<ItemStack> item) {

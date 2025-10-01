@@ -3,13 +3,12 @@ package net.momirealms.craftengine.core.world.chunk.packet;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.IndexedIterable;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
-import net.momirealms.craftengine.core.world.chunk.ReadableContainer;
 
 public class MCSection {
     private short nonEmptyBlockCount;
     private final PalettedContainer<Integer> serverBlockStateContainer;
     private final IndexedIterable<Integer> clientBlockStateList;
-    private ReadableContainer<Integer> biomeContainer;
+    private PalettedContainer<Integer> biomeContainer;
 
     public MCSection(IndexedIterable<Integer> clientBlockStateList, IndexedIterable<Integer> serverBlockStateList, IndexedIterable<Integer> biomeList) {
         this.serverBlockStateContainer = new PalettedContainer<>(serverBlockStateList, 0, PalettedContainer.PaletteProvider.BLOCK_STATE);
@@ -41,5 +40,9 @@ public class MCSection {
 
     public PalettedContainer<Integer> blockStateContainer() {
         return serverBlockStateContainer;
+    }
+
+    public PalettedContainer<Integer> biomeContainer() {
+        return biomeContainer;
     }
 }

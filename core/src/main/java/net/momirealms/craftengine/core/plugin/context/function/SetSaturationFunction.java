@@ -33,7 +33,7 @@ public class SetSaturationFunction<CTX extends Context> extends AbstractConditio
             optionalPlayer.ifPresent(player -> player.setSaturation(this.add ? player.saturation() + this.count.getFloat(ctx) : this.count.getFloat(ctx)));
         } else {
             for (Player target : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target));
                 target.setSaturation(this.add ? target.saturation() + this.count.getFloat(relationalContext) : this.count.getFloat(relationalContext));
             }
         }

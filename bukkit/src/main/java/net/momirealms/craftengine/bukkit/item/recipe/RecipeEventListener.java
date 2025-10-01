@@ -23,7 +23,8 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.context.ContextHolder;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -261,7 +262,6 @@ public class RecipeEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onAnvilEvent(PrepareAnvilEvent event) {
-        if (event.getResult() == null) return;
         preProcess(event);
         processRepairable(event);
         processRename(event);
@@ -271,6 +271,7 @@ public class RecipeEventListener implements Listener {
     预处理会阻止一些不合理的原版材质造成的合并问题
      */
     private void preProcess(PrepareAnvilEvent event) {
+        if (event.getResult() == null) return;
         AnvilInventory inventory = event.getInventory();
         ItemStack first = inventory.getFirstItem();
         ItemStack second = inventory.getSecondItem();
@@ -318,10 +319,9 @@ public class RecipeEventListener implements Listener {
             return;
         }
 
-
         if (firstCustom.isPresent()) {
             CustomItem<ItemStack> firstCustomItem = firstCustom.get();
-            if (firstCustomItem.settings().canRepair() == Tristate.FALSE) {
+            if (firstCustomItem.settings().repairable().anvilCombine() == Tristate.FALSE) {
                 event.setResult(null);
                 return;
             }
@@ -373,7 +373,7 @@ public class RecipeEventListener implements Listener {
         Key firstId = wrappedFirst.id();
         Optional<CustomItem<ItemStack>> optionalCustomTool = wrappedFirst.getCustomItem();
         // 物品无法被修复
-        if (optionalCustomTool.isPresent() && optionalCustomTool.get().settings().canRepair() == Tristate.FALSE) {
+        if (optionalCustomTool.isPresent() && optionalCustomTool.get().settings().repairable().anvilRepair() == Tristate.FALSE) {
             return;
         }
 
@@ -494,6 +494,7 @@ public class RecipeEventListener implements Listener {
      */
     @SuppressWarnings("UnstableApiUsage")
     private void processRename(PrepareAnvilEvent event) {
+        if (event.getResult() == null) return;
         AnvilInventory inventory = event.getInventory();
         ItemStack first = inventory.getFirstItem();
         if (ItemStackUtils.isEmpty(first)) {
@@ -609,20 +610,25 @@ public class RecipeEventListener implements Listener {
             inventory.setResult(null);
             return;
         }
-        CraftingInput<ItemStack> input = getCraftingInput(inventory);
-        if (input == null) return;
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        if (craftingTableRecipe.hasVisualResult()) {
-            inventory.setResult(craftingTableRecipe.assembleVisual(input, new ItemBuildContext(serverPlayer, ContextHolder.EMPTY)));
+        ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
+        if (!craftingTableRecipe.canUse(itemBuildContext)) {
+            inventory.setResult(null);
+            return;
+        }
+        CraftingInput<ItemStack> input = getCraftingInput(inventory);
+        if (input == null) return;
+        if (craftingTableRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
+            inventory.setResult(craftingTableRecipe.assembleVisual(input, itemBuildContext));
         } else {
-            inventory.setResult(craftingTableRecipe.assemble(input, new ItemBuildContext(serverPlayer, ContextHolder.EMPTY)));
+            inventory.setResult(craftingTableRecipe.assemble(input, itemBuildContext));
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCraftingFinish(CraftItemEvent event) {
-        if (!Config.enableRecipeSystem()) return;
+        if (!Config.enableRecipeSystem() || !VersionHelper.PREMIUM) return;
         org.bukkit.inventory.Recipe recipe = event.getRecipe();
         if (!(recipe instanceof CraftingRecipe craftingRecipe)) return;
         Key recipeId = Key.of(craftingRecipe.getKey().namespace(), craftingRecipe.getKey().value());
@@ -635,14 +641,19 @@ public class RecipeEventListener implements Listener {
         if (!(optionalRecipe.get() instanceof CustomCraftingTableRecipe<ItemStack> craftingTableRecipe)) {
             return;
         }
-        if (!craftingTableRecipe.hasVisualResult()) {
-            return;
-        }
-        CraftingInput<ItemStack> input = getCraftingInput(inventory);
-        if (input == null) return;
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        inventory.setResult(craftingTableRecipe.assemble(input, new ItemBuildContext(serverPlayer, ContextHolder.EMPTY)));
+        if (craftingTableRecipe.hasVisualResult()) {
+            CraftingInput<ItemStack> input = getCraftingInput(inventory);
+            inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
+        }
+        Function<PlayerOptionalContext>[] functions = craftingTableRecipe.craftingFunctions();
+        if (functions != null) {
+            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+            for (Function<PlayerOptionalContext> function : functions) {
+                function.run(context);
+            }
+        }
     }
 
     private CraftingInput<ItemStack> getCraftingInput(CraftingInventory inventory) {
@@ -691,10 +702,16 @@ public class RecipeEventListener implements Listener {
             event.setResult(null);
             return;
         }
+        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+        ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
+        if (!smithingTrimRecipe.canUse(itemBuildContext)) {
+            event.setResult(null);
+            return;
+        }
+
         SmithingInput<ItemStack> input = getSmithingInput(inventory);
         if (smithingTrimRecipe.matches(input)) {
-            Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-            ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), new ItemBuildContext(BukkitAdaptors.adapt(player), ContextHolder.EMPTY));
+            ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
             event.setResult(result);
         } else {
             event.setResult(null);
@@ -718,7 +735,7 @@ public class RecipeEventListener implements Listener {
         SmithingInput<ItemStack> input = getSmithingInput(inventory);
         if (smithingTransformRecipe.matches(input)) {
             Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-            ItemStack processed = smithingTransformRecipe.assemble(input, new ItemBuildContext(BukkitAdaptors.adapt(player), ContextHolder.EMPTY));
+            ItemStack processed = smithingTransformRecipe.assemble(input, ItemBuildContext.of(BukkitAdaptors.adapt(player)));
             event.setResult(processed);
         } else {
             event.setResult(null);

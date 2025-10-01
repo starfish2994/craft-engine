@@ -90,7 +90,7 @@ public class FlintAndSteelItemBehavior extends ItemBehavior {
                     }
                     // 且没有shift或者忽略潜行的可交互方块
                     if (!player.isSecondaryUseActive()) {
-                        player.playSound(FLINT_SOUND, firePos, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
+                        player.playSound(firePos, FLINT_SOUND, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
                     }
                 } else {
                     // 玩家觉得自定义方块不可燃，且点击了侧面，那么就要判断火源下方的方块是否可燃，如果不可燃，则补发声音
@@ -113,16 +113,16 @@ public class FlintAndSteelItemBehavior extends ItemBehavior {
                         if (player.isSecondaryUseActive()) {
                             // 如果底部不能燃烧，则燃烧点位为侧面，需要补发
                             if (!belowCanBurn) {
-                                player.playSound(FLINT_SOUND, firePos, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
+                                player.playSound(firePos, FLINT_SOUND, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
                                 player.swingHand(context.getHand());
                             }
                         } else {
-                            player.playSound(FLINT_SOUND, firePos, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
+                            player.playSound(firePos, FLINT_SOUND, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
                         }
                     } else {
                         // 如果底部方块不可燃烧才补发
                         if (!belowCanBurn) {
-                            player.playSound(FLINT_SOUND, firePos, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
+                            player.playSound(firePos, FLINT_SOUND, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
                             player.swingHand(context.getHand());
                         }
                     }
@@ -153,7 +153,7 @@ public class FlintAndSteelItemBehavior extends ItemBehavior {
                     }
                 }
             }
-            player.playSound(FLINT_SOUND, firePos, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
+            player.playSound(firePos, FLINT_SOUND, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
             player.swingHand(context.getHand());
         }
         return InteractionResult.PASS;
@@ -161,7 +161,7 @@ public class FlintAndSteelItemBehavior extends ItemBehavior {
 
     public static class Factory implements ItemBehaviorFactory {
         @Override
-        public ItemBehavior create(Pack pack, Path path, Key id, Map<String, Object> arguments) {
+        public ItemBehavior create(Pack pack, Path path, String node, Key id, Map<String, Object> arguments) {
             return INSTANCE;
         }
     }

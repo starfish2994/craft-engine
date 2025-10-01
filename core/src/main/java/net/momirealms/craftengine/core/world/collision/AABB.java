@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.world.collision;
 
 import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.EntityHitResult;
 import net.momirealms.craftengine.core.world.Vec3d;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,17 @@ public class AABB {
         this.maxX = Math.max(pos1.x, pos2.x);
         this.maxY = Math.max(pos1.y, pos2.y);
         this.maxZ = Math.max(pos1.z, pos2.z);
+    }
+
+    public AABB(BlockPos pos) {
+        this(pos.x(), pos.y(), pos.z(), pos.x() + 1, pos.y() + 1, pos.z() + 1);
+    }
+
+    public double distanceToSqr(Vec3d vec) {
+        double x = Math.max(Math.max(this.minX - vec.x, vec.x - this.maxX), 0.0F);
+        double y = Math.max(Math.max(this.minY - vec.y, vec.y - this.maxY), 0.0F);
+        double z = Math.max(Math.max(this.minZ - vec.z, vec.z - this.maxZ), 0.0F);
+        return x * x + y * y + z * z;
     }
 
     public static AABB fromInteraction(Vec3d pos, double width, double height) {

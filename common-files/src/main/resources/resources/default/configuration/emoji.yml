@@ -1,28 +1,7 @@
 templates:
   default:emoji/basic:
     content: <hover:show_text:'<i18n:emoji.tip>'><!shadow><white><arg:emoji></white></!shadow></hover>
-  default:emoji/addition_info:
-    content: <hover:show_text:'<i18n:emoji.tip>'><!shadow><white><arg:emoji></white></!shadow>${text}</hover>
 emoji:
-  default:emoji_location:
-    template: default:emoji/addition_info
-    arguments:
-      text: <i18n:emoji.location>
-    overrides:
-      image: default:icons:0:0
-      permission: emoji.location
-      keywords:
-        - ':location:'
-        - ':pos:'
-  default:emoji_time:
-    template: default:emoji/addition_info
-    arguments:
-      text: <i18n:emoji.time>
-    overrides:
-      image: default:icons:0:1
-      permission: emoji.time
-      keywords:
-        - ':time:'
   default:emoji_smiley:
     template: default:emoji/basic
     overrides:
@@ -143,8 +122,4 @@ images:
     ascent: 9
     font: minecraft:emoji
     file: minecraft:font/image/emojis.png
-    chars:
-      - \ub000\ub001\ub002\ub003
-      - \ub004\ub005\ub006\ub007
-      - \ub008\ub009\ub00a\ub00b
-      - \ub00c\ub00d\ub00e\ub00f
+    grid-size: 4,4

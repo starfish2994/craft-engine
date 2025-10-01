@@ -2,7 +2,7 @@ package net.momirealms.craftengine.core.plugin.context.number;
 
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.util.Map;
@@ -10,8 +10,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class GaussianNumberProvider implements NumberProvider {
-    public static final FactoryImpl FACTORY = new FactoryImpl();
-
+    public static final Factory FACTORY = new Factory();
     private final double min;
     private final double max;
     private final double mean;
@@ -55,7 +54,7 @@ public class GaussianNumberProvider implements NumberProvider {
             }
             attempts++;
         }
-        return MCUtils.clamp(this.mean, this.min, this.max);
+        return MiscUtils.clamp(this.mean, this.min, this.max);
     }
 
     @Override
@@ -83,7 +82,7 @@ public class GaussianNumberProvider implements NumberProvider {
         return stdDev;
     }
 
-    public static class FactoryImpl implements NumberProviderFactory {
+    public static class Factory implements NumberProviderFactory {
 
         @Override
         public NumberProvider create(Map<String, Object> arguments) {

@@ -7,6 +7,8 @@ import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
@@ -20,13 +22,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecipe<T> {
+public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecipe<T> implements ConditionalRecipe {
     public static final Serializer<?> SERIALIZER = new Serializer<>();
     private final Ingredient<T> base;
     private final Ingredient<T> template;
     private final Ingredient<T> addition;
     private final boolean mergeComponents;
     private final List<ItemDataProcessor> processors;
+    private final Condition<PlayerOptionalContext> condition;
 
     public CustomSmithingTransformRecipe(Key id,
                                          boolean showNotification,
@@ -35,7 +38,8 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
                                          @Nullable Ingredient<T> addition,
                                          CustomRecipeResult<T> result,
                                          List<ItemDataProcessor> processors,
-                                         boolean mergeComponents
+                                         boolean mergeComponents,
+                                         Condition<PlayerOptionalContext> condition
     ) {
         super(id, showNotification, result);
         this.base = base;
@@ -43,6 +47,13 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
         this.addition = addition;
         this.processors = processors;
         this.mergeComponents = mergeComponents;
+        this.condition = condition;
+    }
+
+    @Override
+    public boolean canUse(PlayerOptionalContext context) {
+        if (this.condition != null) return this.condition.test(context);
+        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -140,14 +151,23 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
                     toIngredient(addition),
                     parseResult(arguments),
                     ItemDataProcessors.fromMapList(processors),
-                    mergeComponents
+                    mergeComponents,
+                    conditions(arguments)
             );
         }
 
         @Override
         public CustomSmithingTransformRecipe<A> readJson(Key id, JsonObject json) {
-            return new CustomSmithingTransformRecipe<>(id,
-                    true, toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("template"))), Objects.requireNonNull(toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("base")))), toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition"))), parseResult(VANILLA_RECIPE_HELPER.smithingResult(json.getAsJsonObject("result"))), null, true
+            return new CustomSmithingTransformRecipe<>(
+                    id,
+                    true,
+                    toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("template"))),
+                    Objects.requireNonNull(toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("base")))),
+                    toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition"))),
+                    parseResult(VANILLA_RECIPE_HELPER.smithingResult(json.getAsJsonObject("result"))),
+                    null,
+                    true,
+                    null
             );
         }
     }

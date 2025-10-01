@@ -8,7 +8,6 @@ categories:
     list:
       - '#default:palm_tree'
       - '#default:topaz'
-      - '#default:furniture'
       - '#default:misc'
   default:palm_tree:
     name: <!i><green><i18n:category.palm_tree></green>
@@ -18,16 +17,18 @@ categories:
       - default:palm_sapling
       - default:palm_leaves
       - default:palm_log
-      - default:stripped_palm_log
       - default:palm_wood
+      - default:stripped_palm_log
       - default:stripped_palm_wood
       - default:palm_planks
-      - default:palm_trapdoor
-      - default:palm_door
-      - default:palm_fence_gate
-      - default:palm_slab
       - default:palm_stairs
+      - default:palm_slab
+      - default:palm_fence
+      - default:palm_fence_gate
+      - default:palm_door
+      - default:palm_trapdoor
       - default:palm_pressure_plate
+      - default:palm_button
   default:topaz:
     name: <!i><#FF8C00><i18n:category.topaz></#FF8C00>
     hidden: true
@@ -49,15 +50,6 @@ categories:
       - default:topaz_chestplate
       - default:topaz_leggings
       - default:topaz_boots
-  default:furniture:
-    name: <!i><#FFD700><i18n:category.furniture></#FFD700>
-    hidden: true
-    icon: default:table_lamp
-    list:
-      - default:bench
-      - default:table_lamp
-      - default:wooden_chair
-      - default:flower_basket
   default:misc:
     name: <!i><gray><i18n:category.misc></gray>
     hidden: true
@@ -79,3 +71,16 @@ categories:
       - default:cap
       - default:pebble
       - default:chessboard_block
+      - default:safe_block
+      - default:sleeper_sofa
+      - minecraft:air
+      - minecraft:air
+      - default:sofa
+      - default:table_lamp
+      - default:bench
+      - default:wooden_chair
+      - default:flower_basket
+      - default:amethyst_torch
+      - default:hami_melon_seeds
+      - default:hami_melon_slice
+      - default:hami_melon

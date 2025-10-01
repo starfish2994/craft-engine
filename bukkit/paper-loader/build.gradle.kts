@@ -53,7 +53,7 @@ paper {
     name = "CraftEngine"
     apiVersion = "1.20"
     authors = listOf("XiaoMoMi")
-    contributors = listOf("jhqwqmc", "iqtesterrr", "WhiteProject1", "Catnies", "xiaozhangup", "TamashiiMon", "Halogly", "ArubikU", "Maxsh001", "Sasha2294", "MrPanda8")
+    contributors = listOf("https://github.com/Xiao-MoMi/craft-engine/graphs/contributors")
     foliaSupported = true
     serverDependencies {
         register("PlaceholderAPI") {
@@ -86,6 +86,9 @@ paper {
         register("MythicMobs") { required = false }
         register("CustomFishing") { required = false }
         register("Zaphkiel") { required = false }
+        register("HeadDatabase") { required = false }
+        register("SX-Item") { required = false }
+        register("Slimefun") { required = false }
 
         // leveler
         register("AuraSkills") { required = false }
@@ -154,5 +157,9 @@ tasks {
         relocate("org.apache.commons", "net.momirealms.craftengine.libraries.commons")
         relocate("io.leangen.geantyref", "net.momirealms.craftengine.libraries.geantyref")
         relocate("ca.spottedleaf.concurrentutil", "net.momirealms.craftengine.libraries.concurrentutil")
+        relocate("io.netty.handler.codec.http", "net.momirealms.craftengine.libraries.netty.handler.codec.http")
+        relocate("io.netty.handler.codec.rtsp", "net.momirealms.craftengine.libraries.netty.handler.codec.rtsp")
+        relocate("io.netty.handler.codec.spdy", "net.momirealms.craftengine.libraries.netty.handler.codec.spdy")
+        relocate("io.netty.handler.codec.http2", "net.momirealms.craftengine.libraries.netty.handler.codec.http2")
     }
 }

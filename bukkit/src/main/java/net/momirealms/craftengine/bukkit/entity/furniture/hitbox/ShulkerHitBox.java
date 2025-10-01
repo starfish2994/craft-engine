@@ -171,7 +171,7 @@ public class ShulkerHitBox extends AbstractHitBox {
     }
 
     private static float getPhysicalPeek(float peek) {
-        return 0.5F - MCUtils.sin((0.5F + peek) * 3.1415927F) * 0.5F;
+        return 0.5F - MiscUtils.sin((0.5F + peek) * 3.1415927F) * 0.5F;
     }
 
     public boolean interactionEntity() {
@@ -280,7 +280,7 @@ public class ShulkerHitBox extends AbstractHitBox {
 
         @Override
         public HitBox create(Map<String, Object> arguments) {
-            Vector3f position = MiscUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position");
+            Vector3f position = ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position");
             float scale = ResourceConfigUtils.getAsFloat(arguments.getOrDefault("scale", "1"), "scale");
             byte peek = (byte) ResourceConfigUtils.getAsInt(arguments.getOrDefault("peek", 0), "peek");
             Direction directionEnum = Optional.ofNullable(arguments.get("direction")).map(it -> Direction.valueOf(it.toString().toUpperCase(Locale.ENGLISH))).orElse(Direction.UP);

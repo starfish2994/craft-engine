@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.registry;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -89,7 +90,7 @@ public interface Holder<T> {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return "Direct{" + this.value + "}";
         }
     }

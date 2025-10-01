@@ -5,7 +5,8 @@ import net.momirealms.craftengine.core.util.Key;
 public final class CommonConditions {
     private CommonConditions() {}
 
-    public static final Key EMPTY = Key.of("craftengine:empty");
+    public static final Key ALWAYS_TRUE = Key.of("craftengine:always_true");
+    public static final Key ALWAYS_FALSE = Key.of("craftengine:always_false");
     public static final Key ALL_OF = Key.of("craftengine:all_of");
     public static final Key ANY_OF = Key.of("craftengine:any_of");
     public static final Key INVERTED = Key.of("craftengine:inverted");

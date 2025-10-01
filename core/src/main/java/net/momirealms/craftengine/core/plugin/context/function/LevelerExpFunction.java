@@ -36,7 +36,7 @@ public class LevelerExpFunction<CTX extends Context> extends AbstractConditional
             });
         } else {
             for (Player target : this.selector.get(ctx)) {
-                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target, ContextHolder.EMPTY));
+                RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(target));
                 CraftEngine.instance().compatibilityManager().addLevelerExp(target, this.plugin, this.leveler, this.count.getDouble(relationalContext));
             }
         }

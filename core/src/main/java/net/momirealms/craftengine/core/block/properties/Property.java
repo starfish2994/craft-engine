@@ -167,4 +167,9 @@ public abstract class Property<T extends Comparable<T>> {
     public static <T extends Comparable<T>> String formatValue(Property<T> property, Comparable<?> value) {
         return property.valueName((T) value);
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "{clazz=" + this.clazz + ", name='" + this.name + "', values=" + this.possibleValues() + '}';
+    }
 }

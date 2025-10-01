@@ -48,13 +48,13 @@ templates#models#block:
     generation:
       parent: minecraft:block/cube_column
       textures:
-        particle: minecraft:block/custom/block_particle
-        down: minecraft:block/custom/block_down
-        up: minecraft:block/custom/block_up
-        north: minecraft:block/custom/block_north
-        east: minecraft:block/custom/block_east
-        south: minecraft:block/custom/block_south
-        west: minecraft:block/custom/block_west
+        particle: ${particle_texture}
+        down: ${down_texture}
+        up: ${up_texture}
+        north: ${north_texture}
+        east: ${east_texture}
+        south: ${south_texture}
+        west: ${west_texture}
 
 # 2D items
 templates#models#2d:
@@ -576,6 +576,13 @@ templates#settings#sounds:
       place: minecraft:item.crop.plant
       hit: minecraft:block.grass.hit
       fall: minecraft:block.grass.fall
+  default:sound/stem_crop:
+    sounds:
+      break: minecraft:block.crop.break
+      step: minecraft:block.wood.step
+      place: minecraft:item.crop.plant
+      hit: minecraft:block.wood.hit
+      fall: minecraft:block.wood.fall
   default:sound/grass:
     template: default:sound/block_template
     arguments:
@@ -693,6 +700,12 @@ templates#settings#hardness:
   default:hardness/planks:
     hardness: 2.0
     resistance: 3.0
+  default:hardness/button:
+    hardness: 0.5
+    resistance: 0.5
+  default:hardness/melon:
+    hardness: 1.0
+    resistance: 1.0
 
 # break level
 templates#settings#break_level:
@@ -747,7 +760,7 @@ templates#settings#blocks:
       - default:hardness/none
       - default:sound/grass
     overrides:
-      push-reaction: DESTROY
+      push-reaction: destroy
       is-randomly-ticking: true
       map-color: 7
       tags:
@@ -763,11 +776,11 @@ templates#settings#blocks:
     overrides:
       hardness: 0.2
       resistance: 0.2
-      push-reaction: DESTROY
+      push-reaction: destroy
       replaceable: false
       is-redstone-conductor: false
       is-suffocating: false
-      instrument: HARP
+      instrument: harp
       tags:
         - minecraft:mineable/hoe
         - minecraft:sword_efficient
@@ -780,11 +793,11 @@ templates#settings#blocks:
       - default:burn_data/wood
       - default:hardness/wood
     overrides:
-      push-reaction: NORMAL
+      push-reaction: normal
       replaceable: false
       is-redstone-conductor: true
       is-suffocating: true
-      instrument: BASS
+      instrument: bass
       can-occlude: true
       tags:
         - minecraft:mineable/axe
@@ -798,11 +811,11 @@ templates#settings#blocks:
       - default:burn_data/planks
       - default:hardness/planks
     overrides:
-      push-reaction: NORMAL
+      push-reaction: normal
       replaceable: false
       is-redstone-conductor: true
       is-suffocating: true
-      instrument: BASS
+      instrument: bass
       can-occlude: true
       tags:
         - minecraft:mineable/axe
@@ -814,10 +827,10 @@ templates#settings#blocks:
     overrides:
       hardness: 3.0
       resistance: 3.0
-      push-reaction: NORMAL
+      push-reaction: normal
       is-redstone-conductor: true
       is-suffocating: true
-      instrument: BASEDRUM
+      instrument: basedrum
       can-occlude: true
       map-color: 11
       tags:
@@ -830,10 +843,10 @@ templates#settings#blocks:
     overrides:
       hardness: 4.5
       resistance: 3.0
-      push-reaction: NORMAL
+      push-reaction: normal
       is-redstone-conductor: true
       is-suffocating: true
-      instrument: BASEDRUM
+      instrument: basedrum
       can-occlude: true
       map-color: 59
       tags:
@@ -849,7 +862,7 @@ templates#block_states:
         default: y
     appearances:
       axisY:
-        state: ${base_block}:${vanilla_id}
+        auto-state: solid
         model:
           path: ${model_vertical_path}
           generation:
@@ -858,7 +871,7 @@ templates#block_states:
               end: ${texture_top_path}
               side: ${texture_side_path}
       axisX:
-        state: ${base_block}:${vanilla_id}
+        auto-state: solid
         model:
           x: 90
           y: 90
@@ -869,7 +882,7 @@ templates#block_states:
               end: ${texture_top_path}
               side: ${texture_side_path}
       axisZ:
-        state: ${base_block}:${vanilla_id}
+        auto-state: solid
         model:
           x: 90
           path: ${model_horizontal_path}
@@ -881,13 +894,10 @@ templates#block_states:
     variants:
       axis=x:
         appearance: axisX
-        id: ${internal_id}
       axis=y:
         appearance: axisY
-        id: ${internal_id}
       axis=z:
         appearance: axisZ
-        id: ${internal_id}
   # leaves block
   default:block_state/leaves:
     properties:
@@ -903,7 +913,7 @@ templates#block_states:
         range: 1~7
     appearances:
       default:
-        state: ${default_state}
+        auto-state: leaves
         model:
           path: ${model_path}
           generation:
@@ -911,153 +921,21 @@ templates#block_states:
             textures:
               all: ${texture_path}
       waterlogged:
-        state: ${waterlogged_state}
+        auto-state: waterlogged_leaves
         model:
           path: ${model_path}
     variants:
-      distance=1,persistent=false,waterlogged=false:
+      waterlogged=false:
         appearance: default
-        id: ${internal_id}
-      distance=2,persistent=false,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=3,persistent=false,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=4,persistent=false,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=5,persistent=false,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=6,persistent=false,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=7,persistent=false,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
+      waterlogged=true:
+        appearance: waterlogged
+        settings:
+          resistance: 1200.0
+          burnable: false
+          fluid-state: water
+      distance=7,persistent=false:
         settings:
           is-randomly-ticking: true
-      distance=1,persistent=true,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=2,persistent=true,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=3,persistent=true,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=4,persistent=true,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=5,persistent=true,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=6,persistent=true,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=7,persistent=true,waterlogged=false:
-        appearance: default
-        id: ${internal_id}
-      distance=1,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=2,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=3,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=4,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=5,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=6,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=7,persistent=false,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          is-randomly-ticking: true
-          fluid-state: water
-      distance=1,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=2,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=3,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=4,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=5,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=6,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      distance=7,persistent=true,waterlogged=true:
-        appearance: waterlogged
-        id: ${internal_id}
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
   # trapdoor block
   default:block_state/trapdoor:
     properties:
@@ -1241,323 +1119,131 @@ templates#block_states:
           x: 180
           y: 90
     variants:
-      facing=east,half=bottom,open=false,powered=false,waterlogged=false:
+      facing=east,half=bottom,open=false,waterlogged=false:
         appearance: facing=east,half=bottom,open=false,waterlogged=false
-        id: 0
-      facing=east,half=bottom,open=false,powered=true,waterlogged=false:
-        appearance: facing=east,half=bottom,open=false,waterlogged=false
-        id: 1
-      facing=east,half=bottom,open=true,powered=false,waterlogged=false:
+      facing=east,half=bottom,open=true,waterlogged=false:
         appearance: facing=east,half=bottom,open=true,waterlogged=false
-        id: 2
-      facing=east,half=bottom,open=true,powered=true,waterlogged=false:
-        appearance: facing=east,half=bottom,open=true,waterlogged=false
-        id: 3
-      facing=east,half=top,open=false,powered=false,waterlogged=false:
+      facing=east,half=top,open=false,waterlogged=false:
         appearance: facing=east,half=top,open=false,waterlogged=false
-        id: 4
-      facing=east,half=top,open=false,powered=true,waterlogged=false:
-        appearance: facing=east,half=top,open=false,waterlogged=false
-        id: 5
-      facing=east,half=top,open=true,powered=false,waterlogged=false:
+      facing=east,half=top,open=true,waterlogged=false:
         appearance: facing=east,half=top,open=true,waterlogged=false
-        id: 6
-      facing=east,half=top,open=true,powered=true,waterlogged=false:
-        appearance: facing=east,half=top,open=true,waterlogged=false
-        id: 7
-      facing=north,half=bottom,open=false,powered=false,waterlogged=false:
+      facing=north,half=bottom,open=false,waterlogged=false:
         appearance: facing=north,half=bottom,open=false,waterlogged=false
-        id: 8
-      facing=north,half=bottom,open=false,powered=true,waterlogged=false:
-        appearance: facing=north,half=bottom,open=false,waterlogged=false
-        id: 9
-      facing=north,half=bottom,open=true,powered=false,waterlogged=false:
+      facing=north,half=bottom,open=true,waterlogged=false:
         appearance: facing=north,half=bottom,open=true,waterlogged=false
-        id: 10
-      facing=north,half=bottom,open=true,powered=true,waterlogged=false:
-        appearance: facing=north,half=bottom,open=true,waterlogged=false
-        id: 11
-      facing=north,half=top,open=false,powered=false,waterlogged=false:
+      facing=north,half=top,open=false,waterlogged=false:
         appearance: facing=north,half=top,open=false,waterlogged=false
-        id: 12
-      facing=north,half=top,open=false,powered=true,waterlogged=false:
-        appearance: facing=north,half=top,open=false,waterlogged=false
-        id: 13
-      facing=north,half=top,open=true,powered=false,waterlogged=false:
+      facing=north,half=top,open=true,waterlogged=false:
         appearance: facing=north,half=top,open=true,waterlogged=false
-        id: 14
-      facing=north,half=top,open=true,powered=true,waterlogged=false:
-        appearance: facing=north,half=top,open=true,waterlogged=false
-        id: 15
-      facing=south,half=bottom,open=false,powered=false,waterlogged=false:
+      facing=south,half=bottom,open=false,waterlogged=false:
         appearance: facing=south,half=bottom,open=false,waterlogged=false
-        id: 16
-      facing=south,half=bottom,open=false,powered=true,waterlogged=false:
-        appearance: facing=south,half=bottom,open=false,waterlogged=false
-        id: 17
-      facing=south,half=bottom,open=true,powered=false,waterlogged=false:
+      facing=south,half=bottom,open=true,waterlogged=false:
         appearance: facing=south,half=bottom,open=true,waterlogged=false
-        id: 18
-      facing=south,half=bottom,open=true,powered=true,waterlogged=false:
-        appearance: facing=south,half=bottom,open=true,waterlogged=false
-        id: 19
-      facing=south,half=top,open=false,powered=false,waterlogged=false:
+      facing=south,half=top,open=false,waterlogged=false:
         appearance: facing=south,half=top,open=false,waterlogged=false
-        id: 20
-      facing=south,half=top,open=false,powered=true,waterlogged=false:
-        appearance: facing=south,half=top,open=false,waterlogged=false
-        id: 21
-      facing=south,half=top,open=true,powered=false,waterlogged=false:
+      facing=south,half=top,open=true,waterlogged=false:
         appearance: facing=south,half=top,open=true,waterlogged=false
-        id: 22
-      facing=south,half=top,open=true,powered=true,waterlogged=false:
-        appearance: facing=south,half=top,open=true,waterlogged=false
-        id: 23
-      facing=west,half=bottom,open=false,powered=false,waterlogged=false:
+      facing=west,half=bottom,open=false,waterlogged=false:
         appearance: facing=west,half=bottom,open=false,waterlogged=false
-        id: 24
-      facing=west,half=bottom,open=false,powered=true,waterlogged=false:
-        appearance: facing=west,half=bottom,open=false,waterlogged=false
-        id: 25
-      facing=west,half=bottom,open=true,powered=false,waterlogged=false:
+      facing=west,half=bottom,open=true,waterlogged=false:
         appearance: facing=west,half=bottom,open=true,waterlogged=false
-        id: 26
-      facing=west,half=bottom,open=true,powered=true,waterlogged=false:
-        appearance: facing=west,half=bottom,open=true,waterlogged=false
-        id: 27
-      facing=west,half=top,open=false,powered=false,waterlogged=false:
+      facing=west,half=top,open=false,waterlogged=false:
         appearance: facing=west,half=top,open=false,waterlogged=false
-        id: 28
-      facing=west,half=top,open=false,powered=true,waterlogged=false:
-        appearance: facing=west,half=top,open=false,waterlogged=false
-        id: 29
-      facing=west,half=top,open=true,powered=false,waterlogged=false:
+      facing=west,half=top,open=true,waterlogged=false:
         appearance: facing=west,half=top,open=true,waterlogged=false
-        id: 30
-      facing=west,half=top,open=true,powered=true,waterlogged=false:
-        appearance: facing=west,half=top,open=true,waterlogged=false
-        id: 31
-      facing=east,half=bottom,open=false,powered=false,waterlogged=true:
+      facing=east,half=bottom,open=false,waterlogged=true:
         appearance: facing=east,half=bottom,open=false,waterlogged=true
-        id: 32
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=east,half=bottom,open=false,powered=true,waterlogged=true:
-        appearance: facing=east,half=bottom,open=false,waterlogged=true
-        id: 33
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=east,half=bottom,open=true,powered=false,waterlogged=true:
+      facing=east,half=bottom,open=true,waterlogged=true:
         appearance: facing=east,half=bottom,open=true,waterlogged=true
-        id: 34
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=east,half=bottom,open=true,powered=true,waterlogged=true:
-        appearance: facing=east,half=bottom,open=true,waterlogged=true
-        id: 35
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=east,half=top,open=false,powered=false,waterlogged=true:
+      facing=east,half=top,open=false,waterlogged=true:
         appearance: facing=east,half=top,open=false,waterlogged=true
-        id: 36
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=east,half=top,open=false,powered=true,waterlogged=true:
-        appearance: facing=east,half=top,open=false,waterlogged=true
-        id: 37
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=east,half=top,open=true,powered=false,waterlogged=true:
+      facing=east,half=top,open=true,waterlogged=true:
         appearance: facing=east,half=top,open=true,waterlogged=true
-        id: 38
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=east,half=top,open=true,powered=true,waterlogged=true:
-        appearance: facing=east,half=top,open=true,waterlogged=true
-        id: 39
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=north,half=bottom,open=false,powered=false,waterlogged=true:
+      facing=north,half=bottom,open=false,waterlogged=true:
         appearance: facing=north,half=bottom,open=false,waterlogged=true
-        id: 40
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=north,half=bottom,open=false,powered=true,waterlogged=true:
-        appearance: facing=north,half=bottom,open=false,waterlogged=true
-        id: 41
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=north,half=bottom,open=true,powered=false,waterlogged=true:
+      facing=north,half=bottom,open=true,waterlogged=true:
         appearance: facing=north,half=bottom,open=true,waterlogged=true
-        id: 42
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=north,half=bottom,open=true,powered=true,waterlogged=true:
-        appearance: facing=north,half=bottom,open=true,waterlogged=true
-        id: 43
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=north,half=top,open=false,powered=false,waterlogged=true:
+      facing=north,half=top,open=false,waterlogged=true:
         appearance: facing=north,half=top,open=false,waterlogged=true
-        id: 44
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=north,half=top,open=false,powered=true,waterlogged=true:
-        appearance: facing=north,half=top,open=false,waterlogged=true
-        id: 45
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=north,half=top,open=true,powered=false,waterlogged=true:
+      facing=north,half=top,open=true,waterlogged=true:
         appearance: facing=north,half=top,open=true,waterlogged=true
-        id: 46
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=north,half=top,open=true,powered=true,waterlogged=true:
-        appearance: facing=north,half=top,open=true,waterlogged=true
-        id: 47
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=south,half=bottom,open=false,powered=false,waterlogged=true:
+      facing=south,half=bottom,open=false,waterlogged=true:
         appearance: facing=south,half=bottom,open=false,waterlogged=true
-        id: 48
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=south,half=bottom,open=false,powered=true,waterlogged=true:
-        appearance: facing=south,half=bottom,open=false,waterlogged=true
-        id: 49
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=south,half=bottom,open=true,powered=false,waterlogged=true:
+      facing=south,half=bottom,open=true,waterlogged=true:
         appearance: facing=south,half=bottom,open=true,waterlogged=true
-        id: 50
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=south,half=bottom,open=true,powered=true,waterlogged=true:
-        appearance: facing=south,half=bottom,open=true,waterlogged=true
-        id: 51
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=south,half=top,open=false,powered=false,waterlogged=true:
+      facing=south,half=top,open=false,waterlogged=true:
         appearance: facing=south,half=top,open=false,waterlogged=true
-        id: 52
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=south,half=top,open=false,powered=true,waterlogged=true:
-        appearance: facing=south,half=top,open=false,waterlogged=true
-        id: 53
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=south,half=top,open=true,powered=false,waterlogged=true:
+      facing=south,half=top,open=true,waterlogged=true:
         appearance: facing=south,half=top,open=true,waterlogged=true
-        id: 54
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=south,half=top,open=true,powered=true,waterlogged=true:
-        appearance: facing=south,half=top,open=true,waterlogged=true
-        id: 55
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=west,half=bottom,open=false,powered=false,waterlogged=true:
+      facing=west,half=bottom,open=false,waterlogged=true:
         appearance: facing=west,half=bottom,open=false,waterlogged=true
-        id: 56
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=west,half=bottom,open=false,powered=true,waterlogged=true:
-        appearance: facing=west,half=bottom,open=false,waterlogged=true
-        id: 57
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=west,half=bottom,open=true,powered=false,waterlogged=true:
+      facing=west,half=bottom,open=true,waterlogged=true:
         appearance: facing=west,half=bottom,open=true,waterlogged=true
-        id: 58
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=west,half=bottom,open=true,powered=true,waterlogged=true:
-        appearance: facing=west,half=bottom,open=true,waterlogged=true
-        id: 59
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=west,half=top,open=false,powered=false,waterlogged=true:
+      facing=west,half=top,open=false,waterlogged=true:
         appearance: facing=west,half=top,open=false,waterlogged=true
-        id: 60
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
-      facing=west,half=top,open=false,powered=true,waterlogged=true:
-        appearance: facing=west,half=top,open=false,waterlogged=true
-        id: 61
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
-      facing=west,half=top,open=true,powered=false,waterlogged=true:
+      facing=west,half=top,open=true,waterlogged=true:
         appearance: facing=west,half=top,open=true,waterlogged=true
-        id: 62
         settings:
-          fluid-state: water
-      facing=west,half=top,open=true,powered=true,waterlogged=true:
-        appearance: facing=west,half=top,open=true,waterlogged=true
-        id: 63
-        settings:
-          resistance: 1200.0
-          burnable: false
           fluid-state: water
   # door block
   default:block_state/door:
@@ -1736,198 +1422,70 @@ templates#block_states:
           path: ${model_top_right_open_path}
           y: 90
     variants:
-      facing=east,half=lower,hinge=left,open=false,powered=true:
+      facing=east,half=lower,hinge=left,open=false:
         appearance: facing=east,half=lower,hinge=left,open=false
-        id: 0
-      facing=east,half=lower,hinge=left,open=false,powered=false:
-        appearance: facing=east,half=lower,hinge=left,open=false
-        id: 1
-      facing=east,half=lower,hinge=right,open=false,powered=true:
+      facing=east,half=lower,hinge=right,open=false:
         appearance: facing=east,half=lower,hinge=right,open=false
-        id: 2
-      facing=east,half=lower,hinge=right,open=false,powered=false:
-        appearance: facing=east,half=lower,hinge=right,open=false
-        id: 3
-      facing=east,half=upper,hinge=left,open=false,powered=true:
+      facing=east,half=upper,hinge=left,open=false:
         appearance: facing=east,half=upper,hinge=left,open=false
-        id: 4
-      facing=east,half=upper,hinge=left,open=false,powered=false:
-        appearance: facing=east,half=upper,hinge=left,open=false
-        id: 5
-      facing=east,half=upper,hinge=right,open=false,powered=true:
+      facing=east,half=upper,hinge=right,open=false:
         appearance: facing=east,half=upper,hinge=right,open=false
-        id: 6
-      facing=east,half=upper,hinge=right,open=false,powered=false:
-        appearance: facing=east,half=upper,hinge=right,open=false
-        id: 7
-      facing=north,half=lower,hinge=left,open=false,powered=true:
+      facing=north,half=lower,hinge=left,open=false:
         appearance: facing=north,half=lower,hinge=left,open=false
-        id: 8
-      facing=north,half=lower,hinge=left,open=false,powered=false:
-        appearance: facing=north,half=lower,hinge=left,open=false
-        id: 9
-      facing=north,half=lower,hinge=right,open=false,powered=true:
+      facing=north,half=lower,hinge=right,open=false:
         appearance: facing=north,half=lower,hinge=right,open=false
-        id: 10
-      facing=north,half=lower,hinge=right,open=false,powered=false:
-        appearance: facing=north,half=lower,hinge=right,open=false
-        id: 11
-      facing=north,half=upper,hinge=left,open=false,powered=true:
+      facing=north,half=upper,hinge=left,open=false:
         appearance: facing=north,half=upper,hinge=left,open=false
-        id: 12
-      facing=north,half=upper,hinge=left,open=false,powered=false:
-        appearance: facing=north,half=upper,hinge=left,open=false
-        id: 13
-      facing=north,half=upper,hinge=right,open=false,powered=true:
+      facing=north,half=upper,hinge=right,open=false:
         appearance: facing=north,half=upper,hinge=right,open=false
-        id: 14
-      facing=north,half=upper,hinge=right,open=false,powered=false:
-        appearance: facing=north,half=upper,hinge=right,open=false
-        id: 15
-      facing=south,half=lower,hinge=left,open=false,powered=true:
+      facing=south,half=lower,hinge=left,open=false:
         appearance: facing=south,half=lower,hinge=left,open=false
-        id: 16
-      facing=south,half=lower,hinge=left,open=false,powered=false:
-        appearance: facing=south,half=lower,hinge=left,open=false
-        id: 17
-      facing=south,half=lower,hinge=right,open=false,powered=true:
+      facing=south,half=lower,hinge=right,open=false:
         appearance: facing=south,half=lower,hinge=right,open=false
-        id: 18
-      facing=south,half=lower,hinge=right,open=false,powered=false:
-        appearance: facing=south,half=lower,hinge=right,open=false
-        id: 19
-      facing=south,half=upper,hinge=left,open=false,powered=true:
+      facing=south,half=upper,hinge=left,open=false:
         appearance: facing=south,half=upper,hinge=left,open=false
-        id: 20
-      facing=south,half=upper,hinge=left,open=false,powered=false:
-        appearance: facing=south,half=upper,hinge=left,open=false
-        id: 21
-      facing=south,half=upper,hinge=right,open=false,powered=true:
+      facing=south,half=upper,hinge=right,open=false:
         appearance: facing=south,half=upper,hinge=right,open=false
-        id: 22
-      facing=south,half=upper,hinge=right,open=false,powered=false:
-        appearance: facing=south,half=upper,hinge=right,open=false
-        id: 23
-      facing=west,half=lower,hinge=left,open=false,powered=true:
+      facing=west,half=lower,hinge=left,open=false:
         appearance: facing=west,half=lower,hinge=left,open=false
-        id: 24
-      facing=west,half=lower,hinge=left,open=false,powered=false:
-        appearance: facing=west,half=lower,hinge=left,open=false
-        id: 25
-      facing=west,half=lower,hinge=right,open=false,powered=true:
+      facing=west,half=lower,hinge=right,open=false:
         appearance: facing=west,half=lower,hinge=right,open=false
-        id: 26
-      facing=west,half=lower,hinge=right,open=false,powered=false:
-        appearance: facing=west,half=lower,hinge=right,open=false
-        id: 27
-      facing=west,half=upper,hinge=left,open=false,powered=true:
+      facing=west,half=upper,hinge=left,open=false:
         appearance: facing=west,half=upper,hinge=left,open=false
-        id: 28
-      facing=west,half=upper,hinge=left,open=false,powered=false:
-        appearance: facing=west,half=upper,hinge=left,open=false
-        id: 29
-      facing=west,half=upper,hinge=right,open=false,powered=true:
+      facing=west,half=upper,hinge=right,open=false:
         appearance: facing=west,half=upper,hinge=right,open=false
-        id: 30
-      facing=west,half=upper,hinge=right,open=false,powered=false:
-        appearance: facing=west,half=upper,hinge=right,open=false
-        id: 31
-      facing=east,half=lower,hinge=left,open=true,powered=true:
+      facing=east,half=lower,hinge=left,open=true:
         appearance: facing=east,half=lower,hinge=left,open=true
-        id: 32
-      facing=east,half=lower,hinge=left,open=true,powered=false:
-        appearance: facing=east,half=lower,hinge=left,open=true
-        id: 33
-      facing=east,half=lower,hinge=right,open=true,powered=true:
+      facing=east,half=lower,hinge=right,open=true:
         appearance: facing=east,half=lower,hinge=right,open=true
-        id: 34
-      facing=east,half=lower,hinge=right,open=true,powered=false:
-        appearance: facing=east,half=lower,hinge=right,open=true
-        id: 35
-      facing=east,half=upper,hinge=left,open=true,powered=true:
+      facing=east,half=upper,hinge=left,open=true:
         appearance: facing=east,half=upper,hinge=left,open=true
-        id: 36
-      facing=east,half=upper,hinge=left,open=true,powered=false:
-        appearance: facing=east,half=upper,hinge=left,open=true
-        id: 37
-      facing=east,half=upper,hinge=right,open=true,powered=true:
+      facing=east,half=upper,hinge=right,open=true:
         appearance: facing=east,half=upper,hinge=right,open=true
-        id: 38
-      facing=east,half=upper,hinge=right,open=true,powered=false:
-        appearance: facing=east,half=upper,hinge=right,open=true
-        id: 39
-      facing=north,half=lower,hinge=left,open=true,powered=true:
+      facing=north,half=lower,hinge=left,open=true:
         appearance: facing=north,half=lower,hinge=left,open=true
-        id: 40
-      facing=north,half=lower,hinge=left,open=true,powered=false:
-        appearance: facing=north,half=lower,hinge=left,open=true
-        id: 41
-      facing=north,half=lower,hinge=right,open=true,powered=true:
+      facing=north,half=lower,hinge=right,open=true:
         appearance: facing=north,half=lower,hinge=right,open=true
-        id: 42
-      facing=north,half=lower,hinge=right,open=true,powered=false:
-        appearance: facing=north,half=lower,hinge=right,open=true
-        id: 43
-      facing=north,half=upper,hinge=left,open=true,powered=true:
+      facing=north,half=upper,hinge=left,open=true:
         appearance: facing=north,half=upper,hinge=left,open=true
-        id: 44
-      facing=north,half=upper,hinge=left,open=true,powered=false:
-        appearance: facing=north,half=upper,hinge=left,open=true
-        id: 45
-      facing=north,half=upper,hinge=right,open=true,powered=true:
+      facing=north,half=upper,hinge=right,open=true:
         appearance: facing=north,half=upper,hinge=right,open=true
-        id: 46
-      facing=north,half=upper,hinge=right,open=true,powered=false:
-        appearance: facing=north,half=upper,hinge=right,open=true
-        id: 47
-      facing=south,half=lower,hinge=left,open=true,powered=true:
+      facing=south,half=lower,hinge=left,open=true:
         appearance: facing=south,half=lower,hinge=left,open=true
-        id: 48
-      facing=south,half=lower,hinge=left,open=true,powered=false:
-        appearance: facing=south,half=lower,hinge=left,open=true
-        id: 49
-      facing=south,half=lower,hinge=right,open=true,powered=true:
+      facing=south,half=lower,hinge=right,open=true:
         appearance: facing=south,half=lower,hinge=right,open=true
-        id: 50
-      facing=south,half=lower,hinge=right,open=true,powered=false:
-        appearance: facing=south,half=lower,hinge=right,open=true
-        id: 51
-      facing=south,half=upper,hinge=left,open=true,powered=true:
+      facing=south,half=upper,hinge=left,open=true:
         appearance: facing=south,half=upper,hinge=left,open=true
-        id: 52
-      facing=south,half=upper,hinge=left,open=true,powered=false:
-        appearance: facing=south,half=upper,hinge=left,open=true
-        id: 53
-      facing=south,half=upper,hinge=right,open=true,powered=true:
+      facing=south,half=upper,hinge=right,open=true:
         appearance: facing=south,half=upper,hinge=right,open=true
-        id: 54
-      facing=south,half=upper,hinge=right,open=true,powered=false:
-        appearance: facing=south,half=upper,hinge=right,open=true
-        id: 55
-      facing=west,half=lower,hinge=left,open=true,powered=true:
+      facing=west,half=lower,hinge=left,open=true:
         appearance: facing=west,half=lower,hinge=left,open=true
-        id: 56
-      facing=west,half=lower,hinge=left,open=true,powered=false:
-        appearance: facing=west,half=lower,hinge=left,open=true
-        id: 57
-      facing=west,half=lower,hinge=right,open=true,powered=true:
+      facing=west,half=lower,hinge=right,open=true:
         appearance: facing=west,half=lower,hinge=right,open=true
-        id: 58
-      facing=west,half=lower,hinge=right,open=true,powered=false:
-        appearance: facing=west,half=lower,hinge=right,open=true
-        id: 59
-      facing=west,half=upper,hinge=left,open=true,powered=true:
+      facing=west,half=upper,hinge=left,open=true:
         appearance: facing=west,half=upper,hinge=left,open=true
-        id: 60
-      facing=west,half=upper,hinge=left,open=true,powered=false:
-        appearance: facing=west,half=upper,hinge=left,open=true
-        id: 61
-      facing=west,half=upper,hinge=right,open=true,powered=true:
+      facing=west,half=upper,hinge=right,open=true:
         appearance: facing=west,half=upper,hinge=right,open=true
-        id: 62
-      facing=west,half=upper,hinge=right,open=true,powered=false:
-        appearance: facing=west,half=upper,hinge=right,open=true
-        id: 63
   # fence gate block
   default:block_state/fence_gate:
     properties:
@@ -2042,100 +1600,68 @@ templates#block_states:
     variants:
       facing=east,in_wall=false,open=false,powered=true:
         appearance: facing=east,in_wall=false,open=false
-        id: 0
       facing=east,in_wall=false,open=false,powered=false:
         appearance: facing=east,in_wall=false,open=false
-        id: 1
       facing=east,in_wall=false,open=true,powered=true:
         appearance: facing=east,in_wall=false,open=true
-        id: 2
       facing=east,in_wall=false,open=true,powered=false:
         appearance: facing=east,in_wall=false,open=true
-        id: 3
       facing=east,in_wall=true,open=false,powered=true:
         appearance: facing=east,in_wall=true,open=false
-        id: 4
       facing=east,in_wall=true,open=false,powered=false:
         appearance: facing=east,in_wall=true,open=false
-        id: 5
       facing=east,in_wall=true,open=true,powered=true:
         appearance: facing=east,in_wall=true,open=true
-        id: 6
       facing=east,in_wall=true,open=true,powered=false:
         appearance: facing=east,in_wall=true,open=true
-        id: 7
       facing=south,in_wall=false,open=false,powered=true:
         appearance: facing=south,in_wall=false,open=false
-        id: 8
       facing=south,in_wall=false,open=false,powered=false:
         appearance: facing=south,in_wall=false,open=false
-        id: 9
       facing=south,in_wall=false,open=true,powered=true:
         appearance: facing=south,in_wall=false,open=true
-        id: 10
       facing=south,in_wall=false,open=true,powered=false:
         appearance: facing=south,in_wall=false,open=true
-        id: 11
       facing=south,in_wall=true,open=false,powered=true:
         appearance: facing=south,in_wall=true,open=false
-        id: 12
       facing=south,in_wall=true,open=false,powered=false:
         appearance: facing=south,in_wall=true,open=false
-        id: 13
       facing=south,in_wall=true,open=true,powered=true:
         appearance: facing=south,in_wall=true,open=true
-        id: 14
       facing=south,in_wall=true,open=true,powered=false:
         appearance: facing=south,in_wall=true,open=true
-        id: 15
       facing=west,in_wall=false,open=false,powered=true:
         appearance: facing=west,in_wall=false,open=false
-        id: 16
       facing=west,in_wall=false,open=false,powered=false:
         appearance: facing=west,in_wall=false,open=false
-        id: 17
       facing=west,in_wall=false,open=true,powered=true:
         appearance: facing=west,in_wall=false,open=true
-        id: 18
       facing=west,in_wall=false,open=true,powered=false:
         appearance: facing=west,in_wall=false,open=true
-        id: 19
       facing=west,in_wall=true,open=false,powered=true:
         appearance: facing=west,in_wall=true,open=false
-        id: 20
       facing=west,in_wall=true,open=false,powered=false:
         appearance: facing=west,in_wall=true,open=false
-        id: 21
       facing=west,in_wall=true,open=true,powered=true:
         appearance: facing=west,in_wall=true,open=true
-        id: 22
       facing=west,in_wall=true,open=true,powered=false:
         appearance: facing=west,in_wall=true,open=true
-        id: 23
       facing=north,in_wall=false,open=false,powered=true:
         appearance: facing=north,in_wall=false,open=false
-        id: 24
       facing=north,in_wall=false,open=false,powered=false:
         appearance: facing=north,in_wall=false,open=false
-        id: 25
       facing=north,in_wall=false,open=true,powered=true:
         appearance: facing=north,in_wall=false,open=true
-        id: 26
       facing=north,in_wall=false,open=true,powered=false:
         appearance: facing=north,in_wall=false,open=true
-        id: 27
       facing=north,in_wall=true,open=false,powered=true:
         appearance: facing=north,in_wall=true,open=false
-        id: 28
       facing=north,in_wall=true,open=false,powered=false:
         appearance: facing=north,in_wall=true,open=false
-        id: 29
       facing=north,in_wall=true,open=true,powered=true:
         appearance: facing=north,in_wall=true,open=true
-        id: 30
       facing=north,in_wall=true,open=true,powered=false:
         appearance: facing=north,in_wall=true,open=true
-        id: 31
   # slab block
   default:block_state/slab:
     properties:
@@ -2176,30 +1702,24 @@ templates#block_states:
     variants:
       type=top,waterlogged=false:
         appearance: type=top,waterlogged=false
-        id: 0
       type=bottom,waterlogged=false:
         appearance: type=bottom,waterlogged=false
-        id: 1
       type=double,waterlogged=false:
         appearance: type=double,waterlogged=false
-        id: 2
       type=top,waterlogged=true:
         appearance: type=top,waterlogged=true
-        id: 3
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
       type=bottom,waterlogged=true:
         appearance: type=bottom,waterlogged=true
-        id: 4
         settings:
           resistance: 1200.0
           burnable: false
           fluid-state: water
       type=double,waterlogged=true:
         appearance: type=double,waterlogged=true
-        id: 5
         settings:
           resistance: 1200.0
           burnable: false
@@ -2711,406 +2231,172 @@ templates#block_states:
           x: 180
           y: 180
     variants:
+      waterlogged=true:
+        settings:
+          resistance: 1200.0
+          burnable: false
+          fluid-state: water
       facing=east,half=bottom,shape=inner_left,waterlogged=false:
         appearance: facing=east,half=bottom,shape=inner_left,waterlogged=false
-        id: 0
       facing=east,half=bottom,shape=inner_right,waterlogged=false:
         appearance: facing=east,half=bottom,shape=inner_right,waterlogged=false
-        id: 1
       facing=east,half=bottom,shape=outer_left,waterlogged=false:
         appearance: facing=east,half=bottom,shape=outer_left,waterlogged=false
-        id: 2
       facing=east,half=bottom,shape=outer_right,waterlogged=false:
         appearance: facing=east,half=bottom,shape=outer_right,waterlogged=false
-        id: 3
       facing=east,half=bottom,shape=straight,waterlogged=false:
         appearance: facing=east,half=bottom,shape=straight,waterlogged=false
-        id: 4
       facing=east,half=top,shape=inner_left,waterlogged=false:
         appearance: facing=east,half=top,shape=inner_left,waterlogged=false
-        id: 5
       facing=east,half=top,shape=inner_right,waterlogged=false:
         appearance: facing=east,half=top,shape=inner_right,waterlogged=false
-        id: 6
       facing=east,half=top,shape=outer_left,waterlogged=false:
         appearance: facing=east,half=top,shape=outer_left,waterlogged=false
-        id: 7
       facing=east,half=top,shape=outer_right,waterlogged=false:
         appearance: facing=east,half=top,shape=outer_right,waterlogged=false
-        id: 8
       facing=east,half=top,shape=straight,waterlogged=false:
         appearance: facing=east,half=top,shape=straight,waterlogged=false
-        id: 9
       facing=north,half=bottom,shape=inner_left,waterlogged=false:
         appearance: facing=north,half=bottom,shape=inner_left,waterlogged=false
-        id: 10
       facing=north,half=bottom,shape=inner_right,waterlogged=false:
         appearance: facing=north,half=bottom,shape=inner_right,waterlogged=false
-        id: 11
       facing=north,half=bottom,shape=outer_left,waterlogged=false:
         appearance: facing=north,half=bottom,shape=outer_left,waterlogged=false
-        id: 12
       facing=north,half=bottom,shape=outer_right,waterlogged=false:
         appearance: facing=north,half=bottom,shape=outer_right,waterlogged=false
-        id: 13
       facing=north,half=bottom,shape=straight,waterlogged=false:
         appearance: facing=north,half=bottom,shape=straight,waterlogged=false
-        id: 14
       facing=north,half=top,shape=inner_left,waterlogged=false:
         appearance: facing=north,half=top,shape=inner_left,waterlogged=false
-        id: 15
       facing=north,half=top,shape=inner_right,waterlogged=false:
         appearance: facing=north,half=top,shape=inner_right,waterlogged=false
-        id: 16
       facing=north,half=top,shape=outer_left,waterlogged=false:
         appearance: facing=north,half=top,shape=outer_left,waterlogged=false
-        id: 17
       facing=north,half=top,shape=outer_right,waterlogged=false:
         appearance: facing=north,half=top,shape=outer_right,waterlogged=false
-        id: 18
       facing=north,half=top,shape=straight,waterlogged=false:
         appearance: facing=north,half=top,shape=straight,waterlogged=false
-        id: 19
       facing=south,half=bottom,shape=inner_left,waterlogged=false:
         appearance: facing=south,half=bottom,shape=inner_left,waterlogged=false
-        id: 20
       facing=south,half=bottom,shape=inner_right,waterlogged=false:
         appearance: facing=south,half=bottom,shape=inner_right,waterlogged=false
-        id: 21
       facing=south,half=bottom,shape=outer_left,waterlogged=false:
         appearance: facing=south,half=bottom,shape=outer_left,waterlogged=false
-        id: 22
       facing=south,half=bottom,shape=outer_right,waterlogged=false:
         appearance: facing=south,half=bottom,shape=outer_right,waterlogged=false
-        id: 23
       facing=south,half=bottom,shape=straight,waterlogged=false:
         appearance: facing=south,half=bottom,shape=straight,waterlogged=false
-        id: 24
       facing=south,half=top,shape=inner_left,waterlogged=false:
         appearance: facing=south,half=top,shape=inner_left,waterlogged=false
-        id: 25
       facing=south,half=top,shape=inner_right,waterlogged=false:
         appearance: facing=south,half=top,shape=inner_right,waterlogged=false
-        id: 26
       facing=south,half=top,shape=outer_left,waterlogged=false:
         appearance: facing=south,half=top,shape=outer_left,waterlogged=false
-        id: 27
       facing=south,half=top,shape=outer_right,waterlogged=false:
         appearance: facing=south,half=top,shape=outer_right,waterlogged=false
-        id: 28
       facing=south,half=top,shape=straight,waterlogged=false:
         appearance: facing=south,half=top,shape=straight,waterlogged=false
-        id: 29
       facing=west,half=bottom,shape=inner_left,waterlogged=false:
         appearance: facing=west,half=bottom,shape=inner_left,waterlogged=false
-        id: 30
       facing=west,half=bottom,shape=inner_right,waterlogged=false:
         appearance: facing=west,half=bottom,shape=inner_right,waterlogged=false
-        id: 31
       facing=west,half=bottom,shape=outer_left,waterlogged=false:
         appearance: facing=west,half=bottom,shape=outer_left,waterlogged=false
-        id: 32
       facing=west,half=bottom,shape=outer_right,waterlogged=false:
         appearance: facing=west,half=bottom,shape=outer_right,waterlogged=false
-        id: 33
       facing=west,half=bottom,shape=straight,waterlogged=false:
         appearance: facing=west,half=bottom,shape=straight,waterlogged=false
-        id: 34
       facing=west,half=top,shape=inner_left,waterlogged=false:
         appearance: facing=west,half=top,shape=inner_left,waterlogged=false
-        id: 35
       facing=west,half=top,shape=inner_right,waterlogged=false:
         appearance: facing=west,half=top,shape=inner_right,waterlogged=false
-        id: 36
       facing=west,half=top,shape=outer_left,waterlogged=false:
         appearance: facing=west,half=top,shape=outer_left,waterlogged=false
-        id: 37
       facing=west,half=top,shape=outer_right,waterlogged=false:
         appearance: facing=west,half=top,shape=outer_right,waterlogged=false
-        id: 38
       facing=west,half=top,shape=straight,waterlogged=false:
         appearance: facing=west,half=top,shape=straight,waterlogged=false
-        id: 39
       facing=east,half=bottom,shape=inner_left,waterlogged=true:
         appearance: facing=east,half=bottom,shape=inner_left,waterlogged=true
-        id: 40
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=bottom,shape=inner_right,waterlogged=true:
         appearance: facing=east,half=bottom,shape=inner_right,waterlogged=true
-        id: 41
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=bottom,shape=outer_left,waterlogged=true:
         appearance: facing=east,half=bottom,shape=outer_left,waterlogged=true
-        id: 42
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=bottom,shape=outer_right,waterlogged=true:
         appearance: facing=east,half=bottom,shape=outer_right,waterlogged=true
-        id: 43
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=bottom,shape=straight,waterlogged=true:
         appearance: facing=east,half=bottom,shape=straight,waterlogged=true
-        id: 44
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=inner_left,waterlogged=true:
         appearance: facing=east,half=top,shape=inner_left,waterlogged=true
-        id: 45
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=inner_right,waterlogged=true:
         appearance: facing=east,half=top,shape=inner_right,waterlogged=true
-        id: 46
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=outer_left,waterlogged=true:
         appearance: facing=east,half=top,shape=outer_left,waterlogged=true
-        id: 47
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=outer_right,waterlogged=true:
         appearance: facing=east,half=top,shape=outer_right,waterlogged=true
-        id: 48
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=east,half=top,shape=straight,waterlogged=true:
         appearance: facing=east,half=top,shape=straight,waterlogged=true
-        id: 49
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=inner_left,waterlogged=true:
         appearance: facing=north,half=bottom,shape=inner_left,waterlogged=true
-        id: 50
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=inner_right,waterlogged=true:
         appearance: facing=north,half=bottom,shape=inner_right,waterlogged=true
-        id: 51
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=outer_left,waterlogged=true:
         appearance: facing=north,half=bottom,shape=outer_left,waterlogged=true
-        id: 52
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=outer_right,waterlogged=true:
         appearance: facing=north,half=bottom,shape=outer_right,waterlogged=true
-        id: 53
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=bottom,shape=straight,waterlogged=true:
         appearance: facing=north,half=bottom,shape=straight,waterlogged=true
-        id: 54
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=inner_left,waterlogged=true:
         appearance: facing=north,half=top,shape=inner_left,waterlogged=true
-        id: 55
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=inner_right,waterlogged=true:
         appearance: facing=north,half=top,shape=inner_right,waterlogged=true
-        id: 56
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=outer_left,waterlogged=true:
         appearance: facing=north,half=top,shape=outer_left,waterlogged=true
-        id: 57
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=outer_right,waterlogged=true:
         appearance: facing=north,half=top,shape=outer_right,waterlogged=true
-        id: 58
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=north,half=top,shape=straight,waterlogged=true:
         appearance: facing=north,half=top,shape=straight,waterlogged=true
-        id: 59
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=inner_left,waterlogged=true:
         appearance: facing=south,half=bottom,shape=inner_left,waterlogged=true
-        id: 60
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=inner_right,waterlogged=true:
         appearance: facing=south,half=bottom,shape=inner_right,waterlogged=true
-        id: 61
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=outer_left,waterlogged=true:
         appearance: facing=south,half=bottom,shape=outer_left,waterlogged=true
-        id: 62
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=outer_right,waterlogged=true:
         appearance: facing=south,half=bottom,shape=outer_right,waterlogged=true
-        id: 63
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=bottom,shape=straight,waterlogged=true:
         appearance: facing=south,half=bottom,shape=straight,waterlogged=true
-        id: 64
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=inner_left,waterlogged=true:
         appearance: facing=south,half=top,shape=inner_left,waterlogged=true
-        id: 65
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=inner_right,waterlogged=true:
         appearance: facing=south,half=top,shape=inner_right,waterlogged=true
-        id: 66
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=outer_left,waterlogged=true:
         appearance: facing=south,half=top,shape=outer_left,waterlogged=true
-        id: 67
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=outer_right,waterlogged=true:
         appearance: facing=south,half=top,shape=outer_right,waterlogged=true
-        id: 68
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=south,half=top,shape=straight,waterlogged=true:
         appearance: facing=south,half=top,shape=straight,waterlogged=true
-        id: 69
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=inner_left,waterlogged=true:
         appearance: facing=west,half=bottom,shape=inner_left,waterlogged=true
-        id: 70
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=inner_right,waterlogged=true:
         appearance: facing=west,half=bottom,shape=inner_right,waterlogged=true
-        id: 71
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=outer_left,waterlogged=true:
         appearance: facing=west,half=bottom,shape=outer_left,waterlogged=true
-        id: 72
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=outer_right,waterlogged=true:
         appearance: facing=west,half=bottom,shape=outer_right,waterlogged=true
-        id: 73
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=bottom,shape=straight,waterlogged=true:
         appearance: facing=west,half=bottom,shape=straight,waterlogged=true
-        id: 74
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=inner_left,waterlogged=true:
         appearance: facing=west,half=top,shape=inner_left,waterlogged=true
-        id: 75
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=inner_right,waterlogged=true:
         appearance: facing=west,half=top,shape=inner_right,waterlogged=true
-        id: 76
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=outer_left,waterlogged=true:
         appearance: facing=west,half=top,shape=outer_left,waterlogged=true
-        id: 77
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=outer_right,waterlogged=true:
         appearance: facing=west,half=top,shape=outer_right,waterlogged=true
-        id: 78
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
       facing=west,half=top,shape=straight,waterlogged=true:
         appearance: facing=west,half=top,shape=straight,waterlogged=true
-        id: 79
-        settings:
-          resistance: 1200.0
-          burnable: false
-          fluid-state: water
+
   # pressure plate block
   default:block_state/pressure_plate:
     properties:
@@ -3131,10 +2417,676 @@ templates#block_states:
     variants:
       powered=false:
         appearance: normal
-        id: ${normal_id}
       powered=true:
         appearance: powered
-        id: ${powered_id}
+  default:block_state/button:
+    properties:
+      powered:
+        type: boolean
+        default: false
+      face:
+        type: anchor_type
+        default: floor
+      facing:
+        type: 4-direction
+        default: north
+    appearances:
+      face=floor,facing=east,powered=true:
+        state: ${base_block}[face=floor,facing=east,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,90,0
+          scale: 1.0005
+          translation: 0,0.00023,0
+      face=floor,facing=west,powered=true:
+        state: ${base_block}[face=floor,facing=west,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,-90,0
+          scale: 1.0005
+          translation: 0,0.00023,0
+      face=floor,facing=east,powered=false:
+        state: ${base_block}[face=floor,facing=east,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,90,0
+          scale: 1.0005
+          translation: 0,0.00023,0
+      face=floor,facing=west,powered=false:
+        state: ${base_block}[face=floor,facing=west,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,-90,0
+          scale: 1.0005
+          translation: 0,0.00023,0
+      face=floor,facing=south,powered=true:
+        state: ${base_block}[face=floor,facing=south,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          scale: 1.0005
+          translation: 0,0.00023,0
+      face=floor,facing=north,powered=true:
+        state: ${base_block}[face=floor,facing=north,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,180,0
+          scale: 1.0005
+          translation: 0,0.00023,0
+      face=floor,facing=south,powered=false:
+        state: ${base_block}[face=floor,facing=south,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          scale: 1.0005
+          translation: 0,0.00023,0
+      face=floor,facing=north,powered=false:
+        state: ${base_block}[face=floor,facing=north,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,180,0
+          scale: 1.0005
+          translation: 0,0.00023,0
+      face=wall,facing=north,powered=true:
+        state: ${base_block}[face=wall,facing=north,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: -90,0,0
+          scale: 1.0005
+          translation: 0,0,-0.00023
+      face=wall,facing=south,powered=true:
+        state: ${base_block}[face=wall,facing=south,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 90,0,180
+          scale: 1.0005
+          translation: 0,0,0.00023
+      face=wall,facing=north,powered=false:
+        state: ${base_block}[face=wall,facing=north,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: -90,0,0
+          scale: 1.0005
+          translation: 0,0,-0.00023
+      face=wall,facing=south,powered=false:
+        state: ${base_block}[face=wall,facing=south,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 90,0,180
+          scale: 1.0005
+          translation: 0,0,0.00023
+      face=wall,facing=west,powered=true:
+        state: ${base_block}[face=wall,facing=west,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,90,90
+          scale: 1.0005
+          translation: -0.00023,0,0
+      face=wall,facing=east,powered=true:
+        state: ${base_block}[face=wall,facing=east,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,270,-90
+          scale: 1.0005
+          translation: 0.00023,0,0
+      face=wall,facing=west,powered=false:
+        state: ${base_block}[face=wall,facing=west,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,90,90
+          scale: 1.0005
+          translation: -0.00023,0,0
+      face=wall,facing=east,powered=false:
+        state: ${base_block}[face=wall,facing=east,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,270,-90
+          scale: 1.0005
+          translation: 0.00023,0,0
+      face=ceiling,facing=north,powered=true:
+        state: ${base_block}[face=ceiling,facing=north,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,180,180
+          scale: 1.0005
+          translation: 0,-0.00023,0
+      face=ceiling,facing=south,powered=true:
+        state: ${base_block}[face=ceiling,facing=south,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,0,180
+          scale: 1.0005
+          translation: 0,-0.00023,0
+      face=ceiling,facing=north,powered=false:
+        state: ${base_block}[face=ceiling,facing=north,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,180,180
+          scale: 1.0005
+          translation: 0,-0.00023,0
+      face=ceiling,facing=south,powered=false:
+        state: ${base_block}[face=ceiling,facing=south,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,0,180
+          scale: 1.0005
+          translation: 0,-0.00023,0
+      face=ceiling,facing=west,powered=true:
+        state: ${base_block}[face=ceiling,facing=west,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: 0,90,180
+          scale: 1.0005
+          translation: 0,-0.00023,0
+      face=ceiling,facing=east,powered=true:
+        state: ${base_block}[face=ceiling,facing=east,powered=true]
+        entity-renderer:
+          item: ${pressed_item}
+          rotation: -90,-90,-90
+          scale: 1.0005
+          translation: 0,-0.00023,0
+      face=ceiling,facing=west,powered=false:
+        state: ${base_block}[face=ceiling,facing=west,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: 0,90,180
+          scale: 1.0005
+          translation: 0,-0.00023,0
+      face=ceiling,facing=east,powered=false:
+        state: ${base_block}[face=ceiling,facing=east,powered=false]
+        entity-renderer:
+          item: ${not_pressed_item}
+          rotation: -90,-90,-90
+          scale: 1.0005
+          translation: 0,-0.00023,0
+    variants:
+      face=floor,facing=east,powered=true:
+        appearance: face=floor,facing=east,powered=true
+      face=floor,facing=west,powered=true:
+        appearance: face=floor,facing=west,powered=true
+      face=floor,facing=east,powered=false:
+        appearance: face=floor,facing=east,powered=false
+      face=floor,facing=west,powered=false:
+        appearance: face=floor,facing=west,powered=false
+      face=floor,facing=south,powered=true:
+        appearance: face=floor,facing=south,powered=true
+      face=floor,facing=north,powered=true:
+        appearance: face=floor,facing=north,powered=true
+      face=floor,facing=south,powered=false:
+        appearance: face=floor,facing=south,powered=false
+      face=floor,facing=north,powered=false:
+        appearance: face=floor,facing=north,powered=false
+      face=wall,facing=north,powered=true:
+        appearance: face=wall,facing=north,powered=true
+      face=wall,facing=south,powered=true:
+        appearance: face=wall,facing=south,powered=true
+      face=wall,facing=north,powered=false:
+        appearance: face=wall,facing=north,powered=false
+      face=wall,facing=south,powered=false:
+        appearance: face=wall,facing=south,powered=false
+      face=wall,facing=west,powered=true:
+        appearance: face=wall,facing=west,powered=true
+      face=wall,facing=east,powered=true:
+        appearance: face=wall,facing=east,powered=true
+      face=wall,facing=west,powered=false:
+        appearance: face=wall,facing=west,powered=false
+      face=wall,facing=east,powered=false:
+        appearance: face=wall,facing=east,powered=false
+      face=ceiling,facing=north,powered=true:
+        appearance: face=ceiling,facing=north,powered=true
+      face=ceiling,facing=south,powered=true:
+        appearance: face=ceiling,facing=south,powered=true
+      face=ceiling,facing=north,powered=false:
+        appearance: face=ceiling,facing=north,powered=false
+      face=ceiling,facing=south,powered=false:
+        appearance: face=ceiling,facing=south,powered=false
+      face=ceiling,facing=west,powered=true:
+        appearance: face=ceiling,facing=west,powered=true
+      face=ceiling,facing=east,powered=true:
+        appearance: face=ceiling,facing=east,powered=true
+      face=ceiling,facing=west,powered=false:
+        appearance: face=ceiling,facing=west,powered=false
+      face=ceiling,facing=east,powered=false:
+        appearance: face=ceiling,facing=east,powered=false
+  default:block_state/fence:
+    properties:
+      north:
+        type: boolean
+        default: false
+      east:
+        type: boolean
+        default: false
+      south:
+        type: boolean
+        default: false
+      west:
+        type: boolean
+        default: false
+      waterlogged:
+        type: boolean
+        default: false
+    appearances:
+      east=false,north=false,south=false,waterlogged=false,west=false:
+        state: ${base_block}[east=false,north=false,south=false,waterlogged=false,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+      east=true,north=false,south=false,waterlogged=false,west=false:
+        state: ${base_block}[east=true,north=false,south=false,waterlogged=false,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 270
+      east=false,north=true,south=false,waterlogged=false,west=false:
+        state: ${base_block}[east=false,north=true,south=false,waterlogged=false,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 180
+      east=false,north=false,south=true,waterlogged=false,west=false:
+        state: ${base_block}[east=false,north=false,south=true,waterlogged=false,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+      east=false,north=false,south=false,waterlogged=false,west=true:
+        state: ${base_block}[east=false,north=false,south=false,waterlogged=false,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 90
+      east=true,north=true,south=false,waterlogged=false,west=false:
+        state: ${base_block}[east=true,north=true,south=false,waterlogged=false,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 180
+          - item: ${fence_side_item}
+            rotation: 270
+      east=true,north=false,south=true,waterlogged=false,west=false:
+        state: ${base_block}[east=true,north=false,south=true,waterlogged=false,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 270
+      east=true,north=false,south=false,waterlogged=false,west=true:
+        state: ${base_block}[east=true,north=false,south=false,waterlogged=false,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 270
+      east=false,north=true,south=true,waterlogged=false,west=false:
+        state: ${base_block}[east=false,north=true,south=true,waterlogged=false,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 180
+      east=false,north=true,south=false,waterlogged=false,west=true:
+        state: ${base_block}[east=false,north=true,south=false,waterlogged=false,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 180
+      east=false,north=false,south=true,waterlogged=false,west=true:
+        state: ${base_block}[east=false,north=false,south=true,waterlogged=false,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 90
+      east=true,north=true,south=true,waterlogged=false,west=false:
+        state: ${base_block}[east=true,north=true,south=true,waterlogged=false,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 180
+          - item: ${fence_side_item}
+            rotation: 270
+      east=true,north=true,south=false,waterlogged=false,west=true:
+        state: ${base_block}[east=true,north=true,south=false,waterlogged=false,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 180
+          - item: ${fence_side_item}
+            rotation: 270
+      east=true,north=false,south=true,waterlogged=false,west=true:
+        state: ${base_block}[east=true,north=false,south=true,waterlogged=false,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 270
+      east=false,north=true,south=true,waterlogged=false,west=true:
+        state: ${base_block}[east=false,north=true,south=true,waterlogged=false,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 180
+      east=true,north=true,south=true,waterlogged=false,west=true:
+        state: ${base_block}[east=true,north=true,south=true,waterlogged=false,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 180
+          - item: ${fence_side_item}
+            rotation: 270
+      east=false,north=false,south=false,waterlogged=true,west=false:
+        state: ${base_block}[east=false,north=false,south=false,waterlogged=true,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+      east=true,north=false,south=false,waterlogged=true,west=false:
+        state: ${base_block}[east=true,north=false,south=false,waterlogged=true,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 270
+      east=false,north=true,south=false,waterlogged=true,west=false:
+        state: ${base_block}[east=false,north=true,south=false,waterlogged=true,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 180
+      east=false,north=false,south=true,waterlogged=true,west=false:
+        state: ${base_block}[east=false,north=false,south=true,waterlogged=true,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+      east=false,north=false,south=false,waterlogged=true,west=true:
+        state: ${base_block}[east=false,north=false,south=false,waterlogged=true,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 90
+      east=true,north=true,south=false,waterlogged=true,west=false:
+        state: ${base_block}[east=true,north=true,south=false,waterlogged=true,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 180
+          - item: ${fence_side_item}
+            rotation: 270
+      east=true,north=false,south=true,waterlogged=true,west=false:
+        state: ${base_block}[east=true,north=false,south=true,waterlogged=true,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 270
+      east=true,north=false,south=false,waterlogged=true,west=true:
+        state: ${base_block}[east=true,north=false,south=false,waterlogged=true,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 270
+      east=false,north=true,south=true,waterlogged=true,west=false:
+        state: ${base_block}[east=false,north=true,south=true,waterlogged=true,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 180
+      east=false,north=true,south=false,waterlogged=true,west=true:
+        state: ${base_block}[east=false,north=true,south=false,waterlogged=true,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 180
+      east=false,north=false,south=true,waterlogged=true,west=true:
+        state: ${base_block}[east=false,north=false,south=true,waterlogged=true,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 90
+      east=true,north=true,south=true,waterlogged=true,west=false:
+        state: ${base_block}[east=true,north=true,south=true,waterlogged=true,west=false]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 180
+          - item: ${fence_side_item}
+            rotation: 270
+      east=true,north=true,south=false,waterlogged=true,west=true:
+        state: ${base_block}[east=true,north=true,south=false,waterlogged=true,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 180
+          - item: ${fence_side_item}
+            rotation: 270
+      east=true,north=false,south=true,waterlogged=true,west=true:
+        state: ${base_block}[east=true,north=false,south=true,waterlogged=true,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 270
+      east=false,north=true,south=true,waterlogged=true,west=true:
+        state: ${base_block}[east=false,north=true,south=true,waterlogged=true,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 180
+      east=true,north=true,south=true,waterlogged=true,west=true:
+        state: ${base_block}[east=true,north=true,south=true,waterlogged=true,west=true]
+        entity-renderer:
+          - item: ${fence_post_item}
+            rotation: 180
+            scale: 1.0003
+            translation: 0,0.0001,0
+          - item: ${fence_side_item}
+            rotation: 0
+          - item: ${fence_side_item}
+            rotation: 90
+          - item: ${fence_side_item}
+            rotation: 180
+          - item: ${fence_side_item}
+            rotation: 270
+    variants:
+      waterlogged=true:
+        settings:
+          resistance: 1200.0
+          burnable: false
+          fluid-state: water
+      east=false,north=false,south=false,waterlogged=false,west=false:
+        appearance: east=false,north=false,south=false,waterlogged=false,west=false
+      east=true,north=false,south=false,waterlogged=false,west=false:
+        appearance: east=true,north=false,south=false,waterlogged=false,west=false
+      east=false,north=true,south=false,waterlogged=false,west=false:
+        appearance: east=false,north=true,south=false,waterlogged=false,west=false
+      east=false,north=false,south=true,waterlogged=false,west=false:
+        appearance: east=false,north=false,south=true,waterlogged=false,west=false
+      east=false,north=false,south=false,waterlogged=false,west=true:
+        appearance: east=false,north=false,south=false,waterlogged=false,west=true
+      east=true,north=true,south=false,waterlogged=false,west=false:
+        appearance: east=true,north=true,south=false,waterlogged=false,west=false
+      east=true,north=false,south=true,waterlogged=false,west=false:
+        appearance: east=true,north=false,south=true,waterlogged=false,west=false
+      east=true,north=false,south=false,waterlogged=false,west=true:
+        appearance: east=true,north=false,south=false,waterlogged=false,west=true
+      east=false,north=true,south=true,waterlogged=false,west=false:
+        appearance: east=false,north=true,south=true,waterlogged=false,west=false
+      east=false,north=true,south=false,waterlogged=false,west=true:
+        appearance: east=false,north=true,south=false,waterlogged=false,west=true
+      east=false,north=false,south=true,waterlogged=false,west=true:
+        appearance: east=false,north=false,south=true,waterlogged=false,west=true
+      east=true,north=true,south=true,waterlogged=false,west=false:
+        appearance: east=true,north=true,south=true,waterlogged=false,west=false
+      east=true,north=true,south=false,waterlogged=false,west=true:
+        appearance: east=true,north=true,south=false,waterlogged=false,west=true
+      east=true,north=false,south=true,waterlogged=false,west=true:
+        appearance: east=true,north=false,south=true,waterlogged=false,west=true
+      east=false,north=true,south=true,waterlogged=false,west=true:
+        appearance: east=false,north=true,south=true,waterlogged=false,west=true
+      east=true,north=true,south=true,waterlogged=false,west=true:
+        appearance: east=true,north=true,south=true,waterlogged=false,west=true
+      east=false,north=false,south=false,waterlogged=true,west=false:
+        appearance: east=false,north=false,south=false,waterlogged=true,west=false
+      east=true,north=false,south=false,waterlogged=true,west=false:
+        appearance: east=true,north=false,south=false,waterlogged=true,west=false
+      east=false,north=true,south=false,waterlogged=true,west=false:
+        appearance: east=false,north=true,south=false,waterlogged=true,west=false
+      east=false,north=false,south=true,waterlogged=true,west=false:
+        appearance: east=false,north=false,south=true,waterlogged=true,west=false
+      east=false,north=false,south=false,waterlogged=true,west=true:
+        appearance: east=false,north=false,south=false,waterlogged=true,west=true
+      east=true,north=true,south=false,waterlogged=true,west=false:
+        appearance: east=true,north=true,south=false,waterlogged=true,west=false
+      east=true,north=false,south=true,waterlogged=true,west=false:
+        appearance: east=true,north=false,south=true,waterlogged=true,west=false
+      east=true,north=false,south=false,waterlogged=true,west=true:
+        appearance: east=true,north=false,south=false,waterlogged=true,west=true
+      east=false,north=true,south=true,waterlogged=true,west=false:
+        appearance: east=false,north=true,south=true,waterlogged=true,west=false
+      east=false,north=true,south=false,waterlogged=true,west=true:
+        appearance: east=false,north=true,south=false,waterlogged=true,west=true
+      east=false,north=false,south=true,waterlogged=true,west=true:
+        appearance: east=false,north=false,south=true,waterlogged=true,west=true
+      east=true,north=true,south=true,waterlogged=true,west=false:
+        appearance: east=true,north=true,south=true,waterlogged=true,west=false
+      east=true,north=true,south=false,waterlogged=true,west=true:
+        appearance: east=true,north=true,south=false,waterlogged=true,west=true
+      east=true,north=false,south=true,waterlogged=true,west=true:
+        appearance: east=true,north=false,south=true,waterlogged=true,west=true
+      east=false,north=true,south=true,waterlogged=true,west=true:
+        appearance: east=false,north=true,south=true,waterlogged=true,west=true
+      east=true,north=true,south=true,waterlogged=true,west=true:
+        appearance: east=true,north=true,south=true,waterlogged=true,west=true
+
 # recipes
 templates#recipes:
   default:recipe/planks:
@@ -3142,7 +3094,7 @@ templates#recipes:
     category: building
     group: planks
     ingredients:
-      A: '#default:${wood_type}_logs'
+      - '#default:${wood_type}_logs'
     result:
       id: default:${wood_type}_planks
       count: 4

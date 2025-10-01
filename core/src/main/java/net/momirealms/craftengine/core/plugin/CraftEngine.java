@@ -51,7 +51,8 @@ public abstract class CraftEngine implements Plugin {
     protected PluginLogger logger;
     protected Config config;
     protected Platform platform;
-    protected ClassPathAppender classPathAppender;
+    protected ClassPathAppender sharedClassPathAppender;
+    protected ClassPathAppender privateClassPathAppender;
     protected DependencyManager dependencyManager;
     protected SchedulerAdapter<?> scheduler;
     protected NetworkManager networkManager;
@@ -91,6 +92,8 @@ public abstract class CraftEngine implements Plugin {
     protected CraftEngine(Consumer<CraftEngine> reloadEventDispatcher) {
         instance = this;
         this.reloadEventDispatcher = reloadEventDispatcher;
+        ((Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
+        ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
     }
 
     public static CraftEngine instance() {
@@ -101,11 +104,9 @@ public abstract class CraftEngine implements Plugin {
     }
 
     protected void onPluginLoad() {
-        RecipeDisplayTypes.register();
-        SlotDisplayTypes.register();
-        LegacyRecipeTypes.register();
-        ((Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
-        ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
+        RecipeDisplayTypes.init();
+        SlotDisplayTypes.init();
+        LegacyRecipeTypes.init();
     }
 
     public record ReloadResult(boolean success, long asyncTime, long syncTime) {
@@ -279,7 +280,7 @@ public abstract class CraftEngine implements Plugin {
         // register furniture parser
         this.packManager.registerConfigSectionParser(this.furnitureManager.parser());
         // register block parser
-        this.packManager.registerConfigSectionParser(this.blockManager.parser());
+        this.packManager.registerConfigSectionParsers(this.blockManager.parsers());
         // register recipe parser
         this.packManager.registerConfigSectionParser(this.recipeManager.parser());
         // register category parser
@@ -338,8 +339,13 @@ public abstract class CraftEngine implements Plugin {
     }
 
     @Override
-    public ClassPathAppender classPathAppender() {
-        return classPathAppender;
+    public ClassPathAppender sharedClassPathAppender() {
+        return sharedClassPathAppender;
+    }
+
+    @Override
+    public ClassPathAppender privateClassPathAppender() {
+        return privateClassPathAppender;
     }
 
     @Override

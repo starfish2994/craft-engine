@@ -27,7 +27,7 @@ public class ExpressionCondition<CTX extends Context> implements Condition<CTX> 
 
     @Override
     public boolean test(CTX ctx) {
-        String exp = expression.get(ctx);
+        String exp = this.expression.get(ctx);
         Expression expr = new Expression(exp);
         try {
             return expr.evaluate().getBooleanValue();
