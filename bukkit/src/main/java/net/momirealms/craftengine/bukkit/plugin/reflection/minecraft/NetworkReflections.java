@@ -1677,4 +1677,19 @@ public final class NetworkReflections {
             ReflectionUtils.getConstructor(clazz$ClientboundUpdateAdvancementsPacket, boolean.class, Collection.class, Set.class, Map.class, boolean.class) :
             ReflectionUtils.getConstructor(clazz$ClientboundUpdateAdvancementsPacket, boolean.class, Collection.class, Set.class, Map.class)
     );
+
+    public static final Class<?> clazz$ClientboundStopSoundPacket = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "network.protocol.game.PacketPlayOutStopSound",
+                    "network.protocol.game.ClientboundStopSoundPacket"
+            )
+    );
+
+    public static final Constructor<?> constructor$ClientboundStopSoundPacket = requireNonNull(
+            ReflectionUtils.getDeclaredConstructor(
+                    clazz$ClientboundStopSoundPacket,
+                    CoreReflections.clazz$ResourceLocation,
+                    CoreReflections.clazz$SoundSource
+            )
+    );
 }

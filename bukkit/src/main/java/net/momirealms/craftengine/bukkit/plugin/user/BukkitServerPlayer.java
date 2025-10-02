@@ -379,7 +379,7 @@ public class BukkitServerPlayer extends Player {
     @SuppressWarnings("unchecked")
     @Override
     public void giveItem(Item<?> item) {
-        PlayerUtils.giveItem(platformPlayer(), item.count(), (Item<ItemStack>) item);
+        PlayerUtils.giveItem(this, item.count(), (Item<ItemStack>) item);
     }
 
     @Override
