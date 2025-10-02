@@ -1,5 +1,8 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -7,6 +10,7 @@ import net.momirealms.craftengine.core.block.parser.BlockStateParser;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.FlagKeys;
+import net.momirealms.craftengine.core.plugin.command.sender.Sender;
 import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.Command;
@@ -38,7 +42,11 @@ public class DebugGetBlockInternalIdCommand extends BukkitCommandFeature<Command
                     String data = context.get("id");
                     ImmutableBlockState state = BlockStateParser.deserialize(data);
                     if (state == null) return;
-                    context.sender().sendMessage(BlockStateUtils.getBlockOwnerIdFromState(state.customBlockState().literalObject()).toString());
+                    String id = BlockStateUtils.getBlockOwnerIdFromState(state.customBlockState().literalObject()).toString();
+                    Sender sender = plugin().senderFactory().wrap(context.sender());
+                    sender.sendMessage(Component.text(id)
+                            .hoverEvent(Component.text("Copy", NamedTextColor.YELLOW))
+                            .clickEvent(ClickEvent.suggestCommand(id)));
                 });
     }
 

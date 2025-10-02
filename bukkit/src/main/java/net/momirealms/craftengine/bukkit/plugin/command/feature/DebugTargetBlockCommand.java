@@ -1,8 +1,9 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -11,7 +12,6 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.sender.Sender;
-import net.momirealms.craftengine.core.plugin.config.Config;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -44,13 +44,18 @@ public class DebugTargetBlockCommand extends BukkitCommandFeature<CommandSender>
                     String bData = block.getBlockData().getAsString();
                     Object blockState = BlockStateUtils.blockDataToBlockState(block.getBlockData());
                     Sender sender = plugin().senderFactory().wrap(context.sender());
-                    sender.sendMessage(Component.text(bData));
+                    sender.sendMessage(Component.text(bData)
+                            .hoverEvent(Component.text("Copy", NamedTextColor.YELLOW))
+                            .clickEvent(ClickEvent.suggestCommand(bData)));
                     int id = BlockStateUtils.blockStateToId(blockState);
                     if (!BlockStateUtils.isVanillaBlock(id)) {
                         Object holder = BukkitBlockManager.instance().getMinecraftBlockHolder(id);
                         ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockState(id);
                         if (immutableBlockState != null) {
-                            sender.sendMessage(Component.text(immutableBlockState.toString()));
+                            String bState = immutableBlockState.toString();
+                            sender.sendMessage(Component.text(bState)
+                                    .hoverEvent(Component.text("Copy", NamedTextColor.YELLOW))
+                                    .clickEvent(ClickEvent.suggestCommand(bState)));
                         }
                         ImmutableBlockState dataInCache = plugin().worldManager().getWorld(block.getWorld().getUID()).getBlockStateAtIfLoaded(LocationUtils.toBlockPos(block.getLocation()));
                         sender.sendMessage(Component.text("cache-state: " + (dataInCache != null && !dataInCache.isEmpty())));
