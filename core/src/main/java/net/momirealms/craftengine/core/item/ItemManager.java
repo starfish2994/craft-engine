@@ -102,7 +102,9 @@ public interface ItemManager<T> extends Manageable, ModelGenerator {
 
     int fuelTime(Key id);
 
-    Collection<Suggestion> cachedSuggestions();
+    Collection<Suggestion> cachedCustomItemSuggestions();
+
+    Collection<Suggestion> cachedAllItemSuggestions();
 
     Collection<Suggestion> cachedTotemSuggestions();
 

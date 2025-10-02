@@ -5,8 +5,6 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
@@ -378,9 +376,10 @@ public class BukkitServerPlayer extends Player {
         platformPlayer().playSound(new Location(null, pos.x(), pos.y(), pos.z()), sound.toString(), SoundUtils.toBukkit(source), volume, pitch);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void giveItem(Item<?> item) {
-        PlayerUtils.giveItem(platformPlayer(), (ItemStack) item.getItem(), item.count());
+        PlayerUtils.giveItem(platformPlayer(), item.count(), (Item<ItemStack>) item);
     }
 
     @Override
