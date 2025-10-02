@@ -1,17 +1,18 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.util.PlayerUtils;
 import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.FlagKeys;
 import net.momirealms.craftengine.core.plugin.locale.MessageConstants;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -40,19 +41,17 @@ public class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder
                 .flag(FlagKeys.SILENT_FLAG)
-                .flag(FlagKeys.TO_INVENTORY_FLAG)
                 .required("player", MultiplePlayerSelectorParser.multiplePlayerSelectorParser(true))
                 .required("id", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
-                        return CompletableFuture.completedFuture(plugin().itemManager().cachedSuggestions());
+                        return CompletableFuture.completedFuture(plugin().itemManager().cachedCustomItemSuggestions());
                     }
                 }))
-                .optional("amount", IntegerParser.integerParser(1, 6400))
+                .optional("amount", IntegerParser.integerParser(1, 9999))
                 .handler(context -> {
                     MultiplePlayerSelector selector = context.get("player");
                     int amount = context.getOrDefault("amount", 1);
-                    boolean toInv = context.flags().hasFlag(FlagKeys.TO_INVENTORY);
                     NamespacedKey namespacedKey = context.get("id");
                     Key itemId = Key.of(namespacedKey.namespace(), namespacedKey.value());
                     CustomItem<ItemStack> customItem = CraftEngineItems.byId(itemId);
@@ -67,30 +66,9 @@ public class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
                     }
                     Collection<Player> players = selector.values();
                     for (Player player : players) {
-                        ItemStack builtItem = customItem.buildItemStack(plugin().adapt(player));
-                        if (builtItem == null) {
-                            return;
-                        }
-                        int amountToGive = amount;
-                        int maxStack = builtItem.getMaxStackSize();
-                        while (amountToGive > 0) {
-                            int perStackSize = Math.min(maxStack, amountToGive);
-                            amountToGive -= perStackSize;
-                            ItemStack more = builtItem.clone();
-                            more.setAmount(perStackSize);
-                            if (toInv) {
-                                if (VersionHelper.isFolia()) {
-                                    player.getScheduler().run(plugin().javaPlugin(), (t) -> PlayerUtils.putItemsToInventory(player.getInventory(), more, more.getAmount()), () -> {});
-                                } else {
-                                    PlayerUtils.putItemsToInventory(player.getInventory(), more, more.getAmount());
-                                }
-                            } else {
-                                if (VersionHelper.isFolia()) {
-                                    player.getScheduler().run(plugin().javaPlugin(), (t) -> PlayerUtils.dropItem(player, more, false, true, false), () -> {});
-                                } else {
-                                    PlayerUtils.dropItem(player, more, false, true, false);
-                                }
-                            }
+                        Item<ItemStack> builtItem = customItem.buildItem(BukkitAdaptors.adapt(player));
+                        if (builtItem != null) {
+                            PlayerUtils.giveItem(player, amount, builtItem);
                         }
                     }
                     if (players.size() == 1) {

@@ -1,11 +1,13 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.util.PlayerUtils;
 import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.FlagKeys;
@@ -37,18 +39,16 @@ public class GetItemCommand extends BukkitCommandFeature<CommandSender> {
         return builder
                 .senderType(Player.class)
                 .flag(FlagKeys.SILENT_FLAG)
-                .flag(FlagKeys.TO_INVENTORY_FLAG)
                 .required("id", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
-                        return CompletableFuture.completedFuture(plugin().itemManager().cachedSuggestions());
+                        return CompletableFuture.completedFuture(plugin().itemManager().cachedCustomItemSuggestions());
                     }
                 }))
-                .optional("amount", IntegerParser.integerParser(1, 6400))
+                .optional("amount", IntegerParser.integerParser(1, 9999))
                 .handler(context -> {
                     Player player = context.sender();
                     int amount = context.getOrDefault("amount", 1);
-                    boolean toInv = context.flags().hasFlag(FlagKeys.TO_INVENTORY);
                     NamespacedKey namespacedKey = context.get("id");
                     Key itemId = Key.of(namespacedKey.namespace(), namespacedKey.value());
                     CustomItem<ItemStack> customItem = CraftEngineItems.byId(itemId);
@@ -61,23 +61,15 @@ public class GetItemCommand extends BukkitCommandFeature<CommandSender> {
                             itemId = customItem.id();
                         }
                     }
-                    ItemStack builtItem = customItem.buildItemStack(plugin().adapt(context.sender()));
-                    int amountToGive = amount;
-                    int maxStack = builtItem.getMaxStackSize();
-                    while (amountToGive > 0) {
-                        int perStackSize = Math.min(maxStack, amountToGive);
-                        amountToGive -= perStackSize;
-                        ItemStack more = builtItem.clone();
-                        more.setAmount(perStackSize);
-                        if (toInv) {
-                            PlayerUtils.putItemsToInventory(player.getInventory(), more, more.getAmount());
-                        } else {
-                            PlayerUtils.dropItem(player, more, false, true, false);
-                        }
+                    Item<ItemStack> builtItem = customItem.buildItem(BukkitAdaptors.adapt(player));
+                    if (builtItem != null) {
+                        PlayerUtils.giveItem(player, amount, builtItem);
                     }
                     handleFeedback(context, MessageConstants.COMMAND_ITEM_GET_SUCCESS, Component.text(amount), Component.text(itemId.toString()));
                 });
     }
+
+
 
     @Override
     public String getFeatureID() {

@@ -27,6 +27,7 @@ import net.momirealms.craftengine.core.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -402,6 +403,7 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
                 Object resourceLocation = FastNMS.INSTANCE.method$Registry$getKey(MBuiltInRegistries.ITEM, item);
                 Key itemKey = KeyUtils.resourceLocationToKey(resourceLocation);
                 VANILLA_ITEMS.add(itemKey);
+                super.cachedVanillaItemSuggestions.add(Suggestion.suggestion(itemKey.asString()));
                 UniqueKey uniqueKey = UniqueKey.create(itemKey);
                 Object mcHolder = FastNMS.INSTANCE.method$Registry$getHolderByResourceKey(MBuiltInRegistries.ITEM, FastNMS.INSTANCE.method$ResourceKey$create(MRegistries.ITEM, resourceLocation)).get();
                 Set<Object> tags = (Set<Object>) CoreReflections.field$Holder$Reference$tags.get(mcHolder);

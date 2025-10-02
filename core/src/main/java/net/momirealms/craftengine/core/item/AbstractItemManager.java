@@ -59,7 +59,9 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
     protected final Map<Key, TreeMap<Integer, ModernItemModel>> modernOverrides = new HashMap<>();
     protected final Map<Key, Equipment> equipments = new HashMap<>();
     // Cached command suggestions
-    protected final List<Suggestion> cachedSuggestions = new ArrayList<>();
+    protected final List<Suggestion> cachedCustomItemSuggestions = new ArrayList<>();
+    protected final List<Suggestion> cachedAllItemSuggestions = new ArrayList<>();
+    protected final List<Suggestion> cachedVanillaItemSuggestions = new ArrayList<>();
     protected final List<Suggestion> cachedTotemSuggestions = new ArrayList<>();
 
     protected AbstractItemManager(CraftEngine plugin) {
@@ -130,7 +132,8 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         super.clearModelsToGenerate();
         this.customItemsById.clear();
         this.customItemsByPath.clear();
-        this.cachedSuggestions.clear();
+        this.cachedCustomItemSuggestions.clear();
+        this.cachedAllItemSuggestions.clear();
         this.cachedTotemSuggestions.clear();
         this.legacyOverrides.clear();
         this.modernOverrides.clear();
@@ -181,7 +184,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         this.customItemsByPath.put(id.value(), customItem);
         if (!customItem.isVanillaItem()) {
             // cache command suggestions
-            this.cachedSuggestions.add(Suggestion.suggestion(id.toString()));
+            this.cachedCustomItemSuggestions.add(Suggestion.suggestion(id.toString()));
             // totem animations
             if (VersionHelper.isOrAbove1_21_2()) {
                 this.cachedTotemSuggestions.add(Suggestion.suggestion(id.toString()));
@@ -208,8 +211,13 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
     }
 
     @Override
-    public Collection<Suggestion> cachedSuggestions() {
-        return Collections.unmodifiableCollection(this.cachedSuggestions);
+    public Collection<Suggestion> cachedCustomItemSuggestions() {
+        return Collections.unmodifiableCollection(this.cachedCustomItemSuggestions);
+    }
+
+    @Override
+    public Collection<Suggestion> cachedAllItemSuggestions() {
+        return Collections.unmodifiableCollection(this.cachedAllItemSuggestions);
     }
 
     @Override
@@ -237,6 +245,12 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 return Optional.empty();
             }
         }
+    }
+
+    @Override
+    public void delayedLoad() {
+        this.cachedAllItemSuggestions.addAll(this.cachedVanillaItemSuggestions);
+        this.cachedAllItemSuggestions.addAll(this.cachedCustomItemSuggestions);
     }
 
     @Override
