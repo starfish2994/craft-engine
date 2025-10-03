@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentIteratorType;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -18,6 +19,7 @@ import net.momirealms.sparrow.nbt.adventure.NBTComponentSerializer;
 import net.momirealms.sparrow.nbt.adventure.NBTSerializerOptions;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -52,32 +54,30 @@ public class AdventureHelper {
         this.miniMessage = MiniMessage.builder().build();
         this.miniMessageStrict = MiniMessage.builder().strict(true).build();
         this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.empty()).build();
-        GsonComponentSerializer.Builder builder = GsonComponentSerializer.builder();
+        GsonComponentSerializer.Builder gsonBuilder = GsonComponentSerializer.builder();
         if (!VersionHelper.isOrAbove1_20_5()) {
-            builder.legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get());
-            builder.editOptions((b) -> b.value(JSONOptions.EMIT_HOVER_SHOW_ENTITY_ID_AS_INT_ARRAY, false));
+            gsonBuilder.legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get());
+            gsonBuilder.editOptions((b) -> b.value(JSONOptions.EMIT_HOVER_SHOW_ENTITY_ID_AS_INT_ARRAY, false));
         }
         if (!VersionHelper.isOrAbove1_21_5()) {
-            builder.editOptions((b) -> {
+            gsonBuilder.editOptions((b) -> {
                 b.value(JSONOptions.EMIT_CLICK_EVENT_TYPE, JSONOptions.ClickEventValueMode.CAMEL_CASE);
                 b.value(JSONOptions.EMIT_HOVER_EVENT_TYPE, JSONOptions.HoverEventValueMode.CAMEL_CASE);
                 b.value(JSONOptions.EMIT_HOVER_SHOW_ENTITY_KEY_AS_TYPE_AND_UUID_AS_ID, true);
             });
         }
         this.legacyComponentSerializer = LegacyComponentSerializer.builder().build();
-        this.gsonComponentSerializer = builder.build();
+        this.gsonComponentSerializer = gsonBuilder.build();
         this.nbtComponentSerializer = NBTComponentSerializer.builder()
-                .editItem(item -> {
-                    if (VersionHelper.isOrAbove1_20_5()) {
-                    }
-                })
                 .editOptions((b) -> {
                     if (!VersionHelper.isOrAbove1_21_5()) {
                         b.value(NBTSerializerOptions.EMIT_CLICK_EVENT_TYPE, false);
                         b.value(NBTSerializerOptions.EMIT_HOVER_EVENT_TYPE, false);
                     }
-                })
-                .build();
+                    if (!VersionHelper.isOrAbove1_20_5()) {
+                        b.value(NBTSerializerOptions.DATA_COMPONENT_RELEASE, false);
+                    }
+                }).build();
     }
 
     private static class SingletonHolder {
@@ -168,6 +168,19 @@ public class AdventureHelper {
 
     public static Component tagToComponent(Tag tag) {
         return getNBT().deserialize(tag);
+    }
+
+    public static Component replaceShowItem(Component component, Function<HoverEvent.ShowItem, HoverEvent.ShowItem> replacer) {
+        HoverEvent<?> hoverEvent = component.hoverEvent();
+        if (hoverEvent != null && hoverEvent.action() == HoverEvent.Action.SHOW_ITEM) {
+            Object showItem = hoverEvent.value();
+            component = component.hoverEvent(HoverEvent.showItem(replacer.apply((HoverEvent.ShowItem) showItem)));
+        }
+        List<Component> newChildren = new ArrayList<>();
+        for (Component child : component.children()) {
+            newChildren.add(replaceShowItem(child, replacer));
+        }
+        return component.children(newChildren);
     }
 
     public static List<Component> splitLines(Component component) {
@@ -301,6 +314,7 @@ public class AdventureHelper {
     }
 
     public static Component replaceText(Component text, Map<String, ComponentProvider> replacements, Context context) {
+        if (replacements.isEmpty()) return text;
         String patternString = replacements.keySet().stream()
                 .map(Pattern::quote)
                 .collect(Collectors.joining("|"));

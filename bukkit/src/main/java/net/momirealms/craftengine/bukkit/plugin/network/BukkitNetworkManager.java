@@ -2,8 +2,11 @@ package net.momirealms.craftengine.bukkit.plugin.network;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.DataResult;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -15,7 +18,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.kyori.adventure.nbt.api.BinaryTagHolder;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.DataComponentValue;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureAttemptBreakEvent;
@@ -84,7 +90,9 @@ import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import net.momirealms.craftengine.core.world.chunk.packet.BlockEntityData;
 import net.momirealms.craftengine.core.world.chunk.packet.MCSection;
 import net.momirealms.craftengine.core.world.collision.AABB;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
+import net.momirealms.sparrow.nbt.adventure.NBTDataComponentValue;
 import org.bukkit.*;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -2377,39 +2385,122 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         }
     }
 
-    public static class SystemChatListener1_20 implements ByteBufferPacketListener {
+    @SuppressWarnings("all")
+    public HoverEvent.ShowItem replaceShowItem(HoverEvent.ShowItem showItem, BukkitServerPlayer player) {
+        Object nmsItemStack;
+        if (VersionHelper.COMPONENT_RELEASE) {
+            CompoundTag itemTag = new CompoundTag();
+            itemTag.putInt("count", showItem.count());
+            itemTag.putString("id", showItem.item().asMinimalString());
+            Map<net.kyori.adventure.key.Key, DataComponentValue> components = showItem.dataComponents();
+            if (!components.isEmpty()) {
+                CompoundTag componentsTag = new CompoundTag();
+                Map<net.kyori.adventure.key.Key, NBTDataComponentValue> componentsMap = showItem.dataComponentsAs(NBTDataComponentValue.class);
+                for (Map.Entry<net.kyori.adventure.key.Key, NBTDataComponentValue> entry : componentsMap.entrySet()) {
+                    componentsTag.put(entry.getKey().asMinimalString(), entry.getValue().tag());
+                }
+                itemTag.put("components", componentsTag);
+            }
+            DataResult<Object> nmsItemStackResult = CoreReflections.instance$ItemStack$CODEC.parse(MRegistryOps.SPARROW_NBT, itemTag);
+            Optional<Object> result = nmsItemStackResult.result();
+            if (result.isEmpty()) {
+                return showItem;
+            }
+            nmsItemStack = result.get();
+        } else {
+            Object compoundTag = FastNMS.INSTANCE.constructor$CompoundTag();
+            FastNMS.INSTANCE.method$CompoundTag$put(compoundTag, "Count", FastNMS.INSTANCE.constructor$IntTag(showItem.count()));
+            FastNMS.INSTANCE.method$CompoundTag$put(compoundTag, "id", FastNMS.INSTANCE.constructor$StringTag(showItem.item().asMinimalString()));
+            BinaryTagHolder nbt = showItem.nbt();
+            if (nbt != null) {
+                try {
+                    Object nmsTag = FastNMS.INSTANCE.method$TagParser$parseCompoundFully(nbt.string());
+                    FastNMS.INSTANCE.method$CompoundTag$put(compoundTag, "tag", nmsTag);
+                } catch (CommandSyntaxException ignored) {
+                    return showItem;
+                }
+            }
+            nmsItemStack = FastNMS.INSTANCE.method$ItemStack$of(compoundTag);
+        }
+
+        Item<ItemStack> wrap = this.plugin.itemManager().wrap(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsItemStack));
+        Item<ItemStack> clientBoundItem = this.plugin.itemManager().s2c(wrap, player);
+        if (clientBoundItem.isEmpty()) {
+            return showItem;
+        }
+        net.kyori.adventure.key.Key id = KeyUtils.toAdventureKey(clientBoundItem.vanillaId());
+        int count = clientBoundItem.count();
+        if (VersionHelper.COMPONENT_RELEASE) {
+            DataResult<Tag> tagDataResult = CoreReflections.instance$ItemStack$CODEC.encodeStart(MRegistryOps.SPARROW_NBT, clientBoundItem.getLiteralObject());
+            Optional<Tag> result = tagDataResult.result();
+            if (result.isEmpty()) {
+                return showItem;
+            }
+            CompoundTag itemTag = (CompoundTag) result.get();
+            CompoundTag componentsTag = itemTag.getCompound("components");
+            if (componentsTag != null) {
+                Map<net.kyori.adventure.key.Key, NBTDataComponentValue> componentsMap = new HashMap<>();
+                for (Map.Entry<String, Tag> entry : componentsTag.entrySet()) {
+                    componentsMap.put(net.kyori.adventure.key.Key.key(entry.getKey()), NBTDataComponentValue.of(entry.getValue()));
+                }
+                return HoverEvent.ShowItem.showItem(id, count, componentsMap);
+            } else {
+                return HoverEvent.ShowItem.showItem(id, count);
+            }
+        } else {
+            Object tag = FastNMS.INSTANCE.method$ItemStack$getTag(clientBoundItem.getLiteralObject());
+            if (tag != null) {
+                return HoverEvent.ShowItem.showItem(id, count, BinaryTagHolder.binaryTagHolder(tag.toString()));
+            } else {
+                return HoverEvent.ShowItem.showItem(id, count);
+            }
+        }
+    }
+
+    public class SystemChatListener1_20 implements ByteBufferPacketListener {
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptSystemChat()) return;
             FriendlyByteBuf buf = event.getBuffer();
             String jsonOrPlainString = buf.readUtf();
-            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(jsonOrPlainString);
-            if (tokens.isEmpty()) return;
+            Tag tag = MRegistryOps.JSON.convertTo(MRegistryOps.SPARROW_NBT, GsonHelper.get().fromJson(jsonOrPlainString, JsonElement.class));
+            Component component = AdventureHelper.nbtToComponent(tag);
             boolean overlay = buf.readBoolean();
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
-            buf.writeUtf(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(jsonOrPlainString), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))));
+            if (Config.interceptSystemChat()) {
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(jsonOrPlainString);
+                if (!tokens.isEmpty()) {
+                    component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
+                }
+            }
+            component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            buf.writeUtf(MRegistryOps.SPARROW_NBT.convertTo(MRegistryOps.JSON, AdventureHelper.componentToNbt(component)).toString());
             buf.writeBoolean(overlay);
         }
     }
 
-    public static class SystemChatListener1_20_3 implements ByteBufferPacketListener {
+    public class SystemChatListener1_20_3 implements ByteBufferPacketListener {
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptSystemChat()) return;
             FriendlyByteBuf buf = event.getBuffer();
             Tag nbt = buf.readNbt(false);
             if (nbt == null) return;
-            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt.getAsString());
-            if (tokens.isEmpty()) return;
             boolean overlay = buf.readBoolean();
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
-            buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
+            Component component = AdventureHelper.tagToComponent(nbt);
+            if (Config.interceptSystemChat()) {
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt.getAsString());
+                if (!tokens.isEmpty()) {
+                    component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
+                }
+            }
+            component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            buf.writeNbt(AdventureHelper.componentToTag(component), false);
             buf.writeBoolean(overlay);
         }
     }
