@@ -52,8 +52,7 @@ items:
     data:
       item-name: <!i><#FF8C00><i18n:item.topaz_pickaxe>
       tooltip-style: minecraft:topaz
-      components:
-        minecraft:max_damage: 64
+      max-damage: 64
     model:
       template: default:model/simplified_handheld
       arguments:
@@ -66,8 +65,7 @@ items:
     data:
       item-name: <!i><#FF8C00><i18n:item.topaz_axe>
       tooltip-style: minecraft:topaz
-      components:
-        minecraft:max_damage: 64
+      max-damage: 64
     model:
       template: default:model/simplified_handheld
       arguments:
@@ -80,8 +78,7 @@ items:
     data:
       item-name: <!i><#FF8C00><i18n:item.topaz_hoe>
       tooltip-style: minecraft:topaz
-      components:
-        minecraft:max_damage: 64
+      max-damage: 64
     model:
       template: default:model/simplified_handheld
       arguments:
@@ -94,8 +91,7 @@ items:
     data:
       item-name: <!i><#FF8C00><i18n:item.topaz_shovel>
       tooltip-style: minecraft:topaz
-      components:
-        minecraft:max_damage: 64
+      max-damage: 64
     model:
       template: default:model/simplified_handheld
       arguments:
@@ -108,8 +104,7 @@ items:
     data:
       item-name: <!i><#FF8C00><i18n:item.topaz_sword>
       tooltip-style: minecraft:topaz
-      components:
-        minecraft:max_damage: 64
+      max-damage: 64
     model:
       template: default:model/simplified_handheld
       arguments:
@@ -129,8 +124,7 @@ items:
       data:
         item-name: <!i><#FF8C00><i18n:item.topaz_trident>
         tooltip-style: minecraft:topaz
-        components:
-          minecraft:max_damage: 300
+        max-damage: 300
       model:
         type: minecraft:select
         property: minecraft:display_context
