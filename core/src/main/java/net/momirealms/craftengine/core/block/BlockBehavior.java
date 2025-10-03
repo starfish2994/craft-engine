@@ -100,8 +100,7 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    // 1.20.1~1.21.8 BlockState state, Level level, BlockPos pos
-    // 1.21.9+ BlockState state, Level level, BlockPos pos
+    // BlockState state, Level level, BlockPos pos
     public int getAnalogOutputSignal(Object thisBlock, Object[] args) throws Exception {
         return 0;
     }
@@ -143,6 +142,7 @@ public abstract class BlockBehavior {
 
     // 1.20-1.21.4 BlockState state, Level level, BlockPos pos, Entity entity
     // 1.21.5+ BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier
+    // 1.21.10+ BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean flag
     public void entityInside(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
     }
 

@@ -3547,9 +3547,11 @@ public final class CoreReflections {
     );
 
     public static final Method method$BlockBehaviour$entityInside = requireNonNull(
-            VersionHelper.isOrAbove1_21_5() ?
-                    ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity, clazz$InsideBlockEffectApplier) :
-                    ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity)
+            VersionHelper.isOrAbove1_21_10()
+                    ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity, clazz$InsideBlockEffectApplier, boolean.class)
+                    : VersionHelper.isOrAbove1_21_5()
+                        ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity, clazz$InsideBlockEffectApplier)
+                        : ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity)
     );
 
     // 1.21.5+
