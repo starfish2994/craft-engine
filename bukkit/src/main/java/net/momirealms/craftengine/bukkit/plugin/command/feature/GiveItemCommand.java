@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
+import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.PlayerUtils;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.Item;
@@ -66,9 +67,10 @@ public class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
                     }
                     Collection<Player> players = selector.values();
                     for (Player player : players) {
-                        Item<ItemStack> builtItem = customItem.buildItem(BukkitAdaptors.adapt(player));
+                        BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+                        Item<ItemStack> builtItem = customItem.buildItem(serverPlayer);
                         if (builtItem != null) {
-                            PlayerUtils.giveItem(player, amount, builtItem);
+                            PlayerUtils.giveItem(serverPlayer, amount, builtItem);
                         }
                     }
                     if (players.size() == 1) {

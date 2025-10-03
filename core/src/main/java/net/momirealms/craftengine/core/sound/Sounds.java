@@ -43,4 +43,5 @@ public final class Sounds {
     public static final Key BAMBOO_WOOD_BUTTON_CLICK_ON = Key.of("block.bamboo_wood_button.click_on");
     public static final Key WOODEN_BUTTON_CLICK_OFF = Key.of("block.wooden_button.click_off");
     public static final Key WOODEN_BUTTON_CLICK_ON = Key.of("block.wooden_button.click_on");
+    public static final Key ENTITY_ITEM_PICKUP = Key.of("entity.item.pickup");
 }
