@@ -172,6 +172,7 @@ public abstract class CraftEngine implements Plugin {
                 // collect illegal characters from minecraft:default font
                 this.fontManager.delayedLoad();
                 this.advancementManager.delayedLoad();
+                this.soundManager.delayedLoad();
                 if (reloadRecipe) {
                     // convert data pack recipes
                     this.recipeManager.delayedLoad();

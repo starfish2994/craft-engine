@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.util;
 
 import com.mojang.datafixers.util.Pair;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.item.ComponentTypes;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
@@ -56,15 +57,19 @@ public final class PlayerUtils {
         }
     }
 
-    public static void sendTotemAnimation(Player player, Item<ItemStack> totem, @Nullable SoundData sound) {
+    public static void sendTotemAnimation(Player player, Item<ItemStack> totem, @Nullable SoundData sound, boolean removeSound) {
         List<Object> packets = new ArrayList<>();
         try {
             Object totemItem = totem.getLiteralObject();
             Item<?> previousMainHandItem = player.getItemInHand(InteractionHand.MAIN_HAND);
-            boolean flag = previousMainHandItem.id().equals(ItemKeys.TOTEM_OF_UNDYING);
+            boolean isMainHandTotem;
+            if (VersionHelper.isOrAbove1_21_2()) {
+                isMainHandTotem = previousMainHandItem.hasComponent(ComponentTypes.DEATH_PROTECTION);
+            } else {
+                isMainHandTotem = previousMainHandItem.id().equals(ItemKeys.TOTEM_OF_UNDYING);
+            }
             Object previousOffHandItem = player.getItemInHand(InteractionHand.OFF_HAND).getLiteralObject();
-
-            if (flag) {
+            if (isMainHandTotem) {
                 packets.add(NetworkReflections.constructor$ClientboundSetEquipmentPacket.newInstance(
                         player.entityID(), List.of(Pair.of(CoreReflections.instance$EquipmentSlot$MAINHAND, BukkitItemManager.instance().uniqueEmptyItem().item().getLiteralObject()))
                 ));
@@ -73,7 +78,7 @@ public final class PlayerUtils {
                     player.entityID(), List.of(Pair.of(CoreReflections.instance$EquipmentSlot$OFFHAND, totemItem))
             ));
             packets.add(NetworkReflections.constructor$ClientboundEntityEventPacket.newInstance(player.serverPlayer(), (byte) 35));
-            if (flag) {
+            if (isMainHandTotem) {
                 packets.add(NetworkReflections.constructor$ClientboundSetEquipmentPacket.newInstance(
                         player.entityID(), List.of(Pair.of(CoreReflections.instance$EquipmentSlot$MAINHAND, previousMainHandItem.getLiteralObject()))
                 ));
@@ -81,12 +86,13 @@ public final class PlayerUtils {
             packets.add(NetworkReflections.constructor$ClientboundSetEquipmentPacket.newInstance(
                     player.entityID(), List.of(Pair.of(CoreReflections.instance$EquipmentSlot$OFFHAND, previousOffHandItem))
             ));
-
-            if (sound != null) {
+            if (sound != null || removeSound) {
                 packets.add(NetworkReflections.constructor$ClientboundStopSoundPacket.newInstance(
                         FastNMS.INSTANCE.method$ResourceLocation$fromNamespaceAndPath("minecraft", "item.totem.use"),
                         CoreReflections.instance$SoundSource$PLAYERS
                 ));
+            }
+            if (sound != null) {
                 packets.add(FastNMS.INSTANCE.constructor$ClientboundSoundPacket(
                         FastNMS.INSTANCE.method$Holder$direct(FastNMS.INSTANCE.constructor$SoundEvent(KeyUtils.toResourceLocation(sound.id()), Optional.empty())),
                         CoreReflections.instance$SoundSource$PLAYERS,
@@ -94,7 +100,6 @@ public final class PlayerUtils {
                         RandomUtils.generateRandomLong()
                 ));
             }
-
             player.sendPackets(packets, false);
         } catch (ReflectiveOperationException e) {
             BukkitCraftEngine.instance().logger().warn("Failed to send totem animation");

@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.*;
+import org.incendo.cloud.suggestion.Suggestion;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -21,6 +22,7 @@ public abstract class AbstractSoundManager implements SoundManager {
     protected final SoundParser soundParser;
     protected final SongParser songParser;
     protected final Map<Integer, Key> customSoundsInRegistry = new HashMap<>();
+    protected final List<Suggestion> soundSuggestions = new ArrayList<>();
 
     public AbstractSoundManager(CraftEngine plugin) {
         this.plugin = plugin;
@@ -43,6 +45,22 @@ public abstract class AbstractSoundManager implements SoundManager {
         this.byId.clear();
         this.byNamespace.clear();
         this.songs.clear();
+        this.soundSuggestions.clear();
+    }
+
+    @Override
+    public void delayedLoad() {
+        for (Key key : VANILLA_SOUND_EVENTS) {
+            this.soundSuggestions.add(Suggestion.suggestion(key.asString()));
+        }
+        for (Key key : this.byId.keySet()) {
+            this.soundSuggestions.add(Suggestion.suggestion(key.asString()));
+        }
+    }
+
+    @Override
+    public List<Suggestion> cachedSoundSuggestions() {
+        return this.soundSuggestions;
     }
 
     @Override

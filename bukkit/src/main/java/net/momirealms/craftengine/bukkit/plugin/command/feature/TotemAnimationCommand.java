@@ -30,10 +30,12 @@ import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
 import org.incendo.cloud.parser.flag.CommandFlag;
+import org.incendo.cloud.parser.standard.FloatParser;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
@@ -46,6 +48,7 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
     public Command.Builder<? extends CommandSender> assembleCommand(CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder
                 .flag(FlagKeys.SILENT_FLAG)
+                .flag(CommandFlag.builder("no-sound"))
                 .required("players", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .required("id", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
@@ -53,7 +56,16 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
                         return CompletableFuture.completedFuture(plugin().itemManager().cachedTotemSuggestions());
                     }
                 }))
-                .flag(CommandFlag.builder("sound").withComponent(NamespacedKeyParser.namespacedKeyParser()).build())
+                .optional("sound", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
+                    @Override
+                    public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
+                        return CompletableFuture.completedFuture(plugin().soundManager().cachedSoundSuggestions());
+                    }
+                }))
+                .optional("volume", FloatParser.floatParser(0f))
+                .optional("pitch", FloatParser.floatParser(0f, 2f))
+                .optional("min-volume", FloatParser.floatParser(0f))
+                .optional("min-pitch", FloatParser.floatParser(0f, 2f))
                 .handler(context -> {
                     NamespacedKey namespacedKey = context.get("id");
                     Key key = Key.of(namespacedKey.namespace(), namespacedKey.value());
@@ -62,6 +74,16 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
                         handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.toString()));
                         return;
                     }
+                    Optional<NamespacedKey> soundKey = context.optional("sound");
+                    SoundData soundData = null;
+                    if (soundKey.isPresent()) {
+                        float volume = context.getOrDefault("volume", 1.0f);
+                        float pitch = context.getOrDefault("pitch", 1.0f);
+                        float minVolume = context.getOrDefault("min-volume", 1.0f);
+                        float minPitch = context.getOrDefault("min-pitch", 1.0f);
+                        soundData = SoundData.of(KeyUtils.namespacedKey2Key(soundKey.get()), SoundData.SoundValue.ranged(minVolume, volume), SoundData.SoundValue.ranged(minPitch, pitch));
+                    }
+                    boolean removeSound = context.flags().hasFlag("no-sound");
                     MultiplePlayerSelector selector = context.get("players");
                     for (Player player : selector.values()) {
                         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
@@ -69,13 +91,11 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
                         if (VersionHelper.isOrAbove1_21_2()) {
                             item.setJavaComponent(ComponentTypes.DEATH_PROTECTION, Map.of());
                         }
-                        NamespacedKey soundKey = context.flags().get("sound");
-                        SoundData soundData = null;
-                        if (soundKey != null) {
-                            soundData = SoundData.of(KeyUtils.namespacedKey2Key(soundKey), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_1);
-                        }
-                        PlayerUtils.sendTotemAnimation(serverPlayer, item, soundData);
+                        // TODO 存在第一次进服 未正确移除图腾声音的问题
+                        PlayerUtils.sendTotemAnimation(serverPlayer, item, soundData, removeSound);
                     }
+
+                    // TODO 消息提示
                 });
     }
 

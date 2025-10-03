@@ -57,6 +57,11 @@ public record SoundData(Key id, SoundValue volume, SoundValue pitch) {
         }
 
         static SoundValue ranged(float min, float max) {
+            if (min > max) {
+                return new Ranged(max, min);
+            } else if (min == max) {
+                return SoundValue.fixed(max);
+            }
             return new Ranged(min, max);
         }
 
