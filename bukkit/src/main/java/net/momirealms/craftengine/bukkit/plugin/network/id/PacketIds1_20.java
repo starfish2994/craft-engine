@@ -162,6 +162,11 @@ public class PacketIds1_20 implements PacketIds {
     }
 
     @Override
+    public int clientBoundMerchantOffersPacket() {
+        return PlayPacketIdHelper.byClazz(NetworkReflections.clazz$ClientboundMerchantOffersPacket, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
     public int serverboundContainerClickPacket() {
         return PlayPacketIdHelper.byClazz(NetworkReflections.clazz$ServerboundContainerClickPacket, PacketFlow.SERVERBOUND);
     }
@@ -170,7 +175,6 @@ public class PacketIds1_20 implements PacketIds {
     public int serverboundSetCreativeModeSlotPacket() {
         return PlayPacketIdHelper.byClazz(NetworkReflections.clazz$ServerboundSetCreativeModeSlotPacket, PacketFlow.SERVERBOUND);
     }
-
 
     @Override
     public int serverboundInteractPacket() {

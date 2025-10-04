@@ -161,6 +161,11 @@ public class PacketIds1_20_5 implements PacketIds {
     }
 
     @Override
+    public int clientBoundMerchantOffersPacket() {
+        return PlayPacketIdHelper.byName("minecraft:merchant_offers", PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
     public int serverboundContainerClickPacket() {
         return PlayPacketIdHelper.byName("minecraft:container_click", PacketFlow.SERVERBOUND);
     }

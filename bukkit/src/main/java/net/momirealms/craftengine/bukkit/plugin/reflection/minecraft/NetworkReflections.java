@@ -1692,4 +1692,25 @@ public final class NetworkReflections {
                     CoreReflections.clazz$SoundSource
             )
     );
+
+    public static final Class<?> clazz$ClientboundMerchantOffersPacket = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "network.protocol.game.PacketPlayOutOpenWindowMerchant",
+                    "network.protocol.game.ClientboundMerchantOffersPacket"
+            )
+    );
+
+    public static final Object instance$ItemCost$STREAM_CODEC;
+    public static final Object instance$ItemCost$OPTIONAL_STREAM_CODEC;
+
+    static {
+        try {
+            instance$ItemCost$STREAM_CODEC = !VersionHelper.isOrAbove1_20_5() ? null :
+                    ReflectionUtils.getDeclaredField(CoreReflections.clazz$ItemCost, clazz$StreamCodec, 0).get(null);
+            instance$ItemCost$OPTIONAL_STREAM_CODEC = !VersionHelper.isOrAbove1_20_5() ? null :
+                    ReflectionUtils.getDeclaredField(CoreReflections.clazz$ItemCost, clazz$StreamCodec, 1).get(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to initialize ItemCost$STREAM_CODEC", e);
+        }
+    }
 }

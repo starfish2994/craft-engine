@@ -58,6 +58,7 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.advancement.network.AdvancementHolder;
 import net.momirealms.craftengine.core.advancement.network.AdvancementProgress;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.render.DynamicBlockEntityRenderer;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.font.FontManager;
 import net.momirealms.craftengine.core.font.IllegalCharacterProcessResult;
@@ -68,6 +69,7 @@ import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipeHolder;
 import net.momirealms.craftengine.core.item.recipe.network.modern.RecipeBookEntry;
 import net.momirealms.craftengine.core.item.recipe.network.modern.display.RecipeDisplay;
+import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.pack.host.ResourcePackHost;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -354,6 +356,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         registerC2SGamePacketListener(new ContainerClick1_20(), VersionHelper.isOrAbove1_21_5() ? -1 : this.packetIds.serverboundContainerClickPacket(), "ServerboundContainerClickPacket");
         registerC2SGamePacketListener(new InteractEntityListener(), this.packetIds.serverboundInteractPacket(), "ServerboundInteractPacket");
         registerC2SGamePacketListener(new CustomPayloadListener1_20(), VersionHelper.isOrAbove1_20_2() ? -1 : this.packetIds.serverboundCustomPayloadPacket(), "ServerboundCustomPayloadPacket");
+        registerS2CGamePacketListener(VersionHelper.isOrAbove1_20_5() ? new MerchantOffersListener1_20_5() : new MerchantOffersListener1_20(), this.packetIds.clientBoundMerchantOffersPacket(), "ClientboundMerchantOffersPacket");
         registerS2CGamePacketListener(new AddEntityListener(RegistryUtils.currentEntityTypeRegistrySize()), this.packetIds.clientboundAddEntityPacket(), "ClientboundAddEntityPacket");
         registerS2CGamePacketListener(
                 VersionHelper.isOrAbove1_20_3() ?
@@ -2167,7 +2170,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             float zDist = buf.readFloat();
             float maxSpeed = buf.readFloat();
             int count = buf.readInt();
-            Object option = FastNMS.INSTANCE.method$StreamCodec$decode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, buf);
+            Object option = FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf));
             if (option == null) return;
             if (!CoreReflections.clazz$BlockParticleOption.isInstance(option)) return;
             Object blockState = FastNMS.INSTANCE.field$BlockParticleOption$blockState(option);
@@ -2189,7 +2192,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             buf.writeFloat(zDist);
             buf.writeFloat(maxSpeed);
             buf.writeInt(count);
-            FastNMS.INSTANCE.method$StreamCodec$encode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, buf, remappedOption);
+            FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf), remappedOption);
         }
     }
 
@@ -2214,7 +2217,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             float zDist = buf.readFloat();
             float maxSpeed = buf.readFloat();
             int count = buf.readInt();
-            Object option = FastNMS.INSTANCE.method$StreamCodec$decode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, buf);
+            Object option = FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf));
             if (option == null) return;
             if (!CoreReflections.clazz$BlockParticleOption.isInstance(option)) return;
             Object blockState = FastNMS.INSTANCE.field$BlockParticleOption$blockState(option);
@@ -2235,7 +2238,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             buf.writeFloat(zDist);
             buf.writeFloat(maxSpeed);
             buf.writeInt(count);
-            FastNMS.INSTANCE.method$StreamCodec$encode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, buf, remappedOption);
+            FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf), remappedOption);
         }
     }
 
@@ -3801,6 +3804,126 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$pack(packedItems, buf);
                 }
             }
+        }
+    }
+
+    public static class MerchantOffersListener1_20 implements ByteBufferPacketListener {
+
+        @Override
+        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
+            FriendlyByteBuf buf = event.getBuffer();
+            int containerId = buf.readContainerId();
+            BukkitItemManager manager = BukkitItemManager.instance();
+            List<MerchantOffer<ItemStack>> merchantOffers = buf.readCollection(ArrayList::new, byteBuf -> {
+                Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
+                ItemStack cost1 = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+                ItemStack result = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+                ItemStack cost2 = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+                boolean outOfStock = byteBuf.readBoolean();
+                int uses = byteBuf.readInt();
+                int maxUses = byteBuf.readInt();
+                int xp = byteBuf.readInt();
+                int specialPrice = byteBuf.readInt();
+                float priceMultiplier = byteBuf.readFloat();
+                int demand = byteBuf.readInt();
+                return new MerchantOffer<>(manager.wrap(cost1), Optional.of(manager.wrap(cost2)), manager.wrap(result), outOfStock, uses, maxUses, xp, specialPrice, priceMultiplier, demand);
+            });
+            for (MerchantOffer<ItemStack> offer : merchantOffers) {
+                offer.applyClientboundData(item -> manager.s2c(item, serverPlayer));
+            }
+            int villagerLevel = buf.readVarInt();
+            int villagerXp = buf.readVarInt();
+            boolean showProgress = buf.readBoolean();
+            boolean canRestock = buf.readBoolean();
+
+            event.setChanged(true);
+            buf.clear();
+            buf.writeVarInt(event.packetID());
+            buf.writeContainerId(containerId);
+            buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
+                Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.cost1().getItem());
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.result().getItem());
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.cost2().get().getItem());
+                byteBuf.writeBoolean(offer.outOfStock());
+                byteBuf.writeInt(offer.uses());
+                byteBuf.writeInt(offer.maxUses());
+                byteBuf.writeInt(offer.xp());
+                byteBuf.writeInt(offer.specialPrice());
+                byteBuf.writeFloat(offer.priceMultiplier());
+                byteBuf.writeInt(offer.demand());
+            });
+
+            buf.writeVarInt(villagerLevel);
+            buf.writeVarInt(villagerXp);
+            buf.writeBoolean(showProgress);
+            buf.writeBoolean(canRestock);
+        }
+    }
+
+    public static class MerchantOffersListener1_20_5 implements ByteBufferPacketListener {
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
+            FriendlyByteBuf buf = event.getBuffer();
+            int containerId = buf.readContainerId();
+            BukkitItemManager manager = BukkitItemManager.instance();
+            List<MerchantOffer<ItemStack>> merchantOffers = buf.readCollection(ArrayList::new, byteBuf -> {
+                Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
+                ItemStack cost1 = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(FastNMS.INSTANCE.field$ItemCost$itemStack(FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ItemCost$STREAM_CODEC, friendlyBuf)));
+                ItemStack result = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+                Optional<ItemStack> cost2 = ((Optional<Object>) FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ItemCost$OPTIONAL_STREAM_CODEC, friendlyBuf))
+                        .map(cost -> FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(FastNMS.INSTANCE.field$ItemCost$itemStack(cost)));
+                boolean outOfStock = byteBuf.readBoolean();
+                int uses = byteBuf.readInt();
+                int maxUses = byteBuf.readInt();
+                int xp = byteBuf.readInt();
+                int specialPrice = byteBuf.readInt();
+                float priceMultiplier = byteBuf.readFloat();
+                int demand = byteBuf.readInt();
+                return new MerchantOffer<>(manager.wrap(cost1), cost2.map(manager::wrap), manager.wrap(result), outOfStock, uses, maxUses, xp, specialPrice, priceMultiplier, demand);
+            });
+            for (MerchantOffer<ItemStack> offer : merchantOffers) {
+                offer.applyClientboundData(item -> manager.s2c(item, serverPlayer));
+            }
+            int villagerLevel = buf.readVarInt();
+            int villagerXp = buf.readVarInt();
+            boolean showProgress = buf.readBoolean();
+            boolean canRestock = buf.readBoolean();
+
+            event.setChanged(true);
+            buf.clear();
+            buf.writeVarInt(event.packetID());
+            buf.writeContainerId(containerId);
+            buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
+                Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
+                FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ItemCost$STREAM_CODEC, friendlyBuf, itemStackToItemCost(offer.cost1().getLiteralObject(), offer.cost1().count()));
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.result().getItem());
+                FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ItemCost$OPTIONAL_STREAM_CODEC, friendlyBuf, offer.cost2().map(it -> itemStackToItemCost(it.getLiteralObject(), it.count())));
+                byteBuf.writeBoolean(offer.outOfStock());
+                byteBuf.writeInt(offer.uses());
+                byteBuf.writeInt(offer.maxUses());
+                byteBuf.writeInt(offer.xp());
+                byteBuf.writeInt(offer.specialPrice());
+                byteBuf.writeFloat(offer.priceMultiplier());
+                byteBuf.writeInt(offer.demand());
+            });
+
+            buf.writeVarInt(villagerLevel);
+            buf.writeVarInt(villagerXp);
+            buf.writeBoolean(showProgress);
+            buf.writeBoolean(canRestock);
+        }
+
+        private Object itemStackToItemCost(Object itemStack, int count) {
+            return FastNMS.INSTANCE.constructor$ItemCost(
+                    FastNMS.INSTANCE.method$Item$builtInRegistryHolder(FastNMS.INSTANCE.method$ItemStack$getItem(itemStack)),
+                    count,
+                    FastNMS.INSTANCE.method$DataComponentExactPredicate$allOf(FastNMS.INSTANCE.method$ItemStack$getComponents(itemStack))
+            );
         }
     }
 }

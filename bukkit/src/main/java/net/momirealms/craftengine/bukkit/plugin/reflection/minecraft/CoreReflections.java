@@ -4463,4 +4463,11 @@ public final class CoreReflections {
     public static final Field field$EnumProperty$values = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$EnumProperty, VersionHelper.isOrAbove1_21_2() ? List.class : ImmutableSet.class, 0)
     );
+
+    public static final Class<?> clazz$ItemCost = MiscUtils.requireNonNullIf(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.item.trading.ItemCost",
+                    "world.item.trading.ItemCost"
+            ), VersionHelper.isOrAbove1_20_5()
+    );
 }
