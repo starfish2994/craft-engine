@@ -401,6 +401,7 @@ public class BukkitCraftEngine extends CraftEngine {
             this.antiGrief = AntiGriefLib.builder(this.javaPlugin)
                     .ignoreOP(true)
                     .silentLogs(false)
+                    .bypassPermission("craftengine.antigrief.bypass")
                     .build();
         }
         return this.antiGrief;
