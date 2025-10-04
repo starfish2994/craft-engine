@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
+import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
@@ -80,8 +82,8 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
     public void onBrokenAfterFall(Object thisBlock, Object[] args) throws Exception {
         Object level = args[0];
         Object fallingBlockEntity = args[2];
-        Object entityData = CoreReflections.field$Entity$entityData.get(fallingBlockEntity);
-        if (!BaseEntityData.Silent.get(entityData)) {
+        BukkitEntity entity = BukkitAdaptors.adapt(FastNMS.INSTANCE.method$Entity$getBukkitEntity(fallingBlockEntity));
+        if (!entity.getEntityData(BaseEntityData.Silent)) {
             Object blockState = CoreReflections.field$FallingBlockEntity$blockState.get(fallingBlockEntity);
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
             if (optionalCustomState.isEmpty()) return;
@@ -94,16 +96,16 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void onLand(Object thisBlock, Object[] args) throws Exception {
+    public void onLand(Object thisBlock, Object[] args) {
         Object fallingBlock = args[4];
         Object level = args[0];
         Object pos = args[1];
-        Object entityData = CoreReflections.field$Entity$entityData.get(fallingBlock);
+        BukkitEntity entity = BukkitAdaptors.adapt(FastNMS.INSTANCE.method$Entity$getBukkitEntity(fallingBlock));
         Object blockState = args[2];
         int stateId = BlockStateUtils.blockStateToId(blockState);
         ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockState(stateId);
         if (immutableBlockState == null || immutableBlockState.isEmpty()) return;
-        if (!BaseEntityData.Silent.get(entityData)) {
+        if (!entity.getEntityData(BaseEntityData.Silent)) {
             net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
             if (this.landSound != null) {
                 world.playBlockSound(Vec3d.atCenterOf(LocationUtils.fromBlockPos(pos)), this.landSound);

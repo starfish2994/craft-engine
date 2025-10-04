@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.entity;
 
+import net.momirealms.craftengine.core.entity.data.EntityData;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.World;
@@ -30,9 +31,21 @@ public interface Entity {
 
     Direction getDirection();
 
-    Object literalObject();
+    Object platformEntity();
+
+    Object serverEntity();
 
     String name();
 
     UUID uuid();
+
+    Object entityData();
+
+    <T> T getEntityData(EntityData<T> entityData);
+
+    default <T> void setEntityData(EntityData<T> data, T value) {
+        setEntityData(data, value, false);
+    }
+
+    <T> void setEntityData(EntityData<T> data, T value, boolean force);
 }

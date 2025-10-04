@@ -3,7 +3,10 @@ package net.momirealms.craftengine.bukkit.plugin.command.feature;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MSoundEvents;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.PlayerUtils;
@@ -34,11 +37,13 @@ import org.incendo.cloud.parser.standard.FloatParser;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
+    public static final Object FIX_TOTEM_SOUND_PACKET = FastNMS.INSTANCE.constructor$ClientboundSoundPacket(FastNMS.INSTANCE.method$Holder$direct(MSoundEvents.TOTEM_USE), CoreReflections.instance$SoundSource$MUSIC, 0, Integer.MIN_VALUE, 0, 0, 0, 0);
 
     public TotemAnimationCommand(CraftEngineCommandManager<CommandSender> commandManager, CraftEngine plugin) {
         super(commandManager, plugin);
@@ -85,17 +90,21 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
                     }
                     boolean removeSound = context.flags().hasFlag("no-sound");
                     MultiplePlayerSelector selector = context.get("players");
-                    for (Player player : selector.values()) {
+                    Collection<Player> players = selector.values();
+                    for (Player player : players) {
                         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
                         Item<ItemStack> item = customItem.buildItem(serverPlayer);
                         if (VersionHelper.isOrAbove1_21_2()) {
                             item.setJavaComponent(ComponentTypes.DEATH_PROTECTION, Map.of());
                         }
-                        // TODO 存在第一次进服 未正确移除图腾声音的问题
                         PlayerUtils.sendTotemAnimation(serverPlayer, item, soundData, removeSound);
                     }
 
-                    // TODO 消息提示
+                    if (players.size() == 1) {
+                        handleFeedback(context, MessageConstants.COMMAND_TOTEM_SUCCESS_SINGLE, Component.text(namespacedKey.toString()), Component.text(players.iterator().next().getName()));
+                    } else if (players.size() > 1) {
+                        handleFeedback(context, MessageConstants.COMMAND_TOTEM_SUCCESS_MULTIPLE, Component.text(namespacedKey.toString()), Component.text(players.size()));
+                    }
                 });
     }
 
