@@ -99,7 +99,7 @@ public class EntityDataValue {
         throw new IllegalAccessError("Utility class");
     }
 
-    public static Object create(int id, Object serializer, Object entityDataAccessor, Object value) {
+    public static Object create(Object entityDataAccessor, Object value) {
         return FastNMS.INSTANCE.method$SynchedEntityData$DataValue$create(entityDataAccessor, value);
     }
 }

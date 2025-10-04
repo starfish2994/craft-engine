@@ -36,6 +36,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.behavior.FurnitureItemBehavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCommand;
 import net.momirealms.craftengine.bukkit.plugin.injector.ProtectedFieldVisitor;
 import net.momirealms.craftengine.bukkit.plugin.network.handler.*;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
@@ -423,6 +424,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 player.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> user.tick(),
                         () -> {}, 1, 1);
             }
+            user.sendPacket(TotemAnimationCommand.FIX_TOTEM_SOUND_PACKET, false);
         }
     }
 
@@ -2385,7 +2387,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         }
     }
 
-    @SuppressWarnings("all")
+    @SuppressWarnings({"deprecation", "all"})
     public HoverEvent.ShowItem replaceShowItem(HoverEvent.ShowItem showItem, BukkitServerPlayer player) {
         Object nmsItemStack;
         if (VersionHelper.COMPONENT_RELEASE) {

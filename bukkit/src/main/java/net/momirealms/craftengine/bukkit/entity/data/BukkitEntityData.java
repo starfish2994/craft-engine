@@ -2,15 +2,16 @@ package net.momirealms.craftengine.bukkit.entity.data;
 
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.entity.data.ClassTreeIdRegistry;
+import net.momirealms.craftengine.core.entity.data.EntityData;
 
-public class SimpleEntityData<T> implements EntityData<T> {
+public class BukkitEntityData<T> implements EntityData<T> {
     public static final ClassTreeIdRegistry ID_REGISTRY = new ClassTreeIdRegistry();
     private final int id;
     private final Object serializer;
     private final T defaultValue;
     private final Object entityDataAccessor;
 
-    public SimpleEntityData(Class<?> clazz, Object serializer, T defaultValue) {
+    public BukkitEntityData(Class<?> clazz, Object serializer, T defaultValue) {
         this.id = ID_REGISTRY.define(clazz);
         this.serializer = serializer;
         this.defaultValue = defaultValue;
@@ -35,5 +36,10 @@ public class SimpleEntityData<T> implements EntityData<T> {
     @Override
     public Object entityDataAccessor() {
         return entityDataAccessor;
+    }
+
+    @Override
+    public Object create(Object entityDataAccessor, Object value) {
+        return EntityDataValue.create(entityDataAccessor, value);
     }
 }

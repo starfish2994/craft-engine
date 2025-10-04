@@ -8,15 +8,13 @@ import io.netty.channel.ChannelHandler;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.*;
+import net.momirealms.craftengine.core.entity.data.EntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.CraftEngineGUIHolder;
 import net.momirealms.craftengine.bukkit.plugin.network.payload.DiscardedPayload;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MAttributeHolders;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MMobEffects;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
@@ -943,8 +941,13 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public org.bukkit.entity.Player literalObject() {
+    public org.bukkit.entity.Player platformEntity() {
         return platformPlayer();
+    }
+
+    @Override
+    public Object serverEntity() {
+        return serverPlayer();
     }
 
     @Override
@@ -1142,5 +1145,21 @@ public class BukkitServerPlayer extends Player {
         @SuppressWarnings("deprecation")
         DamageType type = Registry.DAMAGE_TYPE.get(KeyUtils.toNamespacedKey(damageType));
         this.platformPlayer().damage(amount, DamageSource.builder(type != null ? type : DamageType.GENERIC).build());
+    }
+
+    @Override
+    public Object entityData() {
+        return FastNMS.INSTANCE.field$Entity$entityData(serverEntity());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getEntityData(EntityData<T> data) {
+        return (T) FastNMS.INSTANCE.method$SynchedEntityData$get(entityData(), data.entityDataAccessor());
+    }
+
+    @Override
+    public <T> void setEntityData(EntityData<T> data, T value, boolean force) {
+        FastNMS.INSTANCE.method$SynchedEntityData$set(entityData(), data.entityDataAccessor(), value, force);
     }
 }

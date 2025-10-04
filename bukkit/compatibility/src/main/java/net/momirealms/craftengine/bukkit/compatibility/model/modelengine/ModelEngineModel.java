@@ -16,7 +16,7 @@ public class ModelEngineModel extends AbstractExternalModel {
 
     @Override
     public void bindModel(AbstractEntity entity) {
-        org.bukkit.entity.Entity bukkitEntity = (org.bukkit.entity.Entity) entity.literalObject();
+        org.bukkit.entity.Entity bukkitEntity = (org.bukkit.entity.Entity) entity.platformEntity();
         ModelEngineUtils.bindModel(bukkitEntity, id());
     }
 }
