@@ -91,6 +91,7 @@ public class VisualBlockStateAllocator {
                         // 如果候选满足组，那么直接允许起飞
                         if (pair.left().test(candidate.blockState())) {
                             pair.right().complete(candidate.blockState());
+                            candidate.setUsed();
                         } else {
                             // 不满足候选组要求，那就等着分配新的吧
                         }
@@ -109,13 +110,15 @@ public class VisualBlockStateAllocator {
         for (AutoStateGroup group : AutoStateGroup.values()) {
             List<Pair<String, CompletableFuture<BlockStateWrapper>>> pendingAllocationFuture = this.pendingAllocationFutures[group.ordinal()];
             for (Pair<String, CompletableFuture<BlockStateWrapper>> pair : pendingAllocationFuture) {
-                BlockStateCandidate nextCandidate = group.findNextCandidate();
-                if (nextCandidate != null) {
-                    nextCandidate.setUsed();
-                    this.cachedBlockStates.put(pair.left(), nextCandidate.blockState());
-                    pair.right().complete(nextCandidate.blockState());
-                } else {
-                    pair.right().completeExceptionally(new StateExhaustedException(group));
+                if (!pair.right().isDone()) {
+                    BlockStateCandidate nextCandidate = group.findNextCandidate();
+                    if (nextCandidate != null) {
+                        nextCandidate.setUsed();
+                        this.cachedBlockStates.put(pair.left(), nextCandidate.blockState());
+                        pair.right().complete(nextCandidate.blockState());
+                    } else {
+                        pair.right().completeExceptionally(new StateExhaustedException(group));
+                    }
                 }
             }
         }
