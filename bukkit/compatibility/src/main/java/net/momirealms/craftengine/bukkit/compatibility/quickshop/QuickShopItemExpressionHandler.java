@@ -23,19 +23,20 @@ public class QuickShopItemExpressionHandler implements ItemExpressionHandler, Li
     public QuickShopItemExpressionHandler(BukkitCraftEngine plugin) {
         this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin.javaPlugin());
-        init();
+        register();
     }
 
-    public void init() {
+    public void register() {
         Registry registry = QuickShopAPI.getInstance().getRegistry().getRegistry(BuiltInRegistry.ITEM_EXPRESSION);
         if (!(registry instanceof ItemExpressionRegistry itemExpressionRegistry)) return;
-        if (!itemExpressionRegistry.registerHandlerSafely(this)) return;
-        this.plugin.logger().info("[Compatibility] Successfully registered CraftEngine ItemExpressionHandler to QuickShop-Hikari");
+        if (!itemExpressionRegistry.registerHandlerSafely(this)) {
+            
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onQuickShopReload(final QSConfigurationReloadEvent event) {
-        init();
+        register();
     }
 
     @Override
