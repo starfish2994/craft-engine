@@ -16,6 +16,7 @@ repositories {
     maven("https://repo.auxilor.io/repository/maven-public/") // eco
     maven("https://repo.hiusers.com/releases") // zaphkiel
     maven("https://jitpack.io") // sxitem slimefun
+    maven("https://repo.codemc.io/repository/maven-public/") // quickshop
 }
 
 dependencies {
@@ -79,6 +80,8 @@ dependencies {
     compileOnly("com.github.Saukiya:SX-Item:4.4.6")
     // Slimefun
     compileOnly("io.github.Slimefun:Slimefun4:RC-32")
+    // QuickShop
+    compileOnly("com.ghostchu:quickshop-api:6.2.0.10")
 }
 
 java {

@@ -12,6 +12,7 @@ import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicItemDrop
 import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicSkillHelper;
 import net.momirealms.craftengine.bukkit.compatibility.papi.PlaceholderAPIUtils;
 import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsEventListeners;
+import net.momirealms.craftengine.bukkit.compatibility.quickshop.QuickShopItemExpressionHandler;
 import net.momirealms.craftengine.bukkit.compatibility.region.WorldGuardRegionCondition;
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
@@ -140,6 +141,10 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.isPluginEnabled("ModelEngine")) {
             ModelEngineUtils.registerConstantBlockEntityRender();
             logHook("ModelEngine");
+        }
+        if (this.isPluginEnabled("QuickShop-Hikari")) {
+            new QuickShopItemExpressionHandler(this.plugin);
+            logHook("QuickShop-Hikari");
         }
     }
 

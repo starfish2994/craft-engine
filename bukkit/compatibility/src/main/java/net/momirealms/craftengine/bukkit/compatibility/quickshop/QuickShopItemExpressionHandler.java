@@ -1,0 +1,56 @@
+package net.momirealms.craftengine.bukkit.compatibility.quickshop;
+
+import com.ghostchu.quickshop.api.QuickShopAPI;
+import com.ghostchu.quickshop.api.event.QSConfigurationReloadEvent;
+import com.ghostchu.quickshop.api.registry.BuiltInRegistry;
+import com.ghostchu.quickshop.api.registry.Registry;
+import com.ghostchu.quickshop.api.registry.builtin.itemexpression.ItemExpressionHandler;
+import com.ghostchu.quickshop.api.registry.builtin.itemexpression.ItemExpressionRegistry;
+import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.core.util.Key;
+import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+
+public class QuickShopItemExpressionHandler implements ItemExpressionHandler, Listener {
+    private final BukkitCraftEngine plugin;
+
+    public QuickShopItemExpressionHandler(BukkitCraftEngine plugin) {
+        this.plugin = plugin;
+        Bukkit.getPluginManager().registerEvents(this, plugin.javaPlugin());
+        init();
+    }
+
+    public void init() {
+        Registry registry = QuickShopAPI.getInstance().getRegistry().getRegistry(BuiltInRegistry.ITEM_EXPRESSION);
+        if (!(registry instanceof ItemExpressionRegistry itemExpressionRegistry)) return;
+        if (!itemExpressionRegistry.registerHandlerSafely(this)) return;
+        this.plugin.logger().info("[Compatibility] Successfully registered CraftEngine ItemExpressionHandler to QuickShop-Hikari");
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onQuickShopReload(final QSConfigurationReloadEvent event) {
+        init();
+    }
+
+    @Override
+    public @NotNull Plugin getPlugin() {
+        return this.plugin.javaPlugin();
+    }
+
+    @Override
+    public String getPrefix() {
+        return "craftengine";
+    }
+
+    @Override
+    public boolean match(ItemStack itemStack, String id) {
+        Key customId = CraftEngineItems.getCustomItemId(itemStack);
+        return customId != null && id.equals(customId.asString());
+    }
+}
