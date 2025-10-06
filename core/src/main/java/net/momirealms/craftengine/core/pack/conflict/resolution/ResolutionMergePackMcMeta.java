@@ -19,63 +19,148 @@ public class ResolutionMergePackMcMeta implements Resolution {
         this.description = description;
     }
 
-    private static class MinMax {
-        int min;
-        int max;
-
-        MinMax(int min, int max) {
-            this.min = min;
-            this.max = max;
-        }
+    record MinMax(int min, int max) {
     }
 
+    @SuppressWarnings("DuplicatedCode")
     public static void mergeMcMeta(Path file1, Path file2, JsonElement customDescription) throws IOException {
-        JsonElement elem1 = GsonHelper.readJsonFile(file1);
-        JsonElement elem2 = GsonHelper.readJsonFile(file2);
+        JsonObject mcmeta1 = GsonHelper.readJsonFile(file1).getAsJsonObject();
+        JsonObject mcmeta2 = GsonHelper.readJsonFile(file2).getAsJsonObject();
 
-        JsonObject merged = mergeValues(elem1.getAsJsonObject(), elem2.getAsJsonObject())
-                .getAsJsonObject();
+        JsonObject merged = mergeValues(mcmeta1, mcmeta2).getAsJsonObject();
 
-        if (merged.has("pack")) {
-            JsonObject pack = merged.getAsJsonObject("pack");
+        if (mcmeta1.has("pack") && mcmeta2.has("pack")) {
+            JsonObject mergedPack = merged.getAsJsonObject("pack");
+            JsonObject mcmeta1Pack = mcmeta1.getAsJsonObject("pack");
+            JsonObject mcmeta2Pack = mcmeta2.getAsJsonObject("pack");
 
-            int pf1 = elem1.getAsJsonObject().getAsJsonObject("pack")
-                    .getAsJsonPrimitive("pack_format").getAsInt();
-            int pf2 = elem2.getAsJsonObject().getAsJsonObject("pack")
-                    .getAsJsonPrimitive("pack_format").getAsInt();
-            pack.addProperty("pack_format", Math.max(pf1, pf2));
+            int minPackFormat = Integer.MAX_VALUE;
+            int maxPackFormat = Integer.MIN_VALUE;
+            JsonArray mergedMinFormat = null;
+            JsonArray mergedMaxFormat = null;
 
-            JsonElement sf1 = elem1.getAsJsonObject().getAsJsonObject("pack")
-                    .get("supported_formats");
-            JsonElement sf2 = elem2.getAsJsonObject().getAsJsonObject("pack")
-                    .get("supported_formats");
+            if (mcmeta1Pack.has("pack_format") && mcmeta2Pack.has("pack_format")) {
+                int packFormat1 = mcmeta1Pack.getAsJsonPrimitive("pack_format").getAsInt();
+                int packFormat2 = mcmeta2Pack.getAsJsonPrimitive("pack_format").getAsInt();
+                int mergedPackFormat = maxPackFormat = Math.max(packFormat1, packFormat2);
+                minPackFormat = Math.min(packFormat1, packFormat2);
+                mergedPack.addProperty("pack_format", mergedPackFormat);
+            } else if (mcmeta1Pack.has("pack_format")) {
+                minPackFormat = maxPackFormat = mcmeta1Pack.getAsJsonPrimitive("pack_format").getAsInt();
+            } else if (mcmeta2Pack.has("pack_format")) {
+                minPackFormat = maxPackFormat = mcmeta2Pack.getAsJsonPrimitive("pack_format").getAsInt();
+            }
 
-            if (sf1 != null || sf2 != null) {
-                MinMax mergedMinMax = getMergedMinMax(sf1, sf2, pf1, pf2);
+            if (mcmeta1Pack.has("min_format") || mcmeta2Pack.has("min_format")) {
+                int[] minFormat1 = new int[]{Integer.MAX_VALUE, 0};
+                int[] minFormat2 = new int[]{Integer.MAX_VALUE, 0};
 
-                JsonElement mergedSf = createSupportedFormatsElement(
-                        sf1 != null ? sf1 : sf2,
+                if (mcmeta1Pack.has("min_format")) {
+                    JsonElement minFormat = mcmeta1Pack.get("min_format");
+                    if (minFormat.isJsonPrimitive()) {
+                        minFormat1[0] = minFormat.getAsInt();
+                    }
+                    if (minFormat.isJsonArray()) {
+                        JsonArray minFormatArray = minFormat.getAsJsonArray();
+                        minFormat1[0] = minFormatArray.get(0).getAsInt();
+                        if (minFormatArray.size() > 1) {
+                            minFormat1[1] = minFormatArray.get(1).getAsInt();
+                        }
+                    }
+                }
+
+                if (mcmeta2Pack.has("min_format")) {
+                    JsonElement minFormat = mcmeta2Pack.get("min_format");
+                    if (minFormat.isJsonPrimitive()) {
+                        minFormat2[0] = minFormat.getAsInt();
+                    }
+                    if (mcmeta2Pack.isJsonArray()) {
+                        JsonArray minFormatArray = minFormat.getAsJsonArray();
+                        minFormat2[0] = minFormatArray.get(0).getAsInt();
+                        if (minFormatArray.size() > 1) {
+                            minFormat2[1] = minFormatArray.get(1).getAsInt();
+                        }
+                    }
+                }
+                minPackFormat = Math.min(minPackFormat, Math.min(minFormat1[0], minFormat2[0]));
+                mergedMinFormat = new JsonArray(2);
+                mergedMinFormat.add(minPackFormat);
+                mergedMinFormat.add(Math.min(minFormat1[1], minFormat2[1]));
+                mergedPack.add("min_format", mergedMinFormat);
+            }
+
+            if (mcmeta1Pack.has("max_format") || mcmeta2Pack.has("max_format")) {
+                int[] maxFormat1 = new int[]{Integer.MIN_VALUE, 0};
+                int[] maxFormat2 = new int[]{Integer.MIN_VALUE, 0};
+
+                if (mcmeta1Pack.has("max_format")) {
+                    JsonElement maxFormat = mcmeta1Pack.get("max_format");
+                    if (maxFormat.isJsonPrimitive()) {
+                        maxFormat1[0] = maxFormat.getAsInt();
+                    }
+                    if (maxFormat.isJsonArray()) {
+                        JsonArray maxFormatArray = maxFormat.getAsJsonArray();
+                        maxFormat1[0] = maxFormatArray.get(0).getAsInt();
+                        if (maxFormatArray.size() > 1) {
+                            maxFormat1[1] = maxFormatArray.get(1).getAsInt();
+                        }
+                    }
+                }
+
+                if (mcmeta2Pack.has("max_format")) {
+                    JsonElement maxFormat = mcmeta2Pack.get("max_format");
+                    if (maxFormat.isJsonPrimitive()) {
+                        maxFormat2[0] = maxFormat.getAsInt();
+                    }
+                    if (maxFormat.isJsonArray()) {
+                        JsonArray maxFormatArray = maxFormat.getAsJsonArray();
+                        maxFormat2[0] = maxFormatArray.get(0).getAsInt();
+                        if (maxFormatArray.size() > 1) {
+                            maxFormat2[1] = maxFormatArray.get(1).getAsInt();
+                        }
+                    }
+                }
+
+                maxPackFormat = Math.max(maxPackFormat, Math.max(maxFormat1[0], maxFormat2[0]));
+                mergedMaxFormat = new JsonArray(2);
+                mergedMaxFormat.add(maxPackFormat);
+                mergedMaxFormat.add(Math.max(maxFormat1[1], maxFormat2[1]));
+                mergedPack.add("max_format", mergedMaxFormat);
+            }
+
+            JsonElement supportedFormats1 = mcmeta1Pack.get("supported_formats");
+            JsonElement supportedFormats2 = mcmeta2Pack.get("supported_formats");
+
+            if (supportedFormats1 != null || supportedFormats2 != null) {
+                MinMax mergedMinMax = getMergedMinMax(supportedFormats1, supportedFormats2, minPackFormat, maxPackFormat);
+                JsonElement mergedSupportedFormats = createSupportedFormatsElement(
+                        supportedFormats1 != null ? supportedFormats1 : supportedFormats2,
                         mergedMinMax.min,
                         mergedMinMax.max
                 );
-
-                pack.add("supported_formats", mergedSf);
+                if (mergedMinFormat != null && !mergedMinFormat.isEmpty()) {
+                    mergedMinFormat.set(0, new JsonPrimitive(Math.min(mergedMinMax.min, mergedMinFormat.get(0).getAsInt())));
+                }
+                if (mergedMaxFormat != null && !mergedMaxFormat.isEmpty()) {
+                    mergedMaxFormat.set(0, new JsonPrimitive(Math.max(mergedMinMax.max, mergedMaxFormat.get(0).getAsInt())));
+                }
+                mergedPack.add("supported_formats", mergedSupportedFormats);
             }
 
             if (customDescription != null) {
-                pack.add("description", customDescription);
+                mergedPack.add("description", customDescription);
             } else {
-                JsonPrimitive desc1 = elem1.getAsJsonObject().getAsJsonObject("pack")
+                JsonPrimitive description1 = mcmeta1.getAsJsonObject().getAsJsonObject("pack")
                         .getAsJsonPrimitive("description");
-                JsonPrimitive desc2 = elem2.getAsJsonObject().getAsJsonObject("pack")
+                JsonPrimitive description2 = mcmeta2.getAsJsonObject().getAsJsonObject("pack")
                         .getAsJsonPrimitive("description");
 
-                String mergedDesc = (desc1 != null ? desc1.getAsString() : "")
-                        + (desc1 != null && desc2 != null ? "\n" : "")
-                        + (desc2 != null ? desc2.getAsString() : "");
+                String mergedDesc = (description1 != null ? description1.getAsString() : "")
+                        + (description1 != null && description2 != null ? "\n" : "")
+                        + (description2 != null ? description2.getAsString() : "");
 
                 if (!mergedDesc.isEmpty()) {
-                    pack.addProperty("description", mergedDesc);
+                    mergedPack.addProperty("description", mergedDesc);
                 }
             }
         }
@@ -83,16 +168,14 @@ public class ResolutionMergePackMcMeta implements Resolution {
         GsonHelper.writeJsonFile(merged, file1);
     }
 
-    private static MinMax getMergedMinMax(JsonElement sf1, JsonElement sf2, int pf1, int pf2) {
+    private static MinMax getMergedMinMax(JsonElement sf1, JsonElement sf2, int minPackFormat, int maxPackFormat) {
         MinMax mm1 = parseSupportedFormats(sf1);
         MinMax mm2 = parseSupportedFormats(sf2);
 
         int finalMin = Math.min(mm1.min, mm2.min);
         int finalMax = Math.max(mm1.max, mm2.max);
-        int pfMin = Math.min(pf1, pf2);
-        int pfMax = Math.max(pf1, pf2);
-        finalMin = Math.min(pfMin, finalMin);
-        finalMax = Math.max(pfMax, finalMax);
+        finalMin = Math.min(minPackFormat, finalMin);
+        finalMax = Math.max(maxPackFormat, finalMax);
 
         return new MinMax(finalMin, finalMax);
     }
@@ -103,14 +186,27 @@ public class ResolutionMergePackMcMeta implements Resolution {
         }
 
         if (supported.isJsonPrimitive()) {
-            int value = supported.getAsInt();
-            return new MinMax(value, value);
+            if (supported.getAsJsonPrimitive().isNumber()) {
+                int value = supported.getAsInt();
+                return new MinMax(value, value);
+            } else if (supported.getAsJsonPrimitive().isString()) {
+                String value = supported.getAsString();
+                if (value.contains(",")) {
+                    String[] parts = value.replace("[", "").replace("]", "").split(",");
+                    int min = Integer.parseInt(parts[0]);
+                    int max = Integer.parseInt(parts[1]);
+                    return new MinMax(min, max);
+                } else {
+                    int min = Integer.parseInt(value);
+                    return new MinMax(min, min);
+                }
+            }
         }
 
         if (supported.isJsonArray()) {
             JsonArray arr = supported.getAsJsonArray();
             int min = arr.get(0).getAsInt();
-            int max = arr.get(arr.size()-1).getAsInt();
+            int max = arr.get(arr.size() - 1).getAsInt();
             return new MinMax(min, max);
         }
 

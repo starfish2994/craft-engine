@@ -8,10 +8,13 @@ package net.momirealms.craftengine.bukkit.plugin.reflection.leaves;
 //import java.lang.reflect.Field;
 //import java.util.Optional;
 
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Optional;
 
 // TODO API 太新了需要1.21.8，目前先采用其他方式解决假人问题
 public final class LeavesReflections {
@@ -36,14 +39,21 @@ public final class LeavesReflections {
 //    public static final Field field$BotRemoveEvent$handlers = Optional.ofNullable(clazz$BotRemoveEvent)
 //            .map(it -> ReflectionUtils.getDeclaredField(it, HandlerList.class, 0))
 //            .orElse(null);
-
-
-    public static final Class<?> clazz$ServerBot = ReflectionUtils.getClazz("org.leavesmc.leaves.bot.ServerBot");
+//
+//
+//    public static final Class<?> clazz$ServerBot = ReflectionUtils.getClazz("org.leavesmc.leaves.bot.ServerBot");
 
     // 注入BotList来实现全版本的监听
-    public static final Class<?> clazz$BotList = ReflectionUtils.getClazz("org.leavesmc.leaves.bot.BotList");
+    public static final Class<?> clazz$BotList = MiscUtils.requireNonNullIf(
+            ReflectionUtils.getClazz("org.leavesmc.leaves.bot.BotList"),
+            VersionHelper.isLeaves()
+    );
 
-    public static final Field field$BotList$INSTANCE = ReflectionUtils.getDeclaredField(clazz$BotList, clazz$BotList, 0);
+    public static final Field field$BotList$INSTANCE = Optional.ofNullable(clazz$BotList)
+            .map(c -> ReflectionUtils.getDeclaredField(c, c, 0))
+            .orElse(null);
 
-    public static final Field field$BotList$bots = ReflectionUtils.getDeclaredField(clazz$BotList, List.class, 0);
+    public static final Field field$BotList$bots = Optional.ofNullable(clazz$BotList)
+            .map(c -> ReflectionUtils.getDeclaredField(c, List.class, 0))
+            .orElse(null);
 }

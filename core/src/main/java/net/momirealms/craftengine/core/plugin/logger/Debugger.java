@@ -11,6 +11,7 @@ public enum Debugger {
     FURNITURE(Config::debugFurniture),
     RESOURCE_PACK(Config::debugResourcePack),
     ITEM(Config::debugItem),
+    BLOCK(Config::debugBlock),
     BLOCK_ENTITY(Config::debugBlockEntity);
 
     private final Supplier<Boolean> condition;

@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.registry;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
 import java.util.IdentityHashMap;
@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ConstantBoundRegistry<T> extends AbstractMappedRegistry<T> {
-    protected final Reference2IntMap<T> toId = MCUtils.make(new Reference2IntOpenHashMap<>(), map -> map.defaultReturnValue(-1));
+    protected final Reference2IntMap<T> toId = MiscUtils.init(new Reference2IntOpenHashMap<>(), map -> map.defaultReturnValue(-1));
     protected final Map<T, Holder.Reference<T>> byValue;
 
     public ConstantBoundRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize) {

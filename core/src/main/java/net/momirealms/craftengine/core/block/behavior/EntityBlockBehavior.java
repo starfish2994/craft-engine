@@ -15,7 +15,11 @@ public interface EntityBlockBehavior {
 
     BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state);
 
-    default <T extends BlockEntity> BlockEntityTicker<T> createBlockEntityTicker(CEWorld level, ImmutableBlockState state, BlockEntityType<T> blockEntityType) {
+    default <T extends BlockEntity> BlockEntityTicker<T> createSyncBlockEntityTicker(CEWorld level, ImmutableBlockState state, BlockEntityType<T> blockEntityType) {
+        return null;
+    }
+
+    default <T extends BlockEntity> BlockEntityTicker<T> createAsyncBlockEntityTicker(CEWorld level, ImmutableBlockState state, BlockEntityType<T> blockEntityType) {
         return null;
     }
 

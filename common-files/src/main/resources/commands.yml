@@ -152,7 +152,9 @@ debug_real_state_usage:
   permission: ce.command.debug.state_usage
   usage:
     - /craftengine debug real-state-usage
+    - /craftengine debug serverside-state-usage
     - /ce debug real-state-usage
+    - /ce debug serverside-state-usage
 
 debug_item_data:
   enable: true
@@ -209,6 +211,13 @@ debug_save_default_resources:
   usage:
     - /craftengine debug save-default-resources
     - /ce debug save-default-resources
+
+debug_clean_cache:
+  enable: true
+  permission: ce.command.debug.clean_cache
+  usage:
+    - /craftengine debug clean-cache
+    - /ce debug clean-cache
 
 debug_test:
   enable: true

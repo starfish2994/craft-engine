@@ -16,7 +16,7 @@ public class HangingBlockBehavior extends BushBlockBehavior {
     public static final Factory FACTORY = new Factory();
 
     public HangingBlockBehavior(CustomBlock block, int delay, boolean blacklist, boolean stackable, List<Object> tagsCanSurviveOn, Set<Object> blocksCansSurviveOn, Set<String> customBlocksCansSurviveOn) {
-        super(block, delay, blacklist, stackable, tagsCanSurviveOn, blocksCansSurviveOn, customBlocksCansSurviveOn);
+        super(block, delay, blacklist, stackable, -1, tagsCanSurviveOn, blocksCansSurviveOn, customBlocksCansSurviveOn);
     }
 
     @Override

@@ -57,7 +57,7 @@ public class WallTorchParticleBlockBehavior extends BukkitBlockBehavior implemen
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> createBlockEntityTicker(CEWorld level, ImmutableBlockState state, BlockEntityType<T> blockEntityType) {
+    public <T extends BlockEntity> BlockEntityTicker<T> createAsyncBlockEntityTicker(CEWorld level, ImmutableBlockState state, BlockEntityType<T> blockEntityType) {
         if (this.particles.length == 0) return null;
         return EntityBlockBehavior.createTickerHelper(WallTorchParticleBlockEntity::tick);
     }

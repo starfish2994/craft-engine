@@ -12,6 +12,7 @@ import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicItemDrop
 import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicSkillHelper;
 import net.momirealms.craftengine.bukkit.compatibility.papi.PlaceholderAPIUtils;
 import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsEventListeners;
+import net.momirealms.craftengine.bukkit.compatibility.quickshop.QuickShopItemExpressionHandler;
 import net.momirealms.craftengine.bukkit.compatibility.region.WorldGuardRegionCondition;
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
@@ -20,12 +21,14 @@ import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockR
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.loot.LootConditions;
 import net.momirealms.craftengine.core.plugin.compatibility.CompatibilityManager;
 import net.momirealms.craftengine.core.plugin.compatibility.LevelerProvider;
 import net.momirealms.craftengine.core.plugin.compatibility.ModelProvider;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.condition.AlwaysFalseCondition;
 import net.momirealms.craftengine.core.plugin.context.event.EventConditions;
 import net.momirealms.craftengine.core.util.Key;
@@ -139,6 +142,10 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
             ModelEngineUtils.registerConstantBlockEntityRender();
             logHook("ModelEngine");
         }
+        if (this.isPluginEnabled("QuickShop-Hikari")) {
+            new QuickShopItemExpressionHandler(this.plugin).register();
+            logHook("QuickShop-Hikari");
+        }
     }
 
     @Override
@@ -246,8 +253,8 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
     private void initWorldEditHook() {
         WorldEditBlockRegister weBlockRegister = new WorldEditBlockRegister(BukkitBlockManager.instance(), false);
         try {
-            for (Key newBlockId : BukkitBlockManager.instance().blockRegisterOrder()) {
-                weBlockRegister.register(newBlockId);
+            for (int i = 0; i < Config.serverSideBlocks(); i++) {
+                weBlockRegister.register(BlockManager.createCustomBlockKey(i));
             }
         } catch (Exception e) {
             this.plugin.logger().warn("Failed to initialize world edit hook", e);

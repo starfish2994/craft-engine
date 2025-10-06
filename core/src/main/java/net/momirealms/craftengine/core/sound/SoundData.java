@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public record SoundData(Key id, SoundValue volume, SoundValue pitch) {
+    public static final SoundData EMPTY = new SoundData(Key.of("minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_1);
 
     public static SoundData create(Object obj, SoundValue volume, SoundValue pitch) {
         if (obj instanceof String key) {
@@ -56,6 +57,11 @@ public record SoundData(Key id, SoundValue volume, SoundValue pitch) {
         }
 
         static SoundValue ranged(float min, float max) {
+            if (min > max) {
+                return new Ranged(max, min);
+            } else if (min == max) {
+                return SoundValue.fixed(max);
+            }
             return new Ranged(min, max);
         }
 

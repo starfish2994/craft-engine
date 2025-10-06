@@ -92,4 +92,37 @@ public class Vec3i implements Comparable<Vec3i> {
             return this.y() - vec3i.y();
         }
     }
+
+    public Vec3i north() {
+        return this.north(1);
+    }
+
+    public Vec3i north(int distance) {
+        return this.relative(Direction.NORTH, distance);
+    }
+
+    public Vec3i south() {
+        return this.south(1);
+    }
+
+    public Vec3i south(int distance) {
+        return this.relative(Direction.SOUTH, distance);
+    }
+
+    public Vec3i west() {
+        return this.west(1);
+    }
+
+    public Vec3i west(int distance) {
+        return this.relative(Direction.WEST, distance);
+    }
+
+    public Vec3i east() {
+        return this.east(1);
+    }
+
+    public Vec3i east(int distance) {
+        return this.relative(Direction.EAST, distance);
+    }
+
 }

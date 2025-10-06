@@ -1,13 +1,16 @@
 package net.momirealms.craftengine.core.util;
 
 import com.mojang.datafixers.util.Either;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
+import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.world.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -18,6 +21,13 @@ public final class ResourceConfigUtils {
 
     public static <T, O> T getOrDefault(@Nullable O raw, Function<O, T> function, T defaultValue) {
         return raw != null ? function.apply(raw) : defaultValue;
+    }
+
+    public static String getAsString(@Nullable Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        return raw.toString();
     }
 
     public static <E extends Enum<E>> E getAsEnum(Object o, Class<E> clazz, E defaultValue) {
@@ -279,5 +289,32 @@ public final class ResourceConfigUtils {
                 throw new LocalizedResourceConfigException("warning.config.type.vec3d", stringFormat, option);
             }
         }
+    }
+
+    public static void runCatching(Path configPath, String node, Runnable runnable, Supplier<String> config) {
+        try {
+            runnable.run();
+        } catch (LocalizedException e) {
+            printWarningRecursively(e, configPath, node);
+        } catch (Exception e) {
+            String message = "Unexpected error loading file " + configPath + " - '" + node + "'.";
+            if (config != null) {
+                message += " Configuration details: " + config.get();
+            }
+            CraftEngine.instance().logger().warn(message, e);
+        }
+    }
+
+    private static void printWarningRecursively(LocalizedException e, Path path, String node) {
+        for (Throwable t : e.getSuppressed()) {
+            if (t instanceof LocalizedException suppressed) {
+                printWarningRecursively(suppressed, path, node);
+            }
+        }
+        if (e instanceof LocalizedResourceConfigException exception) {
+            exception.setPath(path);
+            exception.setNode(node);
+        }
+        TranslationManager.instance().log(e.node(), e.arguments());
     }
 }

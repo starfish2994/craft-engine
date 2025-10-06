@@ -49,6 +49,11 @@ i18n:
     item.safe_block: Safe Block
     item.sofa: Sofa
     item.amethyst_torch: Amethyst Torch
+    item.hami_melon_slice: Hami Melon Slice
+    item.hami_melon: Hami Melon
+    item.hami_melon_seeds: Hami Melon Seeds
+    item.palm_button: Palm Button
+    item.palm_fence: Palm Fence
     category.default.name: Default Assets
     category.default.lore: Contains the default configuration of CraftEngine
     category.palm_tree: Palm Tree
@@ -107,6 +112,11 @@ i18n:
     item.safe_block: 保险柜
     item.sofa: 沙发
     item.amethyst_torch: 紫水晶火把
+    item.hami_melon_slice: 哈密瓜片
+    item.hami_melon: 哈密瓜
+    item.hami_melon_seeds: 哈密瓜种子
+    item.palm_button: 棕榈木按钮
+    item.palm_fence: 棕榈木栅栏
     category.default.name: 默认资产
     category.default.lore: 包含了CraftEngine的默认配置
     category.palm_tree: 棕榈树
@@ -149,6 +159,11 @@ lang:
     block_name:default:sofa: Sofa
     block_name:default:amethyst_torch: Amethyst Torch
     block_name:default:amethyst_wall_torch: Amethyst Torch
+    block_name:default:hami_melon: Hami Melon
+    block_name:default:hami_melon_stem: Hami Melon Stem
+    block_name:default:attached_hami_melon_stem: Hami Melon Stem
+    block_name:default:palm_button: Palm Button
+    block_name:default:palm_fence: Palm Fence
   zh_cn:
     block_name:default:chinese_lantern: 灯笼
     block_name:default:netherite_anvil: 下界合金砧
@@ -179,3 +194,8 @@ lang:
     block_name:default:sofa: 沙发
     block_name:default:amethyst_torch: 紫水晶火把
     block_name:default:amethyst_wall_torch: 紫水晶火把
+    block_name:default:hami_melon: 哈密瓜
+    block_name:default:hami_melon_stem: 哈密瓜茎
+    block_name:default:attached_hami_melon_stem: 哈密瓜茎
+    block_name:default:palm_button: 棕榈木按钮
+    block_name:default:palm_fence: 棕榈木栅栏

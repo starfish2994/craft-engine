@@ -23,6 +23,7 @@ import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.entity.data.EntityData;
 import net.momirealms.craftengine.core.entity.player.GameMode;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -45,6 +46,8 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -104,7 +107,7 @@ public class BukkitServerPlayer extends Player {
     private int resentSwingTick;
     // has fabric client mod or not
     private boolean hasClientMod = false;
-    private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaStateSize());
+    private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaBlockStateCount());
     // cache if player can break blocks
     private boolean clientSideCanBreak = true;
     // prevent AFK players from consuming too much CPU resource on predicting
@@ -370,13 +373,14 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void playSound(Key sound, BlockPos blockPos, SoundSource source, float volume, float pitch) {
-        platformPlayer().playSound(new Location(null, blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5), sound.toString(), SoundUtils.toBukkit(source), volume, pitch);
+    public void playSound(Position pos, Key sound, SoundSource source, float volume, float pitch) {
+        platformPlayer().playSound(new Location(null, pos.x(), pos.y(), pos.z()), sound.toString(), SoundUtils.toBukkit(source), volume, pitch);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void giveItem(Item<?> item) {
-        PlayerUtils.giveItem(platformPlayer(), (ItemStack) item.getItem(), item.count());
+        PlayerUtils.giveItem(this, item.count(), (Item<ItemStack>) item);
     }
 
     @Override
@@ -506,7 +510,7 @@ public class BukkitServerPlayer extends Player {
         if (this.gameTicks % 20 == 0) {
             this.updateGUI();
         }
-        if (this.isDestroyingBlock)  {
+        if (this.isDestroyingBlock) {
             this.tickBlockDestroy();
         }
         if (Config.predictBreaking() && !this.isDestroyingCustomBlock) {
@@ -717,9 +721,8 @@ public class BukkitServerPlayer extends Player {
 
             // send hit sound if the sound is removed
             if (currentTick - this.lastHitBlockTime > 3) {
-                Object blockOwner = FastNMS.INSTANCE.method$BlockState$getBlock(destroyedState);
-                Object soundType = CoreReflections.field$BlockBehaviour$soundType.get(blockOwner);
-                Object soundEvent = CoreReflections.field$SoundType$hitSound.get(soundType);
+                Object soundType = FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(destroyedState);
+                Object soundEvent = FastNMS.INSTANCE.field$SoundType$hitSound(soundType);
                 Object soundId = FastNMS.INSTANCE.field$SoundEvent$location(soundEvent);
                 player.playSound(location, soundId.toString(), SoundCategory.BLOCKS, 0.5F, 0.5F);
                 this.lastHitBlockTime = currentTick;
@@ -941,8 +944,13 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public org.bukkit.entity.Player literalObject() {
+    public org.bukkit.entity.Player platformEntity() {
         return platformPlayer();
+    }
+
+    @Override
+    public Object serverEntity() {
+        return serverPlayer();
     }
 
     @Override
@@ -1133,5 +1141,28 @@ public class BukkitServerPlayer extends Player {
     public void teleport(WorldPosition worldPosition) {
         Location location = new Location((org.bukkit.World) worldPosition.world().platformWorld(), worldPosition.x(), worldPosition.y(), worldPosition.z(), worldPosition.yRot(), worldPosition.xRot());
         this.platformPlayer().teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+    }
+
+    @Override
+    public void damage(double amount, Key damageType) {
+        @SuppressWarnings("deprecation")
+        DamageType type = Registry.DAMAGE_TYPE.get(KeyUtils.toNamespacedKey(damageType));
+        this.platformPlayer().damage(amount, DamageSource.builder(type != null ? type : DamageType.GENERIC).build());
+    }
+
+    @Override
+    public Object entityData() {
+        return FastNMS.INSTANCE.field$Entity$entityData(serverEntity());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getEntityData(EntityData<T> data) {
+        return (T) FastNMS.INSTANCE.method$SynchedEntityData$get(entityData(), data.entityDataAccessor());
+    }
+
+    @Override
+    public <T> void setEntityData(EntityData<T> data, T value, boolean force) {
+        FastNMS.INSTANCE.method$SynchedEntityData$set(entityData(), data.entityDataAccessor(), value, force);
     }
 }

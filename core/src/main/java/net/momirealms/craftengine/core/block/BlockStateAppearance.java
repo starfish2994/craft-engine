@@ -5,10 +5,5 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 
 import java.util.Optional;
 
-public record BlockStateAppearance(int stateRegistryId, Optional<BlockEntityElementConfig<? extends BlockEntityElement>[]> blockEntityRenderer) {
-    public static final BlockStateAppearance INVALID = new BlockStateAppearance(-1, Optional.empty());
-
-    public boolean isInvalid() {
-        return this.stateRegistryId < 0;
-    }
+public record BlockStateAppearance(BlockStateWrapper blockState, Optional<BlockEntityElementConfig<? extends BlockEntityElement>[]> blockEntityRenderer) {
 }

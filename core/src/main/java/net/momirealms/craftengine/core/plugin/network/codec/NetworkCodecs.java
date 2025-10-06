@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.NBT;
 import net.momirealms.sparrow.nbt.Tag;
@@ -47,7 +47,7 @@ public interface NetworkCodecs {
         }
     };
 
-    NetworkCodec<ByteBuf, Float> ROTATION_BYTE = BYTE.map(MCUtils::unpackDegrees, MCUtils::packDegrees);
+    NetworkCodec<ByteBuf, Float> ROTATION_BYTE = BYTE.map(MiscUtils::unpackDegrees, MiscUtils::packDegrees);
 
     NetworkCodec<ByteBuf, Short> SHORT = new NetworkCodec<>() {
         @Override

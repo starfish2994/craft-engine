@@ -4,7 +4,6 @@ import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MCUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
@@ -18,7 +17,7 @@ public class AnyOfCondition<CTX extends Context> implements Condition<CTX> {
     protected final Predicate<CTX> condition;
 
     public AnyOfCondition(List<? extends Condition<CTX>> conditions) {
-        this.condition = MCUtils.anyOf(conditions);
+        this.condition = MiscUtils.anyOf(conditions);
     }
 
     @Override

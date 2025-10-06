@@ -55,6 +55,16 @@ public class BooleanProperty extends Property<Boolean> {
     }
 
     @Override
+    public Boolean valueByName(String name) {
+        if (name.equals("true")) {
+            return true;
+        } else if (name.equals("false")) {
+            return false;
+        }
+        return null;
+    }
+
+    @Override
     public int indexOf(Boolean bool) {
         return bool ? 0 : 1;
     }

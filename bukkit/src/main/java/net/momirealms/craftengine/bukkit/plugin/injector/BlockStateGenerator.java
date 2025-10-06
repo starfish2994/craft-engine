@@ -64,15 +64,17 @@ public final class BlockStateGenerator {
                 .method(ElementMatchers.is(CoreReflections.method$StateHolder$getValue))
                 .intercept(MethodDelegation.to(GetPropertyValueInterceptor.INSTANCE))
                 .method(ElementMatchers.is(CoreReflections.method$StateHolder$setValue))
-                .intercept(MethodDelegation.to(SetPropertyValueInterceptor.INSTANCE));
+                .intercept(MethodDelegation.to(SetPropertyValueInterceptor.INSTANCE))
+                .method(ElementMatchers.is(CoreReflections.method$BlockStateBase$isBlock))
+                .intercept(MethodDelegation.to(IsBlockInterceptor.INSTANCE));
         Class<?> clazz$CraftEngineBlock = stateBuilder.make().load(BlockStateGenerator.class.getClassLoader()).getLoaded();
         constructor$CraftEngineBlockState = VersionHelper.isOrAbove1_20_5() ?
                 MethodHandles.publicLookup().in(clazz$CraftEngineBlock)
-                .findConstructor(clazz$CraftEngineBlock, MethodType.methodType(void.class, CoreReflections.clazz$Block, Reference2ObjectArrayMap.class, MapCodec.class))
-                .asType(MethodType.methodType(CoreReflections.clazz$BlockState, CoreReflections.clazz$Block, Reference2ObjectArrayMap.class, MapCodec.class)) :
+                        .findConstructor(clazz$CraftEngineBlock, MethodType.methodType(void.class, CoreReflections.clazz$Block, Reference2ObjectArrayMap.class, MapCodec.class))
+                        .asType(MethodType.methodType(CoreReflections.clazz$BlockState, CoreReflections.clazz$Block, Reference2ObjectArrayMap.class, MapCodec.class)) :
                 MethodHandles.publicLookup().in(clazz$CraftEngineBlock)
-                .findConstructor(clazz$CraftEngineBlock, MethodType.methodType(void.class, CoreReflections.clazz$Block, ImmutableMap.class, MapCodec.class))
-                .asType(MethodType.methodType(CoreReflections.clazz$BlockState, CoreReflections.clazz$Block, ImmutableMap.class, MapCodec.class));
+                        .findConstructor(clazz$CraftEngineBlock, MethodType.methodType(void.class, CoreReflections.clazz$Block, ImmutableMap.class, MapCodec.class))
+                        .asType(MethodType.methodType(CoreReflections.clazz$BlockState, CoreReflections.clazz$Block, ImmutableMap.class, MapCodec.class));
 
         String generatedFactoryClassName = packageWithName.substring(0, packageWithName.lastIndexOf('.')) + ".CraftEngineStateFactory";
         DynamicType.Builder<?> factoryBuilder = byteBuddy
@@ -180,6 +182,23 @@ public final class BlockStateGenerator {
             Property<Boolean> waterloggedProperty = (Property<Boolean>) state.owner().value().getProperty("waterlogged");
             if (waterloggedProperty == null) return thisObj;
             return state.with(waterloggedProperty, (boolean) args[1]).customBlockState().literalObject();
+        }
+    }
+
+    public static class IsBlockInterceptor {
+        public static final IsBlockInterceptor INSTANCE = new IsBlockInterceptor();
+
+        @RuntimeType
+        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
+            DelegatingBlockState customState = (DelegatingBlockState) thisObj;
+            ImmutableBlockState thisState = customState.blockState();
+            if (thisState == null) return false;
+            if (FastNMS.INSTANCE.method$Block$defaultState(args[0]) instanceof DelegatingBlockState holder) {
+                ImmutableBlockState holderState = holder.blockState();
+                if (holderState == null) return false;
+                return holderState.owner().equals(thisState.owner());
+            }
+            return false;
         }
     }
 

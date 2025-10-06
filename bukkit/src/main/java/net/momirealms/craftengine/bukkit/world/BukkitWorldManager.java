@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.WorldStorageInjector;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
+import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -275,16 +276,19 @@ public class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private void handleChunkLoad(CEWorld ceWorld, Chunk chunk) {
-        ChunkPos pos = new ChunkPos(chunk.getX(), chunk.getZ());
-        if (ceWorld.isChunkLoaded(pos.longKey)) return;
+        int chunkX = chunk.getX();
+        int chunkZ = chunk.getZ();
+        ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
+        if (ceWorld.isChunkLoaded(chunkPos.longKey)) return;
         CEChunk ceChunk;
         try {
-            ceChunk = ceWorld.worldDataStorage().readChunkAt(ceWorld, pos);
+            ceChunk = ceWorld.worldDataStorage().readChunkAt(ceWorld, chunkPos);
             try {
                 CESection[] ceSections = ceChunk.sections();
                 Object worldServer = FastNMS.INSTANCE.field$CraftChunk$worldServer(chunk);
                 Object chunkSource = FastNMS.INSTANCE.method$ServerLevel$getChunkSource(worldServer);
-                Object levelChunk = FastNMS.INSTANCE.method$ServerChunkCache$getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
+                Object lightEngine = FastNMS.INSTANCE.method$ChunkSource$getLightEngine(chunkSource);
+                Object levelChunk = FastNMS.INSTANCE.method$ServerChunkCache$getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
                 Object[] sections = FastNMS.INSTANCE.method$ChunkAccess$getSections(levelChunk);
                 synchronized (sections) {
                     for (int i = 0; i < ceSections.length; i++) {
@@ -339,13 +343,22 @@ public class BukkitWorldManager implements WorldManager, Listener {
                             }
                         }
                         if (Config.restoreCustomBlocks()) {
+                            boolean isEmptyBefore = FastNMS.INSTANCE.method$LevelSection$hasOnlyAir(section);
+                            int sectionY = ceSection.sectionY;
+                            if (isEmptyBefore) {
+                                FastNMS.INSTANCE.method$LightEventListener$updateSectionStatus(lightEngine, FastNMS.INSTANCE.method$SectionPos$of(chunkX, sectionY, chunkZ), false);
+                            }
                             if (!ceSection.statesContainer().isEmpty()) {
                                 for (int x = 0; x < 16; x++) {
                                     for (int z = 0; z < 16; z++) {
                                         for (int y = 0; y < 16; y++) {
                                             ImmutableBlockState customState = ceSection.getBlockState(x, y, z);
                                             if (!customState.isEmpty() && customState.customBlockState() != null) {
-                                                FastNMS.INSTANCE.method$LevelChunkSection$setBlockState(section, x, y, z, customState.customBlockState().literalObject(), false);
+                                                Object newState = customState.customBlockState().literalObject();
+                                                Object previous = FastNMS.INSTANCE.method$LevelChunkSection$setBlockState(section, x, y, z, newState, false);
+                                                if (newState != previous && FastNMS.INSTANCE.method$LightEngine$hasDifferentLightProperties(newState, previous)) {
+                                                    FastNMS.INSTANCE.method$ThreadedLevelLightEngine$checkBlock(lightEngine, LocationUtils.toBlockPos(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z));
+                                                }
                                             }
                                         }
                                     }
@@ -353,7 +366,7 @@ public class BukkitWorldManager implements WorldManager, Listener {
                             }
                         }
                         int finalI = i;
-                        WorldStorageInjector.injectLevelChunkSection(section, ceSection, ceChunk, new SectionPos(pos.x, ceChunk.sectionY(i), pos.z),
+                        WorldStorageInjector.injectLevelChunkSection(section, ceSection, ceChunk, new SectionPos(chunkPos.x, ceChunk.sectionY(i), chunkPos.z),
                                 (injected) -> sections[finalI] = injected);
                     }
                 }

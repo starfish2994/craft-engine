@@ -2,120 +2,87 @@ package net.momirealms.craftengine.bukkit.block;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.momirealms.craftengine.bukkit.block.behavior.UnsafeCompositeBlockBehavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
-import net.momirealms.craftengine.bukkit.plugin.network.PacketConsumers;
 import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBuiltInRegistries;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistries;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.*;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.KeyUtils;
-import net.momirealms.craftengine.bukkit.util.RegistryUtils;
-import net.momirealms.craftengine.bukkit.util.TagUtils;
+import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
+import net.momirealms.craftengine.core.block.behavior.AbstractBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.BlockBehaviors;
 import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
 import net.momirealms.craftengine.core.block.parser.BlockStateParser;
-import net.momirealms.craftengine.core.plugin.config.StringKeyConstructor;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
-import net.momirealms.craftengine.core.registry.BuiltInRegistries;
+import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.registry.Holder;
-import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.sound.SoundData;
-import net.momirealms.craftengine.core.sound.Sounds;
+import net.momirealms.craftengine.core.sound.SoundSet;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public final class BukkitBlockManager extends AbstractBlockManager {
+    public static final Set<Object> CLIENT_SIDE_NOTE_BLOCKS = new HashSet<>(2048, 0.6f);
+    private static final Object ALWAYS_FALSE = FastNMS.INSTANCE.method$StatePredicate$always(false);
+    private static final Object ALWAYS_TRUE = FastNMS.INSTANCE.method$StatePredicate$always(true);
     private static BukkitBlockManager instance;
     private final BukkitCraftEngine plugin;
-
-    // The total amount of blocks registered
-    private int customBlockCount;
-    private ImmutableBlockState[] stateId2ImmutableBlockStates;
-    // Minecraft objects
-    // Cached new blocks $ holders
-    private Map<Integer, Object> stateId2BlockHolder;
-    // This map is used to change the block states that are not necessarily needed into a certain block state
-    private Map<Integer, Integer> blockAppearanceMapper;
-    // Record the amount of real blocks by block type
-    private Map<Key, Integer> registeredRealBlockSlots;
-    // A set of blocks that sounds have been removed
-    private Set<Object> affectedSoundBlocks;
-    private Map<Object, Pair<SoundData, SoundData>> affectedOpenableBlockSounds;
-    private Map<Key, Key> soundMapper;
-    // A list to record the order of registration
-    private List<Key> blockRegisterOrder = new ObjectArrayList<>();
-    // Event listeners
-    private BlockEventListener blockEventListener;
-    // cached tag packet
+    // 事件监听器
+    private final BlockEventListener blockEventListener;
+    // 用于缓存string形式的方块状态到原版方块状态
+    private final Map<String, BlockStateWrapper> blockStateCache = new HashMap<>(1024);
+    // 用于临时存储可燃烧自定义方块的列表
+    private final List<DelegatingBlock> burnableBlocks = new ArrayList<>();
+    // 可燃烧的方块
+    private Map<Object, Integer> igniteOdds;
+    private Map<Object, Integer> burnOdds;
+    // 自定义客户端侧原版方块标签
+    private Map<Integer, List<String>> clientBoundTags = Map.of();
+    private Map<Integer, List<String>> previousClientBoundTags = Map.of();
+    // 缓存的原版方块tag包
     private Object cachedUpdateTagsPacket;
-
-    private final List<Tuple<Object, Key, Boolean>> blocksToDeceive = new ArrayList<>();
+    // 被移除声音的原版方块
+    private Set<Object> missingPlaceSounds = Set.of();
+    private Set<Object> missingBreakSounds = Set.of();
+    private Set<Object> missingHitSounds = Set.of();
+    private Set<Object> missingStepSounds = Set.of();
+    private Set<Key> missingInteractSoundBlocks = Set.of();
 
     public BukkitBlockManager(BukkitCraftEngine plugin) {
-        super(plugin);
-        instance = this;
+        super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
         this.plugin = plugin;
-        this.initVanillaRegistry();
-        this.loadMappingsAndAdditionalBlocks();
-        this.registerBlocks();
-        this.registerEmptyBlock();
+        this.blockEventListener = new BlockEventListener(plugin, this);
+        this.registerServerSideCustomBlocks(Config.serverSideBlocks());
+        EmptyBlock.initialize();
+        instance = this;
     }
 
     @Override
     public void init() {
         this.initMirrorRegistry();
-        this.deceiveBukkit();
-        boolean enableNoteBlocks = this.blockAppearanceArranger.containsKey(BlockKeys.NOTE_BLOCK);
-        this.blockEventListener = new BlockEventListener(plugin, this, enableNoteBlocks);
-        if (enableNoteBlocks) {
-            this.recordVanillaNoteBlocks();
-        }
-        this.stateId2ImmutableBlockStates = new ImmutableBlockState[this.customBlockCount];
-        Arrays.fill(this.stateId2ImmutableBlockStates, EmptyBlock.INSTANCE.defaultState());
-        this.resetPacketConsumers();
-    }
-
-    @Override
-    public String stateRegistryIdToStateSNBT(int id) {
-        return BlockStateUtils.idToBlockState(id).toString();
+        this.initFireBlock();
+        this.deceiveBukkitRegistry();
+        this.markVanillaNoteBlocks();
+        Arrays.fill(this.immutableBlockStates, EmptyBlock.INSTANCE.defaultState());
+        this.plugin.networkManager().registerBlockStatePacketListeners(this.blockStateMappings); // 一定要预先初始化一次，预防id超出上限
     }
 
     public static BukkitBlockManager instance() {
         return instance;
-    }
-
-    public List<Key> blockRegisterOrder() {
-        return Collections.unmodifiableList(this.blockRegisterOrder);
     }
 
     @Override
@@ -126,9 +93,16 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public void unload() {
         super.unload();
+        this.previousClientBoundTags = this.clientBoundTags;
+        this.clientBoundTags = new HashMap<>();
+        for (DelegatingBlock block : this.burnableBlocks) {
+            this.igniteOdds.remove(block);
+            this.burnOdds.remove(block);
+        }
+        this.burnableBlocks.clear();
         if (EmptyBlock.STATE != null)
-            Arrays.fill(this.stateId2ImmutableBlockStates, EmptyBlock.STATE);
-        for (DelegatingBlock block : this.registeredBlocks.values()) {
+            Arrays.fill(this.immutableBlockStates, EmptyBlock.STATE);
+        for (DelegatingBlock block : this.customBlocks) {
             block.behaviorDelegate().bindValue(EmptyBlockBehavior.INSTANCE);
             block.shapeDelegate().bindValue(BukkitBlockShape.STONE);
             DelegatingBlockState state = (DelegatingBlockState) FastNMS.INSTANCE.method$Block$defaultState(block);
@@ -143,14 +117,24 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     }
 
     @Override
-    public Map<Key, Key> soundMapper() {
-        return this.soundMapper;
+    public void delayedLoad() {
+        this.plugin.networkManager().registerBlockStatePacketListeners(this.blockStateMappings); // 重置方块映射表
+        super.delayedLoad();
     }
 
     @Override
-    public void delayedLoad() {
-        this.resetPacketConsumers();
-        super.delayedLoad();
+    public BlockBehavior createBlockBehavior(CustomBlock customBlock, List<Map<String, Object>> behaviorConfig) {
+        if (behaviorConfig == null || behaviorConfig.isEmpty()) {
+            return new EmptyBlockBehavior();
+        } else if (behaviorConfig.size() == 1) {
+            return BlockBehaviors.fromMap(customBlock, behaviorConfig.getFirst());
+        } else {
+            List<AbstractBlockBehavior> behaviors = new ArrayList<>();
+            for (Map<String, Object> config : behaviorConfig) {
+                behaviors.add((AbstractBlockBehavior) BlockBehaviors.fromMap(customBlock, config));
+            }
+            return new UnsafeCompositeBlockBehavior(customBlock, behaviors);
+        }
     }
 
     @Override
@@ -180,47 +164,36 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         if (state != null) {
             return state.customBlockState();
         }
+        return createVanillaBlockState(blockState);
+    }
+
+    @Override
+    public BlockStateWrapper createVanillaBlockState(String blockState) {
+        return this.blockStateCache.computeIfAbsent(blockState, k -> {
+            Object state = parseBlockState(k);
+            if (state == null) return null;
+            return BlockStateUtils.toBlockStateWrapper(state);
+        });
+    }
+
+    @Nullable
+    private Object parseBlockState(String state) {
         try {
-            BlockData blockData = Bukkit.createBlockData(blockState);
-            return BlockStateUtils.toBlockStateWrapper(blockData);
-        } catch (IllegalArgumentException e) {
+            Object registryOrLookUp = MBuiltInRegistries.BLOCK;
+            if (CoreReflections.method$Registry$asLookup != null) {
+                registryOrLookUp = CoreReflections.method$Registry$asLookup.invoke(registryOrLookUp);
+            }
+            Object result = CoreReflections.method$BlockStateParser$parseForBlock.invoke(null, registryOrLookUp, state, false);
+            return CoreReflections.method$BlockStateParser$BlockResult$blockState.invoke(result);
+        } catch (Exception e) {
+            Debugger.BLOCK.warn(() -> "Failed to create block state: " + state, e);
             return null;
         }
     }
 
     @Nullable
     public Object getMinecraftBlockHolder(int stateId) {
-        return this.stateId2BlockHolder.get(stateId);
-    }
-
-    @NotNull
-    @Override
-    public ImmutableBlockState getImmutableBlockStateUnsafe(int stateId) {
-        return this.stateId2ImmutableBlockStates[stateId - BlockStateUtils.vanillaStateSize()];
-    }
-
-    @Nullable
-    @Override
-    public ImmutableBlockState getImmutableBlockState(int stateId) {
-        if (!BlockStateUtils.isVanillaBlock(stateId)) {
-            return this.stateId2ImmutableBlockStates[stateId - BlockStateUtils.vanillaStateSize()];
-        }
-        return null;
-    }
-
-    @Override
-    public void addBlockInternal(Key id, CustomBlock customBlock) {
-        // bind appearance and real state
-        for (ImmutableBlockState state : customBlock.variantProvider().states()) {
-            ImmutableBlockState previous = this.stateId2ImmutableBlockStates[state.customBlockState().registryId() - BlockStateUtils.vanillaStateSize()];
-            if (previous != null && !previous.isEmpty()) {
-                throw new LocalizedResourceConfigException("warning.config.block.state.bind_failed", state.toString(), previous.toString(), BlockStateUtils.getBlockOwnerIdFromState(previous.customBlockState().literalObject()).toString());
-            }
-            this.stateId2ImmutableBlockStates[state.customBlockState().registryId() - BlockStateUtils.vanillaStateSize()] = state;
-            this.tempBlockAppearanceConvertor.put(state.customBlockState().registryId(), state.vanillaBlockState().registryId());
-            this.appearanceToRealState.computeIfAbsent(state.vanillaBlockState().registryId(), k -> new IntArrayList()).add(state.customBlockState().registryId());
-        }
-        super.addBlockInternal(id, customBlock);
+        return this.customBlockHolders[stateId - BlockStateUtils.vanillaBlockStateCount()];
     }
 
     @Override
@@ -233,449 +206,312 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         return BlockStateUtils.getBlockOwnerIdFromState(BlockStateUtils.idToBlockState(id));
     }
 
+    @SuppressWarnings("unchecked")
+    private void initFireBlock() {
+        try {
+            this.igniteOdds = (Map<Object, Integer>) CoreReflections.field$FireBlock$igniteOdds.get(MBlocks.FIRE);
+            this.burnOdds = (Map<Object, Integer>) CoreReflections.field$FireBlock$burnOdds.get(MBlocks.FIRE);
+        } catch (IllegalAccessException e) {
+            this.plugin.logger().warn("Failed to get ignite odds", e);
+        }
+    }
+
     @Override
-    public int availableAppearances(Key blockType) {
-        return Optional.ofNullable(this.registeredRealBlockSlots.get(blockType)).orElse(0);
+    protected void applyPlatformSettings(ImmutableBlockState state) {
+        DelegatingBlockState nmsState = (DelegatingBlockState) state.customBlockState().literalObject();
+        nmsState.setBlockState(state);
+        Object nmsVisualState = state.vanillaBlockState().literalObject();
+
+        BlockSettings settings = state.settings();
+        try {
+            CoreReflections.field$BlockStateBase$lightEmission.set(nmsState, settings.luminance());
+            CoreReflections.field$BlockStateBase$burnable.set(nmsState, settings.burnable());
+            CoreReflections.field$BlockStateBase$hardness.set(nmsState, settings.hardness());
+            CoreReflections.field$BlockStateBase$replaceable.set(nmsState, settings.replaceable());
+            Object mcMapColor = CoreReflections.method$MapColor$byId.invoke(null, settings.mapColor().id);
+            CoreReflections.field$BlockStateBase$mapColor.set(nmsState, mcMapColor);
+            CoreReflections.field$BlockStateBase$instrument.set(nmsState, CoreReflections.instance$NoteBlockInstrument$values[settings.instrument().ordinal()]);
+            CoreReflections.field$BlockStateBase$pushReaction.set(nmsState, CoreReflections.instance$PushReaction$values[settings.pushReaction().ordinal()]);
+            boolean canOcclude = settings.canOcclude() == Tristate.UNDEFINED ? BlockStateUtils.isOcclude(nmsVisualState) : settings.canOcclude().asBoolean();
+            CoreReflections.field$BlockStateBase$canOcclude.set(nmsState, canOcclude);
+            boolean useShapeForLightOcclusion = settings.useShapeForLightOcclusion() == Tristate.UNDEFINED ? CoreReflections.field$BlockStateBase$useShapeForLightOcclusion.getBoolean(nmsVisualState) : settings.useShapeForLightOcclusion().asBoolean();
+            CoreReflections.field$BlockStateBase$useShapeForLightOcclusion.set(nmsState, useShapeForLightOcclusion);
+            CoreReflections.field$BlockStateBase$isRedstoneConductor.set(nmsState, settings.isRedstoneConductor().asBoolean() ? ALWAYS_TRUE : ALWAYS_FALSE);
+            CoreReflections.field$BlockStateBase$isSuffocating.set(nmsState, settings.isSuffocating().asBoolean() ? ALWAYS_TRUE : ALWAYS_FALSE);
+            CoreReflections.field$BlockStateBase$isViewBlocking.set(nmsState, settings.isViewBlocking() == Tristate.UNDEFINED ? settings.isSuffocating().asBoolean() ? ALWAYS_TRUE : ALWAYS_FALSE : (settings.isViewBlocking().asBoolean() ? ALWAYS_TRUE : ALWAYS_FALSE));
+
+            DelegatingBlock nmsBlock = (DelegatingBlock) BlockStateUtils.getBlockOwner(nmsState);
+            ObjectHolder<BlockShape> shapeHolder = nmsBlock.shapeDelegate();
+            shapeHolder.bindValue(new BukkitBlockShape(nmsVisualState, Optional.ofNullable(state.settings().supportShapeBlockState()).map(it -> Objects.requireNonNull(createVanillaBlockState(it), "Illegal block state: " + it).literalObject()).orElse(null)));
+            ObjectHolder<BlockBehavior> behaviorHolder = nmsBlock.behaviorDelegate();
+            behaviorHolder.bindValue(state.behavior());
+
+            CoreReflections.field$BlockBehaviour$explosionResistance.set(nmsBlock, settings.resistance());
+            CoreReflections.field$BlockBehaviour$friction.set(nmsBlock, settings.friction());
+            CoreReflections.field$BlockBehaviour$speedFactor.set(nmsBlock, settings.speedFactor());
+            CoreReflections.field$BlockBehaviour$jumpFactor.set(nmsBlock, settings.jumpFactor());
+            CoreReflections.field$BlockBehaviour$soundType.set(nmsBlock, SoundUtils.toSoundType(settings.sounds()));
+
+            CoreReflections.method$BlockStateBase$initCache.invoke(nmsState);
+            boolean isConditionallyFullOpaque = canOcclude & useShapeForLightOcclusion;
+            if (!VersionHelper.isOrAbove1_21_2()) {
+                CoreReflections.field$BlockStateBase$isConditionallyFullOpaque.set(nmsState, isConditionallyFullOpaque);
+            }
+
+            if (VersionHelper.isOrAbove1_21_2()) {
+                int blockLight = settings.blockLight() != -1 ? settings.blockLight() : CoreReflections.field$BlockStateBase$lightBlock.getInt(nmsVisualState);
+                CoreReflections.field$BlockStateBase$lightBlock.set(nmsState, blockLight);
+                boolean propagatesSkylightDown = settings.propagatesSkylightDown() == Tristate.UNDEFINED ? CoreReflections.field$BlockStateBase$propagatesSkylightDown.getBoolean(nmsVisualState) : settings.propagatesSkylightDown().asBoolean();
+                CoreReflections.field$BlockStateBase$propagatesSkylightDown.set(nmsState, propagatesSkylightDown);
+            } else {
+                Object cache = CoreReflections.field$BlockStateBase$cache.get(nmsState);
+                int blockLight = settings.blockLight() != -1 ? settings.blockLight() : CoreReflections.field$BlockStateBase$Cache$lightBlock.getInt(CoreReflections.field$BlockStateBase$cache.get(nmsVisualState));
+                CoreReflections.field$BlockStateBase$Cache$lightBlock.set(cache, blockLight);
+                boolean propagatesSkylightDown = settings.propagatesSkylightDown() == Tristate.UNDEFINED ? CoreReflections.field$BlockStateBase$Cache$propagatesSkylightDown.getBoolean(CoreReflections.field$BlockStateBase$cache.get(nmsVisualState)) : settings.propagatesSkylightDown().asBoolean();
+                CoreReflections.field$BlockStateBase$Cache$propagatesSkylightDown.set(cache, propagatesSkylightDown);
+                if (!isConditionallyFullOpaque) {
+                    CoreReflections.field$BlockStateBase$opacityIfCached.set(nmsState, blockLight);
+                }
+            }
+
+            CoreReflections.field$BlockStateBase$fluidState.set(nmsState, settings.fluidState() ? MFluids.WATER$defaultState : MFluids.EMPTY$defaultState);
+            CoreReflections.field$BlockStateBase$isRandomlyTicking.set(nmsState, settings.isRandomlyTicking());
+            Object holder = BukkitCraftEngine.instance().blockManager().getMinecraftBlockHolder(state.customBlockState().registryId());
+            Set<Object> tags = new HashSet<>();
+            for (Key tag : settings.tags()) {
+                tags.add(CoreReflections.method$TagKey$create.invoke(null, MRegistries.BLOCK, KeyUtils.toResourceLocation(tag)));
+            }
+            CoreReflections.field$Holder$Reference$tags.set(holder, tags);
+            if (settings.burnable()) {
+                this.igniteOdds.put(nmsBlock, settings.burnChance());
+                this.burnOdds.put(nmsBlock, settings.fireSpreadChance());
+                this.burnableBlocks.add(nmsBlock);
+            }
+        } catch (ReflectiveOperationException e) {
+            this.plugin.logger().warn("Failed to apply platform block settings for block state " + state, e);
+        }
     }
 
-    @NotNull
-    public Map<Key, List<Integer>> blockAppearanceArranger() {
-        return this.blockAppearanceArranger;
+    private BlockSounds toBlockSounds(Object soundType) throws ReflectiveOperationException {
+        return new BlockSounds(
+                toSoundData(CoreReflections.field$SoundType$breakSound.get(soundType), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_0_8),
+                toSoundData(CoreReflections.field$SoundType$stepSound.get(soundType), SoundData.SoundValue.FIXED_0_15, SoundData.SoundValue.FIXED_1),
+                toSoundData(CoreReflections.field$SoundType$placeSound.get(soundType), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_0_8),
+                toSoundData(CoreReflections.field$SoundType$hitSound.get(soundType), SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.FIXED_0_5),
+                toSoundData(CoreReflections.field$SoundType$fallSound.get(soundType), SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.FIXED_0_75)
+        );
     }
 
-    @NotNull
-    public Map<Key, List<Integer>> realBlockArranger() {
-        return this.realBlockArranger;
+    private SoundData toSoundData(Object soundEvent, SoundData.SoundValue volume, SoundData.SoundValue pitch) {
+        Key soundId = KeyUtils.resourceLocationToKey(FastNMS.INSTANCE.field$SoundEvent$location(soundEvent));
+        return new SoundData(soundId, volume, pitch);
     }
 
     private void initMirrorRegistry() {
         int size = RegistryUtils.currentBlockRegistrySize();
         BlockStateWrapper[] states = new BlockStateWrapper[size];
-        for (int i = 0; i < size; i++) {
-            states[i] = new BukkitBlockStateWrapper(BlockStateUtils.idToBlockState(i), i);
+        for (int i = 0; i < this.vanillaBlockStateCount; i++) {
+            states[i] = new BukkitVanillaBlockStateWrapper(BlockStateUtils.idToBlockState(i), i);
         }
-        BlockRegistryMirror.init(states, new BukkitBlockStateWrapper(MBlocks.STONE$defaultState, BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)));
-    }
-
-    private void registerEmptyBlock() {
-        Holder.Reference<CustomBlock> holder = ((WritableRegistry<CustomBlock>) BuiltInRegistries.BLOCK).registerForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), Key.withDefaultNamespace("empty")));
-        EmptyBlock emptyBlock = new EmptyBlock(Key.withDefaultNamespace("empty"), holder);
-        holder.bindValue(emptyBlock);
-    }
-
-    private void resetPacketConsumers() {
-        Map<Integer, Integer> finalMapping = new HashMap<>(this.blockAppearanceMapper);
-        int stoneId = BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState);
-        for (int custom : this.internalId2StateId.values()) {
-            finalMapping.put(custom, stoneId);
+        for (int i = this.vanillaBlockStateCount; i < size; i++) {
+            states[i] = new BukkitCustomBlockStateWrapper(BlockStateUtils.idToBlockState(i), i);
         }
-        finalMapping.putAll(this.tempBlockAppearanceConvertor);
-        PacketConsumers.initBlocks(finalMapping, RegistryUtils.currentBlockRegistrySize());
+        BlockRegistryMirror.init(states, states[BlockStateUtils.blockStateToId(MBlocks.STONE$defaultState)]);
     }
 
-    private void initVanillaRegistry() {
-        int vanillaStateCount = RegistryUtils.currentBlockRegistrySize();
-        this.plugin.logger().info("Vanilla block count: " + vanillaStateCount);
-        BlockStateUtils.init(vanillaStateCount);
-    }
-
-    @Override
-    protected CustomBlock.Builder platformBuilder(Key id) {
-        return BukkitCustomBlock.builder(id);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void registerBlocks() {
-        this.plugin.logger().info("Registering blocks. Please wait...");
+    // 注册服务端侧的真实方块
+    private void registerServerSideCustomBlocks(int count) {
+        // 这个会影响全局调色盘
+        if (MiscUtils.ceilLog2(this.vanillaBlockStateCount + count) == MiscUtils.ceilLog2(this.vanillaBlockStateCount)) {
+            PalettedContainer.NEED_DOWNGRADE = false;
+        }
         try {
-            ImmutableMap.Builder<Key, Integer> builder1 = ImmutableMap.builder();
-            ImmutableMap.Builder<Integer, Object> builder2 = ImmutableMap.builder();
-            ImmutableMap.Builder<Key, List<Integer>> builder3 = ImmutableMap.builder();
-            ImmutableMap.Builder<Key, DelegatingBlock> builder4 = ImmutableMap.builder();
-            Set<Object> affectedBlockSounds = new HashSet<>();
-            Map<Object, Pair<SoundData, SoundData>> affectedDoors = new IdentityHashMap<>();
-            Set<Object> affectedBlocks = new HashSet<>();
-            List<Key> order = new ArrayList<>();
-
             unfreezeRegistry();
-
-            int counter = 0;
-            for (Map.Entry<Key, Integer> baseBlockAndItsCount : this.registeredRealBlockSlots.entrySet()) {
-                counter = registerBlockVariants(baseBlockAndItsCount, counter, builder1, builder2, builder3, builder4, affectedBlockSounds, order);
+            for (int i = 0; i < count; i++) {
+                Key customBlockId = BlockManager.createCustomBlockKey(i);
+                DelegatingBlock customBlock;
+                try {
+                    customBlock = BlockGenerator.generateBlock(customBlockId);
+                } catch (Throwable t) {
+                    CraftEngine.instance().logger().warn("Failed to generate custom block " + customBlockId, t);
+                    break;
+                }
+                this.customBlocks[i] = customBlock;
+                try {
+                    Object resourceLocation = KeyUtils.toResourceLocation(customBlockId);
+                    Object blockHolder = CoreReflections.method$Registry$registerForHolder.invoke(null, MBuiltInRegistries.BLOCK, resourceLocation, customBlock);
+                    this.customBlockHolders[i] = blockHolder;
+                    CoreReflections.method$Holder$Reference$bindValue.invoke(blockHolder, customBlock);
+                    CoreReflections.field$Holder$Reference$tags.set(blockHolder, Set.of());
+                    DelegatingBlockState newBlockState = (DelegatingBlockState) FastNMS.INSTANCE.method$Block$defaultState(customBlock);
+                    this.customBlockStates[i] = newBlockState;
+                    CoreReflections.method$IdMapper$add.invoke(CoreReflections.instance$Block$BLOCK_STATE_REGISTRY, newBlockState);
+                } catch (ReflectiveOperationException e) {
+                    CraftEngine.instance().logger().warn("Failed to register custom block " + customBlockId, e);
+                }
             }
-
+        } finally {
             freezeRegistry();
-            this.plugin.logger().info("Registered block count: " + counter);
-            this.customBlockCount = counter;
-            this.internalId2StateId = builder1.build();
-            this.stateId2BlockHolder = builder2.build();
-            this.realBlockArranger = builder3.build();
-            this.registeredBlocks = builder4.build();
-            this.blockRegisterOrder = ImmutableList.copyOf(order);
-            if (MCUtils.ceilLog2(BlockStateUtils.vanillaStateSize() + counter) == MCUtils.ceilLog2(BlockStateUtils.vanillaStateSize())) {
-                PalettedContainer.NEED_DOWNGRADE = false;
-            }
-            for (Object block : (Iterable<Object>) MBuiltInRegistries.BLOCK) {
-                Object soundType = CoreReflections.field$BlockBehaviour$soundType.get(block);
-                if (affectedBlockSounds.contains(soundType)) {
-                    Object state = FastNMS.INSTANCE.method$Block$defaultState(block);
-                    if (BlockStateUtils.isVanillaBlock(state)) {
-                        affectedBlocks.add(block);
-                    }
-                }
-            }
-
-            affectedBlocks.remove(MBlocks.FIRE);
-            affectedBlocks.remove(MBlocks.SOUL_FIRE);
-
-            this.affectedSoundBlocks = ImmutableSet.copyOf(affectedBlocks);
-
-            ImmutableMap.Builder<Key, Key> soundMapperBuilder = ImmutableMap.builder();
-            for (Object soundType : affectedBlockSounds) {
-                for (Field field : List.of(CoreReflections.field$SoundType$placeSound, CoreReflections.field$SoundType$fallSound, CoreReflections.field$SoundType$hitSound, CoreReflections.field$SoundType$stepSound, CoreReflections.field$SoundType$breakSound)) {
-                    Object soundEvent = field.get(soundType);
-                    Key previousId = Key.of(FastNMS.INSTANCE.field$SoundEvent$location(soundEvent).toString());
-                    soundMapperBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
-                }
-            }
-
-            Predicate<Key> predicate = it -> this.realBlockArranger.containsKey(it);
-            Consumer<Key> soundCallback = s -> soundMapperBuilder.put(s, Key.of("replaced." + s.value()));
-            BiConsumer<Object, Pair<SoundData, SoundData>> affectedBlockCallback = affectedDoors::put;
-            Function<Key, SoundData> soundMapper = (k) -> SoundData.of(k, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f));
-            collectDoorSounds(predicate, Sounds.WOODEN_TRAPDOOR_OPEN, Sounds.WOODEN_TRAPDOOR_CLOSE, Sounds.WOODEN_TRAPDOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.NETHER_WOOD_TRAPDOOR_OPEN, Sounds.NETHER_WOOD_TRAPDOOR_CLOSE, Sounds.NETHER_TRAPDOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.BAMBOO_WOOD_TRAPDOOR_OPEN, Sounds.BAMBOO_WOOD_TRAPDOOR_CLOSE, Sounds.BAMBOO_TRAPDOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.CHERRY_WOOD_TRAPDOOR_OPEN, Sounds.CHERRY_WOOD_TRAPDOOR_CLOSE, Sounds.CHERRY_TRAPDOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.COPPER_TRAPDOOR_OPEN, Sounds.COPPER_TRAPDOOR_CLOSE, Sounds.COPPER_TRAPDOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.WOODEN_DOOR_OPEN, Sounds.WOODEN_DOOR_CLOSE, Sounds.WOODEN_DOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.NETHER_WOOD_DOOR_OPEN, Sounds.NETHER_WOOD_DOOR_CLOSE, Sounds.NETHER_DOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.BAMBOO_WOOD_DOOR_OPEN, Sounds.BAMBOO_WOOD_DOOR_CLOSE, Sounds.BAMBOO_DOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.CHERRY_WOOD_DOOR_OPEN, Sounds.CHERRY_WOOD_DOOR_CLOSE, Sounds.CHERRY_DOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.COPPER_DOOR_OPEN, Sounds.COPPER_DOOR_CLOSE, Sounds.COPPER_DOORS, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.WOODEN_FENCE_GATE_OPEN, Sounds.WOODEN_FENCE_GATE_CLOSE, Sounds.WOODEN_FENCE_GATES, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.NETHER_WOOD_FENCE_GATE_OPEN, Sounds.NETHER_WOOD_FENCE_GATE_CLOSE, Sounds.NETHER_FENCE_GATES, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.BAMBOO_WOOD_FENCE_GATE_OPEN, Sounds.BAMBOO_WOOD_FENCE_GATE_CLOSE, Sounds.BAMBOO_FENCE_GATES, soundMapper, soundCallback, affectedBlockCallback);
-            collectDoorSounds(predicate, Sounds.CHERRY_WOOD_FENCE_GATE_OPEN, Sounds.CHERRY_WOOD_FENCE_GATE_CLOSE, Sounds.CHERRY_FENCE_GATES, soundMapper, soundCallback, affectedBlockCallback);
-            this.affectedOpenableBlockSounds = ImmutableMap.copyOf(affectedDoors);
-            this.soundMapper = soundMapperBuilder.buildKeepingLast();
-        } catch (Throwable e) {
-            plugin.logger().warn("Failed to inject blocks.", e);
-        }
-    }
-
-    private void collectDoorSounds(Predicate<Key> isUsedForCustomBlock,
-                                   Key openSound,
-                                   Key closeSound,
-                                   List<Key> doors,
-                                   Function<Key, SoundData> soundMapper,
-                                   Consumer<Key> soundCallback,
-                                   BiConsumer<Object, Pair<SoundData, SoundData>> affectedBlockCallback) {
-        for (Key d : doors) {
-            if (isUsedForCustomBlock.test(d)) {
-                soundCallback.accept(openSound);
-                soundCallback.accept(closeSound);
-                for (Key door : doors) {
-                    Object block = FastNMS.INSTANCE.method$Registry$getValue(MBuiltInRegistries.BLOCK, KeyUtils.toResourceLocation(door));
-                    if (block != null) {
-                        affectedBlockCallback.accept(block, Pair.of(soundMapper.apply(Key.of("replaced." + openSound.value())), soundMapper.apply(Key.of("replaced." + closeSound.value()))));
-                    }
-                }
-                break;
-            }
         }
     }
 
     public Object cachedUpdateTagsPacket() {
-        return cachedUpdateTagsPacket;
+        return this.cachedUpdateTagsPacket;
     }
 
-    private void loadMappingsAndAdditionalBlocks() {
-        this.plugin.logger().info("Loading mappings.yml.");
-        Path mappingsFile = this.plugin.dataFolderPath().resolve("mappings.yml");
-        if (!Files.exists(mappingsFile)) {
-            this.plugin.saveResource("mappings.yml");
-        }
-        Path additionalFile = this.plugin.dataFolderPath().resolve("additional-real-blocks.yml");
-        if (!Files.exists(additionalFile)) {
-            this.plugin.saveResource("additional-real-blocks.yml");
-        }
-        Yaml yaml = new Yaml(new StringKeyConstructor(mappingsFile, new LoaderOptions()));
-        Map<Key, Integer> blockTypeCounter = new LinkedHashMap<>();
-        try (InputStream is = Files.newInputStream(mappingsFile)) {
-            Map<String, String> blockStateMappings = loadBlockStateMappings(yaml.load(is));
-            this.validateBlockStateMappings(mappingsFile, blockStateMappings);
-            Map<Integer, String> stateMap = new Int2ObjectOpenHashMap<>();
-            Map<Integer, Integer> appearanceMapper = new Int2IntOpenHashMap();
-            Map<Key, List<Integer>> appearanceArranger = new HashMap<>();
-            for (Map.Entry<String, String> entry : blockStateMappings.entrySet()) {
-                this.processBlockStateMapping(mappingsFile, entry, stateMap, blockTypeCounter, appearanceMapper, appearanceArranger);
-            }
-            this.blockAppearanceMapper = ImmutableMap.copyOf(appearanceMapper);
-            this.blockAppearanceArranger = ImmutableMap.copyOf(appearanceArranger);
-            this.plugin.logger().info("Freed " + this.blockAppearanceMapper.size() + " block state appearances.");
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to init mappings.yml", e);
-        }
-        try (InputStream is = Files.newInputStream(additionalFile)) {
-            this.registeredRealBlockSlots = this.buildRegisteredRealBlockSlots(blockTypeCounter, yaml.load(is));
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to init additional-real-blocks.yml", e);
-        }
-    }
-
-    private void recordVanillaNoteBlocks() {
+    private void markVanillaNoteBlocks() {
         try {
-            Object resourceLocation = KeyUtils.toResourceLocation(BlockKeys.NOTE_BLOCK);
-            Object block = FastNMS.INSTANCE.method$Registry$getValue(MBuiltInRegistries.BLOCK, resourceLocation);
+            Object block = FastNMS.INSTANCE.method$Registry$getValue(MBuiltInRegistries.BLOCK, KeyUtils.toResourceLocation(BlockKeys.NOTE_BLOCK));
             Object stateDefinition = CoreReflections.field$Block$StateDefinition.get(block);
             @SuppressWarnings("unchecked")
             ImmutableList<Object> states = (ImmutableList<Object>) CoreReflections.field$StateDefinition$states.get(stateDefinition);
-            for (Object state : states) {
-                BlockStateUtils.CLIENT_SIDE_NOTE_BLOCKS.put(state, new Object());
-            }
+            CLIENT_SIDE_NOTE_BLOCKS.addAll(states);
         } catch (ReflectiveOperationException e) {
-            plugin.logger().warn("Failed to init vanilla note block", e);
-        }
-    }
-
-    @Nullable
-    public Key replaceSoundIfExist(Key id) {
-        return this.soundMapper.get(id);
-    }
-
-    public boolean isBlockSoundRemoved(Object block) {
-        return this.affectedSoundBlocks.contains(block);
-    }
-
-    public boolean isOpenableBlockSoundRemoved(Object block) {
-        return this.affectedOpenableBlockSounds.containsKey(block);
-    }
-
-    public SoundData getRemovedOpenableBlockSound(Object block, boolean open) {
-        return open ? this.affectedOpenableBlockSounds.get(block).left() : this.affectedOpenableBlockSounds.get(block).right();
-    }
-
-    private Map<String, String> loadBlockStateMappings(Map<String, Object> mappings) {
-        Map<String, String> blockStateMappings = new LinkedHashMap<>();
-        for (Map.Entry<String, Object> entry : mappings.entrySet()) {
-            if (entry.getValue() instanceof String afterValue) {
-                blockStateMappings.put(entry.getKey(), afterValue);
-            }
-        }
-        return blockStateMappings;
-    }
-
-    private void validateBlockStateMappings(Path mappingFile, Map<String, String> blockStateMappings) {
-        Map<String, String> temp = new HashMap<>(blockStateMappings);
-        for (Map.Entry<String, String> entry : temp.entrySet()) {
-            String state = entry.getValue();
-            if (blockStateMappings.containsKey(state)) {
-                String after = blockStateMappings.remove(state);
-                plugin.logger().warn(mappingFile, "'" + state + ": " + after + "' is invalid because '" + state + "' has already been used as a base block.");
-            }
-        }
-    }
-
-    private void processBlockStateMapping(Path mappingFile,
-                                          Map.Entry<String, String> entry,
-                                          Map<Integer, String> stateMap,
-                                          Map<Key, Integer> counter,
-                                          Map<Integer, Integer> mapper,
-                                          Map<Key, List<Integer>> arranger) {
-        Object before = createBlockState(mappingFile, entry.getKey());
-        Object after = createBlockState(mappingFile, entry.getValue());
-        if (before == null || after == null) return;
-
-        int beforeId = BlockStateUtils.blockStateToId(before);
-        int afterId = BlockStateUtils.blockStateToId(after);
-
-        Integer previous = mapper.put(beforeId, afterId);
-        if (previous == null) {
-            Key key = blockOwnerFromString(entry.getKey());
-            counter.compute(key, (k, count) -> count == null ? 1 : count + 1);
-            stateMap.put(beforeId, entry.getKey());
-            stateMap.put(afterId, entry.getValue());
-            arranger.computeIfAbsent(key, (k) -> new IntArrayList()).add(beforeId);
-        } else {
-            String previousState = stateMap.get(previous);
-            plugin.logger().warn(mappingFile, "Duplicate entry: '" + previousState + "' equals '" + entry.getKey() + "'");
-        }
-    }
-
-    private Key blockOwnerFromString(String stateString) {
-        int index = stateString.indexOf('[');
-        if (index == -1) {
-            return Key.of(stateString);
-        } else {
-            return Key.of(stateString.substring(0, index));
-        }
-    }
-
-    private Object createBlockState(Path mappingFile, String state) {
-        try {
-            Object registryOrLookUp = MBuiltInRegistries.BLOCK;
-            if (CoreReflections.method$Registry$asLookup != null) {
-                registryOrLookUp = CoreReflections.method$Registry$asLookup.invoke(registryOrLookUp);
-            }
-            Object result = CoreReflections.method$BlockStateParser$parseForBlock.invoke(null, registryOrLookUp, state, false);
-            return CoreReflections.method$BlockStateParser$BlockResult$blockState.invoke(result);
-        } catch (Exception e) {
-            this.plugin.logger().warn(mappingFile, "'" + state + "' is not a valid block state.");
-            return null;
-        }
-    }
-
-    private LinkedHashMap<Key, Integer> buildRegisteredRealBlockSlots(Map<Key, Integer> counter, Map<String, Object> additionalYaml) {
-        LinkedHashMap<Key, Integer> map = new LinkedHashMap<>(counter);
-        for (Map.Entry<String, Object> entry : additionalYaml.entrySet()) {
-            Key blockType = Key.of(entry.getKey());
-            if (entry.getValue() instanceof Integer i) {
-                int previous = map.getOrDefault(blockType, 0);
-                if (previous == 0) {
-                    map.put(blockType, i);
-                    this.plugin.logger().info("Loaded " + blockType + " with " + i + " real block states");
-                } else {
-                    map.put(blockType, i + previous);
-                    this.plugin.logger().info("Loaded " + blockType + " with " + previous + " appearances and " + (i + previous) + " real block states");
-                }
-            }
-        }
-        return map;
-    }
-
-    private void unfreezeRegistry() throws IllegalAccessException {
-        CoreReflections.field$MappedRegistry$frozen.set(MBuiltInRegistries.BLOCK, false);
-        CoreReflections.field$MappedRegistry$unregisteredIntrusiveHolders.set(MBuiltInRegistries.BLOCK, new IdentityHashMap<>());
-    }
-
-    private void freezeRegistry() throws IllegalAccessException {
-        CoreReflections.field$MappedRegistry$frozen.set(MBuiltInRegistries.BLOCK, true);
-    }
-
-    private int registerBlockVariants(Map.Entry<Key, Integer> blockWithCount,
-                                      int counter,
-                                      ImmutableMap.Builder<Key, Integer> builder1,
-                                      ImmutableMap.Builder<Integer, Object> builder2,
-                                      ImmutableMap.Builder<Key, List<Integer>> builder3,
-                                      ImmutableMap.Builder<Key, DelegatingBlock> builder4,
-                                      Set<Object> affectSoundTypes,
-                                      List<Key> order) throws Exception {
-        Key clientSideBlockType = blockWithCount.getKey();
-        boolean isNoteBlock = clientSideBlockType.equals(BlockKeys.NOTE_BLOCK);
-        Object clientSideBlock = getBlockFromRegistry(createResourceLocation(clientSideBlockType));
-        int amount = blockWithCount.getValue();
-
-        List<Integer> stateIds = new IntArrayList();
-
-        for (int i = 0; i < amount; i++) {
-            Key realBlockKey = createRealBlockKey(clientSideBlockType, i);
-            Object blockProperties = createBlockProperties(realBlockKey);
-
-            Object newRealBlock;
-            Object newBlockState;
-            Object blockHolder;
-            Object resourceLocation = createResourceLocation(realBlockKey);
-
-            try {
-                newRealBlock = BlockGenerator.generateBlock(clientSideBlockType, clientSideBlock, blockProperties);
-            } catch (Throwable throwable) {
-                this.plugin.logger().warn("Failed to generate dynamic block class", throwable);
-                continue;
-            }
-
-            blockHolder = CoreReflections.method$Registry$registerForHolder.invoke(null, MBuiltInRegistries.BLOCK, resourceLocation, newRealBlock);
-            CoreReflections.method$Holder$Reference$bindValue.invoke(blockHolder, newRealBlock);
-            CoreReflections.field$Holder$Reference$tags.set(blockHolder, Set.of());
-
-            newBlockState = FastNMS.INSTANCE.method$Block$defaultState(newRealBlock);
-            CoreReflections.method$IdMapper$add.invoke(CoreReflections.instance$Block$BLOCK_STATE_REGISTRY, newBlockState);
-
-            if (isNoteBlock) {
-                BlockStateUtils.CLIENT_SIDE_NOTE_BLOCKS.put(newBlockState, new Object());
-            }
-
-            int stateId = BlockStateUtils.vanillaStateSize() + counter;
-
-            builder1.put(realBlockKey, stateId);
-            builder2.put(stateId, blockHolder);
-            builder4.put(realBlockKey, (DelegatingBlock) newRealBlock);
-            stateIds.add(stateId);
-
-            this.blocksToDeceive.add(Tuple.of(newRealBlock, clientSideBlockType, isNoteBlock));
-            order.add(realBlockKey);
-            counter++;
-        }
-
-        builder3.put(clientSideBlockType, stateIds);
-        Object soundType = CoreReflections.field$BlockBehaviour$soundType.get(clientSideBlock);
-        affectSoundTypes.add(soundType);
-        return counter;
-    }
-
-    private Object createResourceLocation(Key key) {
-        return FastNMS.INSTANCE.method$ResourceLocation$fromNamespaceAndPath(key.namespace(), key.value());
-    }
-
-    private Object getBlockFromRegistry(Object resourceLocation) {
-        return FastNMS.INSTANCE.method$Registry$getValue(MBuiltInRegistries.BLOCK, resourceLocation);
-    }
-
-    private Key createRealBlockKey(Key replacedBlock, int index) {
-        return Key.of(Key.DEFAULT_NAMESPACE, replacedBlock.value() + "_" + index);
-    }
-
-    private Object createBlockProperties(Key realBlockKey) throws Exception {
-        Object blockProperties = CoreReflections.method$BlockBehaviour$Properties$of.invoke(null);
-        Object realBlockResourceLocation = createResourceLocation(realBlockKey);
-        Object realBlockResourceKey = CoreReflections.method$ResourceKey$create.invoke(null, MRegistries.BLOCK, realBlockResourceLocation);
-        if (CoreReflections.field$BlockBehaviour$Properties$id != null) {
-            CoreReflections.field$BlockBehaviour$Properties$id.set(blockProperties, realBlockResourceKey);
-        }
-        return blockProperties;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void deceiveBukkit() {
-        try {
-            Map<Object, Material> magicMap = (Map<Object, Material>) CraftBukkitReflections.field$CraftMagicNumbers$BLOCK_MATERIAL.get(null);
-            Map<Material, Object> factories = (Map<Material, Object>) CraftBukkitReflections.field$CraftBlockStates$FACTORIES.get(null);
-            for (Tuple<Object, Key, Boolean> tuple : this.blocksToDeceive) {
-                deceiveBukkit(tuple.left(), tuple.mid(), tuple.right(), magicMap, factories);
-            }
-            this.blocksToDeceive.clear();
-        } catch (ReflectiveOperationException e) {
-            this.plugin.logger().warn("Failed to deceive bukkit", e);
-        }
-    }
-
-    private void deceiveBukkit(Object newBlock, Key replacedBlock, boolean isNoteBlock, Map<Object, Material> magicMap, Map<Material, Object> factories) {
-        if (isNoteBlock) {
-            magicMap.put(newBlock, Material.STONE);
-        } else {
-            Material material = org.bukkit.Registry.MATERIAL.get(new NamespacedKey(replacedBlock.namespace(), replacedBlock.value()));
-            if (CraftBukkitReflections.clazz$CraftBlockStates$BlockEntityStateFactory.isInstance(factories.get(material))) {
-                magicMap.put(newBlock, Material.STONE);
-            } else {
-                magicMap.put(newBlock, material);
-            }
+            this.plugin.logger().warn("Failed to init vanilla note block", e);
         }
     }
 
     @Override
-    protected int getBlockRegistryId(Key id) {
+    protected void setVanillaBlockTags(Key id, List<String> tags) {
         Object block = FastNMS.INSTANCE.method$Registry$getValue(MBuiltInRegistries.BLOCK, KeyUtils.toResourceLocation(id));
-        return FastNMS.INSTANCE.method$IdMap$getId(MBuiltInRegistries.BLOCK, block).orElseThrow(() -> new IllegalStateException("Block " + id + " not found"));
+        this.clientBoundTags.put(FastNMS.INSTANCE.method$IdMap$getId(MBuiltInRegistries.BLOCK, block).orElseThrow(() -> new IllegalStateException("Block " + id + " not found")), tags);
+    }
+
+    public boolean isPlaceSoundMissing(Object sound) {
+        return this.missingPlaceSounds.contains(sound);
+    }
+
+    public boolean isBreakSoundMissing(Object sound) {
+        return this.missingBreakSounds.contains(sound);
+    }
+
+    public boolean isHitSoundMissing(Object sound) {
+        return this.missingHitSounds.contains(sound);
+    }
+
+    public boolean isStepSoundMissing(Object sound) {
+        return this.missingStepSounds.contains(sound);
+    }
+
+    public boolean isInteractSoundMissing(Key blockType) {
+        return this.missingInteractSoundBlocks.contains(blockType);
+    }
+
+    private void unfreezeRegistry() {
+        try {
+            CoreReflections.field$MappedRegistry$frozen.set(MBuiltInRegistries.BLOCK, false);
+            CoreReflections.field$MappedRegistry$unregisteredIntrusiveHolders.set(MBuiltInRegistries.BLOCK, new IdentityHashMap<>());
+        } catch (IllegalAccessException e) {
+            this.plugin.logger().warn("Failed to unfreeze block registry", e);
+        }
+    }
+
+    private void freezeRegistry() {
+        try {
+            CoreReflections.field$MappedRegistry$frozen.set(MBuiltInRegistries.BLOCK, true);
+        } catch (IllegalAccessException e) {
+            this.plugin.logger().warn("Failed to freeze block registry", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deceiveBukkitRegistry() {
+        try {
+            Map<Object, Material> magicMap = (Map<Object, Material>) CraftBukkitReflections.field$CraftMagicNumbers$BLOCK_MATERIAL.get(null);
+            for (DelegatingBlock customBlock : this.customBlocks) {
+                magicMap.put(customBlock, Material.STONE);
+            }
+        } catch (ReflectiveOperationException e) {
+            this.plugin.logger().warn("Failed to deceive bukkit magic blocks", e);
+        }
     }
 
     @Override
     protected boolean isVanillaBlock(Key id) {
-        if (!id.namespace().equals("minecraft")) {
+        if (!id.namespace().equals("minecraft"))
             return false;
-        }
-        if (id.value().equals("air")) {
+        if (id.value().equals("air"))
             return true;
-        }
         return FastNMS.INSTANCE.method$Registry$getValue(MBuiltInRegistries.BLOCK, KeyUtils.toResourceLocation(id)) != MBlocks.AIR;
+    }
+
+    public boolean isBurnable(Object blockState) {
+        Object blockOwner = BlockStateUtils.getBlockOwner(blockState);
+        return this.igniteOdds.getOrDefault(blockOwner, 0) > 0;
+    }
+
+    @Override
+    public int vanillaBlockStateCount() {
+        return this.vanillaBlockStateCount;
+    }
+
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    protected void processSounds() {
+        Set<Object> affectedBlockSoundTypes = new HashSet<>();
+        for (BlockStateWrapper vanillaBlockState : super.tempVisualBlockStatesInUse) {
+            affectedBlockSoundTypes.add(FastNMS.INSTANCE.method$BlockBehaviour$BlockStateBase$getSoundType(vanillaBlockState.literalObject()));
+        }
+
+        Set<Object> placeSounds = new HashSet<>();
+        Set<Object> breakSounds = new HashSet<>();
+        Set<Object> stepSounds = new HashSet<>();
+        Set<Object> hitSounds = new HashSet<>();
+
+        for (Object soundType : affectedBlockSoundTypes) {
+            placeSounds.add(FastNMS.INSTANCE.field$SoundEvent$location(FastNMS.INSTANCE.field$SoundType$placeSound(soundType)));
+            breakSounds.add(FastNMS.INSTANCE.field$SoundEvent$location(FastNMS.INSTANCE.field$SoundType$breakSound(soundType)));
+            stepSounds.add(FastNMS.INSTANCE.field$SoundEvent$location(FastNMS.INSTANCE.field$SoundType$stepSound(soundType)));
+            hitSounds.add(FastNMS.INSTANCE.field$SoundEvent$location(FastNMS.INSTANCE.field$SoundType$hitSound(soundType)));
+        }
+
+        ImmutableMap.Builder<Key, Key> soundReplacementBuilder = ImmutableMap.builder();
+        for (Object soundId : placeSounds) {
+            Key previousId = KeyUtils.resourceLocationToKey(soundId);
+            soundReplacementBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
+        }
+        for (Object soundId : breakSounds) {
+            Key previousId = KeyUtils.resourceLocationToKey(soundId);
+            soundReplacementBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
+        }
+        for (Object soundId : stepSounds) {
+            Key previousId = KeyUtils.resourceLocationToKey(soundId);
+            soundReplacementBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
+        }
+        for (Object soundId : hitSounds) {
+            Key previousId = KeyUtils.resourceLocationToKey(soundId);
+            soundReplacementBuilder.put(previousId, Key.of(previousId.namespace(), "replaced." + previousId.value()));
+        }
+
+        this.missingPlaceSounds = placeSounds;
+        this.missingBreakSounds = breakSounds;
+        this.missingHitSounds = hitSounds;
+        this.missingStepSounds = stepSounds;
+
+        Set<Key> missingInteractSoundBlocks = new HashSet<>();
+
+        for (SoundSet soundSet : SoundSet.getAllSoundSets()) {
+            for (Key block : soundSet.blocks()) {
+                if (super.tempVisualBlocksInUse.contains(block)) {
+                    Key openSound = soundSet.openSound();
+                    soundReplacementBuilder.put(openSound, Key.of(openSound.namespace(), "replaced." + openSound.value()));
+                    Key closeSound = soundSet.closeSound();
+                    soundReplacementBuilder.put(closeSound, Key.of(closeSound.namespace(), "replaced." + closeSound.value()));
+                    missingInteractSoundBlocks.addAll(soundSet.blocks());
+                    break;
+                }
+            }
+        }
+
+        this.missingInteractSoundBlocks = missingInteractSoundBlocks;
+        this.soundReplacements = soundReplacementBuilder.buildKeepingLast();
+    }
+
+    @Override
+    protected CustomBlock createCustomBlock(@NotNull Holder.Reference<CustomBlock> holder, 
+                                            @NotNull BlockStateVariantProvider variantProvider,
+                                            @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                                            @Nullable LootTable<?> lootTable) {
+        return new BukkitCustomBlock(holder, variantProvider, events, lootTable);
     }
 }

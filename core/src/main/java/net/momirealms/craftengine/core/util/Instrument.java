@@ -34,4 +34,6 @@ public enum Instrument {
     public String id() {
         return id;
     }
+
+    public static final Instrument[] VALUES = Instrument.values();
 }

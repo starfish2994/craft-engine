@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.block.parser;
 
+import net.momirealms.craftengine.core.block.BlockStateVariantProvider;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.util.StringReader;
@@ -7,11 +8,13 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+
 public final class BlockNbtParser {
     private BlockNbtParser() {}
 
     @Nullable
-    public static CompoundTag deserialize(@NotNull CustomBlock block, @NotNull String data) {
+    public static CompoundTag deserialize(@NotNull Function<String, Property<?>> propertyProvider, @NotNull String data) {
         StringReader reader = StringReader.simple(data);
         CompoundTag properties = new CompoundTag();
         while (reader.canRead()) {
@@ -24,7 +27,7 @@ public final class BlockNbtParser {
             if (propertyValue.isEmpty()) {
                 return null;
             }
-            Property<?> property = block.getProperty(propertyName);
+            Property<?> property = propertyProvider.apply(propertyName);
             if (property != null) {
                 property.createOptionalTag(propertyValue).ifPresent(tag -> {
                     properties.put(propertyName, tag);
@@ -37,5 +40,15 @@ public final class BlockNbtParser {
             }
         }
         return properties;
+    }
+
+    @Nullable
+    public static CompoundTag deserialize(@NotNull CustomBlock block, @NotNull String data) {
+        return deserialize(block::getProperty, data);
+    }
+
+    @Nullable
+    public static CompoundTag deserialize(@NotNull BlockStateVariantProvider variantProvider, @NotNull String data) {
+        return deserialize(variantProvider::getProperty, data);
     }
 }

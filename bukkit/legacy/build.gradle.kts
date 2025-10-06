@@ -1,5 +1,5 @@
 plugins {
-    id("com.gradleup.shadow") version "9.0.0-rc2"
+    id("com.gradleup.shadow") version "9.2.2"
 }
 
 repositories {
@@ -10,6 +10,8 @@ repositories {
 dependencies {
     // Platform
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
+    // authlib
+    compileOnly("com.mojang:authlib:6.0.58")
 }
 
 java {

@@ -25,4 +25,8 @@ public interface Recipe<T> {
     default boolean showNotification() {
         return true;
     }
+
+    default boolean canBeSearchedByIngredients() {
+        return true;
+    }
 }

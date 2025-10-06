@@ -36,11 +36,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class BukkitFontManager extends AbstractFontManager implements Listener {
+    private static BukkitFontManager instance;
     private final BukkitCraftEngine plugin;
 
     public BukkitFontManager(BukkitCraftEngine plugin) {
         super(plugin);
         this.plugin = plugin;
+        instance = this;
+    }
+
+    public static BukkitFontManager instance() {
+        return instance;
     }
 
     @Override

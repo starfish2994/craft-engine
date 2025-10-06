@@ -49,7 +49,7 @@ public abstract class BukkitItemFactory<W extends ItemWrapper<ItemStack>> extend
             case "1.21.4" -> {
                 return new ComponentItemFactory1_21_4(plugin);
             }
-            case "1.21.5", "1.21.6", "1.21.7", "1.21.8" -> {
+            case "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9", "1.21.10" -> {
                 return new ComponentItemFactory1_21_5(plugin);
             }
             default -> throw new IllegalStateException("Unsupported server version: " + plugin.serverVersion());

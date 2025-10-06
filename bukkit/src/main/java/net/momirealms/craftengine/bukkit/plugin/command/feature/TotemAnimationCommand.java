@@ -1,17 +1,23 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MSoundEvents;
+import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.PlayerUtils;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.FlagKeys;
 import net.momirealms.craftengine.core.plugin.locale.MessageConstants;
+import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.NamespacedKey;
@@ -27,14 +33,17 @@ import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
 import org.incendo.cloud.parser.flag.CommandFlag;
+import org.incendo.cloud.parser.standard.FloatParser;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
+    public static final Object FIX_TOTEM_SOUND_PACKET = FastNMS.INSTANCE.constructor$ClientboundSoundPacket(FastNMS.INSTANCE.method$Holder$direct(MSoundEvents.TOTEM_USE), CoreReflections.instance$SoundSource$MUSIC, 0, Integer.MIN_VALUE, 0, 0, 0, 0);
 
     public TotemAnimationCommand(CraftEngineCommandManager<CommandSender> commandManager, CraftEngine plugin) {
         super(commandManager, plugin);
@@ -44,6 +53,7 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
     public Command.Builder<? extends CommandSender> assembleCommand(CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder
                 .flag(FlagKeys.SILENT_FLAG)
+                .flag(CommandFlag.builder("no-sound"))
                 .required("players", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .required("id", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
@@ -51,8 +61,16 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
                         return CompletableFuture.completedFuture(plugin().itemManager().cachedTotemSuggestions());
                     }
                 }))
-                .flag(CommandFlag.builder("sound_event").withComponent(NamespacedKeyParser.namespacedKeyParser()).build())
-                .flag(CommandFlag.builder("sound_location").withComponent(NamespacedKeyParser.namespacedKeyParser()).build())
+                .optional("sound", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
+                    @Override
+                    public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
+                        return CompletableFuture.completedFuture(plugin().soundManager().cachedSoundSuggestions());
+                    }
+                }))
+                .optional("volume", FloatParser.floatParser(0f))
+                .optional("pitch", FloatParser.floatParser(0f, 2f))
+                .optional("min-volume", FloatParser.floatParser(0f))
+                .optional("min-pitch", FloatParser.floatParser(0f, 2f))
                 .handler(context -> {
                     NamespacedKey namespacedKey = context.get("id");
                     Key key = Key.of(namespacedKey.namespace(), namespacedKey.value());
@@ -61,28 +79,31 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
                         handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.toString()));
                         return;
                     }
-                    Item<ItemStack> item = customItem.buildItem(ItemBuildContext.empty());
-                    if (VersionHelper.isOrAbove1_21_2()) {
-                        if (context.flags().contains("sound_location")) {
-                            String soundResourceLocation = context.flags().getValue("sound_location").get().toString();
-                            if (soundResourceLocation != null) {
-                                item.setComponent(ComponentTypes.DEATH_PROTECTION, Map.of("death_effects", List.of(Map.of("type", "play_sound", "sound", Map.of(
-                                        "sound_id", soundResourceLocation
-                                )))));
-                            }
-                        } else if (context.flags().contains("sound_event")) {
-                            String soundEvent = context.flags().getValue("sound_event").get().toString();
-                            if (soundEvent != null) {
-                                item.setComponent(ComponentTypes.DEATH_PROTECTION, Map.of("death_effects", List.of(Map.of("type", "play_sound", "sound", soundEvent))));
-                            }
-                        } else {
-                            item.setComponent(ComponentTypes.DEATH_PROTECTION, Map.of());
-                        }
+                    Optional<NamespacedKey> soundKey = context.optional("sound");
+                    SoundData soundData = null;
+                    if (soundKey.isPresent()) {
+                        float volume = context.getOrDefault("volume", 1.0f);
+                        float pitch = context.getOrDefault("pitch", 1.0f);
+                        float minVolume = context.getOrDefault("min-volume", 1.0f);
+                        float minPitch = context.getOrDefault("min-pitch", 1.0f);
+                        soundData = SoundData.of(KeyUtils.namespacedKey2Key(soundKey.get()), SoundData.SoundValue.ranged(minVolume, volume), SoundData.SoundValue.ranged(minPitch, pitch));
                     }
-                    ItemStack totemItem = item.getItem();
+                    boolean removeSound = context.flags().hasFlag("no-sound");
                     MultiplePlayerSelector selector = context.get("players");
-                    for (Player player : selector.values()) {
-                        PlayerUtils.sendTotemAnimation(player, totemItem);
+                    Collection<Player> players = selector.values();
+                    for (Player player : players) {
+                        BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+                        Item<ItemStack> item = customItem.buildItem(serverPlayer);
+                        if (VersionHelper.isOrAbove1_21_2()) {
+                            item.setJavaComponent(ComponentTypes.DEATH_PROTECTION, Map.of());
+                        }
+                        PlayerUtils.sendTotemAnimation(serverPlayer, item, soundData, removeSound);
+                    }
+
+                    if (players.size() == 1) {
+                        handleFeedback(context, MessageConstants.COMMAND_TOTEM_SUCCESS_SINGLE, Component.text(namespacedKey.toString()), Component.text(players.iterator().next().getName()));
+                    } else if (players.size() > 1) {
+                        handleFeedback(context, MessageConstants.COMMAND_TOTEM_SUCCESS_MULTIPLE, Component.text(namespacedKey.toString()), Component.text(players.size()));
                     }
                 });
     }

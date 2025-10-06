@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProviders;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +28,7 @@ public class BreakBlockFunction<CTX extends Context> extends AbstractConditional
     @Override
     public void runInternal(CTX ctx) {
         Optional<Player> optionalPlayer = ctx.getOptionalParameter(DirectContextParameters.PLAYER);
-        optionalPlayer.ifPresent(player -> player.breakBlock(MCUtils.fastFloor(x.getDouble(ctx)), MCUtils.fastFloor(y.getDouble(ctx)), MCUtils.fastFloor(z.getDouble(ctx))));
+        optionalPlayer.ifPresent(player -> player.breakBlock(MiscUtils.fastFloor(x.getDouble(ctx)), MiscUtils.fastFloor(y.getDouble(ctx)), MiscUtils.fastFloor(z.getDouble(ctx))));
     }
 
     @Override

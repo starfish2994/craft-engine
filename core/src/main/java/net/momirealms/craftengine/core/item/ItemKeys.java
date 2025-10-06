@@ -62,11 +62,6 @@ public final class ItemKeys {
     public static final Key BLACK_DYE = Key.of("minecraft:black_dye");
     public static final Key FIREWORK_STAR = Key.of("minecraft:firework_star");
 
-    public static final Key[] AXES = new Key[] {
-            WOODEN_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE
-    };
-
-    public static final Key[] WATER_BUCKETS = new Key[] {
-            WATER_BUCKET, COD_BUCKET, SALMON_BUCKET, TROPICAL_FISH_BUCKET, TADPOLE_BUCKET, PUFFERFISH_BUCKET, AXOLOTL_BUCKET
-    };
+    public static final Key[] AXES = new Key[] {WOODEN_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE};
+    public static final Key[] WATER_BUCKETS = new Key[] {WATER_BUCKET, COD_BUCKET, SALMON_BUCKET, TROPICAL_FISH_BUCKET, TADPOLE_BUCKET, PUFFERFISH_BUCKET, AXOLOTL_BUCKET};
 }

@@ -50,8 +50,6 @@ public interface TranslationManager extends Manageable {
         return miniMessageTranslation(key, null);
     }
 
-    void forcedLocale(Locale locale);
-
     String miniMessageTranslation(String key, @Nullable Locale locale);
 
     default Component render(Component component) {

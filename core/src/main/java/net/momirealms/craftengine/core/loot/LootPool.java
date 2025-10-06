@@ -8,7 +8,7 @@ import net.momirealms.craftengine.core.loot.function.LootFunction;
 import net.momirealms.craftengine.core.loot.function.LootFunctions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.MutableInt;
 import net.momirealms.craftengine.core.util.RandomUtils;
 
@@ -44,7 +44,7 @@ public class LootPool<T> {
         }
         if (this.compositeCondition.test(context)) {
             Consumer<Item<T>> consumer = LootFunction.decorate(this.compositeFunction, lootConsumer, context);
-            int i = this.rolls.getInt(context) + MCUtils.fastFloor(this.bonusRolls.getFloat(context) * context.luck());
+            int i = this.rolls.getInt(context) + MiscUtils.fastFloor(this.bonusRolls.getFloat(context) * context.luck());
             for (int j = 0; j < i; ++j) {
                 this.addRandomItem(createFunctionApplier(consumer, context), context);
             }

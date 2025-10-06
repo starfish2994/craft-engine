@@ -5,8 +5,10 @@ import net.momirealms.craftengine.core.pack.LoadingSequence;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.*;
+import org.incendo.cloud.suggestion.Suggestion;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -20,6 +22,7 @@ public abstract class AbstractSoundManager implements SoundManager {
     protected final SoundParser soundParser;
     protected final SongParser songParser;
     protected final Map<Integer, Key> customSoundsInRegistry = new HashMap<>();
+    protected final List<Suggestion> soundSuggestions = new ArrayList<>();
 
     public AbstractSoundManager(CraftEngine plugin) {
         this.plugin = plugin;
@@ -42,6 +45,22 @@ public abstract class AbstractSoundManager implements SoundManager {
         this.byId.clear();
         this.byNamespace.clear();
         this.songs.clear();
+        this.soundSuggestions.clear();
+    }
+
+    @Override
+    public void delayedLoad() {
+        for (Key key : VANILLA_SOUND_EVENTS) {
+            this.soundSuggestions.add(Suggestion.suggestion(key.asString()));
+        }
+        for (Key key : this.byId.keySet()) {
+            this.soundSuggestions.add(Suggestion.suggestion(key.asString()));
+        }
+    }
+
+    @Override
+    public List<Suggestion> cachedSoundSuggestions() {
+        return this.soundSuggestions;
     }
 
     @Override
@@ -65,8 +84,8 @@ public abstract class AbstractSoundManager implements SoundManager {
 
     protected abstract void registerSounds(Collection<Key> sounds);
 
-    public class SongParser implements ConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"jukebox_songs", "jukebox_song", "jukebox-songs", "jukebox-song"};
+    public class SongParser extends IdSectionConfigParser {
+        public static final String[] CONFIG_SECTION_NAME = new String[] {"jukebox-songs", "jukebox-song", "jukebox_songs", "jukebox_song"};
 
         @Override
         public int loadingSequence() {
@@ -79,7 +98,7 @@ public abstract class AbstractSoundManager implements SoundManager {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             if (AbstractSoundManager.this.songs.containsKey(id)) {
                 throw new LocalizedResourceConfigException("warning.config.jukebox_song.duplicate");
             }
@@ -92,7 +111,7 @@ public abstract class AbstractSoundManager implements SoundManager {
         }
     }
 
-    public class SoundParser implements ConfigParser {
+    public class SoundParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"sounds", "sound"};
 
         @Override
@@ -106,7 +125,7 @@ public abstract class AbstractSoundManager implements SoundManager {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, Key id, Map<String, Object> section) {
             if (AbstractSoundManager.this.byId.containsKey(id)) {
                 throw new LocalizedResourceConfigException("warning.config.sound.duplicate");
             }

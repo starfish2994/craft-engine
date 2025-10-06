@@ -37,7 +37,7 @@ public class LocalizedResourceConfigException extends LocalizedException {
         super.setArgument(0, path.toString());
     }
 
-    public void setId(String id) {
+    public void setNode(String id) {
         super.setArgument(1, id);
     }
 }

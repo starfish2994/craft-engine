@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflect
 
 import java.util.Optional;
 
-public class BaseEntityData<T> extends SimpleEntityData<T> {
+public class BaseEntityData<T> extends BukkitEntityData<T> {
     public static final BaseEntityData<Byte> SharedFlags = new BaseEntityData<>(BaseEntityData.class, EntityDataValue.Serializers$BYTE, (byte) 0);
     public static final BaseEntityData<Integer> AirSupply = new BaseEntityData<>(BaseEntityData.class, EntityDataValue.Serializers$INT, 300);
     public static final BaseEntityData<Optional<Object>> CustomName = new BaseEntityData<>(BaseEntityData.class, EntityDataValue.Serializers$OPTIONAL_COMPONENT, Optional.empty());

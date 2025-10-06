@@ -258,7 +258,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
     // 已经被替换过的数据包配方
     private final Set<Key> replacedDatapackRecipes = new HashSet<>();
     // 换成的数据包配方
-    private Map<Key, Recipe<ItemStack>> lastDatapackRecipes = Map.of();
+    private Map<Key, JsonObject> lastDatapackRecipes = Map.of();
     private Object lastRecipeManager = null;
 
     public BukkitRecipeManager(BukkitCraftEngine plugin) {
@@ -386,18 +386,33 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
         }
 
         boolean hasDisabledAny = !Config.disabledVanillaRecipes().isEmpty();
-        for (Map.Entry<Key, Recipe<ItemStack>> entry : this.lastDatapackRecipes.entrySet()) {
+        for (Map.Entry<Key, JsonObject> entry : this.lastDatapackRecipes.entrySet()) {
+            Key id = entry.getKey();
             if (hasDisabledAny && Config.disabledVanillaRecipes().contains(entry.getKey())) {
-                this.recipesToUnregister.add(Pair.of(entry.getKey(), false));
+                this.recipesToUnregister.add(Pair.of(id, false));
                 continue;
             }
-            markAsDataPackRecipe(entry.getKey());
-            registerInternalRecipe(entry.getKey(), entry.getValue());
+
+            JsonObject jsonObject = entry.getValue();
+            Key serializerType = Key.of(jsonObject.get("type").getAsString());
+            @SuppressWarnings("unchecked")
+            RecipeSerializer<ItemStack, ? extends Recipe<ItemStack>> serializer = (RecipeSerializer<ItemStack, ? extends Recipe<ItemStack>>) BuiltInRegistries.RECIPE_SERIALIZER.getValue(serializerType);
+            if (serializer == null) {
+                continue;
+            }
+
+            try {
+                Recipe<ItemStack> recipe = serializer.readJson(id, jsonObject);
+                markAsDataPackRecipe(id);
+                registerInternalRecipe(id, recipe);
+            } catch (Exception e) {
+                this.plugin.logger().warn("Failed to load data pack recipe " + id + ". Json: " + jsonObject, e);
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
-    private Map<Key, Recipe<ItemStack>> scanResources() throws Throwable {
+    private Map<Key, JsonObject> scanResources() throws Throwable {
         Object fileToIdConverter = CoreReflections.methodHandle$FileToIdConverter$json.invokeExact((String) (VersionHelper.isOrAbove1_21() ? "recipe" : "recipes"));
         Object minecraftServer = FastNMS.INSTANCE.method$MinecraftServer$getServer();
         Object packRepository = CoreReflections.methodHandle$MinecraftServer$getPackRepository.invokeExact(minecraftServer);
@@ -406,7 +421,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
         for (Object pack : selected) {
             packResources.add(CoreReflections.methodHandle$Pack$open.invokeExact(pack));
         }
-        Map<Key, Recipe<ItemStack>> recipes = new HashMap<>();
+        Map<Key, JsonObject> recipes = new HashMap<>();
 
         try (AutoCloseable resourceManager = (AutoCloseable) CoreReflections.methodHandle$MultiPackResourceManagerConstructor.invokeExact(CoreReflections.instance$PackType$SERVER_DATA, packResources)) {
             Map<Object, Object> scannedResources = (Map<Object, Object>) CoreReflections.methodHandle$FileToIdConverter$listMatchingResources.invokeExact(fileToIdConverter, resourceManager);
@@ -414,17 +429,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
                 Key id = extractKeyFromResourceLocation(entry.getKey().toString());
                 Reader reader = (Reader) CoreReflections.methodHandle$Resource$openAsReader.invokeExact(entry.getValue());
                 JsonObject jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
-                Key serializerType = Key.of(jsonObject.get("type").getAsString());
-                RecipeSerializer<ItemStack, ? extends Recipe<ItemStack>> serializer = (RecipeSerializer<ItemStack, ? extends Recipe<ItemStack>>) BuiltInRegistries.RECIPE_SERIALIZER.getValue(serializerType);
-                if (serializer == null) {
-                    continue;
-                }
-                try {
-                    Recipe<ItemStack> recipe = serializer.readJson(id, jsonObject);
-                    recipes.put(id, recipe);
-                } catch (Exception e) {
-                    this.plugin.logger().warn("Failed to load data pack recipe " + id + ". Json: " + jsonObject, e);
-                }
+                recipes.put(id, jsonObject);
             }
         } catch (Throwable e) {
             this.plugin.logger().warn("Unknown error occurred when loading data pack recipes", e);

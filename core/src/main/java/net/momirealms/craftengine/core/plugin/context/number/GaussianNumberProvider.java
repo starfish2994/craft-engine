@@ -2,7 +2,7 @@ package net.momirealms.craftengine.core.plugin.context.number;
 
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.util.Map;
@@ -54,7 +54,7 @@ public class GaussianNumberProvider implements NumberProvider {
             }
             attempts++;
         }
-        return MCUtils.clamp(this.mean, this.min, this.max);
+        return MiscUtils.clamp(this.mean, this.min, this.max);
     }
 
     @Override

@@ -77,7 +77,7 @@ public class CropBlockBehavior extends BukkitBlockBehavior {
         return minGrowLight;
     }
 
-    private static int getRawBrightness(Object level, Object pos) throws InvocationTargetException, IllegalAccessException {
+    public static int getRawBrightness(Object level, Object pos) throws InvocationTargetException, IllegalAccessException {
         return (int) CoreReflections.method$BlockAndTintGetter$getRawBrightness.invoke(level, pos, 0);
     }
 
