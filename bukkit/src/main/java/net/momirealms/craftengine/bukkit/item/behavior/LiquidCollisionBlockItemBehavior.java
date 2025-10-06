@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Direction;
@@ -77,12 +78,7 @@ public class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
             }
             int offset = ResourceConfigUtils.getAsInt(arguments.getOrDefault("y-offset", 1), "y-offset");
             if (id instanceof Map<?, ?> map) {
-                if (map.containsKey(key.toString())) {
-                    // 防呆
-                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map.get(key.toString()), false));
-                } else {
-                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map, false));
-                }
+                addPendingSection(pack, path, node, key, map);
                 return new LiquidCollisionBlockItemBehavior(key, offset);
             } else {
                 return new LiquidCollisionBlockItemBehavior(Key.of(id.toString()), offset);
