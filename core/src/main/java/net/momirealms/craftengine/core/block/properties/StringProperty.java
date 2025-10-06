@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.sparrow.nbt.StringTag;
 import net.momirealms.sparrow.nbt.Tag;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;
@@ -36,7 +37,7 @@ public class StringProperty extends Property<String> {
 
     @Override
     public Optional<String> optional(String valueName) {
-        return Optional.ofNullable(this.names.get(valueName.toLowerCase(Locale.ENGLISH)));
+        return Optional.ofNullable(this.names.get(valueName));
     }
 
     @Override
@@ -59,7 +60,7 @@ public class StringProperty extends Property<String> {
 
     @Override
     public final int idFor(String value) {
-        int index = indexOf(value.toLowerCase(Locale.ENGLISH));
+        int index = indexOf(value);
         if (index == -1) {
             throw new IllegalArgumentException("Invalid value: " + value);
         }
@@ -68,12 +69,17 @@ public class StringProperty extends Property<String> {
 
     @Override
     public String valueName(String value) {
-        return value.toLowerCase(Locale.ENGLISH);
+        return value;
+    }
+
+    @Override
+    public String valueByName(String name) {
+        return this.names.get(name);
     }
 
     @Override
     public int indexOf(String value) {
-        return values.indexOf(value.toLowerCase(Locale.ENGLISH));
+        return this.values.indexOf(value);
     }
 
     @Override
@@ -92,13 +98,12 @@ public class StringProperty extends Property<String> {
         public Property<?> create(String name, Map<String, Object> arguments) {
             List<String> values = MiscUtils.getAsStringList(arguments.get("values"))
                     .stream()
-                    .map(it -> it.toLowerCase(Locale.ENGLISH))
                     .toList();
-            String defaultValueName = arguments.getOrDefault("default", "").toString().toLowerCase(Locale.ENGLISH);
+            String defaultValueName = arguments.getOrDefault("default", "").toString();
             String defaultValue = values.stream()
-                    .filter(e -> e.toLowerCase(Locale.ENGLISH).equals(defaultValueName))
+                    .filter(e -> e.equals(defaultValueName))
                     .findFirst()
-                    .orElseGet(() -> values.get(0));
+                    .orElseGet(values::getFirst);
             return StringProperty.create(name, values, defaultValue);
         }
     }

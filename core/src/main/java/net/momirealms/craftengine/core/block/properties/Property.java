@@ -112,6 +112,9 @@ public abstract class Property<T extends Comparable<T>> {
         return indexOf(unpack(tag));
     }
 
+    @Nullable
+    public abstract T valueByName(String name);
+
     public abstract int indexOf(T value);
 
     public abstract T unpack(Tag tag);

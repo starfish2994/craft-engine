@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.sparrow.nbt.IntTag;
 import net.momirealms.sparrow.nbt.NumericTag;
 import net.momirealms.sparrow.nbt.Tag;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,16 @@ public class IntegerProperty extends Property<Integer> {
     @Override
     public String valueName(Integer integer) {
         return integer.toString();
+    }
+
+    @Override
+    public Integer valueByName(String name) {
+        try {
+            int i = Integer.parseInt(name);
+            return i >= this.min && i <= this.max ? i : null;
+        } catch (NumberFormatException var3) {
+            return null;
+        }
     }
 
     @Override

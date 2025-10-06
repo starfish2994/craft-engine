@@ -6,7 +6,10 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MFluids;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistries;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MTagKeys;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.core.block.*;
+import net.momirealms.craftengine.core.block.BlockBehavior;
+import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.BooleanProperty;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -112,7 +115,7 @@ public class FenceBlockBehavior extends BukkitBlockBehavior {
     public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         Optional<ImmutableBlockState> optionalState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
         BooleanProperty waterlogged = (BooleanProperty) optionalState
-                .map(BlockStateHolder::owner)
+                .map(ImmutableBlockState::owner)
                 .map(Holder::value)
                 .map(block -> block.getProperty("waterlogged"))
                 .orElse(null);
