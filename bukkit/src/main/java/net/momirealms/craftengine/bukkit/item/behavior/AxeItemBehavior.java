@@ -70,21 +70,19 @@ public class AxeItemBehavior extends ItemBehavior {
             return InteractionResult.PASS;
         }
 
-        ImmutableBlockState newState = behaviorOptional.get().strippedState();
+        BlockStateWrapper newState = behaviorOptional.get().strippedState();
         if (newState == null) {
             CraftEngine.instance().logger().warn("stripped block " + behaviorOptional.get().stripped() + " does not exist");
             return InteractionResult.FAIL;
         }
 
-        BlockStateWrapper
-
-        newState = newState.with(customState.propertiesNbt());
+        newState = newState.withProperties(behaviorOptional.get().filter(customState.propertiesNbt()));
         BukkitExistingBlock clicked = (BukkitExistingBlock) context.getLevel().getBlockAt(context.getClickedPos());
         org.bukkit.entity.Player bukkitPlayer = null;
         if (player != null) {
             bukkitPlayer = ((org.bukkit.entity.Player) player.platformPlayer());
             // Call bukkit event
-            EntityChangeBlockEvent event = new EntityChangeBlockEvent(bukkitPlayer, clicked.block(), BlockStateUtils.fromBlockData(newState.customBlockState().literalObject()));
+            EntityChangeBlockEvent event = new EntityChangeBlockEvent(bukkitPlayer, clicked.block(), BlockStateUtils.fromBlockData(newState.literalObject()));
             if (EventUtils.fireAndCheckCancel(event)) {
                 return InteractionResult.FAIL;
             }
@@ -95,7 +93,7 @@ public class AxeItemBehavior extends ItemBehavior {
         if (ItemUtils.isEmpty(item)) return InteractionResult.FAIL;
         BlockPos pos = context.getClickedPos();
         context.getLevel().playBlockSound(Vec3d.atCenterOf(pos), AXE_STRIP_SOUND, 1, 1);
-        FastNMS.INSTANCE.method$LevelWriter$setBlock(context.getLevel().serverWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().literalObject(), UpdateOption.UPDATE_ALL_IMMEDIATE.flags());
+        FastNMS.INSTANCE.method$LevelWriter$setBlock(context.getLevel().serverWorld(), LocationUtils.toBlockPos(pos), newState.literalObject(), UpdateOption.UPDATE_ALL_IMMEDIATE.flags());
         clicked.block().getWorld().sendGameEvent(bukkitPlayer, GameEvent.BLOCK_CHANGE, new Vector(pos.x(), pos.y(), pos.z()));
         Material material = MaterialUtils.getMaterial(item.vanillaId());
         if (bukkitPlayer != null) {
@@ -123,7 +121,7 @@ public class AxeItemBehavior extends ItemBehavior {
                 itemStack.damage(1, bukkitPlayer);
             }
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
     public static class Factory implements ItemBehaviorFactory {

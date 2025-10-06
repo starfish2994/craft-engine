@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.block;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.AbstractBlockStateWrapper;
+import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.util.Key;
@@ -28,6 +29,21 @@ public class BukkitCustomBlockStateWrapper extends AbstractBlockStateWrapper {
                 return null;
             return state.getNullable(property);
         }).orElse(null);
+    }
+
+    @Override
+    public BlockStateWrapper withProperty(String propertyName, String propertyValue) {
+        Optional<ImmutableBlockState> immutableBlockState = getImmutableBlockState();
+        if (immutableBlockState.isPresent()) {
+            Property<?> property = immutableBlockState.get().owner().value().getProperty(propertyName);
+            if (property != null) {
+                Comparable<?> value = property.valueByName(propertyValue);
+                if (value != null) {
+                    return ImmutableBlockState.with(immutableBlockState.get(), property, value).customBlockState();
+                }
+            }
+        }
+        return this;
     }
 
     @Override

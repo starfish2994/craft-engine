@@ -6,7 +6,6 @@ import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.sparrow.nbt.IntTag;
 import net.momirealms.sparrow.nbt.NumericTag;
 import net.momirealms.sparrow.nbt.Tag;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;

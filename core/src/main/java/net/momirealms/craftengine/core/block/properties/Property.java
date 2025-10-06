@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.sparrow.nbt.Tag;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -155,7 +156,7 @@ public abstract class Property<T extends Comparable<T>> {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return this.property.name + "=" + this.property.valueName(this.value);
         }
     }

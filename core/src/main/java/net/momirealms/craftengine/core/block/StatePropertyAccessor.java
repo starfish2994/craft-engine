@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.core.block;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 
 public interface StatePropertyAccessor {
@@ -11,4 +13,7 @@ public interface StatePropertyAccessor {
     boolean hasProperty(String property);
 
     <T> T getPropertyValue(String property);
+
+    @NotNull
+    Object withProperty(String propertyName, String value);
 }
