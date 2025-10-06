@@ -1,7 +1,6 @@
 templates:
   default:armor/topaz:
     material: chainmail_${part}
-    custom-model-data: 1000
     data:
       item-name: <!i><#FF8C00><i18n:item.topaz_${part}>
       tooltip-style: minecraft:topaz

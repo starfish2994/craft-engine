@@ -6,15 +6,16 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflect
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.state.properties.DoubleBlockHalf;
+import net.momirealms.craftengine.core.block.properties.type.DoubleBlockHalf;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
-import net.momirealms.craftengine.core.world.*;
+import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.WorldEvents;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -50,10 +51,6 @@ public class DoubleHighBlockBehavior extends BukkitBlockBehavior {
         if (anotherHalfCustomState != null && !anotherHalfCustomState.isEmpty()) return blockState;
 
         // 破坏
-        BlockPos pos = LocationUtils.fromBlockPos(blockPos);
-        net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
-        WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(pos));
-        world.playBlockSound(position, customState.settings().sounds().breakSound());
         FastNMS.INSTANCE.method$LevelAccessor$levelEvent(level, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId());
         return MBlocks.AIR$defaultState;
     }

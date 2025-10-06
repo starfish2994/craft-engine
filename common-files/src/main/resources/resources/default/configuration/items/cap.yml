@@ -2,7 +2,6 @@ items:
   default:cap:
     material: leather_helmet
     client-bound-material: leather_horse_armor
-    custom-model-data: 1000
     data:
       item-name: <!i><white><i18n:item.cap>
       unbreakable: true

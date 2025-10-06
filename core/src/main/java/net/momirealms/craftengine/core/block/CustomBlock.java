@@ -5,7 +5,6 @@ import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
-import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public interface CustomBlock {
 
@@ -40,23 +38,4 @@ public interface CustomBlock {
     ImmutableBlockState getStateForPlacement(BlockPlaceContext context);
 
     void setPlacedBy(BlockPlaceContext context, ImmutableBlockState state);
-
-    interface Builder {
-
-        Builder events(Map<EventTrigger, List<Function<PlayerOptionalContext>>> events);
-
-        Builder appearances(Map<String, BlockStateAppearance> appearances);
-
-        Builder behavior(List<Map<String, Object>> behavior);
-
-        Builder lootTable(LootTable<?> lootTable);
-
-        Builder properties(Map<String, Property<?>> properties);
-
-        Builder settings(BlockSettings settings);
-
-        Builder variantMapper(Map<String, BlockStateVariant> variantMapper);
-
-        @NotNull CustomBlock build();
-    }
 }

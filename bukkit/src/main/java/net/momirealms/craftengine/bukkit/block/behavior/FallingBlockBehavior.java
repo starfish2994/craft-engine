@@ -1,6 +1,9 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
+import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
+import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -10,6 +13,7 @@ import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -22,11 +26,15 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
     public static final Factory FACTORY = new Factory();
     private final float hurtAmount;
     private final int maxHurt;
+    private final SoundData landSound;
+    private final SoundData destroySound;
 
-    public FallingBlockBehavior(CustomBlock block, float hurtAmount, int maxHurt) {
+    public FallingBlockBehavior(CustomBlock block, float hurtAmount, int maxHurt, SoundData landSound, SoundData destroySound) {
         super(block);
         this.hurtAmount = hurtAmount;
         this.maxHurt = maxHurt;
+        this.landSound = landSound;
+        this.destroySound = destroySound;
     }
 
     @Override
@@ -74,42 +82,52 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
     public void onBrokenAfterFall(Object thisBlock, Object[] args) throws Exception {
         Object level = args[0];
         Object fallingBlockEntity = args[2];
-        Object entityData = CoreReflections.field$Entity$entityData.get(fallingBlockEntity);
-        boolean isSilent = (boolean) CoreReflections.method$SynchedEntityData$get.invoke(entityData, CoreReflections.instance$Entity$DATA_SILENT);
-        if (!isSilent) {
+        BukkitEntity entity = BukkitAdaptors.adapt(FastNMS.INSTANCE.method$Entity$getBukkitEntity(fallingBlockEntity));
+        if (!entity.getEntityData(BaseEntityData.Silent)) {
             Object blockState = CoreReflections.field$FallingBlockEntity$blockState.get(fallingBlockEntity);
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
             if (optionalCustomState.isEmpty()) return;
-            ImmutableBlockState customState = optionalCustomState.get();
             net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
             WorldPosition position = new WorldPosition(world, CoreReflections.field$Entity$xo.getDouble(fallingBlockEntity), CoreReflections.field$Entity$yo.getDouble(fallingBlockEntity), CoreReflections.field$Entity$zo.getDouble(fallingBlockEntity));
-            world.playBlockSound(position, customState.settings().sounds().destroySound());
+            if (this.destroySound != null) {
+                world.playBlockSound(position, this.destroySound);
+            }
         }
     }
 
     @Override
-    public void onLand(Object thisBlock, Object[] args) throws Exception {
+    public void onLand(Object thisBlock, Object[] args) {
         Object fallingBlock = args[4];
         Object level = args[0];
         Object pos = args[1];
-        Object entityData = CoreReflections.field$Entity$entityData.get(fallingBlock);
-        boolean isSilent = (boolean) CoreReflections.method$SynchedEntityData$get.invoke(entityData, CoreReflections.instance$Entity$DATA_SILENT);
+        BukkitEntity entity = BukkitAdaptors.adapt(FastNMS.INSTANCE.method$Entity$getBukkitEntity(fallingBlock));
         Object blockState = args[2];
         int stateId = BlockStateUtils.blockStateToId(blockState);
         ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockState(stateId);
         if (immutableBlockState == null || immutableBlockState.isEmpty()) return;
-        if (!isSilent) {
+        if (!entity.getEntityData(BaseEntityData.Silent)) {
             net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
-            world.playBlockSound(Vec3d.atCenterOf(LocationUtils.fromBlockPos(pos)), immutableBlockState.settings().sounds().landSound());
+            if (this.landSound != null) {
+                world.playBlockSound(Vec3d.atCenterOf(LocationUtils.fromBlockPos(pos)), this.landSound);
+            }
         }
     }
 
     public static class Factory implements BlockBehaviorFactory {
+
+        @SuppressWarnings("unchecked")
         @Override
         public BlockBehavior create(CustomBlock block, Map<String, Object> arguments) {
             float hurtAmount = ResourceConfigUtils.getAsFloat(arguments.getOrDefault("hurt-amount", -1f), "hurt-amount");
             int hurtMax = ResourceConfigUtils.getAsInt(arguments.getOrDefault("max-hurt", -1), "max-hurt");
-            return new FallingBlockBehavior(block, hurtAmount, hurtMax);
+            Map<String, Object> sounds = (Map<String, Object>) arguments.get("sounds");
+            SoundData fallSound = null;
+            SoundData destroySound = null;
+            if (sounds != null) {
+                fallSound = Optional.ofNullable(sounds.get("fall")).map(obj -> SoundData.create(obj, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f))).orElse(null);
+                destroySound = Optional.ofNullable(sounds.get("destroy")).map(obj -> SoundData.create(obj, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f))).orElse(null);
+            }
+            return new FallingBlockBehavior(block, hurtAmount, hurtMax, fallSound, destroySound);
         }
     }
 }

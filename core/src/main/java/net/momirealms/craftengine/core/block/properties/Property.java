@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.sparrow.nbt.Tag;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -112,6 +113,9 @@ public abstract class Property<T extends Comparable<T>> {
         return indexOf(unpack(tag));
     }
 
+    @Nullable
+    public abstract T valueByName(String name);
+
     public abstract int indexOf(T value);
 
     public abstract T unpack(Tag tag);
@@ -152,7 +156,7 @@ public abstract class Property<T extends Comparable<T>> {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return this.property.name + "=" + this.property.valueName(this.value);
         }
     }
@@ -166,5 +170,10 @@ public abstract class Property<T extends Comparable<T>> {
     @SuppressWarnings("unchecked")
     public static <T extends Comparable<T>> String formatValue(Property<T> property, Comparable<?> value) {
         return property.valueName((T) value);
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "{clazz=" + this.clazz + ", name='" + this.name + "', values=" + this.possibleValues() + '}';
     }
 }

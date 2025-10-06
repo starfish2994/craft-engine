@@ -45,6 +45,7 @@ public class EventFunctions {
         register(CommonFunctions.TELEPORT, new TeleportFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.SET_VARIABLE, new SetVariableFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.TOAST, new ToastFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.DAMAGE, new DamageFunction.FactoryImpl<>(EventConditions::fromMap));
     }
 
     public static void register(Key key, FunctionFactory<PlayerOptionalContext> factory) {

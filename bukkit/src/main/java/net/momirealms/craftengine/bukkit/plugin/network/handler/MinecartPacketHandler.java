@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.entity.data.AbstractMinecartData;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
-import net.momirealms.craftengine.bukkit.plugin.network.PacketConsumers;
+import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -25,7 +25,7 @@ import java.util.Optional;
 
 public class MinecartPacketHandler implements EntityPacketHandler {
     public static final MinecartPacketHandler INSTANCE = new MinecartPacketHandler();
-    private static final BlockStateHandler BLOCK_STATE_HANDLER = VersionHelper.isOrAbove1_21_3() ? BlockStateHandler_1_21_3.INSTANCE : BlockStateHandler_1_20.INSTANCE;
+    private static final BlockStateHandler BLOCK_STATE_HANDLER = VersionHelper.isOrAbove1_21_5() ? BlockStateHandler_1_21_5.INSTANCE : BlockStateHandler_1_20.INSTANCE;
 
     @Override
     public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
@@ -69,8 +69,8 @@ public class MinecartPacketHandler implements EntityPacketHandler {
         Object handle(NetWorkUser user, Object packedItem, int entityDataId);
     }
 
-    static class BlockStateHandler_1_21_3 implements BlockStateHandler {
-        protected static final BlockStateHandler INSTANCE = new BlockStateHandler_1_21_3();
+    static class BlockStateHandler_1_21_5 implements BlockStateHandler {
+        protected static final BlockStateHandler INSTANCE = new BlockStateHandler_1_21_5();
 
         @Override
         public Object handle(NetWorkUser user, Object packedItem, int entityDataId) {
@@ -79,12 +79,7 @@ public class MinecartPacketHandler implements EntityPacketHandler {
             Optional<Object> blockState = (Optional<Object>) FastNMS.INSTANCE.field$SynchedEntityData$DataValue$value(packedItem);
             if (blockState.isEmpty()) return null;
             int stateId = BlockStateUtils.blockStateToId(blockState.get());
-            int newStateId;
-            if (!user.clientModEnabled()) {
-                newStateId = PacketConsumers.remap(stateId);
-            } else {
-                newStateId = PacketConsumers.remapMOD(stateId);
-            }
+            int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
             if (newStateId == stateId) return null;
             Object serializer = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$serializer(packedItem);
             return FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(
@@ -100,12 +95,7 @@ public class MinecartPacketHandler implements EntityPacketHandler {
         public Object handle(NetWorkUser user, Object packedItem, int entityDataId) {
             if (entityDataId != AbstractMinecartData.DisplayBlock.id()) return null;
             int stateId = (int) FastNMS.INSTANCE.field$SynchedEntityData$DataValue$value(packedItem);
-            int newStateId;
-            if (!user.clientModEnabled()) {
-                newStateId = PacketConsumers.remap(stateId);
-            } else {
-                newStateId = PacketConsumers.remapMOD(stateId);
-            }
+            int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
             if (newStateId == stateId) return null;
             Object serializer = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$serializer(packedItem);
             return FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(entityDataId, serializer, newStateId);

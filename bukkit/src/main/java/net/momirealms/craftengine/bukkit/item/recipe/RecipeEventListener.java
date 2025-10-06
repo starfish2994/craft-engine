@@ -23,6 +23,8 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -608,20 +610,25 @@ public class RecipeEventListener implements Listener {
             inventory.setResult(null);
             return;
         }
-        CraftingInput<ItemStack> input = getCraftingInput(inventory);
-        if (input == null) return;
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        if (craftingTableRecipe.hasVisualResult()) {
-            inventory.setResult(craftingTableRecipe.assembleVisual(input, ItemBuildContext.of(serverPlayer)));
+        ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
+        if (!craftingTableRecipe.canUse(itemBuildContext)) {
+            inventory.setResult(null);
+            return;
+        }
+        CraftingInput<ItemStack> input = getCraftingInput(inventory);
+        if (input == null) return;
+        if (craftingTableRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
+            inventory.setResult(craftingTableRecipe.assembleVisual(input, itemBuildContext));
         } else {
-            inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
+            inventory.setResult(craftingTableRecipe.assemble(input, itemBuildContext));
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCraftingFinish(CraftItemEvent event) {
-        if (!Config.enableRecipeSystem()) return;
+        if (!Config.enableRecipeSystem() || !VersionHelper.PREMIUM) return;
         org.bukkit.inventory.Recipe recipe = event.getRecipe();
         if (!(recipe instanceof CraftingRecipe craftingRecipe)) return;
         Key recipeId = Key.of(craftingRecipe.getKey().namespace(), craftingRecipe.getKey().value());
@@ -634,14 +641,19 @@ public class RecipeEventListener implements Listener {
         if (!(optionalRecipe.get() instanceof CustomCraftingTableRecipe<ItemStack> craftingTableRecipe)) {
             return;
         }
-        if (!craftingTableRecipe.hasVisualResult()) {
-            return;
-        }
-        CraftingInput<ItemStack> input = getCraftingInput(inventory);
-        if (input == null) return;
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
+        if (craftingTableRecipe.hasVisualResult()) {
+            CraftingInput<ItemStack> input = getCraftingInput(inventory);
+            inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
+        }
+        Function<PlayerOptionalContext>[] functions = craftingTableRecipe.craftingFunctions();
+        if (functions != null) {
+            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+            for (Function<PlayerOptionalContext> function : functions) {
+                function.run(context);
+            }
+        }
     }
 
     private CraftingInput<ItemStack> getCraftingInput(CraftingInventory inventory) {
@@ -690,10 +702,16 @@ public class RecipeEventListener implements Listener {
             event.setResult(null);
             return;
         }
+        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+        ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
+        if (!smithingTrimRecipe.canUse(itemBuildContext)) {
+            event.setResult(null);
+            return;
+        }
+
         SmithingInput<ItemStack> input = getSmithingInput(inventory);
         if (smithingTrimRecipe.matches(input)) {
-            Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-            ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), ItemBuildContext.of(BukkitAdaptors.adapt(player)));
+            ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
             event.setResult(result);
         } else {
             event.setResult(null);

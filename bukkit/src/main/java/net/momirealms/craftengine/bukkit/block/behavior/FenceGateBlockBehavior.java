@@ -10,10 +10,7 @@ import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.InteractUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
-import net.momirealms.craftengine.core.block.BlockBehavior;
-import net.momirealms.craftengine.core.block.CustomBlock;
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.UpdateOption;
+import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -260,6 +257,22 @@ public class FenceGateBlockBehavior extends BukkitBlockBehavior {
                 world.playBlockSound(new Vec3d(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5), this.closeSound);
             }
         }
+    }
+
+    public static boolean connectsToDirection(BlockStateWrapper state, HorizontalDirection direction) {
+        FenceGateBlockBehavior fence = BlockStateUtils.getOptionalCustomBlockState(state.literalObject())
+                .map(ImmutableBlockState::behavior)
+                .flatMap(behavior -> behavior.getAs(FenceGateBlockBehavior.class))
+                .orElse(null);
+        if (fence == null) return false;
+        Direction facing = null;
+        ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state.literalObject()).orElse(null);
+        if (customState == null) return false;
+        Property<?> facingProperty = customState.owner().value().getProperty("facing");
+        if (facingProperty != null && facingProperty.valueClass() == HorizontalDirection.class) {
+            facing = ((HorizontalDirection) customState.get(facingProperty)).toDirection();
+        }
+        return facing != null && facing.axis() == direction.toDirection().clockWise().axis();
     }
 
     public static class Factory implements BlockBehaviorFactory {

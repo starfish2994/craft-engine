@@ -381,4 +381,18 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior
         }
         FallOnBlockBehavior.super.updateEntityMovementAfterFallOn(thisBlock, args, superMethod);
     }
+
+    @Override
+    public void stepOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        for (AbstractBlockBehavior behavior : this.behaviors) {
+            behavior.stepOn(thisBlock, args, superMethod);
+        }
+    }
+
+    @Override
+    public void onProjectileHit(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+        for (AbstractBlockBehavior behavior : this.behaviors) {
+            behavior.onProjectileHit(thisBlock, args, superMethod);
+        }
+    }
 }

@@ -11,25 +11,19 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-public class GsonHelper {
-    private final Gson gson;
+public final class GsonHelper {
+    private static final Gson GSON;
 
-    public GsonHelper() {
-        this.gson = new GsonBuilder()
+    private GsonHelper() {}
+
+    static {
+        GSON = new GsonBuilder()
                 .disableHtmlEscaping()
                 .create();
     }
 
-    public Gson getGson() {
-        return gson;
-    }
-
     public static Gson get() {
-        return SingletonHolder.INSTANCE.getGson();
-    }
-
-    private static class SingletonHolder {
-        private static final GsonHelper INSTANCE = new GsonHelper();
+        return GSON;
     }
 
     public static void writeJsonFile(JsonElement json, Path path) throws IOException {

@@ -131,10 +131,10 @@ public enum Direction {
     public static Direction[] orderedByNearest(AbstractEntity entity) {
         float f = entity.xRot() * ((float)Math.PI / 180F);
         float f1 = -entity.yRot() * ((float)Math.PI / 180F);
-        float sin = MCUtils.sin(f);
-        float cos = MCUtils.cos(f);
-        float sin1 = MCUtils.sin(f1);
-        float cos1 = MCUtils.cos(f1);
+        float sin = MiscUtils.sin(f);
+        float cos = MiscUtils.cos(f);
+        float sin1 = MiscUtils.sin(f1);
+        float cos1 = MiscUtils.cos(f1);
         boolean flag = sin1 > 0.0F;
         boolean flag1 = sin < 0.0F;
         boolean flag2 = cos1 > 0.0F;

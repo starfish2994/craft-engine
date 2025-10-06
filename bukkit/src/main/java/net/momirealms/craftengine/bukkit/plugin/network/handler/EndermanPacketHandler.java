@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.entity.data.EnderManData;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
-import net.momirealms.craftengine.bukkit.plugin.network.PacketConsumers;
+import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -38,12 +38,7 @@ public class EndermanPacketHandler implements EntityPacketHandler {
                 Optional<Object> blockState = (Optional<Object>) FastNMS.INSTANCE.field$SynchedEntityData$DataValue$value(packedItem);
                 if (blockState.isEmpty()) continue;
                 int stateId = BlockStateUtils.blockStateToId(blockState.get());
-                int newStateId;
-                if (!user.clientModEnabled()) {
-                    newStateId = PacketConsumers.remap(stateId);
-                } else {
-                    newStateId = PacketConsumers.remapMOD(stateId);
-                }
+                int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
                 if (newStateId == stateId) continue;
                 Object serializer = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$serializer(packedItem);
                 packedItems.set(i, FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(

@@ -1,7 +1,6 @@
 items:
   default:reed:
     material: nether_brick
-    custom-model-data: 3010
     data:
       item-name: <!i><i18n:item.reed>
     model:
@@ -26,8 +25,7 @@ items:
         loot:
           template: default:loot_table/self
         state:
-          id: 1
-          state: sugar_cane:1
+          auto-state: sugar_cane
           model:
             path: minecraft:block/custom/reed
 recipes:

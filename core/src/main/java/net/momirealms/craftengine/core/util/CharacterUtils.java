@@ -2,25 +2,21 @@ package net.momirealms.craftengine.core.util;
 
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class CharacterUtils {
-    private static final Pattern PATTERN = Pattern.compile("[\\p{Mn}\\p{Me}\\p{Mc}\\p{Cf}]");
-
     private CharacterUtils() {}
 
     public static char[] decodeUnicodeToChars(String unicodeString) {
         int count = unicodeString.length() / 6;
         if (unicodeString.length() % 6 != 0) {
-            throw new LocalizedResourceConfigException("warning.config.image.invalid_unicode_string_length");
+            throw new LocalizedResourceConfigException("warning.config.image.invalid_unicode_string", unicodeString);
         }
         char[] chars = new char[count];
         for (int i = 0, j = 0; j < count; i += 6, j++) {
             String hex = unicodeString.substring(i + 2, i + 6);
             try {
-                int codePoint = Integer.parseInt(hex, 16);
-                chars[j] = (char) codePoint;
+                chars[j] = (char) Integer.parseInt(hex, 16);
             } catch (NumberFormatException e) {
                 throw new LocalizedResourceConfigException("warning.config.image.invalid_hex_value", e, hex);
             }
@@ -70,29 +66,6 @@ public class CharacterUtils {
             builder.append(encodeCharToUnicode(value));
         }
         return builder.toString();
-    }
-
-    public static boolean containsCombinedCharacter(String input) {
-        if (input == null || input.isEmpty() || input.length() == 1) return false;
-        for (int i = 0; i < input.length();) {
-            int codePoint = input.codePointAt(i);
-            i += Character.charCount(codePoint);
-            int type = Character.getType(codePoint);
-            if (type == Character.NON_SPACING_MARK ||
-                    type == Character.ENCLOSING_MARK ||
-                    type == Character.COMBINING_SPACING_MARK ||
-                    type == Character.FORMAT ||
-                    type == Character.CONTROL ||
-                    type == Character.SURROGATE ||
-                    type == Character.PRIVATE_USE ||
-                    PATTERN.matcher(new String(Character.toChars(codePoint))).find()
-            ) return true;
-            if (i < input.length()) {
-                int nextCodePoint = input.codePointAt(i);
-                if (Character.isSurrogatePair(Character.toChars(codePoint)[0], Character.toChars(nextCodePoint)[0])) return true;
-            }
-        }
-        return false;
     }
 
     public static String replaceBackslashWithSlash(String input) {

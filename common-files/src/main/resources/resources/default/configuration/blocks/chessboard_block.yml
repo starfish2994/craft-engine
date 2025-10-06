@@ -1,7 +1,6 @@
 items:
   default:chessboard_block:
     material: nether_brick
-    custom-model-data: 3000
     data:
       item-name: <!i><i18n:item.chessboard_block>
     model:
@@ -35,7 +34,7 @@ items:
               default: north
           appearances:
             east:
-              state: note_block:18
+              auto-state: solid
               model:
                 path: minecraft:block/custom/chessboard_block
                 y: 270
@@ -44,32 +43,28 @@ items:
                   textures:
                     pattern: minecraft:block/custom/chessboard_block
             north:
-              state: note_block:19
+              auto-state: solid
               model:
                 path: minecraft:block/custom/chessboard_block
                 y: 180
             south:
-              state: note_block:20
+              auto-state: solid
               model:
                 path: minecraft:block/custom/chessboard_block
             west:
-              state: note_block:21
+              auto-state: solid
               model:
                 path: minecraft:block/custom/chessboard_block
                 y: 90
           variants:
             facing=east:
               appearance: east
-              id: 18
             facing=north:
               appearance: north
-              id: 19
             facing=south:
               appearance: south
-              id: 20
             facing=west:
               appearance: west
-              id: 21
 recipes:
   default:chessboard_block:
     type: shaped

@@ -122,8 +122,4 @@ images:
     ascent: 9
     font: minecraft:emoji
     file: minecraft:font/image/emojis.png
-    chars:
-      - \ub000\ub001\ub002\ub003
-      - \ub004\ub005\ub006\ub007
-      - \ub008\ub009\ub00a\ub00b
-      - \ub00c\ub00d\ub00e\ub00f
+    grid-size: 4,4

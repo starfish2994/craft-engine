@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.gson.*;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.font.BitmapImage;
 import net.momirealms.craftengine.core.font.Font;
 import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;
@@ -88,6 +87,7 @@ public abstract class AbstractPackManager implements PackManager {
     private final BiConsumer<Path, Path> generationEventDispatcher;
     private final Map<String, Pack> loadedPacks = new HashMap<>();
     private final Map<String, ConfigParser> sectionParsers = new HashMap<>();
+    private final TreeSet<ConfigParser> sortedParsers = new TreeSet<>();
     private final JsonObject vanillaAtlas;
     private Map<Path, CachedConfigFile> cachedConfigFiles = Collections.emptyMap();
     private Map<Path, CachedAssetFile> cachedAssetFiles = Collections.emptyMap();
@@ -295,6 +295,7 @@ public abstract class AbstractPackManager implements PackManager {
         for (String id : parser.sectionId()) {
             this.sectionParsers.put(id, parser);
         }
+        this.sortedParsers.add(parser);
         return true;
     }
 
@@ -321,6 +322,9 @@ public abstract class AbstractPackManager implements PackManager {
                     String namespace = path.getFileName().toString();
                     if (namespace.charAt(0) == '.') {
                         continue;
+                    }
+                    if (!ResourceLocation.isValidNamespace(namespace)) {
+                        namespace = "minecraft";
                     }
                     Path metaFile = path.resolve("pack.yml");
                     String description = null;
@@ -374,6 +378,7 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/internal/configuration/fix_client_visual.yml");
         plugin.saveResource("resources/internal/configuration/offset_chars.yml");
         plugin.saveResource("resources/internal/configuration/gui.yml");
+        plugin.saveResource("resources/internal/configuration/mappings.yml");
         plugin.saveResource("resources/internal/resourcepack/assets/minecraft/textures/font/offset/space_split.png");
         plugin.saveResource("resources/internal/resourcepack/assets/minecraft/textures/font/gui/custom/item_browser.png");
         plugin.saveResource("resources/internal/resourcepack/assets/minecraft/textures/font/gui/custom/category.png");
@@ -431,6 +436,7 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/configuration/blocks/topaz_ore.yml");
         plugin.saveResource("resources/default/configuration/blocks/netherite_anvil.yml");
         plugin.saveResource("resources/default/configuration/blocks/amethyst_torch.yml");
+        plugin.saveResource("resources/default/configuration/blocks/hami_melon.yml");
         // assets
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/font/image/emojis.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/chinese_lantern.png");
@@ -537,12 +543,17 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/gui/sprites/tooltip/topaz_background.png.mcmeta");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/gui/sprites/tooltip/topaz_frame.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/gui/sprites/tooltip/topaz_frame.png.mcmeta");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/hami_melon.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/hami_melon_bottom.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/hami_melon_top.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_slice.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_seeds.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/fence_side.json");
     }
 
-    private TreeMap<ConfigParser, List<CachedConfigSection>> updateCachedConfigFiles() {
-        TreeMap<ConfigParser, List<CachedConfigSection>> cachedConfigs = new TreeMap<>();
+    private void updateCachedConfigFiles() {
         Map<Path, CachedConfigFile> previousFiles = this.cachedConfigFiles;
-        this.cachedConfigFiles = new Object2ObjectOpenHashMap<>(32);
+        this.cachedConfigFiles = new HashMap<>(64, 0.5f);
         for (Pack pack : loadedPacks()) {
             if (!pack.enabled()) continue;
             Path configurationFolderPath = pack.configurationFolder();
@@ -587,9 +598,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 }
                             }
                             for (Map.Entry<String, Object> entry : cachedFile.config().entrySet()) {
-                                processConfigEntry(entry, path, cachedFile.pack(), (p, c) ->
-                                        cachedConfigs.computeIfAbsent(p, k -> new ArrayList<>()).add(c)
-                                );
+                                processConfigEntry(entry, path, cachedFile.pack(), ConfigParser::addConfig);
                             }
                         }
                         return FileVisitResult.CONTINUE;
@@ -599,64 +608,26 @@ public abstract class AbstractPackManager implements PackManager {
                 this.plugin.logger().severe("Error while reading config file", e);
             }
         }
-        return cachedConfigs;
     }
 
     private void loadResourceConfigs(Predicate<ConfigParser> predicate) {
         long o1 = System.nanoTime();
-        TreeMap<ConfigParser, List<CachedConfigSection>> cachedConfigs = this.updateCachedConfigFiles();
+        this.updateCachedConfigFiles();
         long o2 = System.nanoTime();
         this.plugin.logger().info("Loaded packs. Took " + String.format("%.2f", ((o2 - o1) / 1_000_000.0)) + " ms");
-        for (Map.Entry<ConfigParser, List<CachedConfigSection>> entry : cachedConfigs.entrySet()) {
-            ConfigParser parser = entry.getKey();
-            if (!predicate.test(parser)) continue;
+        for (ConfigParser parser : this.sortedParsers) {
+            if (!predicate.test(parser)) {
+                parser.clear();
+                continue;
+            }
             long t1 = System.nanoTime();
             parser.preProcess();
-            for (CachedConfigSection cached : entry.getValue()) {
-                for (Map.Entry<String, Object> configEntry : cached.config().entrySet()) {
-                    String key = configEntry.getKey();
-                    Key id = Key.withDefaultNamespace(key, cached.pack().namespace());
-                    try {
-                        if (parser.supportsParsingObject()) {
-                            // do not apply templates
-                            parser.parseObject(cached.pack(), cached.filePath(), id, configEntry.getValue());
-                        } else {
-                            if (configEntry.getValue() instanceof Map<?, ?> configSection0) {
-                                Map<String, Object> config = castToMap(configSection0, false);
-                                if ((boolean) config.getOrDefault("debug", false)) {
-                                    this.plugin.logger().info(GsonHelper.get().toJson(this.plugin.templateManager().applyTemplates(id, config)));
-                                }
-                                if ((boolean) config.getOrDefault("enable", true)) {
-                                    parser.parseSection(cached.pack(), cached.filePath(), id, MiscUtils.castToMap(this.plugin.templateManager().applyTemplates(id, config), false));
-                                }
-                            } else {
-                                TranslationManager.instance().log("warning.config.structure.not_section", cached.filePath().toString(), cached.prefix() + "." + key, configEntry.getValue().getClass().getSimpleName());
-                            }
-                        }
-                    } catch (LocalizedException e) {
-                        printWarningRecursively(e, cached.filePath(), cached.prefix() + "." + key);
-                    } catch (Exception e) {
-                        this.plugin.logger().warn("Unexpected error loading file " + cached.filePath() + " - '" + parser.sectionId()[0] + "." + key + "'. Please find the cause according to the stacktrace or seek developer help. Additional info: " + GsonHelper.get().toJson(configEntry.getValue()), e);
-                    }
-                }
-            }
+            parser.loadAll();
             parser.postProcess();
+            parser.clear();
             long t2 = System.nanoTime();
             this.plugin.logger().info("Loaded " + parser.sectionId()[0] + " in " + String.format("%.2f", ((t2 - t1) / 1_000_000.0)) + " ms");
         }
-    }
-
-    private void printWarningRecursively(LocalizedException e, Path path, String prefix) {
-        for (Throwable t : e.getSuppressed()) {
-            if (t instanceof LocalizedException suppressed) {
-                printWarningRecursively(suppressed, path, prefix);
-            }
-        }
-        if (e instanceof LocalizedResourceConfigException exception) {
-            exception.setPath(path);
-            exception.setId(prefix);
-        }
-        TranslationManager.instance().log(e.node(), e.arguments());
     }
 
     private void processConfigEntry(Map.Entry<String, Object> entry, Path path, Pack pack, BiConsumer<ConfigParser, CachedConfigSection> callback) {
@@ -728,7 +699,7 @@ public abstract class AbstractPackManager implements PackManager {
             this.plugin.logger().info("Validated resource pack in " + (time3 - time2) + "ms");
             Path finalPath = resourcePackPath();
             Files.createDirectories(finalPath.getParent());
-            if (!VersionHelper.PREMIUM) {
+            if (!VersionHelper.PREMIUM && Config.enableObfuscation()) {
                 Config.instance().setObf(false);
                 this.plugin.logger().warn("Resource pack obfuscation requires Premium Edition.");
             }
@@ -845,9 +816,6 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         }
                     }
-                    case "filter", "minecraft:filter" -> {
-                        // todo filter
-                    }
                     case "paletted_permutations", "minecraft:paletted_permutations" -> {
                         JsonArray textures = sourceJson.getAsJsonArray("textures");
                         if (textures == null) continue;
@@ -861,6 +829,9 @@ public abstract class AbstractPackManager implements PackManager {
                                 existing.accept(Key.of(texturePath.getAsString() + separator + permutation));
                             }
                         }
+                    }
+                    case "filter", "minecraft:filter" -> {
+                        // todo filter
                     }
                 }
             }
@@ -887,28 +858,32 @@ public abstract class AbstractPackManager implements PackManager {
         Set<Key> existingTextures = new HashSet<>(VANILLA_TEXTURES);
         Map<String, String> directoryMapper = new HashMap<>();
         processAtlas(this.vanillaAtlas, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
+        Map<Path, JsonObject> allAtlas = new HashMap<>();
 
         for (Path rootPath : rootPaths) {
             Path assetsPath = rootPath.resolve("assets");
             if (!Files.isDirectory(assetsPath)) continue;
+
+            Path atlasesFile = assetsPath.resolve("minecraft").resolve("atlases").resolve("blocks.json");
+            if (Files.exists(atlasesFile)) {
+                try {
+                    JsonObject atlasJsonObject = GsonHelper.readJsonFile(atlasesFile).getAsJsonObject();
+                    processAtlas(atlasJsonObject, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
+                    allAtlas.put(atlasesFile, atlasJsonObject);
+                } catch (IOException | JsonParseException e) {
+                    TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", atlasesFile.toAbsolutePath().toString());
+                }
+            }
+
             List<Path> namespaces;
             try {
                 namespaces = FileUtils.collectNamespaces(assetsPath);
             } catch (IOException e) {
-                plugin.logger().warn("Failed to collect namespaces for " + assetsPath.toAbsolutePath(), e);
+                this.plugin.logger().warn("Failed to collect namespaces for " + assetsPath.toAbsolutePath(), e);
                 return;
             }
-            for (Path namespacePath : namespaces) {
-                Path atlasesFile = namespacePath.resolve("atlases").resolve("blocks.json");
-                if (Files.exists(atlasesFile)) {
-                    try {
-                        JsonObject atlasJsonObject = GsonHelper.readJsonFile(atlasesFile).getAsJsonObject();
-                        processAtlas(atlasJsonObject, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
-                    } catch (IOException | JsonParseException e) {
-                        TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", atlasesFile.toAbsolutePath().toString());
-                    }
-                }
 
+            for (Path namespacePath : namespaces) {
                 Path fontPath = namespacePath.resolve("font");
                 if (Files.isDirectory(fontPath)) {
                     try {
@@ -1058,6 +1033,8 @@ public abstract class AbstractPackManager implements PackManager {
             TranslationManager.instance().log("warning.config.resource_pack.generation.missing_block_model", entry.getValue().stream().distinct().toList().toString(), modelPath);
         }
 
+        Set<Key> texturesToFix = new HashSet<>();
+
         // 验证贴图是否存在
         boolean enableObf = Config.enableObfuscation() && Config.enableRandomResourceLocation();
         label: for (Map.Entry<Key, Collection<Key>> entry : imageToModels.asMap().entrySet()) {
@@ -1087,7 +1064,48 @@ public abstract class AbstractPackManager implements PackManager {
                         continue label;
                     }
                 }
-                TranslationManager.instance().log("warning.config.resource_pack.generation.texture_not_in_atlas", key.toString());
+                if (Config.fixTextureAtlas()) {
+                    texturesToFix.add(key);
+                } else {
+                    TranslationManager.instance().log("warning.config.resource_pack.generation.texture_not_in_atlas", key.toString());
+                }
+            }
+        }
+
+        if (Config.fixTextureAtlas() && !texturesToFix.isEmpty()) {
+            List<JsonObject> sourcesToAdd = new ArrayList<>();
+            for (Key toFix : texturesToFix) {
+                JsonObject source = new JsonObject();
+                source.addProperty("type", "single");
+                source.addProperty("resource", toFix.asString());
+                sourcesToAdd.add(source);
+            }
+
+            Path defaultAtlas = path.resolve("assets").resolve("minecraft").resolve("atlases").resolve("blocks.json");
+            if (!allAtlas.containsKey(defaultAtlas)) {
+                allAtlas.put(defaultAtlas, new JsonObject());
+                try {
+                    Files.createDirectories(defaultAtlas.getParent());
+                } catch (IOException e) {
+                    this.plugin.logger().warn("could not create default atlas directory", e);
+                }
+            }
+
+            for (Map.Entry<Path, JsonObject> atlas : allAtlas.entrySet()) {
+                JsonObject right = atlas.getValue();
+                JsonArray sources = right.getAsJsonArray("sources");
+                if (sources == null) {
+                    sources = new JsonArray();
+                    right.add("sources", sources);
+                }
+                for (JsonObject source : sourcesToAdd) {
+                    sources.add(source);
+                }
+                try {
+                    GsonHelper.writeJsonFile(right, atlas.getKey());
+                } catch (IOException e) {
+                    this.plugin.logger().warn("Failed to write atlas to json file", e);
+                }
             }
         }
     }
@@ -1715,7 +1733,7 @@ public abstract class AbstractPackManager implements PackManager {
             soundJson = new JsonObject();
         }
 
-        for (Map.Entry<Key, Key> mapper : plugin.blockManager().soundMapper().entrySet()) {
+        for (Map.Entry<Key, Key> mapper : plugin.blockManager().soundReplacements().entrySet()) {
             Key originalKey = mapper.getKey();
             JsonObject empty = new JsonObject();
             empty.add("sounds", new JsonArray());
@@ -2181,9 +2199,9 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     private List<Pair<String, List<Path>>> updateCachedAssets(@NotNull PackCacheData cacheData, @Nullable FileSystem fs) throws IOException {
-        Map<String, List<Path>> conflictChecker = new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()));
+        Map<String, List<Path>> conflictChecker = new HashMap<>(Math.max(128, this.cachedAssetFiles.size()), 0.6f);
         Map<Path, CachedAssetFile> previousFiles = this.cachedAssetFiles;
-        this.cachedAssetFiles = new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()));
+        this.cachedAssetFiles = new HashMap<>(Math.max(128, this.cachedAssetFiles.size()), 0.6f);
 
         List<Path> folders = new ArrayList<>();
         folders.addAll(loadedPacks().stream()

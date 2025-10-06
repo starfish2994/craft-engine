@@ -38,9 +38,11 @@ public final class DefaultBlockEntitySerializer {
             } else {
                 BlockPos pos = BlockEntity.readPosAndVerify(data, chunk.chunkPos());
                 ImmutableBlockState blockState = chunk.getBlockState(pos);
-                BlockEntity blockEntity = type.factory().create(pos, blockState);
-                blockEntity.loadCustomData(data);
-                blockEntities.add(blockEntity);
+                if (blockState.blockEntityType() == type) {
+                    BlockEntity blockEntity = type.factory().create(pos, blockState);
+                    blockEntity.loadCustomData(data);
+                    blockEntities.add(blockEntity);
+                }
             }
         }
         return blockEntities;

@@ -9,6 +9,12 @@ import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessor;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessors;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.condition.AllOfCondition;
+import net.momirealms.craftengine.core.plugin.context.event.EventConditions;
+import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.*;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +29,23 @@ public abstract class AbstractRecipeSerializer<T, R extends Recipe<T>> implement
             VersionHelper.isOrAbove1_20_5() ?
             new VanillaRecipeReader1_20_5() :
             new VanillaRecipeReader1_20();
+
+    @SuppressWarnings("unchecked")
+    protected Function<PlayerOptionalContext>[] functions(Map<String, Object> arguments) {
+        Object functions = ResourceConfigUtils.get(arguments, "functions", "function");
+        if (functions == null) return null;
+        List<Function<PlayerOptionalContext>> functionList = ResourceConfigUtils.parseConfigAsList(functions, EventFunctions::fromMap);
+        return functionList.toArray(new Function[0]);
+    }
+
+    protected Condition<PlayerOptionalContext> conditions(Map<String, Object> arguments) {
+        Object conditions = ResourceConfigUtils.get(arguments, "conditions", "condition");
+        if (conditions == null) return null;
+        List<Condition<PlayerOptionalContext>> conditionList = ResourceConfigUtils.parseConfigAsList(conditions, EventConditions::fromMap);
+        if (conditionList.isEmpty()) return null;
+        if (conditionList.size() == 1) return conditionList.getFirst();
+        return new AllOfCondition<>(conditionList);
+    }
 
     protected boolean showNotification(Map<String, Object> arguments) {
         return ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("show-notification", true), "show-notification");

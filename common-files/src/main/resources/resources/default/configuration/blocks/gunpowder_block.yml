@@ -1,7 +1,6 @@
 items:
   default:gunpowder_block:
     material: nether_brick
-    custom-model-data: 3006
     data:
       item-name: <!i><i18n:item.gunpowder_block>
     model:
@@ -28,8 +27,7 @@ items:
             instrument: snare
             map-color: 45
         state:
-          id: 16
-          state: note_block:16
+          auto-state: solid
           model:
             path: minecraft:block/custom/gunpowder_block
             generation:
@@ -38,7 +36,6 @@ items:
                 all: minecraft:block/custom/gunpowder_block
   default:solid_gunpowder_block:
     material: nether_brick
-    custom-model-data: 3007
     data:
       item-name: <!i><i18n:item.solid_gunpowder_block>
     model:
@@ -62,8 +59,7 @@ items:
             instrument: basedrum
             map-color: 45
         state:
-          id: 17
-          state: note_block:17
+          auto-state: solid
           model:
             path: minecraft:block/custom/solid_gunpowder_block
             generation:

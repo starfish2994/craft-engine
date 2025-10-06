@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.reflection.minecraft;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
@@ -667,9 +668,9 @@ public final class CoreReflections {
             )
     );
 
-    public static final Method method$SynchedEntityData$get = requireNonNull(
-            ReflectionUtils.getMethod(clazz$SynchedEntityData, Object.class, clazz$EntityDataAccessor)
-    );
+    // public static final Method method$SynchedEntityData$get = requireNonNull(
+    //         ReflectionUtils.getDeclaredMethod(clazz$SynchedEntityData, Object.class, new String[]{"get", VersionHelper.isOrAbove1_20_5() ? "a" : "b"}, clazz$EntityDataAccessor)
+    // );
 
     public static final Class<?> clazz$SynchedEntityData$DataValue = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
@@ -974,9 +975,9 @@ public final class CoreReflections {
             ReflectionUtils.getDeclaredField(clazz$PalettedContainer$Data, clazz$Palette, 0)
     );
 
-    public static final Method method$Palette$write = requireNonNull(
-            ReflectionUtils.getMethod(clazz$Palette, void.class, clazz$FriendlyByteBuf)
-    );
+    // public static final Method method$Palette$write = requireNonNull(
+    //         ReflectionUtils.getMethod(clazz$Palette, void.class, clazz$FriendlyByteBuf)
+    // );
 
     public static final Class<?> clazz$ChunkAccess = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
@@ -1219,6 +1220,10 @@ public final class CoreReflections {
             ReflectionUtils.getStaticMethod(clazz$MapColor, clazz$MapColor, int.class)
     );
 
+    public static final Field field$MapColor$id = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$MapColor, int.class, 1)
+    );
+
     public static final Class<?> clazz$PushReaction = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
                     "world.level.material.EnumPistonReaction",
@@ -1230,6 +1235,16 @@ public final class CoreReflections {
             ReflectionUtils.getMethod(clazz$PushReaction, new String[] { "values" })
     );
 
+    public static final Object[] instance$PushReaction$values;
+
+    static {
+        try {
+            instance$PushReaction$values = (Object[]) method$PushReaction$values.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to init PushReaction", e);
+        }
+    }
+
     public static final Class<?> clazz$NoteBlockInstrument = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
                     "world.level.block.state.properties.BlockPropertyInstrument",
@@ -1240,6 +1255,16 @@ public final class CoreReflections {
     public static final Method method$NoteBlockInstrument$values = requireNonNull(
             ReflectionUtils.getMethod(clazz$NoteBlockInstrument, new String[] { "values" })
     );
+
+    public static final Object[] instance$NoteBlockInstrument$values;
+
+    static {
+        try {
+            instance$NoteBlockInstrument$values = (Object[]) method$NoteBlockInstrument$values.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new ReflectionInitException("Failed to init NoteBlockInstrument", e);
+        }
+    }
 
     public static final Class<?> clazz$BlockStateBase = requireNonNull(
             BukkitReflectionUtils.findReobfOrMojmapClass(
@@ -1290,7 +1315,6 @@ public final class CoreReflections {
     public static final Field field$BlockStateBase$mapColor = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockStateBase, clazz$MapColor, 0)
     );
-
 
     public static final Field field$BlockStateBase$instrument = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockStateBase, clazz$NoteBlockInstrument, 0)
@@ -1576,7 +1600,9 @@ public final class CoreReflections {
     );
 
     public static final Method method$BlockBehaviour$getAnalogOutputSignal = requireNonNull(
-            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos)
+            VersionHelper.isOrAbove1_21_9()
+                    ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Direction)
+                    : ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, int.class, new String[]{"getAnalogOutputSignal", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos)
     );
 
     public static final Method method$Entity$level = requireNonNull(
@@ -1685,6 +1711,10 @@ public final class CoreReflections {
 
     public static final Method method$BlockBehaviour$canSurvive = requireNonNull(
             ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, boolean.class, clazz$BlockState, clazz$LevelReader, clazz$BlockPos)
+    );
+
+    public static final Method method$Block$stepOn = requireNonNull(
+            ReflectionUtils.getMethod(clazz$Block, void.class, new String[] {"stepOn", "a"}, clazz$Level, clazz$BlockPos, clazz$BlockState, clazz$Entity)
     );
 
     public static final Method method$BlockBehaviour$onExplosionHit = MiscUtils.requireNonNullIf(
@@ -2553,19 +2583,19 @@ public final class CoreReflections {
             ReflectionUtils.getMethod(clazz$BlockHitResult, clazz$BlockHitResult, clazz$BlockPos)
     );
 
-    public static final Field field$BlockHitResul$blockPos = requireNonNull(
+    public static final Field field$BlockHitResult$blockPos = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, clazz$BlockPos, 0)
     );
 
-    public static final Field field$BlockHitResul$direction = requireNonNull(
+    public static final Field field$BlockHitResult$direction = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, clazz$Direction, 0)
     );
 
-    public static final Field field$BlockHitResul$miss = requireNonNull(
+    public static final Field field$BlockHitResult$miss = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, boolean.class, 0)
     );
 
-    public static final Field field$BlockHitResul$inside = requireNonNull(
+    public static final Field field$BlockHitResult$inside = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$BlockHitResult, boolean.class, 1)
     );
 
@@ -3517,9 +3547,11 @@ public final class CoreReflections {
     );
 
     public static final Method method$BlockBehaviour$entityInside = requireNonNull(
-            VersionHelper.isOrAbove1_21_5() ?
-                    ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity, clazz$InsideBlockEffectApplier) :
-                    ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity)
+            VersionHelper.isOrAbove1_21_10()
+                    ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity, clazz$InsideBlockEffectApplier, boolean.class)
+                    : VersionHelper.isOrAbove1_21_5()
+                        ? ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity, clazz$InsideBlockEffectApplier)
+                        : ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"entityInside", "a"}, clazz$BlockState, clazz$Level, clazz$BlockPos, clazz$Entity)
     );
 
     // 1.21.5+
@@ -3605,23 +3637,23 @@ public final class CoreReflections {
             clazz$Registry, clazz$HolderLookup$RegistryLookup, new String[]{"asLookup", "p"}
     );
 
-    public static final Field field$ServerEntity$broadcast = requireNonNull(
-            ReflectionUtils.getDeclaredField(
-                    clazz$ServerEntity, Consumer.class, 0
-            )
-    );
+    // public static final Field field$ServerEntity$broadcast = requireNonNull(
+    //         ReflectionUtils.getDeclaredField(
+    //                 clazz$ServerEntity, Consumer.class, 0
+    //         )
+    // );
 
-    public static final MethodHandle methodHandle$ServerEntity$broadcastSetter;
+    // public static final MethodHandle methodHandle$ServerEntity$broadcastSetter;
     public static final MethodHandle methodHandle$ServerEntity$updateIntervalSetter;
     public static final MethodHandle methodHandle$ServerPlayer$connectionGetter;
     public static final MethodHandle methodHandle$ServerPlayer$getAttributeMethod;
 
     static {
         try {
-            methodHandle$ServerEntity$broadcastSetter = requireNonNull(
-                    ReflectionUtils.unreflectSetter(field$ServerEntity$broadcast)
-                            .asType(MethodType.methodType(void.class, Object.class, Consumer.class))
-            );
+            // methodHandle$ServerEntity$broadcastSetter = requireNonNull(
+            //         ReflectionUtils.unreflectSetter(field$ServerEntity$broadcast)
+            //                 .asType(MethodType.methodType(void.class, Object.class, Consumer.class))
+            // );
             methodHandle$ServerEntity$updateIntervalSetter = requireNonNull(
                     ReflectionUtils.unreflectSetter(field$ServerEntity$updateInterval)
                             .asType(MethodType.methodType(void.class, Object.class, int.class))
@@ -3652,6 +3684,10 @@ public final class CoreReflections {
 
     public static final Field field$FireBlock$igniteOdds = requireNonNull(
             ReflectionUtils.getDeclaredField(clazz$FireBlock, Object2IntMap.class, 0)
+    );
+
+    public static final Field field$FireBlock$burnOdds = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$FireBlock, Object2IntMap.class, 1)
     );
 
     public static final Class<?> clazz$EnchantmentMenu = requireNonNull(
@@ -4389,4 +4425,49 @@ public final class CoreReflections {
     public static final Constructor<?> constructor$AdvancementHolder = Optional.ofNullable(clazz$AdvancementHolder)
             .map(it -> ReflectionUtils.getConstructor(it, clazz$ResourceLocation, clazz$Advancement))
             .orElse(null);
+
+    public static final Class<?> clazz$FenceGateBlock = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.level.block.BlockFenceGate",
+                    "world.level.block.FenceGateBlock"
+            )
+    );
+
+    public static final Class<?> clazz$GameEvent = requireNonNull(
+            ReflectionUtils.getClazz(
+                    BukkitReflectionUtils.assembleMCClass("world.level.gameevent.GameEvent")
+            )
+    );
+
+    public static final Class<?> clazz$HolderSet = requireNonNull(
+            ReflectionUtils.getClazz(
+                    BukkitReflectionUtils.assembleMCClass("core.HolderSet")
+            )
+    );
+
+    public static final Method method$BlockStateBase$isBlock = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockStateBase, boolean.class, new String[]{"is", "a"}, clazz$Block)
+    );
+
+    public static final Class<?> clazz$Projectile = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.entity.projectile.IProjectile",
+                    "world.entity.projectile.Projectile"
+            )
+    );
+
+    public static final Method method$BlockBehaviour$onProjectileHit = requireNonNull(
+            ReflectionUtils.getDeclaredMethod(clazz$BlockBehaviour, void.class, new String[]{"onProjectileHit", "a"}, clazz$Level, clazz$BlockState, clazz$BlockHitResult, clazz$Projectile)
+    );
+
+    public static final Field field$EnumProperty$values = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$EnumProperty, VersionHelper.isOrAbove1_21_2() ? List.class : ImmutableSet.class, 0)
+    );
+
+    public static final Class<?> clazz$ItemCost = MiscUtils.requireNonNullIf(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.item.trading.ItemCost",
+                    "world.item.trading.ItemCost"
+            ), VersionHelper.isOrAbove1_20_5()
+    );
 }

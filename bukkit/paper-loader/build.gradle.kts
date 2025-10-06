@@ -1,7 +1,7 @@
 import net.minecrell.pluginyml.paper.PaperPluginDescription
 
 plugins {
-    id("com.gradleup.shadow") version "9.0.0-rc2"
+    id("com.gradleup.shadow") version "9.2.2"
     id("de.eldoria.plugin-yml.paper") version "0.7.1"
 }
 
@@ -75,6 +75,7 @@ paper {
         }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
+        register("QuickShop-Hikari") { required = false }
 
         // external models
         register("ModelEngine") { required = false }

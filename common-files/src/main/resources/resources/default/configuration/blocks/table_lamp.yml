@@ -1,7 +1,6 @@
 items:
   default:table_lamp:
     material: nether_brick
-    custom-model-data: 3015
     data:
       item-name: <!i><i18n:item.table_lamp>
     model:
@@ -21,9 +20,10 @@ items:
             replaceable: false
             is-redstone-conductor: false
             is-suffocating: false
+            support-shape: cobweb
         behaviors:
           - type: toggleable_lamp_block
-            can-open-with-hand: true
+            can-toggle-with-hand: true
           - type: sturdy_base_block
             direction: down
             support-types:
@@ -79,39 +79,30 @@ items:
           variants:
             facing=east,lit=false:
               appearance: east_off
-              id: 12
             facing=north,lit=false:
               appearance: north_off
-              id: 13
             facing=south,lit=false:
               appearance: south_off
-              id: 14
             facing=west,lit=false:
               appearance: west_off
-              id: 15
             facing=east,lit=true:
               appearance: east_on
-              id: 16
               settings:
                 luminance: 15
             facing=north,lit=true:
               appearance: north_on
-              id: 17
               settings:
                 luminance: 15
             facing=south,lit=true:
               appearance: south_on
-              id: 18
               settings:
                 luminance: 15
             facing=west,lit=true:
               appearance: west_on
-              id: 19
               settings:
                 luminance: 15
   default:table_lamp_on:
     material: nether_brick
-    custom-model-data: 3016
     model:
       type: minecraft:model
       path: minecraft:item/custom/table_lamp_on

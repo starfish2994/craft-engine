@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 public class OffsetFont {
-    private final String font;
+    private static OffsetFont instance;
+    private final net.momirealms.craftengine.core.util.Key font;
     private final Key fontKey;
 
     private final String NEG_16;
@@ -39,10 +40,14 @@ public class OffsetFont {
             .maximumSize(256)
             .build();
 
-    public OffsetFont(Section section) {
-        font = section.getString("font", "minecraft:default");
-        fontKey = Key.key(font);
+    public net.momirealms.craftengine.core.util.Key font() {
+        return font;
+    }
 
+    @SuppressWarnings("all")
+    public OffsetFont(Section section) {
+        font = net.momirealms.craftengine.core.util.Key.of(section.getString("font", "minecraft:default"));
+        fontKey = Key.key(font.namespace(), font.value());
         NEG_16 = convertIfUnicode(section.getString("-16", ""));
         NEG_24 = convertIfUnicode(section.getString("-24", ""));
         NEG_32 = convertIfUnicode(section.getString("-32", ""));
@@ -71,7 +76,7 @@ public class OffsetFont {
 
     public String createOffset(int offset, BiFunction<String, String, String> tagDecorator) {
         if (offset == 0) return "";
-        return tagDecorator.apply(this.fastLookup.get(offset, k -> k > 0 ? createPos(k) : createNeg(-k)), this.font);
+        return tagDecorator.apply(this.fastLookup.get(offset, k -> k > 0 ? createPos(k) : createNeg(-k)), this.font.asString());
     }
 
     @SuppressWarnings("DuplicatedCode")
@@ -148,7 +153,7 @@ public class OffsetFont {
 
     private String convertIfUnicode(String s) {
         if (s.startsWith("\\u")) {
-            return new String(CharacterUtils.decodeUnicodeToChars(font));
+            return new String(CharacterUtils.decodeUnicodeToChars(font.asString()));
         } else {
             return s;
         }

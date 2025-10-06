@@ -20,12 +20,10 @@ import net.momirealms.craftengine.bukkit.plugin.command.BukkitSenderFactory;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitGuiManager;
 import net.momirealms.craftengine.bukkit.plugin.injector.*;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
-import net.momirealms.craftengine.bukkit.plugin.network.PacketConsumers;
 import net.momirealms.craftengine.bukkit.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
-import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -57,6 +55,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -104,9 +103,15 @@ public class BukkitCraftEngine extends CraftEngine {
         this.javaPlugin = javaPlugin;
     }
 
-    protected void setUpConfig() {
-        this.translationManager = new TranslationManagerImpl(this);
+    protected void setUpConfigAndLocale() {
         this.config = new Config(this);
+        this.config.updateConfigCache();
+        // 先读取语言后，再重载语言文件系统
+        this.config.loadForcedLocale();
+        this.translationManager = new TranslationManagerImpl(this);
+        this.translationManager.reload();
+        // 最后才加载完整的config配置
+        this.config.loadFullSettings();
     }
 
     public void injectRegistries() {
@@ -146,8 +151,8 @@ public class BukkitCraftEngine extends CraftEngine {
             throw new InjectionException("Error initializing ProtectedFieldVisitor", e);
         }
         super.onPluginLoad();
-        super.blockManager.init();
         super.networkManager = new BukkitNetworkManager(this);
+        super.blockManager.init();
         super.itemManager = new BukkitItemManager(this);
         this.successfullyLoaded = true;
         super.compatibilityManager().onLoad();
@@ -191,7 +196,6 @@ public class BukkitCraftEngine extends CraftEngine {
         BukkitItemBehaviors.init();
         BukkitHitBoxTypes.init();
         BukkitBlockEntityElementConfigs.init();
-        PacketConsumers.initEntities(RegistryUtils.currentEntityTypeRegistrySize());
         super.packManager = new BukkitPackManager(this);
         super.senderFactory = new BukkitSenderFactory(this);
         super.recipeManager = new BukkitRecipeManager(this);
@@ -207,6 +211,19 @@ public class BukkitCraftEngine extends CraftEngine {
         super.furnitureManager = new BukkitFurnitureManager(this);
         super.onPluginEnable();
         super.compatibilityManager().onEnable();
+
+        // todo 未来版本移除
+        Path legacyFile1 = this.dataFolderPath().resolve("additional-real-blocks.yml");
+        Path legacyFile2 = this.dataFolderPath().resolve("mappings.yml");
+        if (Files.exists(legacyFile1)) {
+            try {
+                Files.delete(legacyFile1);
+                Files.deleteIfExists(legacyFile2);
+                this.saveResource("resources/internal/configuration/mappings.yml");
+            } catch (IOException e) {
+                this.logger.warn("Failed to delete legacy files", e);
+            }
+        }
     }
 
     @Override
@@ -331,6 +348,11 @@ public class BukkitCraftEngine extends CraftEngine {
         return (BukkitPackManager) packManager;
     }
 
+    @Override
+    public BukkitFontManager fontManager() {
+        return (BukkitFontManager) fontManager;
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void saveResource(String resourcePath) {
@@ -379,6 +401,7 @@ public class BukkitCraftEngine extends CraftEngine {
             this.antiGrief = AntiGriefLib.builder(this.javaPlugin)
                     .ignoreOP(true)
                     .silentLogs(false)
+                    .bypassPermission("craftengine.antigrief.bypass")
                     .build();
         }
         return this.antiGrief;

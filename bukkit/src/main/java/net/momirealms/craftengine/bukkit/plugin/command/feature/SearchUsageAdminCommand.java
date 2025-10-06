@@ -37,7 +37,7 @@ public class SearchUsageAdminCommand extends BukkitCommandFeature<CommandSender>
                 .required("id", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
-                        return CompletableFuture.completedFuture(plugin().itemManager().cachedSuggestions());
+                        return CompletableFuture.completedFuture(plugin().itemManager().cachedCustomItemSuggestions());
                     }
                 }))
                 .handler(context -> {

@@ -1,7 +1,6 @@
 items:
   default:netherite_anvil:
     material: nether_brick
-    custom-model-data: 3008
     data:
       item-name: <!i><i18n:item.netherite_anvil>
     model:
@@ -18,6 +17,9 @@ items:
           type: falling_block
           hurt-amount: 4
           max-hurt: 80
+          sounds:
+            land: minecraft:block.anvil.land
+            destroy: minecraft:block.anvil.destroy
         events:
           - on: right_click
             functions:
@@ -39,8 +41,6 @@ items:
               place: minecraft:block.anvil.place
               hit: minecraft:block.anvil.hit
               fall: minecraft:block.anvil.fall
-              land: minecraft:block.anvil.land
-              destroy: minecraft:block.anvil.destroy
             map-color: 29
             hardness: 10.0
             resistance: 1200
@@ -69,16 +69,12 @@ items:
           variants:
             facing_clockwise=east:
               appearance: axisX
-              id: 0
             facing_clockwise=west:
               appearance: axisX
-              id: 1
             facing_clockwise=north:
               appearance: axisZ
-              id: 2
             facing_clockwise=south:
               appearance: axisZ
-              id: 3
 recipes:
   default:netherite_anvil:
     type: shaped

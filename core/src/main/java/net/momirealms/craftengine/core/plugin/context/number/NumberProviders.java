@@ -18,6 +18,7 @@ public class NumberProviders {
     public static final Key UNIFORM = Key.of("craftengine:uniform");
     public static final Key EXPRESSION = Key.of("craftengine:expression");
     public static final Key GAUSSIAN = Key.of("craftengine:gaussian");
+    public static final Key BINOMIAL = Key.of("craftengine:binomial");
 
     static {
         register(FIXED, FixedNumberProvider.FACTORY);
@@ -25,6 +26,7 @@ public class NumberProviders {
         register(UNIFORM, UniformNumberProvider.FACTORY);
         register(GAUSSIAN, GaussianNumberProvider.FACTORY);
         register(EXPRESSION, ExpressionNumberProvider.FACTORY);
+        register(BINOMIAL, BinomialNumberProvider.FACTORY);
     }
 
     public static void register(Key key, NumberProviderFactory factory) {

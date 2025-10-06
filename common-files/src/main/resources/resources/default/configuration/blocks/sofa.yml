@@ -1,7 +1,6 @@
 items:
   default:sleeper_sofa:
     material: nether_brick
-    custom-model-data: 3012
     data:
       item-name: <!i><i18n:item.sofa>
     model:
@@ -23,6 +22,7 @@ items:
           is-redstone-conductor: false
           push-reaction: block
           instrument: bass
+          support-shape: cobweb
           sounds:
             break: minecraft:block.wood.break
             fall: minecraft:block.wood.fall
@@ -36,19 +36,16 @@ items:
             bounce-height: 0.66
             sync-player-position: false
         state:
-          id: 0
           state: white_bed[facing=west,occupied=false,part=foot]
           entity-renderer:
             item: default:sleeper_sofa
   default:sofa_inner:
     material: nether_brick
-    custom-model-data: 3013
     model:
       type: minecraft:model
       path: minecraft:item/custom/sofa_inner
   default:sofa:
     material: nether_brick
-    custom-model-data: 3014
     data:
       item-name: <!i><i18n:item.sofa>
     model:
@@ -149,37 +146,25 @@ items:
           variants:
             facing=east,shape=inner_left:
               appearance: facing=east,shape=inner_left
-              id: 0
             facing=east,shape=inner_right:
               appearance: facing=east,shape=inner_right
-              id: 1
             facing=east,shape=straight:
               appearance: facing=east,shape=straight
-              id: 2
             facing=north,shape=inner_left:
               appearance: facing=north,shape=inner_left
-              id: 3
             facing=north,shape=inner_right:
               appearance: facing=north,shape=inner_right
-              id: 4
             facing=north,shape=straight:
               appearance: facing=north,shape=straight
-              id: 5
             facing=south,shape=inner_left:
               appearance: facing=south,shape=inner_left
-              id: 6
             facing=south,shape=inner_right:
               appearance: facing=south,shape=inner_right
-              id: 7
             facing=south,shape=straight:
               appearance: facing=south,shape=straight
-              id: 8
             facing=west,shape=inner_left:
               appearance: facing=west,shape=inner_left
-              id: 9
             facing=west,shape=inner_right:
               appearance: facing=west,shape=inner_right
-              id: 10
             facing=west,shape=straight:
               appearance: facing=west,shape=straight
-              id: 11

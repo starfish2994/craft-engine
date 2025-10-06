@@ -17,7 +17,6 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateOption;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.util.MCUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -119,7 +118,7 @@ public class DebugStickListener implements Listener {
     }
 
     private static <T> T getRelative(Iterable<T> elements, @Nullable T current, boolean inverse) {
-        return inverse ? MCUtils.findPreviousInIterable(elements, current) : MCUtils.findNextInIterable(elements, current);
+        return inverse ? MiscUtils.findPreviousInIterable(elements, current) : MiscUtils.findNextInIterable(elements, current);
     }
 
     private static <T extends Comparable<T>> String getNameHelper(ImmutableBlockState state, Property<T> property) {

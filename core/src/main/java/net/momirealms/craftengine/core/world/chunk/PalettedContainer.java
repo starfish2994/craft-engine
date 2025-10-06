@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.block.EmptyBlock;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.IndexedIterable;
-import net.momirealms.craftengine.core.util.MCUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -269,7 +269,7 @@ public class PalettedContainer<T> implements PaletteResizeListener<T>, ReadableC
                     case 0 -> new DataProvider<>(SINGULAR, bits);
                     case 1, 2, 3, 4 -> new DataProvider<>(ARRAY, 4);
                     case 5, 6, 7, 8 -> new DataProvider<>(BI_MAP, bits);
-                    default -> new DataProvider<>(PaletteProvider.ID_LIST, MCUtils.ceilLog2(idList.size()));
+                    default -> new DataProvider<>(PaletteProvider.ID_LIST, MiscUtils.ceilLog2(idList.size()));
                 };
             }
         };
@@ -278,7 +278,7 @@ public class PalettedContainer<T> implements PaletteResizeListener<T>, ReadableC
                 return switch (bits) {
                     case 0 -> new DataProvider<>(SINGULAR, bits);
                     case 1, 2, 3 -> new DataProvider<>(ARRAY, bits);
-                    default -> new DataProvider<>(PaletteProvider.ID_LIST, MCUtils.ceilLog2(idList.size()));
+                    default -> new DataProvider<>(PaletteProvider.ID_LIST, MiscUtils.ceilLog2(idList.size()));
                 };
             }
         };
@@ -300,7 +300,7 @@ public class PalettedContainer<T> implements PaletteResizeListener<T>, ReadableC
         public abstract <A> DataProvider<A> createDataProvider(IndexedIterable<A> idList, int bits);
 
         <A> int getBits(IndexedIterable<A> idList, int size) {
-            int i = MCUtils.ceilLog2(size);
+            int i = MiscUtils.ceilLog2(size);
             DataProvider<A> dataProvider = this.createDataProvider(idList, i);
             return dataProvider.factory() == ID_LIST ? i : dataProvider.bits();
         }

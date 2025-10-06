@@ -8,5 +8,5 @@ import java.util.Map;
 
 public interface ItemBehaviorFactory {
 
-    ItemBehavior create(Pack pack, Path path, Key id, Map<String, Object> arguments);
+    ItemBehavior create(Pack pack, Path path, String node, Key id, Map<String, Object> arguments);
 }

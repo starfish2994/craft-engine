@@ -36,5 +36,4 @@ public record ClientBlockStateSizePacket(int blockStateSize) implements ModPacke
     public void handle(NetWorkUser user) {
         user.setClientBlockList(new IntIdentityList(this.blockStateSize));
     }
-
 }

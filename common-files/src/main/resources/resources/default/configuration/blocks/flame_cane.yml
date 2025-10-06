@@ -1,7 +1,6 @@
 items:
   default:flame_cane:
     material: nether_brick
-    custom-model-data: 3005
     data:
       item-name: <!i><i18n:item.flame_cane>
     model:
@@ -54,7 +53,7 @@ items:
               range: 0~5
           appearances:
             default:
-              state: sugar_cane:2
+              auto-state: sugar_cane
               models:
                 - path: minecraft:block/custom/flame_cane_1
                   weight: 1
@@ -71,22 +70,16 @@ items:
           variants:
             age=0:
               appearance: default
-              id: 2
             age=1:
               appearance: default
-              id: 3
             age=2:
               appearance: default
-              id: 4
             age=3:
               appearance: default
-              id: 5
             age=4:
               appearance: default
-              id: 6
             age=5:
               appearance: default
-              id: 7
 recipes:
   default:magma_cream:
     type: shaped

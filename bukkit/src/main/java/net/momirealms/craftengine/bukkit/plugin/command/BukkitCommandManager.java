@@ -6,6 +6,8 @@ import net.momirealms.craftengine.bukkit.plugin.command.feature.*;
 import net.momirealms.craftengine.core.plugin.command.AbstractCommandManager;
 import net.momirealms.craftengine.core.plugin.command.CommandFeature;
 import net.momirealms.craftengine.core.plugin.command.sender.Sender;
+import net.momirealms.craftengine.core.util.ReflectionUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.SenderMapper;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
@@ -24,7 +26,11 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
                 plugin.javaPlugin(),
                 ExecutionCoordinator.simpleCoordinator(),
                 SenderMapper.identity()
-        ));
+        ) {{ // TODO：等 cloud 修复后移除，绕过 obc.command.BukkitCommandWrapper 类检查，因为这个类在 1.21.9 版本被移除了，并且项目貌似没用到这个
+            if (VersionHelper.isOrAbove1_21_9() && ReflectionUtils.classExists("com.mojang.brigadier.tree.CommandNode")) {
+                registerCapability(CloudBukkitCapabilities.BRIGADIER);
+            }
+        }});
         this.plugin = plugin;
         this.index = Index.create(CommandFeature::getFeatureID, List.of(
                 new ReloadCommand(this, plugin),
@@ -56,7 +62,9 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
                 new ListResourceCommand(this, plugin),
                 new UploadPackCommand(this, plugin),
                 new SendResourcePackCommand(this, plugin),
-                new DebugSaveDefaultResourcesCommand(this, plugin)
+                new DebugSaveDefaultResourcesCommand(this, plugin),
+                new DebugCleanCacheCommand(this, plugin)
+//                new OverrideGiveCommand(this, plugin)
         ));
         final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
         manager.settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true);

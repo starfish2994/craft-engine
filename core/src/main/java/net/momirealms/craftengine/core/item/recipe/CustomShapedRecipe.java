@@ -5,6 +5,9 @@ import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -24,8 +27,10 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                               CustomRecipeResult<T> visualResult,
                               String group,
                               CraftingRecipeCategory category,
-                              Pattern<T> pattern) {
-        super(id, showNotification, result, visualResult, group, category);
+                              Pattern<T> pattern,
+                              Function<PlayerOptionalContext>[] craftingFunctions,
+                              Condition<PlayerOptionalContext> craftingCondition) {
+        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition);
         this.pattern = pattern;
         this.parsedPattern = pattern.parse();
     }
@@ -169,7 +174,9 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                     parseResult(arguments),
                     parseVisualResult(arguments),
                     arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
-                    new Pattern<>(pattern.toArray(new String[0]), ingredients)
+                    new Pattern<>(pattern.toArray(new String[0]), ingredients),
+                    functions(arguments),
+                    conditions(arguments)
             );
         }
 
@@ -182,7 +189,9 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                     null,
                     VANILLA_RECIPE_HELPER.readGroup(json),
                     VANILLA_RECIPE_HELPER.craftingCategory(json),
-                    new Pattern<>(VANILLA_RECIPE_HELPER.craftingShapedPattern(json), ingredients)
+                    new Pattern<>(VANILLA_RECIPE_HELPER.craftingShapedPattern(json), ingredients),
+                    null,
+                    null
             );
         }
 

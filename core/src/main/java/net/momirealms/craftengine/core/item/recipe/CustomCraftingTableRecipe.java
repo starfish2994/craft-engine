@@ -4,17 +4,37 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class CustomCraftingTableRecipe<T> extends AbstractGroupedRecipe<T> {
+public abstract class CustomCraftingTableRecipe<T> extends AbstractGroupedRecipe<T> implements ConditionalRecipe {
     protected final CraftingRecipeCategory category;
     private final CustomRecipeResult<T> visualResult;
+    private final Function<PlayerOptionalContext>[] craftingFunctions;
+    private final Condition<PlayerOptionalContext> craftingCondition;
 
-    protected CustomCraftingTableRecipe(Key id, boolean showNotification, CustomRecipeResult<T> result, @Nullable CustomRecipeResult<T> visualResult, String group, CraftingRecipeCategory category) {
+    protected CustomCraftingTableRecipe(Key id,
+                                        boolean showNotification,
+                                        CustomRecipeResult<T> result,
+                                        @Nullable CustomRecipeResult<T> visualResult,
+                                        String group,
+                                        CraftingRecipeCategory category,
+                                        Function<PlayerOptionalContext>[] craftingFunctions,
+                                        Condition<PlayerOptionalContext> craftingCondition) {
         super(id, showNotification, result, group);
         this.category = category == null ? CraftingRecipeCategory.MISC : category;
         this.visualResult = visualResult;
+        this.craftingFunctions = craftingFunctions;
+        this.craftingCondition = craftingCondition;
+    }
+
+    @Override
+    public boolean canUse(PlayerOptionalContext context) {
+        if (this.craftingCondition == null) return true;
+        return this.craftingCondition.test(context);
     }
 
     public CraftingRecipeCategory category() {
@@ -48,5 +68,9 @@ public abstract class CustomCraftingTableRecipe<T> extends AbstractGroupedRecipe
         } else {
             return super.result.buildItem(context);
         }
+    }
+
+    public Function<PlayerOptionalContext>[] craftingFunctions() {
+        return craftingFunctions;
     }
 }

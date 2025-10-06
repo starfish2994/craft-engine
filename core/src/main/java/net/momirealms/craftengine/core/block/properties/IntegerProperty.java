@@ -77,6 +77,16 @@ public class IntegerProperty extends Property<Integer> {
     }
 
     @Override
+    public Integer valueByName(String name) {
+        try {
+            int i = Integer.parseInt(name);
+            return i >= this.min && i <= this.max ? i : null;
+        } catch (NumberFormatException var3) {
+            return null;
+        }
+    }
+
+    @Override
     public int indexOf(Integer integer) {
         return integer <= this.max ? integer - this.min : -1;
     }

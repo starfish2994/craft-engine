@@ -7,10 +7,10 @@ import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.Plugin;
 import net.momirealms.craftengine.core.plugin.PluginProperties;
-import net.momirealms.craftengine.core.plugin.config.ConfigParser;
-import net.momirealms.craftengine.core.plugin.config.StringKeyConstructor;
-import net.momirealms.craftengine.core.plugin.config.TranslationConfigConstructor;
+import net.momirealms.craftengine.core.plugin.config.*;
+import net.momirealms.craftengine.core.plugin.text.minimessage.ImageTag;
 import net.momirealms.craftengine.core.plugin.text.minimessage.IndexedArgumentTag;
+import net.momirealms.craftengine.core.plugin.text.minimessage.ShiftTag;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +27,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class TranslationManagerImpl implements TranslationManager {
@@ -38,7 +39,6 @@ public class TranslationManagerImpl implements TranslationManager {
     private final String langVersion;
     private final String[] supportedLanguages;
     private final Map<String, String> translationFallback = new LinkedHashMap<>();
-    private Locale forcedLocale = null;
     private Locale selectedLocale = DEFAULT_LOCALE;
     private MiniMessageTranslationRegistry registry;
     private final Map<String, I18NData> clientLangData = new HashMap<>();
@@ -68,11 +68,6 @@ public class TranslationManagerImpl implements TranslationManager {
     }
 
     @Override
-    public void forcedLocale(Locale locale) {
-        this.forcedLocale = locale;
-    }
-
-    @Override
     public void delayedLoad() {
         this.clientLangData.values().forEach(I18NData::processTranslations);
     }
@@ -98,8 +93,8 @@ public class TranslationManagerImpl implements TranslationManager {
     }
 
     private void setSelectedLocale() {
-        if (this.forcedLocale != null) {
-            this.selectedLocale = forcedLocale;
+        if (Config.forcedLocale() != null) {
+            this.selectedLocale = Config.forcedLocale();
             return;
         }
 
@@ -251,7 +246,7 @@ public class TranslationManagerImpl implements TranslationManager {
         }
     }
 
-    public class I18NParser implements ConfigParser {
+    public class I18NParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"i18n", "internationalization", "translation", "translations"};
 
         @Override
@@ -265,10 +260,10 @@ public class TranslationManagerImpl implements TranslationManager {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
             Locale locale = TranslationManager.parseLocale(id.value());
             if (locale == null) {
-                throw new LocalizedResourceConfigException("warning.config.i18n.unknown_locale", path, id);
+                throw new LocalizedResourceConfigException("warning.config.i18n.unknown_locale");
             }
 
             Map<String, String> bundle = new HashMap<>();
@@ -282,8 +277,12 @@ public class TranslationManagerImpl implements TranslationManager {
         }
     }
 
-    public class LangParser implements ConfigParser {
+    public class LangParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"lang", "language", "languages"};
+        private final Function<String, String> langProcessor = s -> {
+            Component deserialize = AdventureHelper.miniMessage().deserialize(AdventureHelper.legacyToMiniMessage(s), ShiftTag.INSTANCE, ImageTag.INSTANCE);
+            return AdventureHelper.getLegacy().serialize(deserialize);
+        };
 
         @Override
         public int loadingSequence() {
@@ -296,12 +295,12 @@ public class TranslationManagerImpl implements TranslationManager {
         }
 
         @Override
-        public void parseSection(Pack pack, Path path, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
+        public void parseSection(Pack pack, Path path, String node, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
             String langId = id.value().toLowerCase(Locale.ENGLISH);
             Map<String, String> sectionData = section.entrySet().stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            entry -> String.valueOf(entry.getValue())
+                            entry -> this.langProcessor.apply(String.valueOf(entry.getValue()))
                     ));
             TranslationManagerImpl.this.addClientTranslation(langId, sectionData);
         }

@@ -1,18 +1,17 @@
 package net.momirealms.craftengine.core.util;
 
 import com.google.gson.JsonElement;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentIteratorType;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.json.JSONOptions;
 import net.kyori.adventure.text.serializer.json.legacyimpl.NBTLegacyHoverEventSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.sparrow.nbt.Tag;
@@ -20,6 +19,7 @@ import net.momirealms.sparrow.nbt.adventure.NBTComponentSerializer;
 import net.momirealms.sparrow.nbt.adventure.NBTSerializerOptions;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -33,6 +33,7 @@ public class AdventureHelper {
     private final MiniMessage miniMessageCustom;
     private final GsonComponentSerializer gsonComponentSerializer;
     private final NBTComponentSerializer nbtComponentSerializer;
+    private final LegacyComponentSerializer legacyComponentSerializer;
     private static final TextReplacementConfig REPLACE_LF = TextReplacementConfig.builder().matchLiteral("\n").replacement(Component.newline()).build();
     /**
      * This iterator slices a component into individual parts that
@@ -53,51 +54,40 @@ public class AdventureHelper {
         this.miniMessage = MiniMessage.builder().build();
         this.miniMessageStrict = MiniMessage.builder().strict(true).build();
         this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.empty()).build();
-        GsonComponentSerializer.Builder builder = GsonComponentSerializer.builder();
+        GsonComponentSerializer.Builder gsonBuilder = GsonComponentSerializer.builder();
         if (!VersionHelper.isOrAbove1_20_5()) {
-            builder.legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get());
-            builder.editOptions((b) -> b.value(JSONOptions.EMIT_HOVER_SHOW_ENTITY_ID_AS_INT_ARRAY, false));
+            gsonBuilder.legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get());
+            gsonBuilder.editOptions((b) -> b.value(JSONOptions.EMIT_HOVER_SHOW_ENTITY_ID_AS_INT_ARRAY, false));
         }
         if (!VersionHelper.isOrAbove1_21_5()) {
-            builder.editOptions((b) -> {
+            gsonBuilder.editOptions((b) -> {
                 b.value(JSONOptions.EMIT_CLICK_EVENT_TYPE, JSONOptions.ClickEventValueMode.CAMEL_CASE);
                 b.value(JSONOptions.EMIT_HOVER_EVENT_TYPE, JSONOptions.HoverEventValueMode.CAMEL_CASE);
                 b.value(JSONOptions.EMIT_HOVER_SHOW_ENTITY_KEY_AS_TYPE_AND_UUID_AS_ID, true);
             });
         }
-        this.gsonComponentSerializer = builder.build();
+        this.legacyComponentSerializer = LegacyComponentSerializer.builder().build();
+        this.gsonComponentSerializer = gsonBuilder.build();
         this.nbtComponentSerializer = NBTComponentSerializer.builder()
-                .editItem(item -> {
-                    if (VersionHelper.isOrAbove1_20_5()) {
-                    }
-                })
                 .editOptions((b) -> {
                     if (!VersionHelper.isOrAbove1_21_5()) {
                         b.value(NBTSerializerOptions.EMIT_CLICK_EVENT_TYPE, false);
                         b.value(NBTSerializerOptions.EMIT_HOVER_EVENT_TYPE, false);
                     }
-                })
-                .build();
+                    if (!VersionHelper.isOrAbove1_20_5()) {
+                        b.value(NBTSerializerOptions.DATA_COMPONENT_RELEASE, false);
+                    }
+                }).build();
     }
 
     private static class SingletonHolder {
         private static final AdventureHelper INSTANCE = new AdventureHelper();
     }
 
-    /**
-     * Retrieves the singleton instance of AdventureHelper.
-     *
-     * @return the singleton instance
-     */
     public static AdventureHelper getInstance() {
         return SingletonHolder.INSTANCE;
     }
 
-    /**
-     * Retrieves the MiniMessage instance.
-     *
-     * @return the MiniMessage instance
-     */
     public static MiniMessage miniMessage() {
         return getInstance().miniMessage;
     }
@@ -106,68 +96,20 @@ public class AdventureHelper {
         return getInstance().miniMessageCustom;
     }
 
+    public static LegacyComponentSerializer getLegacy() {
+        return getInstance().legacyComponentSerializer;
+    }
+
     public static MiniMessage strictMiniMessage() {
         return getInstance().miniMessageStrict;
     }
 
-    /**
-     * Retrieves the GsonComponentSerializer instance.
-     *
-     * @return the GsonComponentSerializer instance
-     */
     public static GsonComponentSerializer getGson() {
         return getInstance().gsonComponentSerializer;
     }
 
-    /**
-     * Retrieves the NBTComponentSerializer instance.
-     *
-     * @return the NBTComponentSerializer instance
-     */
     public static NBTComponentSerializer getNBT() {
         return getInstance().nbtComponentSerializer;
-    }
-
-    /**
-     * Sends a message to an audience.
-     *
-     * @param audience the audience to send the message to
-     * @param message  the message component
-     */
-    public static void sendMessage(Audience audience, Component message) {
-        audience.sendMessage(message);
-    }
-
-    /**
-     * Plays a sound for an audience.
-     *
-     * @param audience the audience to play the sound for
-     * @param sound    the sound to play
-     */
-    public static void playSound(Audience audience, Sound sound) {
-        audience.playSound(sound);
-    }
-
-    /**
-     * Surrounds text with a MiniMessage font tag.
-     *
-     * @param text the text to surround
-     * @param font the font as a {@link Key}
-     * @return the text surrounded by the MiniMessage font tag
-     */
-    public static String surroundWithMiniMessageFont(String text, Key font) {
-        return "<font:" + font.asString() + ">" + text + "</font>";
-    }
-
-    /**
-     * Surrounds text with a MiniMessage font tag.
-     *
-     * @param text the text to surround
-     * @param font the font as a {@link String}
-     * @return the text surrounded by the MiniMessage font tag
-     */
-    public static String surroundWithMiniMessageFont(String text, String font) {
-        return "<font:" + font + ">" + text + "</font>";
     }
 
     /**
@@ -226,6 +168,19 @@ public class AdventureHelper {
 
     public static Component tagToComponent(Tag tag) {
         return getNBT().deserialize(tag);
+    }
+
+    public static Component replaceShowItem(Component component, Function<HoverEvent.ShowItem, HoverEvent.ShowItem> replacer) {
+        HoverEvent<?> hoverEvent = component.hoverEvent();
+        if (hoverEvent != null && hoverEvent.action() == HoverEvent.Action.SHOW_ITEM) {
+            Object showItem = hoverEvent.value();
+            component = component.hoverEvent(HoverEvent.showItem(replacer.apply((HoverEvent.ShowItem) showItem)));
+        }
+        List<Component> newChildren = new ArrayList<>();
+        for (Component child : component.children()) {
+            newChildren.add(replaceShowItem(child, replacer));
+        }
+        return component.children(newChildren);
     }
 
     public static List<Component> splitLines(Component component) {
@@ -359,6 +314,7 @@ public class AdventureHelper {
     }
 
     public static Component replaceText(Component text, Map<String, ComponentProvider> replacements, Context context) {
+        if (replacements.isEmpty()) return text;
         String patternString = replacements.keySet().stream()
                 .map(Pattern::quote)
                 .collect(Collectors.joining("|"));

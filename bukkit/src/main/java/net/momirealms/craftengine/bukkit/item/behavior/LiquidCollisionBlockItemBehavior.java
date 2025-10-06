@@ -47,7 +47,7 @@ public class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
         try {
             if (player == null) return InteractionResult.FAIL;
             Object blockHitResult = CoreReflections.method$Item$getPlayerPOVHitResult.invoke(null, world.serverWorld(), player.serverPlayer(), CoreReflections.instance$ClipContext$Fluid$SOURCE_ONLY);
-            Object blockPos = FastNMS.INSTANCE.field$BlockHitResul$blockPos(blockHitResult);
+            Object blockPos = FastNMS.INSTANCE.field$BlockHitResult$blockPos(blockHitResult);
             BlockPos above = new BlockPos(FastNMS.INSTANCE.field$Vec3i$x(blockPos), FastNMS.INSTANCE.field$Vec3i$y(blockPos) + offsetY, FastNMS.INSTANCE.field$Vec3i$z(blockPos));
             Direction direction = DirectionUtils.fromNMSDirection(FastNMS.INSTANCE.field$BlockHitResul$direction(blockHitResult));
             boolean miss = FastNMS.INSTANCE.field$BlockHitResul$miss(blockHitResult);
@@ -59,7 +59,7 @@ public class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
             if (miss) {
                 return super.useOnBlock(new UseOnContext(player, hand, BlockHitResult.miss(hitPos, direction, above)));
             } else {
-                boolean inside = CoreReflections.field$BlockHitResul$inside.getBoolean(blockHitResult);
+                boolean inside = CoreReflections.field$BlockHitResult$inside.getBoolean(blockHitResult);
                 return super.useOnBlock(new UseOnContext(player, hand, new BlockHitResult(hitPos, direction, above, inside)));
             }
         } catch (Exception e) {
@@ -70,7 +70,7 @@ public class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
 
     public static class Factory implements ItemBehaviorFactory {
         @Override
-        public ItemBehavior create(Pack pack, Path path, Key key, Map<String, Object> arguments) {
+        public ItemBehavior create(Pack pack, Path path, String node, Key key, Map<String, Object> arguments) {
             Object id = arguments.get("block");
             if (id == null) {
                 throw new LocalizedResourceConfigException("warning.config.item.behavior.liquid_collision.missing_block", new IllegalArgumentException("Missing required parameter 'block' for liquid_collision_block_item behavior"));
@@ -79,9 +79,9 @@ public class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
             if (id instanceof Map<?, ?> map) {
                 if (map.containsKey(key.toString())) {
                     // 防呆
-                    BukkitBlockManager.instance().parser().parseSection(pack, path, key, MiscUtils.castToMap(map.get(key.toString()), false));
+                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map.get(key.toString()), false));
                 } else {
-                    BukkitBlockManager.instance().parser().parseSection(pack, path, key, MiscUtils.castToMap(map, false));
+                    BukkitBlockManager.instance().blockParser().parseSection(pack, path, node, key, MiscUtils.castToMap(map, false));
                 }
                 return new LiquidCollisionBlockItemBehavior(key, offset);
             } else {

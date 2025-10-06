@@ -4,11 +4,11 @@ import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBlocks;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntitySelectors;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
@@ -20,7 +20,8 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.PressurePlateSensitivity;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
-import net.momirealms.craftengine.core.world.*;
+import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.WorldEvents;
 import org.bukkit.GameEvent;
 import org.bukkit.util.Vector;
 
@@ -66,10 +67,6 @@ public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
                 return MBlocks.AIR$defaultState;
             }
             ImmutableBlockState customState = optionalCustomState.get();
-            BlockPos pos = LocationUtils.fromBlockPos(blockPos);
-            net.momirealms.craftengine.core.world.World world = new BukkitWorld(FastNMS.INSTANCE.method$Level$getCraftWorld(level));
-            WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(pos));
-            world.playBlockSound(position, customState.settings().sounds().breakSound());
             FastNMS.INSTANCE.method$LevelAccessor$levelEvent(level, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId());
             return MBlocks.AIR$defaultState;
         }
@@ -104,8 +101,6 @@ public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         int signalForState = this.getSignalForState(state);
         if (signalForState == 0) {
             this.checkPressed(args[3], args[1], args[2], state, signalForState, thisBlock);
-        } else {
-            FastNMS.INSTANCE.method$ScheduledTickAccess$scheduleBlockTick(args[1], args[2], thisBlock, this.pressedTime);
         }
     }
 
@@ -115,7 +110,10 @@ public class PressurePlateBlockBehavior extends BukkitBlockBehavior {
             case MOBS -> CoreReflections.clazz$LivingEntity;
         };
         Object box = FastNMS.INSTANCE.method$AABB$move(CoreReflections.instance$BasePressurePlateBlock$TOUCH_AABB, pos);
-        return FastNMS.INSTANCE.method$EntityGetter$getEntitiesOfClass(level, box, clazz) > 0 ? 15 : 0;
+        return !FastNMS.INSTANCE.method$EntityGetter$getEntitiesOfClass(
+                level, clazz, box,
+                MEntitySelectors.NO_SPECTATORS.and(entity -> !FastNMS.INSTANCE.method$Entity$isIgnoringBlockTriggers(entity))
+        ).isEmpty() ? 15 : 0;
     }
 
     private Object setSignalForState(Object state, int strength) {

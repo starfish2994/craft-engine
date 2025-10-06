@@ -19,6 +19,11 @@ public final class KeyUtils {
         return Key.of(key.namespace(), key.value());
     }
 
+    @SuppressWarnings("all")
+    public static net.kyori.adventure.key.Key toAdventureKey(Key key) {
+        return net.kyori.adventure.key.Key.key(key.namespace(), key.value());
+    }
+
     public static Object toResourceLocation(String namespace, String path) {
         return FastNMS.INSTANCE.method$ResourceLocation$fromNamespaceAndPath(namespace, path);
     }
