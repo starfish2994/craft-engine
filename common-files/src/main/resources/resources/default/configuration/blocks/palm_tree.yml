@@ -154,6 +154,9 @@ items:
       fuel-time: 100
     data:
       item-name: <!i><i18n:item.palm_sapling>
+      lore:
+        - "<!i><gray>Requires the datapack tree configuration to function."
+        - "<!i><gray>If not configured, an oak tree will grow by default."
     model:
       template: default:model/generated
       arguments:
@@ -171,7 +174,7 @@ items:
               - minecraft:farmland
               - minecraft:sand
           - type: sapling_block
-            feature: minecraft:fancy_oak
+            feature: minecraft:fancy_oak # use custom tree configuration here
             bone-meal-success-chance: 0.45
         loot:
           template: default:loot_table/self
