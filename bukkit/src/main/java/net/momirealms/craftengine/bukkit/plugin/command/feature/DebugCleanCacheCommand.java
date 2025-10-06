@@ -175,6 +175,9 @@ public class DebugCleanCacheCommand extends BukkitCommandFeature<CommandSender> 
 
     public Map<Key, IdAllocator> getAllCachedCustomModelData() {
         Path cacheDir = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("custom-model-data");
+        if (!Files.exists(cacheDir)) {
+            return Map.of();
+        }
 
         Map<Key, IdAllocator> idAllocators = new HashMap<>();
         try (Stream<Path> files = Files.list(cacheDir)) {
