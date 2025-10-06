@@ -75,6 +75,7 @@ paper {
         }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
+        register("QuickShop-Hikari") { required = false }
 
         // external models
         register("ModelEngine") { required = false }
