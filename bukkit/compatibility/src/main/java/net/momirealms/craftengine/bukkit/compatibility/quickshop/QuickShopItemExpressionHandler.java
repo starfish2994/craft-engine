@@ -29,9 +29,7 @@ public class QuickShopItemExpressionHandler implements ItemExpressionHandler, Li
     public void register() {
         Registry registry = QuickShopAPI.getInstance().getRegistry().getRegistry(BuiltInRegistry.ITEM_EXPRESSION);
         if (!(registry instanceof ItemExpressionRegistry itemExpressionRegistry)) return;
-        if (!itemExpressionRegistry.registerHandlerSafely(this)) {
-            
-        }
+        itemExpressionRegistry.registerHandlerSafely(this);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
