@@ -22,19 +22,12 @@ public class QuickShopItemExpressionHandler implements ItemExpressionHandler, Li
 
     public QuickShopItemExpressionHandler(BukkitCraftEngine plugin) {
         this.plugin = plugin;
-        Bukkit.getPluginManager().registerEvents(this, plugin.javaPlugin());
-        register();
     }
 
     public void register() {
         Registry registry = QuickShopAPI.getInstance().getRegistry().getRegistry(BuiltInRegistry.ITEM_EXPRESSION);
         if (!(registry instanceof ItemExpressionRegistry itemExpressionRegistry)) return;
         itemExpressionRegistry.registerHandlerSafely(this);
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onQuickShopReload(final QSConfigurationReloadEvent event) {
-        register();
     }
 
     @Override

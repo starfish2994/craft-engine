@@ -143,7 +143,7 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
             logHook("ModelEngine");
         }
         if (this.isPluginEnabled("QuickShop-Hikari")) {
-            new QuickShopItemExpressionHandler(this.plugin);
+            new QuickShopItemExpressionHandler(this.plugin).register();
             logHook("QuickShop-Hikari");
         }
     }
