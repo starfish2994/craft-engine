@@ -186,8 +186,21 @@ public class ResolutionMergePackMcMeta implements Resolution {
         }
 
         if (supported.isJsonPrimitive()) {
-            int value = supported.getAsInt();
-            return new MinMax(value, value);
+            if (supported.getAsJsonPrimitive().isNumber()) {
+                int value = supported.getAsInt();
+                return new MinMax(value, value);
+            } else if (supported.getAsJsonPrimitive().isString()) {
+                String value = supported.getAsString();
+                if (value.contains(",")) {
+                    String[] parts = value.replace("[", "").replace("]", "").split(",");
+                    int min = Integer.parseInt(parts[0]);
+                    int max = Integer.parseInt(parts[1]);
+                    return new MinMax(min, max);
+                } else {
+                    int min = Integer.parseInt(value);
+                    return new MinMax(min, min);
+                }
+            }
         }
 
         if (supported.isJsonArray()) {
