@@ -18,6 +18,7 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.StringTag;
 import net.momirealms.sparrow.nbt.Tag;
+import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -31,6 +32,26 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
 
     @Override
     public Item<ItemStack> c2s(Item<ItemStack> wrapped) {
+        if (wrapped.hasComponent(ComponentTypes.BUNDLE_CONTENTS)) {
+            Object bundleContents = wrapped.getExactComponent(ComponentTypes.BUNDLE_CONTENTS);
+            List<Object> newItems = new ArrayList<>();
+            for (Object previousItem : FastNMS.INSTANCE.method$BundleContents$items(bundleContents)) {
+                ItemStack itemStack = BukkitItemManager.instance().c2s(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem));
+                newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack));
+            }
+            wrapped.setExactComponent(ComponentTypes.BUNDLE_CONTENTS, FastNMS.INSTANCE.constructor$BundleContents(newItems));
+        }
+
+        if (wrapped.hasComponent(ComponentTypes.CONTAINER)) {
+            Object containerContents = wrapped.getExactComponent(ComponentTypes.CONTAINER);
+            List<Object> newItems = new ArrayList<>();
+            for (Object previousItem : FastNMS.INSTANCE.field$ItemContainerContents$items(containerContents)) {
+                ItemStack itemStack = BukkitItemManager.instance().c2s(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem));
+                newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack));
+            }
+            wrapped.setExactComponent(ComponentTypes.CONTAINER, FastNMS.INSTANCE.method$ItemContainerContents$fromItems(newItems));
+        }
+
         // 先尝试恢复client-bound-material
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isPresent()) {
@@ -67,7 +88,25 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
 
     @Override
     public Item<ItemStack> s2c(Item<ItemStack> wrapped, Player player) {
-        // todo 处理bundle和container
+        if (wrapped.hasComponent(ComponentTypes.BUNDLE_CONTENTS)) {
+            Object bundleContents = wrapped.getExactComponent(ComponentTypes.BUNDLE_CONTENTS);
+            List<Object> newItems = new ArrayList<>();
+            for (Object previousItem : FastNMS.INSTANCE.method$BundleContents$items(bundleContents)) {
+                ItemStack itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem), player);
+                newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack));
+            }
+            wrapped.setExactComponent(ComponentTypes.BUNDLE_CONTENTS, FastNMS.INSTANCE.constructor$BundleContents(newItems));
+        }
+
+        if (wrapped.hasComponent(ComponentTypes.CONTAINER)) {
+            Object containerContents = wrapped.getExactComponent(ComponentTypes.CONTAINER);
+            List<Object> newItems = new ArrayList<>();
+            for (Object previousItem : FastNMS.INSTANCE.field$ItemContainerContents$items(containerContents)) {
+                ItemStack itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem), player);
+                newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack));
+            }
+            wrapped.setExactComponent(ComponentTypes.CONTAINER, FastNMS.INSTANCE.method$ItemContainerContents$fromItems(newItems));
+        }
 
         // todo 处理book
 

@@ -3320,7 +3320,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             } catch (Exception e) {
                 return;
             }
-            itemStack = BukkitItemManager.instance().s2c(itemStack, serverPlayer);
+            itemStack = BukkitItemManager.instance().c2s(itemStack);
 
             event.setChanged(true);
             buf.clear();
