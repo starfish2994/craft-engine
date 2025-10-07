@@ -30,6 +30,7 @@ public class ComponentTypes {
     public static final Object DYED_COLOR = getComponentType(ComponentKeys.DYED_COLOR);
     public static final Object DEATH_PROTECTION = getComponentType(ComponentKeys.DEATH_PROTECTION);
     public static final Object FIREWORK_EXPLOSION = getComponentType(ComponentKeys.FIREWORK_EXPLOSION);
+    public static final Object BUNDLE_CONTENTS = getComponentType(ComponentKeys.BUNDLE_CONTENTS);
 
     private ComponentTypes() {}
 
