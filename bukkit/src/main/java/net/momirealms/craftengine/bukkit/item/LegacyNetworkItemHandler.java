@@ -32,85 +32,83 @@ import java.util.function.BiConsumer;
 public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemStack> {
 
     @Override
-    public Optional<Item<ItemStack>> c2s(Item<ItemStack> wrapped) {
+    public Item<ItemStack> c2s(Item<ItemStack> wrapped) {
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
-        boolean hasDifferentMaterial = false;
         if (optionalCustomItem.isPresent()) {
             BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
             if (customItem.item() != FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
-                hasDifferentMaterial = true;
-            }
-        }
-        if (!wrapped.hasTag(NETWORK_ITEM_TAG)) {
-            if (hasDifferentMaterial) {
-                return Optional.of(wrapped);
             }
         }
         CompoundTag networkData = (CompoundTag) wrapped.getTag(NETWORK_ITEM_TAG);
-        if (networkData == null) return Optional.empty();
+        if (networkData == null) return wrapped;
         wrapped.removeTag(NETWORK_ITEM_TAG);
         for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
             if (entry.getValue() instanceof CompoundTag tag) {
                 NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
             }
         }
-        return Optional.of(wrapped);
+        return wrapped;
     }
 
     @Override
-    public Optional<Item<ItemStack>> s2c(Item<ItemStack> wrapped, Player player) {
+    public Item<ItemStack> s2c(Item<ItemStack> wrapped, Player player) {
+        // todo 处理bundle和container
+
+        // todo 处理book
+
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
+        // 不是自定义物品或修改过的原版物品
         if (optionalCustomItem.isEmpty()) {
-            if (!Config.interceptItem()) return Optional.empty();
-            return new OtherItem(wrapped, false).process(NetworkTextReplaceContext.of(player));
-        } else {
-            BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
-            Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
-            boolean hasDifferentMaterial = serverItem == customItem.item() && serverItem != customItem.clientItem();
-            if (hasDifferentMaterial) {
-                wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
+            if (!Config.interceptItem()) return wrapped;
+            return new OtherItem(wrapped).process(NetworkTextReplaceContext.of(player));
+        }
+
+        // 应用client-bound-material
+        BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+        Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
+        boolean hasDifferentMaterial = serverItem == customItem.item() && serverItem != customItem.clientItem();
+        if (hasDifferentMaterial) {
+            wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
+        }
+
+        // 没有客户端侧组件
+        if (!customItem.hasClientBoundDataModifier()) {
+            if (!Config.interceptItem()) return wrapped;
+            return new OtherItem(wrapped).process(NetworkTextReplaceContext.of(player));
+        }
+
+        // 应用client-bound-data
+        CompoundTag tag = new CompoundTag();
+        Tag argumentTag = wrapped.getTag(ArgumentsModifier.ARGUMENTS_TAG);
+        ItemBuildContext context;
+        if (argumentTag instanceof CompoundTag arguments) {
+            ContextHolder.Builder builder = ContextHolder.builder();
+            for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
+                builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
             }
-            if (!customItem.hasClientBoundDataModifier()) {
-                if (!Config.interceptItem() && !hasDifferentMaterial) return Optional.empty();
-                return new OtherItem(wrapped, hasDifferentMaterial).process(NetworkTextReplaceContext.of(player));
-            } else {
-                CompoundTag tag = new CompoundTag();
-                Tag argumentTag = wrapped.getTag(ArgumentsModifier.ARGUMENTS_TAG);
-                ItemBuildContext context;
-                if (argumentTag instanceof CompoundTag arguments) {
-                    ContextHolder.Builder builder = ContextHolder.builder();
-                    for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
-                        builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
-                    }
-                    context = ItemBuildContext.of(player, builder);
-                } else {
-                    context = ItemBuildContext.of(player);
-                }
-                for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
-                    modifier.prepareNetworkItem(wrapped, context, tag);
-                }
-                for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
-                    modifier.apply(wrapped, context);
-                }
-                if (Config.interceptItem()) {
-                    if (!tag.containsKey("display.Name")) {
-                        processCustomName(wrapped, tag::put, context);
-                    }
-                    if (!tag.containsKey("display.Lore")) {
-                        processLore(wrapped, tag::put, context);
-                    }
-                }
-                if (tag.isEmpty()) {
-                    if (hasDifferentMaterial) {
-                        return Optional.of(wrapped);
-                    }
-                    return Optional.empty();
-                }
-                wrapped.setTag(tag, NETWORK_ITEM_TAG);
-                return Optional.of(wrapped);
+            context = ItemBuildContext.of(player, builder);
+        } else {
+            context = ItemBuildContext.of(player);
+        }
+        for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
+            modifier.prepareNetworkItem(wrapped, context, tag);
+        }
+        for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
+            modifier.apply(wrapped, context);
+        }
+        if (Config.interceptItem()) {
+            if (!tag.containsKey("display.Name")) {
+                processCustomName(wrapped, tag::put, context);
+            }
+            if (!tag.containsKey("display.Lore")) {
+                processLore(wrapped, tag::put, context);
             }
         }
+        if (!tag.isEmpty()) {
+            wrapped.setTag(tag, NETWORK_ITEM_TAG);
+        }
+        return wrapped;
     }
 
     public static boolean processCustomName(Item<ItemStack> item, BiConsumer<String, CompoundTag> callback, Context context) {
@@ -159,14 +157,12 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
         private final Item<ItemStack> item;
         private boolean globalChanged = false;
         private CompoundTag networkTag;
-        private final boolean forceReturn;
 
-        public OtherItem(Item<ItemStack> item, boolean forceReturn) {
+        public OtherItem(Item<ItemStack> item) {
             this.item = item;
-            this.forceReturn = forceReturn;
         }
 
-        public Optional<Item<ItemStack>> process(Context context) {
+        public Item<ItemStack> process(Context context) {
             if (processLore(this.item, (s, c) -> networkTag().put(s, c), context)) {
                 this.globalChanged = true;
             }
@@ -175,12 +171,8 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
             }
             if (this.globalChanged) {
                 this.item.setTag(this.networkTag, NETWORK_ITEM_TAG);
-                return Optional.of(this.item);
-            } else if (this.forceReturn) {
-                return Optional.of(this.item);
-            } else {
-                return Optional.empty();
             }
+            return this.item;
         }
 
         public CompoundTag networkTag() {

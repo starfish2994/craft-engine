@@ -30,96 +30,104 @@ import java.util.function.Supplier;
 public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemStack> {
 
     @Override
-    public Optional<Item<ItemStack>> c2s(Item<ItemStack> wrapped) {
-        Tag customData = wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA);
-        if (!(customData instanceof CompoundTag compoundTag)) return Optional.empty();
+    public Item<ItemStack> c2s(Item<ItemStack> wrapped) {
+        // 先尝试恢复client-bound-material
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
-        boolean hasDifferentMaterial = false;
         if (optionalCustomItem.isPresent()) {
             BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
             if (customItem.item() != FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
-                hasDifferentMaterial = true;
             }
         }
+
+        // 没有 custom data 则忽略
+        Tag customData = wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA);
+        if (!(customData instanceof CompoundTag compoundTag)) {
+            return wrapped;
+        }
+
+        // 未曾应用过 client-bound-data
         CompoundTag networkData = compoundTag.getCompound(NETWORK_ITEM_TAG);
         if (networkData == null) {
-            if (hasDifferentMaterial) {
-                return Optional.of(wrapped);
-            }
-            return Optional.empty();
+            return wrapped;
         }
+
+        // 移除此tag
         compoundTag.remove(NETWORK_ITEM_TAG);
         for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
             if (entry.getValue() instanceof CompoundTag tag) {
                 NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
             }
         }
+
         if (compoundTag.isEmpty()) wrapped.resetComponent(ComponentTypes.CUSTOM_DATA);
         else wrapped.setNBTComponent(ComponentTypes.CUSTOM_DATA, compoundTag);
-        return Optional.of(wrapped);
+        return wrapped;
     }
 
     @Override
-    public Optional<Item<ItemStack>> s2c(Item<ItemStack> wrapped, Player player) {
+    public Item<ItemStack> s2c(Item<ItemStack> wrapped, Player player) {
+        // todo 处理bundle和container
+
+        // todo 处理book
+
+        // 不是自定义物品或修改过的原版物品
         Item<ItemStack> original = wrapped;
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) {
-            if (!Config.interceptItem()) return Optional.empty();
-            return new OtherItem(wrapped, false).process(NetworkTextReplaceContext.of(player));
+            if (!Config.interceptItem()) return wrapped;
+            return new OtherItem(wrapped).process(NetworkTextReplaceContext.of(player));
+        }
+
+        // 应用 client-bound-data
+        BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+        Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
+        boolean hasDifferentMaterial = serverItem == customItem.item() && serverItem != customItem.clientItem();
+        if (hasDifferentMaterial) {
+            wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
+        }
+        if (!customItem.hasClientBoundDataModifier()) {
+            if (!Config.interceptItem()) return wrapped;
+            return new OtherItem(wrapped).process(NetworkTextReplaceContext.of(player));
+        }
+        CompoundTag customData = Optional.ofNullable(wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA)).map(CompoundTag.class::cast).orElse(new CompoundTag());
+        CompoundTag arguments = customData.getCompound(ArgumentsModifier.ARGUMENTS_TAG);
+        ItemBuildContext context;
+        if (arguments == null) {
+            context = ItemBuildContext.of(player);
         } else {
-            BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
-            Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
-            boolean hasDifferentMaterial = serverItem == customItem.item() && serverItem != customItem.clientItem();
-            if (hasDifferentMaterial) {
-                wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
+            ContextHolder.Builder builder = ContextHolder.builder();
+            for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
+                builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
             }
-            if (!customItem.hasClientBoundDataModifier()) {
-                if (!Config.interceptItem() && !hasDifferentMaterial) return Optional.empty();
-                return new OtherItem(wrapped, hasDifferentMaterial).process(NetworkTextReplaceContext.of(player));
-            } else {
-                CompoundTag customData = Optional.ofNullable(wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA)).map(CompoundTag.class::cast).orElse(new CompoundTag());
-                CompoundTag arguments = customData.getCompound(ArgumentsModifier.ARGUMENTS_TAG);
-                ItemBuildContext context;
-                if (arguments == null) {
-                    context = ItemBuildContext.of(player);
-                } else {
-                    ContextHolder.Builder builder = ContextHolder.builder();
-                    for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
-                        builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
-                    }
-                    context = ItemBuildContext.of(player, builder);
-                }
-                CompoundTag tag = new CompoundTag();
-                for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
-                    modifier.prepareNetworkItem(original, context, tag);
-                }
-                for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
-                    modifier.apply(wrapped, context);
-                }
-                if (Config.interceptItem()) {
-                    if (!tag.containsKey(ComponentIds.ITEM_NAME)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernItemName(wrapped, () -> tag, context);
-                        else processLegacyItemName(wrapped, () -> tag, context);
-                    }
-                    if (!tag.containsKey(ComponentIds.CUSTOM_NAME)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernCustomName(wrapped, () -> tag, context);
-                        else processLegacyCustomName(wrapped, () -> tag, context);
-                    }
-                    if (!tag.containsKey(ComponentIds.LORE)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernLore(wrapped, () -> tag, context);
-                        else processLegacyLore(wrapped, () -> tag, context);
-                    }
-                }
-                if (tag.isEmpty()) {
-                    if (hasDifferentMaterial) return Optional.of(wrapped);
-                    return Optional.empty();
-                }
-                customData.put(NETWORK_ITEM_TAG, tag);
-                wrapped.setNBTComponent(ComponentTypes.CUSTOM_DATA, customData);
-                return Optional.of(wrapped);
+            context = ItemBuildContext.of(player, builder);
+        }
+        CompoundTag tag = new CompoundTag();
+        for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
+            modifier.prepareNetworkItem(original, context, tag);
+        }
+        for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
+            modifier.apply(wrapped, context);
+        }
+        if (Config.interceptItem()) {
+            if (!tag.containsKey(ComponentIds.ITEM_NAME)) {
+                if (VersionHelper.isOrAbove1_21_5()) processModernItemName(wrapped, () -> tag, context);
+                else processLegacyItemName(wrapped, () -> tag, context);
+            }
+            if (!tag.containsKey(ComponentIds.CUSTOM_NAME)) {
+                if (VersionHelper.isOrAbove1_21_5()) processModernCustomName(wrapped, () -> tag, context);
+                else processLegacyCustomName(wrapped, () -> tag, context);
+            }
+            if (!tag.containsKey(ComponentIds.LORE)) {
+                if (VersionHelper.isOrAbove1_21_5()) processModernLore(wrapped, () -> tag, context);
+                else processLegacyLore(wrapped, () -> tag, context);
             }
         }
+        if (!tag.isEmpty()) {
+            customData.put(NETWORK_ITEM_TAG, tag);
+            wrapped.setNBTComponent(ComponentTypes.CUSTOM_DATA, customData);
+        }
+        return wrapped;
     }
 
     public static boolean processLegacyLore(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
@@ -231,16 +239,14 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
 
     static class OtherItem {
         private final Item<ItemStack> item;
-        private final boolean forceReturn;
         private boolean globalChanged = false;
         private CompoundTag tag;
 
-        public OtherItem(Item<ItemStack> item, boolean forceReturn) {
+        public OtherItem(Item<ItemStack> item) {
             this.item = item;
-            this.forceReturn = forceReturn;
         }
 
-        public Optional<Item<ItemStack>> process(Context context) {
+        public Item<ItemStack> process(Context context) {
             if (VersionHelper.isOrAbove1_21_5()) {
                 if (processModernLore(this.item, this::getOrCreateTag, context))
                     this.globalChanged = true;
@@ -260,12 +266,8 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 CompoundTag customData = Optional.ofNullable(this.item.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA)).map(CompoundTag.class::cast).orElse(new CompoundTag());
                 customData.put(NETWORK_ITEM_TAG, getOrCreateTag());
                 this.item.setNBTComponent(ComponentKeys.CUSTOM_DATA, customData);
-                return Optional.of(this.item);
-            } else if (this.forceReturn) {
-                return Optional.of(this.item);
-            } else {
-                return Optional.empty();
             }
+            return this.item;
         }
 
         private CompoundTag getOrCreateTag() {

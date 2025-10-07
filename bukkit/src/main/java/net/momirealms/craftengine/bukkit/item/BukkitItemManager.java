@@ -22,7 +22,6 @@ import net.momirealms.craftengine.core.item.recipe.UniqueIdItem;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
-import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
@@ -126,35 +125,23 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
     @Override
     public Item<ItemStack> s2c(Item<ItemStack> item, Player player) {
         if (item.isEmpty()) return item;
-        return this.networkItemHandler.s2c(item, player).orElse(item);
+        return this.networkItemHandler.s2c(item, player);
     }
 
     @Override
     public Item<ItemStack> c2s(Item<ItemStack> item) {
         if (item.isEmpty()) return item;
-        return this.networkItemHandler.c2s(item).orElse(item);
+        return this.networkItemHandler.c2s(item);
     }
 
-    public Optional<ItemStack> s2c(ItemStack itemStack, Player player) {
-        try {
-            Item<ItemStack> wrapped = wrap(itemStack);
-            if (wrapped.isEmpty()) return Optional.empty();
-            return this.networkItemHandler.s2c(wrapped, player).map(Item::getItem);
-        } catch (Throwable e) {
-            Debugger.ITEM.warn(() -> "Failed to handle s2c items.", e);
-            return Optional.empty();
-        }
+    public ItemStack s2c(ItemStack item, Player player) {
+        if (item.isEmpty()) return item;
+        return s2c(wrap(item), player).getItem();
     }
 
-    public Optional<ItemStack> c2s(ItemStack itemStack) {
-        try {
-            Item<ItemStack> wrapped = wrap(itemStack);
-            if (wrapped.isEmpty()) return Optional.empty();
-            return this.networkItemHandler.c2s(wrapped).map(Item::getItem);
-        } catch (Throwable e) {
-            Debugger.COMMON.warn(() -> "Failed to handle c2s items.", e);
-            return Optional.empty();
-        }
+    public ItemStack c2s(ItemStack item) {
+        if (item.isEmpty()) return item;
+        return c2s(wrap(item)).getItem();
     }
 
     @Override
