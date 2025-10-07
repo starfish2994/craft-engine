@@ -144,13 +144,25 @@ public abstract class AbstractRecipeSerializer<T, R extends Recipe<T>> implement
         Set<UniqueKey> minecraftItemIds = new HashSet<>();
         ItemManager<T> itemManager = CraftEngine.instance().itemManager();
         for (String item : items) {
-            if (item.charAt(0) == '#') itemIds.addAll(itemManager.itemIdsByTag(Key.of(item.substring(1))));
-            else {
+            if (item.charAt(0) == '#') {
+                List<UniqueKey> uniqueKeys = itemManager.itemIdsByTag(Key.of(item.substring(1)));
+                itemIds.addAll(uniqueKeys);
+                for (UniqueKey uniqueKey : uniqueKeys) {
+                    List<UniqueKey> ingredientSubstitutes = itemManager.getIngredientSubstitutes(uniqueKey.key());
+                    if (!ingredientSubstitutes.isEmpty()) {
+                        itemIds.addAll(ingredientSubstitutes);
+                    }
+                }
+            } else {
                 Key itemId = Key.of(item);
                 if (itemManager.getBuildableItem(itemId).isEmpty()) {
                     throw new LocalizedResourceConfigException("warning.config.recipe.invalid_ingredient", item);
                 }
                 itemIds.add(UniqueKey.create(itemId));
+                List<UniqueKey> ingredientSubstitutes = itemManager.getIngredientSubstitutes(itemId);
+                if (!ingredientSubstitutes.isEmpty()) {
+                    itemIds.addAll(ingredientSubstitutes);
+                }
             }
         }
         boolean hasCustomItem = false;

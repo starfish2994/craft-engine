@@ -21,10 +21,11 @@ public abstract class IdSectionConfigParser extends AbstractConfigParser {
     protected void parseSection(CachedConfigSection cached) {
         for (Map.Entry<String, Object> configEntry : cached.config().entrySet()) {
             String key = configEntry.getKey();
+            Object value = configEntry.getValue();
             Key id = Key.withDefaultNamespace(key, cached.pack().namespace());
-            if (!(configEntry.getValue() instanceof Map<?, ?> section)) {
+            if (!(value instanceof Map<?, ?> section)) {
                 TranslationManager.instance().log("warning.config.structure.not_section",
-                        cached.filePath().toString(), cached.prefix() + "." + key, configEntry.getValue().getClass().getSimpleName());
+                        cached.filePath().toString(), cached.prefix() + "." + key, value == null ? "null" : value.getClass().getSimpleName());
                 continue;
             }
             Map<String, Object> config = castToMap(section, false);

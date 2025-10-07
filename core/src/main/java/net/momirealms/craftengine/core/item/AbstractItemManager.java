@@ -63,6 +63,8 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
     protected final List<Suggestion> cachedAllItemSuggestions = new ArrayList<>();
     protected final List<Suggestion> cachedVanillaItemSuggestions = new ArrayList<>();
     protected final List<Suggestion> cachedTotemSuggestions = new ArrayList<>();
+    // 替代配方材料
+    protected final Map<Key, List<UniqueKey>> ingredientSubstitutes = new HashMap<>();
 
     protected AbstractItemManager(CraftEngine plugin) {
         super(plugin);
@@ -141,6 +143,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         this.equipments.clear();
         this.modernItemModels1_21_4.clear();
         this.modernItemModels1_21_2.clear();
+        this.ingredientSubstitutes.clear();
     }
 
     @Override
@@ -161,6 +164,15 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
     @Override
     public Optional<CustomItem<I>> getCustomItemByPathOnly(String path) {
         return Optional.ofNullable(this.customItemsByPath.get(path));
+    }
+
+    @Override
+    public List<UniqueKey> getIngredientSubstitutes(Key item) {
+        if (VANILLA_ITEMS.contains(item)) {
+            return Optional.ofNullable(this.ingredientSubstitutes.get(item)).orElse(Collections.emptyList());
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -597,6 +609,17 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 // 如果有类别，则添加
                 if (section.containsKey("category")) {
                     AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, MiscUtils.getAsStringList(section.get("category")).stream().map(Key::of).toList());
+                }
+
+                // 替代配方材料
+                if (section.containsKey("ingredient-substitute")) {
+                    List<String> substitutes = MiscUtils.getAsStringList(section.get("ingredient-substitute"));
+                    for (String substitute : substitutes) {
+                        Key key = Key.of(substitute);
+                        if (VANILLA_ITEMS.contains(key)) {
+                            AbstractItemManager.this.ingredientSubstitutes.computeIfAbsent(key, k -> new ArrayList<>()).add(uniqueId);
+                        }
+                    }
                 }
 
                 /*

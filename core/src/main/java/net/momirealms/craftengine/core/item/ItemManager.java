@@ -124,5 +124,7 @@ public interface ItemManager<T> extends Manageable, ModelGenerator {
 
     Item<T> build(DatapackRecipeResult result);
 
+    List<UniqueKey> getIngredientSubstitutes(Key item);
+
     ItemUpdateResult updateItem(Item<T> item, Supplier<ItemBuildContext> contextSupplier);
 }
