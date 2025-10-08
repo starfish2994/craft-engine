@@ -108,6 +108,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -156,7 +157,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         instance = this;
         this.s2cGamePacketListeners = new ByteBufferPacketListenerHolder[PlayPacketIdHelper.count(PacketFlow.CLIENTBOUND)];
         this.c2sGamePacketListeners = new ByteBufferPacketListenerHolder[PlayPacketIdHelper.count(PacketFlow.SERVERBOUND)];
-        this.hasModelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine") != null;
+        Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
+        this.hasModelEngine = modelEngine != null && modelEngine.getPluginMeta().getVersion().startsWith("R4");
         this.plugin = plugin;
         // set up packet id
         this.packetIds = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();

@@ -612,11 +612,11 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<Map<String, String>> blockState(ComponentItemWrapper item) {
-        return Optional.empty();
+        return item.getJavaComponent(ComponentTypes.BLOCK_STATE);
     }
 
     @Override
     protected void blockState(ComponentItemWrapper item, Map<String, String> state) {
-
+        item.setJavaComponent(ComponentTypes.BLOCK_STATE, state);
     }
 }

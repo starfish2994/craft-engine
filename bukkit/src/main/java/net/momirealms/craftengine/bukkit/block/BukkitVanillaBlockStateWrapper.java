@@ -19,6 +19,11 @@ public class BukkitVanillaBlockStateWrapper extends AbstractBlockStateWrapper {
     }
 
     @Override
+    public boolean isCustom() {
+        return false;
+    }
+
+    @Override
     public Key ownerId() {
         return BlockStateUtils.getBlockOwnerIdFromState(super.blockState);
     }

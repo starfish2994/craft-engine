@@ -32,6 +32,7 @@ public class ComponentTypes {
     public static final Object FIREWORK_EXPLOSION = getComponentType(ComponentKeys.FIREWORK_EXPLOSION);
     public static final Object BUNDLE_CONTENTS = getComponentType(ComponentKeys.BUNDLE_CONTENTS);
     public static final Object CONTAINER = getComponentType(ComponentKeys.CONTAINER);
+    public static final Object BLOCK_STATE = getComponentType(ComponentKeys.BLOCK_STATE);
 
     private ComponentTypes() {}
 

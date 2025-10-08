@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.item.modifier;
 
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.block.CustomBlockStateWrapper;
 import net.momirealms.craftengine.core.item.ComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class BlockStateModifier<I> implements SimpleNetworkItemDataModifier<I> {
@@ -62,10 +64,14 @@ public class BlockStateModifier<I> implements SimpleNetworkItemDataModifier<I> {
                 String stateString = arg.toString();
                 return new BlockStateModifier<>(LazyReference.lazyReference(() -> {
                     BlockStateWrapper blockState = CraftEngine.instance().blockManager().createBlockState(stateString);
+                    if (blockState instanceof CustomBlockStateWrapper customBlockStateWrapper) {
+                        blockState = customBlockStateWrapper.visualBlockState();
+                    }
                     if (blockState != null) {
                         Map<String, String> properties = new HashMap<>(4);
                         for (String property : blockState.getPropertyNames()) {
-                            properties.put(property, blockState.getProperty(property));
+                            Object value = blockState.getProperty(property);
+                            properties.put(property, String.valueOf(value).toLowerCase(Locale.ROOT));
                         }
                         return properties;
                     }
