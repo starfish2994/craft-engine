@@ -2108,17 +2108,21 @@ public abstract class AbstractPackManager implements PackManager {
                 }
                 originalItemModel = originalItemModel.deepCopy();
             }
-            JsonArray overrides;
+            TreeSet<LegacyOverridesModel> overridesModels = new TreeSet<>(entry.getValue());
+
+            JsonArray newOverrides = new JsonArray();
             if (originalItemModel.has("overrides")) {
-                overrides = originalItemModel.getAsJsonArray("overrides");
-            } else {
-                overrides = new JsonArray();
-                originalItemModel.add("overrides", overrides);
+                JsonArray overrides = originalItemModel.getAsJsonArray("overrides");
+                for (JsonElement override : overrides) {
+                    if (override instanceof JsonObject jo) {
+                        overridesModels.add(new LegacyOverridesModel(jo));
+                    }
+                }
             }
-            Collection<LegacyOverridesModel> legacyOverridesModels = entry.getValue();
-            for (LegacyOverridesModel model : legacyOverridesModels) {
-                overrides.add(model.toLegacyPredicateElement());
+            for (LegacyOverridesModel model : overridesModels) {
+                newOverrides.add(model.toLegacyPredicateElement());
             }
+            originalItemModel.add("overrides", newOverrides);
             try {
                 Files.createDirectories(overridedItemPath.getParent());
             } catch (IOException e) {

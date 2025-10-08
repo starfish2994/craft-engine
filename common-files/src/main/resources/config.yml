@@ -111,9 +111,14 @@ resource-pack:
         type: any_of
         terms:
           - type: parent_path_suffix
-            suffix: "minecraft/items"
-          - type: parent_path_suffix
             suffix: "minecraft/models/item"
+      resolution:
+        type: merge_legacy_model
+    - term:
+        type: any_of
+        terms:
+          - type: parent_path_suffix
+            suffix: "minecraft/items"
       resolution:
         type: merge_json
         deeply: true
