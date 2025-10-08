@@ -7,6 +7,8 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.util.Key;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public class BukkitCustomBlockStateWrapper extends AbstractBlockStateWrapper {
@@ -49,6 +51,12 @@ public class BukkitCustomBlockStateWrapper extends AbstractBlockStateWrapper {
     @Override
     public boolean hasProperty(String propertyName) {
         return getImmutableBlockState().map(state -> state.owner().value().getProperty(propertyName) != null).orElse(false);
+    }
+
+    @Override
+    public Collection<String> getPropertyNames() {
+        Optional<ImmutableBlockState> immutableBlockState = getImmutableBlockState();
+        return immutableBlockState.<Collection<String>>map(state -> state.getProperties().stream().map(Property::name).toList()).orElseGet(List::of);
     }
 
     @Override

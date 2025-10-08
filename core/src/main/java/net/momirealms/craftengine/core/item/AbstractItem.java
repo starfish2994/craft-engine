@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class AbstractItem<W extends ItemWrapper<I>, I> implements Item<I> {
@@ -108,6 +109,17 @@ public class AbstractItem<W extends ItemWrapper<I>, I> implements Item<I> {
     @Override
     public int maxDamage() {
         return this.factory.maxDamage(this.item);
+    }
+
+    @Override
+    public Item<I> blockState(Map<String, String> state) {
+        this.factory.blockState(this.item, state);
+        return this;
+    }
+
+    @Override
+    public Optional<Map<String, String>> blockState() {
+        return this.factory.blockState(this.item);
     }
 
     @Override

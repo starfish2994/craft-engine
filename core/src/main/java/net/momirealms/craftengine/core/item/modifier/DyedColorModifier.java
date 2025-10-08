@@ -12,6 +12,7 @@ import org.joml.Vector3f;
 
 public class DyedColorModifier<I> implements SimpleNetworkItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
+    private static final Object[] NBT_PATH = new Object[]{"display", "color"};
     private final Color color;
 
     public DyedColorModifier(Color color) {
@@ -39,7 +40,7 @@ public class DyedColorModifier<I> implements SimpleNetworkItemDataModifier<I> {
 
     @Override
     public @Nullable Object[] nbtPath(Item<I> item, ItemBuildContext context) {
-        return new Object[]{"display", "color"};
+        return NBT_PATH;
     }
 
     @Override

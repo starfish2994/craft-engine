@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Map;
 
 public interface BlockStateWrapper extends Comparable<BlockStateWrapper> {
@@ -17,6 +18,8 @@ public interface BlockStateWrapper extends Comparable<BlockStateWrapper> {
     <T> T getProperty(String propertyName);
 
     boolean hasProperty(String propertyName);
+
+    Collection<String> getPropertyNames();
 
     BlockStateWrapper withProperty(String propertyName, String propertyValue);
 

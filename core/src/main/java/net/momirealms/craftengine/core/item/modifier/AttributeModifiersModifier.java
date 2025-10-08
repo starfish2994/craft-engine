@@ -17,6 +17,7 @@ import java.util.*;
 public class AttributeModifiersModifier<I> implements SimpleNetworkItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
     public static final Map<Key, Key> CONVERTOR = new HashMap<>();
+    private static final Object[] NBT_PATH = new Object[]{"AttributeModifiers"};
 
     static {
         if (VersionHelper.isOrAbove1_21_2()) {
@@ -119,7 +120,7 @@ public class AttributeModifiersModifier<I> implements SimpleNetworkItemDataModif
 
     @Override
     public @Nullable Object[] nbtPath(Item<I> item, ItemBuildContext context) {
-        return new Object[]{"AttributeModifiers"};
+        return NBT_PATH;
     }
 
     @Override

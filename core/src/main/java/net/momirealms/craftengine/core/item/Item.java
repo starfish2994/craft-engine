@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -75,6 +76,10 @@ public interface Item<I> {
     Item<I> maxDamage(Integer data);
 
     int maxDamage();
+
+    Item<I> blockState(Map<String, String> state);
+
+    Optional<Map<String, String>> blockState();
 
     // todo 考虑部分版本的show in tooltip保留
     Item<I> dyedColor(Color data);

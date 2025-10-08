@@ -14,6 +14,7 @@ import java.util.Map;
 
 public class TrimModifier<I> implements SimpleNetworkItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
+    private static final Object[] NBT_PATH = new Object[] {"Trim"};
     private final Key material;
     private final Key pattern;
 
@@ -47,7 +48,7 @@ public class TrimModifier<I> implements SimpleNetworkItemDataModifier<I> {
 
     @Override
     public @Nullable Object[] nbtPath(Item<I> item, ItemBuildContext context) {
-        return new Object[]{"Trim"};
+        return NBT_PATH;
     }
 
     @Override

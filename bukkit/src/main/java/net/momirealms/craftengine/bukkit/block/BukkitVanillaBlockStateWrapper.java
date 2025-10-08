@@ -8,6 +8,8 @@ import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.StatePropertyAccessor;
 import net.momirealms.craftengine.core.util.Key;
 
+import java.util.Collection;
+
 public class BukkitVanillaBlockStateWrapper extends AbstractBlockStateWrapper {
     private final StatePropertyAccessor accessor;
 
@@ -29,6 +31,11 @@ public class BukkitVanillaBlockStateWrapper extends AbstractBlockStateWrapper {
     @Override
     public boolean hasProperty(String propertyName) {
         return this.accessor.hasProperty(propertyName);
+    }
+
+    @Override
+    public Collection<String> getPropertyNames() {
+        return this.accessor.getPropertyNames();
     }
 
     @Override

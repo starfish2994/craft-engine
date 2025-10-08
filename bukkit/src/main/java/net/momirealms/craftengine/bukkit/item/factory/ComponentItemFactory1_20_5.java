@@ -609,4 +609,14 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
         }
         item.setSparrowNBTComponent(ComponentKeys.ATTRIBUTE_MODIFIERS, compoundTag);
     }
+
+    @Override
+    protected Optional<Map<String, String>> blockState(ComponentItemWrapper item) {
+        return Optional.empty();
+    }
+
+    @Override
+    protected void blockState(ComponentItemWrapper item, Map<String, String> state) {
+
+    }
 }

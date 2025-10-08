@@ -12,6 +12,8 @@ import java.util.Map;
 
 public class EnchantmentsModifier<I> implements SimpleNetworkItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
+    private static final Object[] STORED_ENCHANTMENTS = new Object[] {"StoredEnchantments"};
+    private static final Object[] ENCHANTMENTS = new Object[] {"Enchantments"};
     private final List<Enchantment> enchantments;
 
     public EnchantmentsModifier(List<Enchantment> enchantments) {
@@ -43,7 +45,7 @@ public class EnchantmentsModifier<I> implements SimpleNetworkItemDataModifier<I>
 
     @Override
     public @Nullable Object[] nbtPath(Item<I> item, ItemBuildContext context) {
-        return item.vanillaId().equals(ItemKeys.ENCHANTED_BOOK) ? new Object[]{"StoredEnchantments"} : new Object[]{"Enchantments"};
+        return item.vanillaId().equals(ItemKeys.ENCHANTED_BOOK) ? STORED_ENCHANTMENTS : ENCHANTMENTS;
     }
 
     @Override

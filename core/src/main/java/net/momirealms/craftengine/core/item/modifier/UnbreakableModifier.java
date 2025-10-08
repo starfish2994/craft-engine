@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class UnbreakableModifier<I> implements SimpleNetworkItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
+    private static final Object[] NBT_PATH = new Object[]{"Unbreakable"};
     private final boolean argument;
 
     public UnbreakableModifier(boolean argument) {
@@ -38,7 +39,7 @@ public class UnbreakableModifier<I> implements SimpleNetworkItemDataModifier<I> 
 
     @Override
     public @Nullable Object[] nbtPath(Item<I> item, ItemBuildContext context) {
-        return new Object[]{"Unbreakable"};
+        return NBT_PATH;
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CustomNameModifier<I> implements SimpleNetworkItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
+    private static final Object[] NBT_PATH = new Object[]{"display", "Name"};
     private final String argument;
     private final FormattedLine line;
 
@@ -49,7 +50,7 @@ public class CustomNameModifier<I> implements SimpleNetworkItemDataModifier<I> {
 
     @Override
     public @Nullable Object[] nbtPath(Item<I> item, ItemBuildContext context) {
-        return new Object[]{"display", "Name"};
+        return NBT_PATH;
     }
 
     @Override
