@@ -208,6 +208,15 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
             for (Key tag : tags) {
                 this.customItemTags.computeIfAbsent(tag, k -> new ArrayList<>()).add(customItem.uniqueId());
             }
+            // ingredient substitutes
+            List<Key> substitutes = customItem.settings().ingredientSubstitutes();
+            if (!substitutes.isEmpty()) {
+                for (Key key : substitutes) {
+                    if (VANILLA_ITEMS.contains(key)) {
+                        AbstractItemManager.this.ingredientSubstitutes.computeIfAbsent(key, k -> new ArrayList<>()).add(customItem.uniqueId());
+                    }
+                }
+            }
         }
         return true;
     }
@@ -609,17 +618,6 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 // 如果有类别，则添加
                 if (section.containsKey("category")) {
                     AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, MiscUtils.getAsStringList(section.get("category")).stream().map(Key::of).toList());
-                }
-
-                // 替代配方材料
-                if (section.containsKey("ingredient-substitute")) {
-                    List<String> substitutes = MiscUtils.getAsStringList(section.get("ingredient-substitute"));
-                    for (String substitute : substitutes) {
-                        Key key = Key.of(substitute);
-                        if (VANILLA_ITEMS.contains(key)) {
-                            AbstractItemManager.this.ingredientSubstitutes.computeIfAbsent(key, k -> new ArrayList<>()).add(uniqueId);
-                        }
-                    }
                 }
 
                 /*

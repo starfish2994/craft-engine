@@ -38,6 +38,7 @@ public class ItemSettings {
     boolean canEnchant = true;
     float compostProbability= 0.5f;
     boolean respectRepairableComponent = false;
+    List<Key> ingredientSubstitutes = List.of();
     @Nullable
     ItemEquipment equipment;
     @Nullable
@@ -104,6 +105,7 @@ public class ItemSettings {
         newSettings.respectRepairableComponent = settings.respectRepairableComponent;
         newSettings.dyeColor = settings.dyeColor;
         newSettings.fireworkColor = settings.fireworkColor;
+        newSettings.ingredientSubstitutes = settings.ingredientSubstitutes;
         return newSettings;
     }
 
@@ -159,6 +161,10 @@ public class ItemSettings {
         return respectRepairableComponent;
     }
 
+    public List<Key> ingredientSubstitutes() {
+        return ingredientSubstitutes;
+    }
+
     @Nullable
     public FoodData foodData() {
         return foodData;
@@ -204,6 +210,11 @@ public class ItemSettings {
 
     public ItemSettings fireworkColor(Color color) {
         this.fireworkColor = color;
+        return this;
+    }
+
+    public ItemSettings ingredientSubstitutes(List<Key> substitutes) {
+        this.ingredientSubstitutes = substitutes;
         return this;
     }
 
@@ -458,6 +469,7 @@ public class ItemSettings {
                 }).toList();
                 return settings -> settings.invulnerable(list);
             }));
+            registerFactory("ingredient-substitute", (value -> settings -> settings.ingredientSubstitutes(MiscUtils.getAsStringList(value).stream().map(Key::of).toList())));
         }
 
         private static void registerFactory(String id, ItemSettings.Modifier.Factory factory) {
