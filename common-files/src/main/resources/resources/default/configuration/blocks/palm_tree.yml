@@ -197,11 +197,10 @@ items:
     material: oak_leaves
     data:
       item-name: <!i><i18n:item.palm_leaves>
-      components:
-        minecraft:block_state:
-          distance: '1'
-          persistent: 'false'
-          waterlogged: 'false'
+      block-state:
+        distance: '1'
+        persistent: 'false'
+        waterlogged: 'false'
     model:
       type: minecraft:model
       path: minecraft:item/custom/palm_leaves
