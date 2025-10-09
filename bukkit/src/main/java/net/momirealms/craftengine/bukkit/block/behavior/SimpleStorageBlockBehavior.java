@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntity;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
+import net.momirealms.craftengine.bukkit.nms.StorageContainer;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
@@ -25,9 +26,6 @@ import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,11 +71,9 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
         net.momirealms.craftengine.core.entity.player.Player player = context.getPlayer();
         BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(context.getClickedPos());
         if (player != null && blockEntity instanceof SimpleStorageBlockEntity entity) {
-            Player bukkitPlayer = (Player) player.platformPlayer();
-            Optional.ofNullable(entity.inventory()).ifPresent(inventory -> {
+            Optional.ofNullable(entity.container()).ifPresent(container -> {
                 entity.onPlayerOpen(player);
-                bukkitPlayer.openInventory(inventory);
-                new BukkitInventory(inventory).open(player, AdventureHelper.miniMessage().deserialize(this.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
+                new BukkitInventory(container).open(player, AdventureHelper.miniMessage().deserialize(this.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
             });
         }
         return InteractionResult.SUCCESS_AND_CANCEL;
@@ -156,18 +152,15 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
         CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity instanceof SimpleStorageBlockEntity entity) {
-            Inventory inventory = entity.inventory();
-            if (inventory != null) {
-                float signal = 0.0F;
-                for (int i = 0; i < inventory.getSize(); i++) {
-                    ItemStack item = inventory.getItem(i);
-                    if (item != null) {
-                        signal += (float) item.getAmount() / (float) (Math.min(inventory.getMaxStackSize(), item.getMaxStackSize()));
-                    }
-                }
-                signal /= (float) inventory.getSize();
-                return MiscUtils.lerpDiscrete(signal, 0, 15);
+            StorageContainer container = entity.container();
+            if (container == null) return 0;
+            float signal = 0.0F;
+            for (Object item : container.contents()) {
+                if (FastNMS.INSTANCE.method$ItemStack$isEmpty(item)) continue;
+                signal += (float) FastNMS.INSTANCE.field$ItemStack$count(item) / (float) (Math.min(container.maxItemStackSize(), FastNMS.INSTANCE.method$ItemStack$getMaxStackSize(item)));
             }
+            signal /= (float) container.containerSize();
+            return MiscUtils.lerpDiscrete(signal, 0, 15);
         }
         return 0;
     }
@@ -183,7 +176,7 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
         BlockPos blockPos = LocationUtils.fromBlockPos(args[2]);
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(blockPos);
         if (blockEntity instanceof SimpleStorageBlockEntity entity) {
-            return FastNMS.INSTANCE.method$CraftInventory$getInventory(entity.inventory());
+            return entity.container();
         }
         return null;
     }

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntity;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
+import net.momirealms.craftengine.bukkit.nms.StorageContainer;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
@@ -87,24 +88,27 @@ public class BukkitGuiManager implements GuiManager, Listener {
     @Override
     public Inventory createInventory(Gui gui, int size) {
         CraftEngineGUIHolder holder = new CraftEngineGUIHolder(gui);
-        org.bukkit.inventory.Inventory inventory = FastNMS.INSTANCE.createSimpleStorageContainer(holder, size, false, false);
-        holder.holder().bindValue(inventory);
-        return new BukkitInventory(inventory);
+        StorageContainer container = FastNMS.INSTANCE.createSimpleStorageContainer(holder, size, false, false);
+        holder.holder().bindValue(FastNMS.INSTANCE.constructor$CraftInventory(container));
+        return new BukkitInventory(container);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
-        if (!InventoryUtils.isCustomContainer(inventory)) return;
+        Object container = FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory);
+        if (!(container instanceof StorageContainer storageContainer)) return;
         if (!(inventory.getHolder() instanceof CraftEngineGUIHolder craftEngineGUIHolder)) {
             return;
         }
         AbstractGui gui = (AbstractGui) craftEngineGUIHolder.gui();
         Player player = (Player) event.getWhoClicked();
         if (event.getClickedInventory() == player.getInventory()) {
-            gui.handleInventoryClick(new BukkitClick(event, gui, new BukkitInventory(player.getInventory())));
+            Object playerContainer = FastNMS.INSTANCE.method$CraftInventory$getInventory(player.getInventory());
+            if (!(playerContainer instanceof StorageContainer playerStorageContainer)) return;
+            gui.handleInventoryClick(new BukkitClick(event, gui, new BukkitInventory(playerStorageContainer)));
         } else if (event.getClickedInventory() == inventory) {
-            gui.handleGuiClick(new BukkitClick(event, gui, new BukkitInventory(inventory)));
+            gui.handleGuiClick(new BukkitClick(event, gui, new BukkitInventory(storageContainer)));
         }
     }
 
