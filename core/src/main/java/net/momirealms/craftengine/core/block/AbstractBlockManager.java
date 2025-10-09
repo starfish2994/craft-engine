@@ -150,7 +150,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     @Override
     public boolean isTransparentModelInUse() {
-        return isTransparentModelInUse;
+        return this.isTransparentModelInUse;
     }
 
     @Override

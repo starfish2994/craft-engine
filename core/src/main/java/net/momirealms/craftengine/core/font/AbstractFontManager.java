@@ -70,6 +70,7 @@ public abstract class AbstractFontManager implements FontManager {
     @Override
     public void load() {
         this.offsetFont = Optional.ofNullable(plugin.config().settings().getSection("image.offset-characters"))
+                .filter(section -> section.getBoolean("enable", true))
                 .map(OffsetFont::new)
                 .orElse(null);
         this.networkTagMapper = new HashMap<>(1024);
@@ -139,6 +140,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     private void registerShiftTags() {
+        if (this.offsetFont == null) return;
         for (int i = -256; i <= 256; i++) {
             String shiftTag = "<shift:" + i + ">";
             this.networkTagMapper.put(shiftTag, ComponentProvider.constant(this.offsetFont.createOffset(i)));

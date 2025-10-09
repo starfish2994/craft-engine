@@ -272,6 +272,7 @@ image:
   # - Must match the font defined in resource packs
   # - Do NOT modify unless you understand text rendering mechanics
   offset-characters:
+    enable: true
     font: minecraft:default
     -1: '\uf800'
     -2: '\uf801'

@@ -1247,7 +1247,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
     }
 
     private static void pickItem(Player player, Key itemId, @Nullable Object blockPos, @Nullable Object entity) throws Throwable {
-        ItemStack itemStack = BukkitCraftEngine.instance().itemManager().buildCustomItemStack(itemId, BukkitCraftEngine.instance().adapt(player));
+        ItemStack itemStack = BukkitCraftEngine.instance().itemManager().buildItemStack(itemId, BukkitCraftEngine.instance().adapt(player));
         if (itemStack == null) {
             CraftEngine.instance().logger().warn("Item: " + itemId + " is not a valid item");
             return;
