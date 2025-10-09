@@ -24,6 +24,8 @@ public interface BlockManager extends Manageable, ModelGenerator {
 
     Map<Key, JsonElement> modBlockStates();
 
+    boolean isTransparentModelInUse();
+
     Map<Key, CustomBlock> loadedBlocks();
 
     @Deprecated(forRemoval = true)

@@ -17,6 +17,8 @@ import java.util.List;
 
 public final class DefaultBlockEntitySerializer {
 
+    private DefaultBlockEntitySerializer() {}
+
     public static ListTag serialize(Collection<BlockEntity> entities) {
         ListTag result = new ListTag();
         for (BlockEntity entity : entities) {

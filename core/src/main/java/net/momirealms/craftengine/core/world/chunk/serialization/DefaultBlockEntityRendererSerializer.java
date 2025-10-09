@@ -11,6 +11,8 @@ import java.util.List;
 
 public final class DefaultBlockEntityRendererSerializer {
 
+    private DefaultBlockEntityRendererSerializer() {}
+
     public static List<BlockPos> deserialize(ChunkPos chunkPos, ListTag blockEntitiesTag) {
         List<BlockPos> blockEntities = new ArrayList<>(blockEntitiesTag.size());
         for (int i = 0; i < blockEntitiesTag.size(); i++) {

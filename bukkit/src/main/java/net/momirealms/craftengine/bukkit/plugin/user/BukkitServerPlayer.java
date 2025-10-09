@@ -148,7 +148,7 @@ public class BukkitServerPlayer extends Player {
         this.name = player.getName();
         this.isNameVerified = true;
         byte[] bytes = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(CooldownData.COOLDOWN_KEY), PersistentDataType.BYTE_ARRAY);
-        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(768, 0.5f);
+        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
         this.entityTypeView = new ConcurrentHashMap<>(256);
         try {
             this.cooldownData = CooldownData.fromBytes(bytes);

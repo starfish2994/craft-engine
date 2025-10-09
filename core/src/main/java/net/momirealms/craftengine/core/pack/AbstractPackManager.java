@@ -68,15 +68,19 @@ public abstract class AbstractPackManager implements PackManager {
     public static final Set<Key> VANILLA_MODELS = new HashSet<>();
     public static final String NEW_TRIM_MATERIAL = "custom";
     public static final Set<String> ALLOWED_VANILLA_EQUIPMENT = Set.of("chainmail", "diamond", "gold", "iron", "netherite");
-    private static final byte[] EMPTY_IMAGE;
+    private static final byte[] EMPTY_1X1_IMAGE;
     private static final byte[] EMPTY_EQUIPMENT_IMAGE;
+    private static final byte[] EMPTY_16X16_IMAGE;
     static {
         try (ByteArrayOutputStream stream1 = new ByteArrayOutputStream();
-             ByteArrayOutputStream stream2 = new ByteArrayOutputStream()) {
+             ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+             ByteArrayOutputStream stream3 = new ByteArrayOutputStream()) {
             ImageIO.write(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), "png", stream1);
-            EMPTY_IMAGE = stream1.toByteArray();
+            EMPTY_1X1_IMAGE = stream1.toByteArray();
             ImageIO.write(new BufferedImage(64, 32, BufferedImage.TYPE_INT_ARGB), "png", stream2);
             EMPTY_EQUIPMENT_IMAGE = stream2.toByteArray();
+            ImageIO.write(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB), "png", stream3);
+            EMPTY_16X16_IMAGE = stream3.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException("Failed to create empty images.", e);
         }
@@ -676,6 +680,7 @@ public abstract class AbstractPackManager implements PackManager {
             this.generateItemModels(generatedPackPath, this.plugin.itemManager());
             this.generateItemModels(generatedPackPath, this.plugin.blockManager());
             this.generateBlockOverrides(generatedPackPath);
+            this.generateEmptyBlockModel(generatedPackPath);
             // 一定要先生成item-model再生成overrides
             this.generateModernItemModels1_21_2(generatedPackPath);
             this.generateModernItemModels1_21_4(generatedPackPath, revisions::add);
@@ -1245,7 +1250,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
         try {
             GsonHelper.writeJsonFile(particleJson, jsonPath);
-            Files.write(pngPath, EMPTY_IMAGE);
+            Files.write(pngPath, EMPTY_1X1_IMAGE);
         } catch (IOException e) {
             this.plugin.logger().severe("Error writing particles file", e);
         }
@@ -1630,6 +1635,37 @@ public abstract class AbstractPackManager implements PackManager {
         }
 
         return Pair.of(hasLayer1, hasLayer2);
+    }
+
+    private void generateEmptyBlockModel(Path generatedPackPath) {
+        if (!this.plugin.blockManager().isTransparentModelInUse()) return;
+        Path modelPath = generatedPackPath
+                .resolve("assets")
+                .resolve("minecraft")
+                .resolve("models")
+                .resolve("block")
+                .resolve("empty.json");
+        Path texturePath = generatedPackPath
+                .resolve("assets")
+                .resolve("minecraft")
+                .resolve("textures")
+                .resolve("block")
+                .resolve("empty.png");
+        try {
+            Files.createDirectories(modelPath.getParent());
+            GsonHelper.writeJsonFile(MiscUtils.init(new JsonObject(), o -> {
+                o.addProperty("parent", "minecraft:block/cube_all");
+                o.add("textures", MiscUtils.init(new JsonObject(), a -> a.addProperty("all", "minecraft:block/empty")));
+            }), modelPath);
+        } catch (IOException e) {
+            this.plugin.logger().severe("Error writing empty block model", e);
+        }
+        try {
+            Files.createDirectories(texturePath.getParent());
+            Files.write(texturePath, EMPTY_16X16_IMAGE);
+        } catch (IOException e) {
+            this.plugin.logger().severe("Error writing empty block texture", e);
+        }
     }
 
     private void generateClientLang(Path generatedPackPath) {

@@ -51,6 +51,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractBlockManager extends AbstractModelGenerator implements BlockManager {
+    private static final JsonElement EMPTY_VARIANT_MODEL = MiscUtils.init(new JsonObject(), o -> o.addProperty("model", "minecraft:block/empty"));
     protected final BlockParser blockParser;
     protected final BlockStateMappingParser blockStateMappingParser;
     // 根据id获取自定义方块
@@ -86,6 +87,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final Set<Key> tempVisualBlocksInUse = new HashSet<>();
     // 声音映射表，和使用了哪些视觉方块有关
     protected Map<Key, Key> soundReplacements = Map.of();
+    // 是否使用了透明方块模型
+    protected boolean isTransparentModelInUse = false;
 
     protected AbstractBlockManager(CraftEngine plugin, int vanillaBlockStateCount, int customBlockCount) {
         super(plugin);
@@ -128,6 +131,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.byId.clear();
         this.blockStateArranger.clear();
         this.appearanceToRealState.clear();
+        this.isTransparentModelInUse = false;
         Arrays.fill(this.blockStateMappings, -1);
         Arrays.fill(this.immutableBlockStates, EmptyBlock.STATE);
         Arrays.fill(this.autoVisualBlockStateCandidates, null);
@@ -142,6 +146,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.resendTags();
         this.processSounds();
         this.clearCache();
+    }
+
+    @Override
+    public boolean isTransparentModelInUse() {
+        return isTransparentModelInUse;
     }
 
     @Override
@@ -510,16 +519,27 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 this.visualBlockStateAllocator.assignFixedBlockState(appearanceName.isEmpty() ? id.asString() : id.asString() + ":" + appearanceName, parsePluginFormattedBlockState(appearanceSection.get("state").toString()))
                         );
                     } else if (appearanceSection.containsKey("auto-state")) {
-                        String autoStateId = appearanceSection.get("auto-state").toString();
-                        AutoStateGroup group = AutoStateGroup.byId(autoStateId);
+                        String appearanceName = entry.getKey();
+                        Object autoState = appearanceSection.get("auto-state");
+                        String autoStateType;
+                        String autoStateId;
+                        if (autoState instanceof Map<?,?> map) {
+                            Map<String, Object> config = ResourceConfigUtils.getAsMap(map, "auto-state");
+                            autoStateType = config.getOrDefault("type", "solid").toString();
+                            if (map.containsKey("id")) {
+                                autoStateId = autoStateType + "[id=" + map.get("id").toString() + "]";
+                            } else {
+                                autoStateId = appearanceName.isEmpty() ? id.asString() : id.asString() + "[appearance=" + appearanceName + "]";
+                            }
+                        } else {
+                            autoStateType = autoState.toString();
+                            autoStateId = appearanceName.isEmpty() ? id.asString() : id.asString() + "[appearance=" + appearanceName + "]";
+                        }
+                        AutoStateGroup group = AutoStateGroup.byId(autoStateType);
                         if (group == null) {
                             throw new LocalizedResourceConfigException("warning.config.block.state.invalid_auto_state", autoStateId, EnumUtils.toString(AutoStateGroup.values()));
                         }
-                        String appearanceName = entry.getKey();
-                        futureVisualStates.put(
-                                appearanceName,
-                                this.visualBlockStateAllocator.requestAutoState(appearanceName.isEmpty() ? id.asString() : id.asString() + ":" + appearanceName, group)
-                        );
+                        futureVisualStates.put(appearanceName, this.visualBlockStateAllocator.requestAutoState(autoStateId, group));
                     } else {
                         throw new LocalizedResourceConfigException("warning.config.block.state.missing_state");
                     }
@@ -551,7 +571,15 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                             AbstractBlockManager.this.plugin.logger().warn("Interrupted while allocating visual block state for block " + id.asString(), e);
                             return;
                         }
-                        this.arrangeModelForStateAndVerify(visualBlockState, ResourceConfigUtils.get(appearanceSection, "model", "models"));
+                        if (ResourceConfigUtils.getAsBoolean(appearanceSection.getOrDefault("transparent", false), "transparent")) {
+                            AbstractBlockManager.this.isTransparentModelInUse = true;
+                            this.arrangeModelForStateAndVerify(visualBlockState, EMPTY_VARIANT_MODEL);
+                        } else {
+                            Object modelConfig = ResourceConfigUtils.get(appearanceSection, "model", "models");
+                            if (modelConfig != null) {
+                                this.arrangeModelForStateAndVerify(visualBlockState, parseBlockModel(modelConfig));
+                            }
+                        }
                         BlockStateAppearance blockStateAppearance = new BlockStateAppearance(visualBlockState, parseBlockEntityRender(appearanceSection.get("entity-renderer")));
                         appearances.put(appearanceName, blockStateAppearance);
                         if (anyAppearance == null) {
@@ -668,37 +696,33 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             return properties;
         }
 
-        private void arrangeModelForStateAndVerify(BlockStateWrapper blockStateWrapper, Object modelOrModels) {
-            // 如果没有配置models
-            if (modelOrModels == null) {
-                return;
-            }
-            // 获取variants
+        @Nullable
+        private JsonElement parseBlockModel(Object modelOrModels) {
+            if (modelOrModels == null) return null;
             List<JsonObject> variants;
             if (modelOrModels instanceof String model) {
-                JsonObject json = new JsonObject();
-                json.addProperty("model", model);
-                variants = Collections.singletonList(json);
+                variants = Collections.singletonList(MiscUtils.init(new JsonObject(), j -> j.addProperty("model", model)));
             } else {
                 variants = ResourceConfigUtils.parseConfigAsList(modelOrModels, this::parseAppearanceModelSectionAsJson);
-                if (variants.isEmpty()) {
-                    return;
-                }
             }
+            return variants.isEmpty() ? null : GsonHelper.combine(variants);
+        }
+
+        private void arrangeModelForStateAndVerify(BlockStateWrapper blockStateWrapper, JsonElement variant) {
+            if (variant == null) return;
             // 拆分方块id与属性
             String blockState = blockStateWrapper.getAsString();
             int firstIndex = blockState.indexOf('[');
             Key blockId = firstIndex == -1 ? Key.of(blockState) : Key.of(blockState.substring(0, firstIndex));
             String propertyNBT = firstIndex == -1 ? "" : blockState.substring(firstIndex + 1, blockState.lastIndexOf(']'));
-            // 结合variants
-            JsonElement combinedVariant = GsonHelper.combine(variants);
+
             Map<String, JsonElement> overrideMap = AbstractBlockManager.this.blockStateOverrides.computeIfAbsent(blockId, k -> new HashMap<>());
             JsonElement previous = overrideMap.get(propertyNBT);
-            if (previous != null && !previous.equals(combinedVariant)) {
-                throw new LocalizedResourceConfigException("warning.config.block.state.model.conflict", GsonHelper.get().toJson(combinedVariant), blockState, GsonHelper.get().toJson(previous));
+            if (previous != null && !previous.equals(variant)) {
+                throw new LocalizedResourceConfigException("warning.config.block.state.model.conflict", GsonHelper.get().toJson(variant), blockState, GsonHelper.get().toJson(previous));
             }
-            overrideMap.put(propertyNBT, combinedVariant);
-            AbstractBlockManager.this.tempVanillaBlockStateModels[blockStateWrapper.registryId()] = combinedVariant;
+            overrideMap.put(propertyNBT, variant);
+            AbstractBlockManager.this.tempVanillaBlockStateModels[blockStateWrapper.registryId()] = variant;
         }
 
         private JsonObject parseAppearanceModelSectionAsJson(Map<String, Object> section) {

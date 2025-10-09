@@ -57,6 +57,9 @@ public class VisualBlockStateAllocator {
     }
 
     public CompletableFuture<BlockStateWrapper> requestAutoState(String name, AutoStateGroup group) {
+        if (this.pendingAllocations.containsKey(name)) {
+            return this.pendingAllocations.get(name).right();
+        }
         CompletableFuture<BlockStateWrapper> future = new CompletableFuture<>();
         this.pendingAllocations.put(name, new Pair<>(group, future));
         this.pendingAllocationFutures[group.ordinal()].add(Pair.of(name, future));

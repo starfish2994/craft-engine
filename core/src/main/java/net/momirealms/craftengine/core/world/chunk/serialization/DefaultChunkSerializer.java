@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class DefaultChunkSerializer {
 
+    private DefaultChunkSerializer() {}
+
     @Nullable
     public static CompoundTag serialize(@NotNull CEChunk chunk) {
         ListTag sections = new ListTag();
