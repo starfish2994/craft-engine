@@ -37,6 +37,8 @@ public interface ExistingBlock {
         return new WorldPosition(world(), x(), y(), z());
     }
 
+    boolean is(Key tag);
+
     World world();
 
     Key id();

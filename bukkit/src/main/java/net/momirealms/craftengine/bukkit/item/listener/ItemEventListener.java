@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
+import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.item.setting.FoodData;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
@@ -141,7 +142,7 @@ public class ItemEventListener implements Listener {
             Direction direction = DirectionUtils.toDirection(event.getBlockFace());
             BlockPos pos = LocationUtils.toBlockPos(block.getLocation());
             Vec3d vec3d = new Vec3d(interactionPoint.getX(), interactionPoint.getY(), interactionPoint.getZ());
-            hitResult = new BlockHitResult(vec3d, direction, pos, false);
+            hitResult = new BlockHitResult(vec3d, direction, pos, false); // todo 需要检测玩家是否在方块内
         }
 
         // 处理自定义方块
@@ -165,9 +166,8 @@ public class ItemEventListener implements Listener {
 
             // fix client side issues
             if (action.isRightClick() && hitResult != null &&
-                    InteractUtils.canPlace(player, BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().literalObject()), hitResult, itemInHand)) {
+                    InteractUtils.canPlaceVisualBlock(player, BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().literalObject()), hitResult, itemInHand)) {
                 player.updateInventory();
-                //PlayerUtils.resendItemInHand(player);
             }
 
             Cancellable dummy = Cancellable.dummy();
@@ -288,8 +288,9 @@ public class ItemEventListener implements Listener {
                     if (optionalCustomItem.get().settings().disableVanillaBehavior()) {
                         // 允许尝试放置方块
                         if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
-                            // todo 检测不可以放置方块
-                            event.setCancelled(true);
+                            if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(serverPlayer, hand, itemInHand, hitResult)))) {
+                                event.setCancelled(true);
+                            }
                         }
                     }
                 }

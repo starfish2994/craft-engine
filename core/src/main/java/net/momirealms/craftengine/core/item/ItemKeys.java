@@ -66,6 +66,13 @@ public final class ItemKeys {
     public static final Key MAGENTA_DYE = Key.of("minecraft:magenta_dye");
     public static final Key PINK_DYE = Key.of("minecraft:pink_dye");
 
+    public static final Key CARROT = Key.of("minecraft:carrot");
+    public static final Key POTATO = Key.of("minecraft:potato");
+    public static final Key BEETROOT_SEEDS = Key.of("minecraft:beetroot_seeds");
+    public static final Key WHEAT_SEEDS = Key.of("minecraft:wheat_seeds");
+    public static final Key SWEET_BERRIES = Key.of("minecraft:sweet_berries");
+    public static final Key GLOW_BERRIES = Key.of("minecraft:glow_berries");
+
     public static final Key[] AXES = new Key[] {WOODEN_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE};
 
     public static final Key[] WATER_BUCKETS = new Key[] {WATER_BUCKET, COD_BUCKET, SALMON_BUCKET, TROPICAL_FISH_BUCKET, TADPOLE_BUCKET, PUFFERFISH_BUCKET, AXOLOTL_BUCKET};

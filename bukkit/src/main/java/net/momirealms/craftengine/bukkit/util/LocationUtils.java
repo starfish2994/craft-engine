@@ -21,6 +21,10 @@ public final class LocationUtils {
         return new WorldPosition(new BukkitWorld(location.getWorld()), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
+    public static Object toVec(Vec3d vec) {
+        return FastNMS.INSTANCE.constructor$Vec3(vec.x, vec.y, vec.z);
+    }
+
     public static Vec3d toVec3d(Location loc) {
         return new Vec3d(loc.getX(), loc.getY(), loc.getZ());
     }

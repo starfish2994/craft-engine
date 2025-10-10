@@ -44,6 +44,7 @@ public final class BlockKeys {
     public static final Key DECORATED_POT = Key.of("minecraft:decorated_pot");
     public static final Key CHISELED_BOOKSHELF = Key.of("minecraft:chiseled_bookshelf");
     public static final Key LECTERN = Key.of("minecraft:lectern");
+    public static final Key FARMLAND = Key.of("minecraft:farmland");
 
     public static final Key CHEST = Key.of("minecraft:chest");
     public static final Key BARREL = Key.of("minecraft:barrel");

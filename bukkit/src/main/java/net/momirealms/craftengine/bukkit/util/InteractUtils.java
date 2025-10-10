@@ -5,13 +5,17 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.behavior.BlockItemBehavior;
 import net.momirealms.craftengine.bukkit.item.behavior.FlintAndSteelItemBehavior;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.BlockKeys;
 import net.momirealms.craftengine.core.entity.EntityTypeKeys;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
+import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.item.modifier.AttributeModifiersModifier;
 import net.momirealms.craftengine.core.item.recipe.RecipeType;
 import net.momirealms.craftengine.core.item.recipe.UniqueIdItem;
@@ -712,7 +716,6 @@ public final class InteractUtils {
         registerInteraction(BlockKeys.WARPED_WALL_HANGING_SIGN, (player, item, blockState, result) -> true);
     }
 
-    // 消耗
     static {
         registerCanPlace(BlockKeys.CACTUS, (player, item, blockState, result) -> {
             Key id = item.vanillaId();
@@ -936,7 +939,7 @@ public final class InteractUtils {
     private static void registerCanPlace(Key key, QuadFunction<org.bukkit.entity.Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean> function) {
         var previous = CAN_PLACE.put(key, function);
         if (previous != null) {
-            CraftEngine.instance().logger().warn("Duplicated interaction check: " + key);
+            CraftEngine.instance().logger().warn("Duplicated can place check: " + key);
         }
     }
 
@@ -955,8 +958,9 @@ public final class InteractUtils {
         return false;
     }
 
-    // 这个方法用于解决玩家使用仙人掌放在基于仙人掌的方块上，物品暂时消失的类似问题
-    public static boolean canPlace(Player player, BlockData state, BlockHitResult hit, @Nullable Item<ItemStack> item) {
+    // 这个方法用于解决玩家使用仙人掌放在基于仙人掌的方块上，物品暂时消失的类似问题，但是无法彻底解决
+    // todo 需要通过创建代理Level来实现getBlockState的方法拦截，从而实现模拟客户端测的方块状态更新，这个过程可能也需要创建代理Chunk和代理Section
+    public static boolean canPlaceVisualBlock(Player player, BlockData state, BlockHitResult hit, @Nullable Item<ItemStack> item) {
         if (item == null) return false;
         Key blockType = BlockStateUtils.getBlockOwnerIdFromData(state);
         if (CAN_PLACE.containsKey(blockType)) {
@@ -1045,5 +1049,31 @@ public final class InteractUtils {
     private static boolean canBeSheared(Entity entity, Item<ItemStack> item) {
         Key id = item.vanillaId();
         return entity instanceof Shearable shearable && shearable.readyToBeSheared() && ItemKeys.SHEARS.equals(id);
+    }
+
+    public static boolean canPlaceBlock(BlockPlaceContext context) {
+        Object item = FastNMS.INSTANCE.method$ItemStack$getItem(context.getItem().getLiteralObject());
+        Object block = FastNMS.INSTANCE.method$BlockItem$getBlock(item);
+        Object stateToPlace = FastNMS.INSTANCE.method$Block$getStateForPlacement(block, toNMSBlockPlaceContext(context));
+        return FastNMS.INSTANCE.method$BlockStateBase$canSurvive(stateToPlace, context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()));
+    }
+
+    private static Object toNMSHitResult(BlockHitResult result) {
+        return FastNMS.INSTANCE.constructor$BlockHitResult(
+                LocationUtils.toVec(result.getLocation()),
+                DirectionUtils.toNMSDirection(result.getDirection()),
+                LocationUtils.toBlockPos(result.getBlockPos()),
+                result.isInside()
+        );
+    }
+
+    private static Object toNMSBlockPlaceContext(BlockPlaceContext context) {
+        return FastNMS.INSTANCE.constructor$BlockPlaceContext(
+                context.getLevel().serverWorld(),
+                Optional.ofNullable(context.getPlayer()).map(net.momirealms.craftengine.core.entity.player.Player::serverPlayer).orElse(null),
+                context.getHand() == InteractionHand.MAIN_HAND ? CoreReflections.instance$InteractionHand$MAIN_HAND : CoreReflections.instance$InteractionHand$OFF_HAND,
+                context.getItem().getLiteralObject(),
+                toNMSHitResult(context.getHitResult())
+        );
     }
 }
