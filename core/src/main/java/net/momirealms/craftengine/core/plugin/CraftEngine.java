@@ -35,6 +35,7 @@ import net.momirealms.craftengine.core.plugin.logger.filter.LogFilter;
 import net.momirealms.craftengine.core.plugin.network.NetworkManager;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.sound.SoundManager;
+import net.momirealms.craftengine.core.util.CompletableFutures;
 import net.momirealms.craftengine.core.world.WorldManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
@@ -159,24 +160,27 @@ public abstract class CraftEngine implements Plugin {
                 } catch (Exception e) {
                     this.logger().warn("Failed to load resources folder", e);
                 }
-                // register trims
-                this.itemManager.delayedLoad();
-                // init suggestions and packet mapper
-                this.blockManager.delayedLoad();
-                // handle some special client lang for instance block_name
-                this.translationManager.delayedLoad();
-                // init suggestions
-                this.furnitureManager.delayedLoad();
-                // sort the categories
-                this.itemBrowserManager.delayedLoad();
-                // collect illegal characters from minecraft:default font
-                this.fontManager.delayedLoad();
-                this.advancementManager.delayedLoad();
-                this.soundManager.delayedLoad();
+                List<CompletableFuture<Void>> delayedLoadTasks = new ArrayList<>();
+                // 指令补全，重置外部配方原料
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.itemManager.delayedLoad(), this.scheduler.async()));
+                // 重置映射表，指令补全，发送tags，收集声音
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.blockManager.delayedLoad(), this.scheduler.async()));
+                // 处理block_name特殊语言键
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.translationManager.delayedLoad(), this.scheduler.async()));
+                // 指令补全
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.furnitureManager.delayedLoad(), this.scheduler.async()));
+                // 处理外部category，加载ui常量
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.itemBrowserManager.delayedLoad(), this.scheduler.async()));
+                // 收集非法字符，构造前缀树，指令补全
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.fontManager.delayedLoad(), this.scheduler.async()));
+                // 指令补全
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.soundManager.delayedLoad(), this.scheduler.async()));
+                // 如果重载配方
                 if (reloadRecipe) {
-                    // convert data pack recipes
-                    this.recipeManager.delayedLoad();
+                    // 转换数据包配方
+                    delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.recipeManager.delayedLoad(), this.scheduler.async()));
                 }
+                CompletableFutures.allOf(delayedLoadTasks).join();
                 long time2 = System.currentTimeMillis();
                 asyncTime = time2 - time1;
             } finally {
