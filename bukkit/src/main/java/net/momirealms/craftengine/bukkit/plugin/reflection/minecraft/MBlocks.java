@@ -28,6 +28,10 @@ public final class MBlocks {
     public static final Object MELON = getById("melon");
     public static final Object PUMPKIN = getById("pumpkin");
     public static final Object FARMLAND = getById("farmland");
+    public static final Object LODESTONE = getById("lodestone");
+    public static final Object BEDROCK = getById("bedrock");
+    public static final Object OBSIDIAN = getById("obsidian");
+    public static final Object END_PORTAL_FRAME = getById("end_portal_frame");
 
     private static Object getById(String id) {
         Object rl = FastNMS.INSTANCE.method$ResourceLocation$fromNamespaceAndPath("minecraft", id);

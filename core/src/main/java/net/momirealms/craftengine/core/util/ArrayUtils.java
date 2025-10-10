@@ -1,10 +1,7 @@
 package net.momirealms.craftengine.core.util;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class ArrayUtils {
 
@@ -75,6 +72,18 @@ public class ArrayUtils {
         return value.substring(value.indexOf('[') + 1, value.lastIndexOf(']'))
                 .replaceAll("\\s", "")
                 .split(",");
+    }
+
+    public static <T> boolean contains(T[] array, T element) {
+        if (array == null || element == null) {
+            return false;
+        }
+        for (T item : array) {
+            if (Objects.equals(item, element)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean isEmpty(Object[] array) {
