@@ -48,7 +48,7 @@ public final class ItemKeys {
     public static final Key END_CRYSTAL = Key.of("minecraft:end_crystal");
     public static final Key COD = Key.of("minecraft:cod");
     public static final Key SALMON = Key.of("minecraft:salmon");
-
+    public static final Key SUGAR_CANE = Key.of("minecraft:sugar_cane");
     public static final Key WHITE_DYE = Key.of("minecraft:white_dye");
     public static final Key LIGHT_GRAY_DYE = Key.of("minecraft:light_gray_dye");
     public static final Key GRAY_DYE = Key.of("minecraft:gray_dye");

@@ -45,7 +45,7 @@ import java.util.Optional;
 
 public final class InteractUtils {
     private static final Map<Key, QuadFunction<Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean>> INTERACTIONS = new HashMap<>();
-    private static final Map<Key, QuadFunction<Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean>> WILL_CONSUME = new HashMap<>();
+    private static final Map<Key, QuadFunction<Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean>> CAN_PLACE = new HashMap<>();
     private static final Map<Key, TriFunction<Player, Entity, @Nullable Item<ItemStack>, Boolean>> ENTITY_INTERACTIONS = new HashMap<>();
 
     private static final Key NOTE_BLOCK_TOP_INSTRUMENTS = Key.of("minecraft:noteblock_top_instruments");
@@ -714,9 +714,13 @@ public final class InteractUtils {
 
     // 消耗
     static {
-        registerWillConsume(BlockKeys.CACTUS, (player, item, blockState, result) -> {
+        registerCanPlace(BlockKeys.CACTUS, (player, item, blockState, result) -> {
             Key id = item.vanillaId();
             return result.getDirection() == Direction.UP && ItemKeys.CACTUS.equals(id);
+        });
+        registerCanPlace(BlockKeys.SUGAR_CANE, (player, item, blockState, result) -> {
+            Key id = item.vanillaId();
+            return result.getDirection() == Direction.UP && ItemKeys.SUGAR_CANE.equals(id);
         });
     }
 
@@ -929,8 +933,8 @@ public final class InteractUtils {
         }
     }
 
-    private static void registerWillConsume(Key key, QuadFunction<org.bukkit.entity.Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean> function) {
-        var previous = WILL_CONSUME.put(key, function);
+    private static void registerCanPlace(Key key, QuadFunction<org.bukkit.entity.Player, Item<ItemStack>, BlockData, BlockHitResult, Boolean> function) {
+        var previous = CAN_PLACE.put(key, function);
         if (previous != null) {
             CraftEngine.instance().logger().warn("Duplicated interaction check: " + key);
         }
@@ -951,11 +955,12 @@ public final class InteractUtils {
         return false;
     }
 
-    public static boolean willConsume(Player player, BlockData state, BlockHitResult hit, @Nullable Item<ItemStack> item) {
+    // 这个方法用于解决玩家使用仙人掌放在基于仙人掌的方块上，物品暂时消失的类似问题
+    public static boolean canPlace(Player player, BlockData state, BlockHitResult hit, @Nullable Item<ItemStack> item) {
         if (item == null) return false;
         Key blockType = BlockStateUtils.getBlockOwnerIdFromData(state);
-        if (WILL_CONSUME.containsKey(blockType)) {
-            return WILL_CONSUME.get(blockType).apply(player, item, state, hit);
+        if (CAN_PLACE.containsKey(blockType)) {
+            return CAN_PLACE.get(blockType).apply(player, item, state, hit);
         }
         return false;
     }
