@@ -3,7 +3,6 @@ package net.momirealms.craftengine.bukkit.util;
 import io.papermc.paper.entity.Shearable;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.behavior.BlockItemBehavior;
-import net.momirealms.craftengine.bukkit.item.behavior.EnderEyeItemBehavior;
 import net.momirealms.craftengine.bukkit.item.behavior.FlintAndSteelItemBehavior;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
@@ -168,13 +167,8 @@ public final class InteractUtils {
         });
         registerInteraction(BlockKeys.DRAGON_EGG, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.END_PORTAL_FRAME, (player, item, blockState, result) -> {
-            Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
-            if (behaviors.isPresent()) {
-                for (ItemBehavior behavior : behaviors.get()) {
-                    if (behavior instanceof EnderEyeItemBehavior) return true;
-                }
-            }
-            return false;
+            Key id = item.vanillaId();
+            return ItemKeys.ENDER_EYE.equals(id);
         });
         registerInteraction(BlockKeys.VAULT, (player, item, blockState, result) -> blockState instanceof Vault vault && vault.getVaultState() == Vault.State.ACTIVE);
         registerInteraction(BlockKeys.SPAWNER, (player, item, blockState, result) -> {

@@ -285,14 +285,10 @@ public class ItemEventListener implements Listener {
                 }
                 // custom item
                 else {
-                    if (optionalCustomItem.get().settings().canPlaceRelatedVanillaBlock()) {
-                        // 如果用户设置了允许放置对应的原版方块，那么直接返回。
-                        // 这种情况下最好是return，以避免同时触发多个behavior发生冲突
-                        // 当用户选择其作为原版方块放下时，自定义行为可能已经不重要了？
-                        return;
-                    } else {
-                        // todo 实际上这里的处理并不正确，因为判断玩家是否能够放置那个方块需要更加细节的判断。比如玩家无法对着树叶放置火把，但是交互事件依然触发，此情况下不可丢弃自定义行为。
+                    if (optionalCustomItem.get().settings().disableVanillaBehavior()) {
+                        // 允许尝试放置方块
                         if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
+                            // todo 检测不可以放置方块
                             event.setCancelled(true);
                         }
                     }

@@ -27,7 +27,7 @@ public class ItemSettings {
     Repairable repairable = Repairable.UNDEFINED;
     List<AnvilRepairItem> anvilRepairItems = List.of();
     boolean renameable = true;
-    boolean canPlaceRelatedVanillaBlock = false;
+    boolean disableVanillaBehavior = true;
     ProjectileMeta projectileMeta;
     Tristate dyeable = Tristate.UNDEFINED;
     Helmet helmet = null;
@@ -92,7 +92,7 @@ public class ItemSettings {
         newSettings.repairable = settings.repairable;
         newSettings.anvilRepairItems = settings.anvilRepairItems;
         newSettings.renameable = settings.renameable;
-        newSettings.canPlaceRelatedVanillaBlock = settings.canPlaceRelatedVanillaBlock;
+        newSettings.disableVanillaBehavior = settings.disableVanillaBehavior;
         newSettings.projectileMeta = settings.projectileMeta;
         newSettings.dyeable = settings.dyeable;
         newSettings.helmet = settings.helmet;
@@ -125,8 +125,8 @@ public class ItemSettings {
         return projectileMeta;
     }
 
-    public boolean canPlaceRelatedVanillaBlock() {
-        return canPlaceRelatedVanillaBlock;
+    public boolean disableVanillaBehavior() {
+        return disableVanillaBehavior;
     }
 
     public Repairable repairable() {
@@ -263,8 +263,8 @@ public class ItemSettings {
         return this;
     }
 
-    public ItemSettings canPlaceRelatedVanillaBlock(boolean canPlaceRelatedVanillaBlock) {
-        this.canPlaceRelatedVanillaBlock = canPlaceRelatedVanillaBlock;
+    public ItemSettings disableVanillaBehavior(boolean disableVanillaBehavior) {
+        this.disableVanillaBehavior = disableVanillaBehavior;
         return this;
     }
 
@@ -408,7 +408,11 @@ public class ItemSettings {
             }));
             registerFactory("can-place", (value -> {
                 boolean bool = ResourceConfigUtils.getAsBoolean(value, "can-place");
-                return settings -> settings.canPlaceRelatedVanillaBlock(bool);
+                return settings -> settings.disableVanillaBehavior(!bool);
+            }));
+            registerFactory("disable-vanilla-behavior", (value -> {
+                boolean bool = ResourceConfigUtils.getAsBoolean(value, "disable-vanilla-behavior");
+                return settings -> settings.disableVanillaBehavior(bool);
             }));
             registerFactory("projectile", (value -> {
                 Map<String, Object> args = MiscUtils.castToMap(value, false);

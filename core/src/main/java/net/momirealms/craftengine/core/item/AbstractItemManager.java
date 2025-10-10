@@ -569,11 +569,11 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 try {
                     settings = Optional.ofNullable(ResourceConfigUtils.get(section, "settings"))
                             .map(map -> ItemSettings.fromMap(MiscUtils.castToMap(map, true)))
-                            .map(it -> isVanillaItem ? it.canPlaceRelatedVanillaBlock(true) : it)
-                            .orElse(ItemSettings.of().canPlaceRelatedVanillaBlock(isVanillaItem));
+                            .map(it -> isVanillaItem ? it.disableVanillaBehavior(true) : it)
+                            .orElse(ItemSettings.of().disableVanillaBehavior(isVanillaItem));
                 } catch (LocalizedResourceConfigException e) {
                     collector.add(e);
-                    settings = ItemSettings.of().canPlaceRelatedVanillaBlock(isVanillaItem);
+                    settings = ItemSettings.of().disableVanillaBehavior(isVanillaItem);
                 }
 
                 // 行为

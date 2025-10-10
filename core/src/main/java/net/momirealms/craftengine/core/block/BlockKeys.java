@@ -75,7 +75,6 @@ public final class BlockKeys {
     public static final Key CRAFTER = Key.of("minecraft:crafter");
     public static final Key HOPPER = Key.of("minecraft:hopper");
     public static final Key OBSERVER = Key.of("minecraft:observer");
-    public static final Key NOTE_BLOCK = Key.of("minecraft:note_block");
     public static final Key DETECTOR_RAIL = Key.of("minecraft:detector_rail");
     public static final Key TNT = Key.of("minecraft:tnt");
     public static final Key REDSTONE_ORE = Key.of("minecraft:redstone_ore");
@@ -304,8 +303,6 @@ public final class BlockKeys {
     public static final Key BAMBOO_WALL_HANGING_SIGN = Key.of("minecraft:bamboo_wall_hanging_sign");
     public static final Key CRIMSON_WALL_HANGING_SIGN = Key.of("minecraft:crimson_wall_hanging_sign");
     public static final Key WARPED_WALL_HANGING_SIGN = Key.of("minecraft:warped_wall_hanging_sign");
-  
-    public static final Key CACTUS = Key.of("minecraft:cactus");
 
     public static final Key BROWN_MUSHROOM_BLOCK = Key.of("minecraft:brown_mushroom_block");
     public static final Key RED_MUSHROOM_BLOCK = Key.of("minecraft:red_mushroom_block");
