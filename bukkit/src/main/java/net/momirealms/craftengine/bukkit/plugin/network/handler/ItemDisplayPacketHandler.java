@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
@@ -16,6 +17,7 @@ public class ItemDisplayPacketHandler implements EntityPacketHandler {
 
     @Override
     public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
+        if (Config.disableItemOperations()) return;
         FriendlyByteBuf buf = event.getBuffer();
         int id = buf.readVarInt();
         List<Object> packedItems = FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$unpack(buf);

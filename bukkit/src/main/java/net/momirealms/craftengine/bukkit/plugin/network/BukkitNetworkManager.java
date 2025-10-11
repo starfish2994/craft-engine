@@ -1953,9 +1953,9 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 heightmaps = buf.readNbt(named);
             }
 
-            int varInt = buf.readVarInt();
-            byte[] buffer = new byte[varInt];
-            buf.readBytes(buffer);
+            int chunkDataBufferSize = buf.readVarInt();
+            byte[] chunkDataBytes = new byte[chunkDataBufferSize];
+            buf.readBytes(chunkDataBytes);
             int blockEntitiesDataCount = buf.readVarInt();
             List<BlockEntityData> blockEntitiesData = new ArrayList<>();
             for (int i = 0; i < blockEntitiesDataCount; i++) {
@@ -1973,14 +1973,16 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             BitSet emptyBlockYMask = buf.readBitSet();
             List<byte[]> skyUpdates = buf.readByteArrayList(2048);
             List<byte[]> blockUpdates = buf.readByteArrayList(2048);
+
+            int count = player.clientSideSectionCount();
+            MCSection[] sections = new MCSection[count];
+
+            FriendlyByteBuf chunkDataByteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(chunkDataBytes));
             // 开始处理
             if (user.clientModEnabled()) {
-                ByteBuf byteBuf = Unpooled.copiedBuffer(buffer);
-                FriendlyByteBuf friendlyByteBuf = new FriendlyByteBuf(byteBuf);
-                FriendlyByteBuf newBuf = new FriendlyByteBuf(Unpooled.buffer());
-                for (int i = 0, count = player.clientSideSectionCount(); i < count; i++) {
+                for (int i = 0; i < count; i++) {
                     MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
-                    mcSection.readPacket(friendlyByteBuf);
+                    mcSection.readPacket(chunkDataByteBuf);
                     PalettedContainer<Integer> container = mcSection.blockStateContainer();
                     remapBiomes(user, mcSection.biomeContainer());
                     Palette<Integer> palette = container.data().palette();
@@ -1995,16 +1997,12 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                             }
                         }
                     }
-                    mcSection.writePacket(newBuf);
+                    sections[i] = mcSection;
                 }
-                buffer = newBuf.array();
             } else {
-                ByteBuf byteBuf = Unpooled.copiedBuffer(buffer);
-                FriendlyByteBuf friendlyByteBuf = new FriendlyByteBuf(byteBuf);
-                FriendlyByteBuf newBuf = new FriendlyByteBuf(Unpooled.buffer());
-                for (int i = 0, count = player.clientSideSectionCount(); i < count; i++) {
+                for (int i = 0; i < count; i++) {
                     MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
-                    mcSection.readPacket(friendlyByteBuf);
+                    mcSection.readPacket(chunkDataByteBuf);
                     PalettedContainer<Integer> container = mcSection.blockStateContainer();
                     remapBiomes(user, mcSection.biomeContainer());
                     Palette<Integer> palette = container.data().palette();
@@ -2019,10 +2017,15 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                             }
                         }
                     }
-                    mcSection.writePacket(newBuf);
+                    sections[i] = mcSection;
                 }
-                buffer = newBuf.array();
             }
+
+            FriendlyByteBuf newChunkDataBuf = new FriendlyByteBuf(Unpooled.buffer(chunkDataBufferSize));
+            for (int i = 0; i < count; i++) {
+                sections[i].writePacket(newChunkDataBuf);
+            }
+            chunkDataBytes = newChunkDataBuf.array();
 
             // 开始修改
             event.setChanged(true);
@@ -2039,8 +2042,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             } else {
                 buf.writeNbt(heightmaps, named);
             }
-            buf.writeVarInt(buffer.length);
-            buf.writeBytes(buffer);
+            buf.writeVarInt(chunkDataBytes.length);
+            buf.writeBytes(chunkDataBytes);
             buf.writeVarInt(blockEntitiesDataCount);
             for (BlockEntityData blockEntityData : blockEntitiesData) {
                 buf.writeByte(blockEntityData.packedXZ());
@@ -2467,6 +2470,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!Config.interceptSystemChat() && Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
             String jsonOrPlainString = buf.readUtf();
             Tag tag = MRegistryOps.JSON.convertTo(MRegistryOps.SPARROW_NBT, GsonHelper.get().fromJson(jsonOrPlainString, JsonElement.class));
@@ -2481,7 +2485,9 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
                 }
             }
-            component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            if (!Config.disableItemOperations()) {
+                component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            }
             buf.writeUtf(MRegistryOps.SPARROW_NBT.convertTo(MRegistryOps.JSON, AdventureHelper.componentToNbt(component)).toString());
             buf.writeBoolean(overlay);
         }
@@ -2491,6 +2497,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!Config.interceptSystemChat() && Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
             Tag nbt = buf.readNbt(false);
             if (nbt == null) return;
@@ -2505,7 +2512,9 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
                 }
             }
-            component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            if (!Config.disableItemOperations()) {
+                component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            }
             buf.writeNbt(AdventureHelper.componentToTag(component), false);
             buf.writeBoolean(overlay);
         }
@@ -2997,6 +3006,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
             List<RecipeBookEntry> entries = buf.readCollection(ArrayList::new, byteBuf -> {
                 RecipeBookEntry entry = RecipeBookEntry.read(byteBuf);
@@ -3016,6 +3026,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!VersionHelper.isOrAbove1_21_2()) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();
@@ -3033,6 +3044,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (VersionHelper.isOrAbove1_21_2()) return;
             FriendlyByteBuf buf = event.getBuffer();
             List<LegacyRecipeHolder> holders = buf.readCollection(ArrayList::new, byteBuf -> {
@@ -3181,6 +3193,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();
@@ -3211,6 +3224,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();
@@ -3240,6 +3254,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
@@ -3256,6 +3271,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
 
@@ -3291,6 +3307,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int slot = buf.readVarInt();
@@ -3310,6 +3327,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             if (!serverPlayer.isCreativeMode()) return;
             FriendlyByteBuf buf = event.getBuffer();
@@ -3341,6 +3359,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
 
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
@@ -3778,6 +3797,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();
@@ -3834,6 +3854,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         @SuppressWarnings("unchecked")
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();

@@ -7,6 +7,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityDataUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
@@ -20,6 +21,7 @@ public class CommonItemPacketHandler implements EntityPacketHandler {
 
     @Override
     public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
+        if (Config.disableItemOperations()) return;
         FriendlyByteBuf buf = event.getBuffer();
         int id = buf.readVarInt();
 
