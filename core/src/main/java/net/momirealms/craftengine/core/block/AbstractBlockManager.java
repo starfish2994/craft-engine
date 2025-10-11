@@ -363,15 +363,17 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             } catch (IOException e) {
                 AbstractBlockManager.this.plugin.logger().warn("Error while loading custom block states allocation cache", e);
             }
-            for (PendingConfigSection section : this.pendingConfigSections) {
-                ResourceConfigUtils.runCatching(
-                        section.path(),
-                        section.node(),
-                        () -> parseSection(section.pack(), section.path(), section.node(), section.id(), section.config()),
-                        () -> GsonHelper.get().toJson(section.config())
-                );
+            if (!this.pendingConfigSections.isEmpty()) {
+                for (PendingConfigSection section : this.pendingConfigSections) {
+                    ResourceConfigUtils.runCatching(
+                            section.path(),
+                            section.node(),
+                            () -> parseSection(section.pack(), section.path(), section.node(), section.id(), section.config()),
+                            () -> GsonHelper.get().toJson(section.config())
+                    );
+                }
+                this.pendingConfigSections.clear();
             }
-            this.pendingConfigSections.clear();
         }
 
         @Override
