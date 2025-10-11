@@ -11,7 +11,6 @@ import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigExce
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import org.incendo.cloud.type.Either;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,7 +112,7 @@ public class SelectItemModel implements ItemModel {
         @Override
         public ItemModel create(Map<String, Object> arguments) {
             SelectProperty property = SelectProperties.fromMap(arguments);
-            Map<String, Object> fallback = MiscUtils.castToMap(arguments.get("fallback"), true);
+            Object fallback = arguments.get("fallback");
             Object casesObj = arguments.get("cases");
             if (casesObj instanceof List<?> list) {
                 List<Map<String, Object>> cases = (List<Map<String, Object>>) list;
@@ -138,9 +137,13 @@ public class SelectItemModel implements ItemModel {
                         if (model == null) {
                             throw new LocalizedResourceConfigException("warning.config.item.model.select.case.missing_model");
                         }
-                        whenMap.put(either, ItemModels.fromMap(MiscUtils.castToMap(model, false)));
+                        whenMap.put(either, ItemModels.fromObj(model));
                     }
-                    return new SelectItemModel(property, whenMap, fallback == null ? null : ItemModels.fromMap(fallback));
+                    return new SelectItemModel(
+                            property,
+                            whenMap,
+                            fallback == null ? null : ItemModels.fromObj(fallback)
+                    );
                 } else {
                     throw new LocalizedResourceConfigException("warning.config.item.model.select.missing_cases");
                 }

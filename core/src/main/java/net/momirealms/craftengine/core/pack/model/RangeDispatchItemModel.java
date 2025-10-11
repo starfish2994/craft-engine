@@ -10,7 +10,6 @@ import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,7 +114,7 @@ public class RangeDispatchItemModel implements ItemModel {
         public ItemModel create(Map<String, Object> arguments) {
             RangeDispatchProperty property = RangeDispatchProperties.fromMap(arguments);
             float scale = ResourceConfigUtils.getAsFloat(arguments.getOrDefault("scale", 1.0), "scale");
-            Map<String, Object> fallback = MiscUtils.castToMap(arguments.get("fallback"), true);
+            Object fallback = arguments.get("fallback");
             Object entriesObj = arguments.get("entries");
             if (entriesObj instanceof List<?> list) {
                 List<Map<String, Object>> entries = (List<Map<String, Object>>) list;
@@ -127,9 +126,14 @@ public class RangeDispatchItemModel implements ItemModel {
                         if (model == null) {
                             throw new LocalizedResourceConfigException("warning.config.item.model.range_dispatch.entry.missing_model");
                         }
-                        entryMap.put(threshold, ItemModels.fromMap(MiscUtils.castToMap(model, false)));
+                        entryMap.put(threshold, ItemModels.fromObj(model));
                     }
-                    return new RangeDispatchItemModel(property, scale, fallback == null ? null : ItemModels.fromMap(fallback), entryMap);
+                    return new RangeDispatchItemModel(
+                            property,
+                            scale,
+                            fallback == null ? null : ItemModels.fromObj(fallback),
+                            entryMap
+                    );
                 } else {
                     throw new LocalizedResourceConfigException("warning.config.item.model.range_dispatch.missing_entries");
                 }

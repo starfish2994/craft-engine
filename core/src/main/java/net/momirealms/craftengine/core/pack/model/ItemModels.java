@@ -6,8 +6,10 @@ import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
+import java.util.List;
 import java.util.Map;
 
 public class ItemModels {
@@ -47,6 +49,15 @@ public class ItemModels {
     public static void registerReader(Key key, ItemModelReader reader) {
         ((WritableRegistry<ItemModelReader>) BuiltInRegistries.ITEM_MODEL_READER)
                 .register(ResourceKey.create(Registries.ITEM_MODEL_READER.location(), key), reader);
+    }
+
+    public static ItemModel fromObj(Object object) {
+        if (object == null) return null;
+        if (object instanceof Map<?,?> map) {
+            return fromMap(MiscUtils.castToMap(map, false));
+        } else {
+            return new BaseItemModel(object.toString(), List.of(), null);
+        }
     }
 
     public static ItemModel fromMap(Map<String, Object> map) {

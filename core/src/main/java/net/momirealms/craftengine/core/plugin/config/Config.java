@@ -165,6 +165,7 @@ public class Config {
     protected int item$custom_model_data_starting_value$default;
     protected Map<Key, Integer> item$custom_model_data_starting_value$overrides;
     protected boolean item$always_use_item_model;
+    protected String item$default_material = "";
 
     protected String equipment$sacrificed_vanilla_armor$type;
     protected Key equipment$sacrificed_vanilla_armor$asset_id;
@@ -409,6 +410,7 @@ public class Config {
         item$update_triggers$pick_up = config.getBoolean("item.update-triggers.pick-up", false);
         item$custom_model_data_starting_value$default = config.getInt("item.custom-model-data-starting-value.default", 10000);
         item$always_use_item_model = config.getBoolean("item.always-use-item-model", true) && VersionHelper.isOrAbove1_21_2();
+        item$default_material = config.getString("item.default-material", "");
 
         Section customModelDataOverridesSection = config.getSection("item.custom-model-data-starting-value.overrides");
         if (customModelDataOverridesSection != null) {
@@ -990,6 +992,10 @@ public class Config {
 
     public static boolean asyncLightUpdate() {
         return instance.light_system$async_update;
+    }
+
+    public static String defaultMaterial() {
+        return instance.item$default_material;
     }
 
     public void setObf(boolean enable) {

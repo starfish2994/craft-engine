@@ -431,8 +431,9 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
             // 判断是不是原版物品
             boolean isVanillaItem = isVanillaItem(id);
 
+            String materialString = ResourceConfigUtils.requireNonEmptyStringOrThrow(section.getOrDefault("material", Config.defaultMaterial()), "warning.config.item.missing_material");
             // 读取服务端侧材质
-            Key material = isVanillaItem ? id : Key.from(ResourceConfigUtils.requireNonEmptyStringOrThrow(section.get("material"), "warning.config.item.missing_material").toLowerCase(Locale.ROOT));
+            Key material = isVanillaItem ? id : Key.from(materialString.toLowerCase(Locale.ROOT));
             // 读取客户端侧材质
             Key clientBoundMaterial = VersionHelper.PREMIUM && section.containsKey("client-bound-material") ? Key.from(section.get("client-bound-material").toString().toLowerCase(Locale.ROOT)) : material;
 
@@ -519,7 +520,8 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 CustomItem.Builder<I> itemBuilder = createPlatformItemBuilder(uniqueId, material, clientBoundMaterial);
 
                 // 模型配置区域，如果这里被配置了，那么用户必须要配置custom-model-data或item-model
-                Map<String, Object> modelSection = MiscUtils.castToMap(section.get("model"), true);
+                // model可以是一个string也可以是一个区域
+                Object modelSection = section.get("model");
                 Map<String, Object> legacyModelSection = MiscUtils.castToMap(section.get("legacy-model"), true);
                 boolean hasModelSection = modelSection != null || legacyModelSection != null;
 
@@ -655,7 +657,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                         return;
                     }
                     try {
-                        modernModel = ItemModels.fromMap(modelSection);
+                        modernModel = ItemModels.fromObj(modelSection);
                         for (ModelGeneration generation : modernModel.modelsToGenerate()) {
                             prepareModelGeneration(generation);
                         }
