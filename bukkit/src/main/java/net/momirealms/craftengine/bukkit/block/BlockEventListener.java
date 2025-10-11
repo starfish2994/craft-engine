@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.block;
 
 import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
+import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockBreakEvent;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -94,17 +95,6 @@ public final class BlockEventListener implements Listener {
             Object soundEvent = FastNMS.INSTANCE.field$SoundType$placeSound(soundType);
             Object soundId = FastNMS.INSTANCE.field$SoundEvent$location(soundEvent);
             player.playSound(block.getLocation().add(0.5, 0.5, 0.5), soundId.toString(), SoundCategory.BLOCKS, 1f, 0.8f);
-        }
-
-        ItemStack itemInHand = event.getItemInHand();
-        Item<ItemStack> wrap = this.plugin.itemManager().wrap(itemInHand);
-        Optional<CustomItem<ItemStack>> optionalCustomItem = wrap.getCustomItem();
-        if (optionalCustomItem.isPresent()) {
-            CustomItem<ItemStack> customItem = optionalCustomItem.get();
-            // 阻止放置方块
-            if (customItem.settings().disableVanillaBehavior()) {
-                event.setCancelled(true);
-            }
         }
     }
 

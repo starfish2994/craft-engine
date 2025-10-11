@@ -283,18 +283,18 @@ public class ItemEventListener implements Listener {
                         }
                     }
                 }
-                // 迁移到了BlockPlaceEvent里
-//                // custom item
-//                else {
-//                    if (optionalCustomItem.get().settings().disableVanillaBehavior()) {
-//                        // 允许尝试放置方块
-//                        if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
-//                            if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(serverPlayer, hand, itemInHand, hitResult)))) {
-//                                event.setCancelled(true);
-//                            }
-//                        }
-//                    }
-//                }
+                // custom item
+                else {
+                    if (optionalCustomItem.get().settings().disableVanillaBehavior()) {
+                        // 不能在BlockPlaceEvent里检测，是因为种农作物不触发相关事件
+                        // 允许尝试放置方块
+                        if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
+                            if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(serverPlayer, hand, itemInHand, hitResult)))) {
+                                event.setCancelled(true);
+                            }
+                        }
+                    }
+                }
             }
 
             // 优先检查物品行为，再执行自定义事件

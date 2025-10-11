@@ -569,11 +569,11 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 try {
                     settings = Optional.ofNullable(ResourceConfigUtils.get(section, "settings"))
                             .map(map -> ItemSettings.fromMap(MiscUtils.castToMap(map, true)))
-                            .map(it -> isVanillaItem ? it.disableVanillaBehavior(true) : it)
-                            .orElse(ItemSettings.of().disableVanillaBehavior(isVanillaItem));
+                            .map(it -> isVanillaItem ? it.disableVanillaBehavior(false) : it)
+                            .orElse(ItemSettings.of().disableVanillaBehavior(!isVanillaItem));
                 } catch (LocalizedResourceConfigException e) {
                     collector.add(e);
-                    settings = ItemSettings.of().disableVanillaBehavior(isVanillaItem);
+                    settings = ItemSettings.of().disableVanillaBehavior(!isVanillaItem);
                 }
 
                 // 行为
@@ -620,6 +620,11 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                     AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, MiscUtils.getAsStringList(section.get("category")).stream().map(Key::of).toList());
                 }
 
+                if (!hasModelSection) {
+                    collector.throwIfPresent();
+                    return;
+                }
+
                 /*
                  * ========================
                  *
@@ -630,11 +635,6 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
 
                 // 原版物品还改模型？自己替换json去
                 if (isVanillaItem) {
-                    return;
-                }
-
-                if (!hasModelSection) {
-                    collector.throwIfPresent();
                     return;
                 }
 
