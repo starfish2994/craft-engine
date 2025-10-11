@@ -431,9 +431,8 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
             // 判断是不是原版物品
             boolean isVanillaItem = isVanillaItem(id);
 
-            String materialString = ResourceConfigUtils.requireNonEmptyStringOrThrow(section.getOrDefault("material", Config.defaultMaterial()), "warning.config.item.missing_material");
             // 读取服务端侧材质
-            Key material = isVanillaItem ? id : Key.from(materialString.toLowerCase(Locale.ROOT));
+            Key material = isVanillaItem ? id : Key.from(ResourceConfigUtils.requireNonEmptyStringOrThrow(section.getOrDefault("material", Config.defaultMaterial()), "warning.config.item.missing_material").toLowerCase(Locale.ROOT));
             // 读取客户端侧材质
             Key clientBoundMaterial = VersionHelper.PREMIUM && section.containsKey("client-bound-material") ? Key.from(section.get("client-bound-material").toString().toLowerCase(Locale.ROOT)) : material;
 
