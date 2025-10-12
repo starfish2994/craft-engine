@@ -3040,22 +3040,37 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         }
     }
 
-    public static class UpdateRecipesListener implements ByteBufferPacketListener {
+    public class UpdateRecipesListener implements ByteBufferPacketListener {
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
             if (Config.disableItemOperations()) return;
             if (VersionHelper.isOrAbove1_21_2()) return;
+            MutableBoolean changed = new MutableBoolean(false);
             FriendlyByteBuf buf = event.getBuffer();
-            List<LegacyRecipeHolder> holders = buf.readCollection(ArrayList::new, byteBuf -> {
-                LegacyRecipeHolder holder = LegacyRecipeHolder.read(byteBuf);
-                holder.recipe().applyClientboundData((BukkitServerPlayer) user);
+            BukkitItemManager itemManager = BukkitItemManager.instance();
+            BukkitServerPlayer player = (BukkitServerPlayer) user;
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
+            List<LegacyRecipeHolder<ItemStack>> holders = buf.readCollection(ArrayList::new, byteBuf -> {
+                LegacyRecipeHolder<ItemStack> holder = LegacyRecipeHolder.read(byteBuf, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
+                holder.recipe().applyClientboundData(item -> {
+                    Optional<Item<ItemStack>> remapped = plugin.itemManager().s2cNew(item, player);
+                    if (remapped.isEmpty()) {
+                        return item;
+                    }
+                    changed.set(true);
+                    return remapped.get();
+                });
                 return holder;
             });
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeCollection(holders, ((byteBuf, recipeHolder) -> recipeHolder.write(byteBuf)));
+            if (changed.booleanValue()) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeCollection(holders, ((byteBuf, recipeHolder)
+                        -> recipeHolder.write(byteBuf, (__, item)
+                        -> FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, item.getItem()))));
+            }
         }
     }
 

@@ -118,6 +118,8 @@ public interface ItemManager<T> extends Manageable, ModelGenerator {
 
     Item<T> c2s(Item<T> item);
 
+    Optional<Item<T>> s2cNew(Item<T> item, Player player);
+
     UniqueIdItem<T> uniqueEmptyItem();
 
     Item<T> applyTrim(Item<T> base, Item<T> addition, Item<T> template, Key pattern);

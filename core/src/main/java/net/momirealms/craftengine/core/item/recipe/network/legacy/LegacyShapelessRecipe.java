@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.item.recipe.network.legacy;
 
-import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.recipe.CraftingRecipeCategory;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -9,16 +8,17 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @ApiStatus.Obsolete
-public class LegacyShapelessRecipe implements LegacyRecipe {
-    private final List<LegacyIngredient> ingredients;
-    private Item<Object> result;
+public class LegacyShapelessRecipe<I> implements LegacyRecipe<I> {
+    private final List<LegacyIngredient<I>> ingredients;
+    private Item<I> result;
     private final String group;
     private final CraftingRecipeCategory category;
 
-    public LegacyShapelessRecipe(List<LegacyIngredient> ingredients,
-                                 Item<Object> result,
+    public LegacyShapelessRecipe(List<LegacyIngredient<I>> ingredients,
+                                 Item<I> result,
                                  String group,
                                  CraftingRecipeCategory category) {
         this.category = category;
@@ -27,27 +27,28 @@ public class LegacyShapelessRecipe implements LegacyRecipe {
         this.group = group;
     }
 
-    @Override
-    public void applyClientboundData(Player player) {
-        this.result = CraftEngine.instance().itemManager().s2c(this.result, player);
-        for (LegacyIngredient ingredient : this.ingredients) {
-            ingredient.applyClientboundData(player);
-        }
-    }
-
-    public static LegacyShapelessRecipe read(FriendlyByteBuf buf) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <I> LegacyShapelessRecipe<I> read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
         String group = buf.readUtf();
         CraftingRecipeCategory category = CraftingRecipeCategory.byId(buf.readVarInt());
-        List<LegacyIngredient> ingredient = buf.readCollection(ArrayList::new, LegacyIngredient::read);
+        List<LegacyIngredient<I>> ingredient = buf.readCollection(ArrayList::new, (byteBuffer) -> LegacyIngredient.read(byteBuffer, reader));
         Item<Object> result = CraftEngine.instance().itemManager().decode(buf);
         return new LegacyShapelessRecipe(ingredient, result, group, category);
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
+    public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer) {
         buf.writeUtf(this.group);
         buf.writeVarInt(this.category.ordinal());
-        buf.writeCollection(this.ingredients, (byteBuf, legacyIngredient) -> legacyIngredient.write(buf));
-        CraftEngine.instance().itemManager().encode(buf, this.result);
+        buf.writeCollection(this.ingredients, (byteBuf, legacyIngredient) -> legacyIngredient.write(buf, writer));
+        writer.accept(buf, this.result);
+    }
+
+    @Override
+    public void applyClientboundData(Function<Item<I>, Item<I>> function) {
+        this.result = function.apply(this.result);
+        for (LegacyIngredient<I> ingredient : this.ingredients) {
+            ingredient.applyClientboundData(function);
+        }
     }
 }
