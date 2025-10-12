@@ -53,7 +53,7 @@ public class Int2ObjectBiMap<K> implements IndexedIterable<K> {
             if (prev == null) break;
             K apply = function.apply(prev);
             values[i] = apply;
-            if (apply != prev) {
+            if (!apply.equals(prev)) {
                 changed = true;
             }
         }

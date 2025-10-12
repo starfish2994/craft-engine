@@ -2056,8 +2056,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 buf.writeBitSet(emptyBlockYMask);
                 buf.writeByteArrayList(skyUpdates);
                 buf.writeByteArrayList(blockUpdates);
-            } else {
-                System.out.println("没变化啊");
             }
 
             // 记录加载的区块

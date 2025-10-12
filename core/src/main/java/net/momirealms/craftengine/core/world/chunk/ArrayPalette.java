@@ -122,7 +122,7 @@ public class ArrayPalette<T> implements Palette<T> {
             if (prev == null) return changed;
             T newV = function.apply(prev);
             this.array[i] = newV;
-            if (newV != prev) {
+            if (!newV.equals(prev)) {
                 changed = true;
             }
         }
