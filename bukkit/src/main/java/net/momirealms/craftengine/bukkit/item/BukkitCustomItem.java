@@ -54,11 +54,15 @@ public class BukkitCustomItem extends AbstractCustomItem<ItemStack> {
     }
 
     public Object clientItem() {
-        return clientItem;
+        return this.clientItem;
     }
 
     public Object item() {
-        return item;
+        return this.item;
+    }
+
+    public boolean hasClientboundMaterial() {
+        return this.clientItem != this.item;
     }
 
     public static Builder<ItemStack> builder(Object item, Object clientBoundItem) {

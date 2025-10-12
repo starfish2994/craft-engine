@@ -14,16 +14,18 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ItemFramePacketHandler implements EntityPacketHandler {
     public static final ItemFramePacketHandler INSTANCE = new ItemFramePacketHandler();
-    private static long lastWarningTime = 0;
+    private static long LAST_WARN_TIME = 0;
 
     @Override
     public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
         if (Config.disableItemOperations()) return;
         FriendlyByteBuf buf = event.getBuffer();
         int id = buf.readVarInt();
+        boolean changed = false;
         List<Object> packedItems = FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$unpack(buf);
         for (int i = 0; i < packedItems.size(); i++) {
             Object packedItem = packedItems.get(i);
@@ -32,26 +34,29 @@ public class ItemFramePacketHandler implements EntityPacketHandler {
             Object nmsItemStack = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$value(packedItem);
             if (!CoreReflections.clazz$ItemStack.isInstance(nmsItemStack)) {
                 long time = System.currentTimeMillis();
-                if (time - lastWarningTime > 5000) {
+                if (time - LAST_WARN_TIME > 5000) {
                     BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
                     CraftEngine.instance().logger().severe("An issue was detected while applying item-related entity data for '" + serverPlayer.name() +
                             "'. Please execute the command '/ce debug entity-id " + serverPlayer.world().name() + " " + id + "' and provide a screenshot for further investigation.");
-                    lastWarningTime = time;
+                    LAST_WARN_TIME = time;
                 }
                 continue;
             }
-            ItemStack itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsItemStack), user);
+            ItemStack itemStack = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsItemStack);
+            Optional<ItemStack> optional = BukkitItemManager.instance().s2c(itemStack, user);
+            if (optional.isEmpty()) continue;
+            changed = true;
+            itemStack = optional.get();
             Object serializer = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$serializer(packedItem);
-            packedItems.set(i, FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(
-                    entityDataId, serializer, FastNMS.INSTANCE.method$CraftItemStack$asNMSCopy(itemStack)
-            ));
+            packedItems.set(i, FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(entityDataId, serializer, FastNMS.INSTANCE.method$CraftItemStack$asNMSCopy(itemStack)));
             break;
         }
-
-        event.setChanged(true);
-        buf.clear();
-        buf.writeVarInt(event.packetID());
-        buf.writeVarInt(id);
-        FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$pack(packedItems, buf);
+        if (changed) {
+            event.setChanged(true);
+            buf.clear();
+            buf.writeVarInt(event.packetID());
+            buf.writeVarInt(id);
+            FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$pack(packedItems, buf);
+        }
     }
 }

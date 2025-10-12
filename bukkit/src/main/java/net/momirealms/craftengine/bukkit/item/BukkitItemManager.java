@@ -125,23 +125,23 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
     @Override
     public Item<ItemStack> s2c(Item<ItemStack> item, Player player) {
         if (item.isEmpty()) return item;
-        return this.networkItemHandler.s2c(item, player);
+        return this.networkItemHandler.s2c(item, player).orElse(item);
     }
 
     @Override
     public Item<ItemStack> c2s(Item<ItemStack> item) {
         if (item.isEmpty()) return item;
-        return this.networkItemHandler.c2s(item);
+        return this.networkItemHandler.c2s(item).orElse(item);
     }
 
-    public ItemStack s2c(ItemStack item, Player player) {
-        if (item.isEmpty()) return item;
-        return s2c(wrap(item), player).getItem();
+    public Optional<ItemStack> s2c(ItemStack item, Player player) {
+        if (item.isEmpty()) return Optional.empty();
+        return this.networkItemHandler.s2c(wrap(item), player).map(Item::getItem);
     }
 
-    public ItemStack c2s(ItemStack item) {
-        if (item.isEmpty()) return item;
-        return c2s(wrap(item)).getItem();
+    public Optional<ItemStack> c2s(ItemStack item) {
+        if (item.isEmpty()) return Optional.empty();
+        return this.networkItemHandler.c2s(wrap(item)).map(Item::getItem);
     }
 
     @Override

@@ -32,54 +32,70 @@ import java.util.function.BiConsumer;
 public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemStack> {
 
     @Override
-    public Item<ItemStack> c2s(Item<ItemStack> wrapped) {
+    public Optional<Item<ItemStack>> c2s(Item<ItemStack> wrapped) {
+        boolean forceReturn = false;
+
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isPresent()) {
             BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
             if (customItem.item() != FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
+                forceReturn = true;
             }
         }
+
         CompoundTag networkData = (CompoundTag) wrapped.getTag(NETWORK_ITEM_TAG);
-        if (networkData == null) return wrapped;
-        wrapped.removeTag(NETWORK_ITEM_TAG);
-        for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
-            if (entry.getValue() instanceof CompoundTag tag) {
-                NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
+        if (networkData != null) {
+            forceReturn = true;
+            // 移除tag
+            wrapped.removeTag(NETWORK_ITEM_TAG);
+            // 恢复物品
+            for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
+                if (entry.getValue() instanceof CompoundTag tag) {
+                    NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
+                }
             }
         }
-        return wrapped;
+
+        return forceReturn ? Optional.empty() : Optional.of(wrapped);
     }
 
     @Override
-    public Item<ItemStack> s2c(Item<ItemStack> wrapped, Player player) {
-        // todo 处理bundle和container
+    public Optional<Item<ItemStack>> s2c(Item<ItemStack> wrapped, Player player) {
+        boolean forceReturn = false;
+        // todo 处理bundle
+
+        // todo 处理container
 
         // todo 处理book
 
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
         // 不是自定义物品或修改过的原版物品
         if (optionalCustomItem.isEmpty()) {
-            if (!Config.interceptItem()) return wrapped;
-            return new OtherItem(wrapped).process(NetworkTextReplaceContext.of(player));
+            if (!Config.interceptItem()) {
+                return forceReturn ? Optional.of(wrapped) : Optional.empty();
+            }
+            return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
         }
 
-        // 应用client-bound-material
+        // 应用 client-bound-material
         BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
-        Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
-        boolean hasDifferentMaterial = serverItem == customItem.item() && serverItem != customItem.clientItem();
-        if (hasDifferentMaterial) {
+        if (customItem.hasClientboundMaterial() && FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject()) != customItem.clientItem()) {
             wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
+            forceReturn = true;
         }
 
         // 没有客户端侧组件
         if (!customItem.hasClientBoundDataModifier()) {
-            if (!Config.interceptItem()) return wrapped;
-            return new OtherItem(wrapped).process(NetworkTextReplaceContext.of(player));
+            if (!Config.interceptItem()) {
+                return forceReturn ? Optional.of(wrapped) : Optional.empty();
+            }
+            return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
         }
 
         // 应用client-bound-data
         CompoundTag tag = new CompoundTag();
+        // 创建context
         Tag argumentTag = wrapped.getTag(ArgumentsModifier.ARGUMENTS_TAG);
         ItemBuildContext context;
         if (argumentTag instanceof CompoundTag arguments) {
@@ -91,12 +107,15 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
         } else {
             context = ItemBuildContext.of(player);
         }
+        // 准备阶段
         for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
             modifier.prepareNetworkItem(wrapped, context, tag);
         }
+        // 应用阶段
         for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
             modifier.apply(wrapped, context);
         }
+        // 如果拦截物品的描述名称等
         if (Config.interceptItem()) {
             if (!tag.containsKey("display.Name")) {
                 processCustomName(wrapped, tag::put, context);
@@ -105,10 +124,12 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
                 processLore(wrapped, tag::put, context);
             }
         }
+        // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {
             wrapped.setTag(tag, NETWORK_ITEM_TAG);
+            forceReturn = true;
         }
-        return wrapped;
+        return forceReturn ? Optional.of(wrapped) : Optional.empty();
     }
 
     public static boolean processCustomName(Item<ItemStack> item, BiConsumer<String, CompoundTag> callback, Context context) {
@@ -157,12 +178,14 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
         private final Item<ItemStack> item;
         private boolean globalChanged = false;
         private CompoundTag networkTag;
+        private final boolean forceReturn;
 
-        public OtherItem(Item<ItemStack> item) {
+        public OtherItem(Item<ItemStack> item, boolean forceReturn) {
             this.item = item;
+            this.forceReturn = forceReturn;
         }
 
-        public Item<ItemStack> process(Context context) {
+        public Optional<Item<ItemStack>> process(Context context) {
             if (processLore(this.item, (s, c) -> networkTag().put(s, c), context)) {
                 this.globalChanged = true;
             }
@@ -171,8 +194,12 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
             }
             if (this.globalChanged) {
                 this.item.setTag(this.networkTag, NETWORK_ITEM_TAG);
+                return Optional.of(this.item);
+            } else if (this.forceReturn) {
+                return Optional.of(this.item);
+            } else {
+                return Optional.empty();
             }
-            return this.item;
         }
 
         public CompoundTag networkTag() {

@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.Optional;
 
 public class CommonItemPacketHandler implements EntityPacketHandler {
     public static final CommonItemPacketHandler INSTANCE = new CommonItemPacketHandler();
@@ -24,7 +25,7 @@ public class CommonItemPacketHandler implements EntityPacketHandler {
         if (Config.disableItemOperations()) return;
         FriendlyByteBuf buf = event.getBuffer();
         int id = buf.readVarInt();
-
+        boolean changed = false;
         List<Object> packedItems = FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$unpack(buf);
         for (int i = 0; i < packedItems.size(); i++) {
             Object packedItem = packedItems.get(i);
@@ -41,16 +42,21 @@ public class CommonItemPacketHandler implements EntityPacketHandler {
                 }
                 continue;
             }
-            ItemStack itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsItemStack), user);
+            ItemStack itemStack = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsItemStack);
+            Optional<ItemStack> optional = BukkitItemManager.instance().s2c(itemStack, user);
+            if (optional.isEmpty()) continue;
+            changed = true;
+            itemStack = optional.get();
             Object serializer = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$serializer(packedItem);
             packedItems.set(i, FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(entityDataId, serializer, FastNMS.INSTANCE.method$CraftItemStack$asNMSCopy(itemStack)));
             break;
         }
-
-        event.setChanged(true);
-        buf.clear();
-        buf.writeVarInt(event.packetID());
-        buf.writeVarInt(id);
-        FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$pack(packedItems, buf);
+        if (changed) {
+            event.setChanged(true);
+            buf.clear();
+            buf.writeVarInt(event.packetID());
+            buf.writeVarInt(id);
+            FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$pack(packedItems, buf);
+        }
     }
 }

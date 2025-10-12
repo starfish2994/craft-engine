@@ -3200,12 +3200,26 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             int stateId = buf.readVarInt();
             int listSize = buf.readVarInt();
             List<ItemStack> items = new ArrayList<>(listSize);
+            boolean changed = false;
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
             for (int i = 0; i < listSize; i++) {
-                ItemStack itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf), serverPlayer);
-                items.add(itemStack);
+                ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+                Optional<ItemStack> optional = BukkitItemManager.instance().s2c(itemStack, serverPlayer);
+                if (optional.isPresent()) {
+                    items.add(optional.get());
+                    changed = true;
+                } else {
+                    items.add(itemStack);
+                }
             }
-            ItemStack carriedItem = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf), serverPlayer);
+            ItemStack carriedItem = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+            ItemStack newCarriedItem = carriedItem;
+            Optional<ItemStack> optional = BukkitItemManager.instance().s2c(carriedItem, serverPlayer);
+            if (optional.isPresent()) {
+                changed = true;
+                newCarriedItem = optional.get();
+            }
+            if (!changed) return;
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
@@ -3216,7 +3230,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             for (ItemStack itemStack : items) {
                 FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, itemStack);
             }
-            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, carriedItem);
+            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newCarriedItem);
         }
     }
 
@@ -3235,18 +3249,19 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             try {
                 itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
             } catch (Exception e) {
-                // 其他插件干的，比如某ty*****er，不要赖到ce头上
+                // 其他插件干的，发送了非法的物品
                 return;
             }
-            itemStack = BukkitItemManager.instance().s2c(itemStack, serverPlayer);
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeContainerId(containerId);
-            buf.writeVarInt(stateId);
-            buf.writeShort(slot);
-            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, itemStack);
+            BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeContainerId(containerId);
+                buf.writeVarInt(stateId);
+                buf.writeShort(slot);
+                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newItemStack);
+            });
         }
     }
 
@@ -3258,12 +3273,14 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-            ItemStack itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf), serverPlayer);
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, itemStack);
+            ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+            BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newItemStack);
+            });
         }
     }
 
@@ -3274,7 +3291,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
-
+            boolean changed = false;
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
             int entity = buf.readVarInt();
             List<com.mojang.datafixers.util.Pair<Object, ItemStack>> slots = Lists.newArrayList();
@@ -3282,23 +3299,29 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             do {
                 slotMask = buf.readByte();
                 Object equipmentSlot = CoreReflections.instance$EquipmentSlot$values[slotMask & 127];
-                ItemStack itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf), serverPlayer);
+                ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+                Optional<ItemStack> optional = BukkitItemManager.instance().s2c(itemStack, serverPlayer);
+                if (optional.isPresent()) {
+                    changed = true;
+                    itemStack = optional.get();
+                }
                 slots.add(com.mojang.datafixers.util.Pair.of(equipmentSlot, itemStack));
             } while ((slotMask & -128) != 0);
-
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeVarInt(entity);
-            int i = slots.size();
-            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-            for (int j = 0; j < i; ++j) {
-                com.mojang.datafixers.util.Pair<Object, ItemStack> pair = slots.get(j);
-                Enum<?> equipmentSlot = (Enum<?>) pair.getFirst();
-                boolean bl = j != i - 1;
-                int k = equipmentSlot.ordinal();
-                buf.writeByte(bl ? k | -128 : k);
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, pair.getSecond());
+            if (changed) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeVarInt(entity);
+                int i = slots.size();
+                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+                for (int j = 0; j < i; ++j) {
+                    com.mojang.datafixers.util.Pair<Object, ItemStack> pair = slots.get(j);
+                    Enum<?> equipmentSlot = (Enum<?>) pair.getFirst();
+                    boolean bl = j != i - 1;
+                    int k = equipmentSlot.ordinal();
+                    buf.writeByte(bl ? k | -128 : k);
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, pair.getSecond());
+                }
             }
         }
     }
@@ -3312,14 +3335,15 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             FriendlyByteBuf buf = event.getBuffer();
             int slot = buf.readVarInt();
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-            ItemStack itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf), serverPlayer);
-
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeVarInt(slot);
-            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, itemStack);
+            ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+            BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeVarInt(slot);
+                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newItemStack);
+            });
         }
     }
 
@@ -3340,18 +3364,18 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             } catch (Exception e) {
                 return;
             }
-            itemStack = BukkitItemManager.instance().c2s(itemStack);
-
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeShort(slotNum);
-            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-            if (VersionHelper.isOrAbove1_20_5()) {
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeUntrustedItem(newFriendlyBuf, itemStack);
-            } else {
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, itemStack);
-            }
+            BukkitItemManager.instance().c2s(itemStack).ifPresent((newItemStack) -> {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeShort(slotNum);
+                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+                if (VersionHelper.isOrAbove1_20_5()) {
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeUntrustedItem(newFriendlyBuf, newItemStack);
+                } else {
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newItemStack);
+                }
+            });
         }
     }
 
@@ -3361,7 +3385,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
             if (Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
-
+            boolean changed = false;
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
             int containerId = buf.readContainerId();
             int stateId = buf.readVarInt();
@@ -3372,27 +3396,37 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             Int2ObjectMap<ItemStack> changedSlots = new Int2ObjectOpenHashMap<>(i);
             for (int j = 0; j < i; ++j) {
                 int k = buf.readShort();
-                ItemStack itemStack = BukkitItemManager.instance().c2s(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf));
+                ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+                Optional<ItemStack> optional = BukkitItemManager.instance().c2s(itemStack);
+                if (optional.isPresent()) {
+                    changed = true;
+                    itemStack = optional.get();
+                }
                 changedSlots.put(k, itemStack);
             }
-            ItemStack carriedItem = BukkitItemManager.instance().c2s(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf));
-
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeContainerId(containerId);
-            buf.writeVarInt(stateId);
-            buf.writeShort(slotNum);
-            buf.writeByte(buttonNum);
-            buf.writeVarInt(clickType);
-            buf.writeVarInt(changedSlots.size());
-            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-            changedSlots.forEach((k, v) -> {
-                buf.writeShort(k);
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, v);
-            });
-            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, carriedItem);
-
+            ItemStack carriedItem = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+            Optional<ItemStack> optional = BukkitItemManager.instance().c2s(carriedItem);
+            if (optional.isPresent()) {
+                changed = true;
+                carriedItem = optional.get();
+            }
+            if (changed) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeContainerId(containerId);
+                buf.writeVarInt(stateId);
+                buf.writeShort(slotNum);
+                buf.writeByte(buttonNum);
+                buf.writeVarInt(clickType);
+                buf.writeVarInt(changedSlots.size());
+                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+                changedSlots.forEach((k, v) -> {
+                    buf.writeShort(k);
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, v);
+                });
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, carriedItem);
+            }
         }
     }
 

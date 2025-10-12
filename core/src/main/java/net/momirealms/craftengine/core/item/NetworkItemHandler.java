@@ -10,6 +10,7 @@ import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Optional;
 
 public interface NetworkItemHandler<T> {
     Operation[] BY_INDEX = new Operation[] {Operation.ADD, Operation.REMOVE, Operation.RESET};
@@ -17,9 +18,9 @@ public interface NetworkItemHandler<T> {
     String NETWORK_OPERATION = "type";
     String NETWORK_VALUE = "value";
 
-    Item<T> s2c(Item<T> itemStack, Player player);
+    Optional<Item<T>> s2c(Item<T> itemStack, Player player);
 
-    Item<T> c2s(Item<T> itemStack);
+    Optional<Item<T>> c2s(Item<T> itemStack);
 
     static CompoundTag pack(Operation operation, @Nullable Tag value) {
         if (value == null) {

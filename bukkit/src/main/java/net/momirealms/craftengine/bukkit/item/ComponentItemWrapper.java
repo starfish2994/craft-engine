@@ -23,6 +23,11 @@ public class ComponentItemWrapper implements ItemWrapper<ItemStack> {
     private final ItemStack item;
     private final Object handle;
 
+    public ComponentItemWrapper(final Object handle) {
+        this.handle = handle;
+        this.item = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(handle);
+    }
+
     public ComponentItemWrapper(final ItemStack item) {
         this.item = ItemStackUtils.ensureCraftItemStack(item);
         this.handle = FastNMS.INSTANCE.field$CraftItemStack$handle(this.item);
