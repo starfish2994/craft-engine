@@ -170,12 +170,12 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     @Override
-    public Map<String, ComponentProvider> matchTags(String json) {
+    public Map<String, ComponentProvider> matchTags(String text) {
         if (this.networkTagTrie == null) {
             return Collections.emptyMap();
         }
         Map<String, ComponentProvider> tags = new HashMap<>();
-        for (Token token : this.networkTagTrie.tokenize(json)) {
+        for (Token token : this.networkTagTrie.tokenize(text)) {
             if (token.isMatch()) {
                 tags.put(token.getFragment(), this.networkTagMapper.get(token.getFragment()));
             }

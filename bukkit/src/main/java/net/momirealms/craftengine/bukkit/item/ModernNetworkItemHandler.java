@@ -227,8 +227,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
     public static boolean processModernItemName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
         Tag nameTag = item.getSparrowNBTComponent(ComponentTypes.ITEM_NAME);
         if (nameTag == null) return false;
-        String tagStr = nameTag.getAsString();
-        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nameTag);
         if (!tokens.isEmpty()) {
             item.setNBTComponent(ComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
             tag.get().put(ComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
@@ -240,8 +239,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
     public static boolean processModernCustomName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
         Tag nameTag = item.getSparrowNBTComponent(ComponentTypes.CUSTOM_NAME);
         if (nameTag == null) return false;
-        String tagStr = nameTag.getAsString();
-        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nameTag);
         if (!tokens.isEmpty()) {
             item.setNBTComponent(ComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
             tag.get().put(ComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
@@ -258,8 +256,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         }
         ListTag newLore = new ListTag();
         for (Tag tag : listTag) {
-            String tagStr = tag.getAsString();
-            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tag);
             if (tokens.isEmpty()) {
                 newLore.add(tag);
             } else {
