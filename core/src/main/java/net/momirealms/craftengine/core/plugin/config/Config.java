@@ -125,6 +125,7 @@ public class Config {
     protected int block$predict_breaking_interval;
     protected double block$extended_interaction_range;
     protected boolean block$chunk_relighter;
+    protected Key block$deceive_bukkit_material;
     protected int block$serverside_blocks = -1;
 
     protected boolean recipe$enable;
@@ -436,6 +437,7 @@ public class Config {
         block$predict_breaking_interval = Math.max(config.getInt("block.predict-breaking.interval", 10), 1);
         block$extended_interaction_range = Math.max(config.getDouble("block.predict-breaking.extended-interaction-range", 0.5), 0.0);
         block$chunk_relighter = config.getBoolean("block.chunk-relighter", true);
+        block$deceive_bukkit_material = Key.of(config.getString("block.deceive-bukkit-material", "stone"));
         if (firstTime) {
             block$serverside_blocks = Math.min(config.getInt("block.serverside-blocks", 2000), 10_0000);
             if (block$serverside_blocks < 0) block$serverside_blocks = 0;
@@ -768,6 +770,10 @@ public class Config {
 
     public static List<String> bypassEquipments() {
         return instance.resource_pack$protection$obfuscation$resource_location$bypass_equipments;
+    }
+
+    public static Key deceiveBukkitMaterial() {
+        return instance.block$deceive_bukkit_material;
     }
 
     public static boolean generateModAssets() {

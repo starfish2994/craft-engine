@@ -417,9 +417,20 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @SuppressWarnings("unchecked")
     private void deceiveBukkitRegistry() {
         try {
+            Material material;
+            try {
+                material = Material.valueOf(Config.deceiveBukkitMaterial().value().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                this.plugin.logger().warn(Config.deceiveBukkitMaterial() + " is not a valid material", e);
+                material = Material.STONE;
+            }
+            if (!material.isBlock()) {
+                this.plugin.logger().warn(Config.deceiveBukkitMaterial() + " is not a valid bukkit block material");
+                material = Material.STONE;
+            }
             Map<Object, Material> magicMap = (Map<Object, Material>) CraftBukkitReflections.field$CraftMagicNumbers$BLOCK_MATERIAL.get(null);
             for (DelegatingBlock customBlock : this.customBlocks) {
-                magicMap.put(customBlock, Material.STONE);
+                magicMap.put(customBlock, material);
             }
         } catch (ReflectiveOperationException e) {
             this.plugin.logger().warn("Failed to deceive bukkit magic blocks", e);

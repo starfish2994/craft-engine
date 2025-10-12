@@ -233,6 +233,9 @@ block:
     enable: false
     interval: 10
     extended-interaction-range: 0.5
+  # Defines the value returned by Bukkit block.getMaterial()
+  # If another plugin causes incompatibility due to its reliance on this method, try changing this option to a different vanilla block.
+  deceive-bukkit-material: stone
 
 furniture:
   # Hide technical entities used for storing furniture metadata.
