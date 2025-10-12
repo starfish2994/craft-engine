@@ -83,8 +83,8 @@ public class Registries {
     public static final ResourceKey<Registry<ConditionFactory<PlayerOptionalContext>>> EVENT_CONDITION_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("event_condition_factory"));
     public static final ResourceKey<Registry<PlayerSelectorFactory<?>>> PLAYER_SELECTOR_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("player_selector_factory"));
     public static final ResourceKey<Registry<EquipmentFactory>> EQUIPMENT_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("equipment_factory"));
-    public static final ResourceKey<Registry<SlotDisplay.Type>> SLOT_DISPLAY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("slot_display_type"));
-    public static final ResourceKey<Registry<RecipeDisplay.Type>> RECIPE_DISPLAY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("recipe_display_type"));
+    public static final ResourceKey<Registry<SlotDisplay.Type<?>>> SLOT_DISPLAY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("slot_display_type"));
+    public static final ResourceKey<Registry<RecipeDisplay.Type<?>>> RECIPE_DISPLAY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("recipe_display_type"));
     public static final ResourceKey<Registry<LegacyRecipe.Type<?>>> LEGACY_RECIPE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("legacy_recipe_type"));
     public static final ResourceKey<Registry<PostProcessor.Type<?>>> RECIPE_POST_PROCESSOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("recipe_post_processor_type"));
     public static final ResourceKey<Registry<ItemUpdaterType<?>>> ITEM_UPDATER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("item_updater_type"));

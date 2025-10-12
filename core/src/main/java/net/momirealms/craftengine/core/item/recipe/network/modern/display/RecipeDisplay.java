@@ -1,25 +1,27 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display;
 
-import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface RecipeDisplay {
+public interface RecipeDisplay<I> {
 
-    void write(FriendlyByteBuf buf);
+    void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer);
 
-    void applyClientboundData(Player player);
+    void applyClientboundData(Function<Item<I>, Item<I>> function);
 
-    static RecipeDisplay read(final FriendlyByteBuf buf) {
-        return buf.readById(BuiltInRegistries.RECIPE_DISPLAY_TYPE).read(buf);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static <I> RecipeDisplay<I> read(final FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
+        return buf.readById(BuiltInRegistries.RECIPE_DISPLAY_TYPE).read(buf, (FriendlyByteBuf.Reader) reader);
     }
 
-    record Type(Function<FriendlyByteBuf, RecipeDisplay> reader) {
+    record Type<I>(BiFunction<FriendlyByteBuf, FriendlyByteBuf.Reader<Item<I>>, RecipeDisplay<I>> reader) {
 
-        public RecipeDisplay read(final FriendlyByteBuf buf) {
-            return this.reader.apply(buf);
+        public RecipeDisplay<I> read(final FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
+            return this.reader.apply(buf, reader);
         }
     }
 }

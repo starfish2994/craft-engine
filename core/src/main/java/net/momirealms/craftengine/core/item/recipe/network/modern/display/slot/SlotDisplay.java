@@ -1,26 +1,28 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display.slot;
 
-import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface SlotDisplay {
+public interface SlotDisplay<I> {
 
-    void write(FriendlyByteBuf buf);
+    void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer);
 
-    default void applyClientboundData(Player player) {
+    default void applyClientboundData(Function<Item<I>, Item<I>> function) {
     }
 
-    static SlotDisplay read(FriendlyByteBuf buf) {
-        return buf.readById(BuiltInRegistries.SLOT_DISPLAY_TYPE).read(buf);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static <I> SlotDisplay<I> read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
+        return buf.readById(BuiltInRegistries.SLOT_DISPLAY_TYPE).read(buf, (FriendlyByteBuf.Reader) reader);
     }
 
-    record Type(Function<FriendlyByteBuf, SlotDisplay> reader) {
+    record Type<I>(BiFunction<FriendlyByteBuf, FriendlyByteBuf.Reader<Item<I>>, SlotDisplay<I>> reader) {
 
-        public SlotDisplay read(final FriendlyByteBuf buf) {
-            return this.reader.apply(buf);
+        public SlotDisplay<I> read(final FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
+            return this.reader.apply(buf, reader);
         }
     }
 }

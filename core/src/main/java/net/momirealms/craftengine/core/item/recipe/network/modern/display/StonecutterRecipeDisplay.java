@@ -1,32 +1,34 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display;
 
-import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.recipe.network.modern.display.slot.SlotDisplay;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
-public record StonecutterRecipeDisplay(SlotDisplay input, SlotDisplay result, SlotDisplay craftingStation) implements RecipeDisplay {
+import java.util.function.Function;
 
-    public static StonecutterRecipeDisplay read(FriendlyByteBuf buffer) {
-        SlotDisplay input = SlotDisplay.read(buffer);
-        SlotDisplay result = SlotDisplay.read(buffer);
-        SlotDisplay craftingStation = SlotDisplay.read(buffer);
-        return new StonecutterRecipeDisplay(input, result, craftingStation);
+public record StonecutterRecipeDisplay<I>(SlotDisplay<I> input, SlotDisplay<I> result, SlotDisplay<I> craftingStation) implements RecipeDisplay<I> {
+
+    public static <I> StonecutterRecipeDisplay<I> read(FriendlyByteBuf buffer, FriendlyByteBuf.Reader<Item<I>> reader) {
+        SlotDisplay<I> input = SlotDisplay.read(buffer, reader);
+        SlotDisplay<I> result = SlotDisplay.read(buffer, reader);
+        SlotDisplay<I> craftingStation = SlotDisplay.read(buffer, reader);
+        return new StonecutterRecipeDisplay<>(input, result, craftingStation);
     }
 
     @Override
-    public void applyClientboundData(Player player) {
-        this.input.applyClientboundData(player);
-        this.result.applyClientboundData(player);
-        this.craftingStation.applyClientboundData(player);
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
+    public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer) {
         buf.writeVarInt(3);
-        this.input.write(buf);
-        this.result.write(buf);
-        this.craftingStation.write(buf);
+        this.input.write(buf, writer);
+        this.result.write(buf, writer);
+        this.craftingStation.write(buf, writer);
+    }
+
+    @Override
+    public void applyClientboundData(Function<Item<I>, Item<I>> function) {
+        this.input.applyClientboundData(function);
+        this.result.applyClientboundData(function);
+        this.craftingStation.applyClientboundData(function);
     }
 
     @Override
