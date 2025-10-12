@@ -150,10 +150,14 @@ public abstract class AbstractFontManager implements FontManager {
 
     private void registerImageTags() {
         for (BitmapImage image : this.images.values()) {
-            String id = image.id().toString();
+            Key key = image.id();
+            String id = key.toString();
             String simpleImageTag = imageTag(id);
             this.networkTagMapper.put(simpleImageTag, ComponentProvider.constant(image.componentAt(0, 0)));
             this.networkTagMapper.put("\\" + simpleImageTag, ComponentProvider.constant(Component.text(simpleImageTag)));
+            String simplerImageTag = imageTag(key.value());
+            this.networkTagMapper.put(simplerImageTag, ComponentProvider.constant(image.componentAt(0, 0)));
+            this.networkTagMapper.put("\\" + simplerImageTag, ComponentProvider.constant(Component.text(simplerImageTag)));
             for (int i = 0; i < image.rows(); i++) {
                 for (int j = 0; j < image.columns(); j++) {
                     String imageArgs = id + ":" + i + ":" + j;

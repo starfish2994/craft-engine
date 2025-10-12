@@ -244,7 +244,7 @@ furniture:
   # - Recommended to keep enabled for better performance
   hide-base-entity: true
   # Requires a restart to apply
-  # interaction (best performance)
+  # interaction (the best performance)
   # boat (better compatibility with some anti-cheat plugin)
   collision-entity-type: interaction
 
