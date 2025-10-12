@@ -110,15 +110,9 @@ public interface ItemManager<T> extends Manageable, ModelGenerator {
 
     boolean isVanillaItem(Key item);
 
-    Item<T> decode(FriendlyByteBuf byteBuf);
+    Optional<Item<T>> c2s(Item<T> item);
 
-    void encode(FriendlyByteBuf byteBuf, Item<T> item);
-
-    Item<T> s2c(Item<T> item, Player player);
-
-    Item<T> c2s(Item<T> item);
-
-    Optional<Item<T>> s2cNew(Item<T> item, Player player);
+    Optional<Item<T>> s2c(Item<T> item, Player player);
 
     UniqueIdItem<T> uniqueEmptyItem();
 

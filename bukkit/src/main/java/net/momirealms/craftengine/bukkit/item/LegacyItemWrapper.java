@@ -21,11 +21,12 @@ public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
         Object finalNMSTag;
         if (value instanceof Tag tag) {
             finalNMSTag = MRegistryOps.SPARROW_NBT.convertTo(MRegistryOps.NBT, tag);
+        } else if (CoreReflections.clazz$Tag.isInstance(value)) {
+           finalNMSTag = value;
         } else {
             finalNMSTag = MRegistryOps.JAVA.convertTo(MRegistryOps.NBT, value);
         }
 
-        Object currentTag = FastNMS.INSTANCE.field$ItemStack$getOrCreateTag(this.nmsStack);
         if (path == null || path.length == 0) {
             if (CoreReflections.clazz$CompoundTag.isInstance(finalNMSTag)) {
                 FastNMS.INSTANCE.method$ItemStack$setTag(this.nmsStack, finalNMSTag);
@@ -33,6 +34,8 @@ public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
             }
             return false;
         }
+
+        Object currentTag = FastNMS.INSTANCE.field$ItemStack$getOrCreateTag(this.nmsStack);
 
         for (int i = 0; i < path.length - 1; i++) {
             Object pathSegment = path[i];

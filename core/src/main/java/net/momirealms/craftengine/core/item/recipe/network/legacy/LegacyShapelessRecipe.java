@@ -27,13 +27,12 @@ public class LegacyShapelessRecipe<I> implements LegacyRecipe<I> {
         this.group = group;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <I> LegacyShapelessRecipe<I> read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
         String group = buf.readUtf();
         CraftingRecipeCategory category = CraftingRecipeCategory.byId(buf.readVarInt());
         List<LegacyIngredient<I>> ingredient = buf.readCollection(ArrayList::new, (byteBuffer) -> LegacyIngredient.read(byteBuffer, reader));
-        Item<Object> result = CraftEngine.instance().itemManager().decode(buf);
-        return new LegacyShapelessRecipe(ingredient, result, group, category);
+        Item<I> result = reader.apply(buf);
+        return new LegacyShapelessRecipe<>(ingredient, result, group, category);
     }
 
     @Override

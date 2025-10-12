@@ -37,12 +37,11 @@ public class LegacySmithingTransformRecipe<I> implements LegacyRecipe<I> {
         this.addition.applyClientboundData(function);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <I> LegacySmithingTransformRecipe<I> read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
         LegacyIngredient<I> template = LegacyIngredient.read(buf, reader);
         LegacyIngredient<I> base = LegacyIngredient.read(buf, reader);
         LegacyIngredient<I> addition = LegacyIngredient.read(buf, reader);
-        Item<Object> result = CraftEngine.instance().itemManager().decode(buf);
-        return new LegacySmithingTransformRecipe(template, base, addition, result);
+        Item<I> result = reader.apply(buf);
+        return new LegacySmithingTransformRecipe<>(template, base, addition, result);
     }
 }

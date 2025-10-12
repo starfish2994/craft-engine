@@ -103,17 +103,6 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
     }
 
     @Override
-    public Item<ItemStack> decode(FriendlyByteBuf byteBuf) {
-        Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
-        return this.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf));
-    }
-
-    @Override
-    public void encode(FriendlyByteBuf byteBuf, Item<ItemStack> item) {
-        FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf), item.getItem());
-    }
-
-    @Override
     public NetworkItemHandler<ItemStack> networkItemHandler() {
         return this.networkItemHandler;
     }
@@ -123,20 +112,15 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
     }
 
     @Override
-    public Item<ItemStack> s2c(Item<ItemStack> item, Player player) {
-        if (item.isEmpty()) return item;
-        return this.networkItemHandler.s2c(item, player).orElse(item);
-    }
-
-    @Override
-    public Optional<Item<ItemStack>> s2cNew(Item<ItemStack> item, Player player) {
+    public Optional<Item<ItemStack>> s2c(Item<ItemStack> item, Player player) {
+        if (item.isEmpty()) return Optional.empty();
         return this.networkItemHandler.s2c(item, player);
     }
 
     @Override
-    public Item<ItemStack> c2s(Item<ItemStack> item) {
-        if (item.isEmpty()) return item;
-        return this.networkItemHandler.c2s(item).orElse(item);
+    public Optional<Item<ItemStack>> c2s(Item<ItemStack> item) {
+        if (item.isEmpty()) return Optional.empty();
+        return this.networkItemHandler.c2s(item);
     }
 
     public Optional<ItemStack> s2c(ItemStack item, Player player) {

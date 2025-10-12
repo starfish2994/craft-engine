@@ -56,7 +56,7 @@ public class LegacyShapedRecipe<I> implements LegacyRecipe<I> {
             for (int i = 0; i < size; i++) {
                 ingredients.add(LegacyIngredient.read(buf, reader));
             }
-            Item<Object> result = CraftEngine.instance().itemManager().decode(buf);
+            Item<I> result = reader.apply(buf);
             boolean flag = buf.readBoolean();
             return new LegacyShapedRecipe(width, height, ingredients, result, group, CraftingRecipeCategory.byId(category), flag);
         } else {
@@ -69,7 +69,7 @@ public class LegacyShapedRecipe<I> implements LegacyRecipe<I> {
             for (int i = 0; i < size; i++) {
                 ingredients.add(LegacyIngredient.read(buf, reader));
             }
-            Item<Object> result = CraftEngine.instance().itemManager().decode(buf);
+            Item<I> result = reader.apply(buf);
             boolean flag = buf.readBoolean();
             return new LegacyShapedRecipe(width, height, ingredients, result, group, CraftingRecipeCategory.byId(category), flag);
         }

@@ -113,7 +113,8 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         ProjectileMeta meta = this.projectile.metadata();
         Item<ItemStack> displayedItem = customItem.get().buildItem(ItemBuildContext.empty());
         // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承
-        displayedItem = BukkitItemManager.instance().s2c(this.projectile.item().mergeCopy(displayedItem), player);
+        Item<ItemStack> item = this.projectile.item().mergeCopy(displayedItem);
+        displayedItem = BukkitItemManager.instance().s2c(item, player).orElse(item);
         ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);
         ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(meta.translation(), itemDisplayValues);
         ItemDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(meta.scale(), itemDisplayValues);
