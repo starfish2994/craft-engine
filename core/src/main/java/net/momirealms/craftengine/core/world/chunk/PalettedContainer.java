@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 import java.util.stream.LongStream;
 
 public class PalettedContainer<T> implements PaletteResizeListener<T>, ReadableContainer<T> {
-    public static boolean NEED_DOWNGRADE = true;
     private static final BiConsumer<FriendlyByteBuf, long[]> RAW_DATA_WRITER = VersionHelper.isOrAbove1_21_5() ?
             (FriendlyByteBuf::writeFixedSizeLongArray) : (FriendlyByteBuf::writeLongArray);
     private static final BiConsumer<FriendlyByteBuf, long[]> RAW_DATA_READER = VersionHelper.isOrAbove1_21_5() ?
@@ -75,10 +74,7 @@ public class PalettedContainer<T> implements PaletteResizeListener<T>, ReadableC
         return false;
     }
 
-    public PalettedContainer<T> downgradeTo(IndexedIterable<T> idList) {
-        if (!NEED_DOWNGRADE) {
-            return this;
-        }
+    public PalettedContainer<T> getClientCompatiblePalettedContainer(IndexedIterable<T> idList) {
         Palette<T> palette = this.data.palette;
         if (!(palette instanceof IdListPalette<T> idListPalette)) {
             return this;

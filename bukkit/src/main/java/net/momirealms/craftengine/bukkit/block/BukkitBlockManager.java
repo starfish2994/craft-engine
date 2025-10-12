@@ -25,8 +25,10 @@ import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSet;
-import net.momirealms.craftengine.core.util.*;
-import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.ObjectHolder;
+import net.momirealms.craftengine.core.util.Tristate;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.HandlerList;
@@ -322,9 +324,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     // 注册服务端侧的真实方块
     private void registerServerSideCustomBlocks(int count) {
         // 这个会影响全局调色盘
-        if (MiscUtils.ceilLog2(this.vanillaBlockStateCount + count) == MiscUtils.ceilLog2(this.vanillaBlockStateCount)) {
-            PalettedContainer.NEED_DOWNGRADE = false;
-        }
         try {
             unfreezeRegistry();
             for (int i = 0; i < count; i++) {

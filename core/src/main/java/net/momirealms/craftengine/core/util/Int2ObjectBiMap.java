@@ -35,13 +35,34 @@ public class Int2ObjectBiMap<K> implements IndexedIterable<K> {
 
     public void remapValues(Function<K, K> function) {
         for (int i = 0; i < values.length; i++) {
-            if (values[i] == null) break;
-            values[i] = function.apply(values[i]);
+            K prev = values[i];
+            if (prev == null) break;
+            values[i] = function.apply(prev);
         }
         for (int i = 0; i < idToValues.length; i++) {
-            if (idToValues[i] == null) break;
-            idToValues[i] = function.apply(idToValues[i]);
+            K prev = idToValues[i];
+            if (prev == null) break;
+            idToValues[i] = function.apply(prev);
         }
+    }
+
+    public boolean remapValuesAndCheck(Function<K, K> function) {
+        boolean changed = false;
+        for (int i = 0; i < values.length; i++) {
+            K prev = values[i];
+            if (prev == null) break;
+            K apply = function.apply(prev);
+            values[i] = apply;
+            if (apply != prev) {
+                changed = true;
+            }
+        }
+        for (int i = 0; i < idToValues.length; i++) {
+            K prev = idToValues[i];
+            if (prev == null) break;
+            idToValues[i] = function.apply(prev);
+        }
+        return changed;
     }
 
     public static <A> Int2ObjectBiMap<A> create(int expectedSize) {

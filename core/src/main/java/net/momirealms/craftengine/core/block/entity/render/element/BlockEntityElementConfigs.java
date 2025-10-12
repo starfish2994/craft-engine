@@ -10,7 +10,7 @@ import net.momirealms.craftengine.core.util.ResourceKey;
 import java.util.Map;
 import java.util.Optional;
 
-public class BlockEntityElementConfigs {
+public abstract class BlockEntityElementConfigs {
     public static final Key ITEM_DISPLAY = Key.of("craftengine:item_display");
     public static final Key TEXT_DISPLAY = Key.of("craftengine:text_display");
 

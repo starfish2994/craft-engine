@@ -25,6 +25,8 @@ public interface Palette<T> {
 
     void remap(Function<T, T> function);
 
+    boolean remapAndCheck(Function<T, T> function);
+
     boolean canRemap();
 
     interface Factory {

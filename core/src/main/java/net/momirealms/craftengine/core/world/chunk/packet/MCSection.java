@@ -26,7 +26,7 @@ public class MCSection {
 
     public void writePacket(FriendlyByteBuf buf) {
         buf.writeShort(this.nonEmptyBlockCount);
-        this.serverBlockStateContainer.downgradeTo(this.clientBlockStateList).writePacket(buf);
+        this.serverBlockStateContainer.getClientCompatiblePalettedContainer(this.clientBlockStateList).writePacket(buf);
         this.biomeContainer.writePacket(buf);
     }
 

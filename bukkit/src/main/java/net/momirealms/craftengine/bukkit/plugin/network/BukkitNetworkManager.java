@@ -299,7 +299,12 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         }
         this.blockStateRemapper = newMappings;
         this.modBlockStateRemapper = newMappingsMOD;
-        registerS2CGamePacketListener(new LevelChunkWithLightListener(newMappings, newMappingsMOD, newMappings.length, RegistryUtils.currentBiomeRegistrySize()), this.packetIds.clientboundLevelChunkWithLightPacket(), "ClientboundLevelChunkWithLightPacket");
+        registerS2CGamePacketListener(new LevelChunkWithLightListener(
+                newMappings,
+                newMappingsMOD,
+                newMappings.length,
+                RegistryUtils.currentBiomeRegistrySize()
+        ), this.packetIds.clientboundLevelChunkWithLightPacket(), "ClientboundLevelChunkWithLightPacket");
         registerS2CGamePacketListener(new SectionBlockUpdateListener(newMappings, newMappingsMOD), this.packetIds.clientboundSectionBlocksUpdatePacket(), "ClientboundSectionBlocksUpdatePacket");
         registerS2CGamePacketListener(new BlockUpdateListener(newMappings, newMappingsMOD), this.packetIds.clientboundBlockUpdatePacket(), "ClientboundBlockUpdatePacket");
         registerS2CGamePacketListener(
@@ -1922,12 +1927,14 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         private final int[] modBlockStateMapper;
         private final IntIdentityList biomeList;
         private final IntIdentityList blockList;
+        private final boolean needsDowngrade;
 
         public LevelChunkWithLightListener(int[] blockStateMapper, int[] modBlockStateMapper, int blockRegistrySize, int biomeRegistrySize) {
             this.blockStateMapper = blockStateMapper;
             this.modBlockStateMapper = modBlockStateMapper;
             this.biomeList = new IntIdentityList(biomeRegistrySize);
             this.blockList = new IntIdentityList(blockRegistrySize);
+            this.needsDowngrade = MiscUtils.ceilLog2(BlockStateUtils.vanillaBlockStateCount()) != MiscUtils.ceilLog2(blockRegistrySize);
         }
 
         @Override
@@ -1936,8 +1943,10 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             FriendlyByteBuf buf = event.getBuffer();
             int chunkX = buf.readInt();
             int chunkZ = buf.readInt();
+            ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
             boolean named = !VersionHelper.isOrAbove1_20_2();
-            // ClientboundLevelChunkPacketData
+
+            // 读取区块数据
             int heightmapsCount = 0;
             Map<Integer, long[]> heightmapsMap = null;
             net.momirealms.sparrow.nbt.Tag heightmaps = null;
@@ -1956,112 +1965,105 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             int chunkDataBufferSize = buf.readVarInt();
             byte[] chunkDataBytes = new byte[chunkDataBufferSize];
             buf.readBytes(chunkDataBytes);
-            int blockEntitiesDataCount = buf.readVarInt();
-            List<BlockEntityData> blockEntitiesData = new ArrayList<>();
-            for (int i = 0; i < blockEntitiesDataCount; i++) {
-                byte packedXZ = buf.readByte();
-                short y = buf.readShort();
-                int type = buf.readVarInt();
-                Tag tag = buf.readNbt(named);
-                BlockEntityData blockEntityData = new BlockEntityData(packedXZ, y, type, tag);
-                blockEntitiesData.add(blockEntityData);
-            }
-            // ClientboundLightUpdatePacketData
-            BitSet skyYMask = buf.readBitSet();
-            BitSet blockYMask = buf.readBitSet();
-            BitSet emptySkyYMask = buf.readBitSet();
-            BitSet emptyBlockYMask = buf.readBitSet();
-            List<byte[]> skyUpdates = buf.readByteArrayList(2048);
-            List<byte[]> blockUpdates = buf.readByteArrayList(2048);
 
+            // 客户端侧section数量很重要，不能读取此时玩家所在的真实世界，包具有滞后性
             int count = player.clientSideSectionCount();
             MCSection[] sections = new MCSection[count];
-
             FriendlyByteBuf chunkDataByteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(chunkDataBytes));
-            // 开始处理
-            if (user.clientModEnabled()) {
-                for (int i = 0; i < count; i++) {
-                    MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
-                    mcSection.readPacket(chunkDataByteBuf);
-                    PalettedContainer<Integer> container = mcSection.blockStateContainer();
-                    remapBiomes(user, mcSection.biomeContainer());
-                    Palette<Integer> palette = container.data().palette();
-                    if (palette.canRemap()) {
-                        palette.remap(s -> this.modBlockStateMapper[s]);
-                    } else {
-                        for (int j = 0; j < 4096; j++) {
-                            int state = container.get(j);
-                            int newState = this.modBlockStateMapper[state];
-                            if (newState != state) {
-                                container.set(j, newState);
-                            }
-                        }
-                    }
-                    sections[i] = mcSection;
-                }
-            } else {
-                for (int i = 0; i < count; i++) {
-                    MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
-                    mcSection.readPacket(chunkDataByteBuf);
-                    PalettedContainer<Integer> container = mcSection.blockStateContainer();
-                    remapBiomes(user, mcSection.biomeContainer());
-                    Palette<Integer> palette = container.data().palette();
-                    if (palette.canRemap()) {
-                        palette.remap(s -> this.blockStateMapper[s]);
-                    } else {
-                        for (int j = 0; j < 4096; j++) {
-                            int state = container.get(j);
-                            int newState = this.blockStateMapper[state];
-                            if (newState != state) {
-                                container.set(j, newState);
-                            }
-                        }
-                    }
-                    sections[i] = mcSection;
-                }
-            }
 
-            FriendlyByteBuf newChunkDataBuf = new FriendlyByteBuf(Unpooled.buffer(chunkDataBufferSize));
+            boolean hasChangedAnyBlock = false;
+            boolean hasGlobalPalette = false;
+
             for (int i = 0; i < count; i++) {
-                sections[i].writePacket(newChunkDataBuf);
-            }
-            chunkDataBytes = newChunkDataBuf.array();
-
-            // 开始修改
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeInt(chunkX);
-            buf.writeInt(chunkZ);
-            if (VersionHelper.isOrAbove1_21_5()) {
-                buf.writeVarInt(heightmapsCount);
-                for (Map.Entry<Integer, long[]> entry : heightmapsMap.entrySet()) {
-                    buf.writeVarInt(entry.getKey());
-                    buf.writeLongArray(entry.getValue());
+                MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
+                mcSection.readPacket(chunkDataByteBuf);
+                PalettedContainer<Integer> container = mcSection.blockStateContainer();
+                remapBiomes(user, mcSection.biomeContainer());
+                Palette<Integer> palette = container.data().palette();
+                if (palette.canRemap()) {
+                    if (palette.remapAndCheck(s -> this.blockStateMapper[s])) {
+                        hasChangedAnyBlock = true;
+                    }
+                } else {
+                    hasGlobalPalette = true;
+                    for (int j = 0; j < 4096; j++) {
+                        int state = container.get(j);
+                        int newState = this.blockStateMapper[state];
+                        if (newState != state) {
+                            container.set(j, newState);
+                            hasChangedAnyBlock = true;
+                        }
+                    }
                 }
-            } else {
-                buf.writeNbt(heightmaps, named);
+                sections[i] = mcSection;
             }
-            buf.writeVarInt(chunkDataBytes.length);
-            buf.writeBytes(chunkDataBytes);
-            buf.writeVarInt(blockEntitiesDataCount);
-            for (BlockEntityData blockEntityData : blockEntitiesData) {
-                buf.writeByte(blockEntityData.packedXZ());
-                buf.writeShort(blockEntityData.y());
-                buf.writeVarInt(blockEntityData.type());
-                buf.writeNbt(blockEntityData.tag(), named);
-            }
-            buf.writeBitSet(skyYMask);
-            buf.writeBitSet(blockYMask);
-            buf.writeBitSet(emptySkyYMask);
-            buf.writeBitSet(emptyBlockYMask);
-            buf.writeByteArrayList(skyUpdates);
-            buf.writeByteArrayList(blockUpdates);
 
-            ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
+            // 只有被修改了，才读后续内容，并改写
+            if (hasChangedAnyBlock || (this.needsDowngrade && hasGlobalPalette)) {
+                // 读取其他非必要信息
+                int blockEntitiesDataCount = buf.readVarInt();
+                List<BlockEntityData> blockEntitiesData = new ArrayList<>();
+                for (int i = 0; i < blockEntitiesDataCount; i++) {
+                    byte packedXZ = buf.readByte();
+                    short y = buf.readShort();
+                    int type = buf.readVarInt();
+                    Tag tag = buf.readNbt(named);
+                    BlockEntityData blockEntityData = new BlockEntityData(packedXZ, y, type, tag);
+                    blockEntitiesData.add(blockEntityData);
+                }
+                // 光照信息
+                BitSet skyYMask = buf.readBitSet();
+                BitSet blockYMask = buf.readBitSet();
+                BitSet emptySkyYMask = buf.readBitSet();
+                BitSet emptyBlockYMask = buf.readBitSet();
+                List<byte[]> skyUpdates = buf.readByteArrayList(2048);
+                List<byte[]> blockUpdates = buf.readByteArrayList(2048);
+
+                // 预分配容量
+                FriendlyByteBuf newChunkDataBuf = new FriendlyByteBuf(Unpooled.buffer(chunkDataBufferSize + 16));
+                for (int i = 0; i < count; i++) {
+                    sections[i].writePacket(newChunkDataBuf);
+                }
+                chunkDataBytes = newChunkDataBuf.array();
+
+                // 开始修改
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeInt(chunkX);
+                buf.writeInt(chunkZ);
+                if (VersionHelper.isOrAbove1_21_5()) {
+                    buf.writeVarInt(heightmapsCount);
+                    for (Map.Entry<Integer, long[]> entry : heightmapsMap.entrySet()) {
+                        buf.writeVarInt(entry.getKey());
+                        buf.writeLongArray(entry.getValue());
+                    }
+                } else {
+                    buf.writeNbt(heightmaps, named);
+                }
+                buf.writeVarInt(chunkDataBytes.length);
+                buf.writeBytes(chunkDataBytes);
+                buf.writeVarInt(blockEntitiesDataCount);
+                for (BlockEntityData blockEntityData : blockEntitiesData) {
+                    buf.writeByte(blockEntityData.packedXZ());
+                    buf.writeShort(blockEntityData.y());
+                    buf.writeVarInt(blockEntityData.type());
+                    buf.writeNbt(blockEntityData.tag(), named);
+                }
+                buf.writeBitSet(skyYMask);
+                buf.writeBitSet(blockYMask);
+                buf.writeBitSet(emptySkyYMask);
+                buf.writeBitSet(emptyBlockYMask);
+                buf.writeByteArrayList(skyUpdates);
+                buf.writeByteArrayList(blockUpdates);
+            } else {
+                System.out.println("没变化啊");
+            }
+
             // 记录加载的区块
             player.addTrackedChunk(chunkPos.longKey, new ChunkStatus());
 
+            // 生成方块实体
             CEWorld ceWorld = BukkitWorldManager.instance().getWorld(player.world().uuid());
             CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);
             if (ceChunk != null) {

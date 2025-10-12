@@ -74,6 +74,13 @@ public class SingularPalette<T> implements Palette<T> {
     }
 
     @Override
+    public boolean remapAndCheck(Function<T, T> function) {
+        T previous = this.entry;
+        this.entry = function.apply(previous);
+        return previous == this.entry;
+    }
+
+    @Override
     public boolean canRemap() {
         return true;
     }
