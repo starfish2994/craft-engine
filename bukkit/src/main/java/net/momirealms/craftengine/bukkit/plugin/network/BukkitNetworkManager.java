@@ -120,6 +120,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 public class BukkitNetworkManager implements NetworkManager, Listener, PluginMessageListener {
     private static BukkitNetworkManager instance;
@@ -1911,16 +1912,17 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
     }
 
     public static class LevelChunkWithLightListener implements ByteBufferPacketListener {
-        private static BiConsumer<NetWorkUser, PalettedContainer<Integer>> biomeRemapper = null;
+        private static BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> biomeRemapper = null;
 
-        public static void setBiomeRemapper(BiConsumer<NetWorkUser, PalettedContainer<Integer>> remapper) {
+        public static void setBiomeRemapper(BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> remapper) {
             biomeRemapper = remapper;
         }
 
-        public static void remapBiomes(NetWorkUser user, PalettedContainer<Integer> biomes) {
+        public static boolean remapBiomes(NetWorkUser user, PalettedContainer<Integer> biomes) {
             if (biomeRemapper != null) {
-                biomeRemapper.accept(user, biomes);
+                return biomeRemapper.apply(user, biomes);
             }
+            return false;
         }
 
         private final int[] blockStateMapper;
@@ -1978,7 +1980,9 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
                 mcSection.readPacket(chunkDataByteBuf);
                 PalettedContainer<Integer> container = mcSection.blockStateContainer();
-                remapBiomes(user, mcSection.biomeContainer());
+                if (remapBiomes(user, mcSection.biomeContainer())) {
+                    hasChangedAnyBlock = true;
+                }
                 Palette<Integer> palette = container.data().palette();
                 if (palette.canRemap()) {
                     if (palette.remapAndCheck(s -> this.blockStateMapper[s])) {
