@@ -10,6 +10,9 @@ forced-locale: ''
 filter-configuration-phase-disconnect: false
 
 resource-pack:
+  # This option determines the location of the generated resource pack
+  # You can use either an absolute path or a relative path here
+  path: "./generated/resource_pack.zip"
   # Should those images in minecraft:default font also work in minecraft:uniform
   override-uniform-font: true
   # Generate assets for CraftEngine fabric mod

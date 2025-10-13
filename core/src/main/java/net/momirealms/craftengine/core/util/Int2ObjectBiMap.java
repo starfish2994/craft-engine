@@ -60,7 +60,11 @@ public class Int2ObjectBiMap<K> implements IndexedIterable<K> {
         for (int i = 0; i < idToValues.length; i++) {
             K prev = idToValues[i];
             if (prev == null) break;
-            idToValues[i] = function.apply(prev);
+            K apply = function.apply(prev);
+            idToValues[i] = apply;
+            if (!apply.equals(prev)) {
+                changed = true;
+            }
         }
         return changed;
     }
@@ -172,7 +176,7 @@ public class Int2ObjectBiMap<K> implements IndexedIterable<K> {
 
     private int findFree(int size) {
         int i;
-        for(i = size; i < this.values.length; ++i) {
+        for (i = size; i < this.values.length; ++i) {
             if (this.values[i] == EMPTY) {
                 return i;
             }

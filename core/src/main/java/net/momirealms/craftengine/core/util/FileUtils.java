@@ -15,6 +15,10 @@ public class FileUtils {
 
     private FileUtils() {}
 
+    public static boolean isAbsolute(final String path) {
+        return path.startsWith("/") || path.matches("^[A-Za-z]:\\\\.*");
+    }
+
     public static String getExtension(Path path) {
         final String name = path.getFileName().toString();
         int index = name.lastIndexOf('.');

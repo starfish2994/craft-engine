@@ -191,9 +191,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public Path resourcePackPath() {
-        return this.plugin.dataFolderPath()
-                .resolve("generated")
-                .resolve("resource_pack.zip");
+        return Config.resourcePackPath();
     }
 
     @Override
@@ -203,7 +201,7 @@ public abstract class AbstractPackManager implements PackManager {
         if (hostingObj instanceof Map<?,?>) {
             arguments = MiscUtils.castToMap(hostingObj, false);
         } else if (hostingObj instanceof List<?> list && !list.isEmpty()) {
-            arguments = MiscUtils.castToMap(list.get(0), false);
+            arguments = MiscUtils.castToMap(list.getFirst(), false);
         } else {
             this.resourcePackHost = NoneHost.INSTANCE;
             return;

@@ -59,6 +59,7 @@ public class Config {
     protected List<String> resource_pack$merge_external_folders;
     protected List<String> resource_pack$merge_external_zips;
     protected Set<String> resource_pack$exclude_file_extensions;
+    protected Path resource_pack$path;
 
     protected boolean resource_pack$protection$crash_tools$method_1;
     protected boolean resource_pack$protection$crash_tools$method_2;
@@ -282,6 +283,7 @@ public class Config {
         debug$resource_pack = config.getBoolean("debug.resource-pack", false);
 
         // resource pack
+        resource_pack$path = resolvePath(config.getString("resource-pack.path", "./generated/resource_pack.zip"));
         resource_pack$override_uniform_font = config.getBoolean("resource-pack.override-uniform-font", false);
         resource_pack$generate_mod_assets = config.getBoolean("resource-pack.generate-mod-assets", false);
         resource_pack$remove_tinted_leaves_particle = config.getBoolean("resource-pack.remove-tinted-leaves-particle", true);
@@ -1010,6 +1012,10 @@ public class Config {
         return instance.item$default_material;
     }
 
+    public static Path resourcePackPath() {
+        return instance.resource_pack$path;
+    }
+
     public void setObf(boolean enable) {
         this.resource_pack$protection$obfuscation$enable = enable;
     }
@@ -1065,7 +1071,7 @@ public class Config {
     }
 
     private Path resolvePath(String path) {
-        return path.startsWith(".") ? CraftEngine.instance().dataFolderPath().resolve(path) : Path.of(path);
+        return FileUtils.isAbsolute(path) ? Path.of(path) : this.plugin.dataFolderPath().resolve(path);
     }
 
     public YamlDocument settings() {
