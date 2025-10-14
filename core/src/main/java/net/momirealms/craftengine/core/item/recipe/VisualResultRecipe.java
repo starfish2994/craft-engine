@@ -4,10 +4,9 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
-import org.jetbrains.annotations.Nullable;
 
 public interface VisualResultRecipe<T> extends FixedResultRecipe<T> {
-    @Nullable
+
     CustomRecipeResult<T> visualResult();
 
     default boolean hasVisualResult() {

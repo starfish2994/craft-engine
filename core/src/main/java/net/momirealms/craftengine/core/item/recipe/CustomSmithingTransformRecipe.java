@@ -64,7 +64,7 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
     }
 
     @Override
-    public @Nullable CustomRecipeResult<T> visualResult() {
+    public CustomRecipeResult<T> visualResult() {
         return this.visualResult;
     }
 
@@ -119,10 +119,24 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
 
     @SuppressWarnings("unchecked")
     @Override
+    public T assembleVisual(RecipeInput input, ItemBuildContext context) {
+        SmithingInput<T> smithingInput = ((SmithingInput<T>) input);
+        Item<T> base = smithingInput.base().item();
+        T result = this.visualResult().buildItemStack(context);
+        return createSmithingResult(base, result);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public T assemble(RecipeInput input, ItemBuildContext context) {
         SmithingInput<T> smithingInput = ((SmithingInput<T>) input);
         Item<T> base = smithingInput.base().item();
         T result = this.result(context);
+        return createSmithingResult(base, result);
+    }
+
+    @SuppressWarnings("unchecked")
+    private T createSmithingResult(Item<T> base, T result) {
         Item<T> wrappedResult = (Item<T>) CraftEngine.instance().itemManager().wrap(result);
         Item<T> finalResult = wrappedResult;
         if (this.mergeComponents) {
