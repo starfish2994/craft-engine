@@ -26,11 +26,7 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
                 plugin.javaPlugin(),
                 ExecutionCoordinator.simpleCoordinator(),
                 SenderMapper.identity()
-        ) {{ // TODO：等 cloud 修复后移除，绕过 obc.command.BukkitCommandWrapper 类检查，因为这个类在 1.21.9 版本被移除了，并且项目貌似没用到这个
-            if (VersionHelper.isOrAbove1_21_9() && ReflectionUtils.classExists("com.mojang.brigadier.tree.CommandNode")) {
-                registerCapability(CloudBukkitCapabilities.BRIGADIER);
-            }
-        }});
+        ));
         this.plugin = plugin;
         this.index = Index.create(CommandFeature::getFeatureID, List.of(
                 new ReloadCommand(this, plugin),

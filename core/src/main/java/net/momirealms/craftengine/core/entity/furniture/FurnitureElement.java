@@ -18,6 +18,10 @@ public interface FurnitureElement {
 
     ItemDisplayContext transform();
 
+    float shadowRadius();
+
+    float shadowStrength();
+
     boolean applyDyedColor();
 
     Vector3f scale();
@@ -45,6 +49,10 @@ public interface FurnitureElement {
         Builder rotation(Quaternionf rotation);
 
         Builder applyDyedColor(boolean applyDyedColor);
+
+        Builder shadowStrength(float shadowStrength);
+
+        Builder shadowRadius(float shadowRadius);
 
         FurnitureElement build();
     }

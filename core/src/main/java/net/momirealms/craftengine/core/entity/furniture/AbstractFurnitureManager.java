@@ -137,6 +137,8 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                             .position(ResourceConfigUtils.getAsVector3f(element.getOrDefault("position", "0"), "position"))
                             .translation(ResourceConfigUtils.getAsVector3f(element.getOrDefault("translation", "0"), "translation"))
                             .rotation(ResourceConfigUtils.getAsQuaternionf(element.getOrDefault("rotation", "0"), "rotation"))
+                            .shadowRadius(ResourceConfigUtils.getAsFloat(element.getOrDefault("shadow-radius", 0f), "shadow-radius"))
+                            .shadowStrength(ResourceConfigUtils.getAsFloat(element.getOrDefault("shadow-strength", 1f), "shadow-strength"))
                             .build();
                     elements.add(furnitureElement);
                 }

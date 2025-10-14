@@ -15,6 +15,8 @@ public abstract class AbstractFurnitureElement implements FurnitureElement {
     private final Vector3f position;
     private final Quaternionf rotation;
     private final boolean applyDyedColor;
+    private final float shadowRadius;
+    private final float shadowStrength;
 
     public AbstractFurnitureElement(Key item,
                                     Billboard billboard,
@@ -23,6 +25,8 @@ public abstract class AbstractFurnitureElement implements FurnitureElement {
                                     Vector3f translation,
                                     Vector3f position,
                                     Quaternionf rotation,
+                                    float shadowRadius,
+                                    float shadowStrength,
                                     boolean applyDyedColor) {
         this.billboard = billboard;
         this.transform = transform;
@@ -32,6 +36,18 @@ public abstract class AbstractFurnitureElement implements FurnitureElement {
         this.rotation = rotation;
         this.position = position;
         this.applyDyedColor = applyDyedColor;
+        this.shadowRadius = shadowRadius;
+        this.shadowStrength = shadowStrength;
+    }
+
+    @Override
+    public float shadowRadius() {
+        return shadowRadius;
+    }
+
+    @Override
+    public float shadowStrength() {
+        return shadowStrength;
     }
 
     @Override
