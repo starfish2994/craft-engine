@@ -643,6 +643,7 @@ public class RecipeEventListener implements Listener {
         }
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+        // todo shift点击应该更好地处理，包括function执行次数也是
         if (craftingTableRecipe.hasVisualResult()) {
             if (event.isShiftClick()) {
                 event.setCancelled(true);
@@ -651,11 +652,58 @@ public class RecipeEventListener implements Listener {
             CraftingInput<ItemStack> input = getCraftingInput(inventory);
             inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
         }
-        Function<PlayerOptionalContext>[] functions = craftingTableRecipe.craftingFunctions();
+        Function<PlayerOptionalContext>[] functions = craftingTableRecipe.functions();
         if (functions != null) {
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
             for (Function<PlayerOptionalContext> function : functions) {
                 function.run(context);
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onSmithingFinish(SmithItemEvent event) {
+        if (!Config.enableRecipeSystem() || !VersionHelper.PREMIUM) return;
+        org.bukkit.inventory.Recipe recipe = event.getInventory().getRecipe();
+        if (recipe instanceof SmithingTransformRecipe transformRecipe) {
+            Key recipeId = Key.of(transformRecipe.getKey().namespace(), transformRecipe.getKey().value());
+            Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
+            // 也许是其他插件注册的配方，直接无视
+            if (optionalRecipe.isEmpty() || !(optionalRecipe.get() instanceof CustomSmithingTransformRecipe<ItemStack> smithingRecipe)) {
+                return;
+            }
+            SmithingInventory inventory = event.getInventory();
+            Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+            BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+            if (smithingRecipe.hasVisualResult()) {
+                if (event.isShiftClick()) {
+                    event.setCancelled(true);
+                    return;
+                }
+                SmithingInput<ItemStack> input = getSmithingInput(inventory);
+                inventory.setResult(smithingRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
+            }
+            Function<PlayerOptionalContext>[] functions = smithingRecipe.functions();
+            if (functions != null) {
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                for (Function<PlayerOptionalContext> function : functions) {
+                    function.run(context);
+                }
+            }
+        } else if (recipe instanceof SmithingTrimRecipe trimRecipe) {
+            Key recipeId = Key.of(trimRecipe.getKey().namespace(), trimRecipe.getKey().value());
+            Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
+            if (optionalRecipe.isEmpty() || !(optionalRecipe.get() instanceof CustomSmithingTrimRecipe<ItemStack> smithingRecipe)) {
+                return;
+            }
+            Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+            BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+            Function<PlayerOptionalContext>[] functions = smithingRecipe.functions();
+            if (functions != null) {
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                for (Function<PlayerOptionalContext> function : functions) {
+                    function.run(context);
+                }
             }
         }
     }
@@ -712,7 +760,6 @@ public class RecipeEventListener implements Listener {
             event.setResult(null);
             return;
         }
-
         SmithingInput<ItemStack> input = getSmithingInput(inventory);
         if (smithingTrimRecipe.matches(input)) {
             ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
@@ -736,11 +783,19 @@ public class RecipeEventListener implements Listener {
             event.setResult(null);
             return;
         }
+        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+        ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
+        if (!smithingTransformRecipe.canUse(itemBuildContext)) {
+            event.setResult(null);
+            return;
+        }
         SmithingInput<ItemStack> input = getSmithingInput(inventory);
         if (smithingTransformRecipe.matches(input)) {
-            Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-            ItemStack processed = smithingTransformRecipe.assemble(input, ItemBuildContext.of(BukkitAdaptors.adapt(player)));
-            event.setResult(processed);
+            if (smithingTransformRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
+                event.setResult(smithingTransformRecipe.assembleVisual(input, itemBuildContext));
+            } else {
+                event.setResult(smithingTransformRecipe.assemble(input, itemBuildContext));
+            }
         } else {
             event.setResult(null);
         }

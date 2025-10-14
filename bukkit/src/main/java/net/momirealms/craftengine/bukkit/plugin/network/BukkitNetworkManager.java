@@ -119,7 +119,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class BukkitNetworkManager implements NetworkManager, Listener, PluginMessageListener {

@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.item.recipe.network.legacy;
 
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.recipe.CraftingRecipeCategory;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.jetbrains.annotations.ApiStatus;

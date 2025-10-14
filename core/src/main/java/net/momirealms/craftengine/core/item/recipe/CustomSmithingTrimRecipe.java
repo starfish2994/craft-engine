@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
@@ -20,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T> implements ConditionalRecipe {
+public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T>
+        implements ConditionalRecipe<T>, FunctionalRecipe<T> {
     public static final Serializer<?> SERIALIZER = new Serializer<>();
     private final Ingredient<T> base;
     private final Ingredient<T> template;
@@ -29,6 +31,7 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T> implements Co
     private final Key pattern;
     @Nullable
     private final Condition<PlayerOptionalContext> condition;
+    private final Function<PlayerOptionalContext>[] smithingFunctions;
 
     public CustomSmithingTrimRecipe(@NotNull Key id,
                                     boolean showNotification,
@@ -36,6 +39,7 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T> implements Co
                                     @NotNull Ingredient<T> base,
                                     @NotNull Ingredient<T> addition,
                                     @Nullable Key pattern,
+                                    Function<PlayerOptionalContext>[] smithingFunctions,
                                     @Nullable Condition<PlayerOptionalContext> condition
     ) {
         super(id, showNotification);
@@ -44,9 +48,15 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T> implements Co
         this.addition = addition;
         this.pattern = pattern;
         this.condition = condition;
+        this.smithingFunctions = smithingFunctions;
         if (pattern == null && VersionHelper.isOrAbove1_21_5()) {
             throw new IllegalStateException("SmithingTrimRecipe cannot have a null pattern on 1.21.5 and above.");
         }
+    }
+
+    @Override
+    public Function<PlayerOptionalContext>[] functions() {
+        return this.smithingFunctions;
     }
 
     @Override
@@ -135,6 +145,7 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T> implements Co
                     ResourceConfigUtils.requireNonNullOrThrow(toIngredient(base), "warning.config.recipe.smithing_trim.missing_base"),
                     ResourceConfigUtils.requireNonNullOrThrow(toIngredient(addition), "warning.config.recipe.smithing_trim.missing_addition"),
                     pattern,
+                    functions(arguments),
                     conditions(arguments)
             );
         }
@@ -147,6 +158,7 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T> implements Co
                     Objects.requireNonNull(toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("base")))),
                     Objects.requireNonNull(toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition")))),
                     VersionHelper.isOrAbove1_21_5() ? Key.of(json.get("pattern").getAsString()) : null,
+                    null,
                     null
             );
         }
