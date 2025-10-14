@@ -24,6 +24,7 @@ public class SpecialModels {
     public static final Key STANDING_SIGN = Key.of("minecraft:standing_sign");
     public static final Key TRIDENT = Key.of("minecraft:trident");
     public static final Key PLAYER_HEAD = Key.of("minecraft:player_head");
+    public static final Key COPPER_GOLEM_STATUE = Key.of("minecraft:copper_golem_statue");
 
     static {
         registerFactory(TRIDENT, SimpleSpecialModel.FACTORY);
@@ -50,6 +51,8 @@ public class SpecialModels {
         registerReader(HEAD, HeadSpecialModel.READER);
         registerFactory(SHULKER_BOX, ShulkerBoxSpecialModel.FACTORY);
         registerReader(SHULKER_BOX, ShulkerBoxSpecialModel.READER);
+        registerFactory(COPPER_GOLEM_STATUE, CopperGolemStatueSpecialModel.FACTORY);
+        registerReader(COPPER_GOLEM_STATUE, CopperGolemStatueSpecialModel.READER);
     }
 
     public static void registerFactory(Key key, SpecialModelFactory factory) {

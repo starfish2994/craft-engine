@@ -628,6 +628,7 @@ public class RecipeEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCraftingFinish(CraftItemEvent event) {
+        System.out.println(event.isShiftClick());
         if (!Config.enableRecipeSystem() || !VersionHelper.PREMIUM) return;
         org.bukkit.inventory.Recipe recipe = event.getRecipe();
         if (!(recipe instanceof CraftingRecipe craftingRecipe)) return;

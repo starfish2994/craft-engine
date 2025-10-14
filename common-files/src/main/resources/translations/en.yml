@@ -258,6 +258,8 @@ warning.config.item.model.special.chest.invalid_openness: "<yellow>Issue found i
 warning.config.item.model.special.shulker_box.missing_texture: "<yellow>Issue found in file <arg:0> - The item '<arg:1>' is missing the required 'texture' argument for special model 'minecraft:shulker_box'.</yellow>"
 warning.config.item.model.special.shulker_box.invalid_openness: "<yellow>Issue found in file <arg:0> - The item '<arg:1>' is using an invalid 'openness' value '<arg:2>' for special model 'minecraft:shulker_box'. Valid range '0~1.'</yellow>"
 warning.config.item.model.special.head.missing_kind: "<yellow>Issue found in file <arg:0> - The item '<arg:1>' is missing the required 'kind' argument for special model 'minecraft:head'.</yellow>"
+warning.config.item.model.special.copper_golem_statue.missing_pose: "<yellow>Issue found in file <arg:0> - The item '<arg:1>' is missing the required 'pose' argument for special model 'minecraft:copper_golem_statue'.</yellow>"
+warning.config.item.model.special.copper_golem_statue.missing_texture: "<yellow>Issue found in file <arg:0> - The item '<arg:1>' is missing the required 'texture' argument for special model 'minecraft:copper_golem_statue'.</yellow>"
 warning.config.item.updater.missing_type: "<yellow>Issue found in file <arg:0> - The item '<arg:1>' is missing the required 'type' argument for item updater.</yellow>"
 warning.config.item.updater.invalid_type: "<yellow>Issue found in file <arg:0> - The item '<arg:1>' is using an invalid 'type' argument '<arg:2>' for item updater.</yellow>"
 warning.config.item.updater.transmute.missing_material: "<yellow>Issue found in file <arg:0> - The item '<arg:1>' is missing the required 'material' argument for 'transmute' item updater.</yellow>"
