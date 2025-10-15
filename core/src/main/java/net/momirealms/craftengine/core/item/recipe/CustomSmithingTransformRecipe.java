@@ -74,6 +74,11 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
         return true;
     }
 
+    @Override
+    public boolean hasCondition() {
+        return this.condition != null;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public boolean matches(RecipeInput input) {

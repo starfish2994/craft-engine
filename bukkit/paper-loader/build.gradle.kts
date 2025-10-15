@@ -126,6 +126,7 @@ paper {
         register("PreciousStones") { required = false }
         register("hClaims") { required = false }
         register("Factions") { required = false }
+        register("NoBuildPlus") { required = false }
     }
 }
 

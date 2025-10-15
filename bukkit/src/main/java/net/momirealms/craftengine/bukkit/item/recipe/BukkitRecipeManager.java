@@ -251,6 +251,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
      */
     private final BukkitCraftEngine plugin;
     private final RecipeEventListener recipeEventListener;
+    private final CrafterEventListener crafterEventListener;
     // 欺骗服务端使其以为自己处于启动阶段
     private Object stolenFeatureFlagSet;
     // 需要在主线程卸载的配方
@@ -265,6 +266,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
         instance = this;
         this.plugin = plugin;
         this.recipeEventListener = new RecipeEventListener(plugin, this, plugin.itemManager());
+        this.crafterEventListener = VersionHelper.isOrAbove1_21() ? new CrafterEventListener(plugin, this, plugin.itemManager()) : null;
     }
 
     public static Object minecraftRecipeManager() {
@@ -278,6 +280,9 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.recipeEventListener, this.plugin.javaPlugin());
+        if (this.crafterEventListener != null) {
+            Bukkit.getPluginManager().registerEvents(this.crafterEventListener, this.plugin.javaPlugin());
+        }
     }
 
     @Override

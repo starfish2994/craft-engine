@@ -29,8 +29,9 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                               CraftingRecipeCategory category,
                               Pattern<T> pattern,
                               Function<PlayerOptionalContext>[] craftingFunctions,
-                              Condition<PlayerOptionalContext> craftingCondition) {
-        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition);
+                              Condition<PlayerOptionalContext> craftingCondition,
+                              boolean alwaysRebuildOutput) {
+        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition, alwaysRebuildOutput);
         this.pattern = pattern;
         this.parsedPattern = pattern.parse();
     }
@@ -176,7 +177,8 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                     arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
                     new Pattern<>(pattern.toArray(new String[0]), ingredients),
                     functions(arguments),
-                    conditions(arguments)
+                    conditions(arguments),
+                    ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("always-rebuild-result", true), "always-rebuild-result")
             );
         }
 
@@ -191,7 +193,8 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                     VANILLA_RECIPE_HELPER.craftingCategory(json),
                     new Pattern<>(VANILLA_RECIPE_HELPER.craftingShapedPattern(json), ingredients),
                     null,
-                    null
+                    null,
+                    false
             );
         }
 

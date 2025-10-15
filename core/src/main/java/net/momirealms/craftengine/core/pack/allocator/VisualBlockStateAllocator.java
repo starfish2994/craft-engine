@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 
 public class VisualBlockStateAllocator {
     private final Path cacheFilePath;
-    private final Map<String, BlockStateWrapper> cachedBlockStates = new HashMap<>();
+    private final Map<String, BlockStateWrapper> cachedBlockStates = new LinkedHashMap<>();
     private final Map<String, Pair<AutoStateGroup, CompletableFuture<BlockStateWrapper>>> pendingAllocations = new LinkedHashMap<>();
     @SuppressWarnings("unchecked")
     private final List<Pair<String, CompletableFuture<BlockStateWrapper>>>[] pendingAllocationFutures = new List[AutoStateGroup.values().length];

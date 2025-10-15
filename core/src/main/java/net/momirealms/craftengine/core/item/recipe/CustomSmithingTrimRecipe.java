@@ -65,6 +65,11 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T>
         return true;
     }
 
+    @Override
+    public boolean hasCondition() {
+        return this.condition != null;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public T assemble(RecipeInput input, ItemBuildContext context) {

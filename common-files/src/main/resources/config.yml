@@ -85,7 +85,7 @@ resource-pack:
     # Send the resource pack on joining the server
     send-on-join: true
     kick-if-declined: true
-    kick-if-failed-to-apply: true
+    kick-if-failed-to-apply: false
     prompt: "<yellow>To fully experience our server,<newline>please accept our custom resource pack.</yellow>"
     # If you are hosting the resource pack by yourself, replace `localhost` with your server ip otherwise it would only work on your local pc
     # If using BungeeCord or Velocity, consider using a proxy-side plugin to handle resource pack delivery.

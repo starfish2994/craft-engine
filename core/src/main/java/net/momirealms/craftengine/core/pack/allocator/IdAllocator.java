@@ -21,7 +21,7 @@ public class IdAllocator {
     private final BiMap<String, Integer> forcedIdMap = HashBiMap.create(128);
     private final BitSet occupiedIdSet = new BitSet();
     private final Map<String, CompletableFuture<Integer>> pendingAllocations = new LinkedHashMap<>();
-    private final Map<String, Integer> cachedIdMap = new HashMap<>();
+    private final Map<String, Integer> cachedIdMap = new LinkedHashMap<>();
 
     private long lastModified;
 

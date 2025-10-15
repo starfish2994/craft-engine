@@ -594,8 +594,9 @@ public class RecipeEventListener implements Listener {
         return new Pair<>(first, second);
     }
 
+    // 准备结果阶段
     @EventHandler(ignoreCancelled = true)
-    public void onCraftingRecipe(PrepareItemCraftEvent event) {
+    public void onPrepareCraftingRecipe(PrepareItemCraftEvent event) {
         if (!Config.enableRecipeSystem()) return;
         org.bukkit.inventory.Recipe recipe = event.getRecipe();
         if (!(recipe instanceof CraftingRecipe craftingRecipe)) return;
@@ -612,17 +613,20 @@ public class RecipeEventListener implements Listener {
         }
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
-        if (!craftingTableRecipe.canUse(itemBuildContext)) {
-            inventory.setResult(null);
-            return;
+        if (craftingTableRecipe.hasCondition()) {
+            if (!craftingTableRecipe.canUse(PlayerOptionalContext.of(serverPlayer))) {
+                inventory.setResult(null);
+                return;
+            }
         }
-        CraftingInput<ItemStack> input = getCraftingInput(inventory);
-        if (input == null) return;
         if (craftingTableRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
-            inventory.setResult(craftingTableRecipe.assembleVisual(input, itemBuildContext));
+            ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
+            inventory.setResult(craftingTableRecipe.assembleVisual(null, itemBuildContext));
         } else {
-            inventory.setResult(craftingTableRecipe.assemble(input, itemBuildContext));
+            if (craftingTableRecipe.alwaysRebuildOutput()) {
+                ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
+                inventory.setResult(craftingTableRecipe.assemble(null, itemBuildContext));
+            }
         }
     }
 
@@ -658,6 +662,90 @@ public class RecipeEventListener implements Listener {
             for (Function<PlayerOptionalContext> function : functions) {
                 function.run(context);
             }
+        }
+    }
+
+    private CraftingInput<ItemStack> getCraftingInput(CraftingInventory inventory) {
+        ItemStack[] ingredients = inventory.getMatrix();
+        List<UniqueIdItem<ItemStack>> uniqueIdItems = new ArrayList<>();
+        for (ItemStack itemStack : ingredients) {
+            uniqueIdItems.add(ItemStackUtils.getUniqueIdItem(itemStack));
+        }
+        CraftingInput<ItemStack> input;
+        if (ingredients.length == 9) {
+            input = CraftingInput.of(3, 3, uniqueIdItems);
+        } else if (ingredients.length == 4) {
+            input = CraftingInput.of(2, 2, uniqueIdItems);
+        } else {
+            return null;
+        }
+        return input;
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPrepareSmithingTrim(PrepareSmithingEvent event) {
+        SmithingInventory inventory = event.getInventory();
+        if (!(inventory.getRecipe() instanceof SmithingTrimRecipe recipe)) return;
+
+        ItemStack equipment = inventory.getInputEquipment();
+        if (!ItemStackUtils.isEmpty(equipment)) {
+            Item<ItemStack> wrappedEquipment = this.itemManager.wrap(equipment);
+            Optional<CustomItem<ItemStack>> optionalCustomItem = wrappedEquipment.getCustomItem();
+            if (optionalCustomItem.isPresent()) {
+                CustomItem<ItemStack> customItem = optionalCustomItem.get();
+                ItemEquipment itemEquipmentSettings = customItem.settings().equipment();
+                if (itemEquipmentSettings != null && itemEquipmentSettings.equipment() instanceof TrimBasedEquipment) {
+                    // 不允许trim类型的盔甲再次被使用trim
+                    event.setResult(null);
+                    return;
+                }
+            }
+        }
+
+        Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+        Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
+        if (optionalRecipe.isEmpty()) {
+            return;
+        }
+        if (!(optionalRecipe.get() instanceof CustomSmithingTrimRecipe<ItemStack> smithingTrimRecipe)) {
+            event.setResult(null);
+            return;
+        }
+        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+        ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
+        if (!smithingTrimRecipe.canUse(itemBuildContext)) {
+            event.setResult(null);
+            return;
+        }
+        ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
+        event.setResult(result);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPrepareSmithingTransform(PrepareSmithingEvent event) {
+        if (!Config.enableRecipeSystem()) return;
+        SmithingInventory inventory = event.getInventory();
+        if (!(inventory.getRecipe() instanceof SmithingTransformRecipe recipe)) return;
+        Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+        Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
+        if (optionalRecipe.isEmpty()) {
+            return;
+        }
+        if (!(optionalRecipe.get() instanceof CustomSmithingTransformRecipe<ItemStack> smithingTransformRecipe)) {
+            event.setResult(null);
+            return;
+        }
+        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+        ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
+        if (!smithingTransformRecipe.canUse(itemBuildContext)) {
+            event.setResult(null);
+            return;
+        }
+        SmithingInput<ItemStack> input = getSmithingInput(inventory);
+        if (smithingTransformRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
+            event.setResult(smithingTransformRecipe.assembleVisual(input, itemBuildContext));
+        } else {
+            event.setResult(smithingTransformRecipe.assemble(input, itemBuildContext));
         }
     }
 
@@ -705,99 +793,6 @@ public class RecipeEventListener implements Listener {
                     function.run(context);
                 }
             }
-        }
-    }
-
-    private CraftingInput<ItemStack> getCraftingInput(CraftingInventory inventory) {
-        ItemStack[] ingredients = inventory.getMatrix();
-        List<UniqueIdItem<ItemStack>> uniqueIdItems = new ArrayList<>();
-        for (ItemStack itemStack : ingredients) {
-            uniqueIdItems.add(ItemStackUtils.getUniqueIdItem(itemStack));
-        }
-        CraftingInput<ItemStack> input;
-        if (ingredients.length == 9) {
-            input = CraftingInput.of(3, 3, uniqueIdItems);
-        } else if (ingredients.length == 4) {
-            input = CraftingInput.of(2, 2, uniqueIdItems);
-        } else {
-            return null;
-        }
-        return input;
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onSmithingTrim(PrepareSmithingEvent event) {
-        SmithingInventory inventory = event.getInventory();
-        if (!(inventory.getRecipe() instanceof SmithingTrimRecipe recipe)) return;
-
-        ItemStack equipment = inventory.getInputEquipment();
-        if (!ItemStackUtils.isEmpty(equipment)) {
-            Item<ItemStack> wrappedEquipment = this.itemManager.wrap(equipment);
-            Optional<CustomItem<ItemStack>> optionalCustomItem = wrappedEquipment.getCustomItem();
-            if (optionalCustomItem.isPresent()) {
-                CustomItem<ItemStack> customItem = optionalCustomItem.get();
-                ItemEquipment itemEquipmentSettings = customItem.settings().equipment();
-                if (itemEquipmentSettings != null && itemEquipmentSettings.equipment() instanceof TrimBasedEquipment) {
-                    // 不允许trim类型的盔甲再次被使用trim
-                    event.setResult(null);
-                    return;
-                }
-            }
-        }
-
-        Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
-        Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
-        if (optionalRecipe.isEmpty()) {
-            return;
-        }
-        if (!(optionalRecipe.get() instanceof CustomSmithingTrimRecipe<ItemStack> smithingTrimRecipe)) {
-            event.setResult(null);
-            return;
-        }
-        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-        ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
-        if (!smithingTrimRecipe.canUse(itemBuildContext)) {
-            event.setResult(null);
-            return;
-        }
-        SmithingInput<ItemStack> input = getSmithingInput(inventory);
-        if (smithingTrimRecipe.matches(input)) {
-            ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
-            event.setResult(result);
-        } else {
-            event.setResult(null);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onSmithingTransform(PrepareSmithingEvent event) {
-        if (!Config.enableRecipeSystem()) return;
-        SmithingInventory inventory = event.getInventory();
-        if (!(inventory.getRecipe() instanceof SmithingTransformRecipe recipe)) return;
-        Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
-        Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
-        if (optionalRecipe.isEmpty()) {
-            return;
-        }
-        if (!(optionalRecipe.get() instanceof CustomSmithingTransformRecipe<ItemStack> smithingTransformRecipe)) {
-            event.setResult(null);
-            return;
-        }
-        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-        ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
-        if (!smithingTransformRecipe.canUse(itemBuildContext)) {
-            event.setResult(null);
-            return;
-        }
-        SmithingInput<ItemStack> input = getSmithingInput(inventory);
-        if (smithingTransformRecipe.matches(input)) {
-            if (smithingTransformRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
-                event.setResult(smithingTransformRecipe.assembleVisual(input, itemBuildContext));
-            } else {
-                event.setResult(smithingTransformRecipe.assemble(input, itemBuildContext));
-            }
-        } else {
-            event.setResult(null);
         }
     }
 

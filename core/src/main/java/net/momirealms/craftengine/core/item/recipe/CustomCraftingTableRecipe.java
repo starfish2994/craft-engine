@@ -13,6 +13,7 @@ public abstract class CustomCraftingTableRecipe<T> extends AbstractGroupedRecipe
     private final CustomRecipeResult<T> visualResult;
     private final Function<PlayerOptionalContext>[] craftingFunctions;
     private final Condition<PlayerOptionalContext> craftingCondition;
+    private final boolean alwaysRebuildResult;
 
     protected CustomCraftingTableRecipe(Key id,
                                         boolean showNotification,
@@ -21,18 +22,29 @@ public abstract class CustomCraftingTableRecipe<T> extends AbstractGroupedRecipe
                                         String group,
                                         CraftingRecipeCategory category,
                                         Function<PlayerOptionalContext>[] craftingFunctions,
-                                        Condition<PlayerOptionalContext> craftingCondition) {
+                                        Condition<PlayerOptionalContext> craftingCondition,
+                                        boolean alwaysRebuildResult) {
         super(id, showNotification, result, group);
         this.category = category == null ? CraftingRecipeCategory.MISC : category;
         this.visualResult = visualResult;
         this.craftingFunctions = craftingFunctions;
         this.craftingCondition = craftingCondition;
+        this.alwaysRebuildResult = alwaysRebuildResult;
+    }
+
+    public boolean alwaysRebuildOutput() {
+        return alwaysRebuildResult;
     }
 
     @Override
     public boolean canUse(PlayerOptionalContext context) {
         if (this.craftingCondition == null) return true;
         return this.craftingCondition.test(context);
+    }
+
+    @Override
+    public boolean hasCondition() {
+        return this.craftingCondition != null;
     }
 
     public CraftingRecipeCategory category() {
