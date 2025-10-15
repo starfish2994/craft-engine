@@ -3487,10 +3487,10 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 buf.writeByte(buttonNum);
                 buf.writeVarInt(clickType);
                 buf.writeVarInt(changedSlots.size());
-                changedSlots.forEach((k, v) -> {
-                    buf.writeShort(k);
-                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, v);
-                });
+                for (Map.Entry<Integer, ItemStack> entry : changedSlots.int2ObjectEntrySet()) {
+                    buf.writeShort(entry.getKey());
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, entry.getValue());
+                }
                 FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, carriedItem);
             }
         }
