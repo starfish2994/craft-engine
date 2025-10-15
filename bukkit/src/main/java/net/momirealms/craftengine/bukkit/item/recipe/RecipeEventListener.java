@@ -729,6 +729,11 @@ public class RecipeEventListener implements Listener {
         }
         // 单次合成
         else {
+            if (event.getClick() == ClickType.DROP) {
+                if (!ItemStackUtils.isEmpty(event.getCursor())) {
+                    return;
+                }
+            }
             // 指针物品不为空，且竟然和视觉物品一致，逆天，必须阻止
             if (event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT) {
                 ItemStack cursor = event.getCursor();
@@ -919,7 +924,7 @@ public class RecipeEventListener implements Listener {
                     return;
                 }
                 // 指针物品不为空
-                if (event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT) {
+                if (event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT || event.getClick() == ClickType.DROP) {
                     ItemStack cursor = event.getCursor();
                     if (!ItemStackUtils.isEmpty(cursor)) {
                         if (cursor.isSimilar(result)) {
