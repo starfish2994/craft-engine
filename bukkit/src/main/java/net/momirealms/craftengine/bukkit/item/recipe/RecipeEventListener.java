@@ -28,6 +28,7 @@ import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -633,6 +634,7 @@ public class RecipeEventListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCraftingFinish(CraftItemEvent event) {
         if (!Config.enableRecipeSystem() || !VersionHelper.PREMIUM) return;
+        Event.Result result = event.getResult();
         org.bukkit.inventory.Recipe recipe = event.getRecipe();
         if (!(recipe instanceof CraftingRecipe craftingRecipe)) return;
         Key recipeId = Key.of(craftingRecipe.getKey().namespace(), craftingRecipe.getKey().value());
@@ -642,6 +644,7 @@ public class RecipeEventListener implements Listener {
             return;
         }
         CraftingInventory inventory = event.getInventory();
+        if (ItemStackUtils.isEmpty(inventory.getResult())) return;
         if (!(optionalRecipe.get() instanceof CustomCraftingTableRecipe<ItemStack> craftingTableRecipe)) {
             return;
         }
@@ -650,7 +653,7 @@ public class RecipeEventListener implements Listener {
         // todo shift点击应该更好地处理，包括function执行次数也是
         if (craftingTableRecipe.hasVisualResult()) {
             if (event.isShiftClick()) {
-                event.setCancelled(true);
+                event.setResult(Event.Result.DENY);
                 return;
             }
             CraftingInput<ItemStack> input = getCraftingInput(inventory);
@@ -686,6 +689,7 @@ public class RecipeEventListener implements Listener {
     public void onPrepareSmithingTrim(PrepareSmithingEvent event) {
         SmithingInventory inventory = event.getInventory();
         if (!(inventory.getRecipe() instanceof SmithingTrimRecipe recipe)) return;
+        if (ItemStackUtils.isEmpty(inventory.getResult())) return;
 
         ItemStack equipment = inventory.getInputEquipment();
         if (!ItemStackUtils.isEmpty(equipment)) {
