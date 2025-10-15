@@ -933,7 +933,7 @@ public class RecipeEventListener implements Listener {
 
                 for (;;) {
                     // 这个时候配方已经更新了，如果变化了，那么就不要操作
-                    if (!(inventory.getRecipe() instanceof SmithingTrimRecipe newTrim) || !recipeId.equals(KeyUtils.namespacedKey2Key(newTrim.getKey()))) {
+                    if (!(inventory.getRecipe() instanceof SmithingTransformRecipe newTransform) || !recipeId.equals(KeyUtils.namespacedKey2Key(newTransform.getKey()))) {
                         break;
                     }
 
