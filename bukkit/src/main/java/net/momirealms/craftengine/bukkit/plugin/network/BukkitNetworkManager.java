@@ -1867,6 +1867,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
+            if (Config.disableItemOperations()) return;
+            if (!VersionHelper.PREMIUM && !Config.interceptItem()) return;
             BukkitServerPlayer player = (BukkitServerPlayer) user;
             int containerId = FastNMS.INSTANCE.field$ServerboundContainerClickPacket$containerId(packet);
             int stateId = FastNMS.INSTANCE.field$ServerboundContainerClickPacket$stateId(packet);
@@ -3345,6 +3347,28 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             FriendlyByteBuf buf = event.getBuffer();
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+
+            // 为了避免其他插件造成的手感冲突
+            if (VersionHelper.isOrAbove1_21_5()) {
+                Item<ItemStack> wrapped = BukkitItemManager.instance().wrap(itemStack);
+                // 发出来的是非空物品
+                if (!wrapped.isEmpty()) {
+                    Object containerMenu = FastNMS.INSTANCE.field$Player$containerMenu(serverPlayer.serverPlayer());
+                    if (containerMenu != null) {
+                        ItemStack carried = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(FastNMS.INSTANCE.method$AbstractContainerMenu$getCarried(containerMenu));
+                        // 但服务端上实际确是空气，就把它写成空气，避免因为其他插件导致手感问题
+                        if (ItemStackUtils.isEmpty(carried)) {
+                            event.setChanged(true);
+                            buf.clear();
+                            buf.writeVarInt(event.packetID());
+                            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+                            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, carried);
+                            return;
+                        }
+                    }
+                }
+            }
+
             BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
                 event.setChanged(true);
                 buf.clear();
