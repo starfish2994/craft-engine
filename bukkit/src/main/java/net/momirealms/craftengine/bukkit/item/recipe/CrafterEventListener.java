@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.CrafterCraftEvent;
 import org.bukkit.inventory.CraftingRecipe;
@@ -27,7 +28,7 @@ public class CrafterEventListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCrafterCraft(CrafterCraftEvent event) {
         CraftingRecipe recipe = event.getRecipe();
         Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
