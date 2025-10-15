@@ -11,6 +11,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitRef
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.equipment.TrimBasedEquipment;
 import net.momirealms.craftengine.core.item.recipe.*;
@@ -647,12 +648,30 @@ public class RecipeEventListener implements Listener {
         if (!ceRecipe.hasVisualResult() && !ceRecipe.hasFunctions()) {
             return;
         }
+        InventoryAction action = event.getAction();
         // 无事发生，不要更新
-        if (event.getAction() == InventoryAction.NOTHING) {
+        if (action == InventoryAction.NOTHING) {
             return;
         }
+
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+
+        // 对低版本nothing不全的兼容
+        if (!VersionHelper.isOrAbove1_20_5() && LegacyInventoryUtils.isHotBarSwapAndReadd(action)) {
+            int slot = event.getHotbarButton();
+            if (slot == -1) {
+                if (!serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty()) {
+                    return;
+                }
+            } else {
+                ItemStack item = player.getInventory().getItem(slot);
+                if (!ItemStackUtils.isEmpty(item)) {
+                    return;
+                }
+            }
+        }
+
         // 多次合成
         if (event.isShiftClick()) {
             // 由插件自己处理多次合成

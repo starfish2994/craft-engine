@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.util;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.inventory.AnvilInventory;
@@ -69,5 +70,9 @@ public class LegacyInventoryUtils {
 
     public static Player getPlayerFromInventoryEvent(InventoryEvent event) {
         return (Player) event.getView().getPlayer();
+    }
+
+    public static boolean isHotBarSwapAndReadd(InventoryAction action) {
+        return action == InventoryAction.HOTBAR_MOVE_AND_READD;
     }
 }
