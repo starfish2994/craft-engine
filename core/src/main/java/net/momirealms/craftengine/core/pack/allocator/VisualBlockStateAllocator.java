@@ -123,6 +123,7 @@ public class VisualBlockStateAllocator {
                     if (nextCandidate != null) {
                         nextCandidate.setUsed();
                         this.cachedBlockStates.put(pair.left(), nextCandidate.blockState());
+                        this.dirty = true;
                         pair.right().complete(nextCandidate.blockState());
                     } else {
                         pair.right().completeExceptionally(new StateExhaustedException(group));
