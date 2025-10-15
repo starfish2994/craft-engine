@@ -1,8 +1,6 @@
 /**
- * This implementation references the BlockEntityTickersList implementation by Winds Studio,
- * available at: https://github.com/Winds-Studio/Leaf/blob/b9ebff/leaf-server/src/main/java/org/dreeam/leaf/util/list/BlockEntityTickersList.java
- * <p>
- * This work is licensed under the GNU General Public License v3.0 (GPLv3)
+ * This implementation references the BlockEntityTickersList implementation by SparklyPaper,
+ * available at: https://github.com/SparklyPower/SparklyPaper/blob/ver/1.21.10/sparklypaper-server/src/main/java/net/sparklypower/sparklypaper/BlockEntityTickersList.java
  */
 package net.momirealms.craftengine.core.util;
 
@@ -23,7 +21,6 @@ import java.util.Collection;
  * since we don't need to resize the array every single remove.
  */
 public final class BlockEntityTickersList extends ObjectArrayList<TickingBlockEntity> {
-
     private final IntOpenHashSet toRemove = new IntOpenHashSet();
     private int startSearchFromIndex = -1;
 

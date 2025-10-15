@@ -3475,6 +3475,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         @Override
         public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
             if (Config.disableItemOperations()) return;
+            if (!VersionHelper.PREMIUM && !Config.interceptItem()) return;
             FriendlyByteBuf buf = event.getBuffer();
             boolean changed = false;
             Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
