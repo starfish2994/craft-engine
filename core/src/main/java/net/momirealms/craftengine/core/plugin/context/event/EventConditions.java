@@ -25,7 +25,7 @@ public class EventConditions {
         register(CommonConditions.SURVIVES_EXPLOSION, new SurvivesExplosionCondition.FactoryImpl<>());
         register(CommonConditions.ANY_OF, new AnyOfCondition.FactoryImpl<>(EventConditions::fromMap));
         register(CommonConditions.ALL_OF, new AllOfCondition.FactoryImpl<>(EventConditions::fromMap));
-        register(CommonConditions.ENCHANTMENT, new EnchantmentCondition.FactoryImpl<>());
+        register(CommonConditions.ENCHANTMENT, new EnchantmentCondition.Factory<>());
         register(CommonConditions.INVERTED, new InvertedCondition.FactoryImpl<>(EventConditions::fromMap));
         register(CommonConditions.FALLING_BLOCK, new FallingBlockCondition.FactoryImpl<>());
         register(CommonConditions.RANDOM, new RandomCondition.FactoryImpl<>());

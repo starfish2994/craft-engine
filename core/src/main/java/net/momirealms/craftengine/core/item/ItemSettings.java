@@ -8,6 +8,8 @@ import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.modifier.EquippableModifier;
 import net.momirealms.craftengine.core.item.modifier.FoodModifier;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
+import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainder;
+import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainders;
 import net.momirealms.craftengine.core.item.setting.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -33,7 +35,7 @@ public class ItemSettings {
     Helmet helmet = null;
     FoodData foodData = null;
     Key consumeReplacement = null;
-    Key craftRemainder = null;
+    CraftRemainder craftRemainder = null;
     List<DamageSource> invulnerable = List.of();
     boolean canEnchant = true;
     float compostProbability= 0.5f;
@@ -176,7 +178,7 @@ public class ItemSettings {
     }
 
     @Nullable
-    public Key craftRemainder() {
+    public CraftRemainder craftRemainder() {
         return craftRemainder;
     }
 
@@ -233,8 +235,8 @@ public class ItemSettings {
         return this;
     }
 
-    public ItemSettings craftRemainder(Key key) {
-        this.craftRemainder = key;
+    public ItemSettings craftRemainder(CraftRemainder craftRemainder) {
+        this.craftRemainder = craftRemainder;
         return this;
     }
 
@@ -363,7 +365,11 @@ public class ItemSettings {
             }));
             registerFactory("craft-remaining-item", (value -> settings -> {
                 if (value == null) settings.craftRemainder(null);
-                else settings.craftRemainder(Key.of(value.toString()));
+                else settings.craftRemainder(CraftRemainders.fromObject(value));
+            }));
+            registerFactory("craft-remainder", (value -> settings -> {
+                if (value == null) settings.craftRemainder(null);
+                else settings.craftRemainder(CraftRemainders.fromObject(value));
             }));
             registerFactory("tags", (value -> {
                 List<String> tags = MiscUtils.getAsStringList(value);

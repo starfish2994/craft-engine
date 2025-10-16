@@ -25,7 +25,7 @@ public class LootConditions {
         register(CommonConditions.ANY_OF, new AnyOfCondition.FactoryImpl<>(LootConditions::fromMap));
         register(CommonConditions.ALL_OF, new AllOfCondition.FactoryImpl<>(LootConditions::fromMap));
         register(CommonConditions.HAS_PLAYER, new HasPlayerCondition.FactoryImpl<>());
-        register(CommonConditions.ENCHANTMENT, new EnchantmentCondition.FactoryImpl<>());
+        register(CommonConditions.ENCHANTMENT, new EnchantmentCondition.Factory<>());
         register(CommonConditions.INVERTED, new InvertedCondition.FactoryImpl<>(LootConditions::fromMap));
         register(CommonConditions.FALLING_BLOCK, new FallingBlockCondition.FactoryImpl<>());
         register(CommonConditions.RANDOM, new RandomCondition.FactoryImpl<>());

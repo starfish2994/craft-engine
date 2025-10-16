@@ -13,7 +13,7 @@ public class IdModifier<I> implements ItemDataModifier<I> {
     }
 
     public Key identifier() {
-        return argument;
+        return this.argument;
     }
 
     @Override

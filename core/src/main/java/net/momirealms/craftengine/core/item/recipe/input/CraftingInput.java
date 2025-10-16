@@ -10,11 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 
 public final class CraftingInput<T> implements RecipeInput, Iterable<UniqueIdItem<T>> {
-    private final int width;
-    private final int height;
-    private final List<UniqueIdItem<T>> items;
-    private final int ingredientCount;
-    private final RecipeFinder finder = new RecipeFinder();
+    public final int width;
+    public final int height;
+    public final List<UniqueIdItem<T>> items;
+    public final int ingredientCount;
+    public final RecipeFinder finder = new RecipeFinder();
 
     private CraftingInput(int width, int height, List<UniqueIdItem<T>> items) {
         this.height = height;

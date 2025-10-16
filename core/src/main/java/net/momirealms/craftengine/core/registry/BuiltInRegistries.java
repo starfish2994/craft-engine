@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.item.recipe.RecipeSerializer;
 import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipe;
 import net.momirealms.craftengine.core.item.recipe.network.modern.display.RecipeDisplay;
 import net.momirealms.craftengine.core.item.recipe.network.modern.display.slot.SlotDisplay;
+import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainderFactory;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessor;
 import net.momirealms.craftengine.core.item.updater.ItemUpdaterType;
 import net.momirealms.craftengine.core.loot.LootContext;
@@ -89,6 +90,7 @@ public class BuiltInRegistries {
     public static final Registry<NetworkCodec<FriendlyByteBuf, ? extends ModPacket>> MOD_PACKET = createConstantBoundRegistry(Registries.MOD_PACKET, 16);
     public static final Registry<BlockEntityType<?>> BLOCK_ENTITY_TYPE = createConstantBoundRegistry(Registries.BLOCK_ENTITY_TYPE, 128);
     public static final Registry<BlockEntityElementConfigFactory> BLOCK_ENTITY_ELEMENT_TYPE = createConstantBoundRegistry(Registries.BLOCK_ENTITY_ELEMENT_TYPE, 16);
+    public static final Registry<CraftRemainderFactory> CRAFT_REMAINDER_FACTORY = createConstantBoundRegistry(Registries.CRAFT_REMAINDER_FACTORY, 16);
 
     private static <T> Registry<T> createConstantBoundRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize) {
         return new ConstantBoundRegistry<>(key, expectedSize);
