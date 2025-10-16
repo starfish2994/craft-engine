@@ -33,7 +33,7 @@ public class RecipeBasedCraftRemainder implements CraftRemainder {
             Map<Key, CraftRemainder> remainders = new HashMap<>();
             List<GroupedRemainder> remainderList = ResourceConfigUtils.parseConfigAsList(ResourceConfigUtils.requireNonNullOrThrow(args.get("terms"), "warning.config.item.settings.craft_remainder.recipe_based.missing_terms"), map -> {
                 List<Key> recipes = MiscUtils.getAsStringList(map.get("recipes")).stream().map(Key::of).toList();
-                CraftRemainder remainder = CraftRemainders.fromObject(ResourceConfigUtils.get(args, "craft-remainder", "craft-remaining-item"));
+                CraftRemainder remainder = CraftRemainders.fromObject(ResourceConfigUtils.get(map, "craft-remainder", "craft-remaining-item"));
                 return new GroupedRemainder(recipes, remainder);
             });
             for (GroupedRemainder remainder : remainderList) {
