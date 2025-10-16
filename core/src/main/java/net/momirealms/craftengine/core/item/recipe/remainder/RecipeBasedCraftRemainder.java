@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,9 +13,12 @@ import java.util.Map;
 public class RecipeBasedCraftRemainder implements CraftRemainder {
     public static final Factory FACTORY = new Factory();
     private final Map<Key, CraftRemainder> remainders;
+    @Nullable
+    private final CraftRemainder fallback;
 
-    public RecipeBasedCraftRemainder(Map<Key, CraftRemainder> remainders) {
+    public RecipeBasedCraftRemainder(Map<Key, CraftRemainder> remainders, @Nullable CraftRemainder fallback) {
         this.remainders = remainders;
+        this.fallback = fallback;
     }
 
     @Override
@@ -23,7 +27,7 @@ public class RecipeBasedCraftRemainder implements CraftRemainder {
         if (remainder != null) {
             return remainder.remainder(recipeId, item);
         }
-        return null;
+        return this.fallback != null ? this.fallback.remainder(recipeId, item) : null;
     }
 
     public static class Factory implements CraftRemainderFactory {
@@ -41,7 +45,7 @@ public class RecipeBasedCraftRemainder implements CraftRemainder {
                     remainders.put(recipeId, remainder.remainder());
                 }
             }
-            return new RecipeBasedCraftRemainder(remainders);
+            return new RecipeBasedCraftRemainder(remainders, CraftRemainders.fromObject(args.get("fallback")));
         }
 
         public record GroupedRemainder(List<Key> recipes, CraftRemainder remainder) {
