@@ -77,7 +77,7 @@ public class LangData {
 
     @Override
     public String toString() {
-        return "I18NData{" + translations + "}";
+        return "LangData{" + translations + "}";
     }
 
     public static void merge(Map<String, LangData> target, Map<String, LangData> source) {

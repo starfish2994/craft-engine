@@ -158,7 +158,7 @@ warning.config.recipe.brewing.missing_container: "<yellow>在文件 <arg:0> 发�
 warning.config.recipe.brewing.missing_ingredient: "<yellow>在文件 <arg:0> 发现问题 - 酿造配方 '<arg:1>' 缺少必需的 'ingredient' 参数</yellow>"
 warning.config.recipe.result.post_processor.missing_type: "<yellow>在文件 <arg:0> 发现问题 - 配方 '<arg:1>' 缺少结果后处理器必需的 'type' 参数</yellow>"
 warning.config.recipe.result.post_processor.invalid_type: "<yellow>在文件 <arg:0> 发现问题 - 配方 '<arg:1>' 使用了无效结果后处理器类型 '<arg:2>'</yellow>"
-warning.config.i18n.unknown_locale: "<yellow>在文件 <arg:0> 发现问题 - 未知的语言环境 '<arg:1>'</yellow>"
+warning.config.translation.unknown_locale: "<yellow>在文件 <arg:0> 发现问题 - 未知的语言环境 '<arg:1>'</yellow>"
 warning.config.template.duplicate: "<yellow>在文件 <arg:0> 发现问题 - 重复的模板 '<arg:1>' 请检查其他文件中是否存在相同配置</yellow>"
 warning.config.template.invalid: "<yellow>在文件 <arg:0> 发现问题 - 配置 '<arg:1>' 使用了无效的模板 '<arg:2>'</yellow>"
 warning.config.template.argument.self_increase_int.invalid_range: "<yellow>在文件 <arg:0> 发现问题 - 模板 '<arg:1>' 在 'self_increase_int' 参数中使用了一个起始值 '<arg:2>' 大于终止值 '<arg:3>'</yellow>"

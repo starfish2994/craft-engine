@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin;
 
 import com.google.gson.JsonElement;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.particle.ParticleType;

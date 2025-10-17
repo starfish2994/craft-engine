@@ -161,7 +161,7 @@ warning.config.recipe.brewing.missing_container: "<yellow>Issue found in file <a
 warning.config.recipe.brewing.missing_ingredient: "<yellow>Issue found in file <arg:0> - The brewing recipe '<arg:1>' is missing the required 'ingredient' argument.</yellow>"
 warning.config.recipe.result.post_processor.missing_type: "<yellow>Issue found in file <arg:0> - The recipe '<arg:1>' is missing the required 'type' argument for result post processors.</yellow>"
 warning.config.recipe.result.post_processor.invalid_type: "<yellow>Issue found in file <arg:0> - The recipe '<arg:1>' is using an invalid result post processor type '<arg:2>'.</yellow>"
-warning.config.i18n.unknown_locale: "<yellow>Issue found in file <arg:0> - Unknown locale '<arg:1>'.</yellow>"
+warning.config.translation.unknown_locale: "<yellow>Issue found in file <arg:0> - Unknown locale '<arg:1>'.</yellow>"
 warning.config.template.duplicate: "<yellow>Issue found in file <arg:0> - Duplicated template '<arg:1>'. Please check if there is the same configuration in other files.</yellow>"
 warning.config.template.invalid: "<yellow>Issue found in file <arg:0> - The config '<arg:1>' is using an invalid template '<arg:2>'.</yellow>"
 warning.config.template.argument.self_increase_int.invalid_range: "<yellow>Issue found in file <arg:0> - The template '<arg:1>' is using a 'from' '<arg:2>' larger than 'to' '<arg:3>' in 'self_increase_int' argument.</yellow>"

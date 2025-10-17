@@ -145,7 +145,7 @@ warning.config.recipe.brewing.missing_container: "<yellow>Problem in Datei <arg:
 warning.config.recipe.brewing.missing_ingredient: "<yellow>Problem in Datei <arg:0> gefunden - Beim Brewing-Recipe '<arg:1>' fehlt das erforderliche 'ingredient'-Argument.</yellow>"
 warning.config.recipe.result.post_processor.missing_type: "<yellow>Problem in Datei <arg:0> gefunden - Beim Recipe '<arg:1>' fehlt das erforderliche 'type'-Argument für Result-Post-Processors.</yellow>"
 warning.config.recipe.result.post_processor.invalid_type: "<yellow>Problem in Datei <arg:0> gefunden - Das Recipe '<arg:1>' verwendet einen ungültigen Result-Post-Processor-Typ '<arg:2>'.</yellow>"
-warning.config.i18n.unknown_locale: "<yellow>Problem in Datei <arg:0> gefunden - Unbekannte Locale '<arg:1>'.</yellow>"
+warning.config.translation.unknown_locale: "<yellow>Problem in Datei <arg:0> gefunden - Unbekannte Locale '<arg:1>'.</yellow>"
 warning.config.template.duplicate: "<yellow>Problem in Datei <arg:0> gefunden - Doppeltes Template '<arg:1>'. Bitte prüfe, ob dieselbe Konfiguration in anderen Dateien vorhanden ist.</yellow>"
 warning.config.template.invalid: "<yellow>Problem in Datei <arg:0> gefunden - Die Config '<arg:1>' verwendet ein ungültiges Template '<arg:2>'.</yellow>"
 warning.config.template.argument.self_increase_int.invalid_range: "<yellow>Problem in Datei <arg:0> gefunden - Das Template '<arg:1>' verwendet ein 'from' '<arg:2>', das größer ist als 'to' '<arg:3>' im 'self_increase_int'-Argument.</yellow>"

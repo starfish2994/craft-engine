@@ -1,8 +1,11 @@
 package net.momirealms.craftengine.core.plugin.context;
 
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.text.minimessage.*;
+import net.momirealms.craftengine.core.util.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,10 +35,25 @@ public abstract class AbstractCommonContext implements Context {
     @NotNull
     public TagResolver[] tagResolvers() {
         if (this.tagResolvers == null) {
-            this.tagResolvers = new TagResolver[]{ShiftTag.INSTANCE, ImageTag.INSTANCE, new I18NTag(this), new NamedArgumentTag(this),
-                    new PlaceholderTag(this), new ExpressionTag(this), new GlobalVariableTag(this)};
+            this.tagResolvers = getTagResolver();
         }
         return this.tagResolvers;
+    }
+
+    @Nullable
+    protected TagResolver[] getTagResolver() {
+        return ArrayUtils.mergeNoCopy(getExternalTagResolvers(), getInternalTagResolvers());
+    }
+
+    @Nullable
+    protected TagResolver[] getExternalTagResolvers() {
+        return CraftEngine.instance().compatibilityManager().createExternalTagResolvers(this);
+    }
+
+    @NotNull
+    protected TagResolver[] getInternalTagResolvers() {
+        return new TagResolver[]{ShiftTag.INSTANCE, ImageTag.INSTANCE, new I18NTag(this), new NamedArgumentTag(this),
+                new PlaceholderTag(this), new ExpressionTag(this), new GlobalVariableTag(this)};
     }
 
     @Override

@@ -276,7 +276,7 @@ public class TranslationManagerImpl implements TranslationManager {
     }
 
     public class TranslationParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"translations", "translation", "l10n", "localization", "i18n", "internationalization", };
+        public static final String[] CONFIG_SECTION_NAME = new String[] {"translations", "translation", "l10n", "localization", "i18n", "internationalization"};
 
         @Override
         public int loadingSequence() {
@@ -292,7 +292,7 @@ public class TranslationManagerImpl implements TranslationManager {
         public void parseSection(Pack pack, Path path, String node, net.momirealms.craftengine.core.util.Key id, Map<String, Object> section) {
             Locale locale = TranslationManager.parseLocale(id.value());
             if (locale == null) {
-                throw new LocalizedResourceConfigException("warning.config.i18n.unknown_locale");
+                throw new LocalizedResourceConfigException("warning.config.translation.unknown_locale");
             }
 
             Map<String, String> bundle = new HashMap<>();

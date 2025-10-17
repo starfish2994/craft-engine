@@ -63,6 +63,8 @@ dependencies {
     compileOnly("com.github.Zrips:Jobs:v5.2.2.3")
     // CustomFishing
     compileOnly("net.momirealms:custom-fishing:2.3.3")
+    // CustomNameplates
+    compileOnly("net.momirealms:custom-nameplates:3.0.33")
     // eco
     compileOnly("com.willfp:eco:6.70.1")
     compileOnly("com.willfp:EcoJobs:3.56.1")
