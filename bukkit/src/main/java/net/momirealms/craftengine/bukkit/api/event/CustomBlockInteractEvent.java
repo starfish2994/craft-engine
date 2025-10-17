@@ -15,7 +15,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CustomBlockInteractEvent extends PlayerEvent implements Cancellable {
+public final class CustomBlockInteractEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList HANDLER_LIST = new HandlerList();
     private boolean cancelled;
     private final CustomBlock customBlock;

@@ -33,7 +33,7 @@ public class CraftRemainders {
         Key key = Key.withDefaultNamespace(type, Key.DEFAULT_NAMESPACE);
         CraftRemainderFactory factory = BuiltInRegistries.CRAFT_REMAINDER_FACTORY.getValue(key);
         if (factory == null) {
-            throw new LocalizedResourceConfigException("warning.config.function.invalid_type", type);
+            throw new LocalizedResourceConfigException("warning.config.item.settings.craft_remainder.invalid_type", type);
         }
         return factory.create(map);
     }

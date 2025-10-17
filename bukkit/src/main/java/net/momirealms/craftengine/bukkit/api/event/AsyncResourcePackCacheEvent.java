@@ -21,7 +21,7 @@ import java.nio.file.Path;
  * if you need the cache to recognize updates.
  * </p>
  */
-public class AsyncResourcePackCacheEvent extends Event {
+public final class AsyncResourcePackCacheEvent extends Event {
     private static final HandlerList HANDLER_LIST = new HandlerList();
     private final PackCacheData cacheData;
 

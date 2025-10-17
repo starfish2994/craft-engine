@@ -6,7 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistryOps;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.util.LegacyInventoryUtils;
@@ -94,10 +93,10 @@ public class BukkitPlatform implements Platform {
     }
 
     @Override
-    public <I> void openMerchant(Player player, Component title, List<MerchantOffer<I>> offers) {
+    public void openMerchant(Player player, Component title, List<MerchantOffer<?>> offers) {
         Merchant merchant = Bukkit.createMerchant();
         List<MerchantRecipe> recipes = merchant.getRecipes();
-        for (MerchantOffer<I> offer : offers) {
+        for (MerchantOffer<?> offer : offers) {
             MerchantRecipe merchantRecipe = new MerchantRecipe((ItemStack) offer.result().getItem(), 0, Integer.MAX_VALUE, offer.xp() > 0, offer.xp(), 0);
             merchantRecipe.addIngredient((ItemStack) offer.cost1().getItem());
             offer.cost2().ifPresent(it -> merchantRecipe.addIngredient((ItemStack) it.getItem()));

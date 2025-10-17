@@ -8,7 +8,8 @@ import org.bukkit.entity.Player;
 import java.util.Objects;
 import java.util.Optional;
 
-public class LegacyAttributeUtils {
+public final class LegacyAttributeUtils {
+    private LegacyAttributeUtils() {}
 
     public static void setMaxHealth(ArmorStand entity) {
         Objects.requireNonNull(entity.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(0.01);

@@ -5,7 +5,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class CraftEngineReloadEvent extends Event {
+public final class CraftEngineReloadEvent extends Event {
     private static final HandlerList HANDLER_LIST = new HandlerList();
     private final BukkitCraftEngine plugin;
     private static boolean firstFlag = true;

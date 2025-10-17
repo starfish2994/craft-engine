@@ -27,5 +27,5 @@ public interface Platform {
 
     ParticleType getParticleType(Key name);
 
-    <I> void openMerchant(Player player, Component title, List<MerchantOffer<I>> offers);
+    void openMerchant(Player player, Component title, List<MerchantOffer<?>> offers);
 }

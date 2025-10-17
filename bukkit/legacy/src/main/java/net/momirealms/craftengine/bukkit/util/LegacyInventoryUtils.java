@@ -10,7 +10,8 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.Merchant;
 import org.jetbrains.annotations.Nullable;
 
-public class LegacyInventoryUtils {
+public final class LegacyInventoryUtils {
+    private LegacyInventoryUtils() {}
 
     public static Inventory getTopInventory(Player player) {
         return player.getOpenInventory().getTopInventory();

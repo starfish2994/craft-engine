@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 
-public class AsyncResourcePackGenerateEvent extends Event {
+public final class AsyncResourcePackGenerateEvent extends Event {
     private static final HandlerList HANDLER_LIST = new HandlerList();
     private final Path generatedPackPath;
     private final Path zipFilePath;
