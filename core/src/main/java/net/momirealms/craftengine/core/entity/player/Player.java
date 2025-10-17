@@ -15,6 +15,8 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 public abstract class Player extends AbstractEntity implements NetWorkUser {
     private static final Key TYPE = Key.of("minecraft:player");
 
@@ -171,4 +173,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract void teleport(WorldPosition worldPosition);
 
     public abstract void damage(double amount, Key damageType);
+
+    public abstract Locale locale();
+
+    public abstract Locale selectedLocale();
 }

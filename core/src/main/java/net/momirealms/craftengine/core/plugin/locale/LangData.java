@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
-public class I18NData {
+public class LangData {
     private static final Map<String, Function<String, List<String>>> LANG_KEY_PROCESSORS = new HashMap<>();
     public Map<String, String> translations = new HashMap<>();
 
@@ -80,9 +80,9 @@ public class I18NData {
         return "I18NData{" + translations + "}";
     }
 
-    public static void merge(Map<String, I18NData> target, Map<String, I18NData> source) {
+    public static void merge(Map<String, LangData> target, Map<String, LangData> source) {
         source.forEach((key, value) -> {
-            I18NData copy = new I18NData();
+            LangData copy = new LangData();
             copy.addTranslations(value.translations);
             target.merge(key, copy, (existing, newData) -> {
                 existing.addTranslations(newData.translations);

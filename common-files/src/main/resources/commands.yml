@@ -23,6 +23,12 @@ upload:
     - /craftengine upload
     - /ce upload
 
+locale:
+  enable: true
+  permission: ce.command.player.locale
+  usage:
+    - /locale
+
 send_resource_pack:
   enable: true
   permission: ce.command.admin.send_resource_pack

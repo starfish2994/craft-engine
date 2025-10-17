@@ -123,12 +123,21 @@ public abstract class AbstractFontManager implements FontManager {
         this.registerImageTags();
         this.registerShiftTags();
         this.registerGlobalTags();
+        this.registerL10nTags();
         this.buildNetworkTagTrie();
         this.buildEmojiKeywordsTrie();
         this.emojiList = new ArrayList<>(this.emojis.values());
         this.allEmojiSuggestions = this.emojis.values().stream()
                 .flatMap(emoji -> emoji.keywords().stream())
                 .collect(Collectors.toList());
+    }
+
+    private void registerL10nTags() {
+        for (String key : this.plugin.translationManager().translationKeys()) {
+            String l10nTag = l10nTag(key);
+            this.networkTagMapper.put(l10nTag, ComponentProvider.l10n(key));
+            this.networkTagMapper.put("\\" + l10nTag, ComponentProvider.constant(Component.text(l10nTag)));
+        }
     }
 
     private void registerGlobalTags() {
@@ -360,6 +369,10 @@ public abstract class AbstractFontManager implements FontManager {
         return "<global:" + text + ">";
     }
 
+    private static String l10nTag(String text) {
+        return "<l10n:" + text + ">";
+    }
+
     @Override
     public boolean isDefaultFontInUse() {
         return !this.illegalChars.isEmpty();
@@ -407,7 +420,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     public class EmojiParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"emoji", "emojis"};
+        public static final String[] CONFIG_SECTION_NAME = new String[] {"emojis", "emoji"};
 
         @Override
         public String[] sectionId() {

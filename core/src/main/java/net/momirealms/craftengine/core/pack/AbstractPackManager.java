@@ -29,7 +29,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.StringKeyConstructor;
-import net.momirealms.craftengine.core.plugin.locale.I18NData;
+import net.momirealms.craftengine.core.plugin.locale.LangData;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
@@ -1676,7 +1676,7 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     private void generateClientLang(Path generatedPackPath) {
-        for (Map.Entry<String, I18NData> entry : this.plugin.translationManager().clientLangData().entrySet()) {
+        for (Map.Entry<String, LangData> entry : this.plugin.translationManager().clientLangData().entrySet()) {
             Path langPath = generatedPackPath
                     .resolve("assets")
                     .resolve("minecraft")

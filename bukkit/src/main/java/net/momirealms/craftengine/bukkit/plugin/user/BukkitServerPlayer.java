@@ -125,6 +125,9 @@ public class BukkitServerPlayer extends Player {
     private ConcurrentLong2ReferenceChainedHashTable<ChunkStatus> trackedChunks;
     // entity view
     private Map<Integer, EntityPacketHandler> entityTypeView;
+    // selected client locale
+    @Nullable
+    private Locale selectedLocale;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -1164,5 +1167,16 @@ public class BukkitServerPlayer extends Player {
     @Override
     public <T> void setEntityData(EntityData<T> data, T value, boolean force) {
         FastNMS.INSTANCE.method$SynchedEntityData$set(entityData(), data.entityDataAccessor(), value, force);
+    }
+
+    @Override
+    public Locale locale() {
+        return this.platformPlayer().locale();
+    }
+
+    @Override
+    public Locale selectedLocale() {
+        if (this.selectedLocale != null) return this.selectedLocale;
+        return locale();
     }
 }

@@ -62,9 +62,11 @@ public interface TranslationManager extends Manageable {
         return locale == null || locale.isEmpty() ? null : Translator.parseLocale(locale);
     }
 
+    Set<String> translationKeys();
+
     void log(String id, String... args);
 
-    Map<String, I18NData> clientLangData();
+    Map<String, LangData> clientLangData();
 
     void addClientTranslation(String langId, Map<String, String> translations);
 }

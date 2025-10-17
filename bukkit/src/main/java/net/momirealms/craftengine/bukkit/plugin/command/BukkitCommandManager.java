@@ -1,12 +1,14 @@
 package net.momirealms.craftengine.bukkit.plugin.command;
 
 import net.kyori.adventure.util.Index;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.*;
 import net.momirealms.craftengine.core.plugin.command.AbstractCommandManager;
 import net.momirealms.craftengine.core.plugin.command.CommandFeature;
 import net.momirealms.craftengine.core.plugin.command.sender.Sender;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.incendo.cloud.SenderMapper;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
@@ -14,6 +16,7 @@ import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.setting.ManagerSetting;
 
 import java.util.List;
+import java.util.Locale;
 
 public class BukkitCommandManager extends AbstractCommandManager<CommandSender> {
     private final BukkitCraftEngine plugin;
@@ -68,6 +71,14 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
         } else if (manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             manager.registerAsynchronousCompletions();
         }
+    }
+
+    @Override
+    protected Locale getLocale(CommandSender sender) {
+        if (sender instanceof Player player) {
+            return BukkitAdaptors.adapt(player).selectedLocale();
+        }
+        return null;
     }
 
     @Override

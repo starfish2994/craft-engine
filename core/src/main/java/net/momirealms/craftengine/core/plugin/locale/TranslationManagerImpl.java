@@ -41,9 +41,10 @@ public class TranslationManagerImpl implements TranslationManager {
     private final Map<String, String> translationFallback = new LinkedHashMap<>();
     private Locale selectedLocale = DEFAULT_LOCALE;
     private MiniMessageTranslationRegistry registry;
-    private final Map<String, I18NData> clientLangData = new HashMap<>();
+    private final Map<String, LangData> clientLangData = new HashMap<>();
     private final LangParser langParser;
-    private final I18NParser i18nParser;
+    private final TranslationParser translationParser;
+    private final Set<String> translationKeys = new HashSet<>();
     private Map<Locale, CachedTranslation> cachedTranslations = Map.of();
 
     public TranslationManagerImpl(Plugin plugin) {
@@ -53,7 +54,7 @@ public class TranslationManagerImpl implements TranslationManager {
         this.langVersion = PluginProperties.getValue("lang-version");
         this.supportedLanguages = PluginProperties.getValue("supported-languages").split(",");
         this.langParser = new LangParser();
-        this.i18nParser = new I18NParser();
+        this.translationParser = new TranslationParser();
         Yaml yaml = new Yaml(new TranslationConfigConstructor(new LoaderOptions()));
         try (InputStream is = plugin.resourceStream("translations/en.yml")) {
             this.translationFallback.putAll(yaml.load(is));
@@ -64,12 +65,12 @@ public class TranslationManagerImpl implements TranslationManager {
 
     @Override
     public ConfigParser[] parsers() {
-        return new ConfigParser[] {this.langParser, this.i18nParser};
+        return new ConfigParser[] {this.langParser, this.translationParser};
     }
 
     @Override
     public void delayedLoad() {
-        this.clientLangData.values().forEach(I18NData::processTranslations);
+        this.clientLangData.values().forEach(LangData::processTranslations);
     }
 
     @Override
@@ -77,6 +78,7 @@ public class TranslationManagerImpl implements TranslationManager {
         // clear old data
         this.clientLangData.clear();
         this.installed.clear();
+        this.translationKeys.clear();
 
         // save resources
         for (String lang : this.supportedLanguages) {
@@ -128,6 +130,11 @@ public class TranslationManagerImpl implements TranslationManager {
             locale = this.selectedLocale;
         }
         return MiniMessageTranslator.render(component, locale);
+    }
+
+    @Override
+    public Set<String> translationKeys() {
+        return translationKeys;
     }
 
     private void loadFromCache() {
@@ -243,33 +250,33 @@ public class TranslationManagerImpl implements TranslationManager {
     }
 
     @Override
-    public Map<String, I18NData> clientLangData() {
+    public Map<String, LangData> clientLangData() {
         return Collections.unmodifiableMap(this.clientLangData);
     }
 
     @Override
     public void addClientTranslation(String langId, Map<String, String> translations) {
         if ("all".equals(langId)) {
-            ALL_LANG.forEach(lang -> this.clientLangData.computeIfAbsent(lang, k -> new I18NData())
+            ALL_LANG.forEach(lang -> this.clientLangData.computeIfAbsent(lang, k -> new LangData())
                     .addTranslations(translations));
             return;
         }
 
         if (ALL_LANG.contains(langId)) {
-            this.clientLangData.computeIfAbsent(langId, k -> new I18NData())
+            this.clientLangData.computeIfAbsent(langId, k -> new LangData())
                     .addTranslations(translations);
             return;
         }
 
         List<String> langCountries = LOCALE_2_COUNTRIES.getOrDefault(langId, Collections.emptyList());
         for (String lang : langCountries) {
-            this.clientLangData.computeIfAbsent(langId + "_" + lang, k -> new I18NData())
+            this.clientLangData.computeIfAbsent(langId + "_" + lang, k -> new LangData())
                     .addTranslations(translations);
         }
     }
 
-    public class I18NParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"i18n", "internationalization", "translation", "translations"};
+    public class TranslationParser extends IdSectionConfigParser {
+        public static final String[] CONFIG_SECTION_NAME = new String[] {"translations", "translation", "l10n", "localization", "i18n", "internationalization", };
 
         @Override
         public int loadingSequence() {
@@ -292,6 +299,7 @@ public class TranslationManagerImpl implements TranslationManager {
             for (Map.Entry<String, Object> entry : section.entrySet()) {
                 String key = entry.getKey();
                 bundle.put(key, entry.getValue().toString());
+                TranslationManagerImpl.this.translationKeys.add(key);
             }
 
             TranslationManagerImpl.this.registry.registerAll(locale, bundle);

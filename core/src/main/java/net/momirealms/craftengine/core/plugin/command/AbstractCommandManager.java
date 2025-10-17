@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Locale;
 
 public abstract class AbstractCommandManager<C> implements CraftEngineCommandManager<C> {
     protected final HashSet<CommandComponent<C>> registeredRootCommandComponents = new HashSet<>();
@@ -167,11 +168,13 @@ public abstract class AbstractCommandManager<C> implements CraftEngineCommandMan
     @Override
     public void handleCommandFeedback(C sender, TranslatableComponent.Builder key, Component... args) {
         TranslatableComponent component = key.arguments(args).build();
-        this.feedbackConsumer.accept(sender, component.key(), plugin.translationManager().render(component));
+        this.feedbackConsumer.accept(sender, component.key(), plugin.translationManager().render(component, getLocale(sender)));
     }
 
     @Override
     public void handleCommandFeedback(C sender, String node, Component component) {
         this.feedbackConsumer.accept(sender, node, component);
     }
+
+    protected abstract Locale getLocale(C sender);
 }

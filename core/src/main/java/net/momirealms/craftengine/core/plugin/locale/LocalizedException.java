@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.plugin.locale;
 
-import aQute.bnd.annotation.jpms.Open;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
