@@ -4,7 +4,7 @@ import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
@@ -329,11 +329,11 @@ public class RecipeEventListener implements Listener {
 
             Item<ItemStack> wrappedResult = BukkitItemManager.instance().wrap(event.getResult());
             if (!firstCustomItem.settings().canEnchant()) {
-                Object previousEnchantment = wrappedFirst.getExactComponent(ComponentTypes.ENCHANTMENTS);
+                Object previousEnchantment = wrappedFirst.getExactComponent(DataComponentTypes.ENCHANTMENTS);
                 if (previousEnchantment != null) {
-                    wrappedResult.setExactComponent(ComponentTypes.ENCHANTMENTS, previousEnchantment);
+                    wrappedResult.setExactComponent(DataComponentTypes.ENCHANTMENTS, previousEnchantment);
                 } else {
-                    wrappedResult.resetComponent(ComponentTypes.ENCHANTMENTS);
+                    wrappedResult.resetComponent(DataComponentTypes.ENCHANTMENTS);
                 }
             }
         }
@@ -440,7 +440,7 @@ public class RecipeEventListener implements Listener {
             } catch (ReflectiveOperationException e) {
                 plugin.logger().warn("Failed to get hover name", e);
             }
-        } else if (VersionHelper.isOrAbove1_20_5() && wrappedFirst.hasComponent(ComponentTypes.CUSTOM_NAME)) {
+        } else if (VersionHelper.isOrAbove1_20_5() && wrappedFirst.hasComponent(DataComponentTypes.CUSTOM_NAME)) {
             repairCost += 1;
             wrappedFirst.customNameJson(null);
         } else if (!VersionHelper.isOrAbove1_20_5() && wrappedFirst.hasTag("display", "Name")) {

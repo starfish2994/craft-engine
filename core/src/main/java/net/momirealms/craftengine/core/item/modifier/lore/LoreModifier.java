@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.item.modifier.lore;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -30,7 +30,7 @@ public sealed interface LoreModifier<I> extends SimpleNetworkItemDataModifier<I>
     @Override
     @Nullable
     default Key componentType(Item<I> item, ItemBuildContext context) {
-        return ComponentKeys.LORE;
+        return DataComponentKeys.LORE;
     }
 
     @Override

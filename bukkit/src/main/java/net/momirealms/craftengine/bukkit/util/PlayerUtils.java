@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.util;
 
 import com.mojang.datafixers.util.Pair;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
@@ -64,7 +64,7 @@ public final class PlayerUtils {
             Item<?> previousMainHandItem = player.getItemInHand(InteractionHand.MAIN_HAND);
             boolean isMainHandTotem;
             if (VersionHelper.isOrAbove1_21_2()) {
-                isMainHandTotem = previousMainHandItem.hasComponent(ComponentTypes.DEATH_PROTECTION);
+                isMainHandTotem = previousMainHandItem.hasComponent(DataComponentTypes.DEATH_PROTECTION);
             } else {
                 isMainHandTotem = previousMainHandItem.id().equals(ItemKeys.TOTEM_OF_UNDYING);
             }

@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.item.modifier;
 import net.momirealms.craftengine.core.attribute.AttributeModifier;
 import net.momirealms.craftengine.core.attribute.Attributes;
 import net.momirealms.craftengine.core.attribute.Attributes1_21;
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -115,7 +115,7 @@ public class AttributeModifiersModifier<I> implements SimpleNetworkItemDataModif
 
     @Override
     public @Nullable Key componentType(Item<I> item, ItemBuildContext context) {
-        return ComponentKeys.ATTRIBUTE_MODIFIERS;
+        return DataComponentKeys.ATTRIBUTE_MODIFIERS;
     }
 
     @Override

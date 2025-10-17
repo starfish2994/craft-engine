@@ -13,7 +13,7 @@ import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.ItemTags;
@@ -245,7 +245,7 @@ public final class RecipeInjector {
 
     private static boolean isDamageableItem(Item<ItemStack> item) {
         if (VersionHelper.isOrAbove1_20_5()) {
-            return item.hasComponent(ComponentTypes.MAX_DAMAGE) && item.hasComponent(ComponentTypes.DAMAGE);
+            return item.hasComponent(DataComponentTypes.MAX_DAMAGE) && item.hasComponent(DataComponentTypes.DAMAGE);
         } else {
             return FastNMS.INSTANCE.method$Item$canBeDepleted(FastNMS.INSTANCE.method$ItemStack$getItem(item.getLiteralObject()));
         }

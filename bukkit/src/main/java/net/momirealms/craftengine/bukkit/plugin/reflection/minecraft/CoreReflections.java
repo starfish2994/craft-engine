@@ -629,6 +629,17 @@ public final class CoreReflections {
             BukkitReflectionUtils.assembleMCClass("core.component.DataComponentType")
     );
 
+    public static final Class<?> clazz$TypedDataComponent = ReflectionUtils.getClazz(
+            BukkitReflectionUtils.assembleMCClass("core.component.TypedDataComponent")
+    );
+
+    // 1.21.5+
+    public static final Class<?> clazz$DataComponentPredicate$Type = MiscUtils.requireNonNullIf(ReflectionUtils.getClazz(
+            BukkitReflectionUtils.assembleMCClass("core.component.predicates.DataComponentPredicate$Type")
+    ), VersionHelper.isOrAbove1_21_5());
+
+
+
     public static final Method method$Registry$getId = requireNonNull(
             ReflectionUtils.getMethod(clazz$Registry, int.class, Object.class)
     );
@@ -4470,4 +4481,14 @@ public final class CoreReflections {
                     "world.item.trading.ItemCost"
             ), VersionHelper.isOrAbove1_20_5()
     );
+
+    public static final Class<?> clazz$MerchantOffer = requireNonNull(BukkitReflectionUtils.findReobfOrMojmapClass(
+            "world.item.trading.MerchantRecipe",
+            "world.item.trading.MerchantOffer"
+    ));
+
+    public static final Class<?> clazz$Merchant = requireNonNull(BukkitReflectionUtils.findReobfOrMojmapClass(
+            "world.item.trading.IMerchant",
+            "world.item.trading.Merchant"
+    ));
 }

@@ -22,9 +22,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.MerchantRecipe;
 
 public class BukkitGuiManager implements GuiManager, Listener {
-//    private static final boolean useNewOpenInventory = ReflectionUtils.getDeclaredMethod(InventoryView.class, void.class, new String[]{"open"}) != null;
     private static BukkitGuiManager instance;
     private final BukkitCraftEngine plugin;
 
@@ -43,31 +43,18 @@ public class BukkitGuiManager implements GuiManager, Listener {
         HandlerList.unregisterAll(this);
     }
 
-//    @SuppressWarnings("UnstableApiUsage")
     @Override
     public void openInventory(net.momirealms.craftengine.core.entity.player.Player player, GuiType guiType) {
         Player bukkitPlayer = (Player) player.platformPlayer();
-//        if (useNewOpenInventory) {
-//            switch (guiType) {
-//                case ANVIL -> MenuType.ANVIL.create(bukkitPlayer).open();
-//                case LOOM -> MenuType.LOOM.create(bukkitPlayer).open();
-//                case ENCHANTMENT -> MenuType.ENCHANTMENT.create(bukkitPlayer).open();
-//                case CRAFTING -> MenuType.CRAFTING.create(bukkitPlayer).open();
-//                case CARTOGRAPHY -> MenuType.CARTOGRAPHY_TABLE.create(bukkitPlayer).open();
-//                case SMITHING -> MenuType.SMITHING.create(bukkitPlayer).open();
-//                case GRINDSTONE -> MenuType.GRINDSTONE.create(bukkitPlayer).open();
-//            }
-//        } else {
-            switch (guiType) {
-                case ANVIL -> LegacyInventoryUtils.openAnvil(bukkitPlayer);
-                case LOOM -> LegacyInventoryUtils.openLoom(bukkitPlayer);
-                case GRINDSTONE -> LegacyInventoryUtils.openGrindstone(bukkitPlayer);
-                case SMITHING -> LegacyInventoryUtils.openSmithingTable(bukkitPlayer);
-                case CRAFTING -> LegacyInventoryUtils.openWorkbench(bukkitPlayer);
-                case ENCHANTMENT -> LegacyInventoryUtils.openEnchanting(bukkitPlayer);
-                case CARTOGRAPHY -> LegacyInventoryUtils.openCartographyTable(bukkitPlayer);
-            }
-//        }
+        switch (guiType) {
+            case ANVIL -> LegacyInventoryUtils.openAnvil(bukkitPlayer);
+            case LOOM -> LegacyInventoryUtils.openLoom(bukkitPlayer);
+            case GRINDSTONE -> LegacyInventoryUtils.openGrindstone(bukkitPlayer);
+            case SMITHING -> LegacyInventoryUtils.openSmithingTable(bukkitPlayer);
+            case CRAFTING -> LegacyInventoryUtils.openWorkbench(bukkitPlayer);
+            case ENCHANTMENT -> LegacyInventoryUtils.openEnchanting(bukkitPlayer);
+            case CARTOGRAPHY -> LegacyInventoryUtils.openCartographyTable(bukkitPlayer);
+        }
     }
 
     @Override

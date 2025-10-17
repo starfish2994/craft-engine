@@ -34,8 +34,8 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         boolean forceReturn = false;
 
         // 处理收纳袋
-        if (wrapped.hasComponent(ComponentTypes.BUNDLE_CONTENTS)) {
-            Object bundleContents = wrapped.getExactComponent(ComponentTypes.BUNDLE_CONTENTS);
+        if (wrapped.hasComponent(DataComponentTypes.BUNDLE_CONTENTS)) {
+            Object bundleContents = wrapped.getExactComponent(DataComponentTypes.BUNDLE_CONTENTS);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
             for (Object previousItem : FastNMS.INSTANCE.method$BundleContents$items(bundleContents)) {
@@ -48,14 +48,14 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 }
             }
             if (changed) {
-                wrapped.setExactComponent(ComponentTypes.BUNDLE_CONTENTS, FastNMS.INSTANCE.constructor$BundleContents(newItems));
+                wrapped.setExactComponent(DataComponentTypes.BUNDLE_CONTENTS, FastNMS.INSTANCE.constructor$BundleContents(newItems));
                 forceReturn = true;
             }
         }
 
         // 处理潜影盒等
-        if (wrapped.hasComponent(ComponentTypes.CONTAINER)) {
-            Object containerContents = wrapped.getExactComponent(ComponentTypes.CONTAINER);
+        if (wrapped.hasComponent(DataComponentTypes.CONTAINER)) {
+            Object containerContents = wrapped.getExactComponent(DataComponentTypes.CONTAINER);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
             for (Object previousItem : FastNMS.INSTANCE.field$ItemContainerContents$items(containerContents)) {
@@ -68,7 +68,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 }
             }
             if (changed) {
-                wrapped.setExactComponent(ComponentTypes.CONTAINER, FastNMS.INSTANCE.method$ItemContainerContents$fromItems(newItems));
+                wrapped.setExactComponent(DataComponentTypes.CONTAINER, FastNMS.INSTANCE.method$ItemContainerContents$fromItems(newItems));
                 forceReturn = true;
             }
         }
@@ -84,7 +84,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         }
 
         // 获取custom data
-        Tag customData = wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA);
+        Tag customData = wrapped.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA);
         if (customData instanceof CompoundTag compoundTag) {
             CompoundTag networkData = compoundTag.getCompound(NETWORK_ITEM_TAG);
             if (networkData != null) {
@@ -100,9 +100,9 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 }
 
                 // 如果清空了，则直接移除这个组件
-                if (compoundTag.isEmpty()) wrapped.resetComponent(ComponentTypes.CUSTOM_DATA);
+                if (compoundTag.isEmpty()) wrapped.resetComponent(DataComponentTypes.CUSTOM_DATA);
                 // 否则设置为新的
-                else wrapped.setNBTComponent(ComponentTypes.CUSTOM_DATA, compoundTag);
+                else wrapped.setNBTComponent(DataComponentTypes.CUSTOM_DATA, compoundTag);
             }
         }
 
@@ -114,8 +114,8 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         boolean forceReturn = false;
 
         // 处理收纳袋
-        if (wrapped.hasComponent(ComponentTypes.BUNDLE_CONTENTS)) {
-            Object bundleContents = wrapped.getExactComponent(ComponentTypes.BUNDLE_CONTENTS);
+        if (wrapped.hasComponent(DataComponentTypes.BUNDLE_CONTENTS)) {
+            Object bundleContents = wrapped.getExactComponent(DataComponentTypes.BUNDLE_CONTENTS);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
             for (Object previousItem : FastNMS.INSTANCE.method$BundleContents$items(bundleContents)) {
@@ -128,14 +128,14 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 }
             }
             if (changed) {
-                wrapped.setExactComponent(ComponentTypes.BUNDLE_CONTENTS, FastNMS.INSTANCE.constructor$BundleContents(newItems));
+                wrapped.setExactComponent(DataComponentTypes.BUNDLE_CONTENTS, FastNMS.INSTANCE.constructor$BundleContents(newItems));
                 forceReturn = true;
             }
         }
 
         // 处理潜影盒等
-        if (wrapped.hasComponent(ComponentTypes.CONTAINER)) {
-            Object containerContents = wrapped.getExactComponent(ComponentTypes.CONTAINER);
+        if (wrapped.hasComponent(DataComponentTypes.CONTAINER)) {
+            Object containerContents = wrapped.getExactComponent(DataComponentTypes.CONTAINER);
             List<Object> newItems = new ArrayList<>();
             for (Object previousItem : FastNMS.INSTANCE.field$ItemContainerContents$items(containerContents)) {
                 boolean changed = false;
@@ -147,7 +147,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                     newItems.add(previousItem);
                 }
                 if (changed) {
-                    wrapped.setExactComponent(ComponentTypes.CONTAINER, FastNMS.INSTANCE.method$ItemContainerContents$fromItems(newItems));
+                    wrapped.setExactComponent(DataComponentTypes.CONTAINER, FastNMS.INSTANCE.method$ItemContainerContents$fromItems(newItems));
                     forceReturn = true;
                 }
             }
@@ -180,7 +180,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
         }
         // 获取custom data
-        CompoundTag customData = Optional.ofNullable(wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA))
+        CompoundTag customData = Optional.ofNullable(wrapped.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA))
                 .map(CompoundTag.class::cast)
                 .orElseGet(CompoundTag::new);
         CompoundTag arguments = customData.getCompound(ArgumentsModifier.ARGUMENTS_TAG);
@@ -206,15 +206,15 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         }
         // 如果拦截物品的描述名称等
         if (Config.interceptItem()) {
-            if (!tag.containsKey(ComponentIds.ITEM_NAME)) {
+            if (!tag.containsKey(DataComponentIds.ITEM_NAME)) {
                 if (VersionHelper.isOrAbove1_21_5()) processModernItemName(wrapped, () -> tag, context);
                 else processLegacyItemName(wrapped, () -> tag, context);
             }
-            if (!tag.containsKey(ComponentIds.CUSTOM_NAME)) {
+            if (!tag.containsKey(DataComponentIds.CUSTOM_NAME)) {
                 if (VersionHelper.isOrAbove1_21_5()) processModernCustomName(wrapped, () -> tag, context);
                 else processLegacyCustomName(wrapped, () -> tag, context);
             }
-            if (!tag.containsKey(ComponentIds.LORE)) {
+            if (!tag.containsKey(DataComponentIds.LORE)) {
                 if (VersionHelper.isOrAbove1_21_5()) processModernLore(wrapped, () -> tag, context);
                 else processLegacyLore(wrapped, () -> tag, context);
             }
@@ -222,7 +222,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
         // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {
             customData.put(NETWORK_ITEM_TAG, tag);
-            wrapped.setNBTComponent(ComponentTypes.CUSTOM_DATA, customData);
+            wrapped.setNBTComponent(DataComponentTypes.CUSTOM_DATA, customData);
             forceReturn = true;
         }
         return forceReturn ? Optional.of(wrapped) : Optional.empty();
@@ -249,7 +249,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 for (String line : lore) {
                     listTag.add(new StringTag(line));
                 }
-                tag.get().put(ComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
+                tag.get().put(DataComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
                 return true;
             }
         }
@@ -263,7 +263,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
             if (!tokens.isEmpty()) {
                 item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
-                tag.get().put(ComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
+                tag.get().put(DataComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
                 return true;
             }
         }
@@ -277,7 +277,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
             if (!tokens.isEmpty()) {
                 item.itemNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
-                tag.get().put(ComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
+                tag.get().put(DataComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
                 return true;
             }
         }
@@ -285,31 +285,31 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
     }
 
     public static boolean processModernItemName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
-        Tag nameTag = item.getSparrowNBTComponent(ComponentTypes.ITEM_NAME);
+        Tag nameTag = item.getSparrowNBTComponent(DataComponentTypes.ITEM_NAME);
         if (nameTag == null) return false;
         Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nameTag);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(ComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
-            tag.get().put(ComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
+            item.setNBTComponent(DataComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
+            tag.get().put(DataComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
         return false;
     }
 
     public static boolean processModernCustomName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
-        Tag nameTag = item.getSparrowNBTComponent(ComponentTypes.CUSTOM_NAME);
+        Tag nameTag = item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_NAME);
         if (nameTag == null) return false;
         Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nameTag);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(ComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
-            tag.get().put(ComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
+            item.setNBTComponent(DataComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
+            tag.get().put(DataComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
         return false;
     }
 
     public static boolean processModernLore(Item<ItemStack> item, Supplier<CompoundTag> tagSupplier, Context context) {
-        Tag loreTag = item.getSparrowNBTComponent(ComponentTypes.LORE);
+        Tag loreTag = item.getSparrowNBTComponent(DataComponentTypes.LORE);
         boolean changed = false;
         if (!(loreTag instanceof ListTag listTag)) {
             return false;
@@ -325,8 +325,8 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             }
         }
         if (changed) {
-            item.setNBTComponent(ComponentKeys.LORE, newLore);
-            tagSupplier.get().put(ComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
+            item.setNBTComponent(DataComponentKeys.LORE, newLore);
+            tagSupplier.get().put(DataComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
             return true;
         }
         return false;
@@ -360,11 +360,11 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                     this.globalChanged = true;
             }
             if (this.globalChanged) {
-                CompoundTag customData = Optional.ofNullable(this.item.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA))
+                CompoundTag customData = Optional.ofNullable(this.item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA))
                         .map(CompoundTag.class::cast)
                         .orElseGet(CompoundTag::new);
                 customData.put(NETWORK_ITEM_TAG, getOrCreateTag());
-                this.item.setNBTComponent(ComponentKeys.CUSTOM_DATA, customData);
+                this.item.setNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
                 return Optional.of(this.item);
             } else if (this.forceReturn) {
                 return Optional.of(this.item);

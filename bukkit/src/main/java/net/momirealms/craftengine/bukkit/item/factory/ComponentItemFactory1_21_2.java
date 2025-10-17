@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.item.factory;
 
 import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
-import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.item.setting.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -21,43 +21,43 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
     @Override
     protected void tooltipStyle(ComponentItemWrapper item, String data) {
         if (data == null) {
-            item.resetComponent(ComponentTypes.TOOLTIP_STYLE);
+            item.resetComponent(DataComponentTypes.TOOLTIP_STYLE);
         } else {
-            item.setJavaComponent(ComponentTypes.TOOLTIP_STYLE, data);
+            item.setJavaComponent(DataComponentTypes.TOOLTIP_STYLE, data);
         }
     }
 
     @Override
     protected Optional<String> tooltipStyle(ComponentItemWrapper item) {
-        return item.getJavaComponent(ComponentTypes.TOOLTIP_STYLE);
+        return item.getJavaComponent(DataComponentTypes.TOOLTIP_STYLE);
     }
 
     @Override
     protected void itemModel(ComponentItemWrapper item, String data) {
         if (data == null) {
-            item.resetComponent(ComponentTypes.ITEM_MODEL);
+            item.resetComponent(DataComponentTypes.ITEM_MODEL);
         } else {
-            item.setJavaComponent(ComponentTypes.ITEM_MODEL, data);
+            item.setJavaComponent(DataComponentTypes.ITEM_MODEL, data);
         }
     }
 
     @Override
     protected Optional<String> itemModel(ComponentItemWrapper item) {
-        return item.getJavaComponent(ComponentTypes.ITEM_MODEL);
+        return item.getJavaComponent(DataComponentTypes.ITEM_MODEL);
     }
 
     @Override
     protected void equippable(ComponentItemWrapper item, EquipmentData data) {
         if (data == null) {
-            item.resetComponent(ComponentTypes.EQUIPPABLE);
+            item.resetComponent(DataComponentTypes.EQUIPPABLE);
         } else {
-            item.setSparrowNBTComponent(ComponentTypes.EQUIPPABLE, data.toNBT());
+            item.setSparrowNBTComponent(DataComponentTypes.EQUIPPABLE, data.toNBT());
         }
     }
 
     @Override
     protected Optional<EquipmentData> equippable(ComponentItemWrapper item) {
-        Optional<Object> optionalData = item.getJavaComponent(ComponentTypes.EQUIPPABLE);
+        Optional<Object> optionalData = item.getJavaComponent(DataComponentTypes.EQUIPPABLE);
         if (optionalData.isEmpty()) return Optional.empty();
         Map<String, Object> data = MiscUtils.castToMap(optionalData.get(), false);
         String slot = data.get("slot").toString();

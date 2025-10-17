@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.modifier.lore;
 
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -45,7 +45,7 @@ public final class DynamicLoreModifier<I> implements SimpleNetworkItemDataModifi
 
     @Override
     public Key componentType(Item<I> item, ItemBuildContext context) {
-        return ComponentKeys.LORE;
+        return DataComponentKeys.LORE;
     }
 
     @Override

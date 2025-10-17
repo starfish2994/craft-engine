@@ -2,11 +2,18 @@ package net.momirealms.craftengine.bukkit.plugin;
 
 import com.google.gson.JsonElement;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
+import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
+import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistryOps;
+import net.momirealms.craftengine.bukkit.util.ComponentUtils;
+import net.momirealms.craftengine.bukkit.util.LegacyInventoryUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.bukkit.world.particle.BukkitParticleType;
+import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.plugin.Platform;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
@@ -16,10 +23,19 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Merchant;
+import org.bukkit.inventory.MerchantRecipe;
 
+import java.util.List;
 import java.util.Map;
 
 public class BukkitPlatform implements Platform {
+    private final BukkitCraftEngine plugin;
+
+    public BukkitPlatform(BukkitCraftEngine plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public void dispatchCommand(String command) {
@@ -75,5 +91,27 @@ public class BukkitPlatform implements Platform {
             throw new IllegalArgumentException("Invalid particle: " + name);
         }
         return new BukkitParticleType(particle, name);
+    }
+
+    @Override
+    public <I> void openMerchant(Player player, Component title, List<MerchantOffer<I>> offers) {
+        Merchant merchant = Bukkit.createMerchant();
+        List<MerchantRecipe> recipes = merchant.getRecipes();
+        for (MerchantOffer<I> offer : offers) {
+            MerchantRecipe merchantRecipe = new MerchantRecipe((ItemStack) offer.result().getItem(), 0, Integer.MAX_VALUE, offer.xp() > 0, offer.xp(), 0);
+            merchantRecipe.addIngredient((ItemStack) offer.cost1().getItem());
+            offer.cost2().ifPresent(it -> merchantRecipe.addIngredient((ItemStack) it.getItem()));
+            recipes.add(merchantRecipe);
+        }
+        merchant.setRecipes(recipes);
+        if (title != null) {
+            try {
+                Object minecraftMerchant = CraftBukkitReflections.method$CraftMerchant$getMerchant.invoke(merchant);
+                CraftBukkitReflections.field$MinecraftMerchant$title.set(minecraftMerchant, ComponentUtils.adventureToMinecraft(title));
+            } catch (ReflectiveOperationException e) {
+                this.plugin.logger().warn("Failed to update merchant title", e);
+            }
+        }
+        LegacyInventoryUtils.openMerchant((org.bukkit.entity.Player) player.platformPlayer(), merchant);
     }
 }

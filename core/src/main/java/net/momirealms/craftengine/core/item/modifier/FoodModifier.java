@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.modifier;
 
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -41,7 +41,7 @@ public class FoodModifier<I> implements SimpleNetworkItemDataModifier<I> {
 
     @Override
     public Item<I> apply(Item<I> item, ItemBuildContext context) {
-        item.setJavaComponent(ComponentKeys.FOOD, Map.of(
+        item.setJavaComponent(DataComponentKeys.FOOD, Map.of(
                 "nutrition", this.nutrition,
                 "saturation", this.saturation,
                 "can_always_eat", this.canAlwaysEat
@@ -51,7 +51,7 @@ public class FoodModifier<I> implements SimpleNetworkItemDataModifier<I> {
 
     @Override
     public @Nullable Key componentType(Item<I> item, ItemBuildContext context) {
-        return ComponentKeys.FOOD;
+        return DataComponentKeys.FOOD;
     }
 
     public static class Factory<I> implements ItemDataModifierFactory<I> {

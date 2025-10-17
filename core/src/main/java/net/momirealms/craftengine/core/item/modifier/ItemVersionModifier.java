@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.modifier;
 
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.util.Key;
@@ -29,9 +29,9 @@ public class ItemVersionModifier<I> implements ItemDataModifier<I> {
     @Override
     public Item<I> apply(Item<I> item, ItemBuildContext context) {
         if (VersionHelper.isOrAbove1_20_5()) {
-            CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getSparrowNBTComponent(ComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
+            CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getSparrowNBTComponent(DataComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
             customData.putInt(VERSION_TAG, this.version);
-            item.setNBTComponent(ComponentKeys.CUSTOM_DATA, customData);
+            item.setNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
         } else {
             item.setTag(this.version, VERSION_TAG);
         }

@@ -7,6 +7,7 @@ import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.Merchant;
 import org.jetbrains.annotations.Nullable;
 
 public class LegacyInventoryUtils {
@@ -66,6 +67,10 @@ public class LegacyInventoryUtils {
 
     public static void openWorkbench(Player player) {
         player.openWorkbench(null, true);
+    }
+
+    public static void openMerchant(Player player, Merchant merchant) {
+        player.openMerchant(merchant, true);
     }
 
     public static Player getPlayerFromInventoryEvent(InventoryEvent event) {

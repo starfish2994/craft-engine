@@ -87,7 +87,7 @@ public class BukkitCraftEngine extends CraftEngine {
         super.sharedClassPathAppender = sharedClassPathAppender;
         super.privateClassPathAppender = privateClassPathAppender;
         super.logger = logger;
-        super.platform = new BukkitPlatform();
+        super.platform = new BukkitPlatform(this);
         super.scheduler = new BukkitSchedulerAdapter(this);
         Class<?> compatibilityClass = ReflectionUtils.getClazz(COMPATIBILITY_CLASS);
         if (compatibilityClass != null) {

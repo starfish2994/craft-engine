@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.item.factory;
 
 import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
-import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class ComponentItemFactory1_21_4 extends ComponentItemFactory1_21_2 {
 
     @Override
     protected Optional<Integer> customModelData(ComponentItemWrapper item) {
-        Optional<Object> optional = item.getJavaComponent(ComponentTypes.CUSTOM_MODEL_DATA);
+        Optional<Object> optional = item.getJavaComponent(DataComponentTypes.CUSTOM_MODEL_DATA);
         if (optional.isEmpty()) return Optional.empty();
         @SuppressWarnings("unchecked")
         Map<String, Object> data = (Map<String, Object>) optional.get();
@@ -29,9 +29,9 @@ public class ComponentItemFactory1_21_4 extends ComponentItemFactory1_21_2 {
     @Override
     protected void customModelData(ComponentItemWrapper item, Integer data) {
         if (data == null) {
-            item.resetComponent(ComponentTypes.CUSTOM_MODEL_DATA);
+            item.resetComponent(DataComponentTypes.CUSTOM_MODEL_DATA);
         } else {
-            item.setJavaComponent(ComponentTypes.CUSTOM_MODEL_DATA, Map.of("floats", List.of(data.floatValue())));
+            item.setJavaComponent(DataComponentTypes.CUSTOM_MODEL_DATA, Map.of("floats", List.of(data.floatValue())));
         }
     }
 }

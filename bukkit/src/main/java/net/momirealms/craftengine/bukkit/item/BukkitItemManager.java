@@ -408,7 +408,7 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
             Object armorTrim = FastNMS.INSTANCE.constructor$ArmorTrim(optionalMaterial.get(), optionalPattern.get());
             Object previousTrim;
             if (VersionHelper.isOrAbove1_20_5()) {
-                previousTrim = base.getExactComponent(ComponentKeys.TRIM);
+                previousTrim = base.getExactComponent(DataComponentKeys.TRIM);
             } else {
                 try {
                     previousTrim = VersionHelper.isOrAbove1_20_2() ?
@@ -424,7 +424,7 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
             }
             Item<ItemStack> newItem = base.copyWithCount(1);
             if (VersionHelper.isOrAbove1_20_5()) {
-                newItem.setExactComponent(ComponentKeys.TRIM, armorTrim);
+                newItem.setExactComponent(DataComponentKeys.TRIM, armorTrim);
             } else {
                 try {
                     CoreReflections.method$ArmorTrim$setTrim.invoke(null, FastNMS.INSTANCE.registryAccess(), newItem.getLiteralObject(), armorTrim);

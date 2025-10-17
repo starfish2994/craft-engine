@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.modifier.lore;
 
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -27,7 +27,7 @@ public final class OverwritableLoreModifier<I> implements SimpleNetworkItemDataM
     @Override
     public Item<I> apply(Item<I> item, ItemBuildContext context) {
         if (VersionHelper.COMPONENT_RELEASE) {
-            if (item.hasNonDefaultComponent(ComponentKeys.LORE)) {
+            if (item.hasNonDefaultComponent(DataComponentKeys.LORE)) {
                 return item;
             }
         } else {
@@ -40,7 +40,7 @@ public final class OverwritableLoreModifier<I> implements SimpleNetworkItemDataM
 
     @Override
     public Key componentType(Item<I> item, ItemBuildContext context) {
-        return ComponentKeys.LORE;
+        return DataComponentKeys.LORE;
     }
 
     @Override
@@ -64,7 +64,7 @@ public final class OverwritableLoreModifier<I> implements SimpleNetworkItemDataM
     @Override
     public Item<I> prepareNetworkItem(Item<I> item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.COMPONENT_RELEASE) {
-            if (item.hasNonDefaultComponent(ComponentKeys.LORE)) {
+            if (item.hasNonDefaultComponent(DataComponentKeys.LORE)) {
                 return item;
             }
         } else {

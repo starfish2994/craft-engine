@@ -2,8 +2,8 @@ package net.momirealms.craftengine.core.item;
 
 import net.momirealms.craftengine.core.util.Key;
 
-public final class ComponentKeys {
-    private ComponentKeys() {}
+public final class DataComponentKeys {
+    private DataComponentKeys() {}
 
     public static final Key ATTRIBUTE_MODIFIERS = Key.of("minecraft", "attribute_modifiers");
     public static final Key BANNER_PATTERN = Key.of("minecraft", "banner_patterns");

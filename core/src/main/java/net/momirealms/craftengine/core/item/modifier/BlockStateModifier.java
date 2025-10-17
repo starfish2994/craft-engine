@@ -2,7 +2,7 @@ package net.momirealms.craftengine.core.item.modifier;
 
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.CustomBlockStateWrapper;
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -47,7 +47,7 @@ public class BlockStateModifier<I> implements SimpleNetworkItemDataModifier<I> {
 
     @Override
     public Key componentType(Item<I> item, ItemBuildContext context) {
-        return ComponentKeys.BLOCK_STATE;
+        return DataComponentKeys.BLOCK_STATE;
     }
 
     public static class Factory<I> implements ItemDataModifierFactory<I> {

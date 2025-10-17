@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.reflection.minecraft;
 
 import net.momirealms.craftengine.bukkit.plugin.reflection.ReflectionInitException;
+import net.momirealms.craftengine.core.util.VersionHelper;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -21,6 +22,7 @@ public final class MBuiltInRegistries {
     public static final Object RECIPE_TYPE;
     public static final Object PARTICLE_TYPE;
     public static final Object DATA_COMPONENT_TYPE;
+    public static final Object DATA_COMPONENT_PREDICATE_TYPE;
     public static final Object LOOT_POOL_ENTRY_TYPE;
     public static final Object GAME_EVENT;
 
@@ -37,6 +39,7 @@ public final class MBuiltInRegistries {
             Object registries$Fluid  = null;
             Object registries$RecipeType  = null;
             Object registries$DataComponentType  = null;
+            Object registries$DataComponentPredicateType  = null;
             Object registries$LootPoolEntryType  = null;
             Object registries$GameEvent  = null;
             for (Field field : fields) {
@@ -51,8 +54,10 @@ public final class MBuiltInRegistries {
                             registries$EntityType = field.get(null);
                         } else if (rawType == CoreReflections.clazz$RecipeType) {
                             registries$RecipeType = field.get(null);
-                        } else if (rawType == CoreReflections.clazz$DataComponentType && registries$DataComponentType == null) {
+                        } else if (VersionHelper.isOrAbove1_20_5() && rawType == CoreReflections.clazz$DataComponentType && registries$DataComponentType == null) {
                             registries$DataComponentType = field.get(null);
+                        } else if (VersionHelper.isOrAbove1_21_5() && rawType == CoreReflections.clazz$DataComponentPredicate$Type) {
+                            registries$DataComponentPredicateType = field.get(null);
                         }
                     } else {
                         if (type == CoreReflections.clazz$Block) {
@@ -87,6 +92,7 @@ public final class MBuiltInRegistries {
             LOOT_POOL_ENTRY_TYPE = requireNonNull(registries$LootPoolEntryType);
             DATA_COMPONENT_TYPE = registries$DataComponentType;
             GAME_EVENT = requireNonNull(registries$GameEvent);
+            DATA_COMPONENT_PREDICATE_TYPE = registries$DataComponentPredicateType;
         } catch (ReflectiveOperationException e) {
             throw new ReflectionInitException("Failed to init BuiltInRegistries", e);
         }
