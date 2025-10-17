@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.MerchantRecipe;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -90,27 +91,5 @@ public class BukkitPlatform implements Platform {
             throw new IllegalArgumentException("Invalid particle: " + name);
         }
         return new BukkitParticleType(particle, name);
-    }
-
-    @Override
-    public void openMerchant(Player player, Component title, List<MerchantOffer<?>> offers) {
-        Merchant merchant = Bukkit.createMerchant();
-        List<MerchantRecipe> recipes = merchant.getRecipes();
-        for (MerchantOffer<?> offer : offers) {
-            MerchantRecipe merchantRecipe = new MerchantRecipe((ItemStack) offer.result().getItem(), 0, Integer.MAX_VALUE, offer.xp() > 0, offer.xp(), 0);
-            merchantRecipe.addIngredient((ItemStack) offer.cost1().getItem());
-            offer.cost2().ifPresent(it -> merchantRecipe.addIngredient((ItemStack) it.getItem()));
-            recipes.add(merchantRecipe);
-        }
-        merchant.setRecipes(recipes);
-        if (title != null) {
-            try {
-                Object minecraftMerchant = CraftBukkitReflections.method$CraftMerchant$getMerchant.invoke(merchant);
-                CraftBukkitReflections.field$MinecraftMerchant$title.set(minecraftMerchant, ComponentUtils.adventureToMinecraft(title));
-            } catch (ReflectiveOperationException e) {
-                this.plugin.logger().warn("Failed to update merchant title", e);
-            }
-        }
-        LegacyInventoryUtils.openMerchant((org.bukkit.entity.Player) player.platformPlayer(), merchant);
     }
 }

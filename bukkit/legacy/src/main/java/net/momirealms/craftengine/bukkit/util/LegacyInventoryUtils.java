@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.util;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryEvent;
@@ -72,6 +73,11 @@ public final class LegacyInventoryUtils {
 
     public static void openMerchant(Player player, Merchant merchant) {
         player.openMerchant(merchant, true);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static Merchant createMerchant() {
+        return Bukkit.createMerchant("Villager");
     }
 
     public static Player getPlayerFromInventoryEvent(InventoryEvent event) {

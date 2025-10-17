@@ -491,13 +491,24 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     }
                 }
 
+                ExceptionCollector<LocalizedResourceConfigException> eCollector1 = new ExceptionCollector<>();
+
+                Map<EventTrigger, List<Function<PlayerOptionalContext>>> events;
+                try {
+                    events = EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event"));
+                } catch (LocalizedResourceConfigException e) {
+                    eCollector1.add(e);
+                    events = Map.of();
+                }
+                LootTable<?> lootTable;
+                try {
+                    lootTable = LootTable.fromMap(ResourceConfigUtils.getAsMapOrNull(section.get("loot"), "loot"));
+                } catch (LocalizedResourceConfigException e) {
+                    eCollector1.add(e);
+                    lootTable = null;
+                }
                 // 创建自定义方块
-                AbstractCustomBlock customBlock = (AbstractCustomBlock) createCustomBlock(
-                        holder,
-                        variantProvider,
-                        EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event")),
-                        LootTable.fromMap(ResourceConfigUtils.getAsMapOrNull(section.get("loot"), "loot"))
-                );
+                AbstractCustomBlock customBlock = (AbstractCustomBlock) createCustomBlock(holder, variantProvider, events, lootTable);
                 BlockBehavior blockBehavior = createBlockBehavior(customBlock, MiscUtils.getAsMapList(ResourceConfigUtils.get(section, "behavior", "behaviors")));
 
                 Map<String, Map<String, Object>> appearanceConfigs;
@@ -592,7 +603,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     // 至少有一个外观吧
                     Objects.requireNonNull(anyAppearance, "any appearance should not be null");
 
-                    ExceptionCollector<LocalizedResourceConfigException> exceptionCollector = new ExceptionCollector<>();
+                    ExceptionCollector<LocalizedResourceConfigException> eCollector2 = new ExceptionCollector<>();
                     if (!singleState) {
                         Map<String, Object> variantsSection = ResourceConfigUtils.getAsMapOrNull(stateSection.get("variants"), "variants");
                         if (variantsSection != null) {
@@ -602,7 +613,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 // 先解析nbt，找到需要修改的方块状态
                                 CompoundTag tag = BlockNbtParser.deserialize(variantProvider, variantNBT);
                                 if (tag == null) {
-                                    exceptionCollector.add(new LocalizedResourceConfigException("warning.config.block.state.property.invalid_format", variantNBT));
+                                    eCollector2.add(new LocalizedResourceConfigException("warning.config.block.state.property.invalid_format", variantNBT));
                                     continue;
                                 }
                                 List<ImmutableBlockState> possibleStates = variantProvider.getPossibleStates(tag);
@@ -612,11 +623,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                         possibleState.setSettings(BlockSettings.ofFullCopy(possibleState.settings(), anotherSetting));
                                     }
                                 }
-                                String appearanceName = ResourceConfigUtils.getAsString(variantSection.get("appearance"));
+                                String appearanceName = ResourceConfigUtils.getAsStringOrNull(variantSection.get("appearance"));
                                 if (appearanceName != null) {
                                     BlockStateAppearance appearance = appearances.get(appearanceName);
                                     if (appearance == null) {
-                                        exceptionCollector.add(new LocalizedResourceConfigException("warning.config.block.state.variant.invalid_appearance", variantNBT, appearanceName));
+                                        eCollector2.add(new LocalizedResourceConfigException("warning.config.block.state.variant.invalid_appearance", variantNBT, appearanceName));
                                         continue;
                                     }
                                     for (ImmutableBlockState possibleState : possibleStates) {
@@ -675,8 +686,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     AbstractBlockManager.this.byId.put(customBlock.id(), customBlock);
 
                     // 抛出次要警告
-                    exceptionCollector.throwIfPresent();
+                    eCollector2.throwIfPresent();
                 }, () -> GsonHelper.get().toJson(section)));
+
+                // 抛出次要警告
+                eCollector1.throwIfPresent();
             }, () -> GsonHelper.get().toJson(section)));
         }
 

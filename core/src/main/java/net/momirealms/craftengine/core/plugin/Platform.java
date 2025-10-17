@@ -26,6 +26,4 @@ public interface Platform {
     World getWorld(String name);
 
     ParticleType getParticleType(Key name);
-
-    void openMerchant(Player player, Component title, List<MerchantOffer<?>> offers);
 }
