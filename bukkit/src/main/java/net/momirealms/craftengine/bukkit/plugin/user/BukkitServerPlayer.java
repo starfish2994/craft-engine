@@ -31,6 +31,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
+import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.sound.SoundSource;
@@ -67,6 +68,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BukkitServerPlayer extends Player {
+    public static final Key SELECTED_LOCALE_KEY = Key.of("craftengine:locale");
     private final BukkitCraftEngine plugin;
 
     // connection state
@@ -151,6 +153,8 @@ public class BukkitServerPlayer extends Player {
         this.name = player.getName();
         this.isNameVerified = true;
         byte[] bytes = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(CooldownData.COOLDOWN_KEY), PersistentDataType.BYTE_ARRAY);
+        String locale = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(SELECTED_LOCALE_KEY), PersistentDataType.STRING);
+        this.selectedLocale = TranslationManager.parseLocale(locale);
         this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
         this.entityTypeView = new ConcurrentHashMap<>(256);
         try {
@@ -1178,5 +1182,15 @@ public class BukkitServerPlayer extends Player {
     public Locale selectedLocale() {
         if (this.selectedLocale != null) return this.selectedLocale;
         return locale();
+    }
+
+    @Override
+    public void setSelectedLocale(@Nullable Locale locale) {
+        this.selectedLocale = locale;
+        if (locale != null) {
+            platformPlayer().getPersistentDataContainer().set(KeyUtils.toNamespacedKey(SELECTED_LOCALE_KEY), PersistentDataType.STRING, TranslationManager.formatLocale(locale));
+        } else {
+            platformPlayer().getPersistentDataContainer().remove(KeyUtils.toNamespacedKey(SELECTED_LOCALE_KEY));
+        }
     }
 }

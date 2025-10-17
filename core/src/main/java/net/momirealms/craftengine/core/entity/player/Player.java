@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.world.Position;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
@@ -177,4 +178,6 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract Locale locale();
 
     public abstract Locale selectedLocale();
+
+    public abstract void setSelectedLocale(@Nullable Locale locale);
 }

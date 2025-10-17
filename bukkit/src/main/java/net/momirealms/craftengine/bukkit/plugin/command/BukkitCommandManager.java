@@ -40,6 +40,8 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
                 new SearchRecipeAdminCommand(this, plugin),
                 new SearchUsageAdminCommand(this, plugin),
                 new TestCommand(this, plugin),
+                new SetLocaleCommand(this, plugin),
+                new UnsetLocaleCommand(this, plugin),
                 new DebugGetBlockStateRegistryIdCommand(this, plugin),
                 new DebugGetBlockInternalIdCommand(this, plugin),
                 new DebugAppearanceStateUsageCommand(this, plugin),

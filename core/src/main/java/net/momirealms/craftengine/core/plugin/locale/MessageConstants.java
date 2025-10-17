@@ -30,6 +30,9 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_UPLOAD_ON_PROGRESS = Component.translatable().key("command.upload.on_progress");
     TranslatableComponent.Builder COMMAND_SEND_RESOURCE_PACK_SUCCESS_SINGLE = Component.translatable().key("command.send_resource_pack.success.single");
     TranslatableComponent.Builder COMMAND_SEND_RESOURCE_PACK_SUCCESS_MULTIPLE = Component.translatable().key("command.send_resource_pack.success.multiple");
-    TranslatableComponent.Builder COMMAND_TOTEM_SUCCESS_SINGLE = Component.translatable().key("commands.totem_animation.success.single");
-    TranslatableComponent.Builder COMMAND_TOTEM_SUCCESS_MULTIPLE = Component.translatable().key("commands.totem_animation.success.multiple");
+    TranslatableComponent.Builder COMMAND_TOTEM_SUCCESS_SINGLE = Component.translatable().key("command.totem_animation.success.single");
+    TranslatableComponent.Builder COMMAND_TOTEM_SUCCESS_MULTIPLE = Component.translatable().key("command.totem_animation.success.multiple");
+    TranslatableComponent.Builder COMMAND_LOCALE_SET_FAILURE = Component.translatable().key("command.locale.set.failure");
+    TranslatableComponent.Builder COMMAND_LOCALE_SET_SUCCESS = Component.translatable().key("command.locale.set.success");
+    TranslatableComponent.Builder COMMAND_LOCALE_UNSET_SUCCESS = Component.translatable().key("command.locale.unset.success");
 }
