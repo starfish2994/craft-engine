@@ -9,7 +9,6 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.customnameplates.api.CustomNameplatesAPI;
-import net.momirealms.customnameplates.api.feature.background.Background;
 import net.momirealms.customnameplates.api.feature.nameplate.Nameplate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

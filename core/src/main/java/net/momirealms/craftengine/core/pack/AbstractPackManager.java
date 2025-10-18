@@ -864,6 +864,7 @@ public abstract class AbstractPackManager implements PackManager {
         Multimap<Key, Key> modelToItems = ArrayListMultimap.create(); // 模型到物品的映射
         Multimap<Key, String> modelToBlocks = ArrayListMultimap.create(); // 模型到方块的映射
         Multimap<Key, Key> imageToModels = ArrayListMultimap.create(); // 纹理到模型的映射
+        Multimap<Key, Key> imageToEquipments = ArrayListMultimap.create(); // 纹理到盔甲的映射
         Set<Key> collectedModels = new HashSet<>();
 
         Set<Key> texturesInAtlas = new HashSet<>();
@@ -896,6 +897,7 @@ public abstract class AbstractPackManager implements PackManager {
             }
 
             for (Path namespacePath : namespaces) {
+                String namespace = namespacePath.getFileName().toString();
                 Path fontPath = namespacePath.resolve("font");
                 if (Files.isDirectory(fontPath)) {
                     try {
@@ -912,7 +914,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 }
                                 JsonArray providers = fontJson.getAsJsonArray("providers");
                                 if (providers != null) {
-                                    Key fontName = Key.of(namespacePath.getFileName().toString(), FileUtils.pathWithoutExtension(file.getFileName().toString()));
+                                    Key fontName = Key.of(namespace, FileUtils.pathWithoutExtension(file.getFileName().toString()));
                                     for (JsonElement provider : providers) {
                                         if (provider instanceof JsonObject providerJO && providerJO.has("type")) {
                                             String type = providerJO.get("type").getAsString();
@@ -946,7 +948,7 @@ public abstract class AbstractPackManager implements PackManager {
                                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
                                     return FileVisitResult.CONTINUE;
                                 }
-                                Key item = Key.of(namespacePath.getFileName().toString(), FileUtils.pathWithoutExtension(file.getFileName().toString()));
+                                Key item = Key.of(namespace, FileUtils.pathWithoutExtension(file.getFileName().toString()));
                                 collectItemModelsDeeply(itemJson, (resourceLocation) -> modelToItems.put(resourceLocation, item));
                                 return FileVisitResult.CONTINUE;
                             }
@@ -983,6 +985,43 @@ public abstract class AbstractPackManager implements PackManager {
                         plugin.logger().warn("Failed to validate blockstates", e);
                     }
                 }
+
+                Path equipmentPath = namespacePath.resolve("equipment");
+                if (Files.isDirectory(equipmentPath)) {
+                    try {
+                        Files.walkFileTree(equipmentPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                            @Override
+                            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+                                if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                String equipmentId = FileUtils.pathWithoutExtension(file.getFileName().toString());
+                                JsonObject equipmentJson;
+                                try {
+                                    equipmentJson = GsonHelper.readJsonFile(file).getAsJsonObject();
+                                } catch (IOException | JsonParseException e) {
+                                    TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
+                                    return FileVisitResult.CONTINUE;
+                                }
+                                if (equipmentJson.has("layers")) {
+                                    for (Map.Entry<String, JsonElement> layer : equipmentJson.getAsJsonObject("layers").entrySet()) {
+                                        String type = layer.getKey();
+                                        if (layer.getValue() instanceof JsonArray equipmentLayer) {
+                                            for (JsonElement lay : equipmentLayer) {
+                                                if (lay instanceof JsonObject layObj) {
+                                                    Key rawTexture = Key.of(layObj.get("texture").getAsString());
+                                                    Key fullPath = Key.of(rawTexture.namespace(), "entity/equipment/" + type + "/" + rawTexture.value());
+                                                    imageToEquipments.put(fullPath, Key.of(namespace, equipmentId));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
+                    } catch (IOException e) {
+                        plugin.logger().warn("Failed to validate equipments", e);
+                    }
+                }
             }
         }
 
@@ -997,6 +1036,19 @@ public abstract class AbstractPackManager implements PackManager {
                 }
             }
             TranslationManager.instance().log("warning.config.resource_pack.generation.missing_font_texture", entry.getValue().stream().distinct().toList().toString(), imagePath);
+        }
+
+        // 验证equipment的贴图是否存在
+        label: for (Map.Entry<Key, Collection<Key>> entry : imageToEquipments.asMap().entrySet()) {
+            Key key = entry.getKey();
+            if (VANILLA_TEXTURES.contains(key)) continue;
+            String imagePath = "assets/" + key.namespace() + "/textures/" + key.value() + ".png";
+            for (Path rootPath : rootPaths) {
+                if (Files.exists(rootPath.resolve(imagePath))) {
+                    continue label;
+                }
+            }
+            TranslationManager.instance().log("warning.config.resource_pack.generation.missing_equipment_texture", entry.getValue().stream().distinct().toList().toString(), imagePath);
         }
 
         // 验证物品模型是否存在，验证的同时去收集贴图
