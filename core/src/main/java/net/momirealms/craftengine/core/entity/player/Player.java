@@ -180,4 +180,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract Locale selectedLocale();
 
     public abstract void setSelectedLocale(@Nullable Locale locale);
+
+    @Override
+    public void remove() {
+    }
 }

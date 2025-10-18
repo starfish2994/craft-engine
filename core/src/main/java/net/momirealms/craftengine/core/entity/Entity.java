@@ -48,4 +48,6 @@ public interface Entity {
     }
 
     <T> void setEntityData(EntityData<T> data, T value, boolean force);
+
+    void remove();
 }

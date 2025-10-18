@@ -36,4 +36,5 @@ public final class CommonFunctions {
     public static final Key SET_VARIABLE = Key.of("craftengine:set_variable");
     public static final Key DAMAGE = Key.of("craftengine:damage");
     public static final Key MERCHANT_TRADE = Key.of("craftengine:merchant_trade");
+    public static final Key REMOVE_ENTITY = Key.of("craftengine:remove_entity");
 }

@@ -103,4 +103,9 @@ public class BukkitEntity extends AbstractEntity {
     public <T> void setEntityData(EntityData<T> data, T value, boolean force) {
         FastNMS.INSTANCE.method$SynchedEntityData$set(entityData(), data.entityDataAccessor(), value, force);
     }
+
+    @Override
+    public void remove() {
+        this.platformEntity().remove();
+    }
 }

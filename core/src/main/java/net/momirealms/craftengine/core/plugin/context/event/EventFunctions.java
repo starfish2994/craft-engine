@@ -47,6 +47,7 @@ public class EventFunctions {
         register(CommonFunctions.TOAST, new ToastFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.DAMAGE, new DamageFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.MERCHANT_TRADE, new MerchantTradeFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.REMOVE_ENTITY, new RemoveEntityFunction.FactoryImpl<>(EventConditions::fromMap));
     }
 
     public static void register(Key key, FunctionFactory<PlayerOptionalContext> factory) {

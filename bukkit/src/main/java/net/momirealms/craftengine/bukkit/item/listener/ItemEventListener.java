@@ -576,16 +576,31 @@ public class ItemEventListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPickUpItem(EntityPickupItemEvent event) {
-        if (!Config.triggerUpdatePickUp()) return;
         if (!(event.getEntity() instanceof Player player)) return;
         org.bukkit.entity.Item itemDrop = event.getItem();
         ItemStack itemStack = itemDrop.getItemStack();
         Item<ItemStack> wrapped = this.itemManager.wrap(itemStack);
-        ItemUpdateResult result = this.itemManager.updateItem(wrapped, () -> ItemBuildContext.of(BukkitAdaptors.adapt(player)));
-        if (result.updated()) {
-            itemDrop.setItemStack((ItemStack) result.finalItem().getItem());
+        Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
+        if (optionalCustomItem.isEmpty()) return;
+        BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+        CustomItem<ItemStack> customItem = optionalCustomItem.get();
+        if (Config.triggerUpdatePickUp() && customItem.updater().isPresent()) {
+            ItemUpdateResult result = this.itemManager.updateItem(wrapped, () -> ItemBuildContext.of(serverPlayer));
+            if (result.updated()) {
+                itemDrop.setItemStack((ItemStack) result.finalItem().getItem());
+            }
+        }
+        Cancellable dummy = Cancellable.dummy();
+        customItem.execute(PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
+                .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(itemDrop))
+                .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(itemDrop.getLocation()))
+                .withParameter(DirectContextParameters.EVENT, dummy)
+        ), EventTrigger.PICK_UP);
+        if (dummy.isCancelled()) {
+            event.setCancelled(true);
+            return;
         }
     }
 
