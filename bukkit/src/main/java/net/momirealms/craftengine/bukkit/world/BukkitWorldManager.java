@@ -345,10 +345,11 @@ public class BukkitWorldManager implements WorldManager, Listener {
                         if (Config.restoreCustomBlocks()) {
                             boolean isEmptyBefore = FastNMS.INSTANCE.method$LevelSection$hasOnlyAir(section);
                             int sectionY = ceSection.sectionY;
-                            if (isEmptyBefore) {
-                                FastNMS.INSTANCE.method$LightEventListener$updateSectionStatus(lightEngine, FastNMS.INSTANCE.method$SectionPos$of(chunkX, sectionY, chunkZ), false);
-                            }
+                            // 有自定义方块
                             if (!ceSection.statesContainer().isEmpty()) {
+                                if (isEmptyBefore) {
+                                    FastNMS.INSTANCE.method$LightEventListener$updateSectionStatus(lightEngine, FastNMS.INSTANCE.method$SectionPos$of(chunkX, sectionY, chunkZ), false);
+                                }
                                 for (int x = 0; x < 16; x++) {
                                     for (int z = 0; z < 16; z++) {
                                         for (int y = 0; y < 16; y++) {
