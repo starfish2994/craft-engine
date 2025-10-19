@@ -108,6 +108,7 @@ blocks:
           - minecraft:crops
           - minecraft:maintains_farmland
     behaviors:
+      - type: liquid_flowable_block
       - type: stem_block
         fruit: default:hami_melon
         attached-stem: default:attached_hami_melon_stem
@@ -169,6 +170,7 @@ blocks:
         tags:
           - minecraft:maintains_farmland
     behaviors:
+      - type: liquid_flowable_block
       - type: attached_stem_block
         fruit: default:hami_melon
         stem: default:hami_melon_stem

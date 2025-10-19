@@ -150,4 +150,4 @@ blocks:
           - type: damage
             target: self
             amount: 1.0
-            damage-type: lava
+            damage-type: on_fire
