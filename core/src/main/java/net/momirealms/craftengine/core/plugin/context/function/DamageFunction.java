@@ -26,7 +26,7 @@ public class DamageFunction<CTX extends Context> extends AbstractConditionalFunc
 
     @Override
     protected void runInternal(CTX ctx) {
-        selector.get(ctx).forEach(p -> p.damage(amount.getDouble(ctx), damageType));
+        selector.get(ctx).forEach(p -> p.damage(amount.getDouble(ctx), damageType, null));
     }
 
     @Override

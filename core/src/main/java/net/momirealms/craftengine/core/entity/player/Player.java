@@ -173,7 +173,7 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void teleport(WorldPosition worldPosition);
 
-    public abstract void damage(double amount, Key damageType);
+    public abstract void damage(double amount, Key damageType, @Nullable Object causeEntity);
 
     public abstract Locale locale();
 

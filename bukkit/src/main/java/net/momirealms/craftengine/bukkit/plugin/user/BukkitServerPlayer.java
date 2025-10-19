@@ -49,6 +49,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -1151,10 +1152,15 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void damage(double amount, Key damageType) {
+    public void damage(double amount, Key damageType, @Nullable Object causeEntity) {
         @SuppressWarnings("deprecation")
         DamageType type = Registry.DAMAGE_TYPE.get(KeyUtils.toNamespacedKey(damageType));
-        this.platformPlayer().damage(amount, DamageSource.builder(type != null ? type : DamageType.GENERIC).build());
+        DamageSource source = DamageSource.builder(type != null ? type : DamageType.GENERIC)
+                .withCausingEntity(causeEntity instanceof Entity entity ? entity : this.platformPlayer())
+                .withDirectEntity(this.platformPlayer())
+                .withDamageLocation(this.platformPlayer().getLocation())
+                .build();
+        this.platformPlayer().damage(amount, source);
     }
 
     @Override
