@@ -1712,10 +1712,7 @@ public abstract class AbstractPackManager implements PackManager {
                 .resolve("empty.png");
         try {
             Files.createDirectories(modelPath.getParent());
-            GsonHelper.writeJsonFile(MiscUtils.init(new JsonObject(), o -> {
-                o.addProperty("parent", "minecraft:block/cube_all");
-                o.add("textures", MiscUtils.init(new JsonObject(), a -> a.addProperty("all", "minecraft:block/empty")));
-            }), modelPath);
+            Files.writeString(modelPath, "{}");
         } catch (IOException e) {
             this.plugin.logger().severe("Error writing empty block model", e);
         }

@@ -78,7 +78,7 @@ resource-pack:
   merge-external-zip-files:
     - "CustomNameplates/resourcepack.zip"
     - "BetterModel/build.zip"
-  exclude-file-extensions: ["md", "psd", "bbmodel", "db", "ini"]
+  exclude-file-extensions: ["md", "psd", "bbmodel", "db", "ini", "DS_Store"]
   # Exclude the shaders when generating the resource pack
   exclude-core-shaders: false
   delivery:
