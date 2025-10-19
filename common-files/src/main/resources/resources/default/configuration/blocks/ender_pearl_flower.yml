@@ -22,6 +22,7 @@ blocks:
         map-color: 24
         is-randomly-ticking: true
     behaviors:
+      - type: liquid_flowable_block
       - type: bush_block
         bottom-blocks:
           - minecraft:end_stone
