@@ -168,6 +168,7 @@ items:
         settings:
           template: default:settings/sapling
         behaviors:
+          - type: liquid_flowable_block
           - type: bush_block
             bottom-block-tags:
               - minecraft:dirt
@@ -676,6 +677,7 @@ blocks#button:
           - minecraft:mineable/axe
           - minecraft:wooden_buttons
     behaviors:
+      - type: liquid_flowable_block
       - type: face_attached_horizontal_directional_block
       - type: button_block
         ticks-to-stay-pressed: 30
