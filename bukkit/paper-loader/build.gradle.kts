@@ -93,6 +93,7 @@ paper {
         register("HeadDatabase") { required = false }
         register("SX-Item") { required = false }
         register("Slimefun") { required = false }
+        register("Nexo") { required = false }
 
         // leveler
         register("AuraSkills") { required = false }

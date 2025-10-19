@@ -17,6 +17,7 @@ repositories {
     maven("https://repo.hiusers.com/releases") // zaphkiel
     maven("https://jitpack.io") // sxitem slimefun
     maven("https://repo.codemc.io/repository/maven-public/") // quickshop
+    maven("https://repo.nexomc.com/releases/") // nexo
 }
 
 dependencies {
@@ -41,6 +42,8 @@ dependencies {
     // MMOItems
     compileOnly("net.Indyuce:MMOItems-API:6.10-SNAPSHOT")
     compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
+    // Nexo
+    compileOnly("com.nexomc:nexo:1.13.0")
     // LuckPerms
     compileOnly("net.luckperms:api:5.4")
     // viaversion

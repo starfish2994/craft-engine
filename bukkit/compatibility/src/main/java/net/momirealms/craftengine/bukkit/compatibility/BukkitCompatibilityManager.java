@@ -312,6 +312,10 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
             itemManager.registerExternalItemSource(new SlimefunSource());
             logHook("Slimefun");
         }
+        if (this.isPluginEnabled("Nexo")) {
+            itemManager.registerExternalItemSource(new NexoItemSource());
+            logHook("Nexo");
+        }
     }
 
     private Plugin getPlugin(String name) {
