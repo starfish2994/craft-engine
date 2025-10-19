@@ -10,12 +10,21 @@ import java.util.function.Predicate;
 
 public enum AutoStateGroup {
     LEAVES("leaves",
-            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.SPRUCE_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
+            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES),
             (w) -> !(boolean) w.getProperty("waterlogged")
     ),
     WATERLOGGED_LEAVES(
             "waterlogged_leaves",
-            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.SPRUCE_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
+            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES),
+            (w) -> w.getProperty("waterlogged")
+    ),
+    LEAVES_NO_TINT("leaves_no_tint",
+            Set.of(BlockKeys.SPRUCE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
+            (w) -> !(boolean) w.getProperty("waterlogged")
+    ),
+    WATERLOGGED_LEAVES_NO_TINT(
+            "waterlogged_leaves_no_tint",
+            Set.of(BlockKeys.SPRUCE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
             (w) -> w.getProperty("waterlogged")
     ),
     LOWER_TRIPWIRE("lower_tripwire", Set.of(BlockKeys.TRIPWIRE), (w) -> w.getProperty("attached")),
