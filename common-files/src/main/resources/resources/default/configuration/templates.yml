@@ -936,6 +936,44 @@ templates#block_states:
       distance=7,persistent=false:
         settings:
           is-randomly-ticking: true
+  # leaves (no tint) block
+  default:block_state/leaves:
+    properties:
+      waterlogged:
+        type: boolean
+        default: false
+      persistent:
+        type: boolean
+        default: true
+      distance:
+        type: int
+        default: 7
+        range: 1~7
+    appearances:
+      default:
+        auto-state: leaves_no_tint
+        model:
+          path: ${model_path}
+          generation:
+            parent: minecraft:block/leaves
+            textures:
+              all: ${texture_path}
+      waterlogged:
+        auto-state: waterlogged_leaves_no_tint
+        model:
+          path: ${model_path}
+    variants:
+      waterlogged=false:
+        appearance: default
+      waterlogged=true:
+        appearance: waterlogged
+        settings:
+          resistance: 1200.0
+          burnable: false
+          fluid-state: water
+      distance=7,persistent=false:
+        settings:
+          is-randomly-ticking: true
   # trapdoor block
   default:block_state/trapdoor:
     properties:
