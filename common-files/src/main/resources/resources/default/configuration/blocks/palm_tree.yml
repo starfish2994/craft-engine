@@ -198,10 +198,7 @@ items:
     material: oak_leaves
     data:
       item-name: <!i><i18n:item.palm_leaves>
-      block-state:
-        distance: '1'
-        persistent: 'false'
-        waterlogged: 'false'
+      block-state: default:palm_leaves[persistent=true,waterlogged=false,distance=7]
     model:
       type: minecraft:model
       path: minecraft:item/custom/palm_leaves
@@ -223,7 +220,7 @@ items:
         settings:
           template: default:settings/leaves
         states:
-          template: default:block_state/leaves
+          template: default:block_state/tintable_leaves
           arguments:
             model_path: minecraft:block/custom/palm_leaves
             texture_path: minecraft:block/custom/palm_leaves
