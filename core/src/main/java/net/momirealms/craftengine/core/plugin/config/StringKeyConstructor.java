@@ -10,8 +10,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.yaml.snakeyaml.nodes.Tag.PREFIX;
-import static org.yaml.snakeyaml.nodes.Tag.standardTags;
+import static org.yaml.snakeyaml.nodes.Tag.*;
 
 public class StringKeyConstructor extends SafeConstructor {
     private final Path path;
@@ -20,15 +19,13 @@ public class StringKeyConstructor extends SafeConstructor {
     public static final Tag BYTE = new Tag(PREFIX + "byte");
     public static final Tag SHORT = new Tag(PREFIX + "short");
     public static final Tag LONG = new Tag(PREFIX + "long");
-    public static final Tag FLOAT_SINGLE = new Tag(PREFIX + "float_single"); // 原本有个!!float解析出来的是双精度浮点数使用这个避免命名冲突
-    public static final Tag FLOAT_DOUBLE = new Tag(PREFIX + "double");
+    public static final Tag DOUBLE = new Tag(PREFIX + "double");
 
     static {
         standardTags.add(BYTE);
         standardTags.add(SHORT);
         standardTags.add(LONG);
-        standardTags.add(FLOAT_SINGLE);
-        standardTags.add(FLOAT_DOUBLE);
+        standardTags.add(DOUBLE);
     }
 
     public StringKeyConstructor(Path path, LoaderOptions loaderOptions) {
@@ -36,8 +33,8 @@ public class StringKeyConstructor extends SafeConstructor {
         this.yamlConstructors.put(BYTE, new ConstructYamlByte());
         this.yamlConstructors.put(SHORT, new ConstructYamlShort());
         this.yamlConstructors.put(LONG, new ConstructYamlLong());
-        this.yamlConstructors.put(FLOAT_SINGLE, new ConstructYamlFloatSingle());
-        this.yamlConstructors.put(FLOAT_DOUBLE, new ConstructYamlDouble());
+        this.yamlConstructors.put(FLOAT, new ConstructYamlFloatSingle()); // 覆盖默认实现
+        this.yamlConstructors.put(DOUBLE, new ConstructYamlDouble());
         this.path = path;
     }
 
