@@ -4,6 +4,7 @@ import io.papermc.paper.event.block.CompostItemEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
+import net.momirealms.craftengine.bukkit.entity.BukkitItemEntity;
 import net.momirealms.craftengine.bukkit.item.BukkitCustomItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
@@ -594,7 +595,7 @@ public class ItemEventListener implements Listener {
         }
         Cancellable dummy = Cancellable.dummy();
         customItem.execute(PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
-                .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(itemDrop))
+                .withParameter(DirectContextParameters.ENTITY, new BukkitItemEntity(itemDrop))
                 .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(itemDrop.getLocation()))
                 .withParameter(DirectContextParameters.EVENT, dummy)
         ), EventTrigger.PICK_UP);

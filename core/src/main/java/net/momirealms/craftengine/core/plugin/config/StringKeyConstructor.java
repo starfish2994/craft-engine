@@ -38,7 +38,6 @@ public class StringKeyConstructor extends SafeConstructor {
         this.path = path;
     }
 
-
     private boolean isVersionMatch(String versionSpec) {
         int index = versionSpec.indexOf('~');
         // 没有范围值
