@@ -865,6 +865,7 @@ public abstract class AbstractPackManager implements PackManager {
         Multimap<Key, String> modelToBlocks = ArrayListMultimap.create(); // 模型到方块的映射
         Multimap<Key, Key> imageToModels = ArrayListMultimap.create(); // 纹理到模型的映射
         Multimap<Key, Key> imageToEquipments = ArrayListMultimap.create(); // 纹理到盔甲的映射
+        Multimap<Key, Key> oggToSoundEvents = ArrayListMultimap.create(); // 音频到声音的映射
         Set<Key> collectedModels = new HashSet<>();
 
         Set<Key> texturesInAtlas = new HashSet<>();
@@ -1022,6 +1023,33 @@ public abstract class AbstractPackManager implements PackManager {
                         plugin.logger().warn("Failed to validate equipments", e);
                     }
                 }
+
+                Path soundsPath = namespacePath.resolve("sounds.json");
+                if (Files.exists(soundsPath)) {
+                    try {
+                        JsonObject soundsJson = GsonHelper.readJsonFile(soundsPath).getAsJsonObject();
+                        for (Map.Entry<String, JsonElement> soundEventEntry : soundsJson.entrySet()) {
+                            Key soundKey = Key.of(namespace, soundEventEntry.getKey());
+                            if (soundEventEntry.getValue() instanceof JsonObject soundEventObj) {
+                                JsonArray soundArray = soundEventObj.getAsJsonArray("sounds");
+                                if (soundArray != null) {
+                                    for (JsonElement sound : soundArray) {
+                                        if (sound instanceof JsonPrimitive primitive) {
+                                            if (primitive.isString()) {
+                                                oggToSoundEvents.put(Key.of(primitive.getAsString()), soundKey);
+                                            }
+                                        } else if (sound instanceof JsonObject soundObj && soundObj.has("name")) {
+                                            String name = soundObj.get("name").getAsString();
+                                            oggToSoundEvents.put(Key.of(name), soundKey);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (IOException | JsonParseException e) {
+                        plugin.logger().warn("Failed to validate sounds.json", e);
+                    }
+                }
             }
         }
 
@@ -1049,6 +1077,19 @@ public abstract class AbstractPackManager implements PackManager {
                 }
             }
             TranslationManager.instance().log("warning.config.resource_pack.generation.missing_equipment_texture", entry.getValue().stream().distinct().toList().toString(), imagePath);
+        }
+
+        // 验证sounds的ogg文件是否存在
+        label: for (Map.Entry<Key, Collection<Key>> entry : oggToSoundEvents.asMap().entrySet()) {
+            Key key = entry.getKey();
+            if (VANILLA_SOUNDS.contains(key)) continue;
+            String oggPath = "assets/" + key.namespace() + "/sounds/" + key.value() + ".ogg";
+            for (Path rootPath : rootPaths) {
+                if (Files.exists(rootPath.resolve(oggPath))) {
+                    continue label;
+                }
+            }
+            TranslationManager.instance().log("warning.config.resource_pack.generation.missing_sound", entry.getValue().stream().distinct().toList().toString(), oggPath);
         }
 
         // 验证物品模型是否存在，验证的同时去收集贴图

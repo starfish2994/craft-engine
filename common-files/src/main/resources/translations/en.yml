@@ -484,6 +484,7 @@ warning.config.resource_pack.generation.missing_item_model: "<yellow>Item '<arg:
 warning.config.resource_pack.generation.missing_block_model: "<yellow>Block state '<arg:0>' is missing model file: '<arg:1>'</yellow>"
 warning.config.resource_pack.generation.missing_parent_model: "<yellow>Model '<arg:0>' cannot find parent model: '<arg:1>'</yellow>"
 warning.config.resource_pack.generation.missing_equipment_texture: "<yellow>Equipment '<arg:0>' is missing texture '<arg:1>'</yellow>"
+warning.config.resource_pack.generation.missing_sound: "<yellow>Sound event '<arg:0>' is missing ogg file '<arg:1>'</yellow>"
 warning.config.resource_pack.generation.texture_not_in_atlas: "<yellow>Texture '<arg:0>' is not listed in the atlas. You need to add the texture path to the atlas or enable 'fix-atlas' option in config.yml.</yellow>"
 warning.config.resource_pack.invalid_overlay_format: "<yellow>Issue found in config.yml at 'resource-pack.overlay-format' - Invalid overlay format '<arg:0>'. Overlay format must contain the placeholder '{version}'.</yellow>"
 warning.config.equipment.duplicate: "<yellow>Issue found in file <arg:0> - Duplicated equipment '<arg:1>'. Please check if there is the same configuration in other files.</yellow>"
