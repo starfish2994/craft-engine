@@ -898,8 +898,7 @@ templates#block_states:
         appearance: axisY
       axis=z:
         appearance: axisZ
-  # leaves block
-  default:block_state/leaves:
+  default:block_state/__leaves__:
     properties:
       waterlogged:
         type: boolean
@@ -913,7 +912,7 @@ templates#block_states:
         range: 1~7
     appearances:
       default:
-        auto-state: leaves
+        auto-state: ${auto_state}
         model:
           path: ${model_path}
           generation:
@@ -921,7 +920,7 @@ templates#block_states:
             textures:
               all: ${texture_path}
       waterlogged:
-        auto-state: waterlogged_leaves
+        auto-state: waterlogged_${auto_state}
         model:
           path: ${model_path}
     variants:
@@ -936,6 +935,21 @@ templates#block_states:
       distance=7,persistent=false:
         settings:
           is-randomly-ticking: true
+  # any leaves block
+  default:block_state/leaves:
+    template: default:block_state/__leaves__
+    arguments:
+      auto_state: leaves
+  # tintable leaves block
+  default:block_state/tintable_leaves:
+    template: default:block_state/__leaves__
+    arguments:
+      auto_state: tintable_leaves
+  # non-tintable leaves block
+  default:block_state/non_tintable_leaves:
+    template: default:block_state/__leaves__
+    arguments:
+      auto_state: non_tintable_leaves
   # trapdoor block
   default:block_state/trapdoor:
     properties:
