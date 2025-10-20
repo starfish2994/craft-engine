@@ -1712,7 +1712,7 @@ public abstract class AbstractPackManager implements PackManager {
                 .resolve("empty.png");
         try {
             Files.createDirectories(modelPath.getParent());
-            Files.writeString(modelPath, "{}");
+            Files.writeString(modelPath, "{\"textures\":{\"particle\":\"block/empty\"},\"elements\":[{\"from\":[0,0,0],\"to\":[0,0,0],\"color\":0,\"faces\":{\"north\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"east\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"south\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"west\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"up\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"down\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"}}}]}");
         } catch (IOException e) {
             this.plugin.logger().severe("Error writing empty block model", e);
         }
