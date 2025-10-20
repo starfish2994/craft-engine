@@ -771,6 +771,8 @@ public abstract class AbstractPackManager implements PackManager {
             entry.add("formats", formats);
             formats.addProperty("min_inclusive", revision.minPackVersion());
             formats.addProperty("max_inclusive", revision.maxPackVersion());
+            entry.addProperty("min_format", revision.minPackVersion());
+            entry.addProperty("max_format", revision.maxPackVersion());
             entry.addProperty("directory", Config.createOverlayFolderName(revision.versionString()));
             entries.add(entry);
         }
