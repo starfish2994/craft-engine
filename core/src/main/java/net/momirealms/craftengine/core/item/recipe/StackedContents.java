@@ -152,7 +152,7 @@ public class StackedContents<T> {
 
         public boolean tryPick(int quantity) {
             int assignedIngredientsCount = 0;
-            while (true) {
+            for (;;) {
                 IntList assignmentPath = this.tryAssigningNewItem(quantity);
                 if (assignmentPath == null) {
                     boolean allIngredientsTried = assignedIngredientsCount == this.ingredientCount;

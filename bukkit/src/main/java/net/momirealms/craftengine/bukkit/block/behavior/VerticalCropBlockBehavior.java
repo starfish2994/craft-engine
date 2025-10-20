@@ -51,7 +51,7 @@ public class VerticalCropBlockBehavior extends BukkitBlockBehavior {
         if (FastNMS.INSTANCE.method$BlockGetter$getBlockState(level, (this.direction ? LocationUtils.above(blockPos) : LocationUtils.below(blockPos))) == MBlocks.AIR$defaultState) {
             int currentHeight = 1;
             BlockPos currentPos = LocationUtils.fromBlockPos(blockPos);
-            while (true) {
+            for (;;) {
                 Object nextPos = LocationUtils.toBlockPos(currentPos.x(), this.direction ? currentPos.y() - currentHeight : currentPos.y() + currentHeight, currentPos.z());
                 Object nextState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(level, nextPos);
                 Optional<ImmutableBlockState> optionalBelowCustomState = BlockStateUtils.getOptionalCustomBlockState(nextState);

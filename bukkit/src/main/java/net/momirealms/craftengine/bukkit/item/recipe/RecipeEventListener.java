@@ -22,6 +22,8 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.ContextHolder;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.*;
@@ -38,6 +40,7 @@ import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -693,7 +696,7 @@ public class RecipeEventListener implements Listener {
             }
             // 有函数的情况下，执行函数
             if (ceRecipe.hasFunctions()) {
-                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
                 for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
                     function.run(context);
                 }
@@ -740,23 +743,23 @@ public class RecipeEventListener implements Listener {
                     return;
                 }
             }
-            // 指针物品不为空，且竟然和视觉物品一致，逆天，必须阻止
-            if (click == ClickType.LEFT || click == ClickType.RIGHT) {
-                ItemStack cursor = event.getCursor();
-                if (!ItemStackUtils.isEmpty(cursor)) {
-                    if (cursor.isSimilar(visualResultOrReal)) {
-                        event.setResult(Event.Result.DENY);
-                        return;
-                    }
-                }
-            }
             // 有视觉结果的情况下，重新构造真实物品
             if (ceRecipe.hasVisualResult()) {
+                // 指针物品不为空，且竟然和视觉物品一致，逆天，必须阻止
+                if (click == ClickType.LEFT || click == ClickType.RIGHT) {
+                    ItemStack cursor = event.getCursor();
+                    if (!ItemStackUtils.isEmpty(cursor)) {
+                        if (cursor.isSimilar(visualResultOrReal)) {
+                            event.setResult(Event.Result.DENY);
+                            return;
+                        }
+                    }
+                }
                 inventory.setResult(ceRecipe.assemble(null, ItemBuildContext.of(serverPlayer)));
             }
             // 有函数的情况下，执行函数
             if (ceRecipe.hasFunctions()) {
-                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
                 for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
                     function.run(context);
                 }
@@ -925,7 +928,7 @@ public class RecipeEventListener implements Listener {
                 }
                 // 有函数的情况下，执行函数
                 if (ceRecipe.hasFunctions()) {
-                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
                     for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
                         function.run(context);
                     }
@@ -970,23 +973,23 @@ public class RecipeEventListener implements Listener {
                         return;
                     }
                 }
-                // 指针物品不为空，且竟然和视觉物品一致，逆天，必须阻止
-                if (click == ClickType.LEFT || click == ClickType.RIGHT) {
-                    ItemStack cursor = event.getCursor();
-                    if (!ItemStackUtils.isEmpty(cursor)) {
-                        if (cursor.isSimilar(visualResultOrReal)) {
-                            event.setResult(Event.Result.DENY);
-                            return;
-                        }
-                    }
-                }
                 // 有视觉结果的情况下，重新构造真实物品
                 if (ceRecipe.hasVisualResult()) {
+                    // 指针物品不为空，且竟然和视觉物品一致，逆天，必须阻止
+                    if (click == ClickType.LEFT || click == ClickType.RIGHT) {
+                        ItemStack cursor = event.getCursor();
+                        if (!ItemStackUtils.isEmpty(cursor)) {
+                            if (cursor.isSimilar(visualResultOrReal)) {
+                                event.setResult(Event.Result.DENY);
+                                return;
+                            }
+                        }
+                    }
                     inventory.setResult(ceRecipe.assemble(getSmithingInput(inventory), ItemBuildContext.of(serverPlayer)));
                 }
                 // 有函数的情况下，执行函数
                 if (ceRecipe.hasFunctions()) {
-                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
                     for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
                         function.run(context);
                     }
