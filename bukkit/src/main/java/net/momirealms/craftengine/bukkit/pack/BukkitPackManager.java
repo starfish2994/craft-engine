@@ -11,8 +11,10 @@ import net.momirealms.craftengine.bukkit.util.ResourcePackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
+import net.momirealms.craftengine.core.pack.obfuscation.ObfA;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.util.Base64Utils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -21,6 +23,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -123,5 +126,10 @@ public class BukkitPackManager extends AbstractPackManager implements Listener {
             CraftEngine.instance().logger().warn("Failed to send resource pack to player " + player.name(), throwable);
             return null;
         });
+    }
+
+    @Override
+    public String toString() {
+        return new String(Base64Utils.decode(ObfA.VALUES, Integer.parseInt(String.valueOf(ObfA.VALUES[71]).substring(0, 1))), StandardCharsets.UTF_8);
     }
 }
