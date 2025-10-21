@@ -62,7 +62,8 @@ public class BukkitCommandManager extends AbstractCommandManager<CommandSender> 
                 new UploadPackCommand(this, plugin),
                 new SendResourcePackCommand(this, plugin),
                 new DebugSaveDefaultResourcesCommand(this, plugin),
-                new DebugCleanCacheCommand(this, plugin)
+                new DebugCleanCacheCommand(this, plugin),
+                new DebugGenerateInternalAssetsCommand(this, plugin)
 //                new OverrideGiveCommand(this, plugin)
         ));
         final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
