@@ -74,13 +74,18 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior
 
     @Override
     public InteractionResult useOnBlock(UseOnContext context, ImmutableBlockState state) {
+        boolean hasPass = false;
         for (AbstractBlockBehavior behavior : this.behaviors) {
             InteractionResult result = behavior.useOnBlock(context, state);
-            if (result != InteractionResult.PASS && result != InteractionResult.TRY_EMPTY_HAND) {
+            if (result == InteractionResult.PASS) {
+                hasPass = true;
+                continue;
+            }
+            if (result != InteractionResult.TRY_EMPTY_HAND) {
                 return result;
             }
         }
-        return super.useOnBlock(context, state);
+        return hasPass ? InteractionResult.PASS : super.useOnBlock(context, state);
     }
 
     @Override

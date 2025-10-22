@@ -96,7 +96,7 @@ public class BukkitGuiManager implements GuiManager, Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
-        if (!(inventory.getHolder() instanceof CraftEngineGUIHolder craftEngineGUIHolder)) {
+        if (!(inventory.getHolder(false) instanceof CraftEngineGUIHolder craftEngineGUIHolder)) {
             return;
         }
         AbstractGui gui = (AbstractGui) craftEngineGUIHolder.gui();
@@ -112,7 +112,7 @@ public class BukkitGuiManager implements GuiManager, Listener {
     public void onInventoryDrag(InventoryDragEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
-        if (!(inventory.getHolder() instanceof CraftEngineGUIHolder)) {
+        if (!(inventory.getHolder(false) instanceof CraftEngineGUIHolder)) {
             return;
         }
         for (int raw : event.getRawSlots()) {
@@ -128,7 +128,7 @@ public class BukkitGuiManager implements GuiManager, Listener {
     public void onInventoryClose(InventoryCloseEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
-        if (!(inventory.getHolder() instanceof BlockEntityHolder holder)) {
+        if (!(inventory.getHolder(false) instanceof BlockEntityHolder holder)) {
             return;
         }
         if (event.getPlayer() instanceof Player player && holder.blockEntity() instanceof SimpleStorageBlockEntity simpleStorageBlockEntity) {
@@ -141,7 +141,7 @@ public class BukkitGuiManager implements GuiManager, Listener {
         Player player = event.getPlayer();
         org.bukkit.inventory.Inventory inventory = player.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
-        if (!(inventory.getHolder() instanceof BlockEntityHolder holder)) {
+        if (!(inventory.getHolder(false) instanceof BlockEntityHolder holder)) {
             return;
         }
         if (holder.blockEntity() instanceof SimpleStorageBlockEntity simpleStorageBlockEntity) {
