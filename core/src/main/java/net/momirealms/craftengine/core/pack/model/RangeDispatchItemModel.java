@@ -14,10 +14,7 @@ import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RangeDispatchItemModel implements ItemModel {
     public static final Factory FACTORY = new Factory();
@@ -119,7 +116,7 @@ public class RangeDispatchItemModel implements ItemModel {
             if (entriesObj instanceof List<?> list) {
                 List<Map<String, Object>> entries = (List<Map<String, Object>>) list;
                 if (!entries.isEmpty()) {
-                    Map<Float, ItemModel> entryMap = new HashMap<>();
+                    Map<Float, ItemModel> entryMap = new TreeMap<>();
                     for (Map<String, Object> entry : entries) {
                         float threshold = ResourceConfigUtils.getAsFloat(entry.getOrDefault("threshold", 1), "threshold");
                         Object model = entry.getOrDefault("model", fallback);
@@ -151,7 +148,7 @@ public class RangeDispatchItemModel implements ItemModel {
             if (entriesObj == null) {
                 throw new IllegalArgumentException("entries is expected to be a JsonArray");
             }
-            Map<Float, ItemModel> entries = new HashMap<>();
+            Map<Float, ItemModel> entries = new TreeMap<>();
             for (JsonElement entry : entriesObj) {
                 if (entry instanceof JsonObject entryObj) {
                     float threshold = entryObj.getAsJsonPrimitive("threshold").getAsFloat();

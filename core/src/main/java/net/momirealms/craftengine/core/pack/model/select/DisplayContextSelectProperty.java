@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import net.momirealms.craftengine.core.util.MinecraftVersions;
@@ -14,8 +15,8 @@ import java.util.Map;
 
 public class DisplayContextSelectProperty implements SelectProperty {
     public static final DisplayContextSelectProperty INSTANCE = new DisplayContextSelectProperty();
-    public static final SimpleSelectProperty.Factory FACTORY = new SimpleSelectProperty.Factory();
-    public static final SimpleSelectProperty.Reader READER = new SimpleSelectProperty.Reader();
+    public static final Factory FACTORY = new Factory();
+    public static final Reader READER = new Reader();
 
     @Override
     public Key type() {
@@ -29,7 +30,10 @@ public class DisplayContextSelectProperty implements SelectProperty {
 
     @Override
     public List<Revision> revisions(JsonElement element) {
-        return SelectProperty.super.revisions(element);
+        if (element instanceof JsonPrimitive primitive && primitive.isString() && primitive.getAsString().equals("on_shelf")) {
+            return List.of(Revisions.SINCE_1_21_9);
+        }
+        return List.of();
     }
 
     @Override

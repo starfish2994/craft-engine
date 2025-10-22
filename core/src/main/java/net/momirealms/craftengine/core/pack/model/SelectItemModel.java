@@ -96,7 +96,7 @@ public class SelectItemModel implements ItemModel {
 
     @Override
     public List<Revision> revisions() {
-        List<Revision> versions = new ArrayList<>();
+        List<Revision> versions = new ArrayList<>(4);
         for (Map.Entry<Either<JsonElement, List<JsonElement>>, ItemModel> entry : this.whenMap.entrySet()) {
             Either<JsonElement, List<JsonElement>> when = entry.getKey();
             if (when.primary().isPresent()) {
@@ -107,12 +107,10 @@ public class SelectItemModel implements ItemModel {
                     versions.addAll(this.property.revisions(e));
                 }
             }
+            versions.addAll(entry.getValue().revisions());
         }
         if (this.fallBack != null) {
             versions.addAll(this.fallBack.revisions());
-        }
-        for (ItemModel itemModel : this.whenMap.values()) {
-            versions.addAll(itemModel.revisions());
         }
         return versions;
     }

@@ -133,6 +133,7 @@ items:
               - gui
               - ground
               - fixed
+              - on_shelf
             model:
               type: minecraft:model
               path: minecraft:item/custom/topaz_trident

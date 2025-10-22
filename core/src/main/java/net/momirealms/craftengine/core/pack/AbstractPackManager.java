@@ -2132,7 +2132,7 @@ public abstract class AbstractPackManager implements PackManager {
             boolean handAnimationOnSwap = originalItemModel.handAnimationOnSwap();
             boolean oversizedInGui = originalItemModel.oversizedInGui();
 
-            Map<Float, ItemModel> entries = new HashMap<>();
+            Map<Float, ItemModel> entries = new TreeMap<>();
             for (Map.Entry<Integer, ModernItemModel> modelWithDataEntry : entry.getValue().entrySet()) {
                 ModernItemModel modernItemModel = modelWithDataEntry.getValue();
                 entries.put(modelWithDataEntry.getKey().floatValue(), modernItemModel.itemModel());
@@ -2166,6 +2166,11 @@ public abstract class AbstractPackManager implements PackManager {
             }
 
             List<Revision> revisions = newItemModel.revisions();
+            if (vanillaItemModel.value().equals("trident")) {
+                System.out.println(revisions);
+            }
+
+
             if (!revisions.isEmpty()) {
                 for (Revision revision : revisions) {
                     if (revision.matches(Config.packMinVersion(), Config.packMaxVersion())) {
