@@ -67,6 +67,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipeHolder;
 import net.momirealms.craftengine.core.item.recipe.network.modern.RecipeBookEntry;
+import net.momirealms.craftengine.core.item.recipe.network.modern.SingleInputDisplay;
 import net.momirealms.craftengine.core.item.recipe.network.modern.display.RecipeDisplay;
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
@@ -348,7 +349,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         registerS2CGamePacketListener(new SetScoreListener1_20_3(), VersionHelper.isOrAbove1_20_3() ? this.packetIds.clientboundSetScorePacket() : -1, "ClientboundSetScorePacket");
         registerS2CGamePacketListener(new AddRecipeBookListener(), this.packetIds.clientboundRecipeBookAddPacket(), "ClientboundRecipeBookAddPacket");
         registerS2CGamePacketListener(new PlaceGhostRecipeListener(), this.packetIds.clientboundPlaceGhostRecipePacket(), "ClientboundPlaceGhostRecipePacket");
-        registerS2CGamePacketListener(new UpdateRecipesListener(), this.packetIds.clientboundUpdateRecipesPacket(), "ClientboundUpdateRecipesPacket");
+        registerS2CGamePacketListener(VersionHelper.isOrAbove1_21_2() ? new UpdateRecipesListener1_21_2() : new UpdateRecipesListener1_20(), this.packetIds.clientboundUpdateRecipesPacket(), "ClientboundUpdateRecipesPacket");
         registerS2CGamePacketListener(new UpdateAdvancementsListener(), this.packetIds.clientboundUpdateAdvancementsPacket(), "ClientboundUpdateAdvancementsPacket");
         registerS2CGamePacketListener(new RemoveEntityListener(), this.packetIds.clientboundRemoveEntitiesPacket(), "ClientboundRemoveEntitiesPacket");
         registerS2CGamePacketListener(new SoundListener(), this.packetIds.clientboundSoundPacket(), "ClientboundSoundPacket");
@@ -3075,12 +3076,11 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         }
     }
 
-    public static class UpdateRecipesListener implements ByteBufferPacketListener {
+    public static class UpdateRecipesListener1_20 implements ByteBufferPacketListener {
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
             if (Config.disableItemOperations()) return;
-            if (VersionHelper.isOrAbove1_21_2()) return;
             MutableBoolean changed = new MutableBoolean(false);
             FriendlyByteBuf buf = event.getBuffer();
             BukkitItemManager itemManager = BukkitItemManager.instance();
@@ -3105,6 +3105,47 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 buf.writeCollection(holders, ((byteBuf, recipeHolder)
                         -> recipeHolder.write(byteBuf,
                         (__, item) -> FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, item.getItem()))));
+            }
+        }
+    }
+
+    public static class UpdateRecipesListener1_21_2 implements ByteBufferPacketListener {
+
+        @Override
+        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
+            MutableBoolean changed = new MutableBoolean(false);
+            FriendlyByteBuf buf = event.getBuffer();
+            BukkitItemManager itemManager = BukkitItemManager.instance();
+            BukkitServerPlayer player = (BukkitServerPlayer) user;
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
+            Map<Key, List<Integer>> itemSets = buf.readMap(
+                    FriendlyByteBuf::readKey,
+                    b -> b.readCollection(ArrayList::new, FriendlyByteBuf::readVarInt)
+            );
+            List<SingleInputDisplay<ItemStack>> displays = buf.readCollection(ArrayList::new, b -> {
+                SingleInputDisplay<ItemStack> display = SingleInputDisplay.read(b, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
+                display.applyClientboundData(item -> {
+                    Optional<Item<ItemStack>> remapped = itemManager.s2c(item, player);
+                    if (remapped.isEmpty()) {
+                        return item;
+                    }
+                    changed.set(true);
+                    return remapped.get();
+                });
+                return display;
+            });
+            if (changed.booleanValue()) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeMap(itemSets,
+                        FriendlyByteBuf::writeKey,
+                        (b, c) -> b.writeCollection(c, FriendlyByteBuf::writeVarInt)
+                );
+                buf.writeCollection(displays, (b, d) -> {
+                    d.write(b, (__, item) -> FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, item.getItem()));
+                });
             }
         }
     }
