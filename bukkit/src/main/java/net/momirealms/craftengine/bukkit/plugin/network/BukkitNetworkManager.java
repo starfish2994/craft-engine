@@ -94,6 +94,7 @@ import net.momirealms.craftengine.core.world.chunk.packet.BlockEntityData;
 import net.momirealms.craftengine.core.world.chunk.packet.MCSection;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.Tag;
 import net.momirealms.sparrow.nbt.adventure.NBTDataComponentValue;
 import org.bukkit.*;
@@ -365,6 +366,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         registerC2SGamePacketListener(new CustomPayloadListener1_20(), VersionHelper.isOrAbove1_20_2() ? -1 : this.packetIds.serverboundCustomPayloadPacket(), "ServerboundCustomPayloadPacket");
         registerS2CGamePacketListener(VersionHelper.isOrAbove1_20_5() ? new MerchantOffersListener1_20_5() : new MerchantOffersListener1_20(), this.packetIds.clientBoundMerchantOffersPacket(), "ClientboundMerchantOffersPacket");
         registerS2CGamePacketListener(new AddEntityListener(RegistryUtils.currentEntityTypeRegistrySize()), this.packetIds.clientboundAddEntityPacket(), "ClientboundAddEntityPacket");
+        registerS2CGamePacketListener(new BlockEntityDataListener(), this.packetIds.clientboundBlockEntityDataPacket(), "ClientboundBlockEntityDataPacket");
         registerS2CGamePacketListener(
                 VersionHelper.isOrAbove1_20_3() ?
                 new OpenScreenListener1_20_3() :
@@ -4100,6 +4102,63 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     count,
                     FastNMS.INSTANCE.method$DataComponentExactPredicate$allOf(FastNMS.INSTANCE.method$ItemStack$getComponents(itemStack))
             );
+        }
+    }
+
+    public static class BlockEntityDataListener implements ByteBufferPacketListener {
+
+        @Override
+        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!Config.interceptItem()) return;
+            FriendlyByteBuf buf = event.getBuffer();
+            boolean changed = false;
+            BlockPos pos = buf.readBlockPos();
+            int entityType = buf.readVarInt();
+            boolean named = !VersionHelper.isOrAbove1_20_2();
+            CompoundTag tag = (CompoundTag) buf.readNbt(named);
+            // todo 刷怪笼里的物品？
+
+            // 展示架
+            if (VersionHelper.isOrAbove1_21_9() && tag != null && tag.containsKey("Items")) {
+                BukkitItemManager itemManager = BukkitItemManager.instance();
+                ListTag itemsTag = tag.getList("Items");
+                List<Pair<Byte, ItemStack>> items = new ArrayList<>();
+                for (Tag itemTag : itemsTag) {
+                    if (itemTag instanceof CompoundTag itemCompoundTag) {
+                        byte slot = itemCompoundTag.getByte("Slot");
+                        Object nmsStack = CoreReflections.instance$ItemStack$CODEC.parse(MRegistryOps.SPARROW_NBT, itemCompoundTag)
+                                .resultOrPartial((error) -> CraftEngine.instance().logger().severe("Tried to parse invalid item: '" + error + "'")).orElse(null);
+                        ItemStack bukkitStack = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsStack);
+                        Optional<ItemStack> optional = itemManager.s2c(bukkitStack, (BukkitServerPlayer) user);
+                        if (optional.isPresent()) {
+                            changed = true;
+                            items.add(new Pair<>(slot, optional.get()));
+                        } else {
+                            items.add(Pair.of(slot, bukkitStack));
+                        }
+                    }
+                }
+                if (changed) {
+                    ListTag newItemsTag = new ListTag();
+                    for (Pair<Byte, ItemStack> pair : items) {
+                        CompoundTag newItemCompoundTag = (CompoundTag) CoreReflections.instance$ItemStack$CODEC.encodeStart(MRegistryOps.SPARROW_NBT, FastNMS.INSTANCE.field$CraftItemStack$handle(pair.right()))
+                                .resultOrPartial((error) -> CraftEngine.instance().logger().severe("Tried to encode invalid item: '" + error + "'")).orElse(null);
+                        if (newItemCompoundTag != null) {
+                            newItemCompoundTag.putByte("Slot", pair.left());
+                            newItemsTag.add(newItemCompoundTag);
+                        }
+                    }
+                    tag.put("Items", newItemsTag);
+                }
+            }
+            if (changed) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeBlockPos(pos);
+                buf.writeVarInt(entityType);
+                buf.writeNbt(tag, named);
+            }
         }
     }
 }

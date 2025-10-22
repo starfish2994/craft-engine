@@ -2166,11 +2166,6 @@ public abstract class AbstractPackManager implements PackManager {
             }
 
             List<Revision> revisions = newItemModel.revisions();
-            if (vanillaItemModel.value().equals("trident")) {
-                System.out.println(revisions);
-            }
-
-
             if (!revisions.isEmpty()) {
                 for (Revision revision : revisions) {
                     if (revision.matches(Config.packMinVersion(), Config.packMaxVersion())) {

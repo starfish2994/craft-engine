@@ -148,7 +148,7 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
             jsonObject.addProperty("count", result.count());
             jsonObject.add("components", result.components());
             Object nmsStack = CoreReflections.instance$ItemStack$CODEC.parse(MRegistryOps.JSON, jsonObject)
-                    .resultOrPartial((itemId) -> plugin.logger().severe("Tried to load invalid item: '" + itemId + "'")).orElse(null);
+                    .resultOrPartial((error) -> plugin.logger().severe("Tried to load invalid item: '" + error + "'")).orElse(null);
             if (nmsStack == null) {
                 return this.emptyItem;
             }

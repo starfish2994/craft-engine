@@ -85,7 +85,7 @@ public class SimpleStorageBlockEntity extends BlockEntity {
             }
             if (VersionHelper.isOrAbove1_20_5()) {
                 CoreReflections.instance$ItemStack$CODEC.parse(MRegistryOps.SPARROW_NBT, itemTag)
-                        .resultOrPartial((s) -> CraftEngine.instance().logger().severe("Tried to load invalid item: '" + itemTag + "'. " + s))
+                        .resultOrPartial((error) -> CraftEngine.instance().logger().severe("Tried to load invalid item: '" + itemTag + "'. " + error))
                         .ifPresent(nmsStack -> storageContents[slot] = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsStack));
             } else {
                 Object nmsTag = MRegistryOps.SPARROW_NBT.convertTo(MRegistryOps.NBT, itemTag);

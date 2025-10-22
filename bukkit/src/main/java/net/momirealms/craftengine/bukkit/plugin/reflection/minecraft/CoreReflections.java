@@ -4491,4 +4491,9 @@ public final class CoreReflections {
             "world.item.trading.IMerchant",
             "world.item.trading.Merchant"
     ));
+
+    public static final Class <?> clazz$BlockEntityType = requireNonNull(BukkitReflectionUtils.findReobfOrMojmapClass(
+            "world.level.block.entity.TileEntityTypes",
+            "world.level.block.entity.BlockEntityType"
+    ));
 }

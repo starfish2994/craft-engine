@@ -62,6 +62,8 @@ public interface PacketIds {
 
     int clientBoundMerchantOffersPacket();
 
+    int clientboundBlockEntityDataPacket();
+
     int serverboundContainerClickPacket();
 
     int serverboundSetCreativeModeSlotPacket();

@@ -18,6 +18,7 @@ public final class MBuiltInRegistries {
     public static final Object MOB_EFFECT;
     public static final Object SOUND_EVENT;
     public static final Object ENTITY_TYPE;
+    public static final Object BLOCK_ENTITY_TYPE;
     public static final Object FLUID;
     public static final Object RECIPE_TYPE;
     public static final Object PARTICLE_TYPE;
@@ -35,6 +36,7 @@ public final class MBuiltInRegistries {
             Object registries$SoundEvent  = null;
             Object registries$ParticleType  = null;
             Object registries$EntityType  = null;
+            Object registries$BlockEntityType  = null;
             Object registries$Item  = null;
             Object registries$Fluid  = null;
             Object registries$RecipeType  = null;
@@ -42,6 +44,7 @@ public final class MBuiltInRegistries {
             Object registries$DataComponentPredicateType  = null;
             Object registries$LootPoolEntryType  = null;
             Object registries$GameEvent  = null;
+
             for (Field field : fields) {
                 Type fieldType = field.getGenericType();
                 if (fieldType instanceof ParameterizedType paramType) {
@@ -54,6 +57,8 @@ public final class MBuiltInRegistries {
                             registries$EntityType = field.get(null);
                         } else if (rawType == CoreReflections.clazz$RecipeType) {
                             registries$RecipeType = field.get(null);
+                        } else if (rawType == CoreReflections.clazz$BlockEntityType) {
+                            registries$BlockEntityType = field.get(null);
                         } else if (VersionHelper.isOrAbove1_20_5() && rawType == CoreReflections.clazz$DataComponentType && registries$DataComponentType == null) {
                             registries$DataComponentType = field.get(null);
                         } else if (VersionHelper.isOrAbove1_21_5() && rawType == CoreReflections.clazz$DataComponentPredicate$Type) {
@@ -87,6 +92,7 @@ public final class MBuiltInRegistries {
             SOUND_EVENT = requireNonNull(registries$SoundEvent);
             PARTICLE_TYPE = requireNonNull(registries$ParticleType);
             ENTITY_TYPE = requireNonNull(registries$EntityType);
+            BLOCK_ENTITY_TYPE = requireNonNull(registries$BlockEntityType);
             FLUID = requireNonNull(registries$Fluid);
             RECIPE_TYPE = requireNonNull(registries$RecipeType);
             LOOT_POOL_ENTRY_TYPE = requireNonNull(registries$LootPoolEntryType);

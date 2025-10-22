@@ -1713,4 +1713,11 @@ public final class NetworkReflections {
             throw new ReflectionInitException("Failed to initialize ItemCost$STREAM_CODEC", e);
         }
     }
+
+    public static final Class<?> clazz$ClientboundBlockEntityDataPacket = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                "network.protocol.game.PacketPlayOutTileEntityData",
+                "network.protocol.game.ClientboundBlockEntityDataPacket"
+            )
+    );
 }
