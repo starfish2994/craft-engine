@@ -30,8 +30,8 @@ public class SelectProperties {
         registerReader(CONTEXT_DIMENSION, SimpleSelectProperty.READER);
         registerFactory(CONTEXT_ENTITY_TYPE, SimpleSelectProperty.FACTORY);
         registerReader(CONTEXT_ENTITY_TYPE, SimpleSelectProperty.READER);
-        registerFactory(DISPLAY_CONTEXT, SimpleSelectProperty.FACTORY);
-        registerReader(DISPLAY_CONTEXT, SimpleSelectProperty.READER);
+        registerFactory(DISPLAY_CONTEXT, DisplayContextSelectProperty.FACTORY);
+        registerReader(DISPLAY_CONTEXT, DisplayContextSelectProperty.READER);
         registerFactory(MAIN_HAND, MainHandSelectProperty.FACTORY);
         registerReader(MAIN_HAND, MainHandSelectProperty.READER);
         registerFactory(TRIM_MATERIAL, TrimMaterialSelectProperty.FACTORY);

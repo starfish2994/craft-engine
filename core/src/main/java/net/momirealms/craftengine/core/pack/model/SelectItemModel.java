@@ -60,14 +60,26 @@ public class SelectItemModel implements ItemModel {
             item.add("model", itemModel.apply(version));
             Either<JsonElement, List<JsonElement>> either = entry.getKey();
             if (either.primary().isPresent()) {
-                item.add("when", either.primary().get());
+                JsonElement remap = this.property.remap(either.primary().get(), version);
+                if (remap != null) {
+                    item.add("when", remap);
+                } else {
+                    continue;
+                }
             } else {
                 List<JsonElement> list = either.fallback().get();
                 JsonArray whens = new JsonArray();
                 for (JsonElement e : list) {
-                    whens.add(e);
+                    JsonElement remap = this.property.remap(e, version);
+                    if (remap != null) {
+                        whens.add(remap);
+                    }
                 }
-                item.add("when", whens);
+                if (!whens.isEmpty()) {
+                    item.add("when", whens);
+                } else {
+                    continue;
+                }
             }
             array.add(item);
         }
@@ -85,6 +97,17 @@ public class SelectItemModel implements ItemModel {
     @Override
     public List<Revision> revisions() {
         List<Revision> versions = new ArrayList<>();
+        for (Map.Entry<Either<JsonElement, List<JsonElement>>, ItemModel> entry : this.whenMap.entrySet()) {
+            Either<JsonElement, List<JsonElement>> when = entry.getKey();
+            if (when.primary().isPresent()) {
+                versions.addAll(this.property.revisions(when.primary().get()));
+            } else {
+                List<JsonElement> list = when.fallback().get();
+                for (JsonElement e : list) {
+                    versions.addAll(this.property.revisions(e));
+                }
+            }
+        }
         if (this.fallBack != null) {
             versions.addAll(this.fallBack.revisions());
         }
