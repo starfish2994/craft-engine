@@ -272,14 +272,8 @@ public class TemplateManagerImpl implements TemplateManager {
                 }
             }
             if (hasMerges && merge instanceof Map<?, ?> rawMerges) {
-                Map<ArgumentString, Object> mergeMap = (Map<ArgumentString, Object>) rawMerges;
-                for (Map.Entry<ArgumentString, Object> inputEntry : mergeMap.entrySet()) {
-                    ArgumentString inputKey = inputEntry.getKey();
-                    Object key = inputKey.get(parentArguments);
-                    if (key != null) {
-                        merges.put(key.toString(), processUnknownValue(inputEntry.getValue(), arguments));
-                    }
-                }
+                Map<String, Object> mergeMap = (Map<String, Object>) rawMerges;
+                merges.putAll(mergeMap);
             }
             return new TemplateProcessingResult(
                     templateList,
