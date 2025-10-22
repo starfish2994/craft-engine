@@ -165,6 +165,60 @@ public class ResolutionMergePackMcMeta implements Resolution {
             }
         }
 
+        if (merged.has("overlays")) {
+            JsonObject overlays = merged.getAsJsonObject("overlays");
+            if (overlays.has("entries")) {
+                JsonArray entries = overlays.getAsJsonArray("entries");
+                for (JsonElement entry : entries) {
+                    JsonObject jsonObject = entry.getAsJsonObject();
+                    int[] min = new int[]{Integer.MAX_VALUE, 0};
+                    int[] max = new int[]{Integer.MIN_VALUE, 0};
+                    if (jsonObject.has("formats")) {
+                        MinMax mm = parseSupportedFormats(jsonObject.get("formats"));
+                        min[0] = mm.min;
+                        max[0] = mm.max;
+                    }
+                    if (jsonObject.has("min_format")) {
+                        JsonElement minFormat = jsonObject.get("min_format");
+                        if (minFormat.isJsonPrimitive()) {
+                            min[0] = Math.min(min[0], minFormat.getAsInt());
+                        } else if (minFormat.isJsonArray()) {
+                            JsonArray minFormatArray = minFormat.getAsJsonArray();
+                            min[0] = Math.min(min[0], minFormatArray.get(0).getAsInt());
+                            if (minFormatArray.size() > 1) {
+                                min[1] = Math.min(min[1], minFormatArray.get(1).getAsInt());
+                            }
+                        }
+                    }
+                    if (jsonObject.has("max_format")) {
+                        JsonElement maxFormat = jsonObject.get("max_format");
+                        if (maxFormat.isJsonPrimitive()) {
+                            max[0] = Math.max(max[0], maxFormat.getAsInt());
+                        }
+                        if (maxFormat.isJsonArray()) {
+                            JsonArray maxFormatArray = maxFormat.getAsJsonArray();
+                            max[0] = Math.max(max[0], maxFormatArray.get(0).getAsInt());
+                            if (maxFormatArray.size() > 1) {
+                                max[1] = Math.max(max[1], maxFormatArray.get(1).getAsInt());
+                            }
+                        }
+                    }
+                    JsonObject mergedFormats = new JsonObject();
+                    mergedFormats.addProperty("min_inclusive", min[0]);
+                    mergedFormats.addProperty("max_inclusive", max[0]);
+                    jsonObject.add("formats", mergedFormats);
+                    JsonArray mergedMinFormat = new JsonArray(2);
+                    mergedMinFormat.add(min[0]);
+                    mergedMinFormat.add(min[1]);
+                    jsonObject.add("min_format", mergedMinFormat);
+                    JsonArray mergedMaxFormat = new JsonArray(2);
+                    mergedMaxFormat.add(max[0]);
+                    mergedMaxFormat.add(max[1]);
+                    jsonObject.add("max_format", mergedMaxFormat);
+                }
+            }
+        }
+
         GsonHelper.writeJsonFile(merged, file1);
     }
 
