@@ -67,7 +67,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipeHolder;
 import net.momirealms.craftengine.core.item.recipe.network.modern.RecipeBookEntry;
-import net.momirealms.craftengine.core.item.recipe.network.modern.SingleInputDisplay;
+import net.momirealms.craftengine.core.item.recipe.network.modern.SingleInputButtonDisplay;
 import net.momirealms.craftengine.core.item.recipe.network.modern.display.RecipeDisplay;
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
@@ -3123,8 +3123,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     FriendlyByteBuf::readKey,
                     b -> b.readCollection(ArrayList::new, FriendlyByteBuf::readVarInt)
             );
-            List<SingleInputDisplay<ItemStack>> displays = buf.readCollection(ArrayList::new, b -> {
-                SingleInputDisplay<ItemStack> display = SingleInputDisplay.read(b, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
+            List<SingleInputButtonDisplay<ItemStack>> displays = buf.readCollection(ArrayList::new, b -> {
+                SingleInputButtonDisplay<ItemStack> display = SingleInputButtonDisplay.read(b, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
                 display.applyClientboundData(item -> {
                     Optional<Item<ItemStack>> remapped = itemManager.s2c(item, player);
                     if (remapped.isEmpty()) {
