@@ -24,6 +24,8 @@ public class EventFunctions {
         register(CommonFunctions.CANCEL_EVENT, new CancelEventFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.RUN, new RunFunction.FactoryImpl<>(EventFunctions::fromMap, EventConditions::fromMap));
         register(CommonFunctions.PLACE_BLOCK, new PlaceBlockFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.UPDATE_BLOCK_PROPERTY, new UpdateBlockPropertyFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.TRANSFORM_BLOCK, new TransformBlockFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.BREAK_BLOCK, new BreakBlockFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.UPDATE_INTERACTION_TICK, new UpdateInteractionFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.SET_COUNT, new SetCountFunction.FactoryImpl<>(EventConditions::fromMap));

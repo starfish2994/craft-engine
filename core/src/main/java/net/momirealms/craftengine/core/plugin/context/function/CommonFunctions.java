@@ -20,6 +20,8 @@ public final class CommonFunctions {
     public static final Key UPDATE_INTERACTION_TICK = Key.of("craftengine:update_interaction_tick");
     public static final Key SET_COUNT = Key.of("craftengine:set_count");
     public static final Key PLACE_BLOCK = Key.of("craftengine:place_block");
+    public static final Key TRANSFORM_BLOCK = Key.of("craftengine:transform_block");
+    public static final Key UPDATE_BLOCK_PROPERTY = Key.of("craftengine:update_block_property");
     public static final Key SET_FOOD = Key.of("craftengine:set_food");
     public static final Key SET_COOLDOWN = Key.of("craftengine:set_cooldown");
     public static final Key REMOVE_COOLDOWN = Key.of("craftengine:remove_cooldown");

@@ -14,25 +14,30 @@ import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.Tag;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-public class PlaceBlockFunction<CTX extends Context> extends AbstractConditionalFunction<CTX> {
+public class TransformBlockFunction<CTX extends Context> extends AbstractConditionalFunction<CTX> {
     private final LazyReference<BlockStateWrapper> lazyBlockState;
+    private final CompoundTag properties;
     private final NumberProvider x;
     private final NumberProvider y;
     private final NumberProvider z;
     private final NumberProvider updateFlags;
 
-    public PlaceBlockFunction(LazyReference<BlockStateWrapper> lazyBlockState, NumberProvider x, NumberProvider y, NumberProvider z, NumberProvider updateFlags, List<Condition<CTX>> predicates) {
+    public TransformBlockFunction(LazyReference<BlockStateWrapper> lazyBlockState, CompoundTag properties, NumberProvider x, NumberProvider y, NumberProvider z, NumberProvider updateFlags, List<Condition<CTX>> predicates) {
         super(predicates);
-        this.lazyBlockState = lazyBlockState;
+        this.properties = properties;
         this.x = x;
         this.y = y;
         this.z = z;
         this.updateFlags = updateFlags;
+        this.lazyBlockState = lazyBlockState;
     }
 
     @Override
@@ -40,13 +45,26 @@ public class PlaceBlockFunction<CTX extends Context> extends AbstractConditional
         Optional<WorldPosition> optionalWorldPosition = ctx.getOptionalParameter(DirectContextParameters.POSITION);
         if (optionalWorldPosition.isPresent()) {
             World world = optionalWorldPosition.get().world();
-            world.setBlockAt(MiscUtils.fastFloor(this.x.getDouble(ctx)), MiscUtils.fastFloor(this.y.getDouble(ctx)), MiscUtils.fastFloor(this.z.getDouble(ctx)), this.lazyBlockState.get(), this.updateFlags.getInt(ctx));
+            int x = MiscUtils.fastFloor(this.x.getDouble(ctx));
+            int y = MiscUtils.fastFloor(this.y.getDouble(ctx));
+            int z = MiscUtils.fastFloor(this.z.getDouble(ctx));
+            BlockStateWrapper existingBlockState = world.getBlockAt(x, y, z).blockState().withProperties(this.properties);
+            CompoundTag newProperties = new CompoundTag();
+            for (String propertyName : existingBlockState.getPropertyNames()) {
+                newProperties.putString(propertyName, String.valueOf(existingBlockState.getProperty(propertyName)).toLowerCase(Locale.ROOT));
+            }
+            if (!this.properties.isEmpty()) {
+                for (Map.Entry<String, Tag> tagEntry : this.properties.entrySet()) {
+                    newProperties.put(tagEntry.getKey(), tagEntry.getValue());
+                }
+            }
+            world.setBlockAt(x, y, z, this.lazyBlockState.get().withProperties(newProperties), this.updateFlags.getInt(ctx));
         }
     }
 
     @Override
     public Key type() {
-        return CommonFunctions.PLACE_BLOCK;
+        return CommonFunctions.TRANSFORM_BLOCK;
     }
 
     public static class FactoryImpl<CTX extends Context> extends AbstractFactory<CTX> {
@@ -57,8 +75,17 @@ public class PlaceBlockFunction<CTX extends Context> extends AbstractConditional
 
         @Override
         public Function<CTX> create(Map<String, Object> arguments) {
-            String state = ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("block-state"), "warning.config.function.place_block.missing_block_state");
-            return new PlaceBlockFunction<>(LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(state)),
+            String block = ResourceConfigUtils.requireNonEmptyStringOrThrow(arguments.get("block"), "warning.config.function.transform_block.missing_block");
+            CompoundTag properties = new CompoundTag();
+            Map<String, Object> propertiesMap = MiscUtils.castToMap(arguments.get("properties"), true);
+            if (propertiesMap != null) {
+                for (Map.Entry<String, Object> entry : propertiesMap.entrySet()) {
+                    properties.putString(entry.getKey(), String.valueOf(entry.getValue()));
+                }
+            }
+            return new TransformBlockFunction<>(
+                    LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(block)),
+                    properties,
                     NumberProviders.fromObject(arguments.getOrDefault("x", "<arg:position.x>")),
                     NumberProviders.fromObject(arguments.getOrDefault("y", "<arg:position.y>")),
                     NumberProviders.fromObject(arguments.getOrDefault("z", "<arg:position.z>")),
