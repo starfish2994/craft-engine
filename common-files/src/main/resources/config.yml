@@ -90,15 +90,15 @@ resource-pack:
     # You should strive to make your resource pack more standardized after gaining some experience with resource packs.
     fix-atlas: true
   # Optimize your resource pack by reducing its size
-  optimization:
-    enable: true
-    png:
-      color-quantization: true
-      lossless-bit-depth: true
-      remove-metadata: true
-    model:
-      minimize: true
-    bypass-textures: []
+#  optimization:
+#    enable: true
+#    png:
+#      color-quantization: true
+#      lossless-bit-depth: true
+#      remove-metadata: true
+#    model:
+#      minimize: true
+#    bypass-textures: []
   # Protect your resource pack from being cracked by others
   protection:
     # Prevent thieves from extracting your resource pack. These options will crash their software.
@@ -221,7 +221,7 @@ equipment:
 
 block:
   # This decides the amount of real blocks on serverside. You should only consider increasing this value when your server state is insufficient.
-  # It is recommended to increase it by 500 each time. This option requires a restart to apply.
+  # It is recommended to increase it by 1000 each time. This option requires a restart to apply.
   serverside-blocks: 2000
   # Enables the sound system, which prevents the client from hearing some non-custom block sounds and improves the client experience.
   sound-system:
@@ -251,7 +251,14 @@ block:
     extended-interaction-range: 0.5
   # Defines the value returned by Bukkit block.getMaterial()
   # If another plugin causes incompatibility due to its reliance on this method, try changing this option to a different vanilla block.
-  deceive-bukkit-material: stone
+  deceive-bukkit-material:
+    default: bricks
+    # The numbers here represent the internal real IDs of the blocks.
+    # This means that overriding certain blocks needs to be done under the condition of forcibly assigning internal IDs.
+    # A restart is required to apply the changes.
+    overrides:
+      0: bricks
+      1~8: bricks
 
 furniture:
   # Hide technical entities used for storing furniture metadata.
