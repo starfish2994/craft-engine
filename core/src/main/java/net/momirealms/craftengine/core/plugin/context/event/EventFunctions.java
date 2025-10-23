@@ -48,6 +48,9 @@ public class EventFunctions {
         register(CommonFunctions.DAMAGE, new DamageFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.MERCHANT_TRADE, new MerchantTradeFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.REMOVE_ENTITY, new RemoveEntityFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.IF_ELSE, new IfElseFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
+        register(CommonFunctions.ALTERNATIVES, new IfElseFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
+        register(CommonFunctions.WHEN, new WhenFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
     }
 
     public static void register(Key key, FunctionFactory<PlayerOptionalContext> factory) {
