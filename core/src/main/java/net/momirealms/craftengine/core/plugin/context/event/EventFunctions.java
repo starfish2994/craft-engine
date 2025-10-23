@@ -24,6 +24,8 @@ public class EventFunctions {
         register(CommonFunctions.CANCEL_EVENT, new CancelEventFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.RUN, new RunFunction.FactoryImpl<>(EventFunctions::fromMap, EventConditions::fromMap));
         register(CommonFunctions.PLACE_BLOCK, new PlaceBlockFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.UPDATE_BLOCK_PROPERTY, new UpdateBlockPropertyFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.TRANSFORM_BLOCK, new TransformBlockFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.BREAK_BLOCK, new BreakBlockFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.UPDATE_INTERACTION_TICK, new UpdateInteractionFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.SET_COUNT, new SetCountFunction.FactoryImpl<>(EventConditions::fromMap));
@@ -48,6 +50,9 @@ public class EventFunctions {
         register(CommonFunctions.DAMAGE, new DamageFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.MERCHANT_TRADE, new MerchantTradeFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.REMOVE_ENTITY, new RemoveEntityFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.IF_ELSE, new IfElseFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
+        register(CommonFunctions.ALTERNATIVES, new IfElseFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
+        register(CommonFunctions.WHEN, new WhenFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
     }
 
     public static void register(Key key, FunctionFactory<PlayerOptionalContext> factory) {

@@ -28,29 +28,73 @@ public abstract class AbstractConditionalFunction<CTX extends Context> implement
     protected abstract void runInternal(CTX ctx);
 
     public static abstract class AbstractFactory<CTX extends Context> implements FunctionFactory<CTX> {
-        private final java.util.function.Function<Map<String, Object>, Condition<CTX>> factory;
+        protected final java.util.function.Function<Map<String, Object>, Condition<CTX>> conditionFactory;
 
-        public AbstractFactory(java.util.function.Function<Map<String, Object>, Condition<CTX>> factory) {
-            this.factory = factory;
+        public AbstractFactory(java.util.function.Function<Map<String, Object>, Condition<CTX>> conditionFactory) {
+            this.conditionFactory = conditionFactory;
         }
 
         public java.util.function.Function<Map<String, Object>, Condition<CTX>> conditionFactory() {
-            return factory;
+            return this.conditionFactory;
         }
 
         protected List<Condition<CTX>> getPredicates(Map<String, Object> arguments) {
+            if (arguments == null) return List.of();
             Object predicates = arguments.get("conditions");
             if (predicates == null) return List.of();
-            if (predicates instanceof List<?> list) {
-                List<Condition<CTX>> conditions = new ArrayList<>(list.size());
-                for (Object o : list) {
-                    conditions.add(factory.apply(MiscUtils.castToMap(o, false)));
+            switch (predicates) {
+                case List<?> list -> {
+                    List<Condition<CTX>> conditions = new ArrayList<>(list.size());
+                    for (Object o : list) {
+                        conditions.add(this.conditionFactory.apply(MiscUtils.castToMap(o, false)));
+                    }
+                    return conditions;
                 }
-                return conditions;
-            } else if (predicates instanceof Map<?,?> map) {
-                return List.of(factory.apply(MiscUtils.castToMap(map, false)));
+                case Map<?, ?> map -> {
+                    return List.of(this.conditionFactory.apply(MiscUtils.castToMap(map, false)));
+                }
+                default -> {
+                    return List.of();
+                }
             }
-            throw new UnsupportedOperationException("Unsupported conditions argument class type: " + predicates.getClass().getSimpleName());
+        }
+    }
+
+    public static abstract class AbstractFunctionalFactory<CTX extends Context> extends AbstractFactory<CTX> {
+        protected final java.util.function.Function<Map<String, Object>, Function<CTX>> functionFactory;
+
+        public AbstractFunctionalFactory(java.util.function.Function<Map<String, Object>, Condition<CTX>> factory, java.util.function.Function<Map<String, Object>, Function<CTX>> functionFactory) {
+            super(factory);
+            this.functionFactory = functionFactory;
+        }
+
+        public java.util.function.Function<Map<String, Object>, Function<CTX>> functionFactory() {
+            return functionFactory;
+        }
+
+        protected List<Function<CTX>> getFunctions(Map<String, Object> arguments) {
+            if (arguments == null) return List.of();
+            Object functions = arguments.get("functions");
+            return parseFunctions(functions);
+        }
+
+        protected List<Function<CTX>> parseFunctions(Object functions) {
+            if (functions == null) return List.of();
+            switch (functions) {
+                case List<?> list -> {
+                    List<Function<CTX>> conditions = new ArrayList<>(list.size());
+                    for (Object o : list) {
+                        conditions.add(this.functionFactory.apply(MiscUtils.castToMap(o, false)));
+                    }
+                    return conditions;
+                }
+                case Map<?, ?> map -> {
+                    return List.of(this.functionFactory.apply(MiscUtils.castToMap(map, false)));
+                }
+                default -> {
+                    return List.of();
+                }
+            }
         }
     }
 }

@@ -132,10 +132,9 @@ blocks:
           - type: match_block_property
             properties:
               age: 3
-          - type: 'is_null'
-            argument: item_in_hand
           - type: hand
             hand: main_hand
+          - type: '!has_item'
         functions:
           - type: break_block
             x: <arg:block.block_x>

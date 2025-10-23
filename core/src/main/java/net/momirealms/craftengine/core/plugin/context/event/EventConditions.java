@@ -17,6 +17,7 @@ public class EventConditions {
 
     static {
         register(CommonConditions.HAS_PLAYER, new HasPlayerCondition.FactoryImpl<>());
+        register(CommonConditions.HAS_ITEM, new HasItemCondition.FactoryImpl<>());
         register(CommonConditions.MATCH_ITEM, new MatchItemCondition.FactoryImpl<>());
         register(CommonConditions.MATCH_ENTITY, new MatchEntityCondition.FactoryImpl<>());
         register(CommonConditions.MATCH_BLOCK, new MatchBlockCondition.FactoryImpl<>());

@@ -31,6 +31,7 @@ import net.momirealms.craftengine.core.util.Tristate;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Registry;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -416,19 +417,26 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @SuppressWarnings("unchecked")
     private void deceiveBukkitRegistry() {
         try {
-            Material material;
-            try {
-                material = Material.valueOf(Config.deceiveBukkitMaterial().value().toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException e) {
-                this.plugin.logger().warn(Config.deceiveBukkitMaterial() + " is not a valid material", e);
-                material = Material.STONE;
-            }
-            if (!material.isBlock()) {
-                this.plugin.logger().warn(Config.deceiveBukkitMaterial() + " is not a valid bukkit block material");
-                material = Material.STONE;
-            }
             Map<Object, Material> magicMap = (Map<Object, Material>) CraftBukkitReflections.field$CraftMagicNumbers$BLOCK_MATERIAL.get(null);
-            for (DelegatingBlock customBlock : this.customBlocks) {
+            Set<String> invalid = new HashSet<>();
+            for (int i = 0; i < this.customBlocks.length; i++) {
+                DelegatingBlock customBlock = this.customBlocks[i];
+                String value = Config.deceiveBukkitMaterial(i).value();
+                Material material;
+                try {
+                    material = Material.valueOf(value.toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException e) {
+                    if (invalid.add(value)) {
+                        this.plugin.logger().warn("Cannot load 'deceive-bukkit-material'. '" + value + "' is an invalid bukkit material", e);
+                    }
+                    material = Material.BRICKS;
+                }
+                if (!material.isBlock()) {
+                    if (invalid.add(value)) {
+                        this.plugin.logger().warn("Cannot load 'deceive-bukkit-material'. '" + value + "' is an invalid bukkit block material");
+                    }
+                    material = Material.BRICKS;
+                }
                 magicMap.put(customBlock, material);
             }
         } catch (ReflectiveOperationException e) {

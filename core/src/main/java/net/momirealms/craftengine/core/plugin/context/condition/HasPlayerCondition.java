@@ -14,7 +14,7 @@ public class HasPlayerCondition<CTX extends Context> implements Condition<CTX> {
 
     @Override
     public Key type() {
-        return CommonConditions.IS_NULL;
+        return CommonConditions.HAS_PLAYER;
     }
 
     @Override
