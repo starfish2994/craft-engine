@@ -66,6 +66,13 @@ public record Key(String namespace, String value) {
         return this.namespace + ":" + this.value;
     }
 
+    public String asMinimalString() {
+        if (this.namespace.equals("minecraft")) {
+            return this.value;
+        }
+        return asString();
+    }
+
     private static String[] decompose(String id, String namespace) {
         String[] strings = new String[]{namespace, id};
         int i = id.indexOf(':');

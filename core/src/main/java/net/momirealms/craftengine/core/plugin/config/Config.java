@@ -87,6 +87,12 @@ public class Config {
     protected List<String> resource_pack$protection$obfuscation$resource_location$bypass_sounds;
     protected List<String> resource_pack$protection$obfuscation$resource_location$bypass_equipments;
 
+    protected boolean resource_pack$optimization$enable;
+    protected boolean resource_pack$optimization$texture$enable;
+    protected Set<String> resource_pack$optimization$texture$exlude;
+    protected boolean resource_pack$optimization$json$enable;
+    protected Set<String> resource_pack$optimization$json$exclude;
+
     protected MinecraftVersion resource_pack$supported_version$min;
     protected MinecraftVersion resource_pack$supported_version$max;
     protected String resource_pack$overlay_format;
@@ -325,6 +331,11 @@ public class Config {
         resource_pack$protection$obfuscation$resource_location$bypass_models = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-models");
         resource_pack$protection$obfuscation$resource_location$bypass_sounds = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-sounds");
         resource_pack$protection$obfuscation$resource_location$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-equipments");
+        resource_pack$optimization$enable = config.getBoolean("resource-pack.optimization.enable", false);
+        resource_pack$optimization$texture$enable = config.getBoolean("resource-pack.optimization.texture.enable", true);
+        resource_pack$optimization$texture$exlude = new HashSet<>(config.getStringList("resource-pack.optimization.texture.exclude"));
+        resource_pack$optimization$json$enable = config.getBoolean("resource-pack.optimization.json.enable", true);
+        resource_pack$optimization$json$exclude = new HashSet<>(config.getStringList("resource-pack.optimization.json.exclude"));
         resource_pack$validation$enable = config.getBoolean("resource-pack.validation.enable", true);
         resource_pack$validation$fix_atlas = VersionHelper.PREMIUM && config.getBoolean("resource-pack.validation.fix-atlas", true);
         resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);
@@ -1037,6 +1048,26 @@ public class Config {
 
     public void setObf(boolean enable) {
         this.resource_pack$protection$obfuscation$enable = enable;
+    }
+
+    public static boolean optimizeResourcePack() {
+        return instance.resource_pack$optimization$enable;
+    }
+
+    public static boolean optimizeTexture() {
+        return instance.resource_pack$optimization$texture$enable;
+    }
+
+    public static Set<String> optimizeTextureExclude() {
+        return instance.resource_pack$optimization$texture$exlude;
+    }
+
+    public static boolean optimizeJson() {
+        return instance.resource_pack$optimization$json$enable;
+    }
+
+    public static Set<String> optimizeJsonExclude() {
+        return instance.resource_pack$optimization$json$exclude;
     }
 
     public YamlDocument loadOrCreateYamlData(String fileName) {

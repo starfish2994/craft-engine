@@ -38,6 +38,20 @@ public final class GsonHelper {
         }
     }
 
+    public static JsonElement parseJson(String json) {
+        return GSON.fromJson(json, JsonElement.class);
+    }
+
+    public static String toString(JsonElement json) {
+        return GSON.toJson(json);
+    }
+
+    public static boolean isCompactJson(String content) {
+        String trimmed = content.trim();
+        return !trimmed.contains("\n") && !trimmed.contains("\r") &&
+                content.length() == trimmed.length();
+    }
+
     public static JsonObject shallowMerge(JsonObject obj1, JsonObject obj2) {
         JsonObject merged = new JsonObject();
         for (Map.Entry<String, JsonElement> entry : obj1.entrySet()) {

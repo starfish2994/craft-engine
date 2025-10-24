@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.gson.*;
+import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.font.BitmapImage;
 import net.momirealms.craftengine.core.font.Font;
 import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;
@@ -35,6 +36,7 @@ import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.sound.AbstractSoundManager;
 import net.momirealms.craftengine.core.sound.SoundEvent;
 import net.momirealms.craftengine.core.util.*;
+import org.apache.commons.imaging.palette.PaletteFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -49,9 +51,16 @@ import java.nio.file.*;
 import java.nio.file.FileSystem;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static net.momirealms.craftengine.core.util.MiscUtils.castToMap;
 
@@ -66,6 +75,7 @@ public abstract class AbstractPackManager implements PackManager {
     public static final Set<Key> VANILLA_SOUNDS = new HashSet<>();
     public static final String NEW_TRIM_MATERIAL = "custom";
     public static final Set<String> ALLOWED_VANILLA_EQUIPMENT = Set.of("chainmail", "diamond", "gold", "iron", "netherite");
+    public static final Set<String> ALLOWED_MODEL_TAGS = Set.of("parent", "ambientocclusion", "display", "textures", "elements", "gui_light", "overrides");
     private static final byte[] EMPTY_1X1_IMAGE;
     private static final byte[] EMPTY_EQUIPMENT_IMAGE;
     private static final byte[] EMPTY_16X16_IMAGE;
@@ -686,6 +696,11 @@ public abstract class AbstractPackManager implements PackManager {
             }
             long time3 = System.currentTimeMillis();
             this.plugin.logger().info("Validated resource pack in " + (time3 - time2) + "ms");
+            if (Config.optimizeResourcePack()) {
+                this.optimizeResourcePack(generatedPackPath);
+            }
+            long time4 = System.currentTimeMillis();
+            this.plugin.logger().info("Optimized resource pack in " + (time4 - time3) + "ms");
             Path finalPath = resourcePackPath();
             Files.createDirectories(finalPath.getParent());
             if (!VersionHelper.PREMIUM && Config.enableObfuscation()) {
@@ -697,8 +712,8 @@ public abstract class AbstractPackManager implements PackManager {
             } catch (Exception e) {
                 this.plugin.logger().severe("Error zipping resource pack", e);
             }
-            long time4 = System.currentTimeMillis();
-            this.plugin.logger().info("Created resource pack zip file in " + (time4 - time3) + "ms");
+            long time5 = System.currentTimeMillis();
+            this.plugin.logger().info("Created resource pack zip file in " + (time5 - time4) + "ms");
             this.generationEventDispatcher.accept(generatedPackPath, finalPath);
         }
     }
@@ -830,12 +845,294 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     @SuppressWarnings("DuplicatedCode")
-    private void validateResourcePack(Path path) {
+    private void optimizeResourcePack(Path path) {
+        // 收集全部overlay
         Path[] rootPaths;
         try {
             rootPaths = FileUtils.collectOverlays(path).toArray(new Path[0]);
         } catch (IOException e) {
-            plugin.logger().warn("Failed to collect overlays for " + path.toAbsolutePath(), e);
+            this.plugin.logger().warn("Failed to collect overlays for " + path.toAbsolutePath(), e);
+            return;
+        }
+
+        List<Path> imagesToOptimize = new ArrayList<>();
+        List<Path> commonJsonToOptimize = new ArrayList<>();
+        List<Path> modelJsonToOptimize = new ArrayList<>();
+        Set<String> excludeTexture = Config.optimizeTextureExclude();
+        Set<String> excludeJson = Config.optimizeJsonExclude();
+        Predicate<Path> texturePathPredicate = p -> !excludeTexture.contains(CharacterUtils.replaceBackslashWithSlash(path.relativize(p).toString()));
+        Predicate<Path> jsonPathPredicate = p -> !excludeJson.contains(CharacterUtils.replaceBackslashWithSlash(path.relativize(p).toString()));
+
+        if (Config.optimizeJson()) {
+            Path metaPath = path.resolve("pack.mcmeta");
+            if (Files.exists(metaPath)) {
+                if (jsonPathPredicate.test(metaPath)) {
+                    commonJsonToOptimize.add(metaPath);
+                }
+            }
+        }
+
+        if (Config.optimizeTexture()) {
+            Path packPngPath = path.resolve("pack.png");
+            if (Files.exists(packPngPath)) {
+                if (texturePathPredicate.test(packPngPath)) {
+                    imagesToOptimize.add(packPngPath);
+                }
+            }
+        }
+
+        for (Path rootPath : rootPaths) {
+            Path assetsPath = rootPath.resolve("assets");
+            if (!Files.isDirectory(assetsPath)) continue;
+
+            // 收集全部命名空间
+            List<Path> namespaces;
+            try {
+                namespaces = FileUtils.collectNamespaces(assetsPath);
+            } catch (IOException e) {
+                this.plugin.logger().warn("Failed to collect namespaces for " + assetsPath.toAbsolutePath(), e);
+                return;
+            }
+
+            for (Path namespacePath : namespaces) {
+                // 优化json
+                if (Config.optimizeJson()) {
+
+                    // 普通的json文件
+                    for (String folder : List.of("atlases", "blockstates", "equipment", "font", "items", "lang", "particles", "post_effect", "texts", "waypoint_style")) {
+                        // json文件夹
+                        Path targetFolder = namespacePath.resolve(folder);
+                        if (Files.isDirectory(targetFolder)) {
+                            try {
+                                Files.walkFileTree(targetFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                                    @Override
+                                    public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
+                                        if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                        if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
+                                        commonJsonToOptimize.add(file);
+                                        return FileVisitResult.CONTINUE;
+                                    }
+                                });
+                            } catch (IOException e) {
+                                this.plugin.logger().warn("Failed to walk through " + folder, e);
+                            }
+                        }
+                    }
+
+                    // 模型文件夹
+                    Path modelsFolder = namespacePath.resolve("models");
+                    if (Files.isDirectory(modelsFolder)) {
+                        try {
+                            Files.walkFileTree(modelsFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                                @Override
+                                public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
+                                    if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                    if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
+                                    modelJsonToOptimize.add(file);
+                                    return FileVisitResult.CONTINUE;
+                                }
+                            });
+                        } catch (IOException e) {
+                            this.plugin.logger().warn("Failed to walk through models", e);
+                        }
+                    }
+                }
+
+                // 优化贴图
+                if (Config.optimizeTexture() || Config.optimizeJson()) {
+                    Path texturesFolder = namespacePath.resolve("textures");
+                    if (Files.isDirectory(texturesFolder)) {
+                        try {
+                            Files.walkFileTree(texturesFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                                @Override
+                                public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
+                                    if (isPngFile(file)) {
+                                        if (Config.optimizeTexture() && texturePathPredicate.test(file)) {
+                                            imagesToOptimize.add(file);
+                                        }
+                                    } else if (isMCMetaFile(file) && Config.optimizeJson()) {
+                                        if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
+                                        commonJsonToOptimize.add(file);
+                                    }
+                                    return FileVisitResult.CONTINUE;
+                                }
+                            });
+                        } catch (IOException e) {
+                            this.plugin.logger().warn("Failed to walk through textures", e);
+                        }
+                    }
+                }
+            }
+        }
+
+        {
+            this.plugin.logger().info("> Optimizing json files...");
+            AtomicLong previousBytes = new AtomicLong(0L);
+            AtomicLong afterBytes = new AtomicLong(0L);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            int amount = commonJsonToOptimize.size() + modelJsonToOptimize.size();
+            AtomicInteger finished = new AtomicInteger(0);
+            for (Path jsonPath : commonJsonToOptimize) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        byte[] before = Files.readAllBytes(jsonPath);
+                        previousBytes.getAndAdd(before.length);
+                        byte[] after = GsonHelper.toString(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                        if (after.length < before.length) {
+                            afterBytes.addAndGet(after.length);
+                            Files.write(jsonPath, after);
+                        } else {
+                            afterBytes.addAndGet(before.length);
+                        }
+                        finished.incrementAndGet();
+                    } catch (IOException | JsonParseException ignored) {
+                    }
+                }, this.plugin.scheduler().async()));
+            }
+            for (Path jsonPath : modelJsonToOptimize) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        byte[] before = Files.readAllBytes(jsonPath);
+                        previousBytes.getAndAdd(before.length);
+                        JsonObject json = GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8)).getAsJsonObject();
+                        List<String> invalidKey = json.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
+                        if (!invalidKey.isEmpty()) {
+                            for (String key : invalidKey) {
+                                json.remove(key);
+                            }
+                        }
+                        byte[] after = GsonHelper.toString(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                        if (after.length < before.length) {
+                            afterBytes.addAndGet(after.length);
+                            Files.write(jsonPath, after);
+                        } else {
+                            afterBytes.addAndGet(before.length);
+                        }
+                        finished.incrementAndGet();
+                    } catch (IOException | JsonParseException ignored) {
+                    }
+                }, this.plugin.scheduler().async()));
+            }
+
+            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+            long startTime = System.currentTimeMillis();
+            for (;;) {
+                try {
+                    overallFuture.get(1, TimeUnit.SECONDS);
+                } catch (InterruptedException | ExecutionException e) {
+                    this.plugin.logger().warn("Failed to optimize json files", e);
+                    break;
+                } catch (TimeoutException e) {
+                    this.plugin.logger().info(createProgressBar(finished.get(), amount, String.valueOf((int) ((System.currentTimeMillis() - startTime) / 1000))));
+                    continue;
+                }
+                this.plugin.logger().info(createProgressBar(finished.get(), amount, String.format("%.1f", ((System.currentTimeMillis() - startTime) / 1000.0))));
+                break;
+            }
+
+            long originalSize = previousBytes.get();
+            long optimizedSize = afterBytes.get();
+            double compressionRatio = ((double) optimizedSize / originalSize) * 100;
+            this.plugin.logger().info("□ Before/After/Ratio: " + formatSize(originalSize) + "/" + formatSize(optimizedSize) + "/" + String.format("%.2f%%", compressionRatio));
+        }
+
+        {
+            this.plugin.logger().info("> Optimizing textures...");
+            AtomicLong previousBytes = new AtomicLong(0L);
+            AtomicLong afterBytes = new AtomicLong(0L);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            int amount = imagesToOptimize.size();
+            AtomicInteger finished = new AtomicInteger(0);
+            for (Path imagePath : imagesToOptimize) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        byte[] previousImageBytes = Files.readAllBytes(imagePath);
+                        byte[] optimized = optimizeImage(previousImageBytes);
+                        previousBytes.addAndGet(previousImageBytes.length);
+                        if (optimized.length < previousImageBytes.length) {
+                            afterBytes.addAndGet(optimized.length);
+                            Files.write(imagePath, optimized);
+                        } else {
+                            afterBytes.addAndGet(previousImageBytes.length);
+                        }
+                        finished.incrementAndGet();
+                    } catch (IOException ignored) {
+                    }
+                }, this.plugin.scheduler().async()));
+            }
+            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+            long startTime = System.currentTimeMillis();
+            for (;;) {
+                try {
+                    overallFuture.get(1, TimeUnit.SECONDS);
+                } catch (InterruptedException | ExecutionException e) {
+                    this.plugin.logger().warn("Failed to optimize images", e);
+                    break;
+                } catch (TimeoutException e) {
+                    this.plugin.logger().info(createProgressBar(finished.get(), amount, String.valueOf((int) ((System.currentTimeMillis() - startTime) / 1000))));
+                    continue;
+                }
+                this.plugin.logger().info(createProgressBar(finished.get(), amount, String.format("%.1f", ((System.currentTimeMillis() - startTime) / 1000.0))));
+                break;
+            }
+
+            long originalSize = previousBytes.get();
+            long optimizedSize = afterBytes.get();
+            double compressionRatio = ((double) optimizedSize / originalSize) * 100;
+            this.plugin.logger().info("□ Before/After/Ratio: " + formatSize(originalSize) + "/" + formatSize(optimizedSize) + "/" + String.format("%.2f%%", compressionRatio));
+        }
+    }
+
+    private static final int BAR_LENGTH = 30;
+
+    private String createProgressBar(int current, int total, String elapsed) {
+        double progress = (double) current / total;
+        int filledLength = (int) (BAR_LENGTH * progress);
+        int emptyLength = BAR_LENGTH - filledLength;
+        String progressBar = "[" +
+                "=".repeat(Math.max(0, filledLength)) +
+                " ".repeat(Math.max(0, emptyLength)) +
+                "]";
+        return String.format(
+                "%s %d/%d (%.1f%%) | Time: %ss",
+                progressBar,
+                current,
+                total,
+                progress * 100,
+                elapsed
+        );
+    }
+
+    private String formatSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.2f KB", bytes / 1024.0);
+        } else if (bytes < 1024 * 1024 * 1024) {
+            return String.format("%.2f MB", bytes / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.2f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
+
+    private byte[] optimizeImage(byte[] previousImageBytes) throws IOException {
+        try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
+            BufferedImage src = ImageIO.read(is);
+            PaletteFactory factory = new PaletteFactory();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            new PngWriter().write(src, baos, factory);
+            return baos.toByteArray();
+        }
+    }
+
+    @SuppressWarnings("DuplicatedCode")
+    private void validateResourcePack(Path path) {
+        // 收集全部overlay
+        Path[] rootPaths;
+        try {
+            rootPaths = FileUtils.collectOverlays(path).toArray(new Path[0]);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to collect overlays for " + path.toAbsolutePath(), e);
             return;
         }
 
@@ -853,21 +1150,31 @@ public abstract class AbstractPackManager implements PackManager {
         processAtlas(this.vanillaAtlas, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
         Map<Path, JsonObject> allAtlas = new HashMap<>();
 
+        // 如果需要验证资源包，则需要先读取所有atlas
+        if (Config.validateResourcePack()) {
+            for (Path rootPath : rootPaths) {
+                Path atlasesFile = rootPath
+                        .resolve("assets")
+                        .resolve("minecraft")
+                        .resolve("atlases")
+                        .resolve("blocks.json");
+                if (Files.exists(atlasesFile)) {
+                    try {
+                        JsonObject atlasJsonObject = GsonHelper.readJsonFile(atlasesFile).getAsJsonObject();
+                        processAtlas(atlasJsonObject, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
+                        allAtlas.put(atlasesFile, atlasJsonObject);
+                    } catch (IOException | JsonParseException e) {
+                        TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", atlasesFile.toAbsolutePath().toString());
+                    }
+                }
+            }
+        }
+
         for (Path rootPath : rootPaths) {
             Path assetsPath = rootPath.resolve("assets");
             if (!Files.isDirectory(assetsPath)) continue;
 
-            Path atlasesFile = assetsPath.resolve("minecraft").resolve("atlases").resolve("blocks.json");
-            if (Files.exists(atlasesFile)) {
-                try {
-                    JsonObject atlasJsonObject = GsonHelper.readJsonFile(atlasesFile).getAsJsonObject();
-                    processAtlas(atlasJsonObject, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
-                    allAtlas.put(atlasesFile, atlasJsonObject);
-                } catch (IOException | JsonParseException e) {
-                    TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", atlasesFile.toAbsolutePath().toString());
-                }
-            }
-
+            // 收集全部命名空间
             List<Path> namespaces;
             try {
                 namespaces = FileUtils.collectNamespaces(assetsPath);
@@ -877,13 +1184,15 @@ public abstract class AbstractPackManager implements PackManager {
             }
 
             for (Path namespacePath : namespaces) {
-                String namespace = namespacePath.getFileName().toString();
+                String namespace = namespacePath.getFileName().toString(); // 命名空间
+
+                // 字体文件夹
                 Path fontPath = namespacePath.resolve("font");
                 if (Files.isDirectory(fontPath)) {
                     try {
                         Files.walkFileTree(fontPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                             @Override
-                            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
+                            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
                                 if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
                                 JsonObject fontJson;
                                 try {
@@ -910,10 +1219,11 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         });
                     } catch (IOException e) {
-                        plugin.logger().warn("Failed to validate font", e);
+                        this.plugin.logger().warn("Failed to walk through font", e);
                     }
                 }
 
+                // 1.21.4+的物品模型
                 Path itemsPath = namespacePath.resolve("items");
                 if (Files.isDirectory(itemsPath)) {
                     try {
@@ -934,10 +1244,11 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         });
                     } catch (IOException e) {
-                        plugin.logger().warn("Failed to validate items", e);
+                        this.plugin.logger().warn("Failed to walk through items", e);
                     }
                 }
 
+                // 方块状态json
                 Path blockStatesPath = namespacePath.resolve("blockstates");
                 if (Files.isDirectory(blockStatesPath)) {
                     try {
@@ -945,7 +1256,6 @@ public abstract class AbstractPackManager implements PackManager {
                             @Override
                             public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
                                 if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
-                                String blockId = FileUtils.pathWithoutExtension(file.getFileName().toString());
                                 JsonObject blockStateJson;
                                 try {
                                     blockStateJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -953,6 +1263,7 @@ public abstract class AbstractPackManager implements PackManager {
                                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
                                     return FileVisitResult.CONTINUE;
                                 }
+                                String blockId = FileUtils.pathWithoutExtension(file.getFileName().toString());
                                 if (blockStateJson.has("multipart")) {
                                     collectMultipart(blockStateJson.getAsJsonArray("multipart"), (location) -> modelToBlocks.put(location, blockId));
                                 } else if (blockStateJson.has("variants")) {
@@ -962,10 +1273,11 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         });
                     } catch (IOException e) {
-                        plugin.logger().warn("Failed to validate blockstates", e);
+                        this.plugin.logger().warn("Failed to walk through blockstates", e);
                     }
                 }
 
+                // 装备
                 Path equipmentPath = namespacePath.resolve("equipment");
                 if (Files.isDirectory(equipmentPath)) {
                     try {
@@ -973,7 +1285,6 @@ public abstract class AbstractPackManager implements PackManager {
                             @Override
                             public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
                                 if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
-                                String equipmentId = FileUtils.pathWithoutExtension(file.getFileName().toString());
                                 JsonObject equipmentJson;
                                 try {
                                     equipmentJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -981,6 +1292,7 @@ public abstract class AbstractPackManager implements PackManager {
                                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
                                     return FileVisitResult.CONTINUE;
                                 }
+                                String equipmentId = FileUtils.pathWithoutExtension(file.getFileName().toString());
                                 if (equipmentJson.has("layers")) {
                                     for (Map.Entry<String, JsonElement> layer : equipmentJson.getAsJsonObject("layers").entrySet()) {
                                         String type = layer.getKey();
@@ -999,10 +1311,11 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         });
                     } catch (IOException e) {
-                        plugin.logger().warn("Failed to validate equipments", e);
+                        this.plugin.logger().warn("Failed to walk through equipments", e);
                     }
                 }
 
+                // 声音文件
                 Path soundsPath = namespacePath.resolve("sounds.json");
                 if (Files.exists(soundsPath)) {
                     try {
@@ -1026,7 +1339,7 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         }
                     } catch (IOException | JsonParseException e) {
-                        plugin.logger().warn("Failed to validate sounds.json", e);
+                        this.plugin.logger().warn("Failed to visit sounds.json", e);
                     }
                 }
             }
@@ -1156,6 +1469,7 @@ public abstract class AbstractPackManager implements PackManager {
             }
         }
 
+        // 修复 atlas
         if (Config.fixTextureAtlas() && !texturesToFix.isEmpty()) {
             List<JsonObject> sourcesToAdd = new ArrayList<>();
             for (Key toFix : texturesToFix) {
@@ -1270,7 +1584,17 @@ public abstract class AbstractPackManager implements PackManager {
 
     private static boolean isJsonFile(Path filePath) {
         String fileName = filePath.getFileName().toString();
-        return fileName.endsWith(".json") || fileName.endsWith(".mcmeta");
+        return fileName.endsWith(".json");
+    }
+
+    private static boolean isMCMetaFile(Path filePath) {
+        String fileName = filePath.getFileName().toString();
+        return fileName.endsWith(".mcmeta");
+    }
+
+    private static boolean isPngFile(Path filePath) {
+        String fileName = filePath.getFileName().toString();
+        return fileName.endsWith(".png");
     }
 
     private static void collectItemModelsDeeply(JsonObject jo, Consumer<Key> callback) {

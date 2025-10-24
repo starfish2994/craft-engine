@@ -90,15 +90,17 @@ resource-pack:
     # You should strive to make your resource pack more standardized after gaining some experience with resource packs.
     fix-atlas: true
   # Optimize your resource pack by reducing its size
-#  optimization:
-#    enable: true
-#    png:
-#      color-quantization: true
-#      lossless-bit-depth: true
-#      remove-metadata: true
-#    model:
-#      minimize: true
-#    bypass-textures: []
+  # This process is extremely slow, typically taking 10 times longer than the normal resource pack generation
+  optimization:
+    enable: false
+    # .png
+    texture:
+      enable: true
+      exclude: []
+    # .json / .mcmeta
+    json:
+      enable: true
+      exclude: []
   # Protect your resource pack from being cracked by others
   protection:
     # Prevent thieves from extracting your resource pack. These options will crash their software.
