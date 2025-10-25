@@ -3,6 +3,8 @@ package net.momirealms.craftengine.core.item;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.AttributeModifier;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.data.Enchantment;
 import net.momirealms.craftengine.core.item.data.FireworkExplosion;
@@ -213,6 +215,8 @@ public interface Item<I> {
     Item<I> unsafeTransmuteCopy(Object another, int count);
 
     void shrink(int amount);
+
+    void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot);
 
     default Item<I> transmuteCopy(Key another) {
         return transmuteCopy(another, this.count());

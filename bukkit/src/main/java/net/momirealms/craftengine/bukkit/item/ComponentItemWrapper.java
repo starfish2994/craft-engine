@@ -8,13 +8,19 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBuiltInRegistries;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistryOps;
+import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.ItemWrapper;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.sparrow.nbt.Tag;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -200,5 +206,15 @@ public class ComponentItemWrapper implements ItemWrapper<ItemStack> {
     @Override
     public void shrink(int amount) {
         count(count() - amount);
+    }
+
+    @Override
+    public void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot) {
+        FastNMS.INSTANCE.method$ItemStack$hurtAndBreak(
+                this.handle,
+                amount,
+                player.serverPlayer(),
+                slot != null ? EquipmentSlotUtils.toNMSEquipmentSlot(slot) : null
+        );
     }
 }

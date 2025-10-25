@@ -3,6 +3,8 @@ package net.momirealms.craftengine.core.item;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.AttributeModifier;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.data.Enchantment;
 import net.momirealms.craftengine.core.item.data.FireworkExplosion;
@@ -499,5 +501,10 @@ public class AbstractItem<W extends ItemWrapper<I>, I> implements Item<I> {
     @Override
     public void shrink(int amount) {
         this.item.shrink(amount);
+    }
+
+    @Override
+    public void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot) {
+        this.item.hurtAndBreak(amount, player, slot);
     }
 }

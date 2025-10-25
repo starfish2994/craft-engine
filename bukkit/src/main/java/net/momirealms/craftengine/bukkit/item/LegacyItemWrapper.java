@@ -3,10 +3,15 @@ package net.momirealms.craftengine.bukkit.item;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistryOps;
+import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.ItemWrapper;
 import net.momirealms.sparrow.nbt.Tag;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
     private final Object nmsStack;
@@ -149,5 +154,15 @@ public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
     @Override
     public void shrink(int amount) {
         this.count(count() - amount);
+    }
+
+    @Override
+    public void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot) {
+        FastNMS.INSTANCE.method$ItemStack$hurtAndBreak(
+                this.nmsStack,
+                amount,
+                player.serverPlayer(),
+                slot != null ? EquipmentSlotUtils.toNMSEquipmentSlot(slot) : null
+        );
     }
 }
