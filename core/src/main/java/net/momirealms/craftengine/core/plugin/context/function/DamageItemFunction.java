@@ -29,7 +29,7 @@ public class DamageItemFunction<CTX extends Context> extends AbstractConditional
     protected void runInternal(CTX ctx) {
         Player player = ctx.getOptionalParameter(DirectContextParameters.PLAYER).orElse(null);
         if (player == null) return;
-        Item<?> item = ctx.getOptionalParameter(DirectContextParameters.ITEM).orElse(null);
+        Item<?> item = ctx.getOptionalParameter(DirectContextParameters.ITEM_IN_HAND).orElse(null);
         InteractionHand hand = ctx.getOptionalParameter(DirectContextParameters.HAND).orElse(null);
         if (item == null && hand != null) {
             item = player.getItemInHand(hand);
