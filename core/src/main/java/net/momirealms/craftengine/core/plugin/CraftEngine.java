@@ -298,6 +298,8 @@ public abstract class CraftEngine implements Plugin {
         this.packManager.registerConfigSectionParser(this.vanillaLootManager.parser());
         // register advancement parser
         this.packManager.registerConfigSectionParser(this.advancementManager.parser());
+        // register skip-optimization parser
+        this.packManager.registerConfigSectionParser(this.packManager.parser());
     }
 
     public void applyDependencies() {

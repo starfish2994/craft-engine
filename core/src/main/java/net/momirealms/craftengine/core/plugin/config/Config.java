@@ -333,9 +333,15 @@ public class Config {
         resource_pack$protection$obfuscation$resource_location$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-equipments");
         resource_pack$optimization$enable = config.getBoolean("resource-pack.optimization.enable", false);
         resource_pack$optimization$texture$enable = config.getBoolean("resource-pack.optimization.texture.enable", true);
-        resource_pack$optimization$texture$exlude = new HashSet<>(config.getStringList("resource-pack.optimization.texture.exclude"));
+        resource_pack$optimization$texture$exlude = config.getStringList("resource-pack.optimization.texture.exclude").stream().map(p -> {
+            if (!p.endsWith(".png")) return p + ".png";
+            return p;
+        }).collect(Collectors.toSet());
         resource_pack$optimization$json$enable = config.getBoolean("resource-pack.optimization.json.enable", true);
-        resource_pack$optimization$json$exclude = new HashSet<>(config.getStringList("resource-pack.optimization.json.exclude"));
+        resource_pack$optimization$json$exclude = config.getStringList("resource-pack.optimization.json.exclude").stream().map(p -> {
+            if (!p.endsWith(".json") && !p.endsWith(".mcmeta")) return p + ".json";
+            return p;
+        }).collect(Collectors.toSet());
         resource_pack$validation$enable = config.getBoolean("resource-pack.validation.enable", true);
         resource_pack$validation$fix_atlas = VersionHelper.PREMIUM && config.getBoolean("resource-pack.validation.fix-atlas", true);
         resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);

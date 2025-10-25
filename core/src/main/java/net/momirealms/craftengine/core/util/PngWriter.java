@@ -29,6 +29,7 @@ import org.apache.commons.imaging.formats.png.PngConstants;
 import org.apache.commons.imaging.palette.Palette;
 import org.apache.commons.imaging.palette.PaletteFactory;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -64,6 +65,8 @@ public class PngWriter {
     public void write(BufferedImage src, OutputStream os, PaletteFactory paletteFactory) throws IOException {
         final int width = src.getWidth();
         final int height = src.getHeight();
+        src = convertTo8BitRGB(src);
+
         final boolean hasAlpha = paletteFactory.hasTransparency(src);
         boolean isGrayscale = paletteFactory.isGrayscale(src);
 
@@ -84,6 +87,27 @@ public class PngWriter {
         os.write(bestChoice.right());
         writeChunkIEND(os);
         os.close();
+    }
+
+    public static BufferedImage convertTo8BitRGB(BufferedImage sourceImage) {
+        int type = sourceImage.getType();
+        if (type == BufferedImage.TYPE_INT_ARGB ||
+                type == BufferedImage.TYPE_INT_RGB ||
+                type == BufferedImage.TYPE_BYTE_INDEXED) {
+            return sourceImage;
+        }
+
+        BufferedImage eightBitImage = new BufferedImage(
+                sourceImage.getWidth(),
+                sourceImage.getHeight(),
+                sourceImage.getColorModel().hasAlpha() ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB
+        );
+
+        Graphics2D g2d = eightBitImage.createGraphics();
+        g2d.drawImage(sourceImage, 0, 0, null);
+        g2d.dispose();
+
+        return eightBitImage;
     }
 
     private Pair<PngColorType, byte[]> findBestCompressMethod(BufferedImage src, PaletteFactory paletteFactory,  boolean hasAlpha, boolean isGrayscale) throws IOException {
