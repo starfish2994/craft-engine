@@ -6,6 +6,9 @@ import net.momirealms.craftengine.bukkit.block.behavior.UnsafeCompositeBlockBeha
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
+import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
+import net.momirealms.craftengine.bukkit.plugin.network.payload.PayloadHelper;
+import net.momirealms.craftengine.bukkit.plugin.network.payload.protocol.VisualBlockStatePacket;
 import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.*;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
@@ -63,6 +66,8 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private Set<Object> missingHitSounds = Set.of();
     private Set<Object> missingStepSounds = Set.of();
     private Set<Key> missingInteractSoundBlocks = Set.of();
+    // 缓存的VisualBlockStatePacket
+    private VisualBlockStatePacket cachedVisualBlockStatePacket;
 
     public BukkitBlockManager(BukkitCraftEngine plugin) {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
@@ -122,6 +127,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void delayedLoad() {
         this.plugin.networkManager().registerBlockStatePacketListeners(this.blockStateMappings); // 重置方块映射表
         super.delayedLoad();
+        this.cachedVisualBlockStatePacket = VisualBlockStatePacket.create();
+        for (BukkitServerPlayer player : BukkitNetworkManager.instance().onlineUsers()) {
+            if (!player.clientModEnabled()) continue;
+            PayloadHelper.sendData(player, this.cachedVisualBlockStatePacket);
+        }
     }
 
     @Override
@@ -356,6 +366,10 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     public Object cachedUpdateTagsPacket() {
         return this.cachedUpdateTagsPacket;
+    }
+
+    public VisualBlockStatePacket cachedVisualBlockStatePacket() {
+        return this.cachedVisualBlockStatePacket;
     }
 
     private void markVanillaNoteBlocks() {

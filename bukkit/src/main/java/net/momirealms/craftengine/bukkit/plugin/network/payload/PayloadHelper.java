@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import net.momirealms.craftengine.bukkit.plugin.network.payload.protocol.CancelBlockUpdatePacket;
 import net.momirealms.craftengine.bukkit.plugin.network.payload.protocol.ClientBlockStateSizePacket;
 import net.momirealms.craftengine.bukkit.plugin.network.payload.protocol.ClientCustomBlockPacket;
+import net.momirealms.craftengine.bukkit.plugin.network.payload.protocol.VisualBlockStatePacket;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.network.ModPacket;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -20,6 +21,7 @@ public class PayloadHelper {
         registerDataType(ClientCustomBlockPacket.TYPE, ClientCustomBlockPacket.CODEC);
         registerDataType(CancelBlockUpdatePacket.TYPE, CancelBlockUpdatePacket.CODEC);
         registerDataType(ClientBlockStateSizePacket.TYPE, ClientBlockStateSizePacket.CODEC);
+        registerDataType(VisualBlockStatePacket.TYPE, VisualBlockStatePacket.CODEC);
     }
 
     public static <T extends ModPacket> void registerDataType(ResourceKey<NetworkCodec<FriendlyByteBuf, ? extends ModPacket>> key, NetworkCodec<FriendlyByteBuf, T> codec) {
