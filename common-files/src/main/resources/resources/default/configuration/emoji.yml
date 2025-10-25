@@ -112,7 +112,7 @@ emoji:
   default:emoji_confounded:
     template: default:emoji/basic
     overrides:
-      image: default:emojis:3:2
+      image: default:emojis:3:3
       permission: emoji.confounded
       keywords:
         - ':confounded:'
