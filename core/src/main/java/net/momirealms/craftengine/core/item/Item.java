@@ -216,7 +216,7 @@ public interface Item<I> {
 
     void shrink(int amount);
 
-    void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot);
+    void hurtAndBreak(int amount, @Nullable Player player, @Nullable EquipmentSlot slot);
 
     default Item<I> transmuteCopy(Key another) {
         return transmuteCopy(another, this.count());

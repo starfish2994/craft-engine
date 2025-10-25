@@ -14,12 +14,12 @@ import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.ItemWrapper;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.RandomUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.sparrow.nbt.Tag;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -142,7 +142,7 @@ public class ComponentItemWrapper implements ItemWrapper<ItemStack> {
     }
 
     public void setNBTComponent(Object type, Object value) {
-       setComponentInternal(type, MRegistryOps.NBT, value);
+        setComponentInternal(type, MRegistryOps.NBT, value);
     }
 
     public void setSparrowNBTComponent(Object type, Tag value) {
@@ -209,12 +209,37 @@ public class ComponentItemWrapper implements ItemWrapper<ItemStack> {
     }
 
     @Override
-    public void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot) {
+    public void hurtAndBreak(int amount, @Nullable Player player, @Nullable EquipmentSlot slot) {
+        if (player == null) {
+            if (this.hurt(amount)) {
+                this.shrink(1);
+                this.setJavaComponent(DataComponentTypes.DAMAGE, 0);
+            }
+            return;
+        }
         FastNMS.INSTANCE.method$ItemStack$hurtAndBreak(
                 this.handle,
                 amount,
                 player.serverPlayer(),
                 slot != null ? EquipmentSlotUtils.toNMSEquipmentSlot(slot) : null
         );
+    }
+
+    private boolean hurt(int amount) {
+        if (!this.hasComponent(DataComponentTypes.MAX_DAMAGE) || this.hasComponent(DataComponentTypes.UNBREAKABLE) || !this.hasComponent(DataComponentTypes.DAMAGE)) return false;
+        if (amount > 0) {
+            int level = this.item.getEnchantmentLevel(Enchantment.UNBREAKING);
+            int ignoredDamage = 0;
+            for (int i = 0; level > 0 && i < amount; ++i) {
+                if (RandomUtils.generateRandomInt(0, level + 1) > 0) ++ignoredDamage;
+            }
+            amount -= ignoredDamage;
+            if (amount <= 0) return false;
+        }
+        Optional<Integer> optionalDamage = this.getJavaComponent(DataComponentTypes.DAMAGE);
+        int damage = optionalDamage.orElse(0) + amount;
+        this.setJavaComponent(DataComponentTypes.DAMAGE, damage);
+        Optional<Integer> optionalMaxDamage = this.getJavaComponent(DataComponentTypes.MAX_DAMAGE);
+        return damage >= optionalMaxDamage.orElseGet(() -> (int) this.item.getType().getMaxDurability());
     }
 }

@@ -8,9 +8,10 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.ItemWrapper;
+import net.momirealms.craftengine.core.util.RandomUtils;
 import net.momirealms.sparrow.nbt.Tag;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
@@ -27,7 +28,7 @@ public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
         if (value instanceof Tag tag) {
             finalNMSTag = MRegistryOps.SPARROW_NBT.convertTo(MRegistryOps.NBT, tag);
         } else if (CoreReflections.clazz$Tag.isInstance(value)) {
-           finalNMSTag = value;
+            finalNMSTag = value;
         } else {
             finalNMSTag = MRegistryOps.JAVA.convertTo(MRegistryOps.NBT, value);
         }
@@ -157,12 +158,36 @@ public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
     }
 
     @Override
-    public void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot) {
+    public void hurtAndBreak(int amount, @Nullable Player player, @Nullable EquipmentSlot slot) {
+        if (player == null) {
+            if (this.hurt(amount)) {
+                this.shrink(1);
+                this.setTag(0, "Damage");
+            }
+            return;
+        }
         FastNMS.INSTANCE.method$ItemStack$hurtAndBreak(
                 this.nmsStack,
                 amount,
                 player.serverPlayer(),
                 slot != null ? EquipmentSlotUtils.toNMSEquipmentSlot(slot) : null
         );
+    }
+
+    private boolean hurt(int amount) {
+        if (ItemStackUtils.isEmpty(itemStack) || itemStack.getType().getMaxDurability() <= 0 || !hasTag("Unbreakable") || (boolean) getJavaTag("Unbreakable")) return false;
+        if (amount > 0) {
+            int level = this.itemStack.getEnchantmentLevel(Enchantment.UNBREAKING);
+            int ignoredDamage = 0;
+            for (int i = 0; level > 0 && i < amount; ++i) {
+                if (RandomUtils.generateRandomInt(0, level + 1) > 0) ++ignoredDamage;
+            }
+            amount -= ignoredDamage;
+            if (amount <= 0) return false;
+        }
+        int damage = this.hasTag("Damage") ? this.getJavaTag("Damage") : 0;
+        damage += amount;
+        this.setTag(damage, "Damage");
+        return damage >= this.itemStack.getType().getMaxDurability();
     }
 }

@@ -504,7 +504,7 @@ public class AbstractItem<W extends ItemWrapper<I>, I> implements Item<I> {
     }
 
     @Override
-    public void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot) {
+    public void hurtAndBreak(int amount, @Nullable Player player, @Nullable EquipmentSlot slot) {
         this.item.hurtAndBreak(amount, player, slot);
     }
 }
