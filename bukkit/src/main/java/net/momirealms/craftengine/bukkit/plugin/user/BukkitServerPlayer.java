@@ -770,6 +770,7 @@ public class BukkitServerPlayer extends Player {
 
                     // can break now
                     if (this.miningProgress >= 1f) {
+                        boolean breakResult = false;
                         // for simplified adventure break, switch mayBuild temporarily
                         if (isAdventureMode() && Config.simplifyAdventureBreakCheck()) {
                             // check the appearance state
@@ -777,20 +778,24 @@ public class BukkitServerPlayer extends Player {
                                 // Error might occur so we use try here
                                 try {
                                     FastNMS.INSTANCE.field$Player$mayBuild(serverPlayer, true);
-                                    CoreReflections.method$ServerPlayerGameMode$destroyBlock.invoke(gameMode, blockPos);
+                                    breakResult = (boolean) CoreReflections.method$ServerPlayerGameMode$destroyBlock.invoke(gameMode, blockPos);
                                 } finally {
                                     FastNMS.INSTANCE.field$Player$mayBuild(serverPlayer, false);
                                 }
                             }
                         } else {
                             // normal break check
-                            CoreReflections.method$ServerPlayerGameMode$destroyBlock.invoke(gameMode, blockPos);
+                            breakResult = (boolean) CoreReflections.method$ServerPlayerGameMode$destroyBlock.invoke(gameMode, blockPos);
                         }
                         // send break particle + (removed sounds)
-                        sendPacket(FastNMS.INSTANCE.constructor$ClientboundLevelEventPacket(WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId(), false), false);
-                        this.lastSuccessfulBreak = currentTick;
-                        this.destroyPos = null;
-                        this.setIsDestroyingBlock(false, false);
+                        if (breakResult) {
+                            sendPacket(FastNMS.INSTANCE.constructor$ClientboundLevelEventPacket(WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId(), false), false);
+                            this.lastSuccessfulBreak = currentTick;
+                            this.destroyPos = null;
+                            this.setIsDestroyingBlock(false, false);
+                        } else {
+                            this.setIsDestroyingBlock(true, true);
+                        }
                     }
                 }
             }

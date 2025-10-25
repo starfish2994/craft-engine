@@ -96,7 +96,8 @@ resource-pack:
     # .png
     texture:
       enable: true
-      exclude: []
+      exclude:
+        - pack.png
     # .json / .mcmeta
     json:
       enable: true

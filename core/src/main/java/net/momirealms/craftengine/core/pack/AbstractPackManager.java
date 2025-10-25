@@ -965,7 +965,7 @@ public abstract class AbstractPackManager implements PackManager {
             }
         }
 
-        {
+        if (Config.optimizeJson()) {
             this.plugin.logger().info("> Optimizing json files...");
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
@@ -1036,7 +1036,7 @@ public abstract class AbstractPackManager implements PackManager {
             this.plugin.logger().info("□ Before/After/Ratio: " + formatSize(originalSize) + "/" + formatSize(optimizedSize) + "/" + String.format("%.2f%%", compressionRatio));
         }
 
-        {
+        if (Config.optimizeTexture()) {
             this.plugin.logger().info("> Optimizing textures...");
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
