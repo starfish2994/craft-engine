@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.util;
 
-import net.momirealms.craftengine.core.pack.model.ItemModels;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.zopfli.Options;
 import net.momirealms.craftengine.core.util.zopfli.ZopfliOutputStream;

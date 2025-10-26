@@ -153,13 +153,6 @@ public class Dependencies {
             List.of(Relocation.of("commons", "org{}apache{}commons"))
     );
 
-    public static final Dependency COMMONS_IMAGING = new Dependency(
-            "commons-imaging",
-            "org{}apache{}commons",
-            "commons-imaging",
-            List.of(Relocation.of("commons", "org{}apache{}commons"))
-    );
-
     public static final Dependency BYTE_BUDDY = new Dependency(
             "byte-buddy",
             "net{}bytebuddy",
