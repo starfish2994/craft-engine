@@ -1,15 +1,17 @@
 package net.momirealms.craftengine.core.util;
 
+import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.util.zopfli.Options;
+import net.momirealms.craftengine.core.util.zopfli.ZopfliOutputStream;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -111,10 +113,6 @@ public class PngOptimizer {
         return eightBitImage;
     }
 
-    private boolean hasAlpha(final int transparency) {
-        return transparency != 0;
-    }
-
     private ImageData findBestFileStructure(BufferedImage src, ImageColorInfo info) throws IOException {
         byte[] normalSize = tryNormal(src, info.hasAlpha(), info.isGrayscale());
         // 可以考虑使用调色盘
@@ -134,7 +132,8 @@ public class PngOptimizer {
 
     private byte[] tryNormal(BufferedImage src, boolean hasAlpha, boolean isGrayscale) throws IOException {
         byte[] bytes = generatePngData(src, hasAlpha, isGrayscale);
-        return compressImage(bytes);
+        int zopfli = Config.zopfliIterations();
+        return zopfli > 0 ? compressImageZopfli(bytes, zopfli) : compressImageStandard(bytes);
     }
 
     private byte[] generatePngData(BufferedImage src, boolean hasAlpha, boolean isGrayscale) {
@@ -179,7 +178,8 @@ public class PngOptimizer {
             writeChunkPLTE(paletteOs, palette);
         }
         byte[] bytes = generatePaletteData(src, palette);
-        paletteOs.write(compressImage(bytes));
+        int zopfli = Config.zopfliIterations();
+        paletteOs.write(zopfli > 0 ? compressImageZopfli(bytes, zopfli) : compressImageStandard(bytes));
         return Pair.of(palette, paletteOs.toByteArray());
     }
 
@@ -264,33 +264,41 @@ public class PngOptimizer {
         }
     }
 
-    private byte[] compressImage(byte[] uncompressed) throws IOException {
-        final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final int chunkSize = 32 * 1024;
-        final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-        final DeflaterOutputStream dos = new DeflaterOutputStream(baos, deflater, chunkSize);
-
-        for (int index = 0; index < uncompressed.length; index += chunkSize) {
-            final int end = Math.min(uncompressed.length, index + chunkSize);
-            final int length = end - index;
-
-            dos.write(uncompressed, index, length);
-            dos.flush();
-            baos.flush();
-
-            final byte[] compressed = baos.toByteArray();
-            baos.reset();
-            if (compressed.length > 0) {
-                writeChunkIDAT(output, compressed);
-            }
+    private byte[] compressImageZopfli(byte[] uncompressed, int iterations) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZopfliOutputStream dos = new ZopfliOutputStream(baos, new Options(Options.OutputFormat.ZLIB, Options.BlockSplitting.FIRST, iterations))) {
+            dos.write(uncompressed);
+        } catch (IOException e) {
+            throw new IOException("Compression failed", e);
         }
+        byte[] compressedData = baos.toByteArray();
+        int chunkSize = 32 * 1024;
+        for (int index = 0; index < compressedData.length; index += chunkSize) {
+            int end = Math.min(compressedData.length, index + chunkSize);
+            byte[] chunk = Arrays.copyOfRange(compressedData, index, end);
+            writeChunkIDAT(output, chunk);
+        }
+        return output.toByteArray();
+    }
 
-        {
+    private byte[] compressImageStandard(byte[] uncompressed) throws IOException {
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             final DeflaterOutputStream dos = new DeflaterOutputStream(
+                     baos, new Deflater(Deflater.BEST_COMPRESSION))) {
+
+            dos.write(uncompressed);
             dos.finish();
+
             final byte[] compressed = baos.toByteArray();
-            if (compressed.length > 0) {
-                writeChunkIDAT(output, compressed);
+
+            final int chunkSize = 32 * 1024;
+            for (int index = 0; index < compressed.length; index += chunkSize) {
+                final int end = Math.min(compressed.length, index + chunkSize);
+                final byte[] chunk = Arrays.copyOfRange(compressed, index, end);
+                writeChunkIDAT(output, chunk);
             }
         }
 
