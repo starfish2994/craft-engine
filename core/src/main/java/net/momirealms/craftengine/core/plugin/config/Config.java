@@ -295,8 +295,8 @@ public class Config {
         resource_pack$override_uniform_font = config.getBoolean("resource-pack.override-uniform-font", false);
         resource_pack$generate_mod_assets = config.getBoolean("resource-pack.generate-mod-assets", false);
         resource_pack$remove_tinted_leaves_particle = config.getBoolean("resource-pack.remove-tinted-leaves-particle", true);
-        resource_pack$supported_version$min = getVersion(config.get("resource-pack.supported-version.min", "SERVER").toString());
-        resource_pack$supported_version$max = getVersion(config.get("resource-pack.supported-version.max", "LATEST").toString());
+        resource_pack$supported_version$min = getVersion(config.get("resource-pack.supported-version.min", "server").toString());
+        resource_pack$supported_version$max = getVersion(config.get("resource-pack.supported-version.max", "latest").toString());
         if (resource_pack$supported_version$min.isAbove(resource_pack$supported_version$max)) {
             resource_pack$supported_version$min = resource_pack$supported_version$max;
         }
@@ -538,10 +538,10 @@ public class Config {
     }
 
     private static MinecraftVersion getVersion(String version) {
-        if (version.equalsIgnoreCase("LATEST")) {
+        if (version.equalsIgnoreCase("latest")) {
             return new MinecraftVersion(PluginProperties.getValue("latest-version"));
         }
-        if (version.equalsIgnoreCase("SERVER")) {
+        if (version.equalsIgnoreCase("server")) {
             return VersionHelper.MINECRAFT_VERSION;
         }
         return MinecraftVersion.parse(version);

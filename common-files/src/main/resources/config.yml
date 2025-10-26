@@ -15,11 +15,11 @@ resource-pack:
   path: "./generated/resource_pack.zip"
   # Allowed values:
   # - 1.20.1, 1.21, 1.21.8, etc.
-  # - LATEST: the latest client version
-  # - SERVER: the current server version
+  # - latest: the latest client version
+  # - server: the current server version
   supported-version:
-    min: SERVER
-    max: LATEST
+    min: server
+    max: latest
   # Remove 1.21.5+ tinted_leaves particles
   remove-tinted-leaves-particle: true
   # Define the name of the overlay folders
@@ -89,8 +89,8 @@ resource-pack:
     # Fix images that are not within the texture atlas. It is unreasonable to always rely on plugins to fix your mistakes.
     # You should strive to make your resource pack more standardized after gaining some experience with resource packs.
     fix-atlas: true
-  # Optimize your resource pack by reducing its size
-  # This process is extremely slow, typically taking 10 times longer than the normal resource pack generation
+  # Optimize your resource pack by reducing its size without any quality loss.
+  # Due to potentially long processing time, use this only for production resource pack.
   optimization:
     enable: false
     # .png
@@ -467,9 +467,9 @@ chunk-system:
   # Settings for injection
   injection:
     # Requires a restart to apply.
-    # SECTION: Inject the LevelChunkSection (Use this if you have installed both FastAsyncWorldEdit and Axiom)
-    # PALETTE: Inject the PalettedContainer
-    target: PALETTE
+    # section: Inject the LevelChunkSection (Use this if you have installed both FastAsyncWorldEdit and Axiom)
+    # palette: Inject the PalettedContainer
+    target: palette
     # Enables faster injection method
     # Note: May not work with certain server forks that alter chunk class structure (In most cases it won't conflict)
     use-fast-method: true
