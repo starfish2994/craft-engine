@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.util;
 
+import net.momirealms.craftengine.core.pack.model.ItemModels;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.zopfli.Options;
 import net.momirealms.craftengine.core.util.zopfli.ZopfliOutputStream;
@@ -106,10 +107,19 @@ public class PngOptimizer {
                 src.getColorModel().hasAlpha() ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB
         );
 
+        if (type == BufferedImage.TYPE_4BYTE_ABGR || type == BufferedImage.TYPE_4BYTE_ABGR_PRE) {
+            for (int y = 0; y < src.getHeight(); y++) {
+                for (int x = 0; x < src.getWidth(); x++) {
+                    int rgb = src.getRGB(x, y);
+                    eightBitImage.setRGB(x, y, rgb);
+                }
+            }
+            return eightBitImage;
+        }
+
         Graphics2D g2d = eightBitImage.createGraphics();
         g2d.drawImage(src, 0, 0, null);
         g2d.dispose();
-
         return eightBitImage;
     }
 
