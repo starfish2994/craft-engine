@@ -75,11 +75,11 @@ public class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior {
         if (behavior == null) return false;
         Direction direction;
         if (isSixDirection) {
-            direction = ((Direction) state.get(behavior.facingProperty)).opposite();
+            direction = (Direction) state.get(behavior.facingProperty);
         } else {
-            direction = ((HorizontalDirection) state.get(behavior.facingProperty)).opposite().toDirection();
+            direction = ((HorizontalDirection) state.get(behavior.facingProperty)).toDirection();
         }
-        BlockPos blockPos = LocationUtils.fromBlockPos(args[2]).relative(direction);
+        BlockPos blockPos = LocationUtils.fromBlockPos(args[2]).relative(direction.opposite());
         Object nmsPos = LocationUtils.toBlockPos(blockPos);
         Object nmsState = FastNMS.INSTANCE.method$BlockGetter$getBlockState(args[1], nmsPos);
         return FastNMS.INSTANCE.method$BlockStateBase$isFaceSturdy(nmsState, args[1], nmsPos, DirectionUtils.toNMSDirection(direction), CoreReflections.instance$SupportType$FULL)
