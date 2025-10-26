@@ -36,7 +36,6 @@ import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.sound.AbstractSoundManager;
 import net.momirealms.craftengine.core.sound.SoundEvent;
 import net.momirealms.craftengine.core.util.*;
-import org.apache.commons.imaging.palette.PaletteFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -1121,9 +1120,8 @@ public abstract class AbstractPackManager implements PackManager {
     private byte[] optimizeImage(byte[] previousImageBytes) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
             BufferedImage src = ImageIO.read(is);
-            PaletteFactory factory = new PaletteFactory();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            new PngWriter().write(src, baos, factory);
+            new PngOptimizer(src).write(baos);
             return baos.toByteArray();
         }
     }
