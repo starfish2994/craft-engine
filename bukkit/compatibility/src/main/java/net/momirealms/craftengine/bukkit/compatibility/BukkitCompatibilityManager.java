@@ -339,7 +339,9 @@ public class BukkitCompatibilityManager implements CompatibilityManager {
 
     @Override
     public String parse(Player player, String text) {
-        return PlaceholderAPIUtils.parse((org.bukkit.entity.Player) player.platformPlayer(), text);
+        return player == null
+                ? PlaceholderAPIUtils.parse(null, text)
+                : PlaceholderAPIUtils.parse((org.bukkit.entity.Player) player.platformPlayer(), text);
     }
 
     @Override

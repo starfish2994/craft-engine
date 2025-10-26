@@ -26,7 +26,9 @@ public class PlaceholderTag implements TagResolver {
         String rawArgument = arguments.popOr("No argument relational placeholder provided").toString();
         if (rawArgument.contains("<")) rawArgument = AdventureHelper.resolvePlainStringTags(rawArgument, this.context.tagResolvers());
         String placeholder = "%" + rawArgument + "%";
-        String parsed = this.context instanceof PlayerContext playerContext ? CraftEngine.instance().compatibilityManager().parse(playerContext.player(), placeholder) : CraftEngine.instance().compatibilityManager().parse(null, placeholder);
+        String parsed = (this.context instanceof PlayerContext playerContext)
+                ? CraftEngine.instance().compatibilityManager().parse(playerContext.player(), placeholder)
+                : CraftEngine.instance().compatibilityManager().parse(null, placeholder);
         if (parsed.equals(placeholder)) {
             parsed = arguments.popOr("No default papi value provided").toString();
         }
