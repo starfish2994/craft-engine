@@ -95,7 +95,6 @@ resource-pack:
     # .png
     texture:
       enable: true
-      color-quantization: false
       # Use Zopfli for PNG compression (very slow). More iterations = smaller files.
       # In fact, setting the number of iterations between 4 and 8 is generally sufficient. Increasing it further rarely leads to significant optimization in size.
       zopfli-iterations: 0 # 0 = disable
