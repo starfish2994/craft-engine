@@ -1943,6 +1943,10 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             this.needsDowngrade = MiscUtils.ceilLog2(BlockStateUtils.vanillaBlockStateCount()) != MiscUtils.ceilLog2(blockRegistrySize);
         }
 
+        public int remapBlockState(int stateId, boolean enableMod) {
+            return enableMod ? this.modBlockStateMapper[stateId] : this.blockStateMapper[stateId];
+        }
+
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
             BukkitServerPlayer player = (BukkitServerPlayer) user;
@@ -1989,14 +1993,14 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 }
                 Palette<Integer> palette = container.data().palette();
                 if (palette.canRemap()) {
-                    if (palette.remapAndCheck(s -> this.blockStateMapper[s])) {
+                    if (palette.remapAndCheck(s -> remapBlockState(s, user.clientModEnabled()))) {
                         hasChangedAnyBlock = true;
                     }
                 } else {
                     hasGlobalPalette = true;
                     for (int j = 0; j < 4096; j++) {
                         int state = container.get(j);
-                        int newState = this.blockStateMapper[state];
+                        int newState = remapBlockState(state, user.clientModEnabled());
                         if (newState != state) {
                             container.set(j, newState);
                             hasChangedAnyBlock = true;
