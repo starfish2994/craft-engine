@@ -187,9 +187,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             Object bundle = FastNMS.INSTANCE.constructor$ClientboundBundlePacket(packets);
             this.immediatePacketConsumer.accept(channel, bundle, sendListener);
         };
-        // set up mod channel
-        this.plugin.javaPlugin().getServer().getMessenger().registerIncomingPluginChannel(this.plugin.javaPlugin(), MOD_CHANNEL, this);
-        this.plugin.javaPlugin().getServer().getMessenger().registerOutgoingPluginChannel(this.plugin.javaPlugin(), MOD_CHANNEL);
         // Inject server channel
         try {
             Object server = FastNMS.INSTANCE.method$MinecraftServer$getServer();
@@ -1612,7 +1609,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             } else {
                 return;
             }
-            if (clientPayload == null || !clientPayload.channel().equals(NetworkManager.MOD_CHANNEL_KEY)) return;
+            if (clientPayload == null) return;
             PayloadHelper.handleReceiver(clientPayload, user);
         }
     }
@@ -3756,7 +3753,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (VersionHelper.isOrAbove1_20_2()) return;
             FriendlyByteBuf byteBuf = event.getBuffer();
             Key key = byteBuf.readKey();
-            if (!key.equals(NetworkManager.MOD_CHANNEL_KEY)) return;
             PayloadHelper.handleReceiver(new UnknownPayload(key, byteBuf.readBytes(byteBuf.readableBytes())), user);
         }
     }

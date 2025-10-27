@@ -8,9 +8,9 @@ import net.momirealms.craftengine.bukkit.plugin.network.payload.protocol.ClientC
 import net.momirealms.craftengine.bukkit.plugin.network.payload.protocol.VisualBlockStatePacket;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
+import net.momirealms.craftengine.core.plugin.network.PayloadChannelKeys;
 import net.momirealms.craftengine.core.plugin.network.ModPacket;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
-import net.momirealms.craftengine.core.plugin.network.NetworkManager;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
 public class PayloadHelper {
+    public static final byte[] JADE_RESPONSE = new byte[]{0, 0, 0, 0};
 
     public static void registerDataTypes() {
         registerDataType(ClientCustomBlockPacket.TYPE, ClientCustomBlockPacket.CODEC);
@@ -40,22 +41,14 @@ public class PayloadHelper {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeByte(BuiltInRegistries.MOD_PACKET.getId(codec));
         codec.encode(buf, data);
-        user.sendCustomPayload(NetworkManager.MOD_CHANNEL_KEY, buf.array());
+        user.sendCustomPayload(PayloadChannelKeys.CRAFTENGINE_CHANNEL, buf.array());
     }
 
     public static void handleReceiver(Payload payload, NetWorkUser user) {
         try {
-            FriendlyByteBuf buf = payload.toBuffer();
-            byte type = buf.readByte();
-            @SuppressWarnings("unchecked")
-            NetworkCodec<FriendlyByteBuf, ModPacket> codec = (NetworkCodec<FriendlyByteBuf, ModPacket>) BuiltInRegistries.MOD_PACKET.getValue(type);
-            if (codec == null) {
-                Debugger.COMMON.debug(() -> "Unknown data type received: " + type);
-                return;
+            if (payload.channel().equals(PayloadChannelKeys.CRAFTENGINE_CHANNEL)) {
+                handleCraftEngineModReceiver(payload, user);
             }
-
-            ModPacket networkData = codec.decode(buf);
-            networkData.handle(user);
         } catch (Throwable e) {
             // 乱发包我给你踹了
             user.kick(Component.translatable(
@@ -64,5 +57,19 @@ public class PayloadHelper {
             ));
             Debugger.COMMON.warn(() -> "Failed to handle payload", e);
         }
+    }
+
+    private static void handleCraftEngineModReceiver(Payload payload, NetWorkUser user) {
+        FriendlyByteBuf buf = payload.toBuffer();
+        byte type = buf.readByte();
+        @SuppressWarnings("unchecked")
+        NetworkCodec<FriendlyByteBuf, ModPacket> codec = (NetworkCodec<FriendlyByteBuf, ModPacket>) BuiltInRegistries.MOD_PACKET.getValue(type);
+        if (codec == null) {
+            Debugger.COMMON.debug(() -> "Unknown data type received: " + type);
+            return;
+        }
+
+        ModPacket networkData = codec.decode(buf);
+        networkData.handle(user);
     }
 }
