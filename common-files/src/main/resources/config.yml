@@ -97,7 +97,7 @@ resource-pack:
       enable: true
       # Use Zopfli for PNG compression (very slow). More iterations = smaller files.
       # In fact, setting the number of iterations between 4 and 8 is generally sufficient. Increasing it further rarely leads to significant optimization in size.
-      zopfli-iterations: 6 # 0 = disable
+      zopfli-iterations: 0 # 0 = disable
       # If your image is special, for example, containing color pixels that need to be specifically recognized by a shader, the optimization might break it. You can add exclusions here.
       exclude:
         - assets/minecraft/textures/block/do_not_optimize.png
