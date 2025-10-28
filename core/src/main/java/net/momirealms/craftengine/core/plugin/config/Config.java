@@ -68,6 +68,10 @@ public class Config {
     protected boolean resource_pack$protection$crash_tools$method_3;
     protected boolean resource_pack$protection$crash_tools$method_4;
     protected boolean resource_pack$protection$crash_tools$method_5;
+    protected boolean resource_pack$protection$crash_tools$method_6;
+    protected boolean resource_pack$protection$crash_tools$method_7;
+    protected boolean resource_pack$protection$crash_tools$method_8;
+    protected boolean resource_pack$protection$crash_tools$method_9;
 
     protected boolean resource_pack$validation$enable;
     protected boolean resource_pack$validation$fix_atlas;
@@ -323,6 +327,10 @@ public class Config {
         resource_pack$protection$crash_tools$method_3 = config.getBoolean("resource-pack.protection.crash-tools.method-3", false);
         resource_pack$protection$crash_tools$method_4 = config.getBoolean("resource-pack.protection.crash-tools.method-4", false);
         resource_pack$protection$crash_tools$method_5 = config.getBoolean("resource-pack.protection.crash-tools.method-5", false);
+        resource_pack$protection$crash_tools$method_6 = config.getBoolean("resource-pack.protection.crash-tools.method-6", false);
+        resource_pack$protection$crash_tools$method_7 = config.getBoolean("resource-pack.protection.crash-tools.method-7", false);
+        resource_pack$protection$crash_tools$method_8 = config.getBoolean("resource-pack.protection.crash-tools.method-8", false);
+        resource_pack$protection$crash_tools$method_9 = config.getBoolean("resource-pack.protection.crash-tools.method-9", false);
         resource_pack$protection$obfuscation$enable = VersionHelper.PREMIUM && config.getBoolean("resource-pack.protection.obfuscation.enable", false);
         resource_pack$protection$obfuscation$seed = config.getLong("resource-pack.protection.obfuscation.seed", 0L);
         resource_pack$protection$fake_directory = config.getBoolean("resource-pack.protection.fake-directory", false);
@@ -756,6 +764,22 @@ public class Config {
 
     public static boolean crashTool5() {
         return instance.resource_pack$protection$crash_tools$method_5;
+    }
+
+    public static boolean crashTool6() {
+        return instance.resource_pack$protection$crash_tools$method_6;
+    }
+
+    public static boolean crashTool7() {
+        return instance.resource_pack$protection$crash_tools$method_7;
+    }
+
+    public static boolean crashTool8() {
+        return instance.resource_pack$protection$crash_tools$method_8;
+    }
+
+    public static boolean crashTool9() {
+        return instance.resource_pack$protection$crash_tools$method_9;
     }
 
     public static boolean enableObfuscation() {
