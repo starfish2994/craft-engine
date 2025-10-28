@@ -90,6 +90,7 @@ public class Config {
     protected boolean resource_pack$optimization$enable;
     protected boolean resource_pack$optimization$texture$enable;
     protected Set<String> resource_pack$optimization$texture$exlude;
+    protected int resource_pack$optimization$texture$zopfli_iterations;
     protected boolean resource_pack$optimization$json$enable;
     protected Set<String> resource_pack$optimization$json$exclude;
 
@@ -295,8 +296,8 @@ public class Config {
         resource_pack$override_uniform_font = config.getBoolean("resource-pack.override-uniform-font", false);
         resource_pack$generate_mod_assets = config.getBoolean("resource-pack.generate-mod-assets", false);
         resource_pack$remove_tinted_leaves_particle = config.getBoolean("resource-pack.remove-tinted-leaves-particle", true);
-        resource_pack$supported_version$min = getVersion(config.get("resource-pack.supported-version.min", "SERVER").toString());
-        resource_pack$supported_version$max = getVersion(config.get("resource-pack.supported-version.max", "LATEST").toString());
+        resource_pack$supported_version$min = getVersion(config.get("resource-pack.supported-version.min", "server").toString());
+        resource_pack$supported_version$max = getVersion(config.get("resource-pack.supported-version.max", "latest").toString());
         if (resource_pack$supported_version$min.isAbove(resource_pack$supported_version$max)) {
             resource_pack$supported_version$min = resource_pack$supported_version$max;
         }
@@ -333,9 +334,16 @@ public class Config {
         resource_pack$protection$obfuscation$resource_location$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-equipments");
         resource_pack$optimization$enable = config.getBoolean("resource-pack.optimization.enable", false);
         resource_pack$optimization$texture$enable = config.getBoolean("resource-pack.optimization.texture.enable", true);
-        resource_pack$optimization$texture$exlude = new HashSet<>(config.getStringList("resource-pack.optimization.texture.exclude"));
+        resource_pack$optimization$texture$zopfli_iterations = config.getInt("resource-pack.optimization.texture.zopfli-iterations", 0);
+        resource_pack$optimization$texture$exlude = config.getStringList("resource-pack.optimization.texture.exclude").stream().map(p -> {
+            if (!p.endsWith(".png")) return p + ".png";
+            return p;
+        }).collect(Collectors.toSet());
         resource_pack$optimization$json$enable = config.getBoolean("resource-pack.optimization.json.enable", true);
-        resource_pack$optimization$json$exclude = new HashSet<>(config.getStringList("resource-pack.optimization.json.exclude"));
+        resource_pack$optimization$json$exclude = config.getStringList("resource-pack.optimization.json.exclude").stream().map(p -> {
+            if (!p.endsWith(".json") && !p.endsWith(".mcmeta")) return p + ".json";
+            return p;
+        }).collect(Collectors.toSet());
         resource_pack$validation$enable = config.getBoolean("resource-pack.validation.enable", true);
         resource_pack$validation$fix_atlas = VersionHelper.PREMIUM && config.getBoolean("resource-pack.validation.fix-atlas", true);
         resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);
@@ -532,10 +540,10 @@ public class Config {
     }
 
     private static MinecraftVersion getVersion(String version) {
-        if (version.equalsIgnoreCase("LATEST")) {
+        if (version.equalsIgnoreCase("latest")) {
             return new MinecraftVersion(PluginProperties.getValue("latest-version"));
         }
-        if (version.equalsIgnoreCase("SERVER")) {
+        if (version.equalsIgnoreCase("server")) {
             return VersionHelper.MINECRAFT_VERSION;
         }
         return MinecraftVersion.parse(version);
@@ -1068,6 +1076,10 @@ public class Config {
 
     public static Set<String> optimizeJsonExclude() {
         return instance.resource_pack$optimization$json$exclude;
+    }
+
+    public static int zopfliIterations() {
+        return instance.resource_pack$optimization$texture$zopfli_iterations;
     }
 
     public YamlDocument loadOrCreateYamlData(String fileName) {

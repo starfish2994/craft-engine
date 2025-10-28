@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.gson.*;
-import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.font.BitmapImage;
 import net.momirealms.craftengine.core.font.Font;
 import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;
@@ -28,6 +27,7 @@ import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.SectionConfigParser;
 import net.momirealms.craftengine.core.plugin.config.StringKeyConstructor;
 import net.momirealms.craftengine.core.plugin.locale.LangData;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
@@ -36,7 +36,6 @@ import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.sound.AbstractSoundManager;
 import net.momirealms.craftengine.core.sound.SoundEvent;
 import net.momirealms.craftengine.core.util.*;
-import org.apache.commons.imaging.palette.PaletteFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -60,7 +59,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static net.momirealms.craftengine.core.util.MiscUtils.castToMap;
 
@@ -105,6 +103,7 @@ public abstract class AbstractPackManager implements PackManager {
     private Map<Path, CachedAssetFile> cachedAssetFiles = Collections.emptyMap();
     protected BiConsumer<Path, Path> zipGenerator;
     protected ResourcePackHost resourcePackHost;
+    private final SkipOptimizationParser parser = new SkipOptimizationParser();
 
     public AbstractPackManager(CraftEngine plugin, Consumer<PackCacheData> cacheEventDispatcher, BiConsumer<Path, Path> generationEventDispatcher) {
         this.plugin = plugin;
@@ -242,6 +241,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public void unload() {
+        this.parser.clearCache();
         this.loadedPacks.clear();
     }
 
@@ -858,8 +858,10 @@ public abstract class AbstractPackManager implements PackManager {
         List<Path> imagesToOptimize = new ArrayList<>();
         List<Path> commonJsonToOptimize = new ArrayList<>();
         List<Path> modelJsonToOptimize = new ArrayList<>();
-        Set<String> excludeTexture = Config.optimizeTextureExclude();
-        Set<String> excludeJson = Config.optimizeJsonExclude();
+        Set<String> excludeTexture = new HashSet<>(Config.optimizeTextureExclude());
+        Set<String> excludeJson = new HashSet<>(Config.optimizeJsonExclude());
+        excludeTexture.addAll(this.parser.excludeTexture());
+        excludeJson.addAll(this.parser.excludeJson());
         Predicate<Path> texturePathPredicate = p -> !excludeTexture.contains(CharacterUtils.replaceBackslashWithSlash(path.relativize(p).toString()));
         Predicate<Path> jsonPathPredicate = p -> !excludeJson.contains(CharacterUtils.replaceBackslashWithSlash(path.relativize(p).toString()));
 
@@ -1118,9 +1120,8 @@ public abstract class AbstractPackManager implements PackManager {
     private byte[] optimizeImage(byte[] previousImageBytes) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
             BufferedImage src = ImageIO.read(is);
-            PaletteFactory factory = new PaletteFactory();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            new PngWriter().write(src, baos, factory);
+            new PngOptimizer(src).write(baos);
             return baos.toByteArray();
         }
     }
@@ -2753,6 +2754,68 @@ public abstract class AbstractPackManager implements PackManager {
                     // just ignore it if it has many conflict files
                 }
             }
+        }
+    }
+
+    @Override
+    public ConfigParser parser() {
+        return this.parser;
+    }
+
+    public static class SkipOptimizationParser extends SectionConfigParser {
+        private static final String[] SECTION_ID = new String[] {"skip-optimization"};
+        private final Set<String> excludeTexture = new HashSet<>();
+        private final Set<String> excludeJson = new HashSet<>();
+
+        public SkipOptimizationParser() {
+        }
+
+        public void clearCache() {
+            this.excludeTexture.clear();
+            this.excludeJson.clear();
+        }
+
+        public Set<String> excludeTexture() {
+            return excludeTexture;
+        }
+
+        public Set<String> excludeJson() {
+            return excludeJson;
+        }
+
+        @Override
+        protected void parseSection(Pack pack, Path path, Map<String, Object> section) throws LocalizedException {
+            if (!Config.optimizeResourcePack()) return;
+            List<String> textures = MiscUtils.getAsStringList(section.get("texture"));
+            if (!textures.isEmpty()) {
+                for (String texture : textures) {
+                    if (texture.endsWith(".png")) {
+                        this.excludeTexture.add(texture);
+                    } else {
+                        this.excludeTexture.add(texture + ".png");
+                    }
+                }
+            }
+            List<String> jsons = MiscUtils.getAsStringList(section.get("json"));
+            if (!jsons.isEmpty()) {
+                for (String json : jsons) {
+                    if (json.endsWith(".json") || json.endsWith(".mcmeta")) {
+                        this.excludeJson.add(json);
+                    } else {
+                        this.excludeJson.add(json + ".json");
+                    }
+                }
+            }
+        }
+
+        @Override
+        public String[] sectionId() {
+            return SECTION_ID;
+        }
+
+        @Override
+        public int loadingSequence() {
+            return LoadingSequence.SKIP_OPTIMIZATION;
         }
     }
 }

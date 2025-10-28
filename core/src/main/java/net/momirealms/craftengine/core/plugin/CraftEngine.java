@@ -298,6 +298,8 @@ public abstract class CraftEngine implements Plugin {
         this.packManager.registerConfigSectionParser(this.vanillaLootManager.parser());
         // register advancement parser
         this.packManager.registerConfigSectionParser(this.advancementManager.parser());
+        // register skip-optimization parser
+        this.packManager.registerConfigSectionParser(this.packManager.parser());
     }
 
     public void applyDependencies() {
@@ -319,7 +321,7 @@ public abstract class CraftEngine implements Plugin {
                 Dependencies.GEANTY_REF,
                 Dependencies.CLOUD_CORE, Dependencies.CLOUD_SERVICES,
                 Dependencies.GSON,
-                Dependencies.COMMONS_IO, Dependencies.COMMONS_LANG3, Dependencies.COMMONS_IMAGING,
+                Dependencies.COMMONS_IO, Dependencies.COMMONS_LANG3,
                 Dependencies.ZSTD,
                 Dependencies.BYTE_BUDDY, Dependencies.BYTE_BUDDY_AGENT,
                 Dependencies.SNAKE_YAML,

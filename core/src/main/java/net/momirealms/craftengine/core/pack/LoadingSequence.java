@@ -21,4 +21,5 @@ public final class LoadingSequence {
     public static final int EMOJI = 140;
     public static final int ADVANCEMENT = 150;
     public static final int LANG = 160;
+    public static final int SKIP_OPTIMIZATION = 170;
 }

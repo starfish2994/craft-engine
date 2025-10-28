@@ -69,8 +69,6 @@ dependencies {
     compileOnly("com.mojang:authlib:${rootProject.properties["authlib_version"]}")
     // concurrentutil
     compileOnly("ca.spottedleaf:concurrentutil:${rootProject.properties["concurrent_util_version"]}")
-    // imaging
-    compileOnly("org.apache.commons:commons-imaging:${rootProject.properties["commons_imaging_version"]}")
 }
 
 java {

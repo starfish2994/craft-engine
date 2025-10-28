@@ -12,6 +12,8 @@ import java.util.Collection;
 
 public interface PackManager extends Manageable {
 
+    ConfigParser parser();
+
     void loadResources(boolean recipe);
 
     void initCachedAssets();
