@@ -2,15 +2,14 @@ package net.momirealms.craftengine.core.util;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.core.pack.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Stream;
 
 public class FileUtils {
@@ -92,39 +91,33 @@ public class FileUtils {
         return folders;
     }
 
-    public static void copyFilesByExtension(Path sourceDir, Path targetDir, String fileExtension, boolean preserveStructure) throws IOException {
-        if (!Files.exists(sourceDir)) {
-            return;
-        }
+    public static List<Path> getFilesDeeply(Path path) throws IOException {
+        List<Path> files = new ObjectArrayList<>();
+        Files.walkFileTree(path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+            @Override
+            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+                if (attrs.isRegularFile()) {
+                    files.add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return files;
+    }
 
-        if (!Files.isDirectory(sourceDir)) {
-            return;
-        }
+    public static boolean isJsonFile(Path filePath) {
+        return filePath.getFileName().toString().endsWith(".json");
+    }
 
-        // 确保目标目录存在
-        Files.createDirectories(targetDir);
-        String extensionPattern = fileExtension.startsWith(".") ? fileExtension : "." + fileExtension;
-        try (Stream<Path> paths = Files.walk(sourceDir)) {
-            paths.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().toLowerCase(Locale.ROOT).endsWith(extensionPattern.toLowerCase()))
-                    .forEach(sourceFile -> {
-                        try {
-                            Path targetFile;
-                            if (preserveStructure) {
-                                // 保持目录结构
-                                targetFile = targetDir.resolve(sourceDir.relativize(sourceFile));
-                            } else {
-                                // 不保持目录结构，所有文件都放在目标目录根下
-                                targetFile = targetDir.resolve(sourceFile.getFileName());
-                            }
-                            // 确保目标文件的父目录存在
-                            Files.createDirectories(targetFile.getParent());
-                            // 复制文件，如果已存在则替换
-                            Files.copy(sourceFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
-                        } catch (IOException e) {
-                            throw new RuntimeException("Failed to copy file: " + sourceFile, e);
-                        }
-                    });
-        }
+    public static boolean isMcMetaFile(Path filePath) {
+        return filePath.getFileName().toString().endsWith(".mcmeta");
+    }
+
+    public static boolean isPngFile(Path filePath) {
+        return filePath.getFileName().toString().endsWith(".png");
+    }
+
+    public static boolean isOggFile(Path filePath) {
+        return filePath.getFileName().toString().endsWith(".ogg");
     }
 }

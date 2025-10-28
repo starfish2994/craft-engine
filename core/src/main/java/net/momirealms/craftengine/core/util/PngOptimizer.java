@@ -389,7 +389,16 @@ public class PngOptimizer {
         if (data != null) {
             os.write(data);
         }
-        writeInt(os, 0); // crc
+        writeInt(os, calculateCRC(chunkType, data)); // crc
+    }
+
+    public static int calculateCRC(byte[] chunkType, byte[] data) {
+        CRC crc = new CRC();
+        crc.update(chunkType, 0, chunkType.length);
+        if (data != null && data.length > 0) {
+            crc.update(data, 0, data.length);
+        }
+        return crc.getValue();
     }
 
     enum PngColorType {
