@@ -2,7 +2,6 @@ package net.momirealms.craftengine.bukkit.plugin.network.payload.protocol;
 
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.ModPacket;
@@ -35,11 +34,13 @@ public record VisualBlockStatePacket(int[] data) implements ModPacket {
     }
 
     public static VisualBlockStatePacket create() {
-        int[] mappings = new int[RegistryUtils.currentBlockRegistrySize()];
-        for (int i = 0; i < Config.serverSideBlocks(); i++) {
-            ImmutableBlockState state = BukkitBlockManager.instance().getImmutableBlockStateUnsafe(i + BlockStateUtils.vanillaBlockStateCount());
+        int vanillaBlockStateCount = BlockStateUtils.vanillaBlockStateCount();
+        int serverSideBlockCount = Config.serverSideBlocks();
+        int[] mappings = new int[serverSideBlockCount];
+        for (int i = 0; i < serverSideBlockCount; i++) {
+            ImmutableBlockState state = BukkitBlockManager.instance().getImmutableBlockStateUnsafe(i + vanillaBlockStateCount);
             if (state.isEmpty()) continue;
-            mappings[state.customBlockState().registryId()] = state.vanillaBlockState().registryId();
+            mappings[state.customBlockState().registryId() - vanillaBlockStateCount] = state.vanillaBlockState().registryId();
         }
         return new VisualBlockStatePacket(mappings);
     }
