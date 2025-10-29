@@ -1664,7 +1664,8 @@ public final class CoreReflections {
     public static final Object instance$EquipmentSlot$LEGS;
     public static final Object instance$EquipmentSlot$CHEST;
     public static final Object instance$EquipmentSlot$HEAD;
-//    public static final Object instance$EquipmentSlot$BODY;
+    public static final Object instance$EquipmentSlot$BODY;
+    public static final Object instance$EquipmentSlot$SADDLE;
 
     static {
         try {
@@ -1675,7 +1676,16 @@ public final class CoreReflections {
             instance$EquipmentSlot$LEGS = instance$EquipmentSlot$values[3];
             instance$EquipmentSlot$CHEST = instance$EquipmentSlot$values[4];
             instance$EquipmentSlot$HEAD = instance$EquipmentSlot$values[5];
-//            instance$EquipmentSlot$BODY = instance$EquipmentSlot$values[6];
+            if (VersionHelper.isOrAbove1_20_5()) {
+                instance$EquipmentSlot$BODY = instance$EquipmentSlot$values[6];
+            } else {
+                instance$EquipmentSlot$BODY = null;
+            }
+            if (VersionHelper.isOrAbove1_21_5()) {
+                instance$EquipmentSlot$SADDLE = instance$EquipmentSlot$values[7];
+            } else {
+                instance$EquipmentSlot$SADDLE = null;
+            }
         } catch (ReflectiveOperationException e) {
             throw new ReflectionInitException("Failed to init EquipmentSlot", e);
         }
