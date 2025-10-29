@@ -59,6 +59,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static net.momirealms.craftengine.core.util.MiscUtils.castToMap;
 
@@ -109,7 +111,35 @@ public abstract class AbstractPackManager implements PackManager {
         this.plugin = plugin;
         this.cacheEventDispatcher = cacheEventDispatcher;
         this.generationEventDispatcher = generationEventDispatcher;
-        this.zipGenerator = (p1, p2) -> {};
+        this.zipGenerator = (p1, p2) -> {
+            try (FileOutputStream fos = new FileOutputStream(p2.toFile());
+                 ZipOutputStream zos = new ZipOutputStream(fos)) {
+                Files.walkFileTree(p1, new SimpleFileVisitor<>() {
+                    @Override
+                    public @NotNull FileVisitResult preVisitDirectory(@NotNull Path dir, @NotNull BasicFileAttributes attrs) throws IOException {
+                        if (!dir.equals(p1)) {
+                            String relativePath = p1.relativize(dir).toString().replace("\\", "/") + "/";
+                            ZipEntry entry = new ZipEntry(relativePath);
+                            zos.putNextEntry(entry);
+                            zos.closeEntry();
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) throws IOException {
+                        String relativePath = p1.relativize(file).toString().replace("\\", "/");
+                        ZipEntry entry = new ZipEntry(relativePath);
+                        zos.putNextEntry(entry);
+                        Files.copy(file, zos);
+                        zos.closeEntry();
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to generate resource pack", e);
+            }
+        };
         Path resourcesFolder = this.plugin.dataFolderPath().resolve("resources");
         try {
             if (Files.notExists(resourcesFolder)) {
@@ -909,7 +939,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 Files.walkFileTree(targetFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                                     @Override
                                     public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
-                                        if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                        if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                         if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
                                         commonJsonToOptimize.add(file);
                                         return FileVisitResult.CONTINUE;
@@ -928,7 +958,7 @@ public abstract class AbstractPackManager implements PackManager {
                             Files.walkFileTree(modelsFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                                 @Override
                                 public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
-                                    if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                    if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                     if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
                                     modelJsonToOptimize.add(file);
                                     return FileVisitResult.CONTINUE;
@@ -948,11 +978,11 @@ public abstract class AbstractPackManager implements PackManager {
                             Files.walkFileTree(texturesFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                                 @Override
                                 public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
-                                    if (isPngFile(file)) {
+                                    if (FileUtils.isPngFile(file)) {
                                         if (Config.optimizeTexture() && texturePathPredicate.test(file)) {
                                             imagesToOptimize.add(file);
                                         }
-                                    } else if (isMCMetaFile(file) && Config.optimizeJson()) {
+                                    } else if (FileUtils.isMcMetaFile(file) && Config.optimizeJson()) {
                                         if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
                                         commonJsonToOptimize.add(file);
                                     }
@@ -1194,7 +1224,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.walkFileTree(fontPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                             @Override
                             public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
-                                if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                 JsonObject fontJson;
                                 try {
                                     fontJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -1231,7 +1261,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.walkFileTree(itemsPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                             @Override
                             public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
-                                if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                 JsonObject itemJson;
                                 try {
                                     itemJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -1256,7 +1286,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.walkFileTree(blockStatesPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                             @Override
                             public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
-                                if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                 JsonObject blockStateJson;
                                 try {
                                     blockStateJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -1285,7 +1315,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.walkFileTree(equipmentPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                             @Override
                             public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
-                                if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                 JsonObject equipmentJson;
                                 try {
                                     equipmentJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -1434,7 +1464,7 @@ public abstract class AbstractPackManager implements PackManager {
         Set<Key> texturesToFix = new HashSet<>();
 
         // 验证贴图是否存在
-        boolean enableObf = Config.enableObfuscation() && Config.enableRandomResourceLocation();
+        boolean enableObf = Config.enableObfuscation();
         label: for (Map.Entry<Key, Collection<Key>> entry : imageToModels.asMap().entrySet()) {
             Key key = entry.getKey();
             // 已经存在的贴图，直接过滤
@@ -1581,21 +1611,6 @@ public abstract class AbstractPackManager implements PackManager {
                 }
             }
         }
-    }
-
-    private static boolean isJsonFile(Path filePath) {
-        String fileName = filePath.getFileName().toString();
-        return fileName.endsWith(".json");
-    }
-
-    private static boolean isMCMetaFile(Path filePath) {
-        String fileName = filePath.getFileName().toString();
-        return fileName.endsWith(".mcmeta");
-    }
-
-    private static boolean isPngFile(Path filePath) {
-        String fileName = filePath.getFileName().toString();
-        return fileName.endsWith(".png");
     }
 
     private static void collectItemModelsDeeply(JsonObject jo, Consumer<Key> callback) {

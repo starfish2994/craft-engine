@@ -85,13 +85,12 @@ resource-pack:
   # If your resource pack is compliant with the standard, you can disable validation to improve the resource pack generation speed.
   validation:
     enable: true
-    # [Premium Exclusive]
     # Fix images that are not within the texture atlas. It is unreasonable to always rely on plugins to fix your mistakes.
     # You should strive to make your resource pack more standardized after gaining some experience with resource packs.
     fix-atlas: true
   # Optimize your resource pack by reducing its size without any quality loss.
   optimization:
-    enable: false
+    enable: true
     # .png
     texture:
       enable: true
@@ -105,41 +104,57 @@ resource-pack:
     json:
       enable: true
       exclude: []
+  # [Premium Exclusive]
   # Protect your resource pack from being cracked by others
   protection:
     # Prevent thieves from extracting your resource pack. These options will crash their software.
+    # Some of these options may impact your resource pack size.
     crash-tools:
       method-1: false
-      method-2: false
-      method-3: false # Enable this would increase the resource pack size by 0.67MB
-    # [Premium Exclusive]
+      method-2: false # This would increase the resource pack size by 64KB
+      method-3: false # This would increase the resource pack size by 0.67MB
+      method-4: false
+      method-5: true # This can reduce the resource pack size, also it prevents some software from extracting it
+    # Create incorrect crc data
+    incorrect-crc: false
+    # Spoof huge files
+    fake-file-size: false
+    # Escape the JSON to make it human-unreadable
+    escape-json: false
+    # Create fake folders to hide original files
+    fake-directory: false
+    # Corrupt the texture file to prevent thieves from opening it
+    break-texture: false
     # Obfuscate your resource pack to prevent thieves from restoring its original structure
     obfuscation:
       enable: false
       seed: 0 # 0 = random seed
-      fake-directory: false # Create fake folders to deceive thieves
-      escape-unicode: false # Escape the JSON to make it human-unreadable
-      resource-location:
-        enable: true
-        random-namespace:
-          amount: 8 # 0 = disable
-          length: 9
-        random-path:
-          source: obf
-          depth: 8
-          anti-unzip: false
-        random-atlas:
-          images-per-canvas: 256 # 0 = disable
-        # Sometimes, some vanilla files that have been overwritten might be mistakenly obfuscated
-        # Please add the ignored textures/models/sounds here if that happens
-        bypass-textures:
-          # - minecraft:block/farmland
-          - "@legacy_unicode"
-          - "@vanilla_textures"
-        bypass-models:
-          - "@vanilla_models"
-        bypass-sounds: []
-        bypass-equipments: []
+      # Determines the number and length of obfuscated namespaces.
+      namespace:
+        amount: 32  # 0 = disable
+        length: 2
+      # Determines the depth of the obfuscated path.
+      path:
+        source: obf
+        depth: 4
+        length: 2
+        # Prevent straightforward unzip
+        anti-unzip: false
+      # A larger atlas will result in slower generation speed, but it will also lead to a smaller resource pack size.
+      atlas:
+        prefix: atlas # The prefix of the folder where the generated atlas will be located
+        images-per-canvas: 256
+      # Sometimes, some vanilla files that have been overwritten might be mistakenly obfuscated
+      # Please add the ignored textures/models/sounds here if that happens
+      bypass-textures:
+        - minecraft:block/farmland  # bypass a specified resource location
+        - "@vanilla_textures"       # bypass vanilla textures
+      bypass-models:
+        - custom:item/do_not_obfuscate
+        - "@vanilla_models"         # bypass vanilla models
+      bypass-sounds:
+        - "@vanilla_sounds"         # bypass vanilla sounds
+      bypass-equipments: []
   # This section controls how to send the resource pack to players
   delivery:
     # Send the resource pack on joining the server

@@ -17,6 +17,8 @@ import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ResolutionConditional;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.PluginProperties;
+import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
+import net.momirealms.craftengine.core.plugin.context.number.NumberProviders;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.logger.filter.DisconnectLogFilter;
@@ -64,6 +66,12 @@ public class Config {
     protected boolean resource_pack$protection$crash_tools$method_1;
     protected boolean resource_pack$protection$crash_tools$method_2;
     protected boolean resource_pack$protection$crash_tools$method_3;
+    protected boolean resource_pack$protection$crash_tools$method_4;
+    protected boolean resource_pack$protection$crash_tools$method_5;
+    protected boolean resource_pack$protection$crash_tools$method_6;
+    protected boolean resource_pack$protection$crash_tools$method_7;
+    protected boolean resource_pack$protection$crash_tools$method_8;
+    protected boolean resource_pack$protection$crash_tools$method_9;
 
     protected boolean resource_pack$validation$enable;
     protected boolean resource_pack$validation$fix_atlas;
@@ -71,21 +79,23 @@ public class Config {
 
     protected boolean resource_pack$protection$obfuscation$enable;
     protected long resource_pack$protection$obfuscation$seed;
-    protected boolean resource_pack$protection$obfuscation$fake_directory;
-    protected boolean resource_pack$protection$obfuscation$escape_unicode;
-    protected boolean resource_pack$protection$obfuscation$break_json;
-    protected boolean resource_pack$protection$obfuscation$resource_location$enable;
-    protected int resource_pack$protection$obfuscation$resource_location$random_namespace$length;
-    protected int resource_pack$protection$obfuscation$resource_location$random_namespace$amount;
-    protected String resource_pack$protection$obfuscation$resource_location$random_path$source;
-    protected int resource_pack$protection$obfuscation$resource_location$random_path$depth;
-    protected boolean resource_pack$protection$obfuscation$resource_location$random_path$anti_unzip;
-    protected int resource_pack$protection$obfuscation$resource_location$random_atlas$images_per_canvas;
-    protected boolean resource_pack$protection$obfuscation$resource_location$random_atlas$use_double;
-    protected List<String> resource_pack$protection$obfuscation$resource_location$bypass_textures;
-    protected List<String> resource_pack$protection$obfuscation$resource_location$bypass_models;
-    protected List<String> resource_pack$protection$obfuscation$resource_location$bypass_sounds;
-    protected List<String> resource_pack$protection$obfuscation$resource_location$bypass_equipments;
+    protected boolean resource_pack$protection$fake_directory;
+    protected boolean resource_pack$protection$escape_json;
+    protected boolean resource_pack$protection$break_texture;
+    protected boolean resource_pack$protection$obfuscation$path$anti_unzip;
+    protected boolean resource_pack$protection$incorrect_crc;
+    protected boolean resource_pack$protection$fake_file_size;
+    protected NumberProvider resource_pack$protection$obfuscation$namespace$length;
+    protected int resource_pack$protection$obfuscation$namespace$amount;
+    protected String resource_pack$protection$obfuscation$path$source;
+    protected NumberProvider resource_pack$protection$obfuscation$path$depth;
+    protected NumberProvider resource_pack$protection$obfuscation$path$length;
+    protected int resource_pack$protection$obfuscation$atlas$images_per_canvas;
+    protected String resource_pack$protection$obfuscation$atlas$prefix;
+    protected List<String> resource_pack$protection$obfuscation$bypass_textures;
+    protected List<String> resource_pack$protection$obfuscation$bypass_models;
+    protected List<String> resource_pack$protection$obfuscation$bypass_sounds;
+    protected List<String> resource_pack$protection$obfuscation$bypass_equipments;
 
     protected boolean resource_pack$optimization$enable;
     protected boolean resource_pack$optimization$texture$enable;
@@ -315,23 +325,31 @@ public class Config {
         resource_pack$protection$crash_tools$method_1 = config.getBoolean("resource-pack.protection.crash-tools.method-1", false);
         resource_pack$protection$crash_tools$method_2 = config.getBoolean("resource-pack.protection.crash-tools.method-2", false);
         resource_pack$protection$crash_tools$method_3 = config.getBoolean("resource-pack.protection.crash-tools.method-3", false);
+        resource_pack$protection$crash_tools$method_4 = config.getBoolean("resource-pack.protection.crash-tools.method-4", false);
+        resource_pack$protection$crash_tools$method_5 = config.getBoolean("resource-pack.protection.crash-tools.method-5", false);
+        resource_pack$protection$crash_tools$method_6 = config.getBoolean("resource-pack.protection.crash-tools.method-6", false);
+        resource_pack$protection$crash_tools$method_7 = config.getBoolean("resource-pack.protection.crash-tools.method-7", false);
+        resource_pack$protection$crash_tools$method_8 = config.getBoolean("resource-pack.protection.crash-tools.method-8", false);
+        resource_pack$protection$crash_tools$method_9 = config.getBoolean("resource-pack.protection.crash-tools.method-9", false);
         resource_pack$protection$obfuscation$enable = VersionHelper.PREMIUM && config.getBoolean("resource-pack.protection.obfuscation.enable", false);
         resource_pack$protection$obfuscation$seed = config.getLong("resource-pack.protection.obfuscation.seed", 0L);
-        resource_pack$protection$obfuscation$fake_directory = config.getBoolean("resource-pack.protection.obfuscation.fake-directory", false);
-        resource_pack$protection$obfuscation$escape_unicode = config.getBoolean("resource-pack.protection.obfuscation.escape-unicode", false);
-        resource_pack$protection$obfuscation$break_json = config.getBoolean("resource-pack.protection.obfuscation.break-json", false);
-        resource_pack$protection$obfuscation$resource_location$enable = config.getBoolean("resource-pack.protection.obfuscation.resource-location.enable", false);
-        resource_pack$protection$obfuscation$resource_location$random_namespace$amount = config.getInt("resource-pack.protection.obfuscation.resource-location.random-namespace.amount", 32);
-        resource_pack$protection$obfuscation$resource_location$random_namespace$length = config.getInt("resource-pack.protection.obfuscation.resource-location.random-namespace.length", 8);
-        resource_pack$protection$obfuscation$resource_location$random_path$depth = config.getInt("resource-pack.protection.obfuscation.resource-location.random-path.depth", 16);
-        resource_pack$protection$obfuscation$resource_location$random_path$source = config.getString("resource-pack.protection.obfuscation.resource-location.random-path.source", "obf");
-        resource_pack$protection$obfuscation$resource_location$random_path$anti_unzip = config.getBoolean("resource-pack.protection.obfuscation.resource-location.random-path.anti-unzip", false);
-        resource_pack$protection$obfuscation$resource_location$random_atlas$images_per_canvas = config.getInt("resource-pack.protection.obfuscation.resource-location.random-atlas.images-per-canvas", 16);
-        resource_pack$protection$obfuscation$resource_location$random_atlas$use_double = config.getBoolean("resource-pack.protection.obfuscation.resource-location.random-atlas.use-double", false);
-        resource_pack$protection$obfuscation$resource_location$bypass_textures = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-textures");
-        resource_pack$protection$obfuscation$resource_location$bypass_models = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-models");
-        resource_pack$protection$obfuscation$resource_location$bypass_sounds = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-sounds");
-        resource_pack$protection$obfuscation$resource_location$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.resource-location.bypass-equipments");
+        resource_pack$protection$fake_directory = config.getBoolean("resource-pack.protection.fake-directory", false);
+        resource_pack$protection$escape_json = config.getBoolean("resource-pack.protection.escape-json", false);
+        resource_pack$protection$break_texture = config.getBoolean("resource-pack.protection.break-texture", false);
+        resource_pack$protection$incorrect_crc = config.getBoolean("resource-pack.protection.incorrect-crc", false);
+        resource_pack$protection$fake_file_size = config.getBoolean("resource-pack.protection.fake-file-size", false);
+        resource_pack$protection$obfuscation$namespace$amount = config.getInt("resource-pack.protection.obfuscation.namespace.amount", 32);
+        resource_pack$protection$obfuscation$namespace$length = NumberProviders.fromObject(config.get("resource-pack.protection.obfuscation.namespace.length", 2));
+        resource_pack$protection$obfuscation$path$depth = NumberProviders.fromObject(config.get("resource-pack.protection.obfuscation.path.depth", 4));
+        resource_pack$protection$obfuscation$path$length = NumberProviders.fromObject(config.get("resource-pack.protection.obfuscation.path.length", 2));
+        resource_pack$protection$obfuscation$path$source = config.getString("resource-pack.protection.obfuscation.path.source", "obf");
+        resource_pack$protection$obfuscation$path$anti_unzip = config.getBoolean("resource-pack.protection.obfuscation.path.anti-unzip", false);
+        resource_pack$protection$obfuscation$atlas$images_per_canvas = config.getInt("resource-pack.protection.obfuscation.atlas.images-per-canvas", 256);
+        resource_pack$protection$obfuscation$atlas$prefix = config.getString("resource-pack.protection.obfuscation.atlas.prefix", "atlas");
+        resource_pack$protection$obfuscation$bypass_textures = config.getStringList("resource-pack.protection.obfuscation.bypass-textures");
+        resource_pack$protection$obfuscation$bypass_models = config.getStringList("resource-pack.protection.obfuscation.bypass-models");
+        resource_pack$protection$obfuscation$bypass_sounds = config.getStringList("resource-pack.protection.obfuscation.bypass-sounds");
+        resource_pack$protection$obfuscation$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.bypass-equipments");
         resource_pack$optimization$enable = config.getBoolean("resource-pack.optimization.enable", false);
         resource_pack$optimization$texture$enable = config.getBoolean("resource-pack.optimization.texture.enable", true);
         resource_pack$optimization$texture$zopfli_iterations = config.getInt("resource-pack.optimization.texture.zopfli-iterations", 0);
@@ -345,7 +363,7 @@ public class Config {
             return p;
         }).collect(Collectors.toSet());
         resource_pack$validation$enable = config.getBoolean("resource-pack.validation.enable", true);
-        resource_pack$validation$fix_atlas = VersionHelper.PREMIUM && config.getBoolean("resource-pack.validation.fix-atlas", true);
+        resource_pack$validation$fix_atlas = config.getBoolean("resource-pack.validation.fix-atlas", true);
         resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);
         resource_pack$overlay_format = config.getString("resource-pack.overlay-format", "overlay_{version}");
         if (!resource_pack$overlay_format.contains("{version}")) {
@@ -741,7 +759,27 @@ public class Config {
     }
 
     public static boolean crashTool4() {
-        return false;
+        return instance.resource_pack$protection$crash_tools$method_4;
+    }
+
+    public static boolean crashTool5() {
+        return instance.resource_pack$protection$crash_tools$method_5;
+    }
+
+    public static boolean crashTool6() {
+        return instance.resource_pack$protection$crash_tools$method_6;
+    }
+
+    public static boolean crashTool7() {
+        return instance.resource_pack$protection$crash_tools$method_7;
+    }
+
+    public static boolean crashTool8() {
+        return instance.resource_pack$protection$crash_tools$method_8;
+    }
+
+    public static boolean crashTool9() {
+        return instance.resource_pack$protection$crash_tools$method_9;
     }
 
     public static boolean enableObfuscation() {
@@ -753,63 +791,71 @@ public class Config {
     }
 
     public static boolean createFakeDirectory() {
-        return instance.resource_pack$protection$obfuscation$fake_directory;
+        return instance.resource_pack$protection$fake_directory;
     }
 
-    public static boolean escapeUnicode() {
-        return instance.resource_pack$protection$obfuscation$escape_unicode;
+    public static boolean escapeJson() {
+        return instance.resource_pack$protection$escape_json;
     }
 
-    public static boolean breakJson() {
-        return instance.resource_pack$protection$obfuscation$break_json;
+    public static boolean breakTexture() {
+        return instance.resource_pack$protection$break_texture;
     }
 
-    public static boolean enableRandomResourceLocation() {
-        return instance.resource_pack$protection$obfuscation$resource_location$enable;
-    }
-
-    public static int namespaceLength() {
-        return instance.resource_pack$protection$obfuscation$resource_location$random_namespace$length;
+    public static NumberProvider namespaceLength() {
+        return instance.resource_pack$protection$obfuscation$namespace$length;
     }
 
     public static int namespaceAmount() {
-        return instance.resource_pack$protection$obfuscation$resource_location$random_namespace$amount;
+        return instance.resource_pack$protection$obfuscation$namespace$amount;
     }
 
     public static String atlasSource() {
-        return instance.resource_pack$protection$obfuscation$resource_location$random_path$source;
+        return instance.resource_pack$protection$obfuscation$path$source;
     }
 
-    public static int pathDepth() {
-        return instance.resource_pack$protection$obfuscation$resource_location$random_path$depth;
+    public static NumberProvider pathDepth() {
+        return instance.resource_pack$protection$obfuscation$path$depth;
+    }
+
+    public static NumberProvider pathLength() {
+        return instance.resource_pack$protection$obfuscation$path$length;
     }
 
     public static boolean antiUnzip() {
-        return instance.resource_pack$protection$obfuscation$resource_location$random_path$anti_unzip;
+        return instance.resource_pack$protection$obfuscation$path$anti_unzip;
+    }
+
+    public static boolean incorrectCrc() {
+        return instance.resource_pack$protection$incorrect_crc;
+    }
+
+    public static boolean fakeFileSize() {
+        return instance.resource_pack$protection$fake_file_size;
     }
 
     public static int imagesPerCanvas() {
-        return instance.resource_pack$protection$obfuscation$resource_location$random_atlas$images_per_canvas;
+        return instance.resource_pack$protection$obfuscation$atlas$images_per_canvas;
     }
 
-    public static boolean useDouble() {
-        return instance.resource_pack$protection$obfuscation$resource_location$random_atlas$use_double;
+    public static String imageCanvasPrefix() {
+        return instance.resource_pack$protection$obfuscation$atlas$prefix;
     }
 
     public static List<String> bypassTextures() {
-        return instance.resource_pack$protection$obfuscation$resource_location$bypass_textures;
+        return instance.resource_pack$protection$obfuscation$bypass_textures;
     }
 
     public static List<String> bypassModels() {
-        return instance.resource_pack$protection$obfuscation$resource_location$bypass_models;
+        return instance.resource_pack$protection$obfuscation$bypass_models;
     }
 
     public static List<String> bypassSounds() {
-        return instance.resource_pack$protection$obfuscation$resource_location$bypass_sounds;
+        return instance.resource_pack$protection$obfuscation$bypass_sounds;
     }
 
     public static List<String> bypassEquipments() {
-        return instance.resource_pack$protection$obfuscation$resource_location$bypass_equipments;
+        return instance.resource_pack$protection$obfuscation$bypass_equipments;
     }
 
     public static Key deceiveBukkitMaterial(int id) {

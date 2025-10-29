@@ -106,6 +106,7 @@ public class PngOptimizer {
                 src.getColorModel().hasAlpha() ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB
         );
 
+        // 32 bit 位深 -> 8 bit 位深
         if (type == BufferedImage.TYPE_4BYTE_ABGR || type == BufferedImage.TYPE_4BYTE_ABGR_PRE) {
             for (int y = 0; y < src.getHeight(); y++) {
                 for (int x = 0; x < src.getWidth(); x++) {
@@ -117,6 +118,10 @@ public class PngOptimizer {
         }
 
         Graphics2D g2d = eightBitImage.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
+        g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
         g2d.drawImage(src, 0, 0, null);
         g2d.dispose();
         return eightBitImage;
@@ -389,7 +394,16 @@ public class PngOptimizer {
         if (data != null) {
             os.write(data);
         }
-        writeInt(os, 0); // crc
+        writeInt(os, calculateCRC(chunkType, data)); // crc
+    }
+
+    public static int calculateCRC(byte[] chunkType, byte[] data) {
+        CRC crc = new CRC();
+        crc.update(chunkType, 0, chunkType.length);
+        if (data != null && data.length > 0) {
+            crc.update(data, 0, data.length);
+        }
+        return crc.getValue();
     }
 
     enum PngColorType {
