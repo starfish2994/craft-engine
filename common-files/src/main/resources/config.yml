@@ -111,10 +111,12 @@ resource-pack:
     # Some of these options may impact your resource pack size.
     crash-tools:
       method-1: false
-      method-2: false # This would increase the resource pack size by 64KB
-      method-3: false # This would increase the resource pack size by 0.67MB
+      method-2: false # This will increase the resource pack size by 64KB
+      method-3: false # This will increase the resource pack size by 0.67MB
       method-4: false
       method-5: true # This can reduce the resource pack size, also it prevents some software from extracting it
+      method-6: false # This will increase the resource pack size by a certain percentage
+      method-7: false
     # Create incorrect crc data
     incorrect-crc: false
     # Spoof huge files
@@ -123,7 +125,7 @@ resource-pack:
     escape-json: false
     # Create fake folders to hide original files
     fake-directory: false
-    # Corrupt the texture file to prevent thieves from opening it
+    # Break the texture file to prevent thieves from opening it
     break-texture: false
     # Obfuscate your resource pack to prevent thieves from restoring its original structure
     obfuscation:
