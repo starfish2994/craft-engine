@@ -8,6 +8,7 @@ import com.google.gson.JsonPrimitive;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -199,6 +200,11 @@ public class IdAllocator {
         result.putAll(this.forcedIdMap);
         result.putAll(this.cachedIdMap);
         return Collections.unmodifiableMap(result);
+    }
+
+    @NotNull
+    public Map<String, Integer> cachedIdMap() {
+        return Collections.unmodifiableMap(this.cachedIdMap);
     }
 
     /**

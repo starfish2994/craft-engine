@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,6 +47,11 @@ public class VisualBlockStateAllocator {
 
     public boolean isForcedState(final BlockStateWrapper state) {
         return this.forcedStates.contains(state);
+    }
+
+    @NotNull
+    public Map<String, BlockStateWrapper> cachedBlockStates() {
+        return Collections.unmodifiableMap(this.cachedBlockStates);
     }
 
     public CompletableFuture<BlockStateWrapper> assignFixedBlockState(String name, BlockStateWrapper state) {

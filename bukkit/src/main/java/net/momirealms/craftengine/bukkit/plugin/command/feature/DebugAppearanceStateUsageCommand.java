@@ -20,7 +20,9 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class DebugAppearanceStateUsageCommand extends BukkitCommandFeature<CommandSender> {
@@ -48,18 +50,30 @@ public class DebugAppearanceStateUsageCommand extends BukkitCommandFeature<Comma
                     Component block = Component.text(baseBlockId + ": ");
                     plugin().senderFactory().wrap(context.sender()).sendMessage(block);
                     VisualBlockStateAllocator allocator = blockManager.blockParser().visualBlockStateAllocator();
+                    Map<String, BlockStateWrapper> cachedStates = allocator.cachedBlockStates();
+                    Map<BlockStateWrapper, String> reversed = new HashMap<>(cachedStates.size());
+                    for (Map.Entry<String, BlockStateWrapper> entry : cachedStates.entrySet()) {
+                        reversed.put(entry.getValue(), entry.getKey());
+                    }
                     List<Component> batch = new ArrayList<>();
                     for (BlockStateWrapper appearance : appearances) {
                         Component text = Component.text("|");
                         List<Integer> reals = blockManager.appearanceToRealStates(appearance.registryId());
                         if (reals.isEmpty()) {
-                            Component hover = Component.text(baseBlockId.value() + ":" + i).color(NamedTextColor.GREEN);
-                            hover = hover.append(Component.newline()).append(Component.text(appearance.getAsString()).color(NamedTextColor.GREEN));
-                            text = text.color(NamedTextColor.GREEN).hoverEvent(HoverEvent.showText(hover));
+                            String cached = reversed.get(appearance);
+                            if (cached != null) {
+                                Component hover = Component.text("[Inactive] " + baseBlockId.value() + ":" + i).color(NamedTextColor.GRAY);
+                                hover = hover.append(Component.newline()).append(Component.text(cached).color(NamedTextColor.GRAY));
+                                text = text.color(NamedTextColor.GRAY).hoverEvent(HoverEvent.showText(hover));
+                            } else {
+                                Component hover = Component.text("[Available] " + baseBlockId.value() + ":" + i).color(NamedTextColor.GREEN);
+                                hover = hover.append(Component.newline()).append(Component.text(appearance.getAsString()).color(NamedTextColor.GREEN));
+                                text = text.color(NamedTextColor.GREEN).hoverEvent(HoverEvent.showText(hover));
+                            }
                         } else {
-                            boolean isFixed = allocator.isForcedState(appearance);
-                            NamedTextColor namedTextColor = isFixed ? NamedTextColor.RED : NamedTextColor.YELLOW;
-                            Component hover = Component.text(baseBlockId.value() + ":" + i).color(namedTextColor);
+                            boolean forced = allocator.isForcedState(appearance);
+                            NamedTextColor namedTextColor = forced ? NamedTextColor.RED : NamedTextColor.YELLOW;
+                            Component hover = Component.text((forced ? "[Forced] " : "[Auto] ") + baseBlockId.value() + ":" + i).color(namedTextColor);
                             List<Component> hoverChildren = new ArrayList<>();
                             hoverChildren.add(Component.newline());
                             hoverChildren.add(Component.text(appearance.getAsString()).color(namedTextColor));
