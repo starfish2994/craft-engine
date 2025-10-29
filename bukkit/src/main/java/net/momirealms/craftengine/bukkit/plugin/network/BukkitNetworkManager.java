@@ -187,9 +187,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             Object bundle = FastNMS.INSTANCE.constructor$ClientboundBundlePacket(packets);
             this.immediatePacketConsumer.accept(channel, bundle, sendListener);
         };
-        // set up mod channel
-        this.plugin.javaPlugin().getServer().getMessenger().registerIncomingPluginChannel(this.plugin.javaPlugin(), MOD_CHANNEL, this);
-        this.plugin.javaPlugin().getServer().getMessenger().registerOutgoingPluginChannel(this.plugin.javaPlugin(), MOD_CHANNEL);
         // Inject server channel
         try {
             Object server = FastNMS.INSTANCE.method$MinecraftServer$getServer();
@@ -1612,7 +1609,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             } else {
                 return;
             }
-            if (clientPayload == null || !clientPayload.channel().equals(NetworkManager.MOD_CHANNEL_KEY)) return;
+            if (clientPayload == null) return;
             PayloadHelper.handleReceiver(clientPayload, user);
         }
     }
@@ -1943,6 +1940,10 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             this.needsDowngrade = MiscUtils.ceilLog2(BlockStateUtils.vanillaBlockStateCount()) != MiscUtils.ceilLog2(blockRegistrySize);
         }
 
+        public int remapBlockState(int stateId, boolean enableMod) {
+            return enableMod ? this.modBlockStateMapper[stateId] : this.blockStateMapper[stateId];
+        }
+
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
             BukkitServerPlayer player = (BukkitServerPlayer) user;
@@ -1989,14 +1990,14 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 }
                 Palette<Integer> palette = container.data().palette();
                 if (palette.canRemap()) {
-                    if (palette.remapAndCheck(s -> this.blockStateMapper[s])) {
+                    if (palette.remapAndCheck(s -> remapBlockState(s, user.clientModEnabled()))) {
                         hasChangedAnyBlock = true;
                     }
                 } else {
                     hasGlobalPalette = true;
                     for (int j = 0; j < 4096; j++) {
                         int state = container.get(j);
-                        int newState = this.blockStateMapper[state];
+                        int newState = remapBlockState(state, user.clientModEnabled());
                         if (newState != state) {
                             container.set(j, newState);
                             hasChangedAnyBlock = true;
@@ -3752,7 +3753,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (VersionHelper.isOrAbove1_20_2()) return;
             FriendlyByteBuf byteBuf = event.getBuffer();
             Key key = byteBuf.readKey();
-            if (!key.equals(NetworkManager.MOD_CHANNEL_KEY)) return;
             PayloadHelper.handleReceiver(new UnknownPayload(key, byteBuf.readBytes(byteBuf.readableBytes())), user);
         }
     }
