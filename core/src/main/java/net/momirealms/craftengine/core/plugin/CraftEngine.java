@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.advancement.AdvancementManager;
 import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
+import net.momirealms.craftengine.core.entity.seat.SeatManager;
 import net.momirealms.craftengine.core.font.FontManager;
 import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.item.recipe.RecipeManager;
@@ -76,6 +77,7 @@ public abstract class CraftEngine implements Plugin {
     protected CompatibilityManager compatibilityManager;
     protected GlobalVariableManager globalVariableManager;
     protected ProjectileManager projectileManager;
+    protected SeatManager seatManager;
 
     private final PluginTaskRegistry preLoadTaskRegistry = new PluginTaskRegistry();
     private final PluginTaskRegistry postLoadTaskRegistry = new PluginTaskRegistry();
@@ -151,6 +153,7 @@ public abstract class CraftEngine implements Plugin {
                 this.packManager.reload();
                 this.advancementManager.reload();
                 this.projectileManager.reload();
+                this.seatManager.reload();
                 if (reloadRecipe) {
                     this.recipeManager.reload();
                 }
@@ -229,6 +232,7 @@ public abstract class CraftEngine implements Plugin {
             this.fontManager.delayedInit();
             this.vanillaLootManager.delayedInit();
             this.advancementManager.delayedInit();
+            this.seatManager.delayedInit();
             this.compatibilityManager.onDelayedEnable();
             // reload the plugin
             try {
@@ -263,6 +267,7 @@ public abstract class CraftEngine implements Plugin {
         if (this.guiManager != null) this.guiManager.disable();
         if (this.soundManager != null) this.soundManager.disable();
         if (this.vanillaLootManager != null) this.vanillaLootManager.disable();
+        if (this.seatManager != null) this.seatManager.disable();
         if (this.translationManager != null) this.translationManager.disable();
         if (this.globalVariableManager != null) this.globalVariableManager.disable();
         if (this.projectileManager != null) this.projectileManager.disable();

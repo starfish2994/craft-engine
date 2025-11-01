@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.api;
 
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
+import net.momirealms.craftengine.bukkit.entity.seat.BukkitSeatManager;
 import net.momirealms.craftengine.bukkit.nms.CollisionEntity;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -18,6 +19,7 @@ import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextPar
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -159,8 +161,7 @@ public final class CraftEngineFurniture {
      * @return is seat or not
      */
     public static boolean isSeat(@NotNull Entity entity) {
-        Integer baseEntityId = entity.getPersistentDataContainer().get(BukkitFurnitureManager.FURNITURE_SEAT_BASE_ENTITY_KEY, PersistentDataType.INTEGER);
-        return baseEntityId != null;
+        return entity.getPersistentDataContainer().has(BukkitSeatManager.SEAT_KEY);
     }
 
     /**
@@ -182,9 +183,12 @@ public final class CraftEngineFurniture {
      */
     @Nullable
     public static BukkitFurniture getLoadedFurnitureBySeat(@NotNull Entity seat) {
-        Integer baseEntityId = seat.getPersistentDataContainer().get(BukkitFurnitureManager.FURNITURE_SEAT_BASE_ENTITY_KEY, PersistentDataType.INTEGER);
-        if (baseEntityId == null) return null;
-        return BukkitFurnitureManager.instance().loadedFurnitureByRealEntityId(baseEntityId);
+        if (isSeat(seat)) {
+            CompoundTag seatExtraData = BukkitSeatManager.instance().getSeatExtraData(seat);
+            int entityId = seatExtraData.getInt("entity_id");
+            BukkitFurnitureManager.instance().loadedFurnitureByRealEntityId(entityId);
+        }
+        return null;
     }
 
     /**

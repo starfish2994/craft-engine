@@ -185,15 +185,15 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 .orElseGet(CompoundTag::new);
         CompoundTag arguments = customData.getCompound(ArgumentsModifier.ARGUMENTS_TAG);
         // 创建context
-        ItemBuildContext context;
+        NetworkItemBuildContext context;
         if (arguments == null) {
-            context = ItemBuildContext.of(player);
+            context = NetworkItemBuildContext.of(player);
         } else {
             ContextHolder.Builder builder = ContextHolder.builder();
             for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
                 builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
             }
-            context = ItemBuildContext.of(player, builder);
+            context = NetworkItemBuildContext.of(player, builder);
         }
         // 准备阶段
         CompoundTag tag = new CompoundTag();

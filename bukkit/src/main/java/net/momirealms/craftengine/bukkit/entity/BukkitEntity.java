@@ -13,7 +13,7 @@ import java.lang.ref.WeakReference;
 import java.util.UUID;
 
 public class BukkitEntity extends AbstractEntity {
-    private final WeakReference<org.bukkit.entity.Entity> entity;
+    protected final WeakReference<org.bukkit.entity.Entity> entity;
 
     public BukkitEntity(org.bukkit.entity.Entity entity) {
         this.entity = new WeakReference<>(entity);

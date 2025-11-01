@@ -35,6 +35,9 @@ items:
           - type: bouncing_block
             bounce-height: 0.66
             sync-player-position: false
+          - type: seat_block
+            seats:
+              - 0,0,0
         state:
           state: white_bed[facing=west,occupied=false,part=foot]
           entity-renderer:
@@ -79,6 +82,9 @@ items:
           - type: sofa_block
           - type: bouncing_block
             bounce-height: 0.66
+          - type: seat_block
+            seats:
+              - 0,0,0 0
         states:
           properties:
             facing:

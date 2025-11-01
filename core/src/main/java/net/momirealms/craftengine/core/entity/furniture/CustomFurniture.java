@@ -51,7 +51,7 @@ public interface CustomFurniture {
 
     record Placement(AnchorType anchorType,
                      FurnitureElement[] elements,
-                     HitBox[] hitBoxes,
+                     HitBoxConfig[] hitBoxConfigs,
                      RotationRule rotationRule,
                      AlignmentRule alignmentRule,
                      Optional<ExternalModel> externalModel,

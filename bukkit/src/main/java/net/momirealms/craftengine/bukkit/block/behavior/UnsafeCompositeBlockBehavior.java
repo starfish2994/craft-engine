@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
-import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.AbstractBlockBehavior;
@@ -47,7 +46,7 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends BlockBehavior> Optional<T> getAs(Class<T> tClass) {
+    public <T> Optional<T> getAs(Class<T> tClass) {
         for (AbstractBlockBehavior behavior : this.behaviors) {
             if (tClass.isInstance(behavior)) {
                 return Optional.of((T) behavior);

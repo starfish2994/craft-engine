@@ -6,6 +6,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflect
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MAttributeHolders;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.core.entity.furniture.*;
+import net.momirealms.craftengine.core.entity.seat.SeatConfig;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
@@ -23,13 +24,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class CustomHitBox extends AbstractHitBox {
+public class CustomHitBoxConfig extends AbstractHitBoxConfig {
     public static final Factory FACTORY = new Factory();
     private final float scale;
     private final EntityType entityType;
     private final List<Object> cachedValues = new ArrayList<>();
 
-    public CustomHitBox(Seat[] seats, Vector3f position, EntityType type, float scale, boolean blocksBuilding, boolean canBeHitByProjectile) {
+    public CustomHitBoxConfig(SeatConfig[] seats, Vector3f position, EntityType type, float scale, boolean blocksBuilding, boolean canBeHitByProjectile) {
         super(seats, position, false, blocksBuilding, canBeHitByProjectile);
         this.scale = scale;
         this.entityType = type;
@@ -39,11 +40,11 @@ public class CustomHitBox extends AbstractHitBox {
     }
 
     public EntityType entityType() {
-        return entityType;
+        return this.entityType;
     }
 
     public float scale() {
-        return scale;
+        return this.scale;
     }
 
     @Override
@@ -52,7 +53,7 @@ public class CustomHitBox extends AbstractHitBox {
     }
 
     @Override
-    public void initPacketsAndColliders(int[] entityId, WorldPosition position, Quaternionf conjugated, BiConsumer<Object, Boolean> packets, Consumer<Collider> collider, BiConsumer<Integer, AABB> aabb) {
+    public void initPacketsAndColliders(int[] entityId, WorldPosition position, Quaternionf conjugated, BiConsumer<Object, Boolean> packets, Consumer<Collider> collider, Consumer<HitBoxPart> aabb) {
         Vector3f offset = conjugated.transform(new Vector3f(position()));
         try {
             packets.accept(FastNMS.INSTANCE.constructor$ClientboundAddEntityPacket(
@@ -79,10 +80,10 @@ public class CustomHitBox extends AbstractHitBox {
         return new int[] {entityIdSupplier.get()};
     }
 
-    public static class Factory implements HitBoxFactory {
+    public static class Factory implements HitBoxConfigFactory {
 
         @Override
-        public HitBox create(Map<String, Object> arguments) {
+        public HitBoxConfig create(Map<String, Object> arguments) {
             Vector3f position = ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position");
             float scale = ResourceConfigUtils.getAsFloat(arguments.getOrDefault("scale", 1), "scale");
             String type = (String) arguments.getOrDefault("entity-type", "slime");
@@ -92,7 +93,7 @@ public class CustomHitBox extends AbstractHitBox {
             }
             boolean canBeHitByProjectile = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-be-hit-by-projectile", false), "can-be-hit-by-projectile");
             boolean blocksBuilding = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blocks-building", true), "blocks-building");
-            return new CustomHitBox(HitBoxFactory.getSeats(arguments), position, entityType, scale, blocksBuilding, canBeHitByProjectile);
+            return new CustomHitBoxConfig(SeatConfig.fromObj(arguments.get("seats")), position, entityType, scale, blocksBuilding, canBeHitByProjectile);
         }
     }
 }

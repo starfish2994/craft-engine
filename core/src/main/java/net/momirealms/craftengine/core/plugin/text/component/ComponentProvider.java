@@ -68,7 +68,7 @@ public sealed interface ComponentProvider extends Function<Context, Component>
             if (context instanceof PlayerOptionalContext playerContext) {
                 Player player = playerContext.player();
                 if (player != null) {
-                    String content = TranslationManager.instance().miniMessageTranslation(this.key, player.locale());
+                    String content = TranslationManager.instance().miniMessageTranslation(this.key, player.selectedLocale());
                     if (content == null) {
                         return Component.text(this.key);
                     }

@@ -16,14 +16,14 @@ public class HitBoxTypes {
     public static final Key HAPPY_GHAST = Key.of("minecraft:happy_ghast");
     public static final Key CUSTOM = Key.of("minecraft:custom");
 
-    public static void register(Key key, HitBoxFactory factory) {
-        ((WritableRegistry<HitBoxFactory>) BuiltInRegistries.HITBOX_FACTORY)
+    public static void register(Key key, HitBoxConfigFactory factory) {
+        ((WritableRegistry<HitBoxConfigFactory>) BuiltInRegistries.HITBOX_FACTORY)
                 .register(ResourceKey.create(Registries.HITBOX_FACTORY.location(), key), factory);
     }
 
-    public static HitBox fromMap(Map<String, Object> arguments) {
+    public static HitBoxConfig fromMap(Map<String, Object> arguments) {
         Key type = Optional.ofNullable(arguments.get("type")).map(String::valueOf).map(Key::of).orElse(HitBoxTypes.INTERACTION);
-        HitBoxFactory factory = BuiltInRegistries.HITBOX_FACTORY.getValue(type);
+        HitBoxConfigFactory factory = BuiltInRegistries.HITBOX_FACTORY.getValue(type);
         if (factory == null) {
             throw new LocalizedResourceConfigException("warning.config.furniture.hitbox.invalid_type", type.toString());
         }

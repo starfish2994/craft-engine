@@ -8,9 +8,11 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MAttributeH
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntityTypes;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.core.entity.furniture.*;
+import net.momirealms.craftengine.core.entity.seat.SeatConfig;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.collision.AABB;
@@ -22,13 +24,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class HappyGhastHitBox extends AbstractHitBox {
+public class HappyGhastHitBoxConfig extends AbstractHitBoxConfig {
     public static final Factory FACTORY = new Factory();
     private final double scale;
     private final boolean hardCollision;
     private final List<Object> cachedValues = new ArrayList<>();
 
-    public HappyGhastHitBox(Seat[] seats, Vector3f position, double scale, boolean canUseOn, boolean blocksBuilding, boolean canBeHitByProjectile, boolean hardCollision) {
+    public HappyGhastHitBoxConfig(SeatConfig[] seats, Vector3f position, double scale, boolean canUseOn, boolean blocksBuilding, boolean canBeHitByProjectile, boolean hardCollision) {
         super(seats, position, canUseOn, blocksBuilding, canBeHitByProjectile);
         this.scale = scale;
         this.hardCollision = hardCollision;
@@ -43,15 +45,20 @@ public class HappyGhastHitBox extends AbstractHitBox {
     }
 
     public double scale() {
-        return scale;
+        return this.scale;
     }
 
     public boolean hardCollision() {
-        return hardCollision;
+        return this.hardCollision;
     }
 
     @Override
-    public void initPacketsAndColliders(int[] entityIds, WorldPosition position, Quaternionf conjugated, BiConsumer<Object, Boolean> packets, Consumer<Collider> collider, BiConsumer<Integer, AABB> aabb) {
+    public void initPacketsAndColliders(int[] entityIds,
+                                        WorldPosition position,
+                                        Quaternionf conjugated,
+                                        BiConsumer<Object, Boolean> packets,
+                                        Consumer<Collider> collider,
+                                        Consumer<HitBoxPart> aabb) {
         Vector3f offset = conjugated.transform(new Vector3f(position()));
         try {
             double x = position.x();
@@ -76,11 +83,11 @@ public class HappyGhastHitBox extends AbstractHitBox {
         }
     }
 
-    public Collider createCollider(World world, Vector3f offset, double x, double y, double z, int entityId, BiConsumer<Integer, AABB> aabb) {
+    public Collider createCollider(World world, Vector3f offset, double x, double y, double z, int entityId, Consumer<HitBoxPart> aabb) {
         AABB ceAABB = createAABB(offset, x, y, z);
         Object level = world.serverWorld();
         Object nmsAABB = FastNMS.INSTANCE.constructor$AABB(ceAABB.minX, ceAABB.minY, ceAABB.minZ, ceAABB.maxX, ceAABB.maxY, ceAABB.maxZ);
-        aabb.accept(entityId, ceAABB);
+        aabb.accept(new HitBoxPart(entityId, ceAABB, new Vec3d(x, y, z)));
         return new BukkitCollider(level, nmsAABB, x, y, z, this.canBeHitByProjectile(), true, this.blocksBuilding());
     }
 
@@ -109,10 +116,10 @@ public class HappyGhastHitBox extends AbstractHitBox {
         return new int[] {entityIdSupplier.get()};
     }
 
-    public static class Factory implements HitBoxFactory {
+    public static class Factory implements HitBoxConfigFactory {
 
         @Override
-        public HitBox create(Map<String, Object> arguments) {
+        public HitBoxConfig create(Map<String, Object> arguments) {
             if (!VersionHelper.isOrAbove1_21_6()) {
                 throw new UnsupportedOperationException("HappyGhastHitBox is only supported on 1.21.6+");
             }
@@ -121,8 +128,8 @@ public class HappyGhastHitBox extends AbstractHitBox {
             boolean canUseOn = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-use-item-on", true), "can-use-item-on");
             boolean canBeHitByProjectile = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-be-hit-by-projectile", true), "can-be-hit-by-projectile");
             boolean blocksBuilding = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blocks-building", true), "blocks-building");
-            return new HappyGhastHitBox(
-                    HitBoxFactory.getSeats(arguments),
+            return new HappyGhastHitBoxConfig(
+                    SeatConfig.fromObj(arguments.get("seats")),
                     ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position"),
                     scale, canUseOn, blocksBuilding, canBeHitByProjectile, hardCollision
             );

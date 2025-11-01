@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.entity.BlockEntityType;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.block.properties.PropertyFactory;
-import net.momirealms.craftengine.core.entity.furniture.HitBoxFactory;
+import net.momirealms.craftengine.core.entity.furniture.HitBoxConfigFactory;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.item.equipment.EquipmentFactory;
@@ -78,7 +78,7 @@ public class Registries {
     public static final ResourceKey<Registry<ConditionFactory<PathContext>>> PATH_MATCHER_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("path_matcher_factory"));
     public static final ResourceKey<Registry<ResolutionFactory>> RESOLUTION_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("resolution_factory"));
     public static final ResourceKey<Registry<CustomSmithingTransformRecipe.ItemDataProcessor.ProcessorFactory>> SMITHING_RESULT_PROCESSOR_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("smithing_result_processor_factory"));
-    public static final ResourceKey<Registry<HitBoxFactory>> HITBOX_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("hitbox_factory"));
+    public static final ResourceKey<Registry<HitBoxConfigFactory>> HITBOX_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("hitbox_factory"));
     public static final ResourceKey<Registry<ResourcePackHostFactory>> RESOURCE_PACK_HOST_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("resource_pack_host_factory"));
     public static final ResourceKey<Registry<FunctionFactory<PlayerOptionalContext>>> EVENT_FUNCTION_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("event_function_factory"));
     public static final ResourceKey<Registry<ConditionFactory<PlayerOptionalContext>>> EVENT_CONDITION_FACTORY = ResourceKey.create(ROOT_REGISTRY, Key.withDefaultNamespace("event_condition_factory"));

@@ -116,7 +116,7 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType() {
+    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
         return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.SIMPLE_STORAGE);
     }
 

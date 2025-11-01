@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.entity.BlockEntityType;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.block.properties.PropertyFactory;
-import net.momirealms.craftengine.core.entity.furniture.HitBoxFactory;
+import net.momirealms.craftengine.core.entity.furniture.HitBoxConfigFactory;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.item.equipment.EquipmentFactory;
@@ -76,7 +76,7 @@ public class BuiltInRegistries {
     public static final Registry<ConditionFactory<PathContext>> PATH_MATCHER_FACTORY = createConstantBoundRegistry(Registries.PATH_MATCHER_FACTORY, 16);
     public static final Registry<ResolutionFactory> RESOLUTION_FACTORY = createConstantBoundRegistry(Registries.RESOLUTION_FACTORY, 16);
     public static final Registry<CustomSmithingTransformRecipe.ItemDataProcessor.ProcessorFactory> SMITHING_RESULT_PROCESSOR_FACTORY = createConstantBoundRegistry(Registries.SMITHING_RESULT_PROCESSOR_FACTORY, 16);
-    public static final Registry<HitBoxFactory> HITBOX_FACTORY = createConstantBoundRegistry(Registries.HITBOX_FACTORY, 16);
+    public static final Registry<HitBoxConfigFactory> HITBOX_FACTORY = createConstantBoundRegistry(Registries.HITBOX_FACTORY, 16);
     public static final Registry<ResourcePackHostFactory> RESOURCE_PACK_HOST_FACTORY = createConstantBoundRegistry(Registries.RESOURCE_PACK_HOST_FACTORY, 16);
     public static final Registry<FunctionFactory<PlayerOptionalContext>> EVENT_FUNCTION_FACTORY = createConstantBoundRegistry(Registries.EVENT_FUNCTION_FACTORY, 128);
     public static final Registry<ConditionFactory<PlayerOptionalContext>> EVENT_CONDITION_FACTORY = createConstantBoundRegistry(Registries.EVENT_CONDITION_FACTORY, 128);

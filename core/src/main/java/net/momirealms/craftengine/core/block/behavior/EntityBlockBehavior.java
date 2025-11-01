@@ -7,12 +7,15 @@ import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 @ApiStatus.Experimental
 public interface EntityBlockBehavior {
 
-    <T extends BlockEntity> BlockEntityType<T> blockEntityType();
+    @Nullable
+    <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state);
 
+    @Nullable
     BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state);
 
     default <T extends BlockEntity> BlockEntityTicker<T> createSyncBlockEntityTicker(CEWorld level, ImmutableBlockState state, BlockEntityType<T> blockEntityType) {

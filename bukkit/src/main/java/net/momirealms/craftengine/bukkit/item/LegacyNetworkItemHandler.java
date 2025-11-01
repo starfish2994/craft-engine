@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.item.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.modifier.ArgumentsModifier;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
@@ -209,15 +209,15 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
         CompoundTag tag = new CompoundTag();
         // 创建context
         Tag argumentTag = wrapped.getTag(ArgumentsModifier.ARGUMENTS_TAG);
-        ItemBuildContext context;
+        NetworkItemBuildContext context;
         if (argumentTag instanceof CompoundTag arguments) {
             ContextHolder.Builder builder = ContextHolder.builder();
             for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
                 builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
             }
-            context = ItemBuildContext.of(player, builder);
+            context = NetworkItemBuildContext.of(player, builder);
         } else {
-            context = ItemBuildContext.of(player);
+            context = NetworkItemBuildContext.of(player);
         }
         // 准备阶段
         for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {

@@ -114,7 +114,7 @@ resource-pack:
       method-2: false # This will increase the resource pack size by 64KB
       method-3: false # This will increase the resource pack size by 0.67MB
       method-4: false
-      method-5: true # This can reduce the resource pack size, also it prevents some software from extracting it
+      method-5: true # This will reduce the resource pack size, also it prevents some software from extracting it
       method-6: false # This will increase the resource pack size by a certain percentage
       method-7: false
     # Create incorrect crc data

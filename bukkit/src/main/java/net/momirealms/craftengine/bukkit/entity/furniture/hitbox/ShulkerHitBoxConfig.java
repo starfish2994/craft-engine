@@ -10,6 +10,7 @@ import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MEntityType
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.NetworkReflections;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.core.entity.furniture.*;
+import net.momirealms.craftengine.core.entity.seat.SeatConfig;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
@@ -23,7 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class ShulkerHitBox extends AbstractHitBox {
+public class ShulkerHitBoxConfig extends AbstractHitBoxConfig {
     public static final Factory FACTORY = new Factory();
     // 1.20.6+
     private final float scale;
@@ -35,7 +36,7 @@ public class ShulkerHitBox extends AbstractHitBox {
     private final DirectionalShulkerSpawner spawner;
     private final AABBCreator aabbCreator;
 
-    public ShulkerHitBox(Seat[] seats, Vector3f position, Direction direction, float scale, byte peek, boolean interactionEntity, boolean interactive, boolean canUseOn, boolean blocksBuilding, boolean canBeHitByProjectile) {
+    public ShulkerHitBoxConfig(SeatConfig[] seats, Vector3f position, Direction direction, float scale, byte peek, boolean interactionEntity, boolean interactive, boolean canUseOn, boolean blocksBuilding, boolean canBeHitByProjectile) {
         super(seats, position, canUseOn, blocksBuilding, canBeHitByProjectile);
         this.direction = direction;
         this.scale = scale;
@@ -65,7 +66,8 @@ public class ShulkerHitBox extends AbstractHitBox {
                     ), true);
                     packets.accept(FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(entityIds[2], List.copyOf(cachedInteractionValues)), true);
                     if (canUseOn) {
-                        aabb.accept(entityIds[2], AABB.fromInteraction(new Vec3d(x + offset.x, y + offset.y, z - offset.z), scale, shulkerHeight));
+                        Vec3d vec3d = new Vec3d(x + offset.x, y + offset.y, z - offset.z);
+                        aabb.accept(new HitBoxPart(entityIds[2], AABB.fromInteraction(vec3d, scale, shulkerHeight), vec3d));
                     }
                 }
             };
@@ -84,7 +86,8 @@ public class ShulkerHitBox extends AbstractHitBox {
                     ), true);
                     packets.accept(FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(entityIds[2], List.copyOf(cachedInteractionValues)), true);
                     if (canUseOn) {
-                        aabb.accept(entityIds[2], AABB.fromInteraction(new Vec3d(x + offset.x, y + offset.y - shulkerHeight + scale, z - offset.z), scale, shulkerHeight));
+                        Vec3d vec3d = new Vec3d(x + offset.x, y + offset.y - shulkerHeight + scale, z - offset.z);
+                        aabb.accept(new HitBoxPart(entityIds[2], AABB.fromInteraction(vec3d, scale, shulkerHeight), vec3d));
                     }
                 }
             };
@@ -113,8 +116,10 @@ public class ShulkerHitBox extends AbstractHitBox {
                     ), true);
                     packets.accept(FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(entityIds[3], List.copyOf(cachedInteractionValues)), true);
                     if (canUseOn) {
-                        aabb.accept(entityIds[2], AABB.fromInteraction(new Vec3d(x + offset.x, y + offset.y, z - offset.z), scale, scale));
-                        aabb.accept(entityIds[3], AABB.fromInteraction(new Vec3d(x + offset.x + shulkerDirection.stepX() * distance, y + offset.y, z - offset.z + shulkerDirection.stepZ() * distance), scale, scale));
+                        Vec3d vec3d1 = new Vec3d(x + offset.x, y + offset.y, z - offset.z);
+                        Vec3d vec3d2 = new Vec3d(x + offset.x + shulkerDirection.stepX() * distance, y + offset.y, z - offset.z + shulkerDirection.stepZ() * distance);
+                        aabb.accept(new HitBoxPart(entityIds[2], AABB.fromInteraction(vec3d1, scale, scale), vec3d1));
+                        aabb.accept(new HitBoxPart(entityIds[3], AABB.fromInteraction(vec3d2, scale, scale), vec3d2));
                     }
                 }
             };
@@ -126,11 +131,11 @@ public class ShulkerHitBox extends AbstractHitBox {
         }
     }
 
-    public Collider createCollider(Direction direction, World world, Vector3f offset, double x, double y, double z, int entityId, BiConsumer<Integer, AABB> aabb) {
+    public Collider createCollider(Direction direction, World world, Vector3f offset, double x, double y, double z, int entityId, Consumer<HitBoxPart> aabb) {
         AABB ceAABB = createAABB(direction, offset, x, y, z);
         Object level = world.serverWorld();
         Object nmsAABB = FastNMS.INSTANCE.constructor$AABB(ceAABB.minX, ceAABB.minY, ceAABB.minZ, ceAABB.maxX, ceAABB.maxY, ceAABB.maxZ);
-        aabb.accept(entityId, ceAABB);
+        aabb.accept(new HitBoxPart(entityId, ceAABB, new Vec3d(x, y, z)));
         return new BukkitCollider(level, nmsAABB, x, y, z, this.canBeHitByProjectile(), true, this.blocksBuilding());
     }
 
@@ -200,7 +205,12 @@ public class ShulkerHitBox extends AbstractHitBox {
     }
 
     @Override
-    public void initPacketsAndColliders(int[] entityIds, WorldPosition position, Quaternionf conjugated, BiConsumer<Object, Boolean> packets, Consumer<Collider> collider, BiConsumer<Integer, AABB> aabb) {
+    public void initPacketsAndColliders(int[] entityIds,
+                                        WorldPosition position,
+                                        Quaternionf conjugated,
+                                        BiConsumer<Object, Boolean> packets,
+                                        Consumer<Collider> collider,
+                                        Consumer<HitBoxPart> aabb) {
         Vector3f offset = conjugated.transform(new Vector3f(position()));
         try {
             double x = position.x();
@@ -251,7 +261,16 @@ public class ShulkerHitBox extends AbstractHitBox {
     @FunctionalInterface
     interface DirectionalShulkerSpawner {
 
-        void accept(int[] entityIds, World world, double x, double y, double z, float yaw, Vector3f offset, BiConsumer<Object, Boolean> packets, Consumer<Collider> collider, BiConsumer<Integer, AABB> aabb);
+        void accept(int[] entityIds,
+                    World world,
+                    double x,
+                    double y,
+                    double z,
+                    float yaw,
+                    Vector3f offset,
+                    BiConsumer<Object, Boolean> packets,
+                    Consumer<Collider> collider,
+                    Consumer<HitBoxPart> aabb);
     }
 
     @FunctionalInterface
@@ -276,10 +295,10 @@ public class ShulkerHitBox extends AbstractHitBox {
         }
     }
 
-    public static class Factory implements HitBoxFactory {
+    public static class Factory implements HitBoxConfigFactory {
 
         @Override
-        public HitBox create(Map<String, Object> arguments) {
+        public HitBoxConfig create(Map<String, Object> arguments) {
             Vector3f position = ResourceConfigUtils.getAsVector3f(arguments.getOrDefault("position", "0"), "position");
             float scale = ResourceConfigUtils.getAsFloat(arguments.getOrDefault("scale", "1"), "scale");
             byte peek = (byte) ResourceConfigUtils.getAsInt(arguments.getOrDefault("peek", 0), "peek");
@@ -289,8 +308,8 @@ public class ShulkerHitBox extends AbstractHitBox {
             boolean canUseItemOn = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-use-item-on", true), "can-use-item-on");
             boolean canBeHitByProjectile = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("can-be-hit-by-projectile", true), "can-be-hit-by-projectile");
             boolean blocksBuilding = ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("blocks-building", true), "blocks-building");
-            return new ShulkerHitBox(
-                    HitBoxFactory.getSeats(arguments),
+            return new ShulkerHitBoxConfig(
+                    SeatConfig.fromObj(arguments.get("seats")),
                     position, directionEnum,
                     scale, peek, interactionEntity, interactive, canUseItemOn, blocksBuilding, canBeHitByProjectile
             );

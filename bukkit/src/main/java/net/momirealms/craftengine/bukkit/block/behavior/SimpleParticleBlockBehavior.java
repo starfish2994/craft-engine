@@ -38,7 +38,7 @@ public class SimpleParticleBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType() {
+    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
         return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.SIMPLE_PARTICLE);
     }
 

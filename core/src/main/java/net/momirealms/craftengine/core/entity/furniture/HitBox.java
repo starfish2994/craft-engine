@@ -1,33 +1,19 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.world.WorldPosition;
-import net.momirealms.craftengine.core.world.collision.AABB;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
+import net.momirealms.craftengine.core.entity.seat.Seat;
+import net.momirealms.craftengine.core.entity.seat.SeatOwner;
+import net.momirealms.craftengine.core.world.EntityHitResult;
+import net.momirealms.craftengine.core.world.Vec3d;
 
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.Optional;
 
-public interface HitBox {
+public interface HitBox extends SeatOwner {
 
-    Key type();
+    Seat<HitBox>[] seats();
 
-    void initPacketsAndColliders(int[] entityId, WorldPosition position, Quaternionf conjugated,
-                                 BiConsumer<Object, Boolean> packets, Consumer<Collider> collider, BiConsumer<Integer, AABB> aabb);
+    Optional<EntityHitResult> clip(Vec3d min, Vec3d max);
 
-    void initShapeForPlacement(double x, double y, double z, float yaw, Quaternionf conjugated, Consumer<AABB> aabbs);
+    HitBoxPart[] parts();
 
-    int[] acquireEntityIds(Supplier<Integer> entityIdSupplier);
-
-    Seat[] seats();
-
-    Vector3f position();
-
-    boolean blocksBuilding();
-
-    boolean canBeHitByProjectile();
-
-    boolean canUseItemOn();
+    HitBoxConfig config();
 }

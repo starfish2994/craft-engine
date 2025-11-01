@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.api.event;
 
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
+import net.momirealms.craftengine.core.entity.furniture.HitBox;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -15,15 +16,23 @@ public final class FurnitureInteractEvent extends PlayerEvent implements Cancell
     private final BukkitFurniture furniture;
     private final InteractionHand hand;
     private final Location interactionPoint;
+    private final HitBox hitBox;
 
     public FurnitureInteractEvent(@NotNull Player player,
                                   @NotNull BukkitFurniture furniture,
                                   @NotNull InteractionHand hand,
-                                  @NotNull Location interactionPoint) {
+                                  @NotNull Location interactionPoint,
+                                  @NotNull HitBox hitBox) {
         super(player);
         this.furniture = furniture;
         this.hand = hand;
         this.interactionPoint = interactionPoint;
+        this.hitBox = hitBox;
+    }
+
+    @NotNull
+    public HitBox hitBox() {
+        return hitBox;
     }
 
     @NotNull

@@ -19,7 +19,7 @@ import java.util.concurrent.Callable;
 public abstract class BlockBehavior {
 
     @SuppressWarnings("unchecked")
-    public <T extends BlockBehavior> Optional<T> getAs(Class<T> tClass) {
+    public <T> Optional<T> getAs(Class<T> tClass) {
         if (tClass.isInstance(this)) {
             return Optional.of((T) this);
         }

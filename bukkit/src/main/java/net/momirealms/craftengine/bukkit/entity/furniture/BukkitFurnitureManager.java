@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.furniture;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
-import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.InteractionHitBox;
+import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.InteractionHitBoxConfig;
 import net.momirealms.craftengine.bukkit.nms.CollisionEntity;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -15,17 +15,13 @@ import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataType;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,8 +33,6 @@ import java.util.function.BiConsumer;
 public class BukkitFurnitureManager extends AbstractFurnitureManager {
     public static final NamespacedKey FURNITURE_KEY = KeyUtils.toNamespacedKey(FurnitureManager.FURNITURE_KEY);
     public static final NamespacedKey FURNITURE_EXTRA_DATA_KEY = KeyUtils.toNamespacedKey(FurnitureManager.FURNITURE_EXTRA_DATA_KEY);
-    public static final NamespacedKey FURNITURE_SEAT_BASE_ENTITY_KEY = KeyUtils.toNamespacedKey(FurnitureManager.FURNITURE_SEAT_BASE_ENTITY_KEY);
-    public static final NamespacedKey FURNITURE_SEAT_VECTOR_3F_KEY = KeyUtils.toNamespacedKey(FurnitureManager.FURNITURE_SEAT_VECTOR_3F_KEY);
     public static final NamespacedKey FURNITURE_COLLISION = KeyUtils.toNamespacedKey(FurnitureManager.FURNITURE_COLLISION);
     public static Class<?> COLLISION_ENTITY_CLASS = Interaction.class;
     public static Object NMS_COLLISION_ENTITY_TYPE = MEntityTypes.INTERACTION;
@@ -48,7 +42,6 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
     private final Map<Integer, BukkitFurniture> furnitureByRealEntityId = new ConcurrentHashMap<>(256, 0.5f);
     private final Map<Integer, BukkitFurniture> furnitureByEntityId = new ConcurrentHashMap<>(512, 0.5f);
     // Event listeners
-    private final Listener dismountListener;
     private final FurnitureEventListener furnitureEventListener;
 
     public static BukkitFurnitureManager instance() {
@@ -60,7 +53,6 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
         instance = this;
         this.plugin = plugin;
         this.furnitureEventListener = new FurnitureEventListener(this);
-        this.dismountListener = VersionHelper.isOrAbove1_20_3() ? new DismountListener1_20_3(this) : new DismountListener1_20(this::handleDismount);
     }
 
     @Override
@@ -95,7 +87,6 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
         COLLISION_ENTITY_CLASS = Config.colliderType() == ColliderType.INTERACTION ? Interaction.class : Boat.class;
         NMS_COLLISION_ENTITY_TYPE = Config.colliderType() == ColliderType.INTERACTION ? MEntityTypes.INTERACTION : MEntityTypes.OAK_BOAT;
         COLLISION_ENTITY_TYPE = Config.colliderType();
-        Bukkit.getPluginManager().registerEvents(this.dismountListener, this.plugin.javaPlugin());
         Bukkit.getPluginManager().registerEvents(this.furnitureEventListener, this.plugin.javaPlugin());
         if (VersionHelper.isFolia()) {
             BiConsumer<Entity, Runnable> taskExecutor = (entity, runnable) -> entity.getScheduler().run(this.plugin.javaPlugin(), (t) -> runnable.run(), () -> {});
@@ -129,15 +120,8 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
 
     @Override
     public void disable() {
-        HandlerList.unregisterAll(this.dismountListener);
         HandlerList.unregisterAll(this.furnitureEventListener);
         unload();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Entity vehicle = player.getVehicle();
-            if (vehicle != null) {
-                tryLeavingSeat(player, vehicle);
-            }
-        }
     }
 
     @Override
@@ -327,84 +311,7 @@ public class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     @Override
-    protected HitBox defaultHitBox() {
-        return InteractionHitBox.DEFAULT;
-    }
-
-    protected void handleDismount(Player player, Entity entity) {
-        if (!isSeatCarrierType(entity)) return;
-        Location location = entity.getLocation();
-        plugin.scheduler().sync().runDelayed(() -> tryLeavingSeat(player, entity), player.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
-    }
-
-    @SuppressWarnings("DuplicatedCode")
-    protected void tryLeavingSeat(@NotNull Player player, @NotNull Entity vehicle) {
-        Integer baseFurniture = vehicle.getPersistentDataContainer().get(FURNITURE_SEAT_BASE_ENTITY_KEY, PersistentDataType.INTEGER);
-        if (baseFurniture == null) return;
-        vehicle.remove();
-        BukkitFurniture furniture = loadedFurnitureByRealEntityId(baseFurniture);
-        if (furniture == null) {
-            return;
-        }
-        String vector3f = vehicle.getPersistentDataContainer().get(BukkitFurnitureManager.FURNITURE_SEAT_VECTOR_3F_KEY, PersistentDataType.STRING);
-        if (vector3f == null) {
-            plugin.logger().warn("Failed to get vector3f for player " + player.getName() + "'s seat");
-            return;
-        }
-        Vector3f seatPos = ResourceConfigUtils.getAsVector3f(vector3f, "seat");
-        furniture.removeOccupiedSeat(seatPos);
-
-        if (player.getVehicle() != null) return;
-        Location vehicleLocation = vehicle.getLocation();
-        Location originalLocation = vehicleLocation.clone();
-        originalLocation.setY(furniture.location().getY());
-        Location targetLocation = originalLocation.clone().add(vehicleLocation.getDirection().multiply(1.1));
-        if (!isSafeLocation(targetLocation)) {
-            targetLocation = findSafeLocationNearby(originalLocation);
-            if (targetLocation == null) return;
-        }
-        targetLocation.setYaw(player.getLocation().getYaw());
-        targetLocation.setPitch(player.getLocation().getPitch());
-        if (VersionHelper.isFolia()) {
-            player.teleportAsync(targetLocation);
-        } else {
-            player.teleport(targetLocation);
-        }
-    }
-
-    protected boolean isSeatCarrierType(Entity entity) {
-        return (entity instanceof ArmorStand || entity instanceof ItemDisplay);
-    }
-
-    @SuppressWarnings("DuplicatedCode")
-    private boolean isSafeLocation(Location location) {
-        World world = location.getWorld();
-        if (world == null) return false;
-        int x = location.getBlockX();
-        int y = location.getBlockY();
-        int z = location.getBlockZ();
-        if (!world.getBlockAt(x, y - 1, z).getType().isSolid()) return false;
-        if (!world.getBlockAt(x, y, z).isPassable()) return false;
-        return world.getBlockAt(x, y + 1, z).isPassable();
-    }
-
-    @SuppressWarnings("DuplicatedCode")
-    @Nullable
-    private Location findSafeLocationNearby(Location center) {
-        World world = center.getWorld();
-        if (world == null) return null;
-        int centerX = center.getBlockX();
-        int centerY = center.getBlockY();
-        int centerZ = center.getBlockZ();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                if (dx == 0 && dz == 0) continue;
-                int x = centerX + dx;
-                int z = centerZ + dz;
-                Location nearbyLocation = new Location(world, x + 0.5, centerY, z + 0.5);
-                if (isSafeLocation(nearbyLocation)) return nearbyLocation;
-            }
-        }
-        return null;
+    protected HitBoxConfig defaultHitBox() {
+        return InteractionHitBoxConfig.DEFAULT;
     }
 }
