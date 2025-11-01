@@ -3727,7 +3727,9 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                         if (!serverPlayer.isSecondaryUseActive()) {
                             for (Seat<HitBox> seat : hitbox.seats()) {
                                 if (!seat.isOccupied()) {
-                                    seat.spawnSeat(serverPlayer, furniture.position());
+                                    if (seat.spawnSeat(serverPlayer, furniture.position())) {
+                                        break;
+                                    }
                                 }
                             }
                         }
