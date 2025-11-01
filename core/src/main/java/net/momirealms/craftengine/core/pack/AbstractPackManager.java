@@ -43,6 +43,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -1150,6 +1151,9 @@ public abstract class AbstractPackManager implements PackManager {
     private byte[] optimizeImage(byte[] previousImageBytes) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
             BufferedImage src = ImageIO.read(is);
+            if (src.getType() == BufferedImage.TYPE_CUSTOM) {
+                return previousImageBytes;
+            }
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             new PngOptimizer(src).write(baos);
             return baos.toByteArray();
