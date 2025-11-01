@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MBuiltInRegistries;
+import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -55,7 +56,7 @@ public final class EntityUtils {
         for (int i = 0; i < 8; i++) {
             Vec3d direction = getHorizontalDirection(i * 0.25, boundBoxWidth, player.getYaw());
             double x = location.getX() + direction.x;
-            double y = location.getY() + 0.75;
+            double y = location.getY();
             double z = location.getZ() + direction.z;
             Object serverLevel = BukkitAdaptors.adapt(player.getWorld()).serverWorld();
             Object serverPlayer = FastNMS.INSTANCE.method$CraftPlayer$getHandle(player);
@@ -63,26 +64,31 @@ public final class EntityUtils {
                 BlockPos pos = new BlockPos(MiscUtils.fastFloor(x), MiscUtils.fastFloor(y), MiscUtils.fastFloor(z));
                 try {
                     double floorHeight = (double) CoreReflections.method$BlockGetter$getBlockFloorHeight.invoke(serverLevel, LocationUtils.toBlockPos(pos));
-                    if (pos.y() + floorHeight > y) {
+                    if (pos.y() + floorHeight > y + 0.75) {
                         continue;
                     }
                     if (isBlockFloorValid(floorHeight)) {
+                        Object aabb = CoreReflections.method$LivingEntity$getLocalBoundsForPose.invoke(serverPlayer, pose);
                         Object vec3 = FastNMS.INSTANCE.constructor$Vec3(x, pos.y() + floorHeight, z);
-                        boolean canDismount = (boolean) CoreReflections.method$DismountHelper$canDismountTo1.invoke(null, serverLevel, vec3, serverPlayer, pose);
-                        if (canDismount) {
-                            if (VersionHelper.isFolia()) {
-                                player.teleportAsync(new Location(player.getWorld(), x, pos.y() + floorHeight, z, player.getYaw(), player.getPitch()));
-                            } else {
-                                player.teleport(new Location(player.getWorld(), x, pos.y() + floorHeight, z, player.getYaw(), player.getPitch()));
-                            }
-                            if (pose == CoreReflections.instance$Pose$STANDING) {
-                                player.setPose(Pose.STANDING);
-                            } else if (pose == CoreReflections.instance$Pose$CROUCHING) {
-                                player.setPose(Pose.SNEAKING);
-                            } else if (pose == CoreReflections.instance$Pose$SWIMMING) {
-                                player.setPose(Pose.SWIMMING);
-                            }
-                            return;
+                        Object newAABB = FastNMS.INSTANCE.method$AABB$move(aabb, vec3);
+                        boolean canDismount = (boolean) CoreReflections.method$DismountHelper$canDismountTo0.invoke(null, serverLevel, serverPlayer, newAABB);
+                        if (!canDismount) {
+                            continue;
+                        }
+                        if (!FastNMS.INSTANCE.checkEntityCollision(serverLevel, List.of(newAABB))) {
+                            continue;
+                        }
+                        if (VersionHelper.isFolia()) {
+                            player.teleportAsync(new Location(player.getWorld(), x, pos.y() + floorHeight, z, player.getYaw(), player.getPitch()));
+                        } else {
+                            player.teleport(new Location(player.getWorld(), x, pos.y() + floorHeight, z, player.getYaw(), player.getPitch()));
+                        }
+                        if (pose == CoreReflections.instance$Pose$STANDING) {
+                            player.setPose(Pose.STANDING);
+                        } else if (pose == CoreReflections.instance$Pose$CROUCHING) {
+                            player.setPose(Pose.SNEAKING);
+                        } else if (pose == CoreReflections.instance$Pose$SWIMMING) {
+                            player.setPose(Pose.SWIMMING);
                         }
                     }
                 } catch (ReflectiveOperationException e) {

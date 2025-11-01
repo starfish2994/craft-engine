@@ -113,7 +113,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
             hitBoxConfig.initShapeForPlacement(finalPlacePosition.x(), finalPlacePosition.y(), finalPlacePosition.z(), (float) furnitureYaw, QuaternionUtils.toQuaternionf(0, Math.toRadians(180 - furnitureYaw), 0).conjugate(), aabbs::add);
         }
         if (!aabbs.isEmpty()) {
-            if (!FastNMS.INSTANCE.checkEntityCollision(context.getLevel().serverWorld(), aabbs.stream().map(it -> FastNMS.INSTANCE.constructor$AABB(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList(), finalPlacePosition.x(), finalPlacePosition.y(), finalPlacePosition.z())) {
+            if (!FastNMS.INSTANCE.checkEntityCollision(context.getLevel().serverWorld(), aabbs.stream().map(it -> FastNMS.INSTANCE.constructor$AABB(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList())) {
                 return InteractionResult.FAIL;
             }
         }
