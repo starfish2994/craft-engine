@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.entity.seat;
 import net.momirealms.craftengine.bukkit.entity.furniture.DismountListener1_20;
 import net.momirealms.craftengine.bukkit.entity.furniture.DismountListener1_20_3;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.entity.seat.SeatManager;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -111,7 +112,9 @@ public class BukkitSeatManager implements SeatManager {
     protected void tryLeavingSeat(@NotNull Player player, @NotNull Entity seat) {
         boolean isSeat = seat.getPersistentDataContainer().has(SEAT_KEY);
         if (!isSeat) return;
+        Location location = seat.getLocation();
         seat.remove();
+        EntityUtils.safeDismount(player, location);
     }
 
     public static BukkitSeatManager instance() {

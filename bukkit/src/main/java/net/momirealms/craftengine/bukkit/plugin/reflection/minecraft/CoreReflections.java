@@ -4502,8 +4502,38 @@ public final class CoreReflections {
             "world.item.trading.Merchant"
     ));
 
-    public static final Class <?> clazz$BlockEntityType = requireNonNull(BukkitReflectionUtils.findReobfOrMojmapClass(
+    public static final Class<?> clazz$BlockEntityType = requireNonNull(BukkitReflectionUtils.findReobfOrMojmapClass(
             "world.level.block.entity.TileEntityTypes",
             "world.level.block.entity.BlockEntityType"
     ));
+
+    public static final Method method$BlockGetter$getBlockFloorHeight = requireNonNull(
+            ReflectionUtils.getMethod(clazz$BlockGetter, double.class, clazz$BlockPos)
+    );
+
+    public static final Method method$LivingEntity$getLocalBoundsForPose = requireNonNull(
+            ReflectionUtils.getMethod(clazz$LivingEntity, clazz$AABB, clazz$Pose)
+    );
+
+    public static final Class<?> clazz$DismountHelper = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.entity.vehicle.DismountUtil",
+                    "world.entity.vehicle.DismountHelper"
+            )
+    );
+
+    public static final Class<?> clazz$CollisionGetter = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.level.ICollisionAccess",
+                    "world.level.CollisionGetter"
+            )
+    );
+
+    public static final Method method$DismountHelper$canDismountTo0 = requireNonNull(
+            ReflectionUtils.getStaticMethod(clazz$DismountHelper, boolean.class, clazz$CollisionGetter, clazz$LivingEntity, clazz$AABB)
+    );
+
+    public static final Method method$DismountHelper$canDismountTo1 = requireNonNull(
+            ReflectionUtils.getStaticMethod(clazz$DismountHelper, boolean.class, clazz$CollisionGetter, clazz$Vec3, clazz$LivingEntity, clazz$Pose)
+    );
 }
