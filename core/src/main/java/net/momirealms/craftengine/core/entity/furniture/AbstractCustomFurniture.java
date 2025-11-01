@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
 import net.momirealms.craftengine.core.loot.LootTable;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
@@ -17,7 +17,7 @@ public abstract class AbstractCustomFurniture implements CustomFurniture {
     private final Key id;
     private final FurnitureSettings settings;
     private final Map<AnchorType, Placement> placements;
-    private final Map<EventTrigger, List<Function<PlayerOptionalContext>>> events;
+    private final Map<EventTrigger, List<Function<Context>>> events;
     @Nullable
     private final LootTable<?> lootTable;
 
@@ -26,7 +26,7 @@ public abstract class AbstractCustomFurniture implements CustomFurniture {
     protected AbstractCustomFurniture(@NotNull Key id,
                            @NotNull FurnitureSettings settings,
                            @NotNull Map<AnchorType, Placement> placements,
-                           @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                           @NotNull Map<EventTrigger, List<Function<Context>>> events,
                            @Nullable LootTable<?> lootTable) {
         this.id = id;
         this.settings = settings;
@@ -37,8 +37,8 @@ public abstract class AbstractCustomFurniture implements CustomFurniture {
     }
 
     @Override
-    public void execute(PlayerOptionalContext context, EventTrigger trigger) {
-        for (Function<PlayerOptionalContext> function : Optional.ofNullable(this.events.get(trigger)).orElse(Collections.emptyList())) {
+    public void execute(Context context, EventTrigger trigger) {
+        for (Function<Context> function : Optional.ofNullable(this.events.get(trigger)).orElse(Collections.emptyList())) {
             function.run(context);
         }
     }

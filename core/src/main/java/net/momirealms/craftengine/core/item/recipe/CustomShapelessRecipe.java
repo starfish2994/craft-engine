@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -28,8 +28,8 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                                  String group,
                                  CraftingRecipeCategory category,
                                  List<Ingredient<T>> ingredients,
-                                 Function<PlayerOptionalContext>[] craftingFunctions,
-                                 Condition<PlayerOptionalContext> craftingCondition,
+                                 Function<Context>[] craftingFunctions,
+                                 Condition<Context> craftingCondition,
                                  boolean alwaysRebuildOutput) {
         super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition, alwaysRebuildOutput);
         this.ingredients = ingredients;

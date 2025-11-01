@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -30,8 +30,8 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T>
     @Nullable // 1.21.5
     private final Key pattern;
     @Nullable
-    private final Condition<PlayerOptionalContext> condition;
-    private final Function<PlayerOptionalContext>[] smithingFunctions;
+    private final Condition<Context> condition;
+    private final Function<Context>[] smithingFunctions;
 
     public CustomSmithingTrimRecipe(@NotNull Key id,
                                     boolean showNotification,
@@ -39,8 +39,8 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T>
                                     @NotNull Ingredient<T> base,
                                     @NotNull Ingredient<T> addition,
                                     @Nullable Key pattern,
-                                    Function<PlayerOptionalContext>[] smithingFunctions,
-                                    @Nullable Condition<PlayerOptionalContext> condition
+                                    Function<Context>[] smithingFunctions,
+                                    @Nullable Condition<Context> condition
     ) {
         super(id, showNotification);
         this.base = base;
@@ -55,12 +55,12 @@ public class CustomSmithingTrimRecipe<T> extends AbstractRecipe<T>
     }
 
     @Override
-    public Function<PlayerOptionalContext>[] functions() {
+    public Function<Context>[] functions() {
         return this.smithingFunctions;
     }
 
     @Override
-    public boolean canUse(PlayerOptionalContext context) {
+    public boolean canUse(Context context) {
         if (this.condition != null) return this.condition.test(context);
         return true;
     }

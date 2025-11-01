@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.entity.furniture.AnchorType;
 import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureSettings;
 import net.momirealms.craftengine.core.loot.LootTable;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
@@ -20,7 +20,7 @@ public class BukkitCustomFurniture extends AbstractCustomFurniture {
     protected BukkitCustomFurniture(@NotNull Key id,
                                     @NotNull FurnitureSettings settings,
                                     @NotNull Map<AnchorType, Placement> placements,
-                                    @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                                    @NotNull Map<EventTrigger, List<Function<Context>>> events,
                                     @Nullable LootTable<?> lootTable) {
         super(id, settings, placements, events, lootTable);
     }
@@ -33,7 +33,7 @@ public class BukkitCustomFurniture extends AbstractCustomFurniture {
         private Key id;
         private Map<AnchorType, Placement> placements;
         private FurnitureSettings settings;
-        private Map<EventTrigger, List<Function<PlayerOptionalContext>>> events;
+        private Map<EventTrigger, List<Function<Context>>> events;
         private LootTable<?> lootTable;
 
         @Override
@@ -66,7 +66,7 @@ public class BukkitCustomFurniture extends AbstractCustomFurniture {
         }
 
         @Override
-        public Builder events(Map<EventTrigger, List<Function<PlayerOptionalContext>>> events) {
+        public Builder events(Map<EventTrigger, List<Function<Context>>> events) {
             this.events = events;
             return this;
         }

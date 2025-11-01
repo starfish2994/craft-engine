@@ -21,7 +21,7 @@ import net.momirealms.craftengine.core.block.parser.BlockStateParser;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
@@ -541,7 +541,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     protected CustomBlock createCustomBlock(@NotNull Holder.Reference<CustomBlock> holder, 
                                             @NotNull BlockStateVariantProvider variantProvider,
-                                            @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                                            @NotNull Map<EventTrigger, List<Function<Context>>> events,
                                             @Nullable LootTable<?> lootTable) {
         return new BukkitCustomBlock(holder, variantProvider, events, lootTable);
     }

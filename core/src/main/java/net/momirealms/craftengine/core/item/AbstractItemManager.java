@@ -24,7 +24,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
@@ -557,7 +557,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                     itemBuilder.dataModifier(new IdModifier<>(id));
 
                 // 事件
-                Map<EventTrigger, List<net.momirealms.craftengine.core.plugin.context.function.Function<PlayerOptionalContext>>> eventTriggerListMap;
+                Map<EventTrigger, List<net.momirealms.craftengine.core.plugin.context.function.Function<Context>>> eventTriggerListMap;
                 try {
                     eventTriggerListMap = EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event"));
                 } catch (LocalizedResourceConfigException e) {

@@ -8,7 +8,7 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
@@ -31,8 +31,8 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
     private final Ingredient<T> addition;
     private final boolean mergeComponents;
     private final List<ItemDataProcessor> processors;
-    private final Condition<PlayerOptionalContext> condition;
-    private final Function<PlayerOptionalContext>[] smithingFunctions;
+    private final Condition<Context> condition;
+    private final Function<Context>[] smithingFunctions;
     private final CustomRecipeResult<T> visualResult;
 
     public CustomSmithingTransformRecipe(Key id,
@@ -44,8 +44,8 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
                                          @Nullable CustomRecipeResult<T> visualResult,
                                          List<ItemDataProcessor> processors,
                                          boolean mergeComponents,
-                                         Function<PlayerOptionalContext>[] smithingFunctions,
-                                         Condition<PlayerOptionalContext> condition
+                                         Function<Context>[] smithingFunctions,
+                                         Condition<Context> condition
     ) {
         super(id, showNotification, result);
         this.base = base;
@@ -59,7 +59,7 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
     }
 
     @Override
-    public Function<PlayerOptionalContext>[] functions() {
+    public Function<Context>[] functions() {
         return this.smithingFunctions;
     }
 
@@ -69,7 +69,7 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
     }
 
     @Override
-    public boolean canUse(PlayerOptionalContext context) {
+    public boolean canUse(Context context) {
         if (this.condition != null) return this.condition.test(context);
         return true;
     }

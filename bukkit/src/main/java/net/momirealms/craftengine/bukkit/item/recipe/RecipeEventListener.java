@@ -22,6 +22,7 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
@@ -696,7 +697,7 @@ public class RecipeEventListener implements Listener {
             // 有函数的情况下，执行函数
             if (ceRecipe.hasFunctions()) {
                 PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
-                for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
+                for (Function<Context> function : ceRecipe.functions()) {
                     function.run(context);
                 }
             }
@@ -723,7 +724,7 @@ public class RecipeEventListener implements Listener {
                 // 有函数的情况下，执行函数
                 if (ceRecipe.hasFunctions()) {
                     PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
-                    for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
+                    for (Function<Context> function : ceRecipe.functions()) {
                         function.run(context);
                     }
                 }
@@ -759,7 +760,7 @@ public class RecipeEventListener implements Listener {
             // 有函数的情况下，执行函数
             if (ceRecipe.hasFunctions()) {
                 PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
-                for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
+                for (Function<Context> function : ceRecipe.functions()) {
                     function.run(context);
                 }
             }
@@ -928,7 +929,7 @@ public class RecipeEventListener implements Listener {
                 // 有函数的情况下，执行函数
                 if (ceRecipe.hasFunctions()) {
                     PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
-                    for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
+                    for (Function<Context> function : ceRecipe.functions()) {
                         function.run(context);
                     }
                 }
@@ -955,7 +956,7 @@ public class RecipeEventListener implements Listener {
                     // 有函数的情况下，执行函数
                     if (ceRecipe.hasFunctions()) {
                         PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
-                        for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
+                        for (Function<Context> function : ceRecipe.functions()) {
                             function.run(context);
                         }
                     }
@@ -989,7 +990,7 @@ public class RecipeEventListener implements Listener {
                 // 有函数的情况下，执行函数
                 if (ceRecipe.hasFunctions()) {
                     PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
-                    for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
+                    for (Function<Context> function : ceRecipe.functions()) {
                         function.run(context);
                     }
                 }
@@ -1045,7 +1046,7 @@ public class RecipeEventListener implements Listener {
                 // 有函数的情况下，执行函数
                 if (ceRecipe.hasFunctions()) {
                     PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
-                    for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
+                    for (Function<Context> function : ceRecipe.functions()) {
                         function.run(context);
                     }
                 }
@@ -1064,7 +1065,7 @@ public class RecipeEventListener implements Listener {
                     // 有函数的情况下，执行函数
                     if (ceRecipe.hasFunctions()) {
                         PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
-                        for (Function<PlayerOptionalContext> function : ceRecipe.functions()) {
+                        for (Function<Context> function : ceRecipe.functions()) {
                             function.run(context);
                         }
                     }
@@ -1079,10 +1080,10 @@ public class RecipeEventListener implements Listener {
                     }
                 }
                 // 执行函数
-                Function<PlayerOptionalContext>[] functions = ceRecipe.functions();
+                Function<Context>[] functions = ceRecipe.functions();
                 if (functions != null) {
                     PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
-                    for (Function<PlayerOptionalContext> function : functions) {
+                    for (Function<Context> function : functions) {
                         function.run(context);
                     }
                 }

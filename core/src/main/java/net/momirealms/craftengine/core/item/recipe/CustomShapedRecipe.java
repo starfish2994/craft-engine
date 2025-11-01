@@ -6,7 +6,7 @@ import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
@@ -28,8 +28,8 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                               String group,
                               CraftingRecipeCategory category,
                               Pattern<T> pattern,
-                              Function<PlayerOptionalContext>[] craftingFunctions,
-                              Condition<PlayerOptionalContext> craftingCondition,
+                              Function<Context>[] craftingFunctions,
+                              Condition<Context> craftingCondition,
                               boolean alwaysRebuildOutput) {
         super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition, alwaysRebuildOutput);
         this.pattern = pattern;

@@ -27,7 +27,7 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.config.SectionConfigParser;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
@@ -246,7 +246,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     protected abstract CustomBlock createCustomBlock(@NotNull Holder.Reference<CustomBlock> holder,
                                                      @NotNull BlockStateVariantProvider variantProvider,
-                                                     @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                                                     @NotNull Map<EventTrigger, List<Function<Context>>> events,
                                                      @Nullable LootTable<?> lootTable);
 
     public class BlockStateMappingParser extends SectionConfigParser {
@@ -493,7 +493,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
                 ExceptionCollector<LocalizedResourceConfigException> eCollector1 = new ExceptionCollector<>();
 
-                Map<EventTrigger, List<Function<PlayerOptionalContext>>> events;
+                Map<EventTrigger, List<Function<Context>>> events;
                 try {
                     events = EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event"));
                 } catch (LocalizedResourceConfigException e) {

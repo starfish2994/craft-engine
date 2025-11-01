@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.item;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
@@ -44,7 +44,7 @@ public interface CustomItem<I> extends BuildableItem<I> {
         return settings().tags().contains(tag);
     }
 
-    void execute(PlayerOptionalContext context, EventTrigger trigger);
+    void execute(Context context, EventTrigger trigger);
 
     @NotNull
     List<ItemBehavior> behaviors();
@@ -74,7 +74,7 @@ public interface CustomItem<I> extends BuildableItem<I> {
 
         Builder<I> updater(ItemUpdateConfig updater);
 
-        Builder<I> events(Map<EventTrigger, List<Function<PlayerOptionalContext>>> events);
+        Builder<I> events(Map<EventTrigger, List<Function<Context>>> events);
 
         CustomItem<I> build();
     }

@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.event;
 
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.condition.*;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
@@ -42,22 +42,22 @@ public class EventConditions {
         register(CommonConditions.ON_COOLDOWN, new OnCooldownCondition.FactoryImpl<>());
     }
 
-    public static void register(Key key, ConditionFactory<PlayerOptionalContext> factory) {
-        ((WritableRegistry<ConditionFactory<PlayerOptionalContext>>) BuiltInRegistries.EVENT_CONDITION_FACTORY)
+    public static void register(Key key, ConditionFactory<Context> factory) {
+        ((WritableRegistry<ConditionFactory<Context>>) BuiltInRegistries.EVENT_CONDITION_FACTORY)
                 .register(ResourceKey.create(Registries.EVENT_CONDITION_FACTORY.location(), key), factory);
     }
 
-    public static Condition<PlayerOptionalContext> fromMap(Map<String, Object> map) {
+    public static Condition<Context> fromMap(Map<String, Object> map) {
         String type = ResourceConfigUtils.requireNonEmptyStringOrThrow(map.get("type"), "warning.config.event.condition.missing_type");
         Key key = Key.withDefaultNamespace(type, Key.DEFAULT_NAMESPACE);
         if (key.value().charAt(0) == '!') {
-            ConditionFactory<PlayerOptionalContext> factory = BuiltInRegistries.EVENT_CONDITION_FACTORY.getValue(new Key(key.namespace(), key.value().substring(1)));
+            ConditionFactory<Context> factory = BuiltInRegistries.EVENT_CONDITION_FACTORY.getValue(new Key(key.namespace(), key.value().substring(1)));
             if (factory == null) {
                 throw new LocalizedResourceConfigException("warning.config.event.condition.invalid_type", type);
             }
             return new InvertedCondition<>(factory.create(map));
         } else {
-            ConditionFactory<PlayerOptionalContext> factory = BuiltInRegistries.EVENT_CONDITION_FACTORY.getValue(key);
+            ConditionFactory<Context> factory = BuiltInRegistries.EVENT_CONDITION_FACTORY.getValue(key);
             if (factory == null) {
                 throw new LocalizedResourceConfigException("warning.config.event.condition.invalid_type", type);
             }
