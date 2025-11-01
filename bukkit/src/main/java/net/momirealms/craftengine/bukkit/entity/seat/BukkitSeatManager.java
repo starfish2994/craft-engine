@@ -55,8 +55,7 @@ public class BukkitSeatManager implements SeatManager {
 
     private void handleDismount(Player player, @NotNull Entity dismounted) {
         if (!isSeatEntityType(dismounted)) return;
-        Location location = dismounted.getLocation();
-        this.plugin.scheduler().sync().runDelayed(() -> tryLeavingSeat(player, dismounted), player.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        tryLeavingSeat(player, dismounted);
     }
 
     @Override

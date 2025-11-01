@@ -18,7 +18,7 @@ public final class LocationUtils {
     }
 
     public static WorldPosition toWorldPosition(Location location) {
-        return new WorldPosition(new BukkitWorld(location.getWorld()), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        return new WorldPosition(new BukkitWorld(location.getWorld()), location.getX(), location.getY(), location.getZ(), location.getPitch(), location.getYaw());
     }
 
     public static Object toVec(Vec3d vec) {

@@ -50,7 +50,7 @@ public class BukkitSeat<O extends SeatOwner> implements Seat<O> {
     @Override
     public boolean isOccupied() {
         Entity seatEntity = getSeatEntity();
-        return seatEntity != null && seatEntity.isValid();
+        return seatEntity != null && seatEntity.isValid() && !seatEntity.getPassengers().isEmpty();
     }
 
     @Override
