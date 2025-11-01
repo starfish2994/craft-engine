@@ -19,6 +19,7 @@ public interface FormattedLine {
             createDummyResolvers("arg"),
             createDummyResolvers("shift"),
             createDummyResolvers("i18n"),
+            createDummyResolvers("l10n"),
             createDummyResolvers("global"),
             createDummyResolvers("papi"),
             createDummyResolvers("rel_papi")

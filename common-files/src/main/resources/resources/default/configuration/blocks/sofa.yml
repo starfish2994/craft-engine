@@ -70,6 +70,7 @@ items:
           is-redstone-conductor: false
           push-reaction: block
           instrument: bass
+          support-shape: cobweb
           sounds:
             break: minecraft:block.wood.break
             fall: minecraft:block.wood.fall
