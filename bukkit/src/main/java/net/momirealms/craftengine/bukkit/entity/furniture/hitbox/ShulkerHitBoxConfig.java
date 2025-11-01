@@ -216,7 +216,7 @@ public class ShulkerHitBoxConfig extends AbstractHitBoxConfig {
             double x = position.x();
             double y = position.y();
             double z = position.z();
-            float yaw = position.xRot();
+            float yaw = position.yRot();
             double originalY = y + offset.y;
             double integerPart = Math.floor(originalY);
             double fractionalPart = originalY - integerPart;

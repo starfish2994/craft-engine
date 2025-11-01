@@ -64,7 +64,7 @@ public class InteractionHitBoxConfig extends AbstractHitBoxConfig {
         double x = position.x();
         double y = position.y();
         double z = position.z();
-        float yaw = position.xRot();
+        float yaw = position.yRot();
         Vec3d vec3d = new Vec3d(x + offset.x, y + offset.y, z - offset.z);
         packets.accept(FastNMS.INSTANCE.constructor$ClientboundAddEntityPacket(
                 entityId[0], UUID.randomUUID(), vec3d.x, vec3d.y, vec3d.z, 0, yaw,

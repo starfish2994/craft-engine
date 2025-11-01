@@ -64,7 +64,7 @@ public class HappyGhastHitBoxConfig extends AbstractHitBoxConfig {
             double x = position.x();
             double y = position.y();
             double z = position.z();
-            float yaw = position.xRot();
+            float yaw = position.yRot();
             packets.accept(FastNMS.INSTANCE.constructor$ClientboundAddEntityPacket(
                     entityIds[0], UUID.randomUUID(), x + offset.x, y + offset.y, z - offset.z, 0, yaw,
                     MEntityTypes.HAPPY_GHAST, 0, CoreReflections.instance$Vec3$Zero, 0

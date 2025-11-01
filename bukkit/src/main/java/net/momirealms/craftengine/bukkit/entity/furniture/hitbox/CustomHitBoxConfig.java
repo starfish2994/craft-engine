@@ -57,7 +57,7 @@ public class CustomHitBoxConfig extends AbstractHitBoxConfig {
         Vector3f offset = conjugated.transform(new Vector3f(position()));
         try {
             packets.accept(FastNMS.INSTANCE.constructor$ClientboundAddEntityPacket(
-                    entityId[0], UUID.randomUUID(), position.x() + offset.x, position.y() + offset.y, position.z() - offset.z, 0, position.xRot(),
+                    entityId[0], UUID.randomUUID(), position.x() + offset.x, position.y() + offset.y, position.z() - offset.z, 0, position.yRot(),
                     FastNMS.INSTANCE.method$CraftEntityType$toNMSEntityType(this.entityType), 0, CoreReflections.instance$Vec3$Zero, 0
             ), true);
             packets.accept(FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(entityId[0], List.copyOf(this.cachedValues)), true);
