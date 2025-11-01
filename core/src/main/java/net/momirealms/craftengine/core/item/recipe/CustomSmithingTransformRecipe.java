@@ -8,7 +8,8 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
@@ -22,14 +23,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecipe<T> implements ConditionalRecipe {
+public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecipe<T>
+        implements ConditionalRecipe<T>, VisualResultRecipe<T>, FunctionalRecipe<T> {
     public static final Serializer<?> SERIALIZER = new Serializer<>();
     private final Ingredient<T> base;
     private final Ingredient<T> template;
     private final Ingredient<T> addition;
     private final boolean mergeComponents;
     private final List<ItemDataProcessor> processors;
-    private final Condition<PlayerOptionalContext> condition;
+    private final Condition<Context> condition;
+    private final Function<Context>[] smithingFunctions;
+    private final CustomRecipeResult<T> visualResult;
 
     public CustomSmithingTransformRecipe(Key id,
                                          boolean showNotification,
@@ -37,9 +41,11 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
                                          @NotNull Ingredient<T> base,
                                          @Nullable Ingredient<T> addition,
                                          CustomRecipeResult<T> result,
+                                         @Nullable CustomRecipeResult<T> visualResult,
                                          List<ItemDataProcessor> processors,
                                          boolean mergeComponents,
-                                         Condition<PlayerOptionalContext> condition
+                                         Function<Context>[] smithingFunctions,
+                                         Condition<Context> condition
     ) {
         super(id, showNotification, result);
         this.base = base;
@@ -48,12 +54,29 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
         this.processors = processors;
         this.mergeComponents = mergeComponents;
         this.condition = condition;
+        this.smithingFunctions = smithingFunctions;
+        this.visualResult = visualResult;
     }
 
     @Override
-    public boolean canUse(PlayerOptionalContext context) {
+    public Function<Context>[] functions() {
+        return this.smithingFunctions;
+    }
+
+    @Override
+    public CustomRecipeResult<T> visualResult() {
+        return this.visualResult;
+    }
+
+    @Override
+    public boolean canUse(Context context) {
         if (this.condition != null) return this.condition.test(context);
         return true;
+    }
+
+    @Override
+    public boolean hasCondition() {
+        return this.condition != null;
     }
 
     @SuppressWarnings("unchecked")
@@ -101,10 +124,24 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
 
     @SuppressWarnings("unchecked")
     @Override
+    public T assembleVisual(RecipeInput input, ItemBuildContext context) {
+        SmithingInput<T> smithingInput = ((SmithingInput<T>) input);
+        Item<T> base = smithingInput.base().item();
+        T result = this.visualResult().buildItemStack(context);
+        return createSmithingResult(base, result);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public T assemble(RecipeInput input, ItemBuildContext context) {
         SmithingInput<T> smithingInput = ((SmithingInput<T>) input);
         Item<T> base = smithingInput.base().item();
         T result = this.result(context);
+        return createSmithingResult(base, result);
+    }
+
+    @SuppressWarnings("unchecked")
+    private T createSmithingResult(Item<T> base, T result) {
         Item<T> wrappedResult = (Item<T>) CraftEngine.instance().itemManager().wrap(result);
         Item<T> finalResult = wrappedResult;
         if (this.mergeComponents) {
@@ -150,9 +187,10 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
                     ResourceConfigUtils.requireNonNullOrThrow(toIngredient(base), "warning.config.recipe.smithing_transform.missing_base"),
                     toIngredient(addition),
                     parseResult(arguments),
+                    parseVisualResult(arguments),
                     ItemDataProcessors.fromMapList(processors),
                     mergeComponents,
-                    conditions(arguments)
+                    functions(arguments), conditions(arguments)
             );
         }
 
@@ -166,8 +204,9 @@ public class CustomSmithingTransformRecipe<T> extends AbstractedFixedResultRecip
                     toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition"))),
                     parseResult(VANILLA_RECIPE_HELPER.smithingResult(json.getAsJsonObject("result"))),
                     null,
+                    null,
                     true,
-                    null
+                    null, null
             );
         }
     }

@@ -36,7 +36,7 @@ public class EnchantmentCondition<CTX extends Context> implements Condition<CTX>
         return this.expression.apply(level);
     }
 
-    public static class FactoryImpl<CTX extends Context> implements ConditionFactory<CTX> {
+    public static class Factory<CTX extends Context> implements ConditionFactory<CTX> {
 
         @Override
         public Condition<CTX> create(Map<String, Object> arguments) {

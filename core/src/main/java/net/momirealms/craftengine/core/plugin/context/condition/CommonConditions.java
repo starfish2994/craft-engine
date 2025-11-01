@@ -11,6 +11,7 @@ public final class CommonConditions {
     public static final Key ANY_OF = Key.of("craftengine:any_of");
     public static final Key INVERTED = Key.of("craftengine:inverted");
     public static final Key MATCH_ITEM = Key.of("craftengine:match_item");
+    public static final Key HAS_ITEM = Key.of("craftengine:has_item");
     public static final Key MATCH_ENTITY = Key.of("craftengine:match_entity");
     public static final Key MATCH_BLOCK = Key.of("craftengine:match_block");
     public static final Key MATCH_BLOCK_PROPERTY = Key.from("craftengine:match_block_property");
@@ -29,4 +30,5 @@ public final class CommonConditions {
     public static final Key EXPRESSION = Key.from("craftengine:expression");
     public static final Key IS_NULL = Key.from("craftengine:is_null");
     public static final Key HAND = Key.from("craftengine:hand");
+    public static final Key HAS_PLAYER = Key.from("craftengine:has_player");
 }

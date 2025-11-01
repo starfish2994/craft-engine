@@ -3,10 +3,16 @@ package net.momirealms.craftengine.bukkit.item;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.MRegistryOps;
+import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.ItemWrapper;
+import net.momirealms.craftengine.core.util.RandomUtils;
 import net.momirealms.sparrow.nbt.Tag;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
     private final Object nmsStack;
@@ -21,11 +27,12 @@ public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
         Object finalNMSTag;
         if (value instanceof Tag tag) {
             finalNMSTag = MRegistryOps.SPARROW_NBT.convertTo(MRegistryOps.NBT, tag);
+        } else if (CoreReflections.clazz$Tag.isInstance(value)) {
+            finalNMSTag = value;
         } else {
             finalNMSTag = MRegistryOps.JAVA.convertTo(MRegistryOps.NBT, value);
         }
 
-        Object currentTag = FastNMS.INSTANCE.field$ItemStack$getOrCreateTag(this.nmsStack);
         if (path == null || path.length == 0) {
             if (CoreReflections.clazz$CompoundTag.isInstance(finalNMSTag)) {
                 FastNMS.INSTANCE.method$ItemStack$setTag(this.nmsStack, finalNMSTag);
@@ -33,6 +40,8 @@ public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
             }
             return false;
         }
+
+        Object currentTag = FastNMS.INSTANCE.field$ItemStack$getOrCreateTag(this.nmsStack);
 
         for (int i = 0; i < path.length - 1; i++) {
             Object pathSegment = path[i];
@@ -146,5 +155,39 @@ public class LegacyItemWrapper implements ItemWrapper<ItemStack> {
     @Override
     public void shrink(int amount) {
         this.count(count() - amount);
+    }
+
+    @Override
+    public void hurtAndBreak(int amount, @Nullable Player player, @Nullable EquipmentSlot slot) {
+        if (player == null) {
+            if (this.hurt(amount)) {
+                this.shrink(1);
+                this.setTag(0, "Damage");
+            }
+            return;
+        }
+        FastNMS.INSTANCE.method$ItemStack$hurtAndBreak(
+                this.nmsStack,
+                amount,
+                player.serverPlayer(),
+                slot != null ? EquipmentSlotUtils.toNMSEquipmentSlot(slot) : null
+        );
+    }
+
+    private boolean hurt(int amount) {
+        if (ItemStackUtils.isEmpty(itemStack) || itemStack.getType().getMaxDurability() <= 0 || !hasTag("Unbreakable") || (boolean) getJavaTag("Unbreakable")) return false;
+        if (amount > 0) {
+            int level = this.itemStack.getEnchantmentLevel(Enchantment.UNBREAKING);
+            int ignoredDamage = 0;
+            for (int i = 0; level > 0 && i < amount; ++i) {
+                if (RandomUtils.generateRandomInt(0, level + 1) > 0) ++ignoredDamage;
+            }
+            amount -= ignoredDamage;
+            if (amount <= 0) return false;
+        }
+        int damage = this.hasTag("Damage") ? this.getJavaTag("Damage") : 0;
+        damage += amount;
+        this.setTag(damage, "Damage");
+        return damage >= this.itemStack.getType().getMaxDurability();
     }
 }

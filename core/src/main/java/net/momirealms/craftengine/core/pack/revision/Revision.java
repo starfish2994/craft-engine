@@ -78,6 +78,11 @@ public interface Revision {
         public int hashCode() {
             return this.minVersion.hashCode();
         }
+
+        @Override
+        public String toString() {
+            return "Since{" + "minVersion=" + minVersion + '}';
+        }
     }
 
     class FromTo implements Revision {
@@ -134,6 +139,14 @@ public interface Revision {
             int result = Objects.hashCode(minVersion);
             result = 31 * result + Objects.hashCode(maxVersion);
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "FromTo{" +
+                    "minVersion=" + minVersion +
+                    ", maxVersion=" + maxVersion +
+                    '}';
         }
     }
 }

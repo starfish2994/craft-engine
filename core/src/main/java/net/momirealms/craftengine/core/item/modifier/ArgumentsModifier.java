@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.modifier;
 
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -37,13 +37,13 @@ public class ArgumentsModifier<I> implements ItemDataModifier<I> {
     @Override
     public Item<I> apply(Item<I> item, ItemBuildContext context) {
         if (VersionHelper.isOrAbove1_20_5()) {
-            CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getSparrowNBTComponent(ComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
+            CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getSparrowNBTComponent(DataComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
             CompoundTag argumentTag = new CompoundTag();
             for (Map.Entry<String, TextProvider> entry : this.arguments.entrySet()) {
                 argumentTag.put(entry.getKey(), new StringTag(entry.getValue().get(context)));
             }
             customData.put(ARGUMENTS_TAG, argumentTag);
-            item.setNBTComponent(ComponentKeys.CUSTOM_DATA, customData);
+            item.setNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
         } else {
             Map<String, String> processed = new HashMap<>();
             for (Map.Entry<String, TextProvider> entry : this.arguments.entrySet()) {

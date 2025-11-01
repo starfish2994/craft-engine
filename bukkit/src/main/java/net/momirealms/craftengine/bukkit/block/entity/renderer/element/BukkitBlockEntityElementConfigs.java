@@ -9,6 +9,8 @@ public class BukkitBlockEntityElementConfigs extends BlockEntityElementConfigs {
         register(TEXT_DISPLAY, TextDisplayBlockEntityElementConfig.FACTORY);
     }
 
+    private BukkitBlockEntityElementConfigs() {}
+
     public static void init() {
     }
 }

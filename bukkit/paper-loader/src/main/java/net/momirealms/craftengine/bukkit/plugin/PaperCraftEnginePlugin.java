@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class PaperCraftEnginePlugin extends JavaPlugin {
+public final class PaperCraftEnginePlugin extends JavaPlugin {
     private final PaperCraftEngineBootstrap bootstrap;
 
     public PaperCraftEnginePlugin(PaperCraftEngineBootstrap bootstrap) {

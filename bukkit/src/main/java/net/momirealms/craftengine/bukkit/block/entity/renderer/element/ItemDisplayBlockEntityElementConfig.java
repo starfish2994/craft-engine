@@ -34,6 +34,8 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
     private final Quaternionf rotation;
     private final ItemDisplayContext displayContext;
     private final Billboard billboard;
+    private final float shadowRadius;
+    private final float shadowStrength;
 
     public ItemDisplayBlockEntityElementConfig(Function<Player, Item<?>> item,
                                                Vector3f scale,
@@ -43,7 +45,9 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
                                                float yRot,
                                                Quaternionf rotation,
                                                ItemDisplayContext displayContext,
-                                               Billboard billboard) {
+                                               Billboard billboard,
+                                               float shadowRadius,
+                                               float shadowStrength) {
         this.item = item;
         this.scale = scale;
         this.position = position;
@@ -53,6 +57,8 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
         this.rotation = rotation;
         this.displayContext = displayContext;
         this.billboard = billboard;
+        this.shadowRadius = shadowRadius;
+        this.shadowStrength = shadowStrength;
         this.lazyMetadataPacket = player -> {
             List<Object> dataValues = new ArrayList<>();
             ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(item.apply(player).getLiteralObject(), dataValues);
@@ -61,6 +67,8 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
             ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);
             ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(this.translation, dataValues);
             ItemDisplayEntityData.DisplayType.addEntityDataIfNotDefaultValue(this.displayContext.id(), dataValues);
+            ItemDisplayEntityData.ShadowRadius.addEntityDataIfNotDefaultValue(this.shadowRadius, dataValues);
+            ItemDisplayEntityData.ShadowStrength.addEntityDataIfNotDefaultValue(this.shadowStrength, dataValues);
             return dataValues;
         };
     }
@@ -106,6 +114,14 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
         return rotation;
     }
 
+    public float shadowRadius() {
+        return shadowRadius;
+    }
+
+    public float shadowStrength() {
+        return shadowStrength;
+    }
+
     public List<Object> metadataValues(Player player) {
         return this.lazyMetadataPacket.apply(player);
     }
@@ -125,7 +141,9 @@ public class ItemDisplayBlockEntityElementConfig implements BlockEntityElementCo
                     ResourceConfigUtils.getAsFloat(arguments.getOrDefault("yaw", 0f), "yaw"),
                     ResourceConfigUtils.getAsQuaternionf(arguments.getOrDefault("rotation", 0f), "rotation"),
                     ItemDisplayContext.valueOf(arguments.getOrDefault("display-context", "none").toString().toUpperCase(Locale.ROOT)),
-                    Billboard.valueOf(arguments.getOrDefault("billboard", "fixed").toString().toUpperCase(Locale.ROOT))
+                    Billboard.valueOf(arguments.getOrDefault("billboard", "fixed").toString().toUpperCase(Locale.ROOT)),
+                    ResourceConfigUtils.getAsFloat(arguments.getOrDefault("shadow-radius", 0f), "shadow-radius"),
+                    ResourceConfigUtils.getAsFloat(arguments.getOrDefault("shadow-strength", 1f), "shadow-strength")
             );
         }
     }

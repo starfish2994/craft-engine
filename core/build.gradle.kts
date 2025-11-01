@@ -21,7 +21,7 @@ dependencies {
     implementation("net.momirealms:sparrow-nbt-codec:${rootProject.properties["sparrow_nbt_version"]}")
     implementation("net.momirealms:sparrow-nbt-legacy-codec:${rootProject.properties["sparrow_nbt_version"]}")
     // S3
-    implementation("net.momirealms:craft-engine-s3:0.7")
+    implementation("net.momirealms:craft-engine-s3:0.8")
     // Util
     compileOnly("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     // Adventure

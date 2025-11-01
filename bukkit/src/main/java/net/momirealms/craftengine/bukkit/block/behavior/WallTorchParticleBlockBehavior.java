@@ -47,7 +47,7 @@ public class WallTorchParticleBlockBehavior extends BukkitBlockBehavior implemen
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType() {
+    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
         return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.WALL_TORCH_PARTICLE);
     }
 

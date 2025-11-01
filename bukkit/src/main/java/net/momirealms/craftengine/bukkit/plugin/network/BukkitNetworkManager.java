@@ -58,7 +58,10 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.advancement.network.AdvancementHolder;
 import net.momirealms.craftengine.core.advancement.network.AdvancementProgress;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.entity.furniture.HitBox;
+import net.momirealms.craftengine.core.entity.furniture.HitBoxPart;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
+import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.font.FontManager;
 import net.momirealms.craftengine.core.font.IllegalCharacterProcessResult;
 import net.momirealms.craftengine.core.item.CustomItem;
@@ -67,6 +70,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipeHolder;
 import net.momirealms.craftengine.core.item.recipe.network.modern.RecipeBookEntry;
+import net.momirealms.craftengine.core.item.recipe.network.modern.SingleInputButtonDisplay;
 import net.momirealms.craftengine.core.item.recipe.network.modern.display.RecipeDisplay;
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
@@ -91,8 +95,8 @@ import net.momirealms.craftengine.core.world.chunk.Palette;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import net.momirealms.craftengine.core.world.chunk.packet.BlockEntityData;
 import net.momirealms.craftengine.core.world.chunk.packet.MCSection;
-import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.Tag;
 import net.momirealms.sparrow.nbt.adventure.NBTDataComponentValue;
 import org.bukkit.*;
@@ -108,6 +112,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -118,7 +123,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 public class BukkitNetworkManager implements NetworkManager, Listener, PluginMessageListener {
     private static BukkitNetworkManager instance;
@@ -156,7 +161,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         instance = this;
         this.s2cGamePacketListeners = new ByteBufferPacketListenerHolder[PlayPacketIdHelper.count(PacketFlow.CLIENTBOUND)];
         this.c2sGamePacketListeners = new ByteBufferPacketListenerHolder[PlayPacketIdHelper.count(PacketFlow.SERVERBOUND)];
-        this.hasModelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine") != null;
+        Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
+        this.hasModelEngine = modelEngine != null && modelEngine.getPluginMeta().getVersion().startsWith("R4");
         this.plugin = plugin;
         // set up packet id
         this.packetIds = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
@@ -183,9 +189,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             Object bundle = FastNMS.INSTANCE.constructor$ClientboundBundlePacket(packets);
             this.immediatePacketConsumer.accept(channel, bundle, sendListener);
         };
-        // set up mod channel
-        this.plugin.javaPlugin().getServer().getMessenger().registerIncomingPluginChannel(this.plugin.javaPlugin(), MOD_CHANNEL, this);
-        this.plugin.javaPlugin().getServer().getMessenger().registerOutgoingPluginChannel(this.plugin.javaPlugin(), MOD_CHANNEL);
         // Inject server channel
         try {
             Object server = FastNMS.INSTANCE.method$MinecraftServer$getServer();
@@ -297,7 +300,12 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         }
         this.blockStateRemapper = newMappings;
         this.modBlockStateRemapper = newMappingsMOD;
-        registerS2CGamePacketListener(new LevelChunkWithLightListener(newMappings, newMappingsMOD, newMappings.length, RegistryUtils.currentBiomeRegistrySize()), this.packetIds.clientboundLevelChunkWithLightPacket(), "ClientboundLevelChunkWithLightPacket");
+        registerS2CGamePacketListener(new LevelChunkWithLightListener(
+                newMappings,
+                newMappingsMOD,
+                newMappings.length,
+                RegistryUtils.currentBiomeRegistrySize()
+        ), this.packetIds.clientboundLevelChunkWithLightPacket(), "ClientboundLevelChunkWithLightPacket");
         registerS2CGamePacketListener(new SectionBlockUpdateListener(newMappings, newMappingsMOD), this.packetIds.clientboundSectionBlocksUpdatePacket(), "ClientboundSectionBlocksUpdatePacket");
         registerS2CGamePacketListener(new BlockUpdateListener(newMappings, newMappingsMOD), this.packetIds.clientboundBlockUpdatePacket(), "ClientboundBlockUpdatePacket");
         registerS2CGamePacketListener(
@@ -341,7 +349,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         registerS2CGamePacketListener(new SetScoreListener1_20_3(), VersionHelper.isOrAbove1_20_3() ? this.packetIds.clientboundSetScorePacket() : -1, "ClientboundSetScorePacket");
         registerS2CGamePacketListener(new AddRecipeBookListener(), this.packetIds.clientboundRecipeBookAddPacket(), "ClientboundRecipeBookAddPacket");
         registerS2CGamePacketListener(new PlaceGhostRecipeListener(), this.packetIds.clientboundPlaceGhostRecipePacket(), "ClientboundPlaceGhostRecipePacket");
-        registerS2CGamePacketListener(new UpdateRecipesListener(), this.packetIds.clientboundUpdateRecipesPacket(), "ClientboundUpdateRecipesPacket");
+        registerS2CGamePacketListener(VersionHelper.isOrAbove1_21_2() ? new UpdateRecipesListener1_21_2() : new UpdateRecipesListener1_20(), this.packetIds.clientboundUpdateRecipesPacket(), "ClientboundUpdateRecipesPacket");
         registerS2CGamePacketListener(new UpdateAdvancementsListener(), this.packetIds.clientboundUpdateAdvancementsPacket(), "ClientboundUpdateAdvancementsPacket");
         registerS2CGamePacketListener(new RemoveEntityListener(), this.packetIds.clientboundRemoveEntitiesPacket(), "ClientboundRemoveEntitiesPacket");
         registerS2CGamePacketListener(new SoundListener(), this.packetIds.clientboundSoundPacket(), "ClientboundSoundPacket");
@@ -357,6 +365,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         registerC2SGamePacketListener(new CustomPayloadListener1_20(), VersionHelper.isOrAbove1_20_2() ? -1 : this.packetIds.serverboundCustomPayloadPacket(), "ServerboundCustomPayloadPacket");
         registerS2CGamePacketListener(VersionHelper.isOrAbove1_20_5() ? new MerchantOffersListener1_20_5() : new MerchantOffersListener1_20(), this.packetIds.clientBoundMerchantOffersPacket(), "ClientboundMerchantOffersPacket");
         registerS2CGamePacketListener(new AddEntityListener(RegistryUtils.currentEntityTypeRegistrySize()), this.packetIds.clientboundAddEntityPacket(), "ClientboundAddEntityPacket");
+        registerS2CGamePacketListener(new BlockEntityDataListener(), this.packetIds.clientboundBlockEntityDataPacket(), "ClientboundBlockEntityDataPacket");
         registerS2CGamePacketListener(
                 VersionHelper.isOrAbove1_20_3() ?
                 new OpenScreenListener1_20_3() :
@@ -1245,7 +1254,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
     }
 
     private static void pickItem(Player player, Key itemId, @Nullable Object blockPos, @Nullable Object entity) throws Throwable {
-        ItemStack itemStack = BukkitCraftEngine.instance().itemManager().buildCustomItemStack(itemId, BukkitCraftEngine.instance().adapt(player));
+        ItemStack itemStack = BukkitCraftEngine.instance().itemManager().buildItemStack(itemId, BukkitCraftEngine.instance().adapt(player));
         if (itemStack == null) {
             CraftEngine.instance().logger().warn("Item: " + itemId + " is not a valid item");
             return;
@@ -1602,7 +1611,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             } else {
                 return;
             }
-            if (clientPayload == null || !clientPayload.channel().equals(NetworkManager.MOD_CHANNEL_KEY)) return;
+            if (clientPayload == null) return;
             PayloadHelper.handleReceiver(clientPayload, user);
         }
     }
@@ -1860,6 +1869,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
+            if (Config.disableItemOperations()) return;
+            if (!VersionHelper.PREMIUM && !Config.interceptItem()) return;
             BukkitServerPlayer player = (BukkitServerPlayer) user;
             int containerId = FastNMS.INSTANCE.field$ServerboundContainerClickPacket$containerId(packet);
             int stateId = FastNMS.INSTANCE.field$ServerboundContainerClickPacket$stateId(packet);
@@ -1904,28 +1915,35 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
     }
 
     public static class LevelChunkWithLightListener implements ByteBufferPacketListener {
-        private static BiConsumer<NetWorkUser, PalettedContainer<Integer>> biomeRemapper = null;
+        private static BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> biomeRemapper = null;
 
-        public static void setBiomeRemapper(BiConsumer<NetWorkUser, PalettedContainer<Integer>> remapper) {
+        public static void setBiomeRemapper(BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> remapper) {
             biomeRemapper = remapper;
         }
 
-        public static void remapBiomes(NetWorkUser user, PalettedContainer<Integer> biomes) {
+        public static boolean remapBiomes(NetWorkUser user, PalettedContainer<Integer> biomes) {
             if (biomeRemapper != null) {
-                biomeRemapper.accept(user, biomes);
+                return biomeRemapper.apply(user, biomes);
             }
+            return false;
         }
 
         private final int[] blockStateMapper;
         private final int[] modBlockStateMapper;
         private final IntIdentityList biomeList;
         private final IntIdentityList blockList;
+        private final boolean needsDowngrade;
 
         public LevelChunkWithLightListener(int[] blockStateMapper, int[] modBlockStateMapper, int blockRegistrySize, int biomeRegistrySize) {
             this.blockStateMapper = blockStateMapper;
             this.modBlockStateMapper = modBlockStateMapper;
             this.biomeList = new IntIdentityList(biomeRegistrySize);
             this.blockList = new IntIdentityList(blockRegistrySize);
+            this.needsDowngrade = MiscUtils.ceilLog2(BlockStateUtils.vanillaBlockStateCount()) != MiscUtils.ceilLog2(blockRegistrySize);
+        }
+
+        public int remapBlockState(int stateId, boolean enableMod) {
+            return enableMod ? this.modBlockStateMapper[stateId] : this.blockStateMapper[stateId];
         }
 
         @Override
@@ -1934,8 +1952,10 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             FriendlyByteBuf buf = event.getBuffer();
             int chunkX = buf.readInt();
             int chunkZ = buf.readInt();
+            ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
             boolean named = !VersionHelper.isOrAbove1_20_2();
-            // ClientboundLevelChunkPacketData
+
+            // 读取区块数据
             int heightmapsCount = 0;
             Map<Integer, long[]> heightmapsMap = null;
             net.momirealms.sparrow.nbt.Tag heightmaps = null;
@@ -1951,112 +1971,108 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 heightmaps = buf.readNbt(named);
             }
 
-            int varInt = buf.readVarInt();
-            byte[] buffer = new byte[varInt];
-            buf.readBytes(buffer);
-            int blockEntitiesDataCount = buf.readVarInt();
-            List<BlockEntityData> blockEntitiesData = new ArrayList<>();
-            for (int i = 0; i < blockEntitiesDataCount; i++) {
-                byte packedXZ = buf.readByte();
-                short y = buf.readShort();
-                int type = buf.readVarInt();
-                Tag tag = buf.readNbt(named);
-                BlockEntityData blockEntityData = new BlockEntityData(packedXZ, y, type, tag);
-                blockEntitiesData.add(blockEntityData);
-            }
-            // ClientboundLightUpdatePacketData
-            BitSet skyYMask = buf.readBitSet();
-            BitSet blockYMask = buf.readBitSet();
-            BitSet emptySkyYMask = buf.readBitSet();
-            BitSet emptyBlockYMask = buf.readBitSet();
-            List<byte[]> skyUpdates = buf.readByteArrayList(2048);
-            List<byte[]> blockUpdates = buf.readByteArrayList(2048);
-            // 开始处理
-            if (user.clientModEnabled()) {
-                ByteBuf byteBuf = Unpooled.copiedBuffer(buffer);
-                FriendlyByteBuf friendlyByteBuf = new FriendlyByteBuf(byteBuf);
-                FriendlyByteBuf newBuf = new FriendlyByteBuf(Unpooled.buffer());
-                for (int i = 0, count = player.clientSideSectionCount(); i < count; i++) {
-                    MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
-                    mcSection.readPacket(friendlyByteBuf);
-                    PalettedContainer<Integer> container = mcSection.blockStateContainer();
-                    remapBiomes(user, mcSection.biomeContainer());
-                    Palette<Integer> palette = container.data().palette();
-                    if (palette.canRemap()) {
-                        palette.remap(s -> this.modBlockStateMapper[s]);
-                    } else {
-                        for (int j = 0; j < 4096; j++) {
-                            int state = container.get(j);
-                            int newState = this.modBlockStateMapper[state];
-                            if (newState != state) {
-                                container.set(j, newState);
-                            }
+            int chunkDataBufferSize = buf.readVarInt();
+            byte[] chunkDataBytes = new byte[chunkDataBufferSize];
+            buf.readBytes(chunkDataBytes);
+
+            // 客户端侧section数量很重要，不能读取此时玩家所在的真实世界，包具有滞后性
+            int count = player.clientSideSectionCount();
+            MCSection[] sections = new MCSection[count];
+            FriendlyByteBuf chunkDataByteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(chunkDataBytes));
+
+            boolean hasChangedAnyBlock = false;
+            boolean hasGlobalPalette = false;
+
+            for (int i = 0; i < count; i++) {
+                MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
+                mcSection.readPacket(chunkDataByteBuf);
+                PalettedContainer<Integer> container = mcSection.blockStateContainer();
+                if (remapBiomes(user, mcSection.biomeContainer())) {
+                    hasChangedAnyBlock = true;
+                }
+                Palette<Integer> palette = container.data().palette();
+                if (palette.canRemap()) {
+                    if (palette.remapAndCheck(s -> remapBlockState(s, user.clientModEnabled()))) {
+                        hasChangedAnyBlock = true;
+                    }
+                } else {
+                    hasGlobalPalette = true;
+                    for (int j = 0; j < 4096; j++) {
+                        int state = container.get(j);
+                        int newState = remapBlockState(state, user.clientModEnabled());
+                        if (newState != state) {
+                            container.set(j, newState);
+                            hasChangedAnyBlock = true;
                         }
                     }
-                    mcSection.writePacket(newBuf);
                 }
-                buffer = newBuf.array();
-            } else {
-                ByteBuf byteBuf = Unpooled.copiedBuffer(buffer);
-                FriendlyByteBuf friendlyByteBuf = new FriendlyByteBuf(byteBuf);
-                FriendlyByteBuf newBuf = new FriendlyByteBuf(Unpooled.buffer());
-                for (int i = 0, count = player.clientSideSectionCount(); i < count; i++) {
-                    MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
-                    mcSection.readPacket(friendlyByteBuf);
-                    PalettedContainer<Integer> container = mcSection.blockStateContainer();
-                    remapBiomes(user, mcSection.biomeContainer());
-                    Palette<Integer> palette = container.data().palette();
-                    if (palette.canRemap()) {
-                        palette.remap(s -> this.blockStateMapper[s]);
-                    } else {
-                        for (int j = 0; j < 4096; j++) {
-                            int state = container.get(j);
-                            int newState = this.blockStateMapper[state];
-                            if (newState != state) {
-                                container.set(j, newState);
-                            }
-                        }
+                sections[i] = mcSection;
+            }
+
+            // 只有被修改了，才读后续内容，并改写
+            if (hasChangedAnyBlock || (this.needsDowngrade && hasGlobalPalette)) {
+                // 读取其他非必要信息
+                int blockEntitiesDataCount = buf.readVarInt();
+                List<BlockEntityData> blockEntitiesData = new ArrayList<>();
+                for (int i = 0; i < blockEntitiesDataCount; i++) {
+                    byte packedXZ = buf.readByte();
+                    short y = buf.readShort();
+                    int type = buf.readVarInt();
+                    Tag tag = buf.readNbt(named);
+                    BlockEntityData blockEntityData = new BlockEntityData(packedXZ, y, type, tag);
+                    blockEntitiesData.add(blockEntityData);
+                }
+                // 光照信息
+                BitSet skyYMask = buf.readBitSet();
+                BitSet blockYMask = buf.readBitSet();
+                BitSet emptySkyYMask = buf.readBitSet();
+                BitSet emptyBlockYMask = buf.readBitSet();
+                List<byte[]> skyUpdates = buf.readByteArrayList(2048);
+                List<byte[]> blockUpdates = buf.readByteArrayList(2048);
+
+                // 预分配容量
+                FriendlyByteBuf newChunkDataBuf = new FriendlyByteBuf(Unpooled.buffer(chunkDataBufferSize + 16));
+                for (int i = 0; i < count; i++) {
+                    sections[i].writePacket(newChunkDataBuf);
+                }
+                chunkDataBytes = newChunkDataBuf.array();
+
+                // 开始修改
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeInt(chunkX);
+                buf.writeInt(chunkZ);
+                if (VersionHelper.isOrAbove1_21_5()) {
+                    buf.writeVarInt(heightmapsCount);
+                    for (Map.Entry<Integer, long[]> entry : heightmapsMap.entrySet()) {
+                        buf.writeVarInt(entry.getKey());
+                        buf.writeLongArray(entry.getValue());
                     }
-                    mcSection.writePacket(newBuf);
+                } else {
+                    buf.writeNbt(heightmaps, named);
                 }
-                buffer = newBuf.array();
+                buf.writeVarInt(chunkDataBytes.length);
+                buf.writeBytes(chunkDataBytes);
+                buf.writeVarInt(blockEntitiesDataCount);
+                for (BlockEntityData blockEntityData : blockEntitiesData) {
+                    buf.writeByte(blockEntityData.packedXZ());
+                    buf.writeShort(blockEntityData.y());
+                    buf.writeVarInt(blockEntityData.type());
+                    buf.writeNbt(blockEntityData.tag(), named);
+                }
+                buf.writeBitSet(skyYMask);
+                buf.writeBitSet(blockYMask);
+                buf.writeBitSet(emptySkyYMask);
+                buf.writeBitSet(emptyBlockYMask);
+                buf.writeByteArrayList(skyUpdates);
+                buf.writeByteArrayList(blockUpdates);
             }
 
-            // 开始修改
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeInt(chunkX);
-            buf.writeInt(chunkZ);
-            if (VersionHelper.isOrAbove1_21_5()) {
-                buf.writeVarInt(heightmapsCount);
-                for (Map.Entry<Integer, long[]> entry : heightmapsMap.entrySet()) {
-                    buf.writeVarInt(entry.getKey());
-                    buf.writeLongArray(entry.getValue());
-                }
-            } else {
-                buf.writeNbt(heightmaps, named);
-            }
-            buf.writeVarInt(buffer.length);
-            buf.writeBytes(buffer);
-            buf.writeVarInt(blockEntitiesDataCount);
-            for (BlockEntityData blockEntityData : blockEntitiesData) {
-                buf.writeByte(blockEntityData.packedXZ());
-                buf.writeShort(blockEntityData.y());
-                buf.writeVarInt(blockEntityData.type());
-                buf.writeNbt(blockEntityData.tag(), named);
-            }
-            buf.writeBitSet(skyYMask);
-            buf.writeBitSet(blockYMask);
-            buf.writeBitSet(emptySkyYMask);
-            buf.writeBitSet(emptyBlockYMask);
-            buf.writeByteArrayList(skyUpdates);
-            buf.writeByteArrayList(blockUpdates);
-
-            ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
             // 记录加载的区块
             player.addTrackedChunk(chunkPos.longKey, new ChunkStatus());
 
+            // 生成方块实体
             CEWorld ceWorld = BukkitWorldManager.instance().getWorld(player.world().uuid());
             CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);
             if (ceChunk != null) {
@@ -2169,7 +2185,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             float zDist = buf.readFloat();
             float maxSpeed = buf.readFloat();
             int count = buf.readInt();
-            Object option = FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf));
+            Object option = FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source()));
             if (option == null) return;
             if (!CoreReflections.clazz$BlockParticleOption.isInstance(option)) return;
             Object blockState = FastNMS.INSTANCE.field$BlockParticleOption$blockState(option);
@@ -2191,7 +2207,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             buf.writeFloat(zDist);
             buf.writeFloat(maxSpeed);
             buf.writeInt(count);
-            FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf), remappedOption);
+            FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source()), remappedOption);
         }
     }
 
@@ -2216,7 +2232,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             float zDist = buf.readFloat();
             float maxSpeed = buf.readFloat();
             int count = buf.readInt();
-            Object option = FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf));
+            Object option = FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source()));
             if (option == null) return;
             if (!CoreReflections.clazz$BlockParticleOption.isInstance(option)) return;
             Object blockState = FastNMS.INSTANCE.field$BlockParticleOption$blockState(option);
@@ -2237,7 +2253,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             buf.writeFloat(zDist);
             buf.writeFloat(maxSpeed);
             buf.writeInt(count);
-            FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf), remappedOption);
+            FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ParticleTypes$STREAM_CODEC, FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source()), remappedOption);
         }
     }
 
@@ -2428,10 +2444,12 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         }
 
         Item<ItemStack> wrap = this.plugin.itemManager().wrap(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsItemStack));
-        Item<ItemStack> clientBoundItem = this.plugin.itemManager().s2c(wrap, player);
-        if (clientBoundItem.isEmpty()) {
+        Optional<Item<ItemStack>> remapped = this.plugin.itemManager().s2c(wrap, player);
+        if (remapped.isEmpty()) {
             return showItem;
         }
+
+        Item<ItemStack> clientBoundItem = remapped.get();
         net.kyori.adventure.key.Key id = KeyUtils.toAdventureKey(clientBoundItem.vanillaId());
         int count = clientBoundItem.count();
         if (VersionHelper.COMPONENT_RELEASE) {
@@ -2465,6 +2483,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!Config.interceptSystemChat() && Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
             String jsonOrPlainString = buf.readUtf();
             Tag tag = MRegistryOps.JSON.convertTo(MRegistryOps.SPARROW_NBT, GsonHelper.get().fromJson(jsonOrPlainString, JsonElement.class));
@@ -2479,7 +2498,9 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
                 }
             }
-            component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            if (!Config.disableItemOperations()) {
+                component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            }
             buf.writeUtf(MRegistryOps.SPARROW_NBT.convertTo(MRegistryOps.JSON, AdventureHelper.componentToNbt(component)).toString());
             buf.writeBoolean(overlay);
         }
@@ -2489,6 +2510,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!Config.interceptSystemChat() && Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
             Tag nbt = buf.readNbt(false);
             if (nbt == null) return;
@@ -2498,12 +2520,14 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             buf.writeVarInt(event.packetID());
             Component component = AdventureHelper.tagToComponent(nbt);
             if (Config.interceptSystemChat()) {
-                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt.getAsString());
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt);
                 if (!tokens.isEmpty()) {
                     component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
                 }
             }
-            component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            if (!Config.disableItemOperations()) {
+                component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
+            }
             buf.writeNbt(AdventureHelper.componentToTag(component), false);
             buf.writeBoolean(overlay);
         }
@@ -2539,8 +2563,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (nbt1 == null) return;
             Tag nbt2 = buf.readNbt(false);
             if (nbt2 == null) return;
-            Map<String, ComponentProvider> tokens1 = CraftEngine.instance().fontManager().matchTags(nbt1.getAsString());
-            Map<String, ComponentProvider> tokens2 = CraftEngine.instance().fontManager().matchTags(nbt2.getAsString());
+            Map<String, ComponentProvider> tokens1 = CraftEngine.instance().fontManager().matchTags(nbt1);
+            Map<String, ComponentProvider> tokens2 = CraftEngine.instance().fontManager().matchTags(nbt2);
             if (tokens1.isEmpty() && tokens2.isEmpty()) return;
             event.setChanged(true);
             buf.clear();
@@ -2575,7 +2599,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             FriendlyByteBuf buf = event.getBuffer();
             Tag nbt = buf.readNbt(false);
             if (nbt == null) return;
-            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt.getAsString());
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt);
             if (tokens.isEmpty()) return;
             event.setChanged(true);
             buf.clear();
@@ -2608,7 +2632,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             FriendlyByteBuf buf = event.getBuffer();
             Tag nbt = buf.readNbt(false);
             if (nbt == null) return;
-            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt.getAsString());
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt);
             if (tokens.isEmpty()) return;
             event.setChanged(true);
             buf.clear();
@@ -2641,7 +2665,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             FriendlyByteBuf buf = event.getBuffer();
             Tag nbt = buf.readNbt(false);
             if (nbt == null) return;
-            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt.getAsString());
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt);
             if (tokens.isEmpty()) return;
             event.setChanged(true);
             buf.clear();
@@ -2701,7 +2725,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (actionType == 0) {
                 Tag nbt = buf.readNbt(false);
                 if (nbt == null) return;
-                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt.getAsString());
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt);
                 if (tokens.isEmpty()) return;
                 float health = buf.readFloat();
                 int color = buf.readVarInt();
@@ -2720,7 +2744,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             } else if (actionType == 3) {
                 Tag nbt = buf.readNbt(false);
                 if (nbt == null) return;
-                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt.getAsString());
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nbt);
                 if (tokens.isEmpty()) return;
                 event.setChanged(true);
                 buf.clear();
@@ -2794,9 +2818,9 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (prefix == null) return;
             Tag suffix = buf.readNbt(false);
             if (suffix == null) return;
-            Map<String, ComponentProvider> tokens1 = CraftEngine.instance().fontManager().matchTags(displayName.getAsString());
-            Map<String, ComponentProvider> tokens2 = CraftEngine.instance().fontManager().matchTags(prefix.getAsString());
-            Map<String, ComponentProvider> tokens3 = CraftEngine.instance().fontManager().matchTags(suffix.getAsString());
+            Map<String, ComponentProvider> tokens1 = CraftEngine.instance().fontManager().matchTags(displayName);
+            Map<String, ComponentProvider> tokens2 = CraftEngine.instance().fontManager().matchTags(prefix);
+            Map<String, ComponentProvider> tokens3 = CraftEngine.instance().fontManager().matchTags(suffix);
             if (tokens1.isEmpty() && tokens2.isEmpty() && tokens3.isEmpty()) return;
             NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
             List<String> entities = method == 0 ? buf.readStringList() : null;
@@ -2857,7 +2881,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (optionalNumberFormat) {
                 int format = buf.readVarInt();
                 if (format == 0) {
-                    Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(displayName.getAsString());
+                    Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(displayName);
                     if (tokens.isEmpty()) return;
                     event.setChanged(true);
                     buf.clear();
@@ -2869,7 +2893,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     buf.writeBoolean(true);
                     buf.writeVarInt(0);
                 } else if (format == 1) {
-                    Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(displayName.getAsString());
+                    Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(displayName);
                     if (tokens.isEmpty()) return;
                     Tag style = buf.readNbt(false);
                     event.setChanged(true);
@@ -2885,8 +2909,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 } else if (format == 2) {
                     Tag fixed = buf.readNbt(false);
                     if (fixed == null) return;
-                    Map<String, ComponentProvider> tokens1 = CraftEngine.instance().fontManager().matchTags(displayName.getAsString());
-                    Map<String, ComponentProvider> tokens2 = CraftEngine.instance().fontManager().matchTags(fixed.getAsString());
+                    Map<String, ComponentProvider> tokens1 = CraftEngine.instance().fontManager().matchTags(displayName);
+                    Map<String, ComponentProvider> tokens2 = CraftEngine.instance().fontManager().matchTags(fixed);
                     if (tokens1.isEmpty() && tokens2.isEmpty()) return;
                     event.setChanged(true);
                     buf.clear();
@@ -2900,7 +2924,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     buf.writeNbt(tokens2.isEmpty() ? fixed : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(fixed), tokens2, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
                 }
             } else {
-                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(displayName.getAsString());
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(displayName);
                 if (tokens.isEmpty()) return;
                 event.setChanged(true);
                 buf.clear();
@@ -2932,7 +2956,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             }
             outside:
             if (displayName != null) {
-                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(displayName.getAsString());
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(displayName);
                 if (tokens.isEmpty()) break outside;
                 Component component = AdventureHelper.tagToComponent(displayName);
                 component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of(serverPlayer));
@@ -2953,7 +2977,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 } else if (format == 2) {
                     fixed = buf.readNbt(false);
                     if (fixed == null) return;
-                    Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(fixed.getAsString());
+                    Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(fixed);
                     if (tokens.isEmpty() && !isChanged) return;
                     if (!tokens.isEmpty()) {
                         Component component = AdventureHelper.tagToComponent(fixed);
@@ -2995,18 +3019,33 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
+            MutableBoolean changed = new MutableBoolean(false);
             FriendlyByteBuf buf = event.getBuffer();
-            List<RecipeBookEntry> entries = buf.readCollection(ArrayList::new, byteBuf -> {
-                RecipeBookEntry entry = RecipeBookEntry.read(byteBuf);
-                entry.applyClientboundData((BukkitServerPlayer) user);
+            BukkitItemManager itemManager = BukkitItemManager.instance();
+            BukkitServerPlayer player = (BukkitServerPlayer) user;
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
+            List<RecipeBookEntry<ItemStack>> entries = buf.readCollection(ArrayList::new, byteBuf -> {
+                RecipeBookEntry<ItemStack> entry = RecipeBookEntry.read(byteBuf, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
+                entry.applyClientboundData(item -> {
+                    Optional<Item<ItemStack>> remapped = itemManager.s2c(item, player);
+                    if (remapped.isEmpty()) {
+                        return item;
+                    }
+                    changed.set(true);
+                    return remapped.get();
+                });
                 return entry;
             });
             boolean replace = buf.readBoolean();
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeCollection(entries, ((byteBuf, recipeBookEntry) -> recipeBookEntry.write(byteBuf)));
-            buf.writeBoolean(replace);
+            if (changed.booleanValue()) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeCollection(entries, ((byteBuf, recipeBookEntry) -> recipeBookEntry.write(byteBuf,
+                        (__, item) -> FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, item.getItem()))));
+                buf.writeBoolean(replace);
+            }
         }
     }
 
@@ -3014,34 +3053,105 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!VersionHelper.isOrAbove1_21_2()) return;
+            MutableBoolean changed = new MutableBoolean(false);
             FriendlyByteBuf buf = event.getBuffer();
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
+            BukkitServerPlayer player = (BukkitServerPlayer) user;
+            BukkitItemManager itemManager = BukkitItemManager.instance();
             int containerId = buf.readContainerId();
-            RecipeDisplay display = RecipeDisplay.read(buf);
-            display.applyClientboundData((BukkitServerPlayer) user);
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeContainerId(containerId);
-            display.write(buf);
+            RecipeDisplay<ItemStack> display = RecipeDisplay.read(buf, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
+            display.applyClientboundData(item -> {
+                Optional<Item<ItemStack>> remapped = itemManager.s2c(item, player);
+                if (remapped.isEmpty()) {
+                    return item;
+                }
+                changed.set(true);
+                return remapped.get();
+            });
+
+            if (changed.booleanValue()) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeContainerId(containerId);
+                display.write(buf, (__, item) -> FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, item.getItem()));
+            }
         }
     }
 
-    public static class UpdateRecipesListener implements ByteBufferPacketListener {
+    public static class UpdateRecipesListener1_20 implements ByteBufferPacketListener {
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (VersionHelper.isOrAbove1_21_2()) return;
+            if (Config.disableItemOperations()) return;
+            MutableBoolean changed = new MutableBoolean(false);
             FriendlyByteBuf buf = event.getBuffer();
-            List<LegacyRecipeHolder> holders = buf.readCollection(ArrayList::new, byteBuf -> {
-                LegacyRecipeHolder holder = LegacyRecipeHolder.read(byteBuf);
-                holder.recipe().applyClientboundData((BukkitServerPlayer) user);
+            BukkitItemManager itemManager = BukkitItemManager.instance();
+            BukkitServerPlayer player = (BukkitServerPlayer) user;
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
+            List<LegacyRecipeHolder<ItemStack>> holders = buf.readCollection(ArrayList::new, byteBuf -> {
+                LegacyRecipeHolder<ItemStack> holder = LegacyRecipeHolder.read(byteBuf, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
+                holder.recipe().applyClientboundData(item -> {
+                    Optional<Item<ItemStack>> remapped = itemManager.s2c(item, player);
+                    if (remapped.isEmpty()) {
+                        return item;
+                    }
+                    changed.set(true);
+                    return remapped.get();
+                });
                 return holder;
             });
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeCollection(holders, ((byteBuf, recipeHolder) -> recipeHolder.write(byteBuf)));
+            if (changed.booleanValue()) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeCollection(holders, ((byteBuf, recipeHolder)
+                        -> recipeHolder.write(byteBuf,
+                        (__, item) -> FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, item.getItem()))));
+            }
+        }
+    }
+
+    public static class UpdateRecipesListener1_21_2 implements ByteBufferPacketListener {
+
+        @Override
+        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
+            MutableBoolean changed = new MutableBoolean(false);
+            FriendlyByteBuf buf = event.getBuffer();
+            BukkitItemManager itemManager = BukkitItemManager.instance();
+            BukkitServerPlayer player = (BukkitServerPlayer) user;
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
+            Map<Key, List<Integer>> itemSets = buf.readMap(
+                    FriendlyByteBuf::readKey,
+                    b -> b.readCollection(ArrayList::new, FriendlyByteBuf::readVarInt)
+            );
+            List<SingleInputButtonDisplay<ItemStack>> displays = buf.readCollection(ArrayList::new, b -> {
+                SingleInputButtonDisplay<ItemStack> display = SingleInputButtonDisplay.read(b, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
+                display.applyClientboundData(item -> {
+                    Optional<Item<ItemStack>> remapped = itemManager.s2c(item, player);
+                    if (remapped.isEmpty()) {
+                        return item;
+                    }
+                    changed.set(true);
+                    return remapped.get();
+                });
+                return display;
+            });
+            if (changed.booleanValue()) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeMap(itemSets,
+                        FriendlyByteBuf::writeKey,
+                        (b, c) -> b.writeCollection(c, FriendlyByteBuf::writeVarInt)
+                );
+                buf.writeCollection(displays, (b, d) -> {
+                    d.write(b, (__, item) -> FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, item.getItem()));
+                });
+            }
         }
     }
 
@@ -3049,32 +3159,57 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
+            if (Config.disableItemOperations() && !Config.interceptAdvancement()) return;
+            MutableBoolean changed = new MutableBoolean(false);
             FriendlyByteBuf buf = event.getBuffer();
+            BukkitItemManager itemManager = BukkitItemManager.instance();
+            BukkitServerPlayer player = (BukkitServerPlayer) user;
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             boolean reset = buf.readBoolean();
-            List<AdvancementHolder> added = buf.readCollection(ArrayList::new, byteBuf -> {
-                AdvancementHolder holder = AdvancementHolder.read(byteBuf);
-                holder.applyClientboundData(serverPlayer);
+            List<AdvancementHolder<ItemStack>> added = buf.readCollection(ArrayList::new, byteBuf -> {
+                AdvancementHolder<ItemStack> holder = AdvancementHolder.read(byteBuf, __ -> itemManager.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf)));
+                if (!Config.disableItemOperations()) {
+                    holder.applyClientboundData(item -> {
+                        Optional<Item<ItemStack>> remapped = itemManager.s2c(item, player);
+                        if (remapped.isEmpty()) {
+                            return item;
+                        }
+                        changed.set(true);
+                        return remapped.get();
+                    });
+                }
+                if (Config.interceptAdvancement()) {
+                    holder.replaceNetworkTags(component -> {
+                        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(AdventureHelper.componentToJson(component));
+                        if (tokens.isEmpty()) return component;
+                        changed.set(true);
+                        return AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of(player));
+                    });
+                }
                 return holder;
             });
-            Set<Key> removed = buf.readCollection(Sets::newLinkedHashSetWithExpectedSize, FriendlyByteBuf::readKey);
-            Map<Key, AdvancementProgress> progress = buf.readMap(FriendlyByteBuf::readKey, AdvancementProgress::read);
 
-            boolean showAdvancement = false;
-            if (VersionHelper.isOrAbove1_21_5()) {
-                showAdvancement = buf.readBoolean();
-            }
+            if (changed.booleanValue()) {
+                Set<Key> removed = buf.readCollection(Sets::newLinkedHashSetWithExpectedSize, FriendlyByteBuf::readKey);
+                Map<Key, AdvancementProgress> progress = buf.readMap(FriendlyByteBuf::readKey, AdvancementProgress::read);
 
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
+                boolean showAdvancement = false;
+                if (VersionHelper.isOrAbove1_21_5()) {
+                    showAdvancement = buf.readBoolean();
+                }
 
-            buf.writeBoolean(reset);
-            buf.writeCollection(added, (byteBuf, advancementHolder) -> advancementHolder.write(byteBuf));
-            buf.writeCollection(removed, FriendlyByteBuf::writeKey);
-            buf.writeMap(progress, FriendlyByteBuf::writeKey, (byteBuf, advancementProgress) -> advancementProgress.write(byteBuf));
-            if (VersionHelper.isOrAbove1_21_5()) {
-                buf.writeBoolean(showAdvancement);
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+
+                buf.writeBoolean(reset);
+                buf.writeCollection(added, (byteBuf, advancementHolder) -> advancementHolder.write(byteBuf,
+                        (__, item) -> FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, item.getItem())));
+                buf.writeCollection(removed, FriendlyByteBuf::writeKey);
+                buf.writeMap(progress, FriendlyByteBuf::writeKey, (byteBuf, advancementProgress) -> advancementProgress.write(byteBuf));
+                if (VersionHelper.isOrAbove1_21_5()) {
+                    buf.writeBoolean(showAdvancement);
+                }
             }
         }
     }
@@ -3084,16 +3219,16 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
             FriendlyByteBuf buf = event.getBuffer();
-            boolean isChange = false;
+            boolean changed = false;
             IntList intList = buf.readIntIdList();
             for (int i = 0, size = intList.size(); i < size; i++) {
                 int entityId = intList.getInt(i);
                 EntityPacketHandler handler = user.entityPacketHandlers().remove(entityId);
                 if (handler != null && handler.handleEntitiesRemove(intList)) {
-                    isChange = true;
+                    changed = true;
                 }
             }
-            if (isChange) {
+            if (changed) {
                 event.setChanged(true);
                 buf.clear();
                 buf.writeVarInt(event.packetID());
@@ -3179,6 +3314,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();
@@ -3186,7 +3322,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             int listSize = buf.readVarInt();
             List<ItemStack> items = new ArrayList<>(listSize);
             boolean changed = false;
-            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             for (int i = 0; i < listSize; i++) {
                 ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
                 Optional<ItemStack> optional = BukkitItemManager.instance().s2c(itemStack, serverPlayer);
@@ -3211,11 +3347,10 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             buf.writeContainerId(containerId);
             buf.writeVarInt(stateId);
             buf.writeVarInt(listSize);
-            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
             for (ItemStack itemStack : items) {
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, itemStack);
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, itemStack);
             }
-            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newCarriedItem);
+            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, newCarriedItem);
         }
     }
 
@@ -3223,17 +3358,18 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();
             int stateId = buf.readVarInt();
             int slot = buf.readShort();
-            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             ItemStack itemStack;
             try {
                 itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
             } catch (Exception e) {
-                // 其他插件干的，比如某ty*****er，不要赖到ce头上
+                // 其他插件干的，发送了非法的物品
                 return;
             }
             BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
@@ -3243,8 +3379,7 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 buf.writeContainerId(containerId);
                 buf.writeVarInt(stateId);
                 buf.writeShort(slot);
-                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newItemStack);
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, newItemStack);
             });
         }
     }
@@ -3253,16 +3388,38 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
-            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
+
+            // 为了避免其他插件造成的手感冲突
+            if (VersionHelper.isOrAbove1_21_5()) {
+                Item<ItemStack> wrapped = BukkitItemManager.instance().wrap(itemStack);
+                // 发出来的是非空物品
+                if (!wrapped.isEmpty()) {
+                    Object containerMenu = FastNMS.INSTANCE.field$Player$containerMenu(serverPlayer.serverPlayer());
+                    if (containerMenu != null) {
+                        ItemStack carried = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(FastNMS.INSTANCE.method$AbstractContainerMenu$getCarried(containerMenu));
+                        // 但服务端上实际确是空气，就把它写成空气，避免因为其他插件导致手感问题
+                        if (ItemStackUtils.isEmpty(carried)) {
+                            event.setChanged(true);
+                            buf.clear();
+                            buf.writeVarInt(event.packetID());
+                            Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+                            FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, carried);
+                            return;
+                        }
+                    }
+                }
+            }
+
             BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
                 event.setChanged(true);
                 buf.clear();
                 buf.writeVarInt(event.packetID());
-                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newItemStack);
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, newItemStack);
             });
         }
     }
@@ -3271,10 +3428,11 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             boolean changed = false;
-            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             int entity = buf.readVarInt();
             List<com.mojang.datafixers.util.Pair<Object, ItemStack>> slots = Lists.newArrayList();
             int slotMask;
@@ -3295,14 +3453,13 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 buf.writeVarInt(event.packetID());
                 buf.writeVarInt(entity);
                 int i = slots.size();
-                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
                 for (int j = 0; j < i; ++j) {
                     com.mojang.datafixers.util.Pair<Object, ItemStack> pair = slots.get(j);
                     Enum<?> equipmentSlot = (Enum<?>) pair.getFirst();
                     boolean bl = j != i - 1;
                     int k = equipmentSlot.ordinal();
                     buf.writeByte(bl ? k | -128 : k);
-                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, pair.getSecond());
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, pair.getSecond());
                 }
             }
         }
@@ -3312,18 +3469,18 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int slot = buf.readVarInt();
-            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             ItemStack itemStack = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
             BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
                 event.setChanged(true);
                 buf.clear();
                 buf.writeVarInt(event.packetID());
                 buf.writeVarInt(slot);
-                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newItemStack);
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, newItemStack);
             });
         }
     }
@@ -3332,10 +3489,11 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             if (!serverPlayer.isCreativeMode()) return;
             FriendlyByteBuf buf = event.getBuffer();
-            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             short slotNum = buf.readShort();
             ItemStack itemStack;
             try {
@@ -3349,11 +3507,10 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 buf.clear();
                 buf.writeVarInt(event.packetID());
                 buf.writeShort(slotNum);
-                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
                 if (VersionHelper.isOrAbove1_20_5()) {
-                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeUntrustedItem(newFriendlyBuf, newItemStack);
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeUntrustedItem(friendlyBuf, newItemStack);
                 } else {
-                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, newItemStack);
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, newItemStack);
                 }
             });
         }
@@ -3363,9 +3520,11 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
+            if (!VersionHelper.PREMIUM && !Config.interceptItem()) return;
             FriendlyByteBuf buf = event.getBuffer();
             boolean changed = false;
-            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             int containerId = buf.readContainerId();
             int stateId = buf.readVarInt();
             short slotNum = buf.readShort();
@@ -3399,12 +3558,11 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 buf.writeByte(buttonNum);
                 buf.writeVarInt(clickType);
                 buf.writeVarInt(changedSlots.size());
-                Object newFriendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf);
-                changedSlots.forEach((k, v) -> {
-                    buf.writeShort(k);
-                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, v);
-                });
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(newFriendlyBuf, carriedItem);
+                for (Map.Entry<Integer, ItemStack> entry : changedSlots.int2ObjectEntrySet()) {
+                    buf.writeShort(entry.getKey());
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, entry.getValue());
+                }
+                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, carriedItem);
             }
         }
     }
@@ -3479,8 +3637,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 float x = buf.readFloat();
                 float y = buf.readFloat();
                 float z = buf.readFloat();
-                // todo 这个是错误的，这是实体的相对位置而非绝对位置
-                Location interactionPoint = new Location(platformPlayer.getWorld(), x, y, z);
                 InteractionHand hand = buf.readVarInt() == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
                 boolean usingSecondaryAction = buf.readBoolean();
                 if (entityId != furniture.baseEntityId()) {
@@ -3499,16 +3655,40 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                         return;
                     }
 
-                    // todo 重构家具时候注意，需要准备加载好的hitbox类，以获取hitbox坐标
-                    if (!serverPlayer.canInteractPoint(new Vec3d(location.getX(), location.getY(), location.getZ()), 16d)) {
+                    // 先检查碰撞箱部分是否存在
+                    HitBoxPart hitBoxPart = furniture.hitBoxPartByEntityId(entityId);
+                    if (hitBoxPart == null) return;
+                    Vec3d pos = hitBoxPart.pos();
+                    // 检测距离
+                    if (!serverPlayer.canInteractPoint(pos, 16d)) {
+                        return;
+                    }
+                    // 检测
+                    Location eyeLocation = platformPlayer.getEyeLocation();
+                    Vector direction = eyeLocation.getDirection();
+                    Location endLocation = eyeLocation.clone();
+                    endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
+                    Optional<EntityHitResult> result = hitBoxPart.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
+                    if (result.isEmpty()) {
+                        return;
+                    }
+                    EntityHitResult hitResult = result.get();
+                    Vec3d hitLocation = hitResult.hitLocation();
+                    // 获取正确的交互点
+                    Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
+
+                    HitBox hitbox = furniture.hitBoxByEntityId(entityId);
+                    if (hitbox == null) {
                         return;
                     }
 
-                    FurnitureInteractEvent interactEvent = new FurnitureInteractEvent(serverPlayer.platformPlayer(), furniture, hand, interactionPoint);
+                    // 触发事件
+                    FurnitureInteractEvent interactEvent = new FurnitureInteractEvent(serverPlayer.platformPlayer(), furniture, hand, interactionPoint, hitbox);
                     if (EventUtils.fireAndCheckCancel(interactEvent)) {
                         return;
                     }
 
+                    // 执行事件动作
                     Item<ItemStack> itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
                     Cancellable cancellable = Cancellable.of(interactEvent::isCancelled, interactEvent::setCancelled);
                     // execute functions
@@ -3525,20 +3705,8 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     }
 
                     // 必须从网络包层面处理，否则无法获取交互的具体实体
-                    if (serverPlayer.isSecondaryUseActive() && !itemInHand.isEmpty()) {
-                        // try placing another furniture above it
-                        AABB hitBox = furniture.aabbByEntityId(entityId);
-                        if (hitBox == null) return;
+                    if (serverPlayer.isSecondaryUseActive() && !itemInHand.isEmpty() && hitbox.config().canUseItemOn()) {
                         Optional<CustomItem<ItemStack>> optionalCustomItem = itemInHand.getCustomItem();
-                        Location eyeLocation = platformPlayer.getEyeLocation();
-                        Vector direction = eyeLocation.getDirection();
-                        Location endLocation = eyeLocation.clone();
-                        endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
-                        Optional<EntityHitResult> result = hitBox.clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
-                        if (result.isEmpty()) {
-                            return;
-                        }
-                        EntityHitResult hitResult = result.get();
                         if (optionalCustomItem.isPresent() && !optionalCustomItem.get().behaviors().isEmpty()) {
                             for (ItemBehavior behavior : optionalCustomItem.get().behaviors()) {
                                 if (behavior instanceof FurnitureItemBehavior) {
@@ -3557,11 +3725,13 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                         );
                     } else {
                         if (!serverPlayer.isSecondaryUseActive()) {
-                            furniture.findFirstAvailableSeat(entityId).ifPresent(seatPos -> {
-                                if (furniture.tryOccupySeat(seatPos)) {
-                                    furniture.spawnSeatEntityForPlayer(serverPlayer, seatPos);
+                            for (Seat<HitBox> seat : hitbox.seats()) {
+                                if (!seat.isOccupied()) {
+                                    if (seat.spawnSeat(serverPlayer, furniture.position())) {
+                                        break;
+                                    }
                                 }
-                            });
+                            }
                         }
                     }
                 };
@@ -3597,7 +3767,6 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
             if (VersionHelper.isOrAbove1_20_2()) return;
             FriendlyByteBuf byteBuf = event.getBuffer();
             Key key = byteBuf.readKey();
-            if (!key.equals(NetworkManager.MOD_CHANNEL_KEY)) return;
             PayloadHelper.handleReceiver(new UnknownPayload(key, byteBuf.readBytes(byteBuf.readableBytes())), user);
         }
     }
@@ -3810,12 +3979,13 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();
             BukkitItemManager manager = BukkitItemManager.instance();
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             List<MerchantOffer<ItemStack>> merchantOffers = buf.readCollection(ArrayList::new, byteBuf -> {
-                Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
                 ItemStack cost1 = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
                 ItemStack result = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
                 ItemStack cost2 = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
@@ -3828,36 +3998,47 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 int demand = byteBuf.readInt();
                 return new MerchantOffer<>(manager.wrap(cost1), Optional.of(manager.wrap(cost2)), manager.wrap(result), outOfStock, uses, maxUses, xp, specialPrice, priceMultiplier, demand);
             });
+
+            MutableBoolean changed = new MutableBoolean(false);
             for (MerchantOffer<ItemStack> offer : merchantOffers) {
-                offer.applyClientboundData(item -> manager.s2c(item, serverPlayer));
+                offer.applyClientboundData(item -> {
+                    Optional<Item<ItemStack>> remapped = manager.s2c(item, serverPlayer);
+                    if (remapped.isEmpty()) {
+                        return item;
+                    }
+                    changed.set(true);
+                    return remapped.get();
+                });
             }
-            int villagerLevel = buf.readVarInt();
-            int villagerXp = buf.readVarInt();
-            boolean showProgress = buf.readBoolean();
-            boolean canRestock = buf.readBoolean();
 
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeContainerId(containerId);
-            buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
-                Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.cost1().getItem());
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.result().getItem());
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.cost2().get().getItem());
-                byteBuf.writeBoolean(offer.outOfStock());
-                byteBuf.writeInt(offer.uses());
-                byteBuf.writeInt(offer.maxUses());
-                byteBuf.writeInt(offer.xp());
-                byteBuf.writeInt(offer.specialPrice());
-                byteBuf.writeFloat(offer.priceMultiplier());
-                byteBuf.writeInt(offer.demand());
-            });
+            if (changed.booleanValue()) {
+                int villagerLevel = buf.readVarInt();
+                int villagerXp = buf.readVarInt();
+                boolean showProgress = buf.readBoolean();
+                boolean canRestock = buf.readBoolean();
 
-            buf.writeVarInt(villagerLevel);
-            buf.writeVarInt(villagerXp);
-            buf.writeBoolean(showProgress);
-            buf.writeBoolean(canRestock);
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeContainerId(containerId);
+                buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.cost1().getItem());
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.result().getItem());
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.cost2().get().getItem());
+                    byteBuf.writeBoolean(offer.outOfStock());
+                    byteBuf.writeInt(offer.uses());
+                    byteBuf.writeInt(offer.maxUses());
+                    byteBuf.writeInt(offer.xp());
+                    byteBuf.writeInt(offer.specialPrice());
+                    byteBuf.writeFloat(offer.priceMultiplier());
+                    byteBuf.writeInt(offer.demand());
+                });
+
+                buf.writeVarInt(villagerLevel);
+                buf.writeVarInt(villagerXp);
+                buf.writeBoolean(showProgress);
+                buf.writeBoolean(canRestock);
+            }
         }
     }
 
@@ -3866,12 +4047,13 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
         @SuppressWarnings("unchecked")
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (Config.disableItemOperations()) return;
             if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
             FriendlyByteBuf buf = event.getBuffer();
             int containerId = buf.readContainerId();
             BukkitItemManager manager = BukkitItemManager.instance();
+            Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(buf.source());
             List<MerchantOffer<ItemStack>> merchantOffers = buf.readCollection(ArrayList::new, byteBuf -> {
-                Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
                 ItemStack cost1 = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(FastNMS.INSTANCE.field$ItemCost$itemStack(FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ItemCost$STREAM_CODEC, friendlyBuf)));
                 ItemStack result = FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf);
                 Optional<ItemStack> cost2 = ((Optional<Object>) FastNMS.INSTANCE.method$StreamDecoder$decode(NetworkReflections.instance$ItemCost$OPTIONAL_STREAM_CODEC, friendlyBuf))
@@ -3885,36 +4067,47 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                 int demand = byteBuf.readInt();
                 return new MerchantOffer<>(manager.wrap(cost1), cost2.map(manager::wrap), manager.wrap(result), outOfStock, uses, maxUses, xp, specialPrice, priceMultiplier, demand);
             });
+
+            MutableBoolean changed = new MutableBoolean(false);
             for (MerchantOffer<ItemStack> offer : merchantOffers) {
-                offer.applyClientboundData(item -> manager.s2c(item, serverPlayer));
+                offer.applyClientboundData(item -> {
+                    Optional<Item<ItemStack>> remapped = manager.s2c(item, serverPlayer);
+                    if (remapped.isEmpty()) {
+                        return item;
+                    }
+                    changed.set(true);
+                    return remapped.get();
+                });
             }
-            int villagerLevel = buf.readVarInt();
-            int villagerXp = buf.readVarInt();
-            boolean showProgress = buf.readBoolean();
-            boolean canRestock = buf.readBoolean();
 
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeContainerId(containerId);
-            buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
-                Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
-                FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ItemCost$STREAM_CODEC, friendlyBuf, itemStackToItemCost(offer.cost1().getLiteralObject(), offer.cost1().count()));
-                FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.result().getItem());
-                FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ItemCost$OPTIONAL_STREAM_CODEC, friendlyBuf, offer.cost2().map(it -> itemStackToItemCost(it.getLiteralObject(), it.count())));
-                byteBuf.writeBoolean(offer.outOfStock());
-                byteBuf.writeInt(offer.uses());
-                byteBuf.writeInt(offer.maxUses());
-                byteBuf.writeInt(offer.xp());
-                byteBuf.writeInt(offer.specialPrice());
-                byteBuf.writeFloat(offer.priceMultiplier());
-                byteBuf.writeInt(offer.demand());
-            });
+            if (changed.booleanValue()) {
+                int villagerLevel = buf.readVarInt();
+                int villagerXp = buf.readVarInt();
+                boolean showProgress = buf.readBoolean();
+                boolean canRestock = buf.readBoolean();
 
-            buf.writeVarInt(villagerLevel);
-            buf.writeVarInt(villagerXp);
-            buf.writeBoolean(showProgress);
-            buf.writeBoolean(canRestock);
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeContainerId(containerId);
+                buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
+                    FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ItemCost$STREAM_CODEC, friendlyBuf, itemStackToItemCost(offer.cost1().getLiteralObject(), offer.cost1().count()));
+                    FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(friendlyBuf, offer.result().getItem());
+                    FastNMS.INSTANCE.method$StreamEncoder$encode(NetworkReflections.instance$ItemCost$OPTIONAL_STREAM_CODEC, friendlyBuf, offer.cost2().map(it -> itemStackToItemCost(it.getLiteralObject(), it.count())));
+                    byteBuf.writeBoolean(offer.outOfStock());
+                    byteBuf.writeInt(offer.uses());
+                    byteBuf.writeInt(offer.maxUses());
+                    byteBuf.writeInt(offer.xp());
+                    byteBuf.writeInt(offer.specialPrice());
+                    byteBuf.writeFloat(offer.priceMultiplier());
+                    byteBuf.writeInt(offer.demand());
+                });
+
+                buf.writeVarInt(villagerLevel);
+                buf.writeVarInt(villagerXp);
+                buf.writeBoolean(showProgress);
+                buf.writeBoolean(canRestock);
+            }
         }
 
         private Object itemStackToItemCost(Object itemStack, int count) {
@@ -3923,6 +4116,63 @@ public class BukkitNetworkManager implements NetworkManager, Listener, PluginMes
                     count,
                     FastNMS.INSTANCE.method$DataComponentExactPredicate$allOf(FastNMS.INSTANCE.method$ItemStack$getComponents(itemStack))
             );
+        }
+    }
+
+    public static class BlockEntityDataListener implements ByteBufferPacketListener {
+
+        @Override
+        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!Config.interceptItem()) return;
+            FriendlyByteBuf buf = event.getBuffer();
+            boolean changed = false;
+            BlockPos pos = buf.readBlockPos();
+            int entityType = buf.readVarInt();
+            boolean named = !VersionHelper.isOrAbove1_20_2();
+            CompoundTag tag = (CompoundTag) buf.readNbt(named);
+            // todo 刷怪笼里的物品？
+
+            // 展示架
+            if (VersionHelper.isOrAbove1_21_9() && tag != null && tag.containsKey("Items")) {
+                BukkitItemManager itemManager = BukkitItemManager.instance();
+                ListTag itemsTag = tag.getList("Items");
+                List<Pair<Byte, ItemStack>> items = new ArrayList<>();
+                for (Tag itemTag : itemsTag) {
+                    if (itemTag instanceof CompoundTag itemCompoundTag) {
+                        byte slot = itemCompoundTag.getByte("Slot");
+                        Object nmsStack = CoreReflections.instance$ItemStack$CODEC.parse(MRegistryOps.SPARROW_NBT, itemCompoundTag)
+                                .resultOrPartial((error) -> CraftEngine.instance().logger().severe("Tried to parse invalid item: '" + error + "'")).orElse(null);
+                        ItemStack bukkitStack = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsStack);
+                        Optional<ItemStack> optional = itemManager.s2c(bukkitStack, (BukkitServerPlayer) user);
+                        if (optional.isPresent()) {
+                            changed = true;
+                            items.add(new Pair<>(slot, optional.get()));
+                        } else {
+                            items.add(Pair.of(slot, bukkitStack));
+                        }
+                    }
+                }
+                if (changed) {
+                    ListTag newItemsTag = new ListTag();
+                    for (Pair<Byte, ItemStack> pair : items) {
+                        CompoundTag newItemCompoundTag = (CompoundTag) CoreReflections.instance$ItemStack$CODEC.encodeStart(MRegistryOps.SPARROW_NBT, FastNMS.INSTANCE.field$CraftItemStack$handle(pair.right()))
+                                .resultOrPartial((error) -> CraftEngine.instance().logger().severe("Tried to encode invalid item: '" + error + "'")).orElse(null);
+                        if (newItemCompoundTag != null) {
+                            newItemCompoundTag.putByte("Slot", pair.left());
+                            newItemsTag.add(newItemCompoundTag);
+                        }
+                    }
+                    tag.put("Items", newItemsTag);
+                }
+            }
+            if (changed) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeBlockPos(pos);
+                buf.writeVarInt(entityType);
+                buf.writeNbt(tag, named);
+            }
         }
     }
 }

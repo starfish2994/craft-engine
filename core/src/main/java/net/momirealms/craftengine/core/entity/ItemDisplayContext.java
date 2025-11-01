@@ -9,7 +9,8 @@ public enum ItemDisplayContext {
     HEAD(5),
     GUI(6),
     GROUND(7),
-    FIXED(8);
+    FIXED(8),
+    ON_SHELF(9);
 
     private final byte id;
 

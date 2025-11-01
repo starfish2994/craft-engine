@@ -17,7 +17,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 @SuppressWarnings("UnstableApiUsage")
-public class PaperCraftEngineBootstrap implements PluginBootstrap {
+public final class PaperCraftEngineBootstrap implements PluginBootstrap {
     private static final Class<?> clazz$PluginProviderContext = PluginProviderContext.class;
     private static final Class<?> clazz$ComponentLogger = Objects.requireNonNull(
             ReflectionUtils.getClazz(
@@ -29,7 +29,8 @@ public class PaperCraftEngineBootstrap implements PluginBootstrap {
                     clazz$PluginProviderContext, clazz$ComponentLogger, new String[] { "getLogger" }
             )
     );
-    protected BukkitCraftEngine plugin;
+
+    BukkitCraftEngine plugin;
 
     @Override
     public void bootstrap(@NotNull BootstrapContext context) {

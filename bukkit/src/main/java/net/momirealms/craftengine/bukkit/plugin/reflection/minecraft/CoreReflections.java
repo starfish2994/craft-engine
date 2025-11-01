@@ -629,6 +629,17 @@ public final class CoreReflections {
             BukkitReflectionUtils.assembleMCClass("core.component.DataComponentType")
     );
 
+    public static final Class<?> clazz$TypedDataComponent = ReflectionUtils.getClazz(
+            BukkitReflectionUtils.assembleMCClass("core.component.TypedDataComponent")
+    );
+
+    // 1.21.5+
+    public static final Class<?> clazz$DataComponentPredicate$Type = MiscUtils.requireNonNullIf(ReflectionUtils.getClazz(
+            BukkitReflectionUtils.assembleMCClass("core.component.predicates.DataComponentPredicate$Type")
+    ), VersionHelper.isOrAbove1_21_5());
+
+
+
     public static final Method method$Registry$getId = requireNonNull(
             ReflectionUtils.getMethod(clazz$Registry, int.class, Object.class)
     );
@@ -1653,7 +1664,8 @@ public final class CoreReflections {
     public static final Object instance$EquipmentSlot$LEGS;
     public static final Object instance$EquipmentSlot$CHEST;
     public static final Object instance$EquipmentSlot$HEAD;
-//    public static final Object instance$EquipmentSlot$BODY;
+    public static final Object instance$EquipmentSlot$BODY;
+    public static final Object instance$EquipmentSlot$SADDLE;
 
     static {
         try {
@@ -1664,7 +1676,16 @@ public final class CoreReflections {
             instance$EquipmentSlot$LEGS = instance$EquipmentSlot$values[3];
             instance$EquipmentSlot$CHEST = instance$EquipmentSlot$values[4];
             instance$EquipmentSlot$HEAD = instance$EquipmentSlot$values[5];
-//            instance$EquipmentSlot$BODY = instance$EquipmentSlot$values[6];
+            if (VersionHelper.isOrAbove1_20_5()) {
+                instance$EquipmentSlot$BODY = instance$EquipmentSlot$values[6];
+            } else {
+                instance$EquipmentSlot$BODY = null;
+            }
+            if (VersionHelper.isOrAbove1_21_5()) {
+                instance$EquipmentSlot$SADDLE = instance$EquipmentSlot$values[7];
+            } else {
+                instance$EquipmentSlot$SADDLE = null;
+            }
         } catch (ReflectiveOperationException e) {
             throw new ReflectionInitException("Failed to init EquipmentSlot", e);
         }
@@ -4469,5 +4490,50 @@ public final class CoreReflections {
                     "world.item.trading.ItemCost",
                     "world.item.trading.ItemCost"
             ), VersionHelper.isOrAbove1_20_5()
+    );
+
+    public static final Class<?> clazz$MerchantOffer = requireNonNull(BukkitReflectionUtils.findReobfOrMojmapClass(
+            "world.item.trading.MerchantRecipe",
+            "world.item.trading.MerchantOffer"
+    ));
+
+    public static final Class<?> clazz$Merchant = requireNonNull(BukkitReflectionUtils.findReobfOrMojmapClass(
+            "world.item.trading.IMerchant",
+            "world.item.trading.Merchant"
+    ));
+
+    public static final Class<?> clazz$BlockEntityType = requireNonNull(BukkitReflectionUtils.findReobfOrMojmapClass(
+            "world.level.block.entity.TileEntityTypes",
+            "world.level.block.entity.BlockEntityType"
+    ));
+
+    public static final Method method$BlockGetter$getBlockFloorHeight = requireNonNull(
+            ReflectionUtils.getMethod(clazz$BlockGetter, double.class, clazz$BlockPos)
+    );
+
+    public static final Method method$LivingEntity$getLocalBoundsForPose = requireNonNull(
+            ReflectionUtils.getMethod(clazz$LivingEntity, clazz$AABB, clazz$Pose)
+    );
+
+    public static final Class<?> clazz$DismountHelper = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.entity.vehicle.DismountUtil",
+                    "world.entity.vehicle.DismountHelper"
+            )
+    );
+
+    public static final Class<?> clazz$CollisionGetter = requireNonNull(
+            BukkitReflectionUtils.findReobfOrMojmapClass(
+                    "world.level.ICollisionAccess",
+                    "world.level.CollisionGetter"
+            )
+    );
+
+    public static final Method method$DismountHelper$canDismountTo0 = requireNonNull(
+            ReflectionUtils.getStaticMethod(clazz$DismountHelper, boolean.class, clazz$CollisionGetter, clazz$LivingEntity, clazz$AABB)
+    );
+
+    public static final Method method$DismountHelper$canDismountTo1 = requireNonNull(
+            ReflectionUtils.getStaticMethod(clazz$DismountHelper, boolean.class, clazz$CollisionGetter, clazz$Vec3, clazz$LivingEntity, clazz$Pose)
     );
 }

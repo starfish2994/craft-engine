@@ -1,0 +1,57 @@
+package net.momirealms.craftengine.core.plugin.context.function;
+
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
+import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.Context;
+import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
+import net.momirealms.craftengine.core.plugin.context.number.NumberProviders;
+import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
+import net.momirealms.craftengine.core.util.Key;
+
+import java.util.List;
+import java.util.Map;
+
+public class DamageItemFunction<CTX extends Context> extends AbstractConditionalFunction<CTX> {
+    private final NumberProvider amount;
+
+    public DamageItemFunction(NumberProvider amount, List<Condition<CTX>> predicates) {
+        super(predicates);
+        this.amount = amount;
+    }
+
+    @Override
+    protected void runInternal(CTX ctx) {
+        Player player = ctx.getOptionalParameter(DirectContextParameters.PLAYER).orElse(null);
+        if (player == null) return;
+        Item<?> item = ctx.getOptionalParameter(DirectContextParameters.ITEM_IN_HAND).orElse(null);
+        InteractionHand hand = ctx.getOptionalParameter(DirectContextParameters.HAND).orElse(null);
+        if (item == null && hand != null) {
+            item = player.getItemInHand(hand);
+        } else if (item == null) {
+            return;
+        }
+        EquipmentSlot slot = hand == null ? null : hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAIN_HAND : EquipmentSlot.OFF_HAND;
+        item.hurtAndBreak(amount.getInt(ctx), player, slot);
+    }
+
+    @Override
+    public Key type() {
+        return CommonFunctions.DAMAGE_ITEM;
+    }
+
+    public static class FactoryImpl<CTX extends Context> extends AbstractFactory<CTX> {
+
+        public FactoryImpl(java.util.function.Function<Map<String, Object>, Condition<CTX>> factory) {
+            super(factory);
+        }
+
+        @Override
+        public Function<CTX> create(Map<String, Object> arguments) {
+            NumberProvider amount = NumberProviders.fromObject(arguments.getOrDefault("amount", 1));
+            return new DamageItemFunction<>(amount, getPredicates(arguments));
+        }
+    }
+}

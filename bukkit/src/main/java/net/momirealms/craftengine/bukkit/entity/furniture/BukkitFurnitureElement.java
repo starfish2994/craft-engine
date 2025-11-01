@@ -38,14 +38,18 @@ public class BukkitFurnitureElement extends AbstractFurnitureElement {
                                   Vector3f translation,
                                   Vector3f position,
                                   Quaternionf rotation,
+                                  float shadowRadius,
+                                  float shadowStrength,
                                   boolean applyDyedColor) {
-        super(item, billboard, transform, scale, translation, position, rotation, applyDyedColor);
+        super(item, billboard, transform, scale, translation, position, rotation, shadowRadius, shadowStrength, applyDyedColor);
         this.commonValues = new ArrayList<>();
         ItemDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(scale(), this.commonValues);
         ItemDisplayEntityData.RotationLeft.addEntityDataIfNotDefaultValue(rotation(), this.commonValues);
         ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(billboard().id(), this.commonValues);
         ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(translation(), this.commonValues);
         ItemDisplayEntityData.DisplayType.addEntityDataIfNotDefaultValue(transform().id(), this.commonValues);
+        ItemDisplayEntityData.ShadowRadius.addEntityDataIfNotDefaultValue(shadowRadius, this.commonValues);
+        ItemDisplayEntityData.ShadowStrength.addEntityDataIfNotDefaultValue(shadowStrength, this.commonValues);
     }
 
     @Override
@@ -53,7 +57,7 @@ public class BukkitFurnitureElement extends AbstractFurnitureElement {
         WorldPosition position = furniture.position();
         Vector3f offset = conjugated.transform(new Vector3f(position()));
         packets.accept(FastNMS.INSTANCE.constructor$ClientboundAddEntityPacket(
-                entityId, UUID.randomUUID(), position.x() + offset.x, position.y() + offset.y, position.z() - offset.z, 0, position.xRot(),
+                entityId, UUID.randomUUID(), position.x() + offset.x, position.y() + offset.y, position.z() - offset.z, 0, position.yRot(),
                 MEntityTypes.ITEM_DISPLAY, 0, CoreReflections.instance$Vec3$Zero, 0
         ));
         if (applyDyedColor()) {
@@ -102,6 +106,8 @@ public class BukkitFurnitureElement extends AbstractFurnitureElement {
         private Vector3f translation;
         private Vector3f position;
         private Quaternionf rotation;
+        private float shadowRadius;
+        private float shadowStrength;
 
         @Override
         public Builder applyDyedColor(boolean applyDyedColor) {
@@ -152,8 +158,20 @@ public class BukkitFurnitureElement extends AbstractFurnitureElement {
         }
 
         @Override
+        public Builder shadowStrength(float shadowStrength) {
+            this.shadowStrength = shadowStrength;
+            return this;
+        }
+
+        @Override
+        public Builder shadowRadius(float shadowRadius) {
+            this.shadowRadius = shadowRadius;
+            return this;
+        }
+
+        @Override
         public FurnitureElement build() {
-            return new BukkitFurnitureElement(item, billboard, transform, scale, translation, position, rotation, applyDyedColor);
+            return new BukkitFurnitureElement(item, billboard, transform, scale, translation, position, rotation, shadowRadius, shadowStrength, applyDyedColor);
         }
     }
 }

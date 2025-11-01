@@ -43,6 +43,7 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
     public static final Key ATTACHED_STEM_BLOCK = Key.from("craftengine:attached_stem_block");
     public static final Key CHIME_BLOCK = Key.from("craftengine:chime_block");
     public static final Key BUDDING_BLOCK = Key.from("craftengine:budding_block");
+    public static final Key SEAT_BLOCK = Key.from("craftengine:seat_block");
 
     public static void init() {
         register(EMPTY, (block, args) -> EmptyBlockBehavior.INSTANCE);
@@ -84,5 +85,6 @@ public class BukkitBlockBehaviors extends BlockBehaviors {
         register(ATTACHED_STEM_BLOCK, AttachedStemBlockBehavior.FACTORY);
         register(CHIME_BLOCK, ChimeBlockBehavior.FACTORY);
         register(BUDDING_BLOCK, BuddingBlockBehavior.FACTORY);
+        register(SEAT_BLOCK, SeatBlockBehavior.FACTORY);
     }
 }

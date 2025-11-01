@@ -166,6 +166,11 @@ public class PacketIds1_20_5 implements PacketIds {
     }
 
     @Override
+    public int clientboundBlockEntityDataPacket() {
+        return PlayPacketIdHelper.byName("minecraft:block_entity_data", PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
     public int serverboundContainerClickPacket() {
         return PlayPacketIdHelper.byName("minecraft:container_click", PacketFlow.SERVERBOUND);
     }
@@ -182,6 +187,6 @@ public class PacketIds1_20_5 implements PacketIds {
 
     @Override
     public int serverboundCustomPayloadPacket() {
-        return PlayPacketIdHelper.byName("custom_payload", PacketFlow.SERVERBOUND);
+        return PlayPacketIdHelper.byName("minecraft:custom_payload", PacketFlow.SERVERBOUND);
     }
 }

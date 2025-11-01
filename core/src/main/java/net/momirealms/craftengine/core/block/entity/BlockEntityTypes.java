@@ -6,10 +6,10 @@ import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
-public class BlockEntityTypes {
+public abstract class BlockEntityTypes {
 
-    public static <T extends BlockEntity> BlockEntityType<T> register(Key id, BlockEntity.Factory<T> factory) {
-        BlockEntityType<T> type = new BlockEntityType<>(id, factory);
+    public static <T extends BlockEntity> BlockEntityType<T> register(Key id) {
+        BlockEntityType<T> type = new BlockEntityType<>(id);
         ((WritableRegistry<BlockEntityType<?>>) BuiltInRegistries.BLOCK_ENTITY_TYPE)
                 .register(ResourceKey.create(Registries.BLOCK_ENTITY_TYPE.location(), id), type);
         return type;

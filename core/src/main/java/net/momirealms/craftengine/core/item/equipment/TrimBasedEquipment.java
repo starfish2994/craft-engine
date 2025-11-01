@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.equipment;
 
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.modifier.HideTooltipModifier;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
 import net.momirealms.craftengine.core.item.modifier.TrimModifier;
@@ -42,7 +42,7 @@ public class TrimBasedEquipment extends AbstractEquipment {
     public <I> List<ItemDataModifier<I>> modifiers() {
         return List.of(
                 new TrimModifier<>(Key.of(AbstractPackManager.NEW_TRIM_MATERIAL), this.assetId),
-                new HideTooltipModifier<>(List.of(ComponentKeys.TRIM))
+                new HideTooltipModifier<>(List.of(DataComponentKeys.TRIM))
         );
     }
 

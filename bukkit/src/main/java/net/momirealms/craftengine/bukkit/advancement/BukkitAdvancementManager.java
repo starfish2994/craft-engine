@@ -22,7 +22,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import java.nio.file.Path;
 import java.util.*;
 
-public class BukkitAdvancementManager extends AbstractAdvancementManager {
+public final class BukkitAdvancementManager extends AbstractAdvancementManager {
     private final BukkitCraftEngine plugin;
     private final AdvancementParser advancementParser;
     private final Map<Key, JsonElement> advancements = new HashMap<>();

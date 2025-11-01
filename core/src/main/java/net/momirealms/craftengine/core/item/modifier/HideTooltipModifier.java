@@ -19,34 +19,34 @@ public class HideTooltipModifier<I> implements ItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
     public static final Map<Key, Integer> TO_LEGACY;
     public static final List<Key> COMPONENTS = List.of(
-            ComponentKeys.UNBREAKABLE,
-            ComponentKeys.ENCHANTMENTS,
-            ComponentKeys.STORED_ENCHANTMENTS,
-            ComponentKeys.CAN_PLACE_ON,
-            ComponentKeys.CAN_BREAK,
-            ComponentKeys.ATTRIBUTE_MODIFIERS,
-            ComponentKeys.DYED_COLOR,
-            ComponentKeys.TRIM,
-            ComponentKeys.JUKEBOX_PLAYABLE
+            DataComponentKeys.UNBREAKABLE,
+            DataComponentKeys.ENCHANTMENTS,
+            DataComponentKeys.STORED_ENCHANTMENTS,
+            DataComponentKeys.CAN_PLACE_ON,
+            DataComponentKeys.CAN_BREAK,
+            DataComponentKeys.ATTRIBUTE_MODIFIERS,
+            DataComponentKeys.DYED_COLOR,
+            DataComponentKeys.TRIM,
+            DataComponentKeys.JUKEBOX_PLAYABLE
     );
     static {
         ImmutableMap.Builder<Key, Integer> builder = ImmutableMap.builder();
-        builder.put(ComponentKeys.ENCHANTMENTS, 1);
-        builder.put(ComponentKeys.ATTRIBUTE_MODIFIERS, 2);
-        builder.put(ComponentKeys.UNBREAKABLE, 4);
-        builder.put(ComponentKeys.CAN_BREAK, 8);
-        builder.put(ComponentKeys.CAN_PLACE_ON, 16);
-        builder.put(ComponentKeys.STORED_ENCHANTMENTS, 32);
-        builder.put(ComponentKeys.POTION_CONTENTS, 32);
-        builder.put(ComponentKeys.WRITTEN_BOOK_CONTENT, 32);
-        builder.put(ComponentKeys.FIREWORKS, 32);
-        builder.put(ComponentKeys.FIREWORK_EXPLOSION, 32);
-        builder.put(ComponentKeys.BUNDLE_CONTENTS, 32);
-        builder.put(ComponentKeys.MAP_ID, 32);
-        builder.put(ComponentKeys.MAP_COLOR, 32);
-        builder.put(ComponentKeys.MAP_DECORATIONS, 32);
-        builder.put(ComponentKeys.DYED_COLOR, 64);
-        builder.put(ComponentKeys.TRIM, 128);
+        builder.put(DataComponentKeys.ENCHANTMENTS, 1);
+        builder.put(DataComponentKeys.ATTRIBUTE_MODIFIERS, 2);
+        builder.put(DataComponentKeys.UNBREAKABLE, 4);
+        builder.put(DataComponentKeys.CAN_BREAK, 8);
+        builder.put(DataComponentKeys.CAN_PLACE_ON, 16);
+        builder.put(DataComponentKeys.STORED_ENCHANTMENTS, 32);
+        builder.put(DataComponentKeys.POTION_CONTENTS, 32);
+        builder.put(DataComponentKeys.WRITTEN_BOOK_CONTENT, 32);
+        builder.put(DataComponentKeys.FIREWORKS, 32);
+        builder.put(DataComponentKeys.FIREWORK_EXPLOSION, 32);
+        builder.put(DataComponentKeys.BUNDLE_CONTENTS, 32);
+        builder.put(DataComponentKeys.MAP_ID, 32);
+        builder.put(DataComponentKeys.MAP_COLOR, 32);
+        builder.put(DataComponentKeys.MAP_DECORATIONS, 32);
+        builder.put(DataComponentKeys.DYED_COLOR, 64);
+        builder.put(DataComponentKeys.TRIM, 128);
         TO_LEGACY = builder.build();
     }
 
@@ -98,11 +98,11 @@ public class HideTooltipModifier<I> implements ItemDataModifier<I> {
     @Override
     public Item<I> prepareNetworkItem(Item<I> item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.isOrAbove1_21_5()) {
-            Tag previous = item.getSparrowNBTComponent(ComponentKeys.TOOLTIP_DISPLAY);
+            Tag previous = item.getSparrowNBTComponent(DataComponentKeys.TOOLTIP_DISPLAY);
             if (previous != null) {
-                networkData.put(ComponentKeys.TOOLTIP_DISPLAY.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
+                networkData.put(DataComponentKeys.TOOLTIP_DISPLAY.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
             } else {
-                networkData.put(ComponentKeys.TOOLTIP_DISPLAY.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.REMOVE));
+                networkData.put(DataComponentKeys.TOOLTIP_DISPLAY.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.REMOVE));
             }
         } else if (VersionHelper.isOrAbove1_20_5()) {
             for (Key component : this.components) {
@@ -210,9 +210,9 @@ public class HideTooltipModifier<I> implements ItemDataModifier<I> {
 
         @Override
         public void apply(Item<W> item) {
-            Map<String, Object> data = MiscUtils.castToMap(item.getJavaComponent(ComponentKeys.TOOLTIP_DISPLAY), true);
+            Map<String, Object> data = MiscUtils.castToMap(item.getJavaComponent(DataComponentKeys.TOOLTIP_DISPLAY), true);
             if (data == null) {
-                item.setJavaComponent(ComponentKeys.TOOLTIP_DISPLAY, Map.of("hidden_components", this.components));
+                item.setJavaComponent(DataComponentKeys.TOOLTIP_DISPLAY, Map.of("hidden_components", this.components));
             } else {
                 if (data.get("hidden_components") instanceof List<?> list) {
                     List<String> hiddenComponents = list.stream().map(Object::toString).toList();
@@ -222,11 +222,11 @@ public class HideTooltipModifier<I> implements ItemDataModifier<I> {
                     ).distinct().toList();
                     Map<String, Object> newData = new HashMap<>(data);
                     newData.put("hidden_components", mergedComponents);
-                    item.setJavaComponent(ComponentKeys.TOOLTIP_DISPLAY, newData);
+                    item.setJavaComponent(DataComponentKeys.TOOLTIP_DISPLAY, newData);
                 } else {
                     Map<String, Object> newData = new HashMap<>(data);
                     newData.put("hidden_components", this.components);
-                    item.setJavaComponent(ComponentKeys.TOOLTIP_DISPLAY, newData);
+                    item.setJavaComponent(DataComponentKeys.TOOLTIP_DISPLAY, newData);
                 }
             }
         }

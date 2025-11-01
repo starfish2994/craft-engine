@@ -1,27 +1,28 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display.slot;
 
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
-public class WithRemainderSlotDisplay implements SlotDisplay {
-    private final SlotDisplay input;
-    private final SlotDisplay remainder;
+public class WithRemainderSlotDisplay<I> implements SlotDisplay<I> {
+    private final SlotDisplay<I> input;
+    private final SlotDisplay<I> remainder;
 
-    public WithRemainderSlotDisplay(SlotDisplay input, SlotDisplay remainder) {
+    public WithRemainderSlotDisplay(SlotDisplay<I> input, SlotDisplay<I> remainder) {
         this.input = input;
         this.remainder = remainder;
     }
 
-    public static WithRemainderSlotDisplay read(FriendlyByteBuf buf) {
-        SlotDisplay input = SlotDisplay.read(buf);
-        SlotDisplay remainder = SlotDisplay.read(buf);
-        return new WithRemainderSlotDisplay(input, remainder);
+    public static <I> WithRemainderSlotDisplay<I> read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
+        SlotDisplay<I> input = SlotDisplay.read(buf, reader);
+        SlotDisplay<I> remainder = SlotDisplay.read(buf, reader);
+        return new WithRemainderSlotDisplay<>(input, remainder);
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
+    public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer) {
         buf.writeVarInt(6);
-        this.input.write(buf);
-        this.remainder.write(buf);
+        this.input.write(buf, writer);
+        this.remainder.write(buf, writer);
     }
 
     @Override

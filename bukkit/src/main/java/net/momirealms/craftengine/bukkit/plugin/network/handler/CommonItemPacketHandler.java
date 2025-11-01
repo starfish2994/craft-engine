@@ -7,6 +7,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityDataUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
@@ -21,9 +22,10 @@ public class CommonItemPacketHandler implements EntityPacketHandler {
 
     @Override
     public void handleSetEntityData(Player user, ByteBufPacketEvent event) {
+        if (Config.disableItemOperations()) return;
         FriendlyByteBuf buf = event.getBuffer();
         int id = buf.readVarInt();
-        boolean isChanged = false;
+        boolean changed = false;
         List<Object> packedItems = FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$unpack(buf);
         for (int i = 0; i < packedItems.size(); i++) {
             Object packedItem = packedItems.get(i);
@@ -43,15 +45,13 @@ public class CommonItemPacketHandler implements EntityPacketHandler {
             ItemStack itemStack = FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(nmsItemStack);
             Optional<ItemStack> optional = BukkitItemManager.instance().s2c(itemStack, user);
             if (optional.isEmpty()) continue;
-            isChanged = true;
+            changed = true;
             itemStack = optional.get();
             Object serializer = FastNMS.INSTANCE.field$SynchedEntityData$DataValue$serializer(packedItem);
-            packedItems.set(i, FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(
-                    entityDataId, serializer, FastNMS.INSTANCE.method$CraftItemStack$asNMSCopy(itemStack)
-            ));
+            packedItems.set(i, FastNMS.INSTANCE.constructor$SynchedEntityData$DataValue(entityDataId, serializer, FastNMS.INSTANCE.method$CraftItemStack$asNMSCopy(itemStack)));
             break;
         }
-        if (isChanged) {
+        if (changed) {
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());

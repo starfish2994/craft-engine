@@ -9,6 +9,7 @@ import net.momirealms.craftengine.bukkit.block.entity.renderer.element.BukkitBlo
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
 import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.BukkitHitBoxTypes;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManager;
+import net.momirealms.craftengine.bukkit.entity.seat.BukkitSeatManager;
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.behavior.BukkitItemBehaviors;
@@ -87,7 +88,7 @@ public class BukkitCraftEngine extends CraftEngine {
         super.sharedClassPathAppender = sharedClassPathAppender;
         super.privateClassPathAppender = privateClassPathAppender;
         super.logger = logger;
-        super.platform = new BukkitPlatform();
+        super.platform = new BukkitPlatform(this);
         super.scheduler = new BukkitSchedulerAdapter(this);
         Class<?> compatibilityClass = ReflectionUtils.getClazz(COMPATIBILITY_CLASS);
         if (compatibilityClass != null) {
@@ -209,6 +210,7 @@ public class BukkitCraftEngine extends CraftEngine {
         super.advancementManager = new BukkitAdvancementManager(this);
         super.projectileManager = new BukkitProjectileManager(this);
         super.furnitureManager = new BukkitFurnitureManager(this);
+        super.seatManager = new BukkitSeatManager(this);
         super.onPluginEnable();
         super.compatibilityManager().onEnable();
 

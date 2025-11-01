@@ -1,14 +1,14 @@
 package net.momirealms.craftengine.bukkit.plugin.network.id;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.PacketFlow;
 import net.momirealms.craftengine.core.util.VersionHelper;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class PlayPacketIdHelper {
     // 1.20.5-latest
@@ -19,25 +19,10 @@ public class PlayPacketIdHelper {
 
     static {
         try {
-            if (VersionHelper.isOrAbove1_21()) {
-                Object packetReport = CoreReflections.constructor$PacketReport.newInstance((Object) null);
-                JsonObject packetReportData = ((JsonElement) CoreReflections.method$PacketReport$serializePackets.invoke(packetReport)).getAsJsonObject();
-                JsonObject playData = packetReportData.get("play").getAsJsonObject();
-                for (Map.Entry<String, JsonElement> entry : playData.entrySet()) {
-                    Map<String, Integer> ids = new HashMap<>();
-                    byName.put(PacketFlow.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), ids);
-                    for (var entry2 : entry.getValue().getAsJsonObject().entrySet()) {
-                        ids.put(entry2.getKey(), entry2.getValue().getAsJsonObject().get("protocol_id").getAsInt());
-                    }
-                }
-            } else if (VersionHelper.isOrAbove1_20_5()) {
-                for (Map.Entry<String, Map<String, Integer>> entry : FastNMS.INSTANCE.gamePacketIdsByName().entrySet()) {
-                    byName.put(PacketFlow.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), entry.getValue());
-                }
+            if (VersionHelper.isOrAbove1_20_5()) {
+                byName.putAll(FastNMS.INSTANCE.gamePacketIdsByName().get(ConnectionState.PLAY));
             } else {
-                for (Map.Entry<String, Map<Class<?>, Integer>> entry : FastNMS.INSTANCE.gamePacketIdsByClazz().entrySet()) {
-                    byClazz.put(PacketFlow.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), entry.getValue());
-                }
+                byClazz.putAll(FastNMS.INSTANCE.gamePacketIdsByClazz().get(ConnectionState.PLAY));
             }
             if (!byName.isEmpty()) {
                 for (Map.Entry<PacketFlow, Map<String, Integer>> entry : byName.entrySet()) {

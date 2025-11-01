@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.registry.Holder;
@@ -24,7 +24,7 @@ public abstract class AbstractCustomBlock implements CustomBlock {
     protected final BlockStateVariantProvider variantProvider;
     protected final BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> placementFunction;
     protected final ImmutableBlockState defaultState;
-    protected final Map<EventTrigger, List<Function<PlayerOptionalContext>>> events;
+    protected final Map<EventTrigger, List<Function<Context>>> events;
     @Nullable
     protected final LootTable<?> lootTable;
     protected BlockBehavior behavior = EmptyBlockBehavior.INSTANCE;
@@ -32,7 +32,7 @@ public abstract class AbstractCustomBlock implements CustomBlock {
     protected AbstractCustomBlock(
             @NotNull Holder.Reference<CustomBlock> holder,
             @NotNull BlockStateVariantProvider variantProvider,
-            @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+            @NotNull Map<EventTrigger, List<Function<Context>>> events,
             @Nullable LootTable<?> lootTable
     ) {
         this.id = holder.key().location();
@@ -72,8 +72,8 @@ public abstract class AbstractCustomBlock implements CustomBlock {
     }
 
     @Override
-    public void execute(PlayerOptionalContext context, EventTrigger trigger) {
-        for (Function<PlayerOptionalContext> function : Optional.ofNullable(this.events.get(trigger)).orElse(Collections.emptyList())) {
+    public void execute(Context context, EventTrigger trigger) {
+        for (Function<Context> function : Optional.ofNullable(this.events.get(trigger)).orElse(Collections.emptyList())) {
             function.run(context);
         }
     }

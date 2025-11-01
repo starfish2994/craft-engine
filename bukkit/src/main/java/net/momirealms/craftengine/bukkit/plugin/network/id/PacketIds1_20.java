@@ -167,6 +167,11 @@ public class PacketIds1_20 implements PacketIds {
     }
 
     @Override
+    public int clientboundBlockEntityDataPacket() {
+        return PlayPacketIdHelper.byClazz(NetworkReflections.clazz$ClientboundBlockEntityDataPacket, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
     public int serverboundContainerClickPacket() {
         return PlayPacketIdHelper.byClazz(NetworkReflections.clazz$ServerboundContainerClickPacket, PacketFlow.SERVERBOUND);
     }

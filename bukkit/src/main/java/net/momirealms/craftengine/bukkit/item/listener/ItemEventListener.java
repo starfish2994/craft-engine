@@ -4,6 +4,7 @@ import io.papermc.paper.event.block.CompostItemEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
+import net.momirealms.craftengine.bukkit.entity.BukkitItemEntity;
 import net.momirealms.craftengine.bukkit.item.BukkitCustomItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
@@ -21,6 +22,7 @@ import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
+import net.momirealms.craftengine.core.item.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.item.context.UseOnContext;
 import net.momirealms.craftengine.core.item.setting.FoodData;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
@@ -141,7 +143,7 @@ public class ItemEventListener implements Listener {
             Direction direction = DirectionUtils.toDirection(event.getBlockFace());
             BlockPos pos = LocationUtils.toBlockPos(block.getLocation());
             Vec3d vec3d = new Vec3d(interactionPoint.getX(), interactionPoint.getY(), interactionPoint.getZ());
-            hitResult = new BlockHitResult(vec3d, direction, pos, false);
+            hitResult = new BlockHitResult(vec3d, direction, pos, false); // todo 需要检测玩家是否在方块内
         }
 
         // 处理自定义方块
@@ -165,9 +167,8 @@ public class ItemEventListener implements Listener {
 
             // fix client side issues
             if (action.isRightClick() && hitResult != null &&
-                    InteractUtils.willConsume(player, BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().literalObject()), hitResult, itemInHand)) {
+                    InteractUtils.canPlaceVisualBlock(player, BlockStateUtils.fromBlockData(immutableBlockState.vanillaBlockState().literalObject()), hitResult, itemInHand)) {
                 player.updateInventory();
-                //PlayerUtils.resendItemInHand(player);
             }
 
             Cancellable dummy = Cancellable.dummy();
@@ -285,15 +286,13 @@ public class ItemEventListener implements Listener {
                 }
                 // custom item
                 else {
-                    if (optionalCustomItem.get().settings().canPlaceRelatedVanillaBlock()) {
-                        // 如果用户设置了允许放置对应的原版方块，那么直接返回。
-                        // 这种情况下最好是return，以避免同时触发多个behavior发生冲突
-                        // 当用户选择其作为原版方块放下时，自定义行为可能已经不重要了？
-                        return;
-                    } else {
-                        // todo 实际上这里的处理并不正确，因为判断玩家是否能够放置那个方块需要更加细节的判断。比如玩家无法对着树叶放置火把，但是交互事件依然触发，此情况下不可丢弃自定义行为。
+                    if (optionalCustomItem.get().settings().disableVanillaBehavior()) {
+                        // 不能在BlockPlaceEvent里检测，是因为种农作物不触发相关事件
+                        // 允许尝试放置方块
                         if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
-                            event.setCancelled(true);
+                            if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(serverPlayer, hand, itemInHand, hitResult)))) {
+                                event.setCancelled(true);
+                            }
                         }
                     }
                 }
@@ -578,16 +577,31 @@ public class ItemEventListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPickUpItem(EntityPickupItemEvent event) {
-        if (!Config.triggerUpdatePickUp()) return;
         if (!(event.getEntity() instanceof Player player)) return;
         org.bukkit.entity.Item itemDrop = event.getItem();
         ItemStack itemStack = itemDrop.getItemStack();
         Item<ItemStack> wrapped = this.itemManager.wrap(itemStack);
-        ItemUpdateResult result = this.itemManager.updateItem(wrapped, () -> ItemBuildContext.of(BukkitAdaptors.adapt(player)));
-        if (result.updated()) {
-            itemDrop.setItemStack((ItemStack) result.finalItem().getItem());
+        Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
+        if (optionalCustomItem.isEmpty()) return;
+        BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+        CustomItem<ItemStack> customItem = optionalCustomItem.get();
+        if (Config.triggerUpdatePickUp() && customItem.updater().isPresent()) {
+            ItemUpdateResult result = this.itemManager.updateItem(wrapped, () -> ItemBuildContext.of(serverPlayer));
+            if (result.updated()) {
+                itemDrop.setItemStack((ItemStack) result.finalItem().getItem());
+            }
+        }
+        Cancellable dummy = Cancellable.dummy();
+        customItem.execute(PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
+                .withParameter(DirectContextParameters.ENTITY, new BukkitItemEntity(itemDrop))
+                .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(itemDrop.getLocation()))
+                .withParameter(DirectContextParameters.EVENT, dummy)
+        ), EventTrigger.PICK_UP);
+        if (dummy.isCancelled()) {
+            event.setCancelled(true);
+            return;
         }
     }
 

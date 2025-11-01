@@ -6,7 +6,7 @@ import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
@@ -26,7 +26,7 @@ public class BukkitCustomItem extends AbstractCustomItem<ItemStack> {
                             List<ItemBehavior> behaviors,
                             List<ItemDataModifier<ItemStack>> modifiers, List<ItemDataModifier<ItemStack>> clientBoundModifiers,
                             ItemSettings settings,
-                            Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                            Map<EventTrigger, List<Function<Context>>> events,
                             ItemUpdateConfig updater) {
         super(isVanillaItem, id, materialKey, clientBoundMaterialKey, behaviors, modifiers, clientBoundModifiers, settings, events, updater);
         this.item = item;
@@ -54,11 +54,15 @@ public class BukkitCustomItem extends AbstractCustomItem<ItemStack> {
     }
 
     public Object clientItem() {
-        return clientItem;
+        return this.clientItem;
     }
 
     public Object item() {
-        return item;
+        return this.item;
+    }
+
+    public boolean hasClientboundMaterial() {
+        return this.clientItem != this.item;
     }
 
     public static Builder<ItemStack> builder(Object item, Object clientBoundItem) {
@@ -72,7 +76,7 @@ public class BukkitCustomItem extends AbstractCustomItem<ItemStack> {
         private final Object item;
         private Key clientBoundItemKey;
         private final Object clientBoundItem;
-        private final Map<EventTrigger, List<Function<PlayerOptionalContext>>> events = new EnumMap<>(EventTrigger.class);
+        private final Map<EventTrigger, List<Function<Context>>> events = new EnumMap<>(EventTrigger.class);
         private final List<ItemBehavior> behaviors = new ArrayList<>(4);
         private final List<ItemDataModifier<ItemStack>> modifiers = new ArrayList<>(4);
         private final List<ItemDataModifier<ItemStack>> clientBoundModifiers = new ArrayList<>(4);
@@ -151,7 +155,7 @@ public class BukkitCustomItem extends AbstractCustomItem<ItemStack> {
         }
 
         @Override
-        public Builder<ItemStack> events(Map<EventTrigger, List<Function<PlayerOptionalContext>>> events) {
+        public Builder<ItemStack> events(Map<EventTrigger, List<Function<Context>>> events) {
             this.events.putAll(events);
             return this;
         }

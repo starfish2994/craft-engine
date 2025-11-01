@@ -124,7 +124,7 @@ public class FallingBlockBehavior extends BukkitBlockBehavior {
             SoundData fallSound = null;
             SoundData destroySound = null;
             if (sounds != null) {
-                fallSound = Optional.ofNullable(sounds.get("fall")).map(obj -> SoundData.create(obj, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f))).orElse(null);
+                fallSound = Optional.ofNullable(sounds.get("land")).map(obj -> SoundData.create(obj, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f))).orElse(null);
                 destroySound = Optional.ofNullable(sounds.get("destroy")).map(obj -> SoundData.create(obj, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.ranged(0.9f, 1f))).orElse(null);
             }
             return new FallingBlockBehavior(block, hurtAmount, hurtMax, fallSound, destroySound);

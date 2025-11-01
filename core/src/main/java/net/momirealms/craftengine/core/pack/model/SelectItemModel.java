@@ -11,7 +11,6 @@ import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigExce
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import org.incendo.cloud.type.Either;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,14 +60,26 @@ public class SelectItemModel implements ItemModel {
             item.add("model", itemModel.apply(version));
             Either<JsonElement, List<JsonElement>> either = entry.getKey();
             if (either.primary().isPresent()) {
-                item.add("when", either.primary().get());
+                JsonElement remap = this.property.remap(either.primary().get(), version);
+                if (remap != null) {
+                    item.add("when", remap);
+                } else {
+                    continue;
+                }
             } else {
                 List<JsonElement> list = either.fallback().get();
                 JsonArray whens = new JsonArray();
                 for (JsonElement e : list) {
-                    whens.add(e);
+                    JsonElement remap = this.property.remap(e, version);
+                    if (remap != null) {
+                        whens.add(remap);
+                    }
                 }
-                item.add("when", whens);
+                if (!whens.isEmpty()) {
+                    item.add("when", whens);
+                } else {
+                    continue;
+                }
             }
             array.add(item);
         }
@@ -85,12 +96,21 @@ public class SelectItemModel implements ItemModel {
 
     @Override
     public List<Revision> revisions() {
-        List<Revision> versions = new ArrayList<>();
+        List<Revision> versions = new ArrayList<>(4);
+        for (Map.Entry<Either<JsonElement, List<JsonElement>>, ItemModel> entry : this.whenMap.entrySet()) {
+            Either<JsonElement, List<JsonElement>> when = entry.getKey();
+            if (when.primary().isPresent()) {
+                versions.addAll(this.property.revisions(when.primary().get()));
+            } else {
+                List<JsonElement> list = when.fallback().get();
+                for (JsonElement e : list) {
+                    versions.addAll(this.property.revisions(e));
+                }
+            }
+            versions.addAll(entry.getValue().revisions());
+        }
         if (this.fallBack != null) {
             versions.addAll(this.fallBack.revisions());
-        }
-        for (ItemModel itemModel : this.whenMap.values()) {
-            versions.addAll(itemModel.revisions());
         }
         return versions;
     }
@@ -113,7 +133,7 @@ public class SelectItemModel implements ItemModel {
         @Override
         public ItemModel create(Map<String, Object> arguments) {
             SelectProperty property = SelectProperties.fromMap(arguments);
-            Map<String, Object> fallback = MiscUtils.castToMap(arguments.get("fallback"), true);
+            Object fallback = arguments.get("fallback");
             Object casesObj = arguments.get("cases");
             if (casesObj instanceof List<?> list) {
                 List<Map<String, Object>> cases = (List<Map<String, Object>>) list;
@@ -138,9 +158,13 @@ public class SelectItemModel implements ItemModel {
                         if (model == null) {
                             throw new LocalizedResourceConfigException("warning.config.item.model.select.case.missing_model");
                         }
-                        whenMap.put(either, ItemModels.fromMap(MiscUtils.castToMap(model, false)));
+                        whenMap.put(either, ItemModels.fromObj(model));
                     }
-                    return new SelectItemModel(property, whenMap, fallback == null ? null : ItemModels.fromMap(fallback));
+                    return new SelectItemModel(
+                            property,
+                            whenMap,
+                            fallback == null ? null : ItemModels.fromObj(fallback)
+                    );
                 } else {
                     throw new LocalizedResourceConfigException("warning.config.item.model.select.missing_cases");
                 }

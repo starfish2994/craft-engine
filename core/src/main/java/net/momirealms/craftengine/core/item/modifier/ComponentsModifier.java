@@ -23,7 +23,7 @@ public class ComponentsModifier<I> implements ItemDataModifier<I> {
         List<Pair<Key, Tag>> pairs = new ArrayList<>(arguments.size());
         for (Map.Entry<String, Object> entry : arguments.entrySet()) {
             Key key = Key.of(entry.getKey());
-            if (key.equals(ComponentKeys.CUSTOM_DATA)) {
+            if (key.equals(DataComponentKeys.CUSTOM_DATA)) {
                 this.customData = (CompoundTag) parseValue(entry.getValue());
             } else {
                 pairs.add(new Pair<>(key, parseValue(entry.getValue())));
@@ -58,14 +58,14 @@ public class ComponentsModifier<I> implements ItemDataModifier<I> {
             item.setNBTComponent(entry.left(), entry.right());
         }
         if (this.customData != null) {
-            CompoundTag tag = (CompoundTag) item.getTag(ComponentKeys.CUSTOM_DATA);
+            CompoundTag tag = (CompoundTag) item.getTag(DataComponentKeys.CUSTOM_DATA);
             if (tag != null) {
                 for (Map.Entry<String, Tag> entry : this.customData.entrySet()) {
                     tag.put(entry.getKey(), entry.getValue());
                 }
-                item.setComponent(ComponentKeys.CUSTOM_DATA, tag);
+                item.setComponent(DataComponentKeys.CUSTOM_DATA, tag);
             } else {
-                item.setComponent(ComponentKeys.CUSTOM_DATA, this.customData);
+                item.setComponent(DataComponentKeys.CUSTOM_DATA, this.customData);
             }
         }
         return item;

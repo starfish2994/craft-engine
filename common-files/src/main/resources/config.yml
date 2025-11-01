@@ -10,110 +10,49 @@ forced-locale: ''
 filter-configuration-phase-disconnect: false
 
 resource-pack:
+  # This option determines the location of the generated resource pack
+  # You can use either an absolute path or a relative path here
+  path: "./generated/resource_pack.zip"
+  # Allowed values:
+  # - 1.20.1, 1.21, 1.21.8, etc.
+  # - latest: the latest client version
+  # - server: the current server version
+  supported-version:
+    min: server
+    max: latest
+  # Remove 1.21.5+ tinted_leaves particles
+  remove-tinted-leaves-particle: true
+  # Define the name of the overlay folders
+  overlay-format: "ce_overlay_{version}"
   # Should those images in minecraft:default font also work in minecraft:uniform
   override-uniform-font: true
   # Generate assets for CraftEngine fabric mod
   # Note: fabric mod is used for clientside Axiom/WorldEdit mod
   generate-mod-assets: false
-  # Resource pack protection
-  protection:
-    # Warning: Do not attempt to unzip the resource pack with crash tools enabled.
-    # You can enable all the methods at the same time.
-    crash-tools:
-      method-1: false
-      method-2: false
-      method-3: false # Enable this would increase the resource pack size by 0.67MB
-    # [Premium Exclusive]
-    # Obfuscate your resource pack
-    obfuscation:
-      enable: false
-      seed: 0 # 0 = random seed
-      fake-directory: false
-      escape-unicode: false
-      resource-location:
-        enable: true
-        random-namespace:
-          amount: 16 # 0 = disable
-          length: 9
-        random-path:
-          source: obf
-          depth: 16
-          anti-unzip: false
-        random-atlas:
-          images-per-canvas: 32 # 0 = disable
-        # Sometimes, some vanilla files that have been overwritten might be mistakenly obfuscated.
-        # Please add the ignored textures/models/sounds here.
-        bypass-textures:
-          # - minecraft:block/farmland
-          - "@legacy_unicode"
-          - "@vanilla_textures"
-        bypass-models:
-          - "@vanilla_models"
-        bypass-sounds: []
-        bypass-equipments: []
-  # Validate if there is any error in the resource pack, such as missing textures or models
-  # If your resource pack is compliant with the standard, you can disable validation to improve the resource pack generation speed.
-  validation:
-    enable: true
-    # [Premium Exclusive]
-    # Fix images that are not within the texture atlas. It is unreasonable to always rely on plugins to fix your mistakes.
-    # You should strive to make your resource pack more standardized after gaining some experience with resource packs.
-    fix-atlas: true
-  # Define the name of the overlay folders
-  overlay-format: "ce_overlay_{version}"
-  # Allowed values:
-  # - 1.20.1, 1.21, 1.21.8, etc.
-  # - LATEST: the latest client version
-  # - SERVER: the current server version
-  supported-version:
-    min: SERVER
-    max: LATEST
-  # Remove 1.21.5+ tinted_leaves particles
-  remove-tinted-leaves-particle: true
+  # Exclude the shaders when generating the resource pack
+  exclude-core-shaders: false
+  # Merge other packs
   merge-external-folders:
     - "ModelEngine/resource pack"
   merge-external-zip-files:
     - "CustomNameplates/resourcepack.zip"
     - "BetterModel/build.zip"
-  exclude-file-extensions: ["md", "psd", "bbmodel", "db", "ini"]
-  # Exclude the shaders when generating the resource pack
-  exclude-core-shaders: false
-  delivery:
-    # Send the resource pack on joining the server
-    send-on-join: true
-    kick-if-declined: true
-    kick-if-failed-to-apply: true
-    prompt: "<yellow>To fully experience our server,<newline>please accept our custom resource pack.</yellow>"
-    # If you are hosting the resource pack by yourself, replace `localhost` with your server ip otherwise it would only work on your local pc
-    # If using BungeeCord or Velocity, consider using a proxy-side plugin to handle resource pack delivery.
-    # Read this page for more host types: https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host
-    hosting:
-      - type: "self"
-        ip: "localhost"
-        port: 8163
-        protocol: "http"
-        deny-non-minecraft-request: true
-        one-time-token: true
-        rate-limit:
-          max-requests: 10
-          reset-interval: 30
-    # Upload the resource pack automatically on generation
-    # When disabled, you must manually trigger uploads using the /ce upload command
-    auto-upload: true
-    # The file to upload
-    file-to-upload: "./generated/resource_pack.zip"
-    # Resend the resource pack to players upon successful upload
-    resend-on-upload: true
-    # Whether a verified player UUID is required to get the resource pack
-    strict-player-uuid-validation: true
+  exclude-file-extensions: ["md", "psd", "bbmodel", "db", "ini", "DS_Store"]
+  # Provide the solution for when a file conflict is encountered
+  # https://xiao-momi.github.io/craft-engine-wiki/reference/file_conflict
   duplicated-files-handler:
     - term:
         type: any_of
         terms:
           - type: parent_path_suffix
-            suffix: "minecraft/items"
-          - type: parent_path_suffix
             suffix: "minecraft/models/item"
+      resolution:
+        type: merge_legacy_model
+    - term:
+        type: any_of
+        terms:
+          - type: parent_path_suffix
+            suffix: "minecraft/items"
       resolution:
         type: merge_json
         deeply: true
@@ -142,6 +81,111 @@ resource-pack:
         suffix: "minecraft/atlases"
       resolution:
         type: merge_atlas
+  # Validate if there is any error in the resource pack, such as missing textures or models
+  # If your resource pack is compliant with the standard, you can disable validation to improve the resource pack generation speed.
+  validation:
+    enable: true
+    # Fix images that are not within the texture atlas. It is unreasonable to always rely on plugins to fix your mistakes.
+    # You should strive to make your resource pack more standardized after gaining some experience with resource packs.
+    fix-atlas: true
+  # Optimize your resource pack by reducing its size without any quality loss.
+  optimization:
+    enable: true
+    # .png
+    texture:
+      enable: true
+      # Use Zopfli for PNG compression (very slow). More iterations = smaller files.
+      # In fact, setting the number of iterations between 4 and 8 is generally sufficient. Increasing it further rarely leads to significant optimization in size.
+      zopfli-iterations: 0 # 0 = disable
+      # If your image is special, for example, containing color pixels that need to be specifically recognized by a shader, the optimization might break it. You can add exclusions here.
+      exclude:
+        - assets/minecraft/textures/block/do_not_optimize.png
+    # .json / .mcmeta
+    json:
+      enable: true
+      exclude: []
+  # [Premium Exclusive]
+  # Protect your resource pack from being cracked by others
+  protection:
+    # Prevent thieves from extracting your resource pack. These options will crash their software.
+    # Some of these options may impact your resource pack size.
+    crash-tools:
+      method-1: false
+      method-2: false # This will increase the resource pack size by 64KB
+      method-3: false # This will increase the resource pack size by 0.67MB
+      method-4: false
+      method-5: true # This will reduce the resource pack size, also it prevents some software from extracting it
+      method-6: false # This will increase the resource pack size by a certain percentage
+      method-7: false
+    # Create incorrect crc data
+    incorrect-crc: false
+    # Spoof huge files
+    fake-file-size: false
+    # Escape the JSON to make it human-unreadable
+    escape-json: false
+    # Create fake folders to hide original files
+    fake-directory: false
+    # Break the texture file to prevent thieves from opening it
+    break-texture: false
+    # Obfuscate your resource pack to prevent thieves from restoring its original structure
+    obfuscation:
+      enable: false
+      seed: 0 # 0 = random seed
+      # Determines the number and length of obfuscated namespaces.
+      namespace:
+        amount: 32  # 0 = disable
+        length: 2
+      # Determines the depth of the obfuscated path.
+      path:
+        source: obf
+        depth: 4
+        length: 2
+        # Prevent straightforward unzip
+        anti-unzip: false
+      # A larger atlas will result in slower generation speed, but it will also lead to a smaller resource pack size.
+      atlas:
+        prefix: atlas # The prefix of the folder where the generated atlas will be located
+        images-per-canvas: 256
+      # Sometimes, some vanilla files that have been overwritten might be mistakenly obfuscated
+      # Please add the ignored textures/models/sounds here if that happens
+      bypass-textures:
+        - minecraft:block/farmland  # bypass a specified resource location
+        - "@vanilla_textures"       # bypass vanilla textures
+      bypass-models:
+        - custom:item/do_not_obfuscate
+        - "@vanilla_models"         # bypass vanilla models
+      bypass-sounds:
+        - "@vanilla_sounds"         # bypass vanilla sounds
+      bypass-equipments: []
+  # This section controls how to send the resource pack to players
+  delivery:
+    # Send the resource pack on joining the server
+    send-on-join: true
+    kick-if-declined: true
+    kick-if-failed-to-apply: false
+    prompt: "<yellow>To fully experience our server,<newline>please accept our custom resource pack.</yellow>"
+    # Whether a verified player UUID is required to download the resource pack
+    strict-player-uuid-validation: true
+    # Upload the resource pack automatically on generation
+    # When disabled, you must manually trigger uploads using the /ce upload command
+    auto-upload: true
+    # Resend the resource pack to players upon successful upload
+    resend-on-upload: true
+    # The file to upload
+    file-to-upload: "./generated/resource_pack.zip"
+    # If you are hosting the resource pack by yourself, replace `localhost` with your server ip otherwise it would only work on your local pc
+    # If using BungeeCord or Velocity, consider using a proxy-side plugin to handle resource pack delivery.
+    # Read this page for more host types: https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host
+    hosting:
+      - type: "self"
+        ip: "localhost"
+        port: 8163
+        protocol: "http"
+        deny-non-minecraft-request: true
+        one-time-token: true
+        rate-limit:
+          max-requests: 10
+          reset-interval: 30
 
 item:
   # [Premium Exclusive]
@@ -169,6 +213,8 @@ item:
   # Since Minecraft renders lore text in italics by default, you can
   # optionally prefix any lore with <!i> to remove the italic formatting.
   non-italic-tag: false
+  # The default material to use as base item if not specified
+  default-material: nether_brick
   # Defines the trigger condition for the item updater.
   #
   # Warning: This operation is performance-intensive. Enable only if needed.
@@ -198,7 +244,7 @@ equipment:
 
 block:
   # This decides the amount of real blocks on serverside. You should only consider increasing this value when your server state is insufficient.
-  # It is recommended to increase it by 500 each time. This option requires a restart to apply.
+  # It is recommended to increase it by 1000 each time. This option requires a restart to apply.
   serverside-blocks: 2000
   # Enables the sound system, which prevents the client from hearing some non-custom block sounds and improves the client experience.
   sound-system:
@@ -226,6 +272,16 @@ block:
     enable: false
     interval: 10
     extended-interaction-range: 0.5
+  # Defines the value returned by Bukkit block.getMaterial()
+  # If another plugin causes incompatibility due to its reliance on this method, try changing this option to a different vanilla block.
+  deceive-bukkit-material:
+    default: bricks
+    # The numbers here represent the internal real IDs of the blocks.
+    # This means that overriding certain blocks needs to be done under the condition of forcibly assigning internal IDs.
+    # A restart is required to apply the changes.
+    overrides:
+      0: bricks
+      1~8: bricks
 
 furniture:
   # Hide technical entities used for storing furniture metadata.
@@ -234,7 +290,7 @@ furniture:
   # - Recommended to keep enabled for better performance
   hide-base-entity: true
   # Requires a restart to apply
-  # interaction (best performance)
+  # interaction (the best performance)
   # boat (better compatibility with some anti-cheat plugin)
   collision-entity-type: interaction
 
@@ -267,6 +323,7 @@ image:
   # - Must match the font defined in resource packs
   # - Do NOT modify unless you understand text rendering mechanics
   offset-characters:
+    enable: true
     font: minecraft:default
     -1: '\uf800'
     -2: '\uf801'
@@ -313,7 +370,12 @@ image:
     128: '\uf844'
     256: '\uf845'
 
+# Only consider modifying the options below if you need to optimize Netty performance.
+# In most cases, you can improve load handling by increasing the number of Netty threads.
 network:
+  # Disable network operations related to items.
+  # This option will disable client-bound-data/material and the functionality of replacing tags in item name and lore.
+  disable-item-operations: false
   # Allow <image> <shift> <global> tags in third-party plugins via packet manipulation
   # ⚠️ Disable unused handlers to reduce async thread workload
   intercept-packets:
@@ -425,9 +487,9 @@ chunk-system:
   # Settings for injection
   injection:
     # Requires a restart to apply.
-    # SECTION: Inject the LevelChunkSection (Use this if you have installed both FastAsyncWorldEdit and Axiom)
-    # PALETTE: Inject the PalettedContainer
-    target: PALETTE
+    # section: Inject the LevelChunkSection (Use this if you have installed both FastAsyncWorldEdit and Axiom)
+    # palette: Inject the PalettedContainer
+    target: palette
     # Enables faster injection method
     # Note: May not work with certain server forks that alter chunk class structure (In most cases it won't conflict)
     use-fast-method: true

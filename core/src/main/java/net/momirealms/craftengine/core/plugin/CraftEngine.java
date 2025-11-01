@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.advancement.AdvancementManager;
 import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
+import net.momirealms.craftengine.core.entity.seat.SeatManager;
 import net.momirealms.craftengine.core.font.FontManager;
 import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.item.recipe.RecipeManager;
@@ -35,6 +36,7 @@ import net.momirealms.craftengine.core.plugin.logger.filter.LogFilter;
 import net.momirealms.craftengine.core.plugin.network.NetworkManager;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.sound.SoundManager;
+import net.momirealms.craftengine.core.util.CompletableFutures;
 import net.momirealms.craftengine.core.world.WorldManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
@@ -75,6 +77,7 @@ public abstract class CraftEngine implements Plugin {
     protected CompatibilityManager compatibilityManager;
     protected GlobalVariableManager globalVariableManager;
     protected ProjectileManager projectileManager;
+    protected SeatManager seatManager;
 
     private final PluginTaskRegistry preLoadTaskRegistry = new PluginTaskRegistry();
     private final PluginTaskRegistry postLoadTaskRegistry = new PluginTaskRegistry();
@@ -150,6 +153,7 @@ public abstract class CraftEngine implements Plugin {
                 this.packManager.reload();
                 this.advancementManager.reload();
                 this.projectileManager.reload();
+                this.seatManager.reload();
                 if (reloadRecipe) {
                     this.recipeManager.reload();
                 }
@@ -159,24 +163,27 @@ public abstract class CraftEngine implements Plugin {
                 } catch (Exception e) {
                     this.logger().warn("Failed to load resources folder", e);
                 }
-                // register trims
-                this.itemManager.delayedLoad();
-                // init suggestions and packet mapper
-                this.blockManager.delayedLoad();
-                // handle some special client lang for instance block_name
-                this.translationManager.delayedLoad();
-                // init suggestions
-                this.furnitureManager.delayedLoad();
-                // sort the categories
-                this.itemBrowserManager.delayedLoad();
-                // collect illegal characters from minecraft:default font
-                this.fontManager.delayedLoad();
-                this.advancementManager.delayedLoad();
-                this.soundManager.delayedLoad();
+                List<CompletableFuture<Void>> delayedLoadTasks = new ArrayList<>();
+                // 指令补全，重置外部配方原料
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.itemManager.delayedLoad(), this.scheduler.async()));
+                // 重置映射表，指令补全，发送tags，收集声音
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.blockManager.delayedLoad(), this.scheduler.async()));
+                // 处理block_name特殊语言键
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.translationManager.delayedLoad(), this.scheduler.async()));
+                // 指令补全
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.furnitureManager.delayedLoad(), this.scheduler.async()));
+                // 处理外部category，加载ui常量
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.itemBrowserManager.delayedLoad(), this.scheduler.async()));
+                // 收集非法字符，构造前缀树，指令补全
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.fontManager.delayedLoad(), this.scheduler.async()));
+                // 指令补全
+                delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.soundManager.delayedLoad(), this.scheduler.async()));
+                // 如果重载配方
                 if (reloadRecipe) {
-                    // convert data pack recipes
-                    this.recipeManager.delayedLoad();
+                    // 转换数据包配方
+                    delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.recipeManager.delayedLoad(), this.scheduler.async()));
                 }
+                CompletableFutures.allOf(delayedLoadTasks).join();
                 long time2 = System.currentTimeMillis();
                 asyncTime = time2 - time1;
             } finally {
@@ -225,6 +232,7 @@ public abstract class CraftEngine implements Plugin {
             this.fontManager.delayedInit();
             this.vanillaLootManager.delayedInit();
             this.advancementManager.delayedInit();
+            this.seatManager.delayedInit();
             this.compatibilityManager.onDelayedEnable();
             // reload the plugin
             try {
@@ -259,6 +267,7 @@ public abstract class CraftEngine implements Plugin {
         if (this.guiManager != null) this.guiManager.disable();
         if (this.soundManager != null) this.soundManager.disable();
         if (this.vanillaLootManager != null) this.vanillaLootManager.disable();
+        if (this.seatManager != null) this.seatManager.disable();
         if (this.translationManager != null) this.translationManager.disable();
         if (this.globalVariableManager != null) this.globalVariableManager.disable();
         if (this.projectileManager != null) this.projectileManager.disable();
@@ -294,6 +303,8 @@ public abstract class CraftEngine implements Plugin {
         this.packManager.registerConfigSectionParser(this.vanillaLootManager.parser());
         // register advancement parser
         this.packManager.registerConfigSectionParser(this.advancementManager.parser());
+        // register skip-optimization parser
+        this.packManager.registerConfigSectionParser(this.packManager.parser());
     }
 
     public void applyDependencies() {
@@ -315,7 +326,7 @@ public abstract class CraftEngine implements Plugin {
                 Dependencies.GEANTY_REF,
                 Dependencies.CLOUD_CORE, Dependencies.CLOUD_SERVICES,
                 Dependencies.GSON,
-                Dependencies.COMMONS_IO, Dependencies.COMMONS_LANG3, Dependencies.COMMONS_IMAGING,
+                Dependencies.COMMONS_IO, Dependencies.COMMONS_LANG3,
                 Dependencies.ZSTD,
                 Dependencies.BYTE_BUDDY, Dependencies.BYTE_BUDDY_AGENT,
                 Dependencies.SNAKE_YAML,

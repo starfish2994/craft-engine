@@ -5,20 +5,16 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
-import net.momirealms.craftengine.bukkit.util.EntityUtils;
-import net.momirealms.craftengine.bukkit.util.LegacyAttributeUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.entity.furniture.*;
+import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.util.ArrayUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.QuaternionUtils;
-import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
-import net.momirealms.craftengine.core.world.collision.AABB;
 import org.bukkit.Location;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +26,6 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 
 public class BukkitFurniture implements Furniture {
-    private final Key id;
     private final CustomFurniture furniture;
     private final CustomFurniture.Placement placement;
     private FurnitureExtraData extraData;
@@ -44,13 +39,10 @@ public class BukkitFurniture implements Furniture {
     // cache
     private final List<Integer> fakeEntityIds;
     private final List<Integer> entityIds;
-    private final Map<Integer, HitBox> hitBoxes  = new Int2ObjectArrayMap<>();
-    private final Map<Integer, AABB> aabb = new Int2ObjectArrayMap<>();
+    private final Map<Integer, BukkitHitBox> hitBoxes  = new Int2ObjectArrayMap<>();
+    private final Map<Integer, HitBoxPart> hitBoxParts = new Int2ObjectArrayMap<>();
     private final boolean minimized;
     private final boolean hasExternalModel;
-    // seats
-    private final Set<Vector3f> occupiedSeats = Collections.synchronizedSet(new HashSet<>());
-    private final Vector<WeakReference<Entity>> seats = new Vector<>();
     // cached spawn packet
     private Object cachedSpawnPacket;
     private Object cachedMinimizedSpawnPacket;
@@ -58,37 +50,40 @@ public class BukkitFurniture implements Furniture {
     public BukkitFurniture(Entity baseEntity,
                            CustomFurniture furniture,
                            FurnitureExtraData extraData) {
-        this.id = furniture.id();
         this.extraData = extraData;
         this.baseEntityId = baseEntity.getEntityId();
-
         this.location = baseEntity.getLocation();
         this.baseEntity = new WeakReference<>(baseEntity);
         this.furniture = furniture;
         this.minimized = furniture.settings().minimized();
+        this.placement = furniture.getValidPlacement(extraData.anchorType().orElseGet(furniture::getAnyAnchorType));
+
         List<Integer> fakeEntityIds = new IntArrayList();
         List<Integer> mainEntityIds = new IntArrayList();
         mainEntityIds.add(this.baseEntityId);
 
-        this.placement = furniture.getValidPlacement(extraData.anchorType().orElseGet(furniture::getAnyAnchorType));
-        // bind external furniture
+        // 绑定外部模型
         Optional<ExternalModel> optionalExternal = placement.externalModel();
         if (optionalExternal.isPresent()) {
             try {
                 optionalExternal.get().bindModel(new BukkitEntity(baseEntity));
             } catch (Exception e) {
-                CraftEngine.instance().logger().warn("Failed to load external model for furniture " + id, e);
+                CraftEngine.instance().logger().warn("Failed to load external model for furniture " + id(), e);
             }
             this.hasExternalModel = true;
         } else {
             this.hasExternalModel = false;
         }
 
+
         Quaternionf conjugated = QuaternionUtils.toQuaternionf(0, Math.toRadians(180 - this.location.getYaw()), 0).conjugate();
         List<Object> packets = new ArrayList<>();
         List<Object> minimizedPackets = new ArrayList<>();
-        List<Collider> colliders = new ArrayList<>();
+        List<Collider> colliders = new ArrayList<>(4);
         WorldPosition position = position();
+
+
+        // 初始化家具的元素
         for (FurnitureElement element : placement.elements()) {
             int entityId = CoreReflections.instance$Entity$ENTITY_COUNTER.incrementAndGet();
             fakeEntityIds.add(entityId);
@@ -97,28 +92,41 @@ public class BukkitFurniture implements Furniture {
                 if (this.minimized) minimizedPackets.add(packet);
             });
         }
-        for (HitBox hitBox : placement.hitBoxes()) {
-            int[] ids = hitBox.acquireEntityIds(CoreReflections.instance$Entity$ENTITY_COUNTER::incrementAndGet);
+
+        // 初始化碰撞箱
+        for (HitBoxConfig hitBoxConfig : this.placement.hitBoxConfigs()) {
+            int[] ids = hitBoxConfig.acquireEntityIds(CoreReflections.instance$Entity$ENTITY_COUNTER::incrementAndGet);
+            List<HitBoxPart> aabbs = new ArrayList<>();
+
+            hitBoxConfig.initPacketsAndColliders(ids, position, conjugated, (packet, canBeMinimized) -> {
+                packets.add(packet);
+                if (this.minimized && !canBeMinimized) {
+                    minimizedPackets.add(packet);
+                }
+            }, colliders::add, part -> {
+                this.hitBoxParts.put(part.entityId(), part);
+                aabbs.add(part);
+            });
+
+            BukkitHitBox hitBox = new BukkitHitBox(this, hitBoxConfig, aabbs.toArray(new HitBoxPart[0]));
             for (int entityId : ids) {
                 fakeEntityIds.add(entityId);
                 mainEntityIds.add(entityId);
                 this.hitBoxes.put(entityId, hitBox);
             }
-            hitBox.initPacketsAndColliders(ids, position, conjugated, (packet, canBeMinimized) -> {
-                packets.add(packet);
-                if (this.minimized && !canBeMinimized) {
-                    minimizedPackets.add(packet);
-                }
-            }, colliders::add, this.aabb::put);
         }
+
+        // 初始化缓存的家具包
         try {
             this.cachedSpawnPacket = FastNMS.INSTANCE.constructor$ClientboundBundlePacket(packets);
             if (this.minimized) {
                 this.cachedMinimizedSpawnPacket = FastNMS.INSTANCE.constructor$ClientboundBundlePacket(minimizedPackets);
             }
         } catch (Exception e) {
-            CraftEngine.instance().logger().warn("Failed to init spawn packets for furniture " + id, e);
+            CraftEngine.instance().logger().warn("Failed to init spawn packets for furniture " + id(), e);
         }
+
+
         this.fakeEntityIds = fakeEntityIds;
         this.entityIds = mainEntityIds;
         this.colliderEntities = colliders.toArray(new Collider[0]);
@@ -186,57 +194,25 @@ public class BukkitFurniture implements Furniture {
             return;
         }
         this.baseEntity().remove();
+        this.destroyColliders();
+        this.destroySeats();
+    }
+
+    @Override
+    public void destroyColliders() {
         for (Collider entity : this.colliderEntities) {
             if (entity != null)
                 entity.destroy();
         }
-        for (WeakReference<Entity> r : this.seats) {
-            Entity entity = r.get();
-            if (entity == null) continue;
-            for (Entity passenger : entity.getPassengers()) {
-                entity.removePassenger(passenger);
-            }
-            entity.remove();
-        }
-        this.seats.clear();
     }
 
     @Override
     public void destroySeats() {
-        for (WeakReference<Entity> entity : this.seats) {
-            Entity e = entity.get();
-            if (e != null) {
-                e.remove();
+        for (HitBox hitBox : this.hitBoxes.values()) {
+            for (Seat<HitBox> seat : hitBox.seats()) {
+                seat.destroy();
             }
         }
-        this.seats.clear();
-    }
-
-    @Override
-    public Optional<Seat> findFirstAvailableSeat(int targetEntityId) {
-        HitBox hitbox = hitBoxes.get(targetEntityId);
-        if (hitbox == null) return Optional.empty();
-
-        Seat[] seats = hitbox.seats();
-        if (ArrayUtils.isEmpty(seats)) return Optional.empty();
-
-        return Arrays.stream(seats)
-                .filter(s -> !occupiedSeats.contains(s.offset()))
-                .findFirst();
-    }
-
-    @Override
-    public boolean removeOccupiedSeat(Vector3f seat) {
-        return this.occupiedSeats.remove(seat);
-    }
-
-    @Override
-    public boolean tryOccupySeat(Seat seat) {
-        if (this.occupiedSeats.contains(seat.offset())) {
-            return false;
-        }
-        this.occupiedSeats.add(seat.offset());
-        return true;
     }
 
     @Override
@@ -263,14 +239,14 @@ public class BukkitFurniture implements Furniture {
         return this.colliderEntities;
     }
 
-    @Nullable
-    public HitBox hitBoxByEntityId(int id) {
+    @Override
+    public @Nullable HitBox hitBoxByEntityId(int id) {
         return this.hitBoxes.get(id);
     }
 
-    @Nullable
-    public AABB aabbByEntityId(int id) {
-        return this.aabb.get(id);
+    @Override
+    public @Nullable HitBoxPart hitBoxPartByEntityId(int id) {
+        return this.hitBoxParts.get(id);
     }
 
     @Override
@@ -280,7 +256,7 @@ public class BukkitFurniture implements Furniture {
 
     @Override
     public @NotNull Key id() {
-        return this.id;
+        return this.furniture.id();
     }
 
     @Override
@@ -291,11 +267,6 @@ public class BukkitFurniture implements Furniture {
     @Override
     public boolean hasExternalModel() {
         return hasExternalModel;
-    }
-
-    @Override
-    public void spawnSeatEntityForPlayer(net.momirealms.craftengine.core.entity.player.Player player, Seat seat) {
-        spawnSeatEntityForPlayer((Player) player.platformPlayer(), seat);
     }
 
     @Override
@@ -316,50 +287,5 @@ public class BukkitFurniture implements Furniture {
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to save furniture data.", e);
         }
-    }
-
-    private void spawnSeatEntityForPlayer(org.bukkit.entity.Player player, Seat seat) {
-        Location location = this.calculateSeatLocation(seat);
-        Entity seatEntity = seat.limitPlayerRotation() ?
-                EntityUtils.spawnEntity(player.getWorld(), VersionHelper.isOrAbove1_20_2() ? location.subtract(0,0.9875,0) : location.subtract(0,0.990625,0), EntityType.ARMOR_STAND, entity -> {
-                    ArmorStand armorStand = (ArmorStand) entity;
-                    if (VersionHelper.isOrAbove1_21_3()) {
-                        Objects.requireNonNull(armorStand.getAttribute(Attribute.MAX_HEALTH)).setBaseValue(0.01);
-                    } else {
-                        LegacyAttributeUtils.setMaxHealth(armorStand);
-                    }
-                    armorStand.setSmall(true);
-                    armorStand.setInvisible(true);
-                    armorStand.setSilent(true);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setArms(false);
-                    armorStand.setCanTick(false);
-                    armorStand.setAI(false);
-                    armorStand.setGravity(false);
-                    armorStand.setPersistent(false);
-                    armorStand.getPersistentDataContainer().set(BukkitFurnitureManager.FURNITURE_SEAT_BASE_ENTITY_KEY, PersistentDataType.INTEGER, this.baseEntityId());
-                    armorStand.getPersistentDataContainer().set(BukkitFurnitureManager.FURNITURE_SEAT_VECTOR_3F_KEY, PersistentDataType.STRING, seat.offset().x + ", " + seat.offset().y + ", " + seat.offset().z);
-                }) :
-                EntityUtils.spawnEntity(player.getWorld(), VersionHelper.isOrAbove1_20_2() ? location : location.subtract(0,0.25,0), EntityType.ITEM_DISPLAY, entity -> {
-                    ItemDisplay itemDisplay = (ItemDisplay) entity;
-                    itemDisplay.setPersistent(false);
-                    itemDisplay.getPersistentDataContainer().set(BukkitFurnitureManager.FURNITURE_SEAT_BASE_ENTITY_KEY, PersistentDataType.INTEGER, this.baseEntityId());
-                    itemDisplay.getPersistentDataContainer().set(BukkitFurnitureManager.FURNITURE_SEAT_VECTOR_3F_KEY, PersistentDataType.STRING, seat.offset().x + ", " + seat.offset().y + ", " + seat.offset().z);
-                });
-        this.seats.add(new WeakReference<>(seatEntity));
-        if (!seatEntity.addPassenger(player)) {
-            seatEntity.remove();
-            this.removeOccupiedSeat(seat.offset());
-        }
-    }
-
-    private Location calculateSeatLocation(Seat seat) {
-        Vector3f offset = QuaternionUtils.toQuaternionf(0, Math.toRadians(180 - this.location.getYaw()), 0).conjugate().transform(new Vector3f(seat.offset()));
-        double yaw = seat.yaw() + this.location.getYaw();
-        if (yaw < -180) yaw += 360;
-        Location newLocation = this.location.clone();
-        newLocation.setYaw((float) yaw);
-        newLocation.add(offset.x, offset.y + 0.6, -offset.z);
-        return newLocation;
     }
 }

@@ -46,6 +46,7 @@ public final class ItemDataModifiers {
     public static final Key DYNAMIC_LORE = Key.of("craftengine:dynamic-lore");
     public static final Key OVERWRITABLE_LORE = Key.of("craftengine:overwritable-lore");
     public static final Key MAX_DAMAGE = Key.of("craftengine:max-damage");
+    public static final Key BLOCK_STATE = Key.of("craftengine:block-state");
 
     public static <T> void register(Key key, ItemDataModifierFactory<T> factory) {
         ((WritableRegistry<ItemDataModifierFactory<?>>) BuiltInRegistries.ITEM_DATA_MODIFIER_FACTORY)
@@ -77,6 +78,7 @@ public final class ItemDataModifiers {
         register(ARGUMENTS, ArgumentsModifier.FACTORY);
         register(OVERWRITABLE_ITEM_NAME, OverwritableItemNameModifier.FACTORY);
         register(PDC, PDCModifier.FACTORY);
+        register(BLOCK_STATE, BlockStateModifier.FACTORY);
         if (VersionHelper.isOrAbove1_20_5()) {
             register(CUSTOM_NAME, CustomNameModifier.FACTORY);
             register(ITEM_NAME, ItemNameModifier.FACTORY);

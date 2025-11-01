@@ -20,6 +20,11 @@ import org.bukkit.Particle;
 import java.util.Map;
 
 public class BukkitPlatform implements Platform {
+    private final BukkitCraftEngine plugin;
+
+    public BukkitPlatform(BukkitCraftEngine plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public void dispatchCommand(String command) {

@@ -1,19 +1,19 @@
 package net.momirealms.craftengine.core.item.recipe.network.legacy;
 
-import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import org.jetbrains.annotations.ApiStatus;
 
-@ApiStatus.Obsolete
-public class LegacySmithingTransformRecipe implements LegacyRecipe {
-    private final LegacyIngredient template;
-    private final LegacyIngredient base;
-    private final LegacyIngredient addition;
-    private Item<Object> result;
+import java.util.function.Function;
 
-    public LegacySmithingTransformRecipe(LegacyIngredient addition, LegacyIngredient template, LegacyIngredient base, Item<Object> result) {
+@ApiStatus.Obsolete
+public class LegacySmithingTransformRecipe<I> implements LegacyRecipe<I> {
+    private final LegacyIngredient<I> template;
+    private final LegacyIngredient<I> base;
+    private final LegacyIngredient<I> addition;
+    private Item<I> result;
+
+    public LegacySmithingTransformRecipe(LegacyIngredient<I> addition, LegacyIngredient<I> template, LegacyIngredient<I> base, Item<I> result) {
         this.addition = addition;
         this.template = template;
         this.base = base;
@@ -21,26 +21,26 @@ public class LegacySmithingTransformRecipe implements LegacyRecipe {
     }
 
     @Override
-    public void applyClientboundData(Player player) {
-        this.result = CraftEngine.instance().itemManager().s2c(this.result, player);
-        this.template.applyClientboundData(player);
-        this.base.applyClientboundData(player);
-        this.addition.applyClientboundData(player);
-    }
-
-    public static LegacySmithingTransformRecipe read(FriendlyByteBuf buf) {
-        LegacyIngredient template = LegacyIngredient.read(buf);
-        LegacyIngredient base = LegacyIngredient.read(buf);
-        LegacyIngredient addition = LegacyIngredient.read(buf);
-        Item<Object> result = CraftEngine.instance().itemManager().decode(buf);
-        return new LegacySmithingTransformRecipe(template, base, addition, result);
+    public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer) {
+        this.template.write(buf, writer);
+        this.base.write(buf, writer);
+        this.addition.write(buf, writer);
+        writer.accept(buf, this.result);
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-        this.template.write(buf);
-        this.base.write(buf);
-        this.addition.write(buf);
-        CraftEngine.instance().itemManager().encode(buf, this.result);
+    public void applyClientboundData(Function<Item<I>, Item<I>> function) {
+        this.result = function.apply(this.result);
+        this.template.applyClientboundData(function);
+        this.base.applyClientboundData(function);
+        this.addition.applyClientboundData(function);
+    }
+
+    public static <I> LegacySmithingTransformRecipe<I> read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
+        LegacyIngredient<I> template = LegacyIngredient.read(buf, reader);
+        LegacyIngredient<I> base = LegacyIngredient.read(buf, reader);
+        LegacyIngredient<I> addition = LegacyIngredient.read(buf, reader);
+        Item<I> result = reader.apply(buf);
+        return new LegacySmithingTransformRecipe<>(template, base, addition, result);
     }
 }

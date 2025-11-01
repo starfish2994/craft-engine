@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Map;
 
 public interface BlockStateWrapper extends Comparable<BlockStateWrapper> {
@@ -18,9 +19,13 @@ public interface BlockStateWrapper extends Comparable<BlockStateWrapper> {
 
     boolean hasProperty(String propertyName);
 
+    Collection<String> getPropertyNames();
+
     BlockStateWrapper withProperty(String propertyName, String propertyValue);
 
     String getAsString();
+
+    boolean isCustom();
 
     @Override
     default int compareTo(@NotNull BlockStateWrapper o) {

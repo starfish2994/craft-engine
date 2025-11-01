@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.loot.LootConditions;
 import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.util.*;
 
@@ -40,7 +41,7 @@ public class AlternativesLootEntryContainer<T> extends AbstractCompositeLootEntr
         @SuppressWarnings("unchecked")
         @Override
         public LootEntryContainer<A> create(Map<String, Object> arguments) {
-            List<LootEntryContainer<A>> containers = Optional.ofNullable(arguments.get("children"))
+            List<LootEntryContainer<A>> containers = Optional.ofNullable(ResourceConfigUtils.get(arguments, "children", "terms", "branches"))
                     .map(it -> (List<LootEntryContainer<A>>) new ArrayList<LootEntryContainer<A>>(LootEntryContainers.fromMapList((List<Map<String, Object>>) it)))
                     .orElse(Collections.emptyList());
             List<Condition<LootContext>> conditions = Optional.ofNullable(arguments.get("conditions"))

@@ -35,7 +35,7 @@ public class MatchItemCondition<CTX extends Context> implements Condition<CTX> {
 
         @Override
         public Condition<CTX> create(Map<String, Object> arguments) {
-            List<String> ids = MiscUtils.getAsStringList(arguments.get("id"));
+            List<String> ids = MiscUtils.getAsStringList(ResourceConfigUtils.get(arguments, "id", "item"));
             if (ids.isEmpty()) {
                 throw new LocalizedResourceConfigException("warning.config.condition.match_item.missing_id");
             }

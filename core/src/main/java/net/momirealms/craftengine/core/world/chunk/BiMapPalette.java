@@ -107,6 +107,11 @@ public class BiMapPalette<T> implements Palette<T> {
     }
 
     @Override
+    public boolean remapAndCheck(Function<T, T> function) {
+        return this.map.remapValuesAndCheck(function);
+    }
+
+    @Override
     public boolean canRemap() {
         return true;
     }

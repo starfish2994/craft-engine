@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
-import net.momirealms.craftengine.core.block.BlockBehavior;
 import net.momirealms.craftengine.core.block.CustomBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.AbstractBlockBehavior;
@@ -47,7 +46,7 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends BlockBehavior> Optional<T> getAs(Class<T> tClass) {
+    public <T> Optional<T> getAs(Class<T> tClass) {
         for (AbstractBlockBehavior behavior : this.behaviors) {
             if (tClass.isInstance(behavior)) {
                 return Optional.of((T) behavior);
@@ -74,13 +73,18 @@ public class UnsafeCompositeBlockBehavior extends BukkitBlockBehavior
 
     @Override
     public InteractionResult useOnBlock(UseOnContext context, ImmutableBlockState state) {
+        boolean hasPass = false;
         for (AbstractBlockBehavior behavior : this.behaviors) {
             InteractionResult result = behavior.useOnBlock(context, state);
-            if (result != InteractionResult.PASS && result != InteractionResult.TRY_EMPTY_HAND) {
+            if (result == InteractionResult.PASS) {
+                hasPass = true;
+                continue;
+            }
+            if (result != InteractionResult.TRY_EMPTY_HAND) {
                 return result;
             }
         }
-        return super.useOnBlock(context, state);
+        return hasPass ? InteractionResult.PASS : super.useOnBlock(context, state);
     }
 
     @Override

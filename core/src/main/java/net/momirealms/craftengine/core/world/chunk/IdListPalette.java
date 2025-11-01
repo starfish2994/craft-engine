@@ -64,6 +64,11 @@ public class IdListPalette<T> implements Palette<T> {
     }
 
     @Override
+    public boolean remapAndCheck(Function<T, T> function) {
+        return false;
+    }
+
+    @Override
     public void readPacket(FriendlyByteBuf buf) {
     }
 

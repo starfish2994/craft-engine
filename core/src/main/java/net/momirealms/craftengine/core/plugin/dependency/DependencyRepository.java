@@ -12,22 +12,35 @@ import java.util.List;
 import java.util.Locale;
 
 public enum DependencyRepository {
+
     /**
-     * Maven Central
+     * Maven
      */
-    MAVEN_CENTRAL("maven", "https://repo1.maven.org/maven2/") {
+    MAVEN("maven", "https://repo1.maven.org/maven2/") {
         @Override
         protected URLConnection openConnection(Dependency dependency) throws IOException {
             URLConnection connection = super.openConnection(dependency);
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
             return connection;
         }
     },
     /**
-     * Maven Central Mirror
+     * Google
      */
-    MAVEN_CENTRAL_MIRROR("maven", "https://maven.aliyun.com/repository/public/");
+    GOOGLE("maven", "https://maven-central.storage-download.googleapis.com/maven2/") {
+        @Override
+        protected URLConnection openConnection(Dependency dependency) throws IOException {
+            URLConnection connection = super.openConnection(dependency);
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+            return connection;
+        }
+    },
+    /**
+     * 阿里云
+     */
+    ALIYUN("maven", "https://maven.aliyun.com/repository/public/");
 
     private final String url;
     private final String id;
@@ -38,7 +51,7 @@ public enum DependencyRepository {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     public static List<DependencyRepository> getByID(String id) {

@@ -23,6 +23,8 @@ items:
             elements:
               - item: default:wooden_chair
                 display-transform: NONE
+                shadow-radius: 0.4
+                shadow-strength: 0.5
                 billboard: FIXED
                 translation: 0,0.5,0
             hitboxes:

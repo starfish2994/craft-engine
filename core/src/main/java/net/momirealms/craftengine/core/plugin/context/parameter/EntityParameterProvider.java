@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.parameter;
 
 import net.momirealms.craftengine.core.entity.Entity;
+import net.momirealms.craftengine.core.entity.ItemEntity;
 import net.momirealms.craftengine.core.plugin.context.ChainParameterProvider;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -25,6 +26,12 @@ public class EntityParameterProvider implements ChainParameterProvider<Entity> {
         CONTEXT_FUNCTIONS.put(DirectContextParameters.NAME, Entity::name);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.UUID, Entity::uuid);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.WORLD, Entity::world);
+        CONTEXT_FUNCTIONS.put(DirectContextParameters.ITEM, e -> {
+            if (e instanceof ItemEntity itemEntity) {
+                return itemEntity.getItem();
+            }
+            return null;
+        });
     }
 
     @SuppressWarnings("unchecked")

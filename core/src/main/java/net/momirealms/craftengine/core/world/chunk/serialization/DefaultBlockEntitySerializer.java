@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.world.chunk.serialization;
 
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityType;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
@@ -14,8 +15,11 @@ import net.momirealms.sparrow.nbt.ListTag;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public final class DefaultBlockEntitySerializer {
+
+    private DefaultBlockEntitySerializer() {}
 
     public static ListTag serialize(Collection<BlockEntity> entities) {
         ListTag result = new ListTag();
@@ -39,9 +43,14 @@ public final class DefaultBlockEntitySerializer {
                 BlockPos pos = BlockEntity.readPosAndVerify(data, chunk.chunkPos());
                 ImmutableBlockState blockState = chunk.getBlockState(pos);
                 if (blockState.blockEntityType() == type) {
-                    BlockEntity blockEntity = type.factory().create(pos, blockState);
-                    blockEntity.loadCustomData(data);
-                    blockEntities.add(blockEntity);
+                    Optional<EntityBlockBehavior> entityBlockBehavior = blockState.behavior().getAs(EntityBlockBehavior.class);
+                    if (entityBlockBehavior.isPresent()) {
+                        BlockEntity blockEntity = entityBlockBehavior.get().createBlockEntity(pos, blockState);
+                        if (blockEntity != null) {
+                            blockEntity.loadCustomData(data);
+                            blockEntities.add(blockEntity);
+                        }
+                    }
                 }
             }
         }

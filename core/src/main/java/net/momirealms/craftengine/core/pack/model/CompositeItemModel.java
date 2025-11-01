@@ -8,7 +8,6 @@ import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
-import net.momirealms.craftengine.core.util.MiscUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,17 +68,17 @@ public class CompositeItemModel implements ItemModel {
         public ItemModel create(Map<String, Object> arguments) {
             Object m = arguments.get("models");
             if (m instanceof List<?> list) {
-                List<Map<String, Object>> models = (List<Map<String, Object>>) list;
+                List<Object> models = (List<Object>) list;
                 if (models.isEmpty()) {
                     throw new LocalizedResourceConfigException("warning.config.item.model.composite.missing_models");
                 }
                 List<ItemModel> modelList = new ArrayList<>();
-                for (Map<String, Object> model : models) {
-                    modelList.add(ItemModels.fromMap(model));
+                for (Object model : models) {
+                    modelList.add(ItemModels.fromObj(model));
                 }
                 return new CompositeItemModel(modelList);
-            } else if (m instanceof Map<?, ?> map) {
-                return new CompositeItemModel(List.of(ItemModels.fromMap(MiscUtils.castToMap(map, false))));
+            } else if (m != null) {
+                return new CompositeItemModel(List.of(ItemModels.fromObj(m)));
             } else {
                 throw new LocalizedResourceConfigException("warning.config.item.model.composite.missing_models");
             }

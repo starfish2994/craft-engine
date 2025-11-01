@@ -15,7 +15,9 @@ import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DebugRealStateUsageCommand extends BukkitCommandFeature<CommandSender> {
 
@@ -31,16 +33,34 @@ public class DebugRealStateUsageCommand extends BukkitCommandFeature<CommandSend
                     plugin().senderFactory().wrap(context.sender()).sendMessage(Component.text("Serverside block state usage:"));
                     List<Component> batch = new ArrayList<>(100);
                     IdAllocator idAllocator = blockManager.blockParser().internalIdAllocator();
+                    Map<String, Integer> cachedIds = idAllocator.cachedIdMap();
+                    Map<Integer, String> reversedCachedIds = new HashMap<>(cachedIds.size());
+                    for (Map.Entry<String, Integer> entry : cachedIds.entrySet()) {
+                        reversedCachedIds.put(entry.getValue(), entry.getKey());
+                    }
                     for (int i = 0; i < Config.serverSideBlocks(); i++) {
                         ImmutableBlockState state = blockManager.getImmutableBlockStateUnsafe(i + blockManager.vanillaBlockStateCount());
                         if (state.isEmpty()) {
-                            Component hover = Component.text(BlockManager.createCustomBlockKey(i).asString()).color(NamedTextColor.GREEN);
-                            batch.add(Component.text("|").color(NamedTextColor.GREEN).hoverEvent(HoverEvent.showText(hover)));
+                            String cached = reversedCachedIds.get(i);
+                            if (cached == null) {
+                                Component hover = Component.text("[Available] " + BlockManager.createCustomBlockKey(i).asString()).color(NamedTextColor.GREEN);
+                                batch.add(Component.text("|").color(NamedTextColor.GREEN).hoverEvent(HoverEvent.showText(hover)));
+                            } else {
+                                Component hover = Component.text(BlockManager.createCustomBlockKey(i).asString()).color(NamedTextColor.GRAY);
+                                hover = hover.append(Component.newline()).append(Component.text("[Inactive] " + cached).color(NamedTextColor.GRAY));
+                                batch.add(Component.text("|").color(NamedTextColor.GRAY).hoverEvent(HoverEvent.showText(hover)));
+                            }
                         } else {
-                            NamedTextColor namedTextColor = idAllocator.isForced(state.toString()) ? NamedTextColor.RED : NamedTextColor.YELLOW;
-                            Component hover = Component.text(BlockManager.createCustomBlockKey(i).asString()).color(namedTextColor);
-                            hover = hover.append(Component.newline()).append(Component.text(state.toString()).color(NamedTextColor.GRAY));
-                            batch.add(Component.text("|").color(namedTextColor).hoverEvent(HoverEvent.showText(hover)));
+                            boolean forced = idAllocator.isForced(state.toString());
+                            if (forced) {
+                                Component hover = Component.text("[Forced] " + BlockManager.createCustomBlockKey(i).asString()).color(NamedTextColor.RED);
+                                hover = hover.append(Component.newline()).append(Component.text(state.toString()).color(NamedTextColor.GRAY));
+                                batch.add(Component.text("|").color(NamedTextColor.RED).hoverEvent(HoverEvent.showText(hover)));
+                            } else {
+                                Component hover = Component.text("[Auto] " + BlockManager.createCustomBlockKey(i).asString()).color(NamedTextColor.YELLOW);
+                                hover = hover.append(Component.newline()).append(Component.text(state.toString()).color(NamedTextColor.GRAY));
+                                batch.add(Component.text("|").color(NamedTextColor.YELLOW).hoverEvent(HoverEvent.showText(hover)));
+                            }
                         }
                         if (batch.size() == 100) {
                             plugin().senderFactory().wrap(context.sender())

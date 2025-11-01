@@ -5,10 +5,11 @@ import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -27,9 +28,10 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                                  String group,
                                  CraftingRecipeCategory category,
                                  List<Ingredient<T>> ingredients,
-                                 Function<PlayerOptionalContext>[] craftingFunctions,
-                                 Condition<PlayerOptionalContext> craftingCondition) {
-        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition);
+                                 Function<Context>[] craftingFunctions,
+                                 Condition<Context> craftingCondition,
+                                 boolean alwaysRebuildOutput) {
+        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition, alwaysRebuildOutput);
         this.ingredients = ingredients;
         this.placementInfo = PlacementInfo.create(ingredients);
     }
@@ -95,7 +97,8 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                     arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
                     ingredients,
                     functions(arguments),
-                    conditions(arguments)
+                    conditions(arguments),
+                    ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("always-rebuild-result", true), "always-rebuild-result")
             );
         }
 
@@ -108,7 +111,8 @@ public class CustomShapelessRecipe<T> extends CustomCraftingTableRecipe<T> {
                     VANILLA_RECIPE_HELPER.readGroup(json), VANILLA_RECIPE_HELPER.craftingCategory(json),
                     VANILLA_RECIPE_HELPER.shapelessIngredients(json.getAsJsonArray("ingredients")).stream().map(this::toIngredient).toList(),
                     null,
-                    null
+                    null,
+                    false
             );
         }
     }

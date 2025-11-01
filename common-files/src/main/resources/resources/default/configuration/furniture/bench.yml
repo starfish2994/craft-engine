@@ -26,6 +26,8 @@ items:
                 billboard: FIXED
                 position: 0.5,0,0
                 translation: 0,0.5,0
+                shadow-radius: 1
+                shadow-strength: 0.2
             hitboxes:
               - position: 0,0,0
                 type: shulker

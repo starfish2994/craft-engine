@@ -3,12 +3,12 @@ package net.momirealms.craftengine.bukkit.item.behavior;
 import net.momirealms.craftengine.bukkit.block.behavior.StrippableBlockBehavior;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
-import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateOption;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -107,19 +107,7 @@ public class AxeItemBehavior extends ItemBehavior {
                 player.swingHand(context.getHand());
             }
             // shrink item amount
-            if (VersionHelper.isOrAbove1_20_5()) {
-                Object itemStack = item.getLiteralObject();
-                Object serverPlayer = player.serverPlayer();
-                Object equipmentSlot = context.getHand() == InteractionHand.MAIN_HAND ? CoreReflections.instance$EquipmentSlot$MAINHAND : CoreReflections.instance$EquipmentSlot$OFFHAND;
-                try {
-                    CoreReflections.method$ItemStack$hurtAndBreak.invoke(itemStack, 1, serverPlayer, equipmentSlot);
-                } catch (ReflectiveOperationException e) {
-                    CraftEngine.instance().logger().warn("Failed to hurt itemStack", e);
-                }
-            } else {
-                ItemStack itemStack = item.getItem();
-                itemStack.damage(1, bukkitPlayer);
-            }
+            item.hurtAndBreak(1, player, context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAIN_HAND : EquipmentSlot.OFF_HAND);
         }
         return InteractionResult.SUCCESS_AND_CANCEL;
     }

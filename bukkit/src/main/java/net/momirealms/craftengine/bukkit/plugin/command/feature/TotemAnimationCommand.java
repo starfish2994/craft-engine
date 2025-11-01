@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
-import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
@@ -95,7 +95,7 @@ public class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
                         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
                         Item<ItemStack> item = customItem.buildItem(serverPlayer);
                         if (VersionHelper.isOrAbove1_21_2()) {
-                            item.setJavaComponent(ComponentTypes.DEATH_PROTECTION, Map.of());
+                            item.setJavaComponent(DataComponentTypes.DEATH_PROTECTION, Map.of());
                         }
                         PlayerUtils.sendTotemAnimation(serverPlayer, item, soundData, removeSound);
                     }

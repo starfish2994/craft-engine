@@ -372,4 +372,24 @@ public final class CraftBukkitReflections {
     public static final Class<?> clazz$MinecraftInventory = requireNonNull(
             ReflectionUtils.getClazz(BukkitReflectionUtils.assembleCBClass("inventory.CraftInventoryCustom$MinecraftInventory"))
     );
+
+    public static final Class<?> clazz$CraftMerchant = requireNonNull(
+            ReflectionUtils.getClazz(BukkitReflectionUtils.assembleCBClass("inventory.CraftMerchant"))
+    );
+
+    public static final Method method$CraftMerchant$getMerchant = requireNonNull(
+            ReflectionUtils.getMethod(clazz$CraftMerchant, CoreReflections.clazz$Merchant)
+    );
+
+    public static final Class<?> clazz$CraftMerchantCustom = requireNonNull(
+            ReflectionUtils.getClazz(BukkitReflectionUtils.assembleCBClass("inventory.CraftMerchantCustom"))
+    );
+
+    public static final Class<?> clazz$CraftMerchantCustom$MinecraftMerchant = requireNonNull(
+            ReflectionUtils.getClazz(BukkitReflectionUtils.assembleCBClass("inventory.CraftMerchantCustom$MinecraftMerchant"))
+    );
+
+    public static final Field field$MinecraftMerchant$title = requireNonNull(
+            ReflectionUtils.getDeclaredField(clazz$CraftMerchantCustom$MinecraftMerchant, CoreReflections.clazz$Component, 0)
+    );
 }

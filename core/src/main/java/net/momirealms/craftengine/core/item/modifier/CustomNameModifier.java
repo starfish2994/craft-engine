@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.modifier;
 
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CustomNameModifier<I> implements SimpleNetworkItemDataModifier<I> {
     public static final Factory<?> FACTORY = new Factory<>();
+    private static final Object[] NBT_PATH = new Object[]{"display", "Name"};
     private final String argument;
     private final FormattedLine line;
 
@@ -44,12 +45,12 @@ public class CustomNameModifier<I> implements SimpleNetworkItemDataModifier<I> {
 
     @Override
     public @Nullable Key componentType(Item<I> item, ItemBuildContext context) {
-        return ComponentKeys.CUSTOM_NAME;
+        return DataComponentKeys.CUSTOM_NAME;
     }
 
     @Override
     public @Nullable Object[] nbtPath(Item<I> item, ItemBuildContext context) {
-        return new Object[]{"display", "Name"};
+        return NBT_PATH;
     }
 
     @Override

@@ -19,7 +19,6 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.recipe.*;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.*;
@@ -29,7 +28,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.Reader;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -113,88 +111,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
             }
     );
 
-    private static void modifyShapedRecipeIngredients(CustomShapedRecipe<ItemStack> recipe, Object shapedRecipe) {
-        try {
-            List<Ingredient<ItemStack>> actualIngredients = recipe.parsedPattern().ingredients()
-                    .stream()
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .toList();
-            if (VersionHelper.isOrAbove1_21_2()) {
-                CoreReflections.methodHandle$ShapedRecipe$placementInfoSetter.invokeExact(shapedRecipe, (Object) null);
-            }
-            List<Object> ingredients = getIngredientsFromShapedRecipe(shapedRecipe);
-            modifyIngredients(ingredients, actualIngredients);
-        } catch (Throwable e) {
-            CraftEngine.instance().logger().warn("Failed to inject shaped recipe", e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static List<Object> getIngredientsFromShapedRecipe(Object recipe) {
-        List<Object> ingredients = new ArrayList<>();
-        try {
-            if (VersionHelper.isOrAbove1_20_3()) {
-                Object pattern = CoreReflections.methodHandle$1_20_3$ShapedRecipe$patternGetter.invokeExact(recipe);
-                if (VersionHelper.isOrAbove1_21_2()) {
-                    List<Optional<Object>> optionals = (List<Optional<Object>>) CoreReflections.methodHandle$ShapedRecipePattern$ingredients1_21_2Getter.invokeExact(pattern);
-                    for (Optional<Object> optional : optionals) {
-                        optional.ifPresent(ingredients::add);
-                    }
-                } else {
-                    List<Object> objectList = (List<Object>) CoreReflections.methodHandle$ShapedRecipePattern$ingredients1_20_3Getter.invokeExact(pattern);
-                    for (Object object : objectList) {
-                        Object[] values = (Object[]) CoreReflections.methodHandle$Ingredient$valuesGetter.invokeExact(object);
-                        // is empty or not
-                        if (values.length != 0) {
-                            ingredients.add(object);
-                        }
-                    }
-                }
-            } else {
-                List<Object> objectList = (List<Object>) CoreReflections.methodHandle$1_20_1$ShapedRecipe$recipeItemsGetter.invokeExact(recipe);
-                for (Object object : objectList) {
-                    Object[] values = (Object[]) CoreReflections.methodHandle$Ingredient$valuesGetter.invokeExact(object);
-                    if (values.length != 0) {
-                        ingredients.add(object);
-                    }
-                }
-            }
-        } catch (Throwable e) {
-            CraftEngine.instance().logger().warn("Failed to get ingredients from shaped recipe", e);
-        }
-        return ingredients;
-    }
-
-    private static void modifyShapelessRecipeIngredients(CustomShapelessRecipe<ItemStack> recipe, Object shapelessRecipe) {
-        try {
-            List<Ingredient<ItemStack>> actualIngredients = recipe.ingredientsInUse();
-            if (VersionHelper.isOrAbove1_21_2()) {
-                CoreReflections.methodHandle$ShapelessRecipe$placementInfoSetter.invokeExact(shapelessRecipe, (Object) null);
-            }
-            @SuppressWarnings("unchecked")
-            List<Object> ingredients = (List<Object>) CoreReflections.methodHandle$ShapelessRecipe$ingredientsGetter.invokeExact(shapelessRecipe);
-            modifyIngredients(ingredients, actualIngredients);
-        } catch (Throwable e) {
-            CraftEngine.instance().logger().warn("Failed to inject shapeless recipe", e);
-        }
-    }
-
-    private static void modifyCookingRecipeIngredient(CustomCookingRecipe<ItemStack> recipe, Object cookingRecipe) {
-        try {
-            Ingredient<ItemStack> actualIngredient = recipe.ingredient();
-            Object ingredient;
-            if (VersionHelper.isOrAbove1_21_2()) {
-                ingredient = CoreReflections.methodHandle$SingleItemRecipe$inputGetter.invokeExact(cookingRecipe);
-            } else {
-                ingredient = CoreReflections.methodHandle$AbstractCookingRecipe$inputGetter.invokeExact(cookingRecipe);
-            }
-            modifyIngredients(List.of(ingredient), List.of(actualIngredient));
-        } catch (Throwable e) {
-            CraftEngine.instance().logger().warn("Failed to inject cooking recipe", e);
-        }
-    }
-
+    // nms 模块需要使用此方法
     public static List<Object> getIngredientLooks(List<UniqueKey> holders) {
         List<Object> itemStacks = new ArrayList<>();
         for (UniqueKey holder : holders) {
@@ -213,28 +130,6 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
         return itemStacks;
     }
 
-    private static void modifyIngredients(List<Object> fakeIngredients, List<Ingredient<ItemStack>> actualIngredients) throws Throwable {
-        if (fakeIngredients.size() != actualIngredients.size()) {
-            throw new IllegalArgumentException("Ingredient count mismatch");
-        }
-        for (int i = 0; i < fakeIngredients.size(); i++) {
-            Object ingredient = fakeIngredients.get(i);
-            Ingredient<ItemStack> actualIngredient = actualIngredients.get(i);
-            List<Object> items = getIngredientLooks(actualIngredient.items());
-            if (VersionHelper.isOrAbove1_21_4()) {
-                CoreReflections.methodHandle$Ingredient$itemStacksSetter.invokeExact(ingredient, (Set<Object>) new CustomIngredientSet(items, actualIngredient));
-            } else if (VersionHelper.isOrAbove1_21_2()) {
-                CoreReflections.methodHandle$Ingredient$itemStacksSetter.invokeExact(ingredient, (List<Object>) new CustomIngredientList(items, actualIngredient));
-            } else {
-                Object itemStackArray = Array.newInstance(CoreReflections.clazz$ItemStack, items.size());
-                for (int j = 0; j < items.size(); j++) {
-                    Array.set(itemStackArray, j, items.get(j));
-                }
-                CoreReflections.methodHandle$Ingredient$itemStacksSetter.invokeExact(ingredient, (Object) itemStackArray);
-            }
-        }
-    }
-
     public static Object toRecipeResourceKey(Key id) {
         return FastNMS.INSTANCE.method$ResourceKey$create(MRegistries.RECIPE, KeyUtils.toResourceLocation(id));
     }
@@ -251,6 +146,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
      */
     private final BukkitCraftEngine plugin;
     private final RecipeEventListener recipeEventListener;
+    private final CrafterEventListener crafterEventListener;
     // 欺骗服务端使其以为自己处于启动阶段
     private Object stolenFeatureFlagSet;
     // 需要在主线程卸载的配方
@@ -265,6 +161,7 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
         instance = this;
         this.plugin = plugin;
         this.recipeEventListener = new RecipeEventListener(plugin, this, plugin.itemManager());
+        this.crafterEventListener = VersionHelper.isOrAbove1_21() ? new CrafterEventListener(plugin, this, plugin.itemManager()) : null;
     }
 
     public static Object minecraftRecipeManager() {
@@ -278,6 +175,9 @@ public class BukkitRecipeManager extends AbstractRecipeManager<ItemStack> {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.recipeEventListener, this.plugin.javaPlugin());
+        if (this.crafterEventListener != null) {
+            Bukkit.getPluginManager().registerEvents(this.crafterEventListener, this.plugin.javaPlugin());
+        }
     }
 
     @Override

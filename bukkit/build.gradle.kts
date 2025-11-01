@@ -80,7 +80,7 @@ tasks.withType<JavaCompile> {
 }
 
 artifacts {
-    archives(tasks.shadowJar)
+    implementation(tasks.shadowJar)
 }
 
 tasks {

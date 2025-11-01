@@ -24,7 +24,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
@@ -63,6 +63,8 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
     protected final List<Suggestion> cachedAllItemSuggestions = new ArrayList<>();
     protected final List<Suggestion> cachedVanillaItemSuggestions = new ArrayList<>();
     protected final List<Suggestion> cachedTotemSuggestions = new ArrayList<>();
+    // 替代配方材料
+    protected final Map<Key, List<UniqueKey>> ingredientSubstitutes = new HashMap<>();
 
     protected AbstractItemManager(CraftEngine plugin) {
         super(plugin);
@@ -141,6 +143,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
         this.equipments.clear();
         this.modernItemModels1_21_4.clear();
         this.modernItemModels1_21_2.clear();
+        this.ingredientSubstitutes.clear();
     }
 
     @Override
@@ -161,6 +164,15 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
     @Override
     public Optional<CustomItem<I>> getCustomItemByPathOnly(String path) {
         return Optional.ofNullable(this.customItemsByPath.get(path));
+    }
+
+    @Override
+    public List<UniqueKey> getIngredientSubstitutes(Key item) {
+        if (VANILLA_ITEMS.contains(item)) {
+            return Optional.ofNullable(this.ingredientSubstitutes.get(item)).orElse(Collections.emptyList());
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -195,6 +207,15 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
             Set<Key> tags = customItem.settings().tags();
             for (Key tag : tags) {
                 this.customItemTags.computeIfAbsent(tag, k -> new ArrayList<>()).add(customItem.uniqueId());
+            }
+            // ingredient substitutes
+            List<Key> substitutes = customItem.settings().ingredientSubstitutes();
+            if (!substitutes.isEmpty()) {
+                for (Key key : substitutes) {
+                    if (VANILLA_ITEMS.contains(key)) {
+                        AbstractItemManager.this.ingredientSubstitutes.computeIfAbsent(key, k -> new ArrayList<>()).add(customItem.uniqueId());
+                    }
+                }
             }
         }
         return true;
@@ -411,7 +432,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
             boolean isVanillaItem = isVanillaItem(id);
 
             // 读取服务端侧材质
-            Key material = isVanillaItem ? id : Key.from(ResourceConfigUtils.requireNonEmptyStringOrThrow(section.get("material"), "warning.config.item.missing_material").toLowerCase(Locale.ROOT));
+            Key material = isVanillaItem ? id : Key.from(ResourceConfigUtils.requireNonEmptyStringOrThrow(section.getOrDefault("material", Config.defaultMaterial()), "warning.config.item.missing_material").toLowerCase(Locale.ROOT));
             // 读取客户端侧材质
             Key clientBoundMaterial = VersionHelper.PREMIUM && section.containsKey("client-bound-material") ? Key.from(section.get("client-bound-material").toString().toLowerCase(Locale.ROOT)) : material;
 
@@ -498,7 +519,8 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 CustomItem.Builder<I> itemBuilder = createPlatformItemBuilder(uniqueId, material, clientBoundMaterial);
 
                 // 模型配置区域，如果这里被配置了，那么用户必须要配置custom-model-data或item-model
-                Map<String, Object> modelSection = MiscUtils.castToMap(section.get("model"), true);
+                // model可以是一个string也可以是一个区域
+                Object modelSection = section.get("model");
                 Map<String, Object> legacyModelSection = MiscUtils.castToMap(section.get("legacy-model"), true);
                 boolean hasModelSection = modelSection != null || legacyModelSection != null;
 
@@ -535,7 +557,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                     itemBuilder.dataModifier(new IdModifier<>(id));
 
                 // 事件
-                Map<EventTrigger, List<net.momirealms.craftengine.core.plugin.context.function.Function<PlayerOptionalContext>>> eventTriggerListMap;
+                Map<EventTrigger, List<net.momirealms.craftengine.core.plugin.context.function.Function<Context>>> eventTriggerListMap;
                 try {
                     eventTriggerListMap = EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event"));
                 } catch (LocalizedResourceConfigException e) {
@@ -548,11 +570,11 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 try {
                     settings = Optional.ofNullable(ResourceConfigUtils.get(section, "settings"))
                             .map(map -> ItemSettings.fromMap(MiscUtils.castToMap(map, true)))
-                            .map(it -> isVanillaItem ? it.canPlaceRelatedVanillaBlock(true) : it)
-                            .orElse(ItemSettings.of().canPlaceRelatedVanillaBlock(isVanillaItem));
+                            .map(it -> isVanillaItem ? it.disableVanillaBehavior(false) : it)
+                            .orElse(ItemSettings.of().disableVanillaBehavior(!isVanillaItem));
                 } catch (LocalizedResourceConfigException e) {
                     collector.add(e);
-                    settings = ItemSettings.of().canPlaceRelatedVanillaBlock(isVanillaItem);
+                    settings = ItemSettings.of().disableVanillaBehavior(!isVanillaItem);
                 }
 
                 // 行为
@@ -599,6 +621,11 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                     AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, MiscUtils.getAsStringList(section.get("category")).stream().map(Key::of).toList());
                 }
 
+                if (!hasModelSection) {
+                    collector.throwIfPresent();
+                    return;
+                }
+
                 /*
                  * ========================
                  *
@@ -607,18 +634,8 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                  * ========================
                  */
 
-                // 原版物品还改模型？自己替换json去
-                if (isVanillaItem) {
-                    return;
-                }
-
-                if (!hasModelSection) {
-                    collector.throwIfPresent();
-                    return;
-                }
-
                 // 只对自定义物品有这个限制，既没有模型值也没有item-model
-                if (customModelData == 0 && itemModel == null) {
+                if (!isVanillaItem && customModelData == 0 && itemModel == null) {
                     collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.missing_model_id"));
                 }
 
@@ -634,7 +651,7 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                         return;
                     }
                     try {
-                        modernModel = ItemModels.fromMap(modelSection);
+                        modernModel = ItemModels.fromObj(modelSection);
                         for (ModelGeneration generation : modernModel.modelsToGenerate()) {
                             prepareModelGeneration(generation);
                         }
@@ -669,40 +686,51 @@ public abstract class AbstractItemManager<I> extends AbstractModelGenerator impl
                 // 自定义物品的model处理
                 // 这个item-model是否存在，且是原版item-model
                 boolean isVanillaItemModel = itemModel != null && AbstractPackManager.PRESET_ITEMS.containsKey(itemModel);
-                // 使用了自定义模型值
-                if (customModelData != 0) {
-                    // 如果用户主动设置了item-model且为原版物品，则使用item-model为基础模型，否则使用其视觉材质对应的item-model
-                    Key finalBaseModel = isVanillaItemModel ? itemModel : clientBoundMaterial;
-                    // 添加新版item model
-                    if (isModernFormatRequired() && hasModernModel) {
-                        TreeMap<Integer, ModernItemModel> map = AbstractItemManager.this.modernOverrides.computeIfAbsent(finalBaseModel, k -> new TreeMap<>());
-                        map.put(customModelData, new ModernItemModel(
-                                modernModel,
-                                ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
-                                ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
-                        ));
+                if (!isVanillaItem) {
+                    // 使用了自定义模型值
+                    if (customModelData != 0) {
+                        // 如果用户主动设置了item-model且为原版物品，则使用item-model为基础模型，否则使用其视觉材质对应的item-model
+                        Key finalBaseModel = isVanillaItemModel ? itemModel : clientBoundMaterial;
+                        // 添加新版item model
+                        if (isModernFormatRequired() && hasModernModel) {
+                            TreeMap<Integer, ModernItemModel> map = AbstractItemManager.this.modernOverrides.computeIfAbsent(finalBaseModel, k -> new TreeMap<>());
+                            map.put(customModelData, new ModernItemModel(
+                                    modernModel,
+                                    ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
+                                    ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
+                            ));
+                        }
+                        // 添加旧版 overrides
+                        if (needsLegacyCompatibility() && hasLegacyModel) {
+                            TreeSet<LegacyOverridesModel> lom = AbstractItemManager.this.legacyOverrides.computeIfAbsent(finalBaseModel, k -> new TreeSet<>());
+                            lom.addAll(legacyOverridesModels);
+                        }
+                    } else if (isVanillaItemModel) {
+                        collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.item_model.conflict", itemModel.asString()));
                     }
-                    // 添加旧版 overrides
-                    if (needsLegacyCompatibility() && hasLegacyModel) {
-                        TreeSet<LegacyOverridesModel> lom = AbstractItemManager.this.legacyOverrides.computeIfAbsent(finalBaseModel, k -> new TreeSet<>());
-                        lom.addAll(legacyOverridesModels);
-                    }
-                } else if (isVanillaItemModel) {
-                    collector.addAndThrow(new LocalizedResourceConfigException("warning.config.item.item_model.conflict", itemModel.asString()));
-                }
 
-                // 使用了item-model组件，且不是原版物品的
-                if (itemModel != null && !isVanillaItemModel) {
-                    if (isModernFormatRequired() && hasModernModel) {
-                        AbstractItemManager.this.modernItemModels1_21_4.put(itemModel, new ModernItemModel(
+                    // 使用了item-model组件，且不是原版物品的
+                    if (itemModel != null && !isVanillaItemModel) {
+                        if (isModernFormatRequired() && hasModernModel) {
+                            AbstractItemManager.this.modernItemModels1_21_4.put(itemModel, new ModernItemModel(
+                                    modernModel,
+                                    ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
+                                    ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
+                            ));
+                        }
+                        if (needsItemModelCompatibility() && needsLegacyCompatibility() && hasLegacyModel) {
+                            TreeSet<LegacyOverridesModel> lom = AbstractItemManager.this.modernItemModels1_21_2.computeIfAbsent(itemModel, k -> new TreeSet<>());
+                            lom.addAll(legacyOverridesModels);
+                        }
+                    }
+                } else {
+                    // 原版物品的item model覆写
+                    if (isModernFormatRequired()) {
+                        AbstractItemManager.this.modernItemModels1_21_4.put(id, new ModernItemModel(
                                 modernModel,
                                 ResourceConfigUtils.getAsBoolean(section.getOrDefault("oversized-in-gui", true), "oversized-in-gui"),
                                 ResourceConfigUtils.getAsBoolean(section.getOrDefault("hand-animation-on-swap", true), "hand-animation-on-swap")
                         ));
-                    }
-                    if (needsItemModelCompatibility() && needsLegacyCompatibility() && hasLegacyModel) {
-                        TreeSet<LegacyOverridesModel> lom = AbstractItemManager.this.modernItemModels1_21_2.computeIfAbsent(itemModel, k -> new TreeSet<>());
-                        lom.addAll(legacyOverridesModels);
                     }
                 }
 

@@ -31,6 +31,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
+import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.sound.SoundSource;
@@ -48,6 +49,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -67,6 +69,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BukkitServerPlayer extends Player {
+    public static final Key SELECTED_LOCALE_KEY = Key.of("craftengine:locale");
     private final BukkitCraftEngine plugin;
 
     // connection state
@@ -125,6 +128,9 @@ public class BukkitServerPlayer extends Player {
     private ConcurrentLong2ReferenceChainedHashTable<ChunkStatus> trackedChunks;
     // entity view
     private Map<Integer, EntityPacketHandler> entityTypeView;
+    // selected client locale
+    @Nullable
+    private Locale selectedLocale;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -148,7 +154,9 @@ public class BukkitServerPlayer extends Player {
         this.name = player.getName();
         this.isNameVerified = true;
         byte[] bytes = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(CooldownData.COOLDOWN_KEY), PersistentDataType.BYTE_ARRAY);
-        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(768, 0.5f);
+        String locale = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(SELECTED_LOCALE_KEY), PersistentDataType.STRING);
+        this.selectedLocale = TranslationManager.parseLocale(locale);
+        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
         this.entityTypeView = new ConcurrentHashMap<>(256);
         try {
             this.cooldownData = CooldownData.fromBytes(bytes);
@@ -762,6 +770,7 @@ public class BukkitServerPlayer extends Player {
 
                     // can break now
                     if (this.miningProgress >= 1f) {
+                        boolean breakResult = false;
                         // for simplified adventure break, switch mayBuild temporarily
                         if (isAdventureMode() && Config.simplifyAdventureBreakCheck()) {
                             // check the appearance state
@@ -769,20 +778,24 @@ public class BukkitServerPlayer extends Player {
                                 // Error might occur so we use try here
                                 try {
                                     FastNMS.INSTANCE.field$Player$mayBuild(serverPlayer, true);
-                                    CoreReflections.method$ServerPlayerGameMode$destroyBlock.invoke(gameMode, blockPos);
+                                    breakResult = (boolean) CoreReflections.method$ServerPlayerGameMode$destroyBlock.invoke(gameMode, blockPos);
                                 } finally {
                                     FastNMS.INSTANCE.field$Player$mayBuild(serverPlayer, false);
                                 }
                             }
                         } else {
                             // normal break check
-                            CoreReflections.method$ServerPlayerGameMode$destroyBlock.invoke(gameMode, blockPos);
+                            breakResult = (boolean) CoreReflections.method$ServerPlayerGameMode$destroyBlock.invoke(gameMode, blockPos);
                         }
                         // send break particle + (removed sounds)
-                        sendPacket(FastNMS.INSTANCE.constructor$ClientboundLevelEventPacket(WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId(), false), false);
-                        this.lastSuccessfulBreak = currentTick;
-                        this.destroyPos = null;
-                        this.setIsDestroyingBlock(false, false);
+                        if (breakResult) {
+                            sendPacket(FastNMS.INSTANCE.constructor$ClientboundLevelEventPacket(WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId(), false), false);
+                            this.lastSuccessfulBreak = currentTick;
+                            this.destroyPos = null;
+                            this.setIsDestroyingBlock(false, false);
+                        } else {
+                            this.setIsDestroyingBlock(true, true);
+                        }
                     }
                 }
             }
@@ -1144,10 +1157,15 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void damage(double amount, Key damageType) {
+    public void damage(double amount, Key damageType, @Nullable Object causeEntity) {
         @SuppressWarnings("deprecation")
         DamageType type = Registry.DAMAGE_TYPE.get(KeyUtils.toNamespacedKey(damageType));
-        this.platformPlayer().damage(amount, DamageSource.builder(type != null ? type : DamageType.GENERIC).build());
+        DamageSource source = DamageSource.builder(type != null ? type : DamageType.GENERIC)
+                .withCausingEntity(causeEntity instanceof Entity entity ? entity : this.platformPlayer())
+                .withDirectEntity(this.platformPlayer())
+                .withDamageLocation(this.platformPlayer().getLocation())
+                .build();
+        this.platformPlayer().damage(amount, source);
     }
 
     @Override
@@ -1164,5 +1182,26 @@ public class BukkitServerPlayer extends Player {
     @Override
     public <T> void setEntityData(EntityData<T> data, T value, boolean force) {
         FastNMS.INSTANCE.method$SynchedEntityData$set(entityData(), data.entityDataAccessor(), value, force);
+    }
+
+    @Override
+    public Locale locale() {
+        return this.platformPlayer().locale();
+    }
+
+    @Override
+    public Locale selectedLocale() {
+        if (this.selectedLocale != null) return this.selectedLocale;
+        return locale();
+    }
+
+    @Override
+    public void setSelectedLocale(@Nullable Locale locale) {
+        this.selectedLocale = locale;
+        if (locale != null) {
+            platformPlayer().getPersistentDataContainer().set(KeyUtils.toNamespacedKey(SELECTED_LOCALE_KEY), PersistentDataType.STRING, TranslationManager.formatLocale(locale));
+        } else {
+            platformPlayer().getPersistentDataContainer().remove(KeyUtils.toNamespacedKey(SELECTED_LOCALE_KEY));
+        }
     }
 }

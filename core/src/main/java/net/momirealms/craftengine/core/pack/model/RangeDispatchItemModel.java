@@ -10,15 +10,14 @@ import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class RangeDispatchItemModel implements ItemModel {
     public static final Factory FACTORY = new Factory();
@@ -115,21 +114,26 @@ public class RangeDispatchItemModel implements ItemModel {
         public ItemModel create(Map<String, Object> arguments) {
             RangeDispatchProperty property = RangeDispatchProperties.fromMap(arguments);
             float scale = ResourceConfigUtils.getAsFloat(arguments.getOrDefault("scale", 1.0), "scale");
-            Map<String, Object> fallback = MiscUtils.castToMap(arguments.get("fallback"), true);
+            Object fallback = arguments.get("fallback");
             Object entriesObj = arguments.get("entries");
             if (entriesObj instanceof List<?> list) {
                 List<Map<String, Object>> entries = (List<Map<String, Object>>) list;
                 if (!entries.isEmpty()) {
-                    Map<Float, ItemModel> entryMap = new HashMap<>();
+                    Map<Float, ItemModel> entryMap = new TreeMap<>();
                     for (Map<String, Object> entry : entries) {
                         float threshold = ResourceConfigUtils.getAsFloat(entry.getOrDefault("threshold", 1), "threshold");
                         Object model = entry.getOrDefault("model", fallback);
                         if (model == null) {
                             throw new LocalizedResourceConfigException("warning.config.item.model.range_dispatch.entry.missing_model");
                         }
-                        entryMap.put(threshold, ItemModels.fromMap(MiscUtils.castToMap(model, false)));
+                        entryMap.put(threshold, ItemModels.fromObj(model));
                     }
-                    return new RangeDispatchItemModel(property, scale, fallback == null ? null : ItemModels.fromMap(fallback), entryMap);
+                    return new RangeDispatchItemModel(
+                            property,
+                            scale,
+                            fallback == null ? null : ItemModels.fromObj(fallback),
+                            entryMap
+                    );
                 } else {
                     throw new LocalizedResourceConfigException("warning.config.item.model.range_dispatch.missing_entries");
                 }
@@ -147,7 +151,7 @@ public class RangeDispatchItemModel implements ItemModel {
             if (entriesObj == null) {
                 throw new IllegalArgumentException("entries is expected to be a JsonArray");
             }
-            Map<Float, ItemModel> entries = new HashMap<>();
+            Map<Float, ItemModel> entries = new TreeMap<>();
             for (JsonElement entry : entriesObj) {
                 if (entry instanceof JsonObject entryObj) {
                     float threshold = entryObj.getAsJsonPrimitive("threshold").getAsFloat();

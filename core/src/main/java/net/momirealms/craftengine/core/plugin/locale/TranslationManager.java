@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.Translator;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public interface TranslationManager extends Manageable {
             "tt_ru", "tzo_mx", "uk_ua", "val_es", "vec_it", "vi_vn", "vp_vl", "yi_de",
             "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"
     );
+    List<Suggestion> ALL_LANG_SUGGESTIONS = ALL_LANG.stream().map(Suggestion::suggestion).toList();
     Map<String, List<String>> LOCALE_2_COUNTRIES = ALL_LANG.stream()
             .map(lang -> lang.split("_"))
             .filter(split -> split.length >= 2)
@@ -62,9 +64,21 @@ public interface TranslationManager extends Manageable {
         return locale == null || locale.isEmpty() ? null : Translator.parseLocale(locale);
     }
 
+    static String formatLocale(Locale locale) {
+        String language = locale.getLanguage().toLowerCase(Locale.ROOT);
+        String country = locale.getCountry().toLowerCase(Locale.ROOT);
+        if (country.isEmpty()) {
+            return language;
+        } else {
+            return language + "_" + country;
+        }
+    }
+
+    Set<String> translationKeys();
+
     void log(String id, String... args);
 
-    Map<String, I18NData> clientLangData();
+    Map<String, LangData> clientLangData();
 
     void addClientTranslation(String langId, Map<String, String> translations);
 }

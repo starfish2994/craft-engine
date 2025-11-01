@@ -88,7 +88,7 @@ public class FlintAndSteelItemBehavior extends ItemBehavior {
                             context.getHitResult(), (Item<ItemStack>) context.getItem())) {
                         return InteractionResult.PASS;
                     }
-                    // 且没有shift
+                    // 且没有shift或者忽略潜行的可交互方块
                     if (!player.isSecondaryUseActive()) {
                         player.playSound(firePos, FLINT_SOUND, SoundSource.BLOCK, 1f, RandomUtils.generateRandomFloat(0.8f, 1.2f));
                     }

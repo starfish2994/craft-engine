@@ -22,8 +22,10 @@ import net.momirealms.craftengine.core.item.recipe.UniqueIdItem;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
-import net.momirealms.craftengine.core.plugin.logger.Debugger;
-import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.util.GsonHelper;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.UniqueKey;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
@@ -104,17 +106,6 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
     }
 
     @Override
-    public Item<ItemStack> decode(FriendlyByteBuf byteBuf) {
-        Object friendlyBuf = FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf);
-        return this.wrap(FastNMS.INSTANCE.method$FriendlyByteBuf$readItem(friendlyBuf));
-    }
-
-    @Override
-    public void encode(FriendlyByteBuf byteBuf, Item<ItemStack> item) {
-        FastNMS.INSTANCE.method$FriendlyByteBuf$writeItem(FastNMS.INSTANCE.constructor$FriendlyByteBuf(byteBuf), item.getItem());
-    }
-
-    @Override
     public NetworkItemHandler<ItemStack> networkItemHandler() {
         return this.networkItemHandler;
     }
@@ -124,37 +115,25 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
     }
 
     @Override
-    public Item<ItemStack> s2c(Item<ItemStack> item, Player player) {
-        if (item.isEmpty()) return item;
-        return this.networkItemHandler.s2c(item, player).orElse(item);
+    public Optional<Item<ItemStack>> s2c(Item<ItemStack> item, Player player) {
+        if (item.isEmpty()) return Optional.empty();
+        return this.networkItemHandler.s2c(item, player);
     }
 
     @Override
-    public Item<ItemStack> c2s(Item<ItemStack> item) {
-        if (item.isEmpty()) return item;
-        return this.networkItemHandler.c2s(item).orElse(item);
+    public Optional<Item<ItemStack>> c2s(Item<ItemStack> item) {
+        if (item.isEmpty()) return Optional.empty();
+        return this.networkItemHandler.c2s(item);
     }
 
-    public Optional<ItemStack> s2c(ItemStack itemStack, Player player) {
-        try {
-            Item<ItemStack> wrapped = wrap(itemStack);
-            if (wrapped.isEmpty()) return Optional.empty();
-            return this.networkItemHandler.s2c(wrapped, player).map(Item::getItem);
-        } catch (Throwable e) {
-            Debugger.ITEM.warn(() -> "Failed to handle s2c items.", e);
-            return Optional.empty();
-        }
+    public Optional<ItemStack> s2c(ItemStack item, Player player) {
+        if (item.isEmpty()) return Optional.empty();
+        return this.networkItemHandler.s2c(wrap(item), player).map(Item::getItem);
     }
 
-    public Optional<ItemStack> c2s(ItemStack itemStack) {
-        try {
-            Item<ItemStack> wrapped = wrap(itemStack);
-            if (wrapped.isEmpty()) return Optional.empty();
-            return this.networkItemHandler.c2s(wrapped).map(Item::getItem);
-        } catch (Throwable e) {
-            Debugger.COMMON.warn(() -> "Failed to handle c2s items.", e);
-            return Optional.empty();
-        }
+    public Optional<ItemStack> c2s(ItemStack item) {
+        if (item.isEmpty()) return Optional.empty();
+        return this.networkItemHandler.c2s(wrap(item)).map(Item::getItem);
     }
 
     @Override
@@ -169,7 +148,7 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
             jsonObject.addProperty("count", result.count());
             jsonObject.add("components", result.components());
             Object nmsStack = CoreReflections.instance$ItemStack$CODEC.parse(MRegistryOps.JSON, jsonObject)
-                    .resultOrPartial((itemId) -> plugin.logger().severe("Tried to load invalid item: '" + itemId + "'")).orElse(null);
+                    .resultOrPartial((error) -> plugin.logger().severe("Tried to load invalid item: '" + error + "'")).orElse(null);
             if (nmsStack == null) {
                 return this.emptyItem;
             }
@@ -429,7 +408,7 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
             Object armorTrim = FastNMS.INSTANCE.constructor$ArmorTrim(optionalMaterial.get(), optionalPattern.get());
             Object previousTrim;
             if (VersionHelper.isOrAbove1_20_5()) {
-                previousTrim = base.getExactComponent(ComponentKeys.TRIM);
+                previousTrim = base.getExactComponent(DataComponentKeys.TRIM);
             } else {
                 try {
                     previousTrim = VersionHelper.isOrAbove1_20_2() ?
@@ -445,7 +424,7 @@ public class BukkitItemManager extends AbstractItemManager<ItemStack> {
             }
             Item<ItemStack> newItem = base.copyWithCount(1);
             if (VersionHelper.isOrAbove1_20_5()) {
-                newItem.setExactComponent(ComponentKeys.TRIM, armorTrim);
+                newItem.setExactComponent(DataComponentKeys.TRIM, armorTrim);
             } else {
                 try {
                     CoreReflections.method$ArmorTrim$setTrim.invoke(null, FastNMS.INSTANCE.registryAccess(), newItem.getLiteralObject(), armorTrim);

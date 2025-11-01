@@ -10,7 +10,7 @@ import net.momirealms.craftengine.core.item.recipe.result.PostProcessor;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessors;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.condition.AllOfCondition;
 import net.momirealms.craftengine.core.plugin.context.event.EventConditions;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
@@ -31,17 +31,17 @@ public abstract class AbstractRecipeSerializer<T, R extends Recipe<T>> implement
             new VanillaRecipeReader1_20();
 
     @SuppressWarnings("unchecked")
-    protected Function<PlayerOptionalContext>[] functions(Map<String, Object> arguments) {
+    protected Function<Context>[] functions(Map<String, Object> arguments) {
         Object functions = ResourceConfigUtils.get(arguments, "functions", "function");
         if (functions == null) return null;
-        List<Function<PlayerOptionalContext>> functionList = ResourceConfigUtils.parseConfigAsList(functions, EventFunctions::fromMap);
+        List<Function<Context>> functionList = ResourceConfigUtils.parseConfigAsList(functions, EventFunctions::fromMap);
         return functionList.toArray(new Function[0]);
     }
 
-    protected Condition<PlayerOptionalContext> conditions(Map<String, Object> arguments) {
+    protected Condition<Context> conditions(Map<String, Object> arguments) {
         Object conditions = ResourceConfigUtils.get(arguments, "conditions", "condition");
         if (conditions == null) return null;
-        List<Condition<PlayerOptionalContext>> conditionList = ResourceConfigUtils.parseConfigAsList(conditions, EventConditions::fromMap);
+        List<Condition<Context>> conditionList = ResourceConfigUtils.parseConfigAsList(conditions, EventConditions::fromMap);
         if (conditionList.isEmpty()) return null;
         if (conditionList.size() == 1) return conditionList.getFirst();
         return new AllOfCondition<>(conditionList);
@@ -144,13 +144,25 @@ public abstract class AbstractRecipeSerializer<T, R extends Recipe<T>> implement
         Set<UniqueKey> minecraftItemIds = new HashSet<>();
         ItemManager<T> itemManager = CraftEngine.instance().itemManager();
         for (String item : items) {
-            if (item.charAt(0) == '#') itemIds.addAll(itemManager.itemIdsByTag(Key.of(item.substring(1))));
-            else {
+            if (item.charAt(0) == '#') {
+                List<UniqueKey> uniqueKeys = itemManager.itemIdsByTag(Key.of(item.substring(1)));
+                itemIds.addAll(uniqueKeys);
+                for (UniqueKey uniqueKey : uniqueKeys) {
+                    List<UniqueKey> ingredientSubstitutes = itemManager.getIngredientSubstitutes(uniqueKey.key());
+                    if (!ingredientSubstitutes.isEmpty()) {
+                        itemIds.addAll(ingredientSubstitutes);
+                    }
+                }
+            } else {
                 Key itemId = Key.of(item);
                 if (itemManager.getBuildableItem(itemId).isEmpty()) {
                     throw new LocalizedResourceConfigException("warning.config.recipe.invalid_ingredient", item);
                 }
                 itemIds.add(UniqueKey.create(itemId));
+                List<UniqueKey> ingredientSubstitutes = itemManager.getIngredientSubstitutes(itemId);
+                if (!ingredientSubstitutes.isEmpty()) {
+                    itemIds.addAll(ingredientSubstitutes);
+                }
             }
         }
         boolean hasCustomItem = false;

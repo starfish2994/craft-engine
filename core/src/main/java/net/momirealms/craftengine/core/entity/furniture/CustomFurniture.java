@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
 import net.momirealms.craftengine.core.loot.LootTable;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
@@ -15,7 +15,7 @@ import java.util.Optional;
 // TODO 家具的设计存在问题。家具也应该存在不同的状态，而不是根据放置规则直接决定状态类型
 public interface CustomFurniture {
 
-    void execute(PlayerOptionalContext context, EventTrigger trigger);
+    void execute(Context context, EventTrigger trigger);
 
     Key id();
 
@@ -44,14 +44,14 @@ public interface CustomFurniture {
 
         Builder lootTable(LootTable<?> lootTable);
 
-        Builder events(Map<EventTrigger, List<Function<PlayerOptionalContext>>> events);
+        Builder events(Map<EventTrigger, List<Function<Context>>> events);
 
         CustomFurniture build();
     }
 
     record Placement(AnchorType anchorType,
                      FurnitureElement[] elements,
-                     HitBox[] hitBoxes,
+                     HitBoxConfig[] hitBoxConfigs,
                      RotationRule rotationRule,
                      AlignmentRule alignmentRule,
                      Optional<ExternalModel> externalModel,

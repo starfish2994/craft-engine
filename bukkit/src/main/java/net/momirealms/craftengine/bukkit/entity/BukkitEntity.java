@@ -13,7 +13,7 @@ import java.lang.ref.WeakReference;
 import java.util.UUID;
 
 public class BukkitEntity extends AbstractEntity {
-    private final WeakReference<org.bukkit.entity.Entity> entity;
+    protected final WeakReference<org.bukkit.entity.Entity> entity;
 
     public BukkitEntity(org.bukkit.entity.Entity entity) {
         this.entity = new WeakReference<>(entity);
@@ -102,5 +102,10 @@ public class BukkitEntity extends AbstractEntity {
     @Override
     public <T> void setEntityData(EntityData<T> data, T value, boolean force) {
         FastNMS.INSTANCE.method$SynchedEntityData$set(entityData(), data.entityDataAccessor(), value, force);
+    }
+
+    @Override
+    public void remove() {
+        this.platformEntity().remove();
     }
 }

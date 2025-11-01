@@ -43,25 +43,42 @@ public final class ItemKeys {
     public static final Key LIGHT = Key.of("minecraft:light");
     public static final Key GLOWSTONE = Key.of("minecraft:glowstone");
     public static final Key SADDLE = Key.of("minecraft:saddle");
-    public static final Key HARNESS = Key.of("minecraft:harness");
+    public static final Key FIREWORK_STAR = Key.of("minecraft:firework_star");
+    public static final Key ENDER_EYE = Key.of("minecraft:ender_eye");
+    public static final Key END_CRYSTAL = Key.of("minecraft:end_crystal");
+    public static final Key COD = Key.of("minecraft:cod");
+    public static final Key SALMON = Key.of("minecraft:salmon");
+    public static final Key SUGAR_CANE = Key.of("minecraft:sugar_cane");
     public static final Key WHITE_DYE = Key.of("minecraft:white_dye");
+    public static final Key LIGHT_GRAY_DYE = Key.of("minecraft:light_gray_dye");
+    public static final Key GRAY_DYE = Key.of("minecraft:gray_dye");
+    public static final Key BLACK_DYE = Key.of("minecraft:black_dye");
+    public static final Key BROWN_DYE = Key.of("minecraft:brown_dye");
+    public static final Key RED_DYE = Key.of("minecraft:red_dye");
     public static final Key ORANGE_DYE = Key.of("minecraft:orange_dye");
-    public static final Key MAGENTA_DYE = Key.of("minecraft:magenta_dye");
-    public static final Key LIGHT_BLUE_DYE = Key.of("minecraft:light_blue_dye");
     public static final Key YELLOW_DYE = Key.of("minecraft:yellow_dye");
     public static final Key LIME_DYE = Key.of("minecraft:lime_dye");
-    public static final Key PINK_DYE = Key.of("minecraft:pink_dye");
-    public static final Key GRAY_DYE = Key.of("minecraft:gray_dye");
-    public static final Key LIGHT_GRAY_DYE = Key.of("minecraft:light_gray_dye");
-    public static final Key CYAN_DYE = Key.of("minecraft:cyan_dye");
-    public static final Key PURPLE_DYE = Key.of("minecraft:purple_dye");
-    public static final Key BLUE_DYE = Key.of("minecraft:blue_dye");
-    public static final Key BROWN_DYE = Key.of("minecraft:brown_dye");
     public static final Key GREEN_DYE = Key.of("minecraft:green_dye");
-    public static final Key RED_DYE = Key.of("minecraft:red_dye");
-    public static final Key BLACK_DYE = Key.of("minecraft:black_dye");
-    public static final Key FIREWORK_STAR = Key.of("minecraft:firework_star");
+    public static final Key CYAN_DYE = Key.of("minecraft:cyan_dye");
+    public static final Key LIGHT_BLUE_DYE = Key.of("minecraft:light_blue_dye");
+    public static final Key BLUE_DYE = Key.of("minecraft:blue_dye");
+    public static final Key PURPLE_DYE = Key.of("minecraft:purple_dye");
+    public static final Key MAGENTA_DYE = Key.of("minecraft:magenta_dye");
+    public static final Key PINK_DYE = Key.of("minecraft:pink_dye");
+
+    public static final Key CARROT = Key.of("minecraft:carrot");
+    public static final Key POTATO = Key.of("minecraft:potato");
+    public static final Key BEETROOT_SEEDS = Key.of("minecraft:beetroot_seeds");
+    public static final Key WHEAT_SEEDS = Key.of("minecraft:wheat_seeds");
+    public static final Key SWEET_BERRIES = Key.of("minecraft:sweet_berries");
+    public static final Key GLOW_BERRIES = Key.of("minecraft:glow_berries");
 
     public static final Key[] AXES = new Key[] {WOODEN_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE};
+
     public static final Key[] WATER_BUCKETS = new Key[] {WATER_BUCKET, COD_BUCKET, SALMON_BUCKET, TROPICAL_FISH_BUCKET, TADPOLE_BUCKET, PUFFERFISH_BUCKET, AXOLOTL_BUCKET};
+
+    public static final Key[] DYES = new Key[] {
+            WHITE_DYE, LIGHT_GRAY_DYE, GRAY_DYE, BLACK_DYE, BROWN_DYE, RED_DYE, ORANGE_DYE, YELLOW_DYE, LIME_DYE,
+            GREEN_DYE, CYAN_DYE, LIGHT_BLUE_DYE, BLUE_DYE, PURPLE_DYE, MAGENTA_DYE, PINK_DYE
+    };
 }

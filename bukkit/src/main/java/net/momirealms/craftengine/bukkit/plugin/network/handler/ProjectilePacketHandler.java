@@ -29,14 +29,10 @@ import java.util.UUID;
 public class ProjectilePacketHandler implements EntityPacketHandler {
     private final int entityId;
     private final BukkitCustomProjectile projectile;
-    private final Object cachedPacket;
-    private final List<Object> cachedData;
 
     public ProjectilePacketHandler(BukkitCustomProjectile projectile, int entityId) {
         this.projectile = projectile;
         this.entityId = entityId;
-        this.cachedData = createCustomProjectileEntityDataValues();
-        this.cachedPacket = FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(entityId, this.cachedData);
     }
 
     @Override
@@ -47,7 +43,7 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeVarInt(id);
-        FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$pack(this.cachedData, buf);
+        FastNMS.INSTANCE.method$ClientboundSetEntityDataPacket$pack(this.createCustomProjectileEntityDataValues(user), buf);
     }
 
     @Override
@@ -60,7 +56,7 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
     public void handleMoveAndRotate(NetWorkUser user, NMSPacketEvent event, Object packet) {
         int entityId = ProtectedFieldVisitor.get().field$ClientboundMoveEntityPacket$entityId(packet);
         event.replacePacket(FastNMS.INSTANCE.constructor$ClientboundBundlePacket(List.of(
-                this.cachedPacket,
+                FastNMS.INSTANCE.constructor$ClientboundSetEntityDataPacket(entityId, this.createCustomProjectileEntityDataValues((Player) user)),
                 convertCustomProjectileMovePacket(packet, entityId)
         )));
     }
@@ -110,14 +106,15 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         return FastNMS.INSTANCE.constructor$ClientboundEntityPositionSyncPacket(entityId, newPositionMoveRotation, onGround);
     }
 
-    public List<Object> createCustomProjectileEntityDataValues() {
+    public List<Object> createCustomProjectileEntityDataValues(Player player) {
         List<Object> itemDisplayValues = new ArrayList<>();
         Optional<CustomItem<ItemStack>> customItem = BukkitItemManager.instance().getCustomItem(this.projectile.metadata().item());
         if (customItem.isEmpty()) return itemDisplayValues;
         ProjectileMeta meta = this.projectile.metadata();
         Item<ItemStack> displayedItem = customItem.get().buildItem(ItemBuildContext.empty());
         // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承
-        displayedItem = this.projectile.item().mergeCopy(displayedItem);
+        Item<ItemStack> item = this.projectile.item().mergeCopy(displayedItem);
+        displayedItem = BukkitItemManager.instance().s2c(item, player).orElse(item);
         ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);
         ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(meta.translation(), itemDisplayValues);
         ItemDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(meta.scale(), itemDisplayValues);
@@ -130,9 +127,7 @@ public class ProjectilePacketHandler implements EntityPacketHandler {
         }
 
         Object literalItem = displayedItem.getLiteralObject();
-        BukkitItemManager.instance().s2c(displayedItem.getItem(), null).ifPresentOrElse(
-                it -> ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(FastNMS.INSTANCE.field$CraftItemStack$handle(it), itemDisplayValues),
-                () -> ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(literalItem, itemDisplayValues));
+        ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(literalItem, itemDisplayValues);
         ItemDisplayEntityData.DisplayType.addEntityDataIfNotDefaultValue(meta.displayType().id(), itemDisplayValues);
         ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(meta.billboard().id(), itemDisplayValues);
         return itemDisplayValues;

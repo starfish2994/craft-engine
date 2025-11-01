@@ -9,20 +9,40 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public enum AutoStateGroup {
+    NON_TINTABLE_LEAVES(List.of("no_tint_leaves", "leaves_no_tint", "non_tintable_leaves"),
+            Set.of(BlockKeys.SPRUCE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
+            (w) -> !(boolean) w.getProperty("waterlogged")
+    ),
+    WATERLOGGED_NON_TINTABLE_LEAVES(
+            List.of("waterlogged_no_tint_leaves", "waterlogged_leaves_no_tint", "waterlogged_non_tintable_leaves"),
+            Set.of(BlockKeys.SPRUCE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
+            (w) -> w.getProperty("waterlogged")
+    ),
+    TINTABLE_LEAVES("tintable_leaves",
+            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES),
+            (w) -> !(boolean) w.getProperty("waterlogged")
+    ),
+    WATERLOGGED_TINTABLE_LEAVES(
+            "waterlogged_tintable_leaves",
+            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES),
+            (w) -> w.getProperty("waterlogged")
+    ),
     LEAVES("leaves",
-            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.SPRUCE_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
+            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES,
+                    BlockKeys.SPRUCE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
             (w) -> !(boolean) w.getProperty("waterlogged")
     ),
     WATERLOGGED_LEAVES(
             "waterlogged_leaves",
-            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.SPRUCE_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
+            Set.of(BlockKeys.OAK_LEAVES, BlockKeys.BIRCH_LEAVES, BlockKeys.JUNGLE_LEAVES, BlockKeys.ACACIA_LEAVES, BlockKeys.DARK_OAK_LEAVES, BlockKeys.MANGROVE_LEAVES,
+                    BlockKeys.SPRUCE_LEAVES, BlockKeys.CHERRY_LEAVES, BlockKeys.PALE_OAK_LEAVES, BlockKeys.AZALEA_LEAVES, BlockKeys.FLOWERING_AZALEA_LEAVES),
             (w) -> w.getProperty("waterlogged")
     ),
     LOWER_TRIPWIRE("lower_tripwire", Set.of(BlockKeys.TRIPWIRE), (w) -> w.getProperty("attached")),
     HIGHER_TRIPWIRE("higher_tripwire", Set.of(BlockKeys.TRIPWIRE), (w) -> !(boolean) w.getProperty("attached")),
     NOTE_BLOCK("note_block", Set.of(BlockKeys.NOTE_BLOCK), (w) -> true),
-    BROWN_MUSHROOM("brown_mushroom", Set.of(BlockKeys.BROWN_MUSHROOM_BLOCK), (w) -> true),
-    RED_MUSHROOM("red_mushroom", Set.of(BlockKeys.RED_MUSHROOM_BLOCK), (w) -> true),
+    BROWN_MUSHROOM("brown_mushroom_block", Set.of(BlockKeys.BROWN_MUSHROOM_BLOCK), (w) -> true),
+    RED_MUSHROOM("red_mushroom_block", Set.of(BlockKeys.RED_MUSHROOM_BLOCK), (w) -> true),
     MUSHROOM_STEM("mushroom_stem", Set.of(BlockKeys.MUSHROOM_STEM), (w) -> true),
     TRIPWIRE("tripwire", Set.of(BlockKeys.TRIPWIRE), (w) -> true),
     SUGAR_CANE("sugar_cane", Set.of(BlockKeys.SUGAR_CANE), (w) -> true),
@@ -32,12 +52,18 @@ public enum AutoStateGroup {
     SOLID("solid", Set.of(BlockKeys.BROWN_MUSHROOM_BLOCK, BlockKeys.RED_MUSHROOM_BLOCK, BlockKeys.MUSHROOM_STEM, BlockKeys.NOTE_BLOCK), (w) -> true);
 
     private final Set<Key> blocks;
-    private final String id;
+    private final List<String> id;
     private final Predicate<BlockStateWrapper> predicate;
     private final List<BlockStateCandidate> candidates = new ArrayList<>();
     private int pointer;
 
     AutoStateGroup(String id, Set<Key> blocks, Predicate<BlockStateWrapper> predicate) {
+        this.id = List.of(id);
+        this.blocks = blocks;
+        this.predicate = predicate;
+    }
+
+    AutoStateGroup(List<String> id, Set<Key> blocks, Predicate<BlockStateWrapper> predicate) {
         this.id = id;
         this.blocks = blocks;
         this.predicate = predicate;
@@ -80,6 +106,10 @@ public enum AutoStateGroup {
     }
 
     public String id() {
+        return id.getFirst();
+    }
+
+    public List<String> ids() {
         return id;
     }
 
@@ -88,10 +118,11 @@ public enum AutoStateGroup {
 
     static {
         for (AutoStateGroup group : AutoStateGroup.values()) {
-            BY_ID.put(group.id(), group);
-            BY_ID.put(group.id().toUpperCase(Locale.ROOT), group);
-            for (Key key : group.blocks) {
-                BY_BLOCKS.computeIfAbsent(key, k -> new ArrayList<>(4)).add(group);
+            for (String id : group.ids()) {
+                BY_ID.put(id, group);
+                for (Key key : group.blocks) {
+                    BY_BLOCKS.computeIfAbsent(key, k -> new ArrayList<>(4)).add(group);
+                }
             }
         }
     }

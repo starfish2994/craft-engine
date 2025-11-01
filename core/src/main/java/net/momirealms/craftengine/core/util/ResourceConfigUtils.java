@@ -23,7 +23,7 @@ public final class ResourceConfigUtils {
         return raw != null ? function.apply(raw) : defaultValue;
     }
 
-    public static String getAsString(@Nullable Object raw) {
+    public static String getAsStringOrNull(@Nullable Object raw) {
         if (raw == null) {
             return null;
         }

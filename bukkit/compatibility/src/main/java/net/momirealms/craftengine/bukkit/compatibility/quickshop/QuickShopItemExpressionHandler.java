@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.compatibility.quickshop;
 
 import com.ghostchu.quickshop.api.QuickShopAPI;
-import com.ghostchu.quickshop.api.event.QSConfigurationReloadEvent;
 import com.ghostchu.quickshop.api.registry.BuiltInRegistry;
 import com.ghostchu.quickshop.api.registry.Registry;
 import com.ghostchu.quickshop.api.registry.builtin.itemexpression.ItemExpressionHandler;
@@ -9,9 +8,6 @@ import com.ghostchu.quickshop.api.registry.builtin.itemexpression.ItemExpression
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.core.util.Key;
-import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;

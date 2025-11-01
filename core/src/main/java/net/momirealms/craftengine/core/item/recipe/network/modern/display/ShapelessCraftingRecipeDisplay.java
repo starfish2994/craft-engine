@@ -1,37 +1,38 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display;
 
-import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.recipe.network.modern.display.slot.SlotDisplay;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
-public record ShapelessCraftingRecipeDisplay(List<SlotDisplay> ingredients, SlotDisplay result, SlotDisplay craftingStation) implements RecipeDisplay {
+public record ShapelessCraftingRecipeDisplay<I>(List<SlotDisplay<I>> ingredients, SlotDisplay<I> result, SlotDisplay<I> craftingStation) implements RecipeDisplay<I> {
 
-    public static ShapelessCraftingRecipeDisplay read(FriendlyByteBuf buffer) {
-        List<SlotDisplay> ingredients = buffer.readCollection(ArrayList::new, SlotDisplay::read);
-        SlotDisplay result = SlotDisplay.read(buffer);
-        SlotDisplay craftingStation = SlotDisplay.read(buffer);
-        return new ShapelessCraftingRecipeDisplay(ingredients, result, craftingStation);
+    public static <I> ShapelessCraftingRecipeDisplay<I> read(FriendlyByteBuf buffer, FriendlyByteBuf.Reader<Item<I>> reader) {
+        List<SlotDisplay<I>> ingredients = buffer.readCollection(ArrayList::new, buf -> SlotDisplay.read(buf, reader));
+        SlotDisplay<I> result = SlotDisplay.read(buffer, reader);
+        SlotDisplay<I> craftingStation = SlotDisplay.read(buffer, reader);
+        return new ShapelessCraftingRecipeDisplay<>(ingredients, result, craftingStation);
     }
 
     @Override
-    public void applyClientboundData(Player player) {
-        for (SlotDisplay ingredient : ingredients) {
-            ingredient.applyClientboundData(player);
-        }
-        this.result.applyClientboundData(player);
-        this.craftingStation.applyClientboundData(player);
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
+    public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer) {
         buf.writeVarInt(0);
-        buf.writeCollection(this.ingredients, (byteBuf, slotDisplay) -> slotDisplay.write(buf));
-        this.result.write(buf);
-        this.craftingStation.write(buf);
+        buf.writeCollection(this.ingredients, (byteBuf, slotDisplay) -> slotDisplay.write(buf, writer));
+        this.result.write(buf, writer);
+        this.craftingStation.write(buf, writer);
+    }
+
+    @Override
+    public void applyClientboundData(Function<Item<I>, Item<I>> function) {
+        for (SlotDisplay<I> ingredient : ingredients) {
+            ingredient.applyClientboundData(function);
+        }
+        this.result.applyClientboundData(function);
+        this.craftingStation.applyClientboundData(function);
     }
 
     @Override

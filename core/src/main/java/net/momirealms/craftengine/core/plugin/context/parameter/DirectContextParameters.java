@@ -48,6 +48,7 @@ public final class DirectContextParameters {
     public static final ContextKey<UUID> UUID = ContextKey.direct("uuid");
     public static final ContextKey<Item<?>> MAIN_HAND_ITEM = ContextKey.direct("main_hand_item");
     public static final ContextKey<Item<?>> OFF_HAND_ITEM = ContextKey.direct("off_hand_item");
+    public static final ContextKey<Item<?>> ITEM = ContextKey.direct("item");
     public static final ContextKey<CustomBlock> CUSTOM_BLOCK = ContextKey.direct("custom_block");
     public static final ContextKey<ExistingBlock> BLOCK = ContextKey.direct("block");
     public static final ContextKey<Long> TIME = ContextKey.direct("time");
@@ -65,4 +66,5 @@ public final class DirectContextParameters {
     public static final ContextKey<Boolean> IS_CUSTOM = ContextKey.direct("is_custom");
     public static final ContextKey<Boolean> IS_BLOCK_ITEM = ContextKey.direct("is_block_item");
     public static final ContextKey<GameMode> GAMEMODE = ContextKey.direct("gamemode");
+    public static final ContextKey<Integer> COUNT = ContextKey.direct("count");
 }

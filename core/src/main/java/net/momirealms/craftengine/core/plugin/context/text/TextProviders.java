@@ -7,9 +7,9 @@ public class TextProviders {
     public static final Key TAG = Key.of("craftengine:tag");
 
     public static TextProvider fromString(String string) {
-        if (!string.contains("<") || !string.contains(">")) {
-            return PlainTextProvider.of(string);
+        if (string.contains("<") && string.contains(">")) {
+            return TagTextProvider.of(string);
         }
-        return TagTextProvider.of(string);
+        return PlainTextProvider.of(string);
     }
 }

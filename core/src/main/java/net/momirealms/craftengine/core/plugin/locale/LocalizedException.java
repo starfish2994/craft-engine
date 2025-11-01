@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public class LocalizedException extends RuntimeException {
     private final String node;
@@ -72,8 +73,8 @@ public class LocalizedException extends RuntimeException {
 
     private String generateLocalizedMessage() {
         try {
-            String rawMessage = TranslationManager.instance()
-                    .miniMessageTranslation(this.node);
+            String rawMessage = Optional.ofNullable(TranslationManager.instance()
+                    .miniMessageTranslation(this.node)).orElse(this.node);
             String cleanMessage = AdventureHelper.miniMessage()
                     .stripTags(rawMessage);
             for (int i = 0; i < arguments.length; i++) {

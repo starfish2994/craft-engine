@@ -8,5 +8,6 @@ public enum DisplayPosition {
     GUI,
     HEAD,
     GROUND,
-    FIXED
+    FIXED,
+    ON_SHELF
 }

@@ -56,7 +56,7 @@ bukkit {
 }
 
 artifacts {
-    archives(tasks.shadowJar)
+    implementation(tasks.shadowJar)
 }
 
 tasks {

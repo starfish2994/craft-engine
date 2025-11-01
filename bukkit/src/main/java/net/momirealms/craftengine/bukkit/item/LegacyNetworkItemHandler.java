@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.item.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.modifier.ArgumentsModifier;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.AdventureHelper;
+import net.momirealms.craftengine.core.util.Pair;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.StringTag;
@@ -33,84 +34,214 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler<ItemSt
 
     @Override
     public Optional<Item<ItemStack>> c2s(Item<ItemStack> wrapped) {
+        boolean forceReturn = false;
+
+        // 处理收纳袋
+        Object bundleContents = wrapped.getExactTag("Items");
+        if (bundleContents != null) {
+            List<Object> newItems = new ArrayList<>();
+            boolean changed = false;
+            for (Object tag : (Iterable<?>) bundleContents) {
+                Object previousItem = FastNMS.INSTANCE.method$ItemStack$of(tag);
+                Optional<ItemStack> itemStack = BukkitItemManager.instance().c2s(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem));
+                if (itemStack.isPresent()) {
+                    newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack.get()));
+                    changed = true;
+                } else {
+                    newItems.add(previousItem);
+                }
+            }
+            if (changed) {
+                Object listTag = FastNMS.INSTANCE.constructor$ListTag();
+                for (Object newItem : newItems) {
+                    FastNMS.INSTANCE.method$ListTag$add(listTag, 0, FastNMS.INSTANCE.method$itemStack$save(newItem, FastNMS.INSTANCE.constructor$CompoundTag()));
+                }
+                wrapped.setTag(listTag, "Items");
+                forceReturn = true;
+            }
+        }
+
+        // 处理container
+        Object containerContents = wrapped.getExactTag("BlockEntityTag");
+        if (containerContents != null) {
+            Object itemTags = FastNMS.INSTANCE.method$CompoundTag$get(containerContents, "Items");
+            if (itemTags != null) {
+                boolean changed = false;
+                List<Pair<Byte, Object>> newItems = new ArrayList<>();
+                for (Object tag : (Iterable<?>) itemTags) {
+                    Object previousItem = FastNMS.INSTANCE.method$ItemStack$of(tag);
+                    Optional<ItemStack> itemStack = BukkitItemManager.instance().c2s(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem));
+                    byte slot = FastNMS.INSTANCE.method$ByteTag$value(FastNMS.INSTANCE.method$CompoundTag$get(tag, "Slot"));
+                    if (itemStack.isPresent()) {
+                        newItems.add(Pair.of(slot, FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack.get())));
+                        changed = true;
+                    } else {
+                        newItems.add(Pair.of(slot, previousItem));
+                    }
+                }
+                if (changed) {
+                    Object listTag = FastNMS.INSTANCE.constructor$ListTag();
+                    for (Pair<Byte, Object> newItem : newItems) {
+                        Object newTag = FastNMS.INSTANCE.method$itemStack$save(newItem.right(), FastNMS.INSTANCE.constructor$CompoundTag());
+                        Object slotTag = FastNMS.INSTANCE.constructor$ByteTag(newItem.left());
+                        FastNMS.INSTANCE.method$CompoundTag$put(newTag, "Slot", slotTag);
+                        FastNMS.INSTANCE.method$ListTag$add(listTag, 0, newTag);
+                    }
+                    wrapped.setTag(listTag, "BlockEntityTag", "Items");
+                    forceReturn = true;
+                }
+            }
+        }
+
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
-        boolean hasDifferentMaterial = false;
         if (optionalCustomItem.isPresent()) {
             BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
             if (customItem.item() != FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
-                hasDifferentMaterial = true;
+                forceReturn = true;
             }
         }
-        if (!wrapped.hasTag(NETWORK_ITEM_TAG)) {
-            if (hasDifferentMaterial) {
-                return Optional.of(wrapped);
-            }
-        }
+
         CompoundTag networkData = (CompoundTag) wrapped.getTag(NETWORK_ITEM_TAG);
-        if (networkData == null) return Optional.empty();
-        wrapped.removeTag(NETWORK_ITEM_TAG);
-        for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
-            if (entry.getValue() instanceof CompoundTag tag) {
-                NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
+        if (networkData != null) {
+            forceReturn = true;
+            // 移除tag
+            wrapped.removeTag(NETWORK_ITEM_TAG);
+            // 恢复物品
+            for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
+                if (entry.getValue() instanceof CompoundTag tag) {
+                    NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
+                }
             }
         }
-        return Optional.of(wrapped);
+
+        return forceReturn ? Optional.of(wrapped) : Optional.empty();
     }
 
     @Override
     public Optional<Item<ItemStack>> s2c(Item<ItemStack> wrapped, Player player) {
-        Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
-        if (optionalCustomItem.isEmpty()) {
-            if (!Config.interceptItem()) return Optional.empty();
-            return new OtherItem(wrapped, false).process(NetworkTextReplaceContext.of(player));
-        } else {
-            BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
-            Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
-            boolean hasDifferentMaterial = serverItem == customItem.item() && serverItem != customItem.clientItem();
-            if (hasDifferentMaterial) {
-                wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
-            }
-            if (!customItem.hasClientBoundDataModifier()) {
-                if (!Config.interceptItem() && !hasDifferentMaterial) return Optional.empty();
-                return new OtherItem(wrapped, hasDifferentMaterial).process(NetworkTextReplaceContext.of(player));
-            } else {
-                CompoundTag tag = new CompoundTag();
-                Tag argumentTag = wrapped.getTag(ArgumentsModifier.ARGUMENTS_TAG);
-                ItemBuildContext context;
-                if (argumentTag instanceof CompoundTag arguments) {
-                    ContextHolder.Builder builder = ContextHolder.builder();
-                    for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
-                        builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
-                    }
-                    context = ItemBuildContext.of(player, builder);
+        boolean forceReturn = false;
+
+        // 处理收纳袋
+        Object bundleContents = wrapped.getExactTag("Items");
+        if (bundleContents != null) {
+            List<Object> newItems = new ArrayList<>();
+            boolean changed = false;
+            for (Object tag : (Iterable<?>) bundleContents) {
+                Object previousItem = FastNMS.INSTANCE.method$ItemStack$of(tag);
+                Optional<ItemStack> itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem), player);
+                if (itemStack.isPresent()) {
+                    newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack.get()));
+                    changed = true;
                 } else {
-                    context = ItemBuildContext.of(player);
+                    newItems.add(previousItem);
                 }
-                for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
-                    modifier.prepareNetworkItem(wrapped, context, tag);
+            }
+            if (changed) {
+                Object listTag = FastNMS.INSTANCE.constructor$ListTag();
+                for (Object newItem : newItems) {
+                    FastNMS.INSTANCE.method$ListTag$add(listTag, 0, FastNMS.INSTANCE.method$itemStack$save(newItem, FastNMS.INSTANCE.constructor$CompoundTag()));
                 }
-                for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
-                    modifier.apply(wrapped, context);
-                }
-                if (Config.interceptItem()) {
-                    if (!tag.containsKey("display.Name")) {
-                        processCustomName(wrapped, tag::put, context);
-                    }
-                    if (!tag.containsKey("display.Lore")) {
-                        processLore(wrapped, tag::put, context);
-                    }
-                }
-                if (tag.isEmpty()) {
-                    if (hasDifferentMaterial) {
-                        return Optional.of(wrapped);
-                    }
-                    return Optional.empty();
-                }
-                wrapped.setTag(tag, NETWORK_ITEM_TAG);
-                return Optional.of(wrapped);
+                wrapped.setTag(listTag, "Items");
+                forceReturn = true;
             }
         }
+
+        // 处理container
+        Object containerContents = wrapped.getExactTag("BlockEntityTag");
+        if (containerContents != null) {
+            Object itemTags = FastNMS.INSTANCE.method$CompoundTag$get(containerContents, "Items");
+            if (itemTags != null) {
+                boolean changed = false;
+                List<Pair<Byte, Object>> newItems = new ArrayList<>();
+                for (Object tag : (Iterable<?>) itemTags) {
+                    Object previousItem = FastNMS.INSTANCE.method$ItemStack$of(tag);
+                    Optional<ItemStack> itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem), player);
+                    byte slot = FastNMS.INSTANCE.method$ByteTag$value(FastNMS.INSTANCE.method$CompoundTag$get(tag, "Slot"));
+                    if (itemStack.isPresent()) {
+                        newItems.add(Pair.of(slot, FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack.get())));
+                        changed = true;
+                    } else {
+                        newItems.add(Pair.of(slot, previousItem));
+                    }
+                }
+                if (changed) {
+                    Object listTag = FastNMS.INSTANCE.constructor$ListTag();
+                    for (Pair<Byte, Object> newItem : newItems) {
+                        Object newTag = FastNMS.INSTANCE.method$itemStack$save(newItem.right(), FastNMS.INSTANCE.constructor$CompoundTag());
+                        Object slotTag = FastNMS.INSTANCE.constructor$ByteTag(newItem.left());
+                        FastNMS.INSTANCE.method$CompoundTag$put(newTag, "Slot", slotTag);
+                        FastNMS.INSTANCE.method$ListTag$add(listTag, 0, newTag);
+                    }
+                    wrapped.setTag(listTag, "BlockEntityTag", "Items");
+                    forceReturn = true;
+                }
+            }
+        }
+
+        // todo 处理book
+
+        Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
+        // 不是自定义物品或修改过的原版物品
+        if (optionalCustomItem.isEmpty()) {
+            if (!Config.interceptItem()) {
+                return forceReturn ? Optional.of(wrapped) : Optional.empty();
+            }
+            return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
+        }
+
+        // 应用 client-bound-material
+        BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+        if (customItem.hasClientboundMaterial() && FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject()) != customItem.clientItem()) {
+            wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
+            forceReturn = true;
+        }
+
+        // 没有客户端侧组件
+        if (!customItem.hasClientBoundDataModifier()) {
+            if (!Config.interceptItem()) {
+                return forceReturn ? Optional.of(wrapped) : Optional.empty();
+            }
+            return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
+        }
+
+        // 应用client-bound-data
+        CompoundTag tag = new CompoundTag();
+        // 创建context
+        Tag argumentTag = wrapped.getTag(ArgumentsModifier.ARGUMENTS_TAG);
+        NetworkItemBuildContext context;
+        if (argumentTag instanceof CompoundTag arguments) {
+            ContextHolder.Builder builder = ContextHolder.builder();
+            for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
+                builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
+            }
+            context = NetworkItemBuildContext.of(player, builder);
+        } else {
+            context = NetworkItemBuildContext.of(player);
+        }
+        // 准备阶段
+        for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
+            modifier.prepareNetworkItem(wrapped, context, tag);
+        }
+        // 应用阶段
+        for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
+            modifier.apply(wrapped, context);
+        }
+        // 如果拦截物品的描述名称等
+        if (Config.interceptItem()) {
+            if (!tag.containsKey("display.Name")) {
+                processCustomName(wrapped, tag::put, context);
+            }
+            if (!tag.containsKey("display.Lore")) {
+                processLore(wrapped, tag::put, context);
+            }
+        }
+        // 如果tag不空，则需要返回
+        if (!tag.isEmpty()) {
+            wrapped.setTag(tag, NETWORK_ITEM_TAG);
+            forceReturn = true;
+        }
+        return forceReturn ? Optional.of(wrapped) : Optional.empty();
     }
 
     public static boolean processCustomName(Item<ItemStack> item, BiConsumer<String, CompoundTag> callback, Context context) {

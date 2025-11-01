@@ -4,22 +4,37 @@ import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
-import org.yaml.snakeyaml.nodes.MappingNode;
-import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.NodeTuple;
-import org.yaml.snakeyaml.nodes.ScalarNode;
+import org.yaml.snakeyaml.nodes.*;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.yaml.snakeyaml.nodes.Tag.*;
+
 public class StringKeyConstructor extends SafeConstructor {
     private final Path path;
     private static final String VERSION_PREFIX = "$$";
     private static final String DEEP_KEY_SEPARATOR = "::";
+    public static final Tag BYTE = new Tag(PREFIX + "byte");
+    public static final Tag SHORT = new Tag(PREFIX + "short");
+    public static final Tag LONG = new Tag(PREFIX + "long");
+    public static final Tag DOUBLE = new Tag(PREFIX + "double");
+
+    static {
+        standardTags.add(BYTE);
+        standardTags.add(SHORT);
+        standardTags.add(LONG);
+        standardTags.add(DOUBLE);
+    }
 
     public StringKeyConstructor(Path path, LoaderOptions loaderOptions) {
         super(loaderOptions);
+        this.yamlConstructors.put(BYTE, new ConstructYamlByte());
+        this.yamlConstructors.put(SHORT, new ConstructYamlShort());
+        this.yamlConstructors.put(LONG, new ConstructYamlLong());
+        this.yamlConstructors.put(FLOAT, new ConstructYamlFloatSingle()); // 覆盖默认实现
+        this.yamlConstructors.put(DOUBLE, new ConstructYamlDouble());
         this.path = path;
     }
 
@@ -234,5 +249,65 @@ public class StringKeyConstructor extends SafeConstructor {
                 this.path.toAbsolutePath().toString(),
                 configKey,
                 String.valueOf(node.getStartMark().getLine() + 1));
+    }
+
+    public class ConstructYamlByte extends ConstructYamlInt {
+
+        @Override
+        public Object construct(Node node) {
+            Object value = super.construct(node);
+            if (value instanceof Number number) {
+                return number.byteValue();
+            }
+            throw new RuntimeException("Unexpected type: " + value.getClass().getName());
+        }
+    }
+
+    public class ConstructYamlShort extends ConstructYamlInt {
+
+        @Override
+        public Object construct(Node node) {
+            Object value = super.construct(node);
+            if (value instanceof Number number) {
+                return number.shortValue();
+            }
+            throw new RuntimeException("Unexpected type: " + value.getClass().getName());
+        }
+    }
+
+    public class ConstructYamlLong extends ConstructYamlInt {
+
+        @Override
+        public Object construct(Node node) {
+            Object value = super.construct(node);
+            if (value instanceof Number number) {
+                return number.longValue();
+            }
+            throw new RuntimeException("Unexpected type: " + value.getClass().getName());
+        }
+    }
+
+    public class ConstructYamlFloatSingle extends ConstructYamlFloat {
+
+        @Override
+        public Object construct(Node node) {
+            Object value = super.construct(node);
+            if (value instanceof Number number) {
+                return number.floatValue();
+            }
+            throw new RuntimeException("Unexpected type: " + value.getClass().getName());
+        }
+    }
+
+    public class ConstructYamlDouble extends ConstructYamlFloat {
+
+        @Override
+        public Object construct(Node node) {
+            Object value = super.construct(node);
+            if (value instanceof Number number) {
+                return number.doubleValue();
+            }
+            throw new RuntimeException("Unexpected type: " + value.getClass().getName());
+        }
     }
 }

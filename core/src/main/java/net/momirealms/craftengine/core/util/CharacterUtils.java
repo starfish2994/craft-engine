@@ -68,6 +68,10 @@ public class CharacterUtils {
         return builder.toString();
     }
 
+    public static String escape(String string) {
+        return encodeCharsToUnicode(string.toCharArray());
+    }
+
     public static String replaceBackslashWithSlash(String input) {
         if (input == null || input.isEmpty()) {
             return input;

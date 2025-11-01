@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.modifier;
 
-import net.momirealms.craftengine.core.item.ComponentKeys;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDataModifierFactory;
@@ -31,7 +31,7 @@ public class ItemModelModifier<I> implements SimpleNetworkItemDataModifier<I> {
 
     @Override
     public @Nullable Key componentType(Item<I> item, ItemBuildContext context) {
-        return ComponentKeys.ITEM_MODEL;
+        return DataComponentKeys.ITEM_MODEL;
     }
 
     public static class Factory<I> implements ItemDataModifierFactory<I> {

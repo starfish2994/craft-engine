@@ -3,6 +3,8 @@ package net.momirealms.craftengine.core.item;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.AttributeModifier;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.data.Enchantment;
 import net.momirealms.craftengine.core.item.data.FireworkExplosion;
@@ -18,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -75,6 +78,10 @@ public interface Item<I> {
     Item<I> maxDamage(Integer data);
 
     int maxDamage();
+
+    Item<I> blockState(Map<String, String> state);
+
+    Optional<Map<String, String>> blockState();
 
     // todo 考虑部分版本的show in tooltip保留
     Item<I> dyedColor(Color data);
@@ -208,6 +215,8 @@ public interface Item<I> {
     Item<I> unsafeTransmuteCopy(Object another, int count);
 
     void shrink(int amount);
+
+    void hurtAndBreak(int amount, @Nullable Player player, @Nullable EquipmentSlot slot);
 
     default Item<I> transmuteCopy(Key another) {
         return transmuteCopy(another, this.count());

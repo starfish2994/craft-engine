@@ -6,7 +6,7 @@ import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.context.Condition;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
@@ -28,9 +28,10 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                               String group,
                               CraftingRecipeCategory category,
                               Pattern<T> pattern,
-                              Function<PlayerOptionalContext>[] craftingFunctions,
-                              Condition<PlayerOptionalContext> craftingCondition) {
-        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition);
+                              Function<Context>[] craftingFunctions,
+                              Condition<Context> craftingCondition,
+                              boolean alwaysRebuildOutput) {
+        super(id, showNotification, result, visualResult, group, category, craftingFunctions, craftingCondition, alwaysRebuildOutput);
         this.pattern = pattern;
         this.parsedPattern = pattern.parse();
     }
@@ -64,29 +65,45 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
         public ParsedPattern<T> parse() {
                 String[] shrunk = shrink(pattern);
                 return new ParsedPattern<>(shrunk[0].length(), shrunk.length,
-                        toIngredientList(
-                                shrunk,
-                                ingredients
-                        ));
+                        toIngredientArray(shrunk, ingredients));
         }
     }
 
     public static class ParsedPattern<T> {
         private final int width;
         private final int height;
-        private final List<Optional<Ingredient<T>>> ingredients;
+        private final Optional<Ingredient<T>>[] ingredients;
+        private final Optional<Ingredient<T>>[] mirroredIngredients;
         private final int ingredientCount;
         private final boolean symmetrical;
 
-        public ParsedPattern(int width, int height, List<Optional<Ingredient<T>>> ingredients) {
+        @SuppressWarnings("unchecked")
+        public ParsedPattern(int width, int height, Optional<Ingredient<T>>[] ingredients) {
             this.height = height;
             this.width = width;
-            this.ingredientCount = (int) ingredients.stream().flatMap(Optional::stream).count();
             this.symmetrical = isSymmetrical(width, height, ingredients);
             this.ingredients = ingredients;
+            if (this.symmetrical) {
+                this.mirroredIngredients = ingredients;
+            } else {
+                this.mirroredIngredients = new Optional[ingredients.length];
+                for (int i = 0; i < this.height; i++) {
+                    for (int j = 0; j < this.width; j++) {
+                        Optional<Ingredient<T>> ingredient = this.ingredients[j + i * this.width];
+                        this.mirroredIngredients[this.width - j - 1 + i * this.width] = ingredient;
+                    }
+                }
+            }
+            int count = 0;
+            for (Optional<Ingredient<T>> ingredient : this.ingredients) {
+                if (ingredient.isPresent()) {
+                    count++;
+                }
+            }
+            this.ingredientCount = count;
         }
 
-        public List<Optional<Ingredient<T>>> ingredients() {
+        public Optional<Ingredient<T>>[] ingredients() {
             return ingredients;
         }
 
@@ -99,8 +116,8 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
         }
 
         public boolean matches(CraftingInput<T> input) {
-            if (input.ingredientCount() == this.ingredientCount) {
-                if (input.width() == this.width && input.height() == this.height) {
+            if (input.ingredientCount == this.ingredientCount) {
+                if (input.width == this.width && input.height == this.height) {
                     if (!this.symmetrical && this.matches(input, true)) {
                         return true;
                     }
@@ -111,15 +128,18 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
         }
 
         private boolean matches(CraftingInput<T> input, boolean mirrored) {
-            for (int i = 0; i < this.height; i++) {
-                for (int j = 0; j < this.width; j++) {
-                    Optional<Ingredient<T>> optional;
-                    if (mirrored) {
-                        optional = this.ingredients.get(this.width - j - 1 + i * this.width);
-                    } else {
-                        optional = this.ingredients.get(j + i * this.width);
+            if (mirrored) {
+                for (int i = 0, size = input.size(); i < size; i++) {
+                    Optional<Ingredient<T>> optional = this.mirroredIngredients[i];
+                    UniqueIdItem<T> itemStack = input.getItem(i);
+                    if (!Ingredient.isInstance(optional, itemStack)) {
+                        return false;
                     }
-                    UniqueIdItem<T> itemStack = input.getItem(j, i);
+                }
+            } else {
+                for (int i = 0, size = input.size(); i < size; i++) {
+                    Optional<Ingredient<T>> optional = this.ingredients[i];
+                    UniqueIdItem<T> itemStack = input.getItem(i);
                     if (!Ingredient.isInstance(optional, itemStack)) {
                         return false;
                     }
@@ -128,14 +148,14 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
             return true;
         }
 
-        private static <T> boolean isSymmetrical(int width, int height, List<T> list) {
+        private static <T> boolean isSymmetrical(int width, int height, T[] list) {
             if (width != 1) {
                 int i = width / 2;
                 for (int j = 0; j < height; j++) {
                     for (int k = 0; k < i; k++) {
                         int l = width - 1 - k;
-                        T o1 = list.get(k + j * width);
-                        T o2 = list.get(l + j * width);
+                        T o1 = list[k + j * width];
+                        T o2 = list[l + j * width];
                         if (!o1.equals(o2)) {
                             return false;
                         }
@@ -176,7 +196,8 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                     arguments.containsKey("group") ? arguments.get("group").toString() : null, craftingRecipeCategory(arguments),
                     new Pattern<>(pattern.toArray(new String[0]), ingredients),
                     functions(arguments),
-                    conditions(arguments)
+                    conditions(arguments),
+                    ResourceConfigUtils.getAsBoolean(arguments.getOrDefault("always-rebuild-result", true), "always-rebuild-result")
             );
         }
 
@@ -191,7 +212,8 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                     VANILLA_RECIPE_HELPER.craftingCategory(json),
                     new Pattern<>(VANILLA_RECIPE_HELPER.craftingShapedPattern(json), ingredients),
                     null,
-                    null
+                    null,
+                    false
             );
         }
 
@@ -210,7 +232,8 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
         }
     }
 
-    public static <T> List<Optional<Ingredient<T>>> toIngredientList(String[] pattern, Map<Character, Ingredient<T>> ingredients) {
+    @SuppressWarnings("unchecked")
+    public static <T> Optional<Ingredient<T>>[] toIngredientArray(String[] pattern, Map<Character, Ingredient<T>> ingredients) {
         List<Optional<Ingredient<T>>> result = new ArrayList<>();
         String[] shrunkPattern = shrink(pattern);
         for (String pa : shrunkPattern) {
@@ -227,7 +250,7 @@ public class CustomShapedRecipe<T> extends CustomCraftingTableRecipe<T> {
                 }
             }
         }
-        return result;
+        return result.toArray(new Optional[0]);
     }
 
     public static String[] shrink(String[] patterns) {

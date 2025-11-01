@@ -107,6 +107,12 @@ public class BukkitExistingBlock implements ExistingBlock {
         return null;
     }
 
+    @Override
+    public boolean is(Key tag) {
+        Object state = FastNMS.INSTANCE.method$BlockGetter$getBlockState(FastNMS.INSTANCE.field$CraftWorld$ServerLevel(block.getWorld()), LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ()));
+        return BlockStateUtils.isTag(state, tag);
+    }
+
     public Block block() {
         return this.block;
     }

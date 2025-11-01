@@ -31,95 +31,201 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
 
     @Override
     public Optional<Item<ItemStack>> c2s(Item<ItemStack> wrapped) {
-        Tag customData = wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA);
-        if (!(customData instanceof CompoundTag compoundTag)) return Optional.empty();
+        boolean forceReturn = false;
+
+        // 处理收纳袋
+        if (wrapped.hasComponent(DataComponentTypes.BUNDLE_CONTENTS)) {
+            Object bundleContents = wrapped.getExactComponent(DataComponentTypes.BUNDLE_CONTENTS);
+            List<Object> newItems = new ArrayList<>();
+            boolean changed = false;
+            for (Object previousItem : FastNMS.INSTANCE.method$BundleContents$items(bundleContents)) {
+                Optional<ItemStack> itemStack = BukkitItemManager.instance().c2s(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem));
+                if (itemStack.isPresent()) {
+                    newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack.get()));
+                    changed = true;
+                } else {
+                    newItems.add(previousItem);
+                }
+            }
+            if (changed) {
+                wrapped.setExactComponent(DataComponentTypes.BUNDLE_CONTENTS, FastNMS.INSTANCE.constructor$BundleContents(newItems));
+                forceReturn = true;
+            }
+        }
+
+        // 处理潜影盒等
+        if (wrapped.hasComponent(DataComponentTypes.CONTAINER)) {
+            Object containerContents = wrapped.getExactComponent(DataComponentTypes.CONTAINER);
+            List<Object> newItems = new ArrayList<>();
+            boolean changed = false;
+            for (Object previousItem : FastNMS.INSTANCE.field$ItemContainerContents$items(containerContents)) {
+                Optional<ItemStack> itemStack = BukkitItemManager.instance().c2s(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem));
+                if (itemStack.isPresent()) {
+                    newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack.get()));
+                    changed = true;
+                } else {
+                    newItems.add(previousItem);
+                }
+            }
+            if (changed) {
+                wrapped.setExactComponent(DataComponentTypes.CONTAINER, FastNMS.INSTANCE.method$ItemContainerContents$fromItems(newItems));
+                forceReturn = true;
+            }
+        }
+
+        // 先尝试恢复client-bound-material
         Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
-        boolean hasDifferentMaterial = false;
         if (optionalCustomItem.isPresent()) {
             BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
             if (customItem.item() != FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
-                hasDifferentMaterial = true;
+                forceReturn = true;
             }
         }
-        CompoundTag networkData = compoundTag.getCompound(NETWORK_ITEM_TAG);
-        if (networkData == null) {
-            if (hasDifferentMaterial) {
-                return Optional.of(wrapped);
+
+        // 获取custom data
+        Tag customData = wrapped.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA);
+        if (customData instanceof CompoundTag compoundTag) {
+            CompoundTag networkData = compoundTag.getCompound(NETWORK_ITEM_TAG);
+            if (networkData != null) {
+                forceReturn = true;
+                // 移除此tag
+                compoundTag.remove(NETWORK_ITEM_TAG);
+
+                // 恢复物品
+                for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
+                    if (entry.getValue() instanceof CompoundTag tag) {
+                        NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
+                    }
+                }
+
+                // 如果清空了，则直接移除这个组件
+                if (compoundTag.isEmpty()) wrapped.resetComponent(DataComponentTypes.CUSTOM_DATA);
+                // 否则设置为新的
+                else wrapped.setNBTComponent(DataComponentTypes.CUSTOM_DATA, compoundTag);
             }
-            return Optional.empty();
         }
-        compoundTag.remove(NETWORK_ITEM_TAG);
-        for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
-            if (entry.getValue() instanceof CompoundTag tag) {
-                NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
-            }
-        }
-        if (compoundTag.isEmpty()) wrapped.resetComponent(ComponentTypes.CUSTOM_DATA);
-        else wrapped.setNBTComponent(ComponentTypes.CUSTOM_DATA, compoundTag);
-        return Optional.of(wrapped);
+
+        return forceReturn ? Optional.of(wrapped) : Optional.empty();
     }
 
     @Override
     public Optional<Item<ItemStack>> s2c(Item<ItemStack> wrapped, Player player) {
-        Item<ItemStack> original = wrapped;
-        Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
-        if (optionalCustomItem.isEmpty()) {
-            if (!Config.interceptItem()) return Optional.empty();
-            return new OtherItem(wrapped, false).process(NetworkTextReplaceContext.of(player));
-        } else {
-            BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
-            Object serverItem = FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject());
-            boolean hasDifferentMaterial = serverItem == customItem.item() && serverItem != customItem.clientItem();
-            if (hasDifferentMaterial) {
-                wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
-            }
-            if (!customItem.hasClientBoundDataModifier()) {
-                if (!Config.interceptItem() && !hasDifferentMaterial) return Optional.empty();
-                return new OtherItem(wrapped, hasDifferentMaterial).process(NetworkTextReplaceContext.of(player));
-            } else {
-                CompoundTag customData = Optional.ofNullable(wrapped.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA)).map(CompoundTag.class::cast).orElse(new CompoundTag());
-                CompoundTag arguments = customData.getCompound(ArgumentsModifier.ARGUMENTS_TAG);
-                ItemBuildContext context;
-                if (arguments == null) {
-                    context = ItemBuildContext.of(player);
+        boolean forceReturn = false;
+
+        // 处理收纳袋
+        if (wrapped.hasComponent(DataComponentTypes.BUNDLE_CONTENTS)) {
+            Object bundleContents = wrapped.getExactComponent(DataComponentTypes.BUNDLE_CONTENTS);
+            List<Object> newItems = new ArrayList<>();
+            boolean changed = false;
+            for (Object previousItem : FastNMS.INSTANCE.method$BundleContents$items(bundleContents)) {
+                Optional<ItemStack> itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem), player);
+                if (itemStack.isPresent()) {
+                    newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack.get()));
+                    changed = true;
                 } else {
-                    ContextHolder.Builder builder = ContextHolder.builder();
-                    for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
-                        builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
-                    }
-                    context = ItemBuildContext.of(player, builder);
+                    newItems.add(previousItem);
                 }
-                CompoundTag tag = new CompoundTag();
-                for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
-                    modifier.prepareNetworkItem(original, context, tag);
-                }
-                for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
-                    modifier.apply(wrapped, context);
-                }
-                if (Config.interceptItem()) {
-                    if (!tag.containsKey(ComponentIds.ITEM_NAME)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernItemName(wrapped, () -> tag, context);
-                        else processLegacyItemName(wrapped, () -> tag, context);
-                    }
-                    if (!tag.containsKey(ComponentIds.CUSTOM_NAME)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernCustomName(wrapped, () -> tag, context);
-                        else processLegacyCustomName(wrapped, () -> tag, context);
-                    }
-                    if (!tag.containsKey(ComponentIds.LORE)) {
-                        if (VersionHelper.isOrAbove1_21_5()) processModernLore(wrapped, () -> tag, context);
-                        else processLegacyLore(wrapped, () -> tag, context);
-                    }
-                }
-                if (tag.isEmpty()) {
-                    if (hasDifferentMaterial) return Optional.of(wrapped);
-                    return Optional.empty();
-                }
-                customData.put(NETWORK_ITEM_TAG, tag);
-                wrapped.setNBTComponent(ComponentTypes.CUSTOM_DATA, customData);
-                return Optional.of(wrapped);
+            }
+            if (changed) {
+                wrapped.setExactComponent(DataComponentTypes.BUNDLE_CONTENTS, FastNMS.INSTANCE.constructor$BundleContents(newItems));
+                forceReturn = true;
             }
         }
+
+        // 处理潜影盒等
+        if (wrapped.hasComponent(DataComponentTypes.CONTAINER)) {
+            Object containerContents = wrapped.getExactComponent(DataComponentTypes.CONTAINER);
+            List<Object> newItems = new ArrayList<>();
+            for (Object previousItem : FastNMS.INSTANCE.field$ItemContainerContents$items(containerContents)) {
+                boolean changed = false;
+                Optional<ItemStack> itemStack = BukkitItemManager.instance().s2c(FastNMS.INSTANCE.method$CraftItemStack$asCraftMirror(previousItem), player);
+                if (itemStack.isPresent()) {
+                    newItems.add(FastNMS.INSTANCE.field$CraftItemStack$handle(itemStack.get()));
+                    changed = true;
+                } else {
+                    newItems.add(previousItem);
+                }
+                if (changed) {
+                    wrapped.setExactComponent(DataComponentTypes.CONTAINER, FastNMS.INSTANCE.method$ItemContainerContents$fromItems(newItems));
+                    forceReturn = true;
+                }
+            }
+        }
+
+        // todo 处理book
+
+        // 不是自定义物品或修改过的原版物品
+        Optional<CustomItem<ItemStack>> optionalCustomItem = wrapped.getCustomItem();
+        if (optionalCustomItem.isEmpty()) {
+            if (!Config.interceptItem()) {
+                return forceReturn ? Optional.of(wrapped) : Optional.empty();
+            }
+            return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
+        }
+
+        BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+        // 提前复制，这和物品类型相关
+        Item<ItemStack> original = wrapped;
+        // 应用 client-bound-material前提是服务端侧物品类型和客户端侧的不同
+        if (customItem.hasClientboundMaterial() && FastNMS.INSTANCE.method$ItemStack$getItem(wrapped.getLiteralObject()) != customItem.clientItem()) {
+            wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
+            forceReturn = true;
+        }
+        // 没有 client-bound-data
+        if (!customItem.hasClientBoundDataModifier()) {
+            if (!Config.interceptItem()) {
+                return forceReturn ? Optional.of(wrapped) : Optional.empty();
+            }
+            return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
+        }
+        // 获取custom data
+        CompoundTag customData = Optional.ofNullable(wrapped.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA))
+                .map(CompoundTag.class::cast)
+                .orElseGet(CompoundTag::new);
+        CompoundTag arguments = customData.getCompound(ArgumentsModifier.ARGUMENTS_TAG);
+        // 创建context
+        NetworkItemBuildContext context;
+        if (arguments == null) {
+            context = NetworkItemBuildContext.of(player);
+        } else {
+            ContextHolder.Builder builder = ContextHolder.builder();
+            for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
+                builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
+            }
+            context = NetworkItemBuildContext.of(player, builder);
+        }
+        // 准备阶段
+        CompoundTag tag = new CompoundTag();
+        for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
+            modifier.prepareNetworkItem(original, context, tag);
+        }
+        // 应用阶段
+        for (ItemDataModifier<ItemStack> modifier : customItem.clientBoundDataModifiers()) {
+            modifier.apply(wrapped, context);
+        }
+        // 如果拦截物品的描述名称等
+        if (Config.interceptItem()) {
+            if (!tag.containsKey(DataComponentIds.ITEM_NAME)) {
+                if (VersionHelper.isOrAbove1_21_5()) processModernItemName(wrapped, () -> tag, context);
+                else processLegacyItemName(wrapped, () -> tag, context);
+            }
+            if (!tag.containsKey(DataComponentIds.CUSTOM_NAME)) {
+                if (VersionHelper.isOrAbove1_21_5()) processModernCustomName(wrapped, () -> tag, context);
+                else processLegacyCustomName(wrapped, () -> tag, context);
+            }
+            if (!tag.containsKey(DataComponentIds.LORE)) {
+                if (VersionHelper.isOrAbove1_21_5()) processModernLore(wrapped, () -> tag, context);
+                else processLegacyLore(wrapped, () -> tag, context);
+            }
+        }
+        // 如果tag不空，则需要返回
+        if (!tag.isEmpty()) {
+            customData.put(NETWORK_ITEM_TAG, tag);
+            wrapped.setNBTComponent(DataComponentTypes.CUSTOM_DATA, customData);
+            forceReturn = true;
+        }
+        return forceReturn ? Optional.of(wrapped) : Optional.empty();
     }
 
     public static boolean processLegacyLore(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
@@ -143,7 +249,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                 for (String line : lore) {
                     listTag.add(new StringTag(line));
                 }
-                tag.get().put(ComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
+                tag.get().put(DataComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
                 return true;
             }
         }
@@ -157,7 +263,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
             if (!tokens.isEmpty()) {
                 item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
-                tag.get().put(ComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
+                tag.get().put(DataComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
                 return true;
             }
         }
@@ -171,7 +277,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(line);
             if (!tokens.isEmpty()) {
                 item.itemNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
-                tag.get().put(ComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
+                tag.get().put(DataComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
                 return true;
             }
         }
@@ -179,41 +285,38 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
     }
 
     public static boolean processModernItemName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
-        Tag nameTag = item.getSparrowNBTComponent(ComponentTypes.ITEM_NAME);
+        Tag nameTag = item.getSparrowNBTComponent(DataComponentTypes.ITEM_NAME);
         if (nameTag == null) return false;
-        String tagStr = nameTag.getAsString();
-        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nameTag);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(ComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
-            tag.get().put(ComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
+            item.setNBTComponent(DataComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
+            tag.get().put(DataComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
         return false;
     }
 
     public static boolean processModernCustomName(Item<ItemStack> item, Supplier<CompoundTag> tag, Context context) {
-        Tag nameTag = item.getSparrowNBTComponent(ComponentTypes.CUSTOM_NAME);
+        Tag nameTag = item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_NAME);
         if (nameTag == null) return false;
-        String tagStr = nameTag.getAsString();
-        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+        Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(nameTag);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(ComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
-            tag.get().put(ComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
+            item.setNBTComponent(DataComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
+            tag.get().put(DataComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
         return false;
     }
 
     public static boolean processModernLore(Item<ItemStack> item, Supplier<CompoundTag> tagSupplier, Context context) {
-        Tag loreTag = item.getSparrowNBTComponent(ComponentTypes.LORE);
+        Tag loreTag = item.getSparrowNBTComponent(DataComponentTypes.LORE);
         boolean changed = false;
         if (!(loreTag instanceof ListTag listTag)) {
             return false;
         }
         ListTag newLore = new ListTag();
         for (Tag tag : listTag) {
-            String tagStr = tag.getAsString();
-            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tagStr);
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().fontManager().matchTags(tag);
             if (tokens.isEmpty()) {
                 newLore.add(tag);
             } else {
@@ -222,8 +325,8 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
             }
         }
         if (changed) {
-            item.setNBTComponent(ComponentKeys.LORE, newLore);
-            tagSupplier.get().put(ComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
+            item.setNBTComponent(DataComponentKeys.LORE, newLore);
+            tagSupplier.get().put(DataComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
             return true;
         }
         return false;
@@ -257,9 +360,11 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler<ItemSt
                     this.globalChanged = true;
             }
             if (this.globalChanged) {
-                CompoundTag customData = Optional.ofNullable(this.item.getSparrowNBTComponent(ComponentTypes.CUSTOM_DATA)).map(CompoundTag.class::cast).orElse(new CompoundTag());
+                CompoundTag customData = Optional.ofNullable(this.item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA))
+                        .map(CompoundTag.class::cast)
+                        .orElseGet(CompoundTag::new);
                 customData.put(NETWORK_ITEM_TAG, getOrCreateTag());
-                this.item.setNBTComponent(ComponentKeys.CUSTOM_DATA, customData);
+                this.item.setNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
                 return Optional.of(this.item);
             } else if (this.forceReturn) {
                 return Optional.of(this.item);

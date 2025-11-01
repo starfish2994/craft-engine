@@ -8,6 +8,7 @@ import com.google.gson.JsonPrimitive;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,13 +20,17 @@ import java.util.function.Predicate;
 public class IdAllocator {
     private final Path cacheFilePath;
     private final BiMap<String, Integer> forcedIdMap = HashBiMap.create(128);
-    private final Map<String, Integer> cachedIdMap = new HashMap<>();
     private final BitSet occupiedIdSet = new BitSet();
     private final Map<String, CompletableFuture<Integer>> pendingAllocations = new LinkedHashMap<>();
+    private final Map<String, Integer> cachedIdMap = new LinkedHashMap<>();
+
+    private long lastModified;
 
     private int nextAutoId;
     private int minId;
     private int maxId;
+
+    private boolean dirty;
 
     public IdAllocator(Path cacheFilePath) {
         this.cacheFilePath = cacheFilePath;
@@ -43,7 +48,6 @@ public class IdAllocator {
         this.occupiedIdSet.clear();
         this.forcedIdMap.clear();
         this.pendingAllocations.clear();
-        this.cachedIdMap.clear();
     }
 
     /**
@@ -81,6 +85,7 @@ public class IdAllocator {
 
             allocateId(newId, future);
             this.cachedIdMap.put(name, newId);
+            this.dirty = true;
         }
 
         this.pendingAllocations.clear();
@@ -164,12 +169,16 @@ public class IdAllocator {
             }
         }
 
-        for (String id : idsToRemove) {
-            Integer removedId = this.cachedIdMap.remove(id);
-            if (removedId != null && !this.forcedIdMap.containsValue(removedId)) {
-                this.occupiedIdSet.clear(removedId);
+        if (!idsToRemove.isEmpty()) {
+            this.dirty = true;
+            for (String id : idsToRemove) {
+                Integer removedId = this.cachedIdMap.remove(id);
+                if (removedId != null && !this.forcedIdMap.containsValue(removedId)) {
+                    this.occupiedIdSet.clear(removedId);
+                }
             }
         }
+
         return idsToRemove;
     }
 
@@ -193,6 +202,11 @@ public class IdAllocator {
         return Collections.unmodifiableMap(result);
     }
 
+    @NotNull
+    public Map<String, Integer> cachedIdMap() {
+        return Collections.unmodifiableMap(this.cachedIdMap);
+    }
+
     /**
      * 检查ID是否已被占用
      */
@@ -205,15 +219,23 @@ public class IdAllocator {
      */
     public void loadFromCache() throws IOException {
         if (!Files.exists(this.cacheFilePath)) {
+            if (!this.cachedIdMap.isEmpty()) {
+                this.cachedIdMap.clear();
+            }
             return;
         }
 
-        JsonElement element = GsonHelper.readJsonFile(this.cacheFilePath);
-        if (element instanceof JsonObject jsonObject) {
-            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-                if (entry.getValue() instanceof JsonPrimitive primitive) {
-                    int id = primitive.getAsInt();
-                    this.cachedIdMap.put(entry.getKey(), id);
+        long lastTime = Files.getLastModifiedTime(this.cacheFilePath).toMillis();
+        if (lastTime != this.lastModified) {
+            this.lastModified = lastTime;
+            this.cachedIdMap.clear();
+            JsonElement element = GsonHelper.readJsonFile(this.cacheFilePath);
+            if (element instanceof JsonObject jsonObject) {
+                for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                    if (entry.getValue() instanceof JsonPrimitive primitive) {
+                        int id = primitive.getAsInt();
+                        this.cachedIdMap.put(entry.getKey(), id);
+                    }
                 }
             }
         }
@@ -223,6 +245,13 @@ public class IdAllocator {
      * 保存缓存到文件
      */
     public void saveToCache() throws IOException {
+        // 如果没有更改
+        if (!this.dirty) {
+            return;
+        }
+
+        this.dirty = false;
+
         // 创建按ID排序的TreeMap
         Map<Integer, String> sortedById = new TreeMap<>();
         for (Map.Entry<String, Integer> entry : this.cachedIdMap.entrySet()) {

@@ -1,22 +1,25 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern;
 
-import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
-public record RecipeBookEntry(RecipeBookDisplayEntry entry, byte flags) {
+import java.util.function.Function;
 
-    public void applyClientboundData(Player player) {
-        this.entry.applyClientboundData(player);
+public record RecipeBookEntry<I>(RecipeBookDisplayEntry<I> entry, byte flags) {
+
+    public void applyClientboundData(Function<Item<I>, Item<I>> function) {
+        this.entry.applyClientboundData(function);
     }
 
-    public static RecipeBookEntry read(FriendlyByteBuf buffer) {
-        RecipeBookDisplayEntry displayEntry = RecipeBookDisplayEntry.read(buffer);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <I> RecipeBookEntry<I> read(FriendlyByteBuf buffer, FriendlyByteBuf.Reader<Item<I>> reader) {
+        RecipeBookDisplayEntry displayEntry = RecipeBookDisplayEntry.read(buffer, reader);
         byte flags = buffer.readByte();
         return new RecipeBookEntry(displayEntry, flags);
     }
 
-    public void write(FriendlyByteBuf buffer) {
-        this.entry.write(buffer);
+    public void write(FriendlyByteBuf buffer, FriendlyByteBuf.Writer<Item<I>> writer) {
+        this.entry.write(buffer, writer);
         buffer.writeByte(this.flags);
     }
 }

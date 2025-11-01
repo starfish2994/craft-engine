@@ -27,6 +27,8 @@ import java.util.stream.LongStream;
 
 public final class DefaultSectionSerializer {
 
+    private DefaultSectionSerializer() {}
+
     @Nullable
     public static CompoundTag serialize(@NotNull CESection section) {
         ReadableContainer.Serialized<ImmutableBlockState> serialized = section.statesContainer().serialize(null, PalettedContainer.PaletteProvider.CUSTOM_BLOCK_STATE);

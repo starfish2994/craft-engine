@@ -304,6 +304,18 @@ public class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrapper> {
     }
 
     @Override
+    protected Optional<Map<String, String>> blockState(LegacyItemWrapper item) {
+        Map<String, String> state = item.getJavaTag("BlockStateTag");
+        if (state == null) return Optional.empty();
+        return Optional.of(state);
+    }
+
+    @Override
+    protected void blockState(LegacyItemWrapper item, Map<String, String> state) {
+        item.setTag(state, "BlockStateTag");
+    }
+
+    @Override
     protected Optional<Trim> trim(LegacyItemWrapper item) {
         String material = item.getJavaTag("Trim", "material");
         String pattern = item.getJavaTag("Trim", "pattern");

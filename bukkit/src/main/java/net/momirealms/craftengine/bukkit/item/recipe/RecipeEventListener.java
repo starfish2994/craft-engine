@@ -4,15 +4,14 @@ import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.item.ComponentTypes;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.reflection.bukkit.CraftBukkitReflections;
 import net.momirealms.craftengine.bukkit.plugin.reflection.minecraft.CoreReflections;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
-import net.momirealms.craftengine.bukkit.util.ComponentUtils;
-import net.momirealms.craftengine.bukkit.util.InventoryUtils;
-import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
-import net.momirealms.craftengine.bukkit.util.LegacyInventoryUtils;
+import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.equipment.TrimBasedEquipment;
 import net.momirealms.craftengine.core.item.recipe.*;
@@ -23,11 +22,15 @@ import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.Context;
+import net.momirealms.craftengine.core.plugin.context.ContextHolder;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.*;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -35,6 +38,7 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.view.AnvilView;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -328,11 +332,11 @@ public class RecipeEventListener implements Listener {
 
             Item<ItemStack> wrappedResult = BukkitItemManager.instance().wrap(event.getResult());
             if (!firstCustomItem.settings().canEnchant()) {
-                Object previousEnchantment = wrappedFirst.getExactComponent(ComponentTypes.ENCHANTMENTS);
+                Object previousEnchantment = wrappedFirst.getExactComponent(DataComponentTypes.ENCHANTMENTS);
                 if (previousEnchantment != null) {
-                    wrappedResult.setExactComponent(ComponentTypes.ENCHANTMENTS, previousEnchantment);
+                    wrappedResult.setExactComponent(DataComponentTypes.ENCHANTMENTS, previousEnchantment);
                 } else {
-                    wrappedResult.resetComponent(ComponentTypes.ENCHANTMENTS);
+                    wrappedResult.resetComponent(DataComponentTypes.ENCHANTMENTS);
                 }
             }
         }
@@ -439,7 +443,7 @@ public class RecipeEventListener implements Listener {
             } catch (ReflectiveOperationException e) {
                 plugin.logger().warn("Failed to get hover name", e);
             }
-        } else if (VersionHelper.isOrAbove1_20_5() && wrappedFirst.hasComponent(ComponentTypes.CUSTOM_NAME)) {
+        } else if (VersionHelper.isOrAbove1_20_5() && wrappedFirst.hasComponent(DataComponentTypes.CUSTOM_NAME)) {
             repairCost += 1;
             wrappedFirst.customNameJson(null);
         } else if (!VersionHelper.isOrAbove1_20_5() && wrappedFirst.hasTag("display", "Name")) {
@@ -594,65 +598,188 @@ public class RecipeEventListener implements Listener {
         return new Pair<>(first, second);
     }
 
+    // 准备结果阶段
     @EventHandler(ignoreCancelled = true)
-    public void onCraftingRecipe(PrepareItemCraftEvent event) {
+    public void onPrepareCraftingRecipe(PrepareItemCraftEvent event) {
         if (!Config.enableRecipeSystem()) return;
-        org.bukkit.inventory.Recipe recipe = event.getRecipe();
-        if (!(recipe instanceof CraftingRecipe craftingRecipe)) return;
-        Key recipeId = Key.of(craftingRecipe.getKey().namespace(), craftingRecipe.getKey().value());
+        CraftingInventory inventory = event.getInventory();
+        Key recipeId = getCurrentCraftingRecipeId(inventory);
+        if (recipeId == null) return;
         Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
         // 也许是其他插件注册的配方，直接无视
         if (optionalRecipe.isEmpty()) {
             return;
         }
-        CraftingInventory inventory = event.getInventory();
         if (!(optionalRecipe.get() instanceof CustomCraftingTableRecipe<ItemStack> craftingTableRecipe)) {
             inventory.setResult(null);
             return;
         }
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
-        if (!craftingTableRecipe.canUse(itemBuildContext)) {
-            inventory.setResult(null);
-            return;
+        if (craftingTableRecipe.hasCondition()) {
+            if (!craftingTableRecipe.canUse(PlayerOptionalContext.of(serverPlayer))) {
+                inventory.setResult(null);
+                return;
+            }
         }
-        CraftingInput<ItemStack> input = getCraftingInput(inventory);
-        if (input == null) return;
         if (craftingTableRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
-            inventory.setResult(craftingTableRecipe.assembleVisual(input, itemBuildContext));
+            ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
+            inventory.setResult(craftingTableRecipe.assembleVisual(null, itemBuildContext));
         } else {
-            inventory.setResult(craftingTableRecipe.assemble(input, itemBuildContext));
+            if (craftingTableRecipe.alwaysRebuildOutput()) {
+                ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
+                inventory.setResult(craftingTableRecipe.assemble(null, itemBuildContext));
+            }
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCraftingFinish(CraftItemEvent event) {
         if (!Config.enableRecipeSystem() || !VersionHelper.PREMIUM) return;
-        org.bukkit.inventory.Recipe recipe = event.getRecipe();
-        if (!(recipe instanceof CraftingRecipe craftingRecipe)) return;
-        Key recipeId = Key.of(craftingRecipe.getKey().namespace(), craftingRecipe.getKey().value());
+        CraftingInventory inventory = event.getInventory();
+        ItemStack visualResultOrReal = inventory.getResult();
+        // 可惜我们没有结果
+        if (ItemStackUtils.isEmpty(visualResultOrReal)) return;
+        Key recipeId = getCurrentCraftingRecipeId(inventory);
+        if (recipeId == null) return;
         Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
         // 也许是其他插件注册的配方，直接无视
-        if (optionalRecipe.isEmpty()) {
+        if (optionalRecipe.isEmpty() || !(optionalRecipe.get() instanceof CustomCraftingTableRecipe<ItemStack> ceRecipe)) {
             return;
         }
-        CraftingInventory inventory = event.getInventory();
-        if (!(optionalRecipe.get() instanceof CustomCraftingTableRecipe<ItemStack> craftingTableRecipe)) {
+        // 没有视觉结果和函数你凑什么热闹
+        if (!ceRecipe.hasVisualResult() && !ceRecipe.hasFunctions()) {
             return;
         }
+        InventoryAction action = event.getAction();
+        // 无事发生，不要更新
+        if (action == InventoryAction.NOTHING) {
+            return;
+        }
+
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
-        if (craftingTableRecipe.hasVisualResult()) {
-            CraftingInput<ItemStack> input = getCraftingInput(inventory);
-            inventory.setResult(craftingTableRecipe.assemble(input, ItemBuildContext.of(serverPlayer)));
-        }
-        Function<PlayerOptionalContext>[] functions = craftingTableRecipe.craftingFunctions();
-        if (functions != null) {
-            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
-            for (Function<PlayerOptionalContext> function : functions) {
-                function.run(context);
+
+        // 对低版本nothing不全的兼容
+        if (!VersionHelper.isOrAbove1_20_5() && LegacyInventoryUtils.isHotBarSwapAndReadd(action)) {
+            int slot = event.getHotbarButton();
+            if (slot == -1) {
+                if (!serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty()) {
+                    return;
+                }
+            } else {
+                ItemStack item = player.getInventory().getItem(slot);
+                if (!ItemStackUtils.isEmpty(item)) {
+                    return;
+                }
             }
+        }
+
+        // 多次合成
+        if (event.isShiftClick()) {
+            // 由插件自己处理多次合成
+            event.setResult(Event.Result.DENY);
+
+            Object mcPlayer = serverPlayer.serverPlayer();
+            Object craftingMenu = FastNMS.INSTANCE.field$Player$containerMenu(mcPlayer);
+
+            // 如果有视觉结果，先临时替换为真实的
+            if (ceRecipe.hasVisualResult()) {
+                inventory.setResult(ceRecipe.assemble(null, ItemBuildContext.of(serverPlayer)));
+            }
+            // 先取一次
+            Object itemMoved = FastNMS.INSTANCE.method$AbstractContainerMenu$quickMoveStack(craftingMenu, mcPlayer, 0 /* result slot */);
+            if (FastNMS.INSTANCE.method$ItemStack$isEmpty(itemMoved)) {
+                // 发现取了个寂寞，根本没地方放，给他复原成视觉结果
+                inventory.setResult(visualResultOrReal);
+                return;
+            }
+            // 有函数的情况下，执行函数
+            if (ceRecipe.hasFunctions()) {
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
+                for (Function<Context> function : ceRecipe.functions()) {
+                    function.run(context);
+                }
+            }
+
+            for (;;) {
+                // 这个时候配方已经更新了，如果变化了，那么就不要操作
+                if (!recipeId.equals(getCurrentCraftingRecipeId(inventory))) {
+                    break;
+                }
+
+                // 配方不变，允许起飞
+                // 如果有视觉结果，先临时替换为真实的
+                if (ceRecipe.hasVisualResult()) {
+                    inventory.setResult(ceRecipe.assemble(null, ItemBuildContext.of(serverPlayer)));
+                }
+
+                // 连续获取
+                itemMoved = FastNMS.INSTANCE.method$AbstractContainerMenu$quickMoveStack(craftingMenu, mcPlayer, 0 /* result slot */);
+                if (FastNMS.INSTANCE.method$ItemStack$isEmpty(itemMoved)) {
+                    // 发现取了个寂寞，根本没地方放，给他复原成视觉结果
+                    inventory.setResult(visualResultOrReal);
+                    break;
+                }
+                // 有函数的情况下，执行函数
+                if (ceRecipe.hasFunctions()) {
+                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                    for (Function<Context> function : ceRecipe.functions()) {
+                        function.run(context);
+                    }
+                }
+            }
+        }
+        // 单次合成
+        else {
+            ClickType click = event.getClick();
+            if (click == ClickType.MIDDLE) {
+                if (ItemStackUtils.isEmpty(event.getCursor())) {
+                    return;
+                }
+            }
+            if (click == ClickType.DROP || click == ClickType.CONTROL_DROP) {
+                if (!ItemStackUtils.isEmpty(event.getCursor())) {
+                    return;
+                }
+            }
+            // 有视觉结果的情况下，重新构造真实物品
+            if (ceRecipe.hasVisualResult()) {
+                // 指针物品不为空，且竟然和视觉物品一致，逆天，必须阻止
+                if (click == ClickType.LEFT || click == ClickType.RIGHT) {
+                    ItemStack cursor = event.getCursor();
+                    if (!ItemStackUtils.isEmpty(cursor)) {
+                        if (cursor.isSimilar(visualResultOrReal)) {
+                            event.setResult(Event.Result.DENY);
+                            return;
+                        }
+                    }
+                }
+                inventory.setResult(ceRecipe.assemble(null, ItemBuildContext.of(serverPlayer)));
+            }
+            // 有函数的情况下，执行函数
+            if (ceRecipe.hasFunctions()) {
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
+                for (Function<Context> function : ceRecipe.functions()) {
+                    function.run(context);
+                }
+            }
+        }
+    }
+
+    // bukkit的getRecipe会生成新的recipe对象，过程较慢，只需要获取配方id即可
+    @Nullable
+    private Key getCurrentCraftingRecipeId(CraftingInventory inventory) {
+        Object craftContainer = FastNMS.INSTANCE.method$CraftInventory$getInventory(inventory);
+        Object recipeHolderOrRecipe = FastNMS.INSTANCE.method$CraftingContainer$getCurrentRecipe(craftContainer);
+        if (recipeHolderOrRecipe == null) return null;
+        if (VersionHelper.isOrAbove1_21_2()) {
+            return KeyUtils.resourceLocationToKey(FastNMS.INSTANCE.field$ResourceKey$location(FastNMS.INSTANCE.field$RecipeHolder$id(recipeHolderOrRecipe)));
+        } else if (VersionHelper.isOrAbove1_20_2()) {
+            return KeyUtils.resourceLocationToKey(FastNMS.INSTANCE.field$RecipeHolder$id(recipeHolderOrRecipe));
+        } else {
+            // 其实是recipe getId的实现
+            return KeyUtils.resourceLocationToKey(FastNMS.INSTANCE.field$RecipeHolder$id(recipeHolderOrRecipe));
         }
     }
 
@@ -673,72 +800,294 @@ public class RecipeEventListener implements Listener {
         return input;
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onSmithingTrim(PrepareSmithingEvent event) {
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    public void onPrepareSmithingRecipe(PrepareSmithingEvent event) {
         SmithingInventory inventory = event.getInventory();
-        if (!(inventory.getRecipe() instanceof SmithingTrimRecipe recipe)) return;
+        if (ItemStackUtils.isEmpty(inventory.getResult())) return;
+        org.bukkit.inventory.Recipe smithingRecipe = inventory.getRecipe();
+        if (smithingRecipe instanceof SmithingTrimRecipe recipe) {
+            ItemStack equipment = inventory.getInputEquipment();
+            if (!ItemStackUtils.isEmpty(equipment)) {
+                Item<ItemStack> wrappedEquipment = this.itemManager.wrap(equipment);
+                Optional<CustomItem<ItemStack>> optionalCustomItem = wrappedEquipment.getCustomItem();
+                if (optionalCustomItem.isPresent()) {
+                    CustomItem<ItemStack> customItem = optionalCustomItem.get();
+                    ItemEquipment itemEquipmentSettings = customItem.settings().equipment();
+                    if (itemEquipmentSettings != null && itemEquipmentSettings.equipment() instanceof TrimBasedEquipment) {
+                        // 不允许trim类型的盔甲再次被使用trim
+                        event.setResult(null);
+                        return;
+                    }
+                }
+            }
 
-        ItemStack equipment = inventory.getInputEquipment();
-        if (!ItemStackUtils.isEmpty(equipment)) {
-            Item<ItemStack> wrappedEquipment = this.itemManager.wrap(equipment);
-            Optional<CustomItem<ItemStack>> optionalCustomItem = wrappedEquipment.getCustomItem();
-            if (optionalCustomItem.isPresent()) {
-                CustomItem<ItemStack> customItem = optionalCustomItem.get();
-                ItemEquipment itemEquipmentSettings = customItem.settings().equipment();
-                if (itemEquipmentSettings != null && itemEquipmentSettings.equipment() instanceof TrimBasedEquipment) {
-                    // 不允许trim类型的盔甲再次被使用trim
-                    event.setResult(null);
+            Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+            Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
+            if (optionalRecipe.isEmpty()) {
+                return;
+            }
+            if (!(optionalRecipe.get() instanceof CustomSmithingTrimRecipe<ItemStack> smithingTrimRecipe)) {
+                event.setResult(null);
+                return;
+            }
+            Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+            ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
+            if (!smithingTrimRecipe.canUse(itemBuildContext)) {
+                event.setResult(null);
+                return;
+            }
+            ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
+            event.setResult(result);
+        } else if (smithingRecipe instanceof SmithingTransformRecipe recipe) {
+            Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+            Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
+            if (optionalRecipe.isEmpty()) {
+                return;
+            }
+            if (!(optionalRecipe.get() instanceof CustomSmithingTransformRecipe<ItemStack> smithingTransformRecipe)) {
+                event.setResult(null);
+                return;
+            }
+            Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+            ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
+            if (!smithingTransformRecipe.canUse(itemBuildContext)) {
+                event.setResult(null);
+                return;
+            }
+            SmithingInput<ItemStack> input = getSmithingInput(inventory);
+            if (smithingTransformRecipe.hasVisualResult() && VersionHelper.PREMIUM) {
+                event.setResult(smithingTransformRecipe.assembleVisual(input, itemBuildContext));
+            } else {
+                event.setResult(smithingTransformRecipe.assemble(input, itemBuildContext));
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onSmithingFinish(SmithItemEvent event) {
+        if (!Config.enableRecipeSystem() || !VersionHelper.PREMIUM) return;
+        SmithingInventory inventory = event.getInventory();
+        ItemStack visualResultOrReal = inventory.getResult();
+        // 没有产物，肯定是被其他插件干没了
+        if (ItemStackUtils.isEmpty(visualResultOrReal)) return;
+
+        org.bukkit.inventory.Recipe recipe = inventory.getRecipe();
+        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+        BukkitServerPlayer serverPlayer = BukkitAdaptors.adapt(player);
+
+        if (recipe instanceof SmithingTransformRecipe transformRecipe) {
+            Key recipeId = KeyUtils.namespacedKey2Key(transformRecipe.getKey());
+            Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
+            // 也许是其他插件注册的配方，直接无视
+            if (optionalRecipe.isEmpty() || !(optionalRecipe.get() instanceof CustomSmithingTransformRecipe<ItemStack> ceRecipe)) {
+                return;
+            }
+            // 没有视觉结果和函数你凑什么热闹
+            if (!ceRecipe.hasFunctions() && !ceRecipe.hasVisualResult()) {
+                return;
+            }
+
+            InventoryAction action = event.getAction();
+            // 啥也没干
+            if (action == InventoryAction.NOTHING) {
+                return;
+            }
+
+            // 对低版本nothing不全的兼容
+            if (!VersionHelper.isOrAbove1_20_5() && LegacyInventoryUtils.isHotBarSwapAndReadd(action)) {
+                int slot = event.getHotbarButton();
+                if (slot == -1) {
+                    if (!serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty()) {
+                        return;
+                    }
+                } else {
+                    ItemStack item = player.getInventory().getItem(slot);
+                    if (!ItemStackUtils.isEmpty(item)) {
+                        return;
+                    }
+                }
+            }
+
+            if (event.isShiftClick()) {
+                // 由插件自己处理多次合成
+                event.setResult(Event.Result.DENY);
+
+                Object mcPlayer = serverPlayer.serverPlayer();
+                Object smithingMenu = FastNMS.INSTANCE.field$Player$containerMenu(mcPlayer);
+
+                // 如果有视觉结果，先临时替换为真实的
+                if (ceRecipe.hasVisualResult()) {
+                    inventory.setResult(ceRecipe.assemble(getSmithingInput(inventory), ItemBuildContext.of(serverPlayer)));
+                }
+                // 先取一次
+                Object itemMoved = FastNMS.INSTANCE.method$AbstractContainerMenu$quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
+                if (FastNMS.INSTANCE.method$ItemStack$isEmpty(itemMoved)) {
+                    // 发现取了个寂寞，根本没地方放，给他复原成视觉结果
+                    inventory.setResult(visualResultOrReal);
                     return;
+                }
+                // 有函数的情况下，执行函数
+                if (ceRecipe.hasFunctions()) {
+                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
+                    for (Function<Context> function : ceRecipe.functions()) {
+                        function.run(context);
+                    }
+                }
+
+                for (;;) {
+                    // 这个时候配方已经更新了，如果变化了，那么就不要操作
+                    if (!(inventory.getRecipe() instanceof SmithingTransformRecipe newTransform) || !recipeId.equals(KeyUtils.namespacedKey2Key(newTransform.getKey()))) {
+                        break;
+                    }
+
+                    // 配方不变，允许起飞
+                    // 如果有视觉结果，先临时替换为真实的
+                    if (ceRecipe.hasVisualResult()) {
+                        inventory.setResult(ceRecipe.assemble(getSmithingInput(inventory), ItemBuildContext.of(serverPlayer)));
+                    }
+
+                    // 连续获取
+                    itemMoved = FastNMS.INSTANCE.method$AbstractContainerMenu$quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
+                    if (FastNMS.INSTANCE.method$ItemStack$isEmpty(itemMoved)) {
+                        // 发现取了个寂寞，根本没地方放，给他复原成视觉结果
+                        inventory.setResult(visualResultOrReal);
+                        break;
+                    }
+                    // 有函数的情况下，执行函数
+                    if (ceRecipe.hasFunctions()) {
+                        PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                        for (Function<Context> function : ceRecipe.functions()) {
+                            function.run(context);
+                        }
+                    }
+                }
+            } else {
+                ClickType click = event.getClick();
+                if (click == ClickType.MIDDLE) {
+                    if (ItemStackUtils.isEmpty(event.getCursor())) {
+                        return;
+                    }
+                }
+                if (click == ClickType.DROP || click == ClickType.CONTROL_DROP) {
+                    if (!ItemStackUtils.isEmpty(event.getCursor())) {
+                        return;
+                    }
+                }
+                // 有视觉结果的情况下，重新构造真实物品
+                if (ceRecipe.hasVisualResult()) {
+                    // 指针物品不为空，且竟然和视觉物品一致，逆天，必须阻止
+                    if (click == ClickType.LEFT || click == ClickType.RIGHT) {
+                        ItemStack cursor = event.getCursor();
+                        if (!ItemStackUtils.isEmpty(cursor)) {
+                            if (cursor.isSimilar(visualResultOrReal)) {
+                                event.setResult(Event.Result.DENY);
+                                return;
+                            }
+                        }
+                    }
+                    inventory.setResult(ceRecipe.assemble(getSmithingInput(inventory), ItemBuildContext.of(serverPlayer)));
+                }
+                // 有函数的情况下，执行函数
+                if (ceRecipe.hasFunctions()) {
+                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
+                    for (Function<Context> function : ceRecipe.functions()) {
+                        function.run(context);
+                    }
                 }
             }
         }
 
-        Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
-        Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
-        if (optionalRecipe.isEmpty()) {
-            return;
-        }
-        if (!(optionalRecipe.get() instanceof CustomSmithingTrimRecipe<ItemStack> smithingTrimRecipe)) {
-            event.setResult(null);
-            return;
-        }
-        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-        ItemBuildContext itemBuildContext = ItemBuildContext.of(BukkitAdaptors.adapt(player));
-        if (!smithingTrimRecipe.canUse(itemBuildContext)) {
-            event.setResult(null);
-            return;
-        }
+        // trim 配方只能执行函数
+        else if (recipe instanceof SmithingTrimRecipe trimRecipe) {
+            Key recipeId = KeyUtils.namespacedKey2Key(trimRecipe.getKey());
+            Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
+            if (optionalRecipe.isEmpty() || !(optionalRecipe.get() instanceof CustomSmithingTrimRecipe<ItemStack> ceRecipe)) {
+                return;
+            }
+            // 没有函数你凑什么热闹
+            if (!ceRecipe.hasFunctions()) {
+                return;
+            }
 
-        SmithingInput<ItemStack> input = getSmithingInput(inventory);
-        if (smithingTrimRecipe.matches(input)) {
-            ItemStack result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
-            event.setResult(result);
-        } else {
-            event.setResult(null);
-        }
-    }
+            InventoryAction action = event.getAction();
+            // 啥也没干
+            if (action == InventoryAction.NOTHING) {
+                return;
+            }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onSmithingTransform(PrepareSmithingEvent event) {
-        if (!Config.enableRecipeSystem()) return;
-        SmithingInventory inventory = event.getInventory();
-        if (!(inventory.getRecipe() instanceof SmithingTransformRecipe recipe)) return;
-        Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
-        Optional<Recipe<ItemStack>> optionalRecipe = this.recipeManager.recipeById(recipeId);
-        if (optionalRecipe.isEmpty()) {
-            return;
-        }
-        if (!(optionalRecipe.get() instanceof CustomSmithingTransformRecipe<ItemStack> smithingTransformRecipe)) {
-            event.setResult(null);
-            return;
-        }
-        SmithingInput<ItemStack> input = getSmithingInput(inventory);
-        if (smithingTransformRecipe.matches(input)) {
-            Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-            ItemStack processed = smithingTransformRecipe.assemble(input, ItemBuildContext.of(BukkitAdaptors.adapt(player)));
-            event.setResult(processed);
-        } else {
-            event.setResult(null);
+            // 对低版本nothing不全的兼容
+            if (!VersionHelper.isOrAbove1_20_5() && LegacyInventoryUtils.isHotBarSwapAndReadd(action)) {
+                int slot = event.getHotbarButton();
+                if (slot == -1) {
+                    if (!serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty()) {
+                        return;
+                    }
+                } else {
+                    ItemStack item = player.getInventory().getItem(slot);
+                    if (!ItemStackUtils.isEmpty(item)) {
+                        return;
+                    }
+                }
+            }
+
+            if (event.isShiftClick()) {
+                // 由插件自己处理多次合成
+                event.setResult(Event.Result.DENY);
+
+                Object mcPlayer = serverPlayer.serverPlayer();
+                Object smithingMenu = FastNMS.INSTANCE.field$Player$containerMenu(mcPlayer);
+
+                // 先取一次
+                Object itemMoved = FastNMS.INSTANCE.method$AbstractContainerMenu$quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
+                if (FastNMS.INSTANCE.method$ItemStack$isEmpty(itemMoved)) {
+                    // 发现取了个寂寞，根本没地方放
+                    return;
+                }
+                // 有函数的情况下，执行函数
+                if (ceRecipe.hasFunctions()) {
+                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                    for (Function<Context> function : ceRecipe.functions()) {
+                        function.run(context);
+                    }
+                }
+
+                for (;;) {
+                    // 这个时候配方已经更新了，如果变化了，那么就不要操作
+                    if (!(inventory.getRecipe() instanceof SmithingTrimRecipe newTrim) || !recipeId.equals(KeyUtils.namespacedKey2Key(newTrim.getKey()))) {
+                        break;
+                    }
+                    // 连续获取
+                    itemMoved = FastNMS.INSTANCE.method$AbstractContainerMenu$quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
+                    if (FastNMS.INSTANCE.method$ItemStack$isEmpty(itemMoved)) {
+                        // 发现取了个寂寞，根本没地方放
+                        break;
+                    }
+                    // 有函数的情况下，执行函数
+                    if (ceRecipe.hasFunctions()) {
+                        PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                        for (Function<Context> function : ceRecipe.functions()) {
+                            function.run(context);
+                        }
+                    }
+                }
+
+            } else {
+                ClickType click = event.getClick();
+                // 禁止非空手丢弃触发函数
+                if (click == ClickType.DROP || click == ClickType.CONTROL_DROP) {
+                    if (!ItemStackUtils.isEmpty(event.getCursor())) {
+                        return;
+                    }
+                }
+                // 执行函数
+                Function<Context>[] functions = ceRecipe.functions();
+                if (functions != null) {
+                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                    for (Function<Context> function : functions) {
+                        function.run(context);
+                    }
+                }
+            }
         }
     }
 

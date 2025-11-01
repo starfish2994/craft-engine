@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.world.SectionPos;
 import net.momirealms.craftengine.core.world.WorldManager;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.CESection;
+import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import net.momirealms.craftengine.core.world.chunk.storage.DefaultStorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
@@ -345,14 +346,16 @@ public class BukkitWorldManager implements WorldManager, Listener {
                         if (Config.restoreCustomBlocks()) {
                             boolean isEmptyBefore = FastNMS.INSTANCE.method$LevelSection$hasOnlyAir(section);
                             int sectionY = ceSection.sectionY;
-                            if (isEmptyBefore) {
-                                FastNMS.INSTANCE.method$LightEventListener$updateSectionStatus(lightEngine, FastNMS.INSTANCE.method$SectionPos$of(chunkX, sectionY, chunkZ), false);
-                            }
-                            if (!ceSection.statesContainer().isEmpty()) {
+                            // 有自定义方块
+                            PalettedContainer<ImmutableBlockState> palettedContainer = ceSection.statesContainer();
+                            if (!palettedContainer.isEmpty()) {
+                                if (isEmptyBefore) {
+                                    FastNMS.INSTANCE.method$LightEventListener$updateSectionStatus(lightEngine, FastNMS.INSTANCE.method$SectionPos$of(chunkX, sectionY, chunkZ), false);
+                                }
                                 for (int x = 0; x < 16; x++) {
                                     for (int z = 0; z < 16; z++) {
                                         for (int y = 0; y < 16; y++) {
-                                            ImmutableBlockState customState = ceSection.getBlockState(x, y, z);
+                                            ImmutableBlockState customState = palettedContainer.get(x, y, z);
                                             if (!customState.isEmpty() && customState.customBlockState() != null) {
                                                 Object newState = customState.customBlockState().literalObject();
                                                 Object previous = FastNMS.INSTANCE.method$LevelChunkSection$setBlockState(section, x, y, z, newState, false);

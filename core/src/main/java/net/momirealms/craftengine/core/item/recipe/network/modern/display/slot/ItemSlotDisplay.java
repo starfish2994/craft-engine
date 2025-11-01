@@ -1,21 +1,22 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display.slot;
 
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
-public class ItemSlotDisplay implements SlotDisplay {
+public class ItemSlotDisplay<I> implements SlotDisplay<I> {
     private final int item;
 
     public ItemSlotDisplay(int item) {
         this.item = item;
     }
 
-    public static ItemSlotDisplay read(FriendlyByteBuf buf) {
+    public static <I> ItemSlotDisplay<I> read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
         int item = buf.readVarInt();
-        return new ItemSlotDisplay(item);
+        return new ItemSlotDisplay<>(item);
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
+    public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer) {
         buf.writeVarInt(2);
         buf.writeVarInt(this.item);
     }

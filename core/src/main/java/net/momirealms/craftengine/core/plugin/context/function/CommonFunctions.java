@@ -20,6 +20,8 @@ public final class CommonFunctions {
     public static final Key UPDATE_INTERACTION_TICK = Key.of("craftengine:update_interaction_tick");
     public static final Key SET_COUNT = Key.of("craftengine:set_count");
     public static final Key PLACE_BLOCK = Key.of("craftengine:place_block");
+    public static final Key TRANSFORM_BLOCK = Key.of("craftengine:transform_block");
+    public static final Key UPDATE_BLOCK_PROPERTY = Key.of("craftengine:update_block_property");
     public static final Key SET_FOOD = Key.of("craftengine:set_food");
     public static final Key SET_COOLDOWN = Key.of("craftengine:set_cooldown");
     public static final Key REMOVE_COOLDOWN = Key.of("craftengine:remove_cooldown");
@@ -35,4 +37,12 @@ public final class CommonFunctions {
     public static final Key TOAST = Key.of("craftengine:toast");
     public static final Key SET_VARIABLE = Key.of("craftengine:set_variable");
     public static final Key DAMAGE = Key.of("craftengine:damage");
+    public static final Key MERCHANT_TRADE = Key.of("craftengine:merchant_trade");
+    public static final Key REMOVE_ENTITY = Key.of("craftengine:remove_entity");
+    public static final Key IF_ELSE = Key.of("craftengine:if_else");
+    public static final Key ALTERNATIVES = Key.of("craftengine:alternatives");
+    public static final Key WHEN = Key.of("craftengine:when");
+    public static final Key ALL_OF = Key.of("craftengine:all_of");
+    public static final Key DUMMY = Key.of("craftengine:dummy");
+    public static final Key DAMAGE_ITEM = Key.of("craftengine:damage_item");
 }

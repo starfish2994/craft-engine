@@ -77,6 +77,9 @@ paper {
         register("ViaVersion") { required = false }
         register("QuickShop-Hikari") { required = false }
 
+        // external tag
+        register("CustomNameplates") { required = false }
+
         // external models
         register("ModelEngine") { required = false }
         register("BetterModel") { required = false }
@@ -90,6 +93,7 @@ paper {
         register("HeadDatabase") { required = false }
         register("SX-Item") { required = false }
         register("Slimefun") { required = false }
+        register("Nexo") { required = false }
 
         // leveler
         register("AuraSkills") { required = false }
@@ -126,11 +130,12 @@ paper {
         register("PreciousStones") { required = false }
         register("hClaims") { required = false }
         register("Factions") { required = false }
+        register("NoBuildPlus") { required = false }
     }
 }
 
 artifacts {
-    archives(tasks.shadowJar)
+    implementation(tasks.shadowJar)
 }
 
 tasks {

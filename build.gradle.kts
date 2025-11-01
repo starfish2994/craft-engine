@@ -29,18 +29,18 @@ subprojects {
 
         filesMatching(arrayListOf("commands.yml", "config.yml")) {
             expand(
-                Pair("project_version", rootProject.properties["project_version"]),
-                Pair("config_version", rootProject.properties["config_version"]),
-                Pair("lang_version", rootProject.properties["lang_version"])
+                Pair("project_version", rootProject.properties["project_version"]!!),
+                Pair("config_version", rootProject.properties["config_version"]!!),
+                Pair("lang_version", rootProject.properties["lang_version"]!!)
             )
         }
     }
 }
 
-fun versionBanner() = project.providers.exec {
+fun versionBanner(): String = project.providers.exec {
     commandLine("git", "rev-parse", "--short=8", "HEAD")
 }.standardOutput.asText.map { it.trim() }.getOrElse("Unknown")
 
-fun builder() = project.providers.exec {
+fun builder(): String = project.providers.exec {
     commandLine("git", "config", "user.name")
 }.standardOutput.asText.map { it.trim() }.getOrElse("Unknown")

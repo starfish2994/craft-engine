@@ -1,8 +1,10 @@
 package net.momirealms.craftengine.core.item.recipe;
 
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 
-public interface ConditionalRecipe {
+public interface ConditionalRecipe<T> extends Recipe<T> {
 
-    boolean canUse(final PlayerOptionalContext context);
+    boolean canUse(final Context context);
+
+    boolean hasCondition();
 }

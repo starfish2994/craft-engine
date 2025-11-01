@@ -108,9 +108,25 @@ public class ArrayPalette<T> implements Palette<T> {
     @Override
     public void remap(Function<T, T> function) {
         for (int i = 0; i < this.array.length; i++) {
-            if (this.array[i] == null) return;
-            this.array[i] = function.apply(this.array[i]);
+            T prev = this.array[i];
+            if (prev == null) return;
+            this.array[i] = function.apply(prev);
         }
+    }
+
+    @Override
+    public boolean remapAndCheck(Function<T, T> function) {
+        boolean changed = false;
+        for (int i = 0; i < this.array.length; i++) {
+            T prev = this.array[i];
+            if (prev == null) return changed;
+            T newV = function.apply(prev);
+            this.array[i] = newV;
+            if (!newV.equals(prev)) {
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     @Override

@@ -70,7 +70,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
         this.byId.clear();
     }
 
-    protected abstract HitBox defaultHitBox();
+    protected abstract HitBoxConfig defaultHitBox();
 
     protected abstract FurnitureElement.Builder furnitureElementBuilder();
 
@@ -137,6 +137,8 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                             .position(ResourceConfigUtils.getAsVector3f(element.getOrDefault("position", "0"), "position"))
                             .translation(ResourceConfigUtils.getAsVector3f(element.getOrDefault("translation", "0"), "translation"))
                             .rotation(ResourceConfigUtils.getAsQuaternionf(element.getOrDefault("rotation", "0"), "rotation"))
+                            .shadowRadius(ResourceConfigUtils.getAsFloat(element.getOrDefault("shadow-radius", 0f), "shadow-radius"))
+                            .shadowStrength(ResourceConfigUtils.getAsFloat(element.getOrDefault("shadow-strength", 1f), "shadow-strength"))
                             .build();
                     elements.add(furnitureElement);
                 }
@@ -152,7 +154,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                 }
 
                 // add hitboxes
-                List<HitBox> hitboxes = ResourceConfigUtils.parseConfigAsList(placementArguments.get("hitboxes"), HitBoxTypes::fromMap);
+                List<HitBoxConfig> hitboxes = ResourceConfigUtils.parseConfigAsList(placementArguments.get("hitboxes"), HitBoxTypes::fromMap);
                 if (hitboxes.isEmpty() && externalModel.isEmpty()) {
                     hitboxes = List.of(defaultHitBox());
                 }
@@ -163,7 +165,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                     placements.put(anchorType, new CustomFurniture.Placement(
                             anchorType,
                             elements.toArray(new FurnitureElement[0]),
-                            hitboxes.toArray(new HitBox[0]),
+                            hitboxes.toArray(new HitBoxConfig[0]),
                             ResourceConfigUtils.getOrDefault(ruleSection.get("rotation"), o -> RotationRule.valueOf(o.toString().toUpperCase(Locale.ENGLISH)), RotationRule.ANY),
                             ResourceConfigUtils.getOrDefault(ruleSection.get("alignment"), o -> AlignmentRule.valueOf(o.toString().toUpperCase(Locale.ENGLISH)), AlignmentRule.CENTER),
                             externalModel,
@@ -173,7 +175,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                     placements.put(anchorType, new CustomFurniture.Placement(
                             anchorType,
                             elements.toArray(new FurnitureElement[0]),
-                            hitboxes.toArray(new HitBox[0]),
+                            hitboxes.toArray(new HitBoxConfig[0]),
                             RotationRule.ANY,
                             AlignmentRule.CENTER,
                             externalModel,

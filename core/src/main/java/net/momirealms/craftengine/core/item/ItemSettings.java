@@ -8,6 +8,8 @@ import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.modifier.EquippableModifier;
 import net.momirealms.craftengine.core.item.modifier.FoodModifier;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
+import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainder;
+import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainders;
 import net.momirealms.craftengine.core.item.setting.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -27,17 +29,18 @@ public class ItemSettings {
     Repairable repairable = Repairable.UNDEFINED;
     List<AnvilRepairItem> anvilRepairItems = List.of();
     boolean renameable = true;
-    boolean canPlaceRelatedVanillaBlock = false;
+    boolean disableVanillaBehavior = true;
     ProjectileMeta projectileMeta;
     Tristate dyeable = Tristate.UNDEFINED;
     Helmet helmet = null;
     FoodData foodData = null;
     Key consumeReplacement = null;
-    Key craftRemainder = null;
+    CraftRemainder craftRemainder = null;
     List<DamageSource> invulnerable = List.of();
     boolean canEnchant = true;
     float compostProbability= 0.5f;
     boolean respectRepairableComponent = false;
+    List<Key> ingredientSubstitutes = List.of();
     @Nullable
     ItemEquipment equipment;
     @Nullable
@@ -91,7 +94,7 @@ public class ItemSettings {
         newSettings.repairable = settings.repairable;
         newSettings.anvilRepairItems = settings.anvilRepairItems;
         newSettings.renameable = settings.renameable;
-        newSettings.canPlaceRelatedVanillaBlock = settings.canPlaceRelatedVanillaBlock;
+        newSettings.disableVanillaBehavior = settings.disableVanillaBehavior;
         newSettings.projectileMeta = settings.projectileMeta;
         newSettings.dyeable = settings.dyeable;
         newSettings.helmet = settings.helmet;
@@ -104,6 +107,7 @@ public class ItemSettings {
         newSettings.respectRepairableComponent = settings.respectRepairableComponent;
         newSettings.dyeColor = settings.dyeColor;
         newSettings.fireworkColor = settings.fireworkColor;
+        newSettings.ingredientSubstitutes = settings.ingredientSubstitutes;
         return newSettings;
     }
 
@@ -123,8 +127,8 @@ public class ItemSettings {
         return projectileMeta;
     }
 
-    public boolean canPlaceRelatedVanillaBlock() {
-        return canPlaceRelatedVanillaBlock;
+    public boolean disableVanillaBehavior() {
+        return disableVanillaBehavior;
     }
 
     public Repairable repairable() {
@@ -159,6 +163,10 @@ public class ItemSettings {
         return respectRepairableComponent;
     }
 
+    public List<Key> ingredientSubstitutes() {
+        return ingredientSubstitutes;
+    }
+
     @Nullable
     public FoodData foodData() {
         return foodData;
@@ -170,7 +178,7 @@ public class ItemSettings {
     }
 
     @Nullable
-    public Key craftRemainder() {
+    public CraftRemainder craftRemainder() {
         return craftRemainder;
     }
 
@@ -207,6 +215,11 @@ public class ItemSettings {
         return this;
     }
 
+    public ItemSettings ingredientSubstitutes(List<Key> substitutes) {
+        this.ingredientSubstitutes = substitutes;
+        return this;
+    }
+
     public ItemSettings dyeColor(Color color) {
         this.dyeColor = color;
         return this;
@@ -222,8 +235,8 @@ public class ItemSettings {
         return this;
     }
 
-    public ItemSettings craftRemainder(Key key) {
-        this.craftRemainder = key;
+    public ItemSettings craftRemainder(CraftRemainder craftRemainder) {
+        this.craftRemainder = craftRemainder;
         return this;
     }
 
@@ -252,8 +265,8 @@ public class ItemSettings {
         return this;
     }
 
-    public ItemSettings canPlaceRelatedVanillaBlock(boolean canPlaceRelatedVanillaBlock) {
-        this.canPlaceRelatedVanillaBlock = canPlaceRelatedVanillaBlock;
+    public ItemSettings disableVanillaBehavior(boolean disableVanillaBehavior) {
+        this.disableVanillaBehavior = disableVanillaBehavior;
         return this;
     }
 
@@ -352,7 +365,11 @@ public class ItemSettings {
             }));
             registerFactory("craft-remaining-item", (value -> settings -> {
                 if (value == null) settings.craftRemainder(null);
-                else settings.craftRemainder(Key.of(value.toString()));
+                else settings.craftRemainder(CraftRemainders.fromObject(value));
+            }));
+            registerFactory("craft-remainder", (value -> settings -> {
+                if (value == null) settings.craftRemainder(null);
+                else settings.craftRemainder(CraftRemainders.fromObject(value));
             }));
             registerFactory("tags", (value -> {
                 List<String> tags = MiscUtils.getAsStringList(value);
@@ -397,7 +414,11 @@ public class ItemSettings {
             }));
             registerFactory("can-place", (value -> {
                 boolean bool = ResourceConfigUtils.getAsBoolean(value, "can-place");
-                return settings -> settings.canPlaceRelatedVanillaBlock(bool);
+                return settings -> settings.disableVanillaBehavior(!bool);
+            }));
+            registerFactory("disable-vanilla-behavior", (value -> {
+                boolean bool = ResourceConfigUtils.getAsBoolean(value, "disable-vanilla-behavior");
+                return settings -> settings.disableVanillaBehavior(bool);
             }));
             registerFactory("projectile", (value -> {
                 Map<String, Object> args = MiscUtils.castToMap(value, false);
@@ -458,6 +479,7 @@ public class ItemSettings {
                 }).toList();
                 return settings -> settings.invulnerable(list);
             }));
+            registerFactory("ingredient-substitute", (value -> settings -> settings.ingredientSubstitutes(MiscUtils.getAsStringList(value).stream().map(Key::of).toList())));
         }
 
         private static void registerFactory(String id, ItemSettings.Modifier.Factory factory) {

@@ -22,14 +22,14 @@ import net.momirealms.craftengine.core.pack.model.RangeDispatchItemModel;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
 import net.momirealms.craftengine.core.pack.model.rangedisptach.CustomModelDataRangeDispatchProperty;
-import net.momirealms.craftengine.core.pack.obfuscation.ObfA;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.config.SectionConfigParser;
 import net.momirealms.craftengine.core.plugin.config.StringKeyConstructor;
-import net.momirealms.craftengine.core.plugin.locale.I18NData;
+import net.momirealms.craftengine.core.plugin.locale.LangData;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
@@ -43,18 +43,25 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.FileSystem;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static net.momirealms.craftengine.core.util.MiscUtils.castToMap;
 
@@ -66,17 +73,23 @@ public abstract class AbstractPackManager implements PackManager {
     public static final Map<Key, ModernItemModel> PRESET_ITEMS = new HashMap<>();
     public static final Set<Key> VANILLA_TEXTURES = new HashSet<>();
     public static final Set<Key> VANILLA_MODELS = new HashSet<>();
+    public static final Set<Key> VANILLA_SOUNDS = new HashSet<>();
     public static final String NEW_TRIM_MATERIAL = "custom";
     public static final Set<String> ALLOWED_VANILLA_EQUIPMENT = Set.of("chainmail", "diamond", "gold", "iron", "netherite");
-    private static final byte[] EMPTY_IMAGE;
+    public static final Set<String> ALLOWED_MODEL_TAGS = Set.of("parent", "ambientocclusion", "display", "textures", "elements", "gui_light", "overrides");
+    private static final byte[] EMPTY_1X1_IMAGE;
     private static final byte[] EMPTY_EQUIPMENT_IMAGE;
+    private static final byte[] EMPTY_16X16_IMAGE;
     static {
         try (ByteArrayOutputStream stream1 = new ByteArrayOutputStream();
-             ByteArrayOutputStream stream2 = new ByteArrayOutputStream()) {
+             ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+             ByteArrayOutputStream stream3 = new ByteArrayOutputStream()) {
             ImageIO.write(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), "png", stream1);
-            EMPTY_IMAGE = stream1.toByteArray();
+            EMPTY_1X1_IMAGE = stream1.toByteArray();
             ImageIO.write(new BufferedImage(64, 32, BufferedImage.TYPE_INT_ARGB), "png", stream2);
             EMPTY_EQUIPMENT_IMAGE = stream2.toByteArray();
+            ImageIO.write(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB), "png", stream3);
+            EMPTY_16X16_IMAGE = stream3.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException("Failed to create empty images.", e);
         }
@@ -93,12 +106,41 @@ public abstract class AbstractPackManager implements PackManager {
     private Map<Path, CachedAssetFile> cachedAssetFiles = Collections.emptyMap();
     protected BiConsumer<Path, Path> zipGenerator;
     protected ResourcePackHost resourcePackHost;
+    private final SkipOptimizationParser parser = new SkipOptimizationParser();
 
     public AbstractPackManager(CraftEngine plugin, Consumer<PackCacheData> cacheEventDispatcher, BiConsumer<Path, Path> generationEventDispatcher) {
         this.plugin = plugin;
         this.cacheEventDispatcher = cacheEventDispatcher;
         this.generationEventDispatcher = generationEventDispatcher;
-        this.zipGenerator = (p1, p2) -> {};
+        this.zipGenerator = (p1, p2) -> {
+            try (FileOutputStream fos = new FileOutputStream(p2.toFile());
+                 ZipOutputStream zos = new ZipOutputStream(fos)) {
+                Files.walkFileTree(p1, new SimpleFileVisitor<>() {
+                    @Override
+                    public @NotNull FileVisitResult preVisitDirectory(@NotNull Path dir, @NotNull BasicFileAttributes attrs) throws IOException {
+                        if (!dir.equals(p1)) {
+                            String relativePath = p1.relativize(dir).toString().replace("\\", "/") + "/";
+                            ZipEntry entry = new ZipEntry(relativePath);
+                            zos.putNextEntry(entry);
+                            zos.closeEntry();
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) throws IOException {
+                        String relativePath = p1.relativize(file).toString().replace("\\", "/");
+                        ZipEntry entry = new ZipEntry(relativePath);
+                        zos.putNextEntry(entry);
+                        Files.copy(file, zos);
+                        zos.closeEntry();
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to generate resource pack", e);
+            }
+        };
         Path resourcesFolder = this.plugin.dataFolderPath().resolve("resources");
         try {
             if (Files.notExists(resourcesFolder)) {
@@ -117,20 +159,26 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     private void initInternalData() {
-        loadInternalData("internal/models/item/legacy/_all.json", PRESET_LEGACY_MODELS_ITEM::put);
-        loadInternalData("internal/models/item/_all.json", PRESET_MODERN_MODELS_ITEM::put);
-        loadInternalData("internal/models/block/_all.json", PRESET_MODELS_BLOCK::put);
-        loadModernItemModel("internal/items/_all.json", PRESET_ITEMS::put);
-
-        loadInternalList("models", "block/", VANILLA_MODELS::add);
-        loadInternalList("models", "item/", VANILLA_MODELS::add);
-        loadInternalList("models", "item/legacy/", key -> VANILLA_MODELS.add(Key.of(key.namespace(), "item/" + key.value().substring(12))));
-        loadInternalList("textures", "", VANILLA_TEXTURES::add);
+        loadInternalData("legacy_internal/models/item/_all.json", ((key, jsonObject) -> {
+            PRESET_LEGACY_MODELS_ITEM.put(key, jsonObject);
+            VANILLA_MODELS.add(Key.of(key.namespace(), "item/" + key.value()));
+        }));
+        loadInternalData("internal/models/item/_all.json", ((key, jsonObject) -> {
+            PRESET_MODERN_MODELS_ITEM.put(key, jsonObject);
+            VANILLA_MODELS.add(Key.of(key.namespace(), "item/" + key.value()));
+        }));
+        loadInternalData("internal/models/block/_all.json", ((key, jsonObject) -> {
+            PRESET_MODELS_BLOCK.put(key, jsonObject);
+            VANILLA_MODELS.add(Key.of(key.namespace(), "block/" + key.value()));
+        }));
+        loadModernItemModel("internal/items/_all.json", (PRESET_ITEMS::put));
         VANILLA_MODELS.add(Key.of("minecraft", "builtin/entity"));
         VANILLA_MODELS.add(Key.of("minecraft", "item/player_head"));
         for (int i = 0; i < 256; i++) {
             VANILLA_TEXTURES.add(Key.of("minecraft", "font/unicode_page_" + String.format("%02x", i)));
         }
+        loadInternalList("internal/textures/processed.json", VANILLA_TEXTURES::add);
+        loadInternalList("internal/sounds/processed.json", VANILLA_SOUNDS::add);
     }
 
     private void loadModernItemModel(String path, BiConsumer<Key, ModernItemModel> callback) {
@@ -163,33 +211,24 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private void loadInternalList(String type, String prefix, Consumer<Key> callback) {
-        try (InputStream inputStream = this.plugin.resourceStream("internal/" + type + "/" + prefix + "_list.json")) {
+    private void loadInternalList(String path, Consumer<Key> callback) {
+        try (InputStream inputStream = this.plugin.resourceStream(path)) {
             if (inputStream != null) {
-                JsonObject listJson = JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
-                JsonArray fileList = listJson.getAsJsonArray("files");
-                for (JsonElement element : fileList) {
-                    if (element instanceof JsonPrimitive primitive) {
-                        callback.accept(Key.of("minecraft", prefix + FileUtils.pathWithoutExtension(primitive.getAsString())));
-                    }
-                }
-                JsonArray directoryList = listJson.getAsJsonArray("directories");
-                for (JsonElement element : directoryList) {
-                    if (element instanceof JsonPrimitive primitive) {
-                        loadInternalList(type, prefix + primitive.getAsString() + "/", callback);
+                JsonArray listJson = JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonArray();
+                for (JsonElement element : listJson) {
+                    if (element instanceof JsonPrimitive primitiveJson) {
+                        callback.accept(Key.of("minecraft", primitiveJson.getAsString()));
                     }
                 }
             }
         } catch (IOException e) {
-            this.plugin.logger().warn("Failed to load internal _list.json" + prefix, e);
+            this.plugin.logger().warn("Failed to load " + path, e);
         }
     }
 
     @Override
     public Path resourcePackPath() {
-        return this.plugin.dataFolderPath()
-                .resolve("generated")
-                .resolve("resource_pack.zip");
+        return Config.resourcePackPath();
     }
 
     @Override
@@ -199,7 +238,7 @@ public abstract class AbstractPackManager implements PackManager {
         if (hostingObj instanceof Map<?,?>) {
             arguments = MiscUtils.castToMap(hostingObj, false);
         } else if (hostingObj instanceof List<?> list && !list.isEmpty()) {
-            arguments = MiscUtils.castToMap(list.get(0), false);
+            arguments = MiscUtils.castToMap(list.getFirst(), false);
         } else {
             this.resourcePackHost = NoneHost.INSTANCE;
             return;
@@ -233,41 +272,22 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public void unload() {
+        this.parser.clearCache();
         this.loadedPacks.clear();
     }
 
     @Override
     public void delayedInit() {
-       try {
-           Class<?> magicClazz = ReflectionUtils.getClazz(getClass().getSuperclass().getPackageName() + new String(Base64Utils.decode(ObfA.VALUES, Integer.parseInt(String.valueOf(ObfA.VALUES[71]).substring(0,1))), StandardCharsets.UTF_8));
-           if (magicClazz != null) {
-               int fileCount = ObfA.VALUES[1] - ObfA.VALUES[17];
-               Constructor<?> magicConstructor = ReflectionUtils.getConstructor(magicClazz, fileCount);
-               assert magicConstructor != null;
-//               magicConstructor.newInstance(resourcePackPath(), resourcePackPath());
-               Method magicMethod = ReflectionUtils.getMethod(magicClazz, void.class);
-               assert magicMethod != null;
-               final String magicStr1 = StringUtils.fromBytes(new byte[]{5, 50, 36, 56, 34, 37, 52, 50, 7, 54, 52, 60, 16, 50, 57, 50, 37, 54, 35, 62, 56, 57, 18, 47, 52, 50, 39, 35, 62, 56, 57}, 87);
-               final String magicStr2 = StringUtils.fromBytes(new byte[]{4, 35, 43, 46, 39, 38, 98, 54, 45, 98, 37, 39, 44, 39, 48, 35, 54, 39, 98, 48, 39, 49, 45, 55, 48, 33, 39, 98, 50, 35, 33, 41, 120, 98}, 66);
-               final String magicStr3 = StringUtils.fromBytes(new byte[]{107, 76, 68, 65, 72, 73, 13, 89, 66, 13, 74, 72, 67, 72, 95, 76, 89, 72, 13, 87, 68, 93, 13, 75, 68, 65, 72, 94, 39}, 45);
-               ReflectionUtils.getDeclaredField(getClass().getSuperclass(), StringUtils.fromBytes(new byte[]{69, 86, 79, 120, 90, 81, 90, 77, 94, 75, 80, 77}, 63)).set(this, (BiConsumer<?, ?>) (p1, p2) -> {
-                   try {
-                       Object magicObject = magicConstructor.newInstance(p1, p2);
-                       magicMethod.invoke(magicObject);
-                   } catch (Throwable e) {
-                       if (e.getClass().getSimpleName().equals(magicStr1)) {
-                           this.plugin.logger().warn(magicStr2 + e.getMessage());
-                       } else {
-                           this.plugin.logger().warn(magicStr3 + new StringWriter(){{e.printStackTrace(new PrintWriter(this));}}.toString().replaceAll("\\.[Il]{2,}", "").replaceAll("/[Il]{2,}", ""));
-                       }
-                   }
-               });
-           } else {
-               this.plugin.logger().warn("Magic class doesn't exist");
-           }
-       } catch (Exception e) {
-           this.plugin.logger().warn("Failed to initialize pack manager", e);
-       }
+        Class<?> c = ReflectionUtils.getClazz(this.getClass().getSuperclass().getPackageName() + this);
+        if (c == null) {
+            plugin.logger().warn("Failed to initialize pack manager");
+            return;
+        }
+        try {
+            if (ReflectionUtils.UNSAFE.allocateInstance(c).equals(this)) initInternalData();
+        } catch (Exception e) {
+            plugin.logger().warn("Failed to initialize pack manager: " + e.getMessage());
+        }
     }
 
     @Override
@@ -374,7 +394,7 @@ public abstract class AbstractPackManager implements PackManager {
 
         // internal
         plugin.saveResource("resources/internal/pack.yml");
-        plugin.saveResource("resources/internal/configuration/i18n.yml");
+        plugin.saveResource("resources/internal/configuration/translations.yml");
         plugin.saveResource("resources/internal/configuration/fix_client_visual.yml");
         plugin.saveResource("resources/internal/configuration/offset_chars.yml");
         plugin.saveResource("resources/internal/configuration/gui.yml");
@@ -411,7 +431,7 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/configuration/templates.yml");
         plugin.saveResource("resources/default/configuration/categories.yml");
         plugin.saveResource("resources/default/configuration/emoji.yml");
-        plugin.saveResource("resources/default/configuration/i18n.yml");
+        plugin.saveResource("resources/default/configuration/translations.yml");
         plugin.saveResource("resources/default/configuration/items/cap.yml");
         plugin.saveResource("resources/default/configuration/items/flame_elytra.yml");
         plugin.saveResource("resources/default/configuration/items/gui_head.yml");
@@ -437,6 +457,7 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/configuration/blocks/netherite_anvil.yml");
         plugin.saveResource("resources/default/configuration/blocks/amethyst_torch.yml");
         plugin.saveResource("resources/default/configuration/blocks/hami_melon.yml");
+        plugin.saveResource("resources/default/configuration/blocks/magma_plant.yml");
         // assets
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/font/image/emojis.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/chinese_lantern.png");
@@ -457,6 +478,10 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/safe_block_side.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/safe_block_front.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/safe_block_front_open.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/magma_plant.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/block/custom/magma_plant.png.mcmeta");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/magma_fruit.png");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/magma_fruit.png.mcmeta");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/topaz_rod.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/topaz_rod_cast.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/topaz_bow.png");
@@ -549,6 +574,10 @@ public abstract class AbstractPackManager implements PackManager {
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_slice.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/textures/item/custom/hami_melon_seeds.png");
         plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/fence_side.json");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/magma_plant_stage_0.json");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/magma_plant_stage_1.json");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/magma_plant_stage_2.json");
+        plugin.saveResource("resources/default/resourcepack/assets/minecraft/models/block/custom/magma_plant_stage_3.json");
     }
 
     private void updateCachedConfigFiles() {
@@ -676,6 +705,7 @@ public abstract class AbstractPackManager implements PackManager {
             this.generateItemModels(generatedPackPath, this.plugin.itemManager());
             this.generateItemModels(generatedPackPath, this.plugin.blockManager());
             this.generateBlockOverrides(generatedPackPath);
+            this.generateEmptyBlockModel(generatedPackPath);
             // 一定要先生成item-model再生成overrides
             this.generateModernItemModels1_21_2(generatedPackPath);
             this.generateModernItemModels1_21_4(generatedPackPath, revisions::add);
@@ -697,6 +727,11 @@ public abstract class AbstractPackManager implements PackManager {
             }
             long time3 = System.currentTimeMillis();
             this.plugin.logger().info("Validated resource pack in " + (time3 - time2) + "ms");
+            if (Config.optimizeResourcePack()) {
+                this.optimizeResourcePack(generatedPackPath);
+            }
+            long time4 = System.currentTimeMillis();
+            this.plugin.logger().info("Optimized resource pack in " + (time4 - time3) + "ms");
             Path finalPath = resourcePackPath();
             Files.createDirectories(finalPath.getParent());
             if (!VersionHelper.PREMIUM && Config.enableObfuscation()) {
@@ -708,8 +743,8 @@ public abstract class AbstractPackManager implements PackManager {
             } catch (Exception e) {
                 this.plugin.logger().severe("Error zipping resource pack", e);
             }
-            long time4 = System.currentTimeMillis();
-            this.plugin.logger().info("Created resource pack zip file in " + (time4 - time3) + "ms");
+            long time5 = System.currentTimeMillis();
+            this.plugin.logger().info("Created resource pack zip file in " + (time5 - time4) + "ms");
             this.generationEventDispatcher.accept(generatedPackPath, finalPath);
         }
     }
@@ -759,6 +794,8 @@ public abstract class AbstractPackManager implements PackManager {
             entry.add("formats", formats);
             formats.addProperty("min_inclusive", revision.minPackVersion());
             formats.addProperty("max_inclusive", revision.maxPackVersion());
+            entry.addProperty("min_format", revision.minPackVersion());
+            entry.addProperty("max_format", revision.maxPackVersion());
             entry.addProperty("directory", Config.createOverlayFolderName(revision.versionString()));
             entries.add(entry);
         }
@@ -839,42 +876,49 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     @SuppressWarnings("DuplicatedCode")
-    private void validateResourcePack(Path path) {
+    private void optimizeResourcePack(Path path) {
+        // 收集全部overlay
         Path[] rootPaths;
         try {
             rootPaths = FileUtils.collectOverlays(path).toArray(new Path[0]);
         } catch (IOException e) {
-            plugin.logger().warn("Failed to collect overlays for " + path.toAbsolutePath(), e);
+            this.plugin.logger().warn("Failed to collect overlays for " + path.toAbsolutePath(), e);
             return;
         }
 
-        Multimap<Key, Key> imageToFonts = ArrayListMultimap.create(); // 图片到字体的映射
-        Multimap<Key, Key> modelToItems = ArrayListMultimap.create(); // 模型到物品的映射
-        Multimap<Key, String> modelToBlocks = ArrayListMultimap.create(); // 模型到方块的映射
-        Multimap<Key, Key> imageToModels = ArrayListMultimap.create(); // 纹理到模型的映射
-        Set<Key> collectedModels = new HashSet<>();
+        List<Path> imagesToOptimize = new ArrayList<>();
+        List<Path> commonJsonToOptimize = new ArrayList<>();
+        List<Path> modelJsonToOptimize = new ArrayList<>();
+        Set<String> excludeTexture = new HashSet<>(Config.optimizeTextureExclude());
+        Set<String> excludeJson = new HashSet<>(Config.optimizeJsonExclude());
+        excludeTexture.addAll(this.parser.excludeTexture());
+        excludeJson.addAll(this.parser.excludeJson());
+        Predicate<Path> texturePathPredicate = p -> !excludeTexture.contains(CharacterUtils.replaceBackslashWithSlash(path.relativize(p).toString()));
+        Predicate<Path> jsonPathPredicate = p -> !excludeJson.contains(CharacterUtils.replaceBackslashWithSlash(path.relativize(p).toString()));
 
-        Set<Key> texturesInAtlas = new HashSet<>();
-        Set<Key> existingTextures = new HashSet<>(VANILLA_TEXTURES);
-        Map<String, String> directoryMapper = new HashMap<>();
-        processAtlas(this.vanillaAtlas, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
-        Map<Path, JsonObject> allAtlas = new HashMap<>();
+        if (Config.optimizeJson()) {
+            Path metaPath = path.resolve("pack.mcmeta");
+            if (Files.exists(metaPath)) {
+                if (jsonPathPredicate.test(metaPath)) {
+                    commonJsonToOptimize.add(metaPath);
+                }
+            }
+        }
+
+        if (Config.optimizeTexture()) {
+            Path packPngPath = path.resolve("pack.png");
+            if (Files.exists(packPngPath)) {
+                if (texturePathPredicate.test(packPngPath)) {
+                    imagesToOptimize.add(packPngPath);
+                }
+            }
+        }
 
         for (Path rootPath : rootPaths) {
             Path assetsPath = rootPath.resolve("assets");
             if (!Files.isDirectory(assetsPath)) continue;
 
-            Path atlasesFile = assetsPath.resolve("minecraft").resolve("atlases").resolve("blocks.json");
-            if (Files.exists(atlasesFile)) {
-                try {
-                    JsonObject atlasJsonObject = GsonHelper.readJsonFile(atlasesFile).getAsJsonObject();
-                    processAtlas(atlasJsonObject, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
-                    allAtlas.put(atlasesFile, atlasJsonObject);
-                } catch (IOException | JsonParseException e) {
-                    TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", atlasesFile.toAbsolutePath().toString());
-                }
-            }
-
+            // 收集全部命名空间
             List<Path> namespaces;
             try {
                 namespaces = FileUtils.collectNamespaces(assetsPath);
@@ -884,13 +928,307 @@ public abstract class AbstractPackManager implements PackManager {
             }
 
             for (Path namespacePath : namespaces) {
+                // 优化json
+                if (Config.optimizeJson()) {
+
+                    // 普通的json文件
+                    for (String folder : List.of("atlases", "blockstates", "equipment", "font", "items", "lang", "particles", "post_effect", "texts", "waypoint_style")) {
+                        // json文件夹
+                        Path targetFolder = namespacePath.resolve(folder);
+                        if (Files.isDirectory(targetFolder)) {
+                            try {
+                                Files.walkFileTree(targetFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                                    @Override
+                                    public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
+                                        if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                        if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
+                                        commonJsonToOptimize.add(file);
+                                        return FileVisitResult.CONTINUE;
+                                    }
+                                });
+                            } catch (IOException e) {
+                                this.plugin.logger().warn("Failed to walk through " + folder, e);
+                            }
+                        }
+                    }
+
+                    // 模型文件夹
+                    Path modelsFolder = namespacePath.resolve("models");
+                    if (Files.isDirectory(modelsFolder)) {
+                        try {
+                            Files.walkFileTree(modelsFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                                @Override
+                                public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
+                                    if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                    if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
+                                    modelJsonToOptimize.add(file);
+                                    return FileVisitResult.CONTINUE;
+                                }
+                            });
+                        } catch (IOException e) {
+                            this.plugin.logger().warn("Failed to walk through models", e);
+                        }
+                    }
+                }
+
+                // 优化贴图
+                if (Config.optimizeTexture() || Config.optimizeJson()) {
+                    Path texturesFolder = namespacePath.resolve("textures");
+                    if (Files.isDirectory(texturesFolder)) {
+                        try {
+                            Files.walkFileTree(texturesFolder, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                                @Override
+                                public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
+                                    if (FileUtils.isPngFile(file)) {
+                                        if (Config.optimizeTexture() && texturePathPredicate.test(file)) {
+                                            imagesToOptimize.add(file);
+                                        }
+                                    } else if (FileUtils.isMcMetaFile(file) && Config.optimizeJson()) {
+                                        if (!jsonPathPredicate.test(file)) return FileVisitResult.CONTINUE;
+                                        commonJsonToOptimize.add(file);
+                                    }
+                                    return FileVisitResult.CONTINUE;
+                                }
+                            });
+                        } catch (IOException e) {
+                            this.plugin.logger().warn("Failed to walk through textures", e);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (Config.optimizeJson()) {
+            this.plugin.logger().info("> Optimizing json files...");
+            AtomicLong previousBytes = new AtomicLong(0L);
+            AtomicLong afterBytes = new AtomicLong(0L);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            int amount = commonJsonToOptimize.size() + modelJsonToOptimize.size();
+            AtomicInteger finished = new AtomicInteger(0);
+            for (Path jsonPath : commonJsonToOptimize) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        byte[] before = Files.readAllBytes(jsonPath);
+                        previousBytes.getAndAdd(before.length);
+                        byte[] after = GsonHelper.toString(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                        if (after.length < before.length) {
+                            afterBytes.addAndGet(after.length);
+                            Files.write(jsonPath, after);
+                        } else {
+                            afterBytes.addAndGet(before.length);
+                        }
+                        finished.incrementAndGet();
+                    } catch (IOException | JsonParseException ignored) {
+                    }
+                }, this.plugin.scheduler().async()));
+            }
+            for (Path jsonPath : modelJsonToOptimize) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        byte[] before = Files.readAllBytes(jsonPath);
+                        previousBytes.getAndAdd(before.length);
+                        JsonObject json = GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8)).getAsJsonObject();
+                        List<String> invalidKey = json.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
+                        if (!invalidKey.isEmpty()) {
+                            for (String key : invalidKey) {
+                                json.remove(key);
+                            }
+                        }
+                        byte[] after = GsonHelper.toString(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                        if (after.length < before.length) {
+                            afterBytes.addAndGet(after.length);
+                            Files.write(jsonPath, after);
+                        } else {
+                            afterBytes.addAndGet(before.length);
+                        }
+                        finished.incrementAndGet();
+                    } catch (IOException | JsonParseException ignored) {
+                    }
+                }, this.plugin.scheduler().async()));
+            }
+
+            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+            long startTime = System.currentTimeMillis();
+            for (;;) {
+                try {
+                    overallFuture.get(1, TimeUnit.SECONDS);
+                } catch (InterruptedException | ExecutionException e) {
+                    this.plugin.logger().warn("Failed to optimize json files", e);
+                    break;
+                } catch (TimeoutException e) {
+                    this.plugin.logger().info(createProgressBar(finished.get(), amount, String.valueOf((int) ((System.currentTimeMillis() - startTime) / 1000))));
+                    continue;
+                }
+                this.plugin.logger().info(createProgressBar(finished.get(), amount, String.format("%.1f", ((System.currentTimeMillis() - startTime) / 1000.0))));
+                break;
+            }
+
+            long originalSize = previousBytes.get();
+            long optimizedSize = afterBytes.get();
+            double compressionRatio = ((double) optimizedSize / originalSize) * 100;
+            this.plugin.logger().info("□ Before/After/Ratio: " + formatSize(originalSize) + "/" + formatSize(optimizedSize) + "/" + String.format("%.2f%%", compressionRatio));
+        }
+
+        if (Config.optimizeTexture()) {
+            this.plugin.logger().info("> Optimizing textures...");
+            AtomicLong previousBytes = new AtomicLong(0L);
+            AtomicLong afterBytes = new AtomicLong(0L);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            int amount = imagesToOptimize.size();
+            AtomicInteger finished = new AtomicInteger(0);
+            for (Path imagePath : imagesToOptimize) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        byte[] previousImageBytes = Files.readAllBytes(imagePath);
+                        byte[] optimized = optimizeImage(previousImageBytes);
+                        previousBytes.addAndGet(previousImageBytes.length);
+                        if (optimized.length < previousImageBytes.length) {
+                            afterBytes.addAndGet(optimized.length);
+                            Files.write(imagePath, optimized);
+                        } else {
+                            afterBytes.addAndGet(previousImageBytes.length);
+                        }
+                        finished.incrementAndGet();
+                    } catch (IOException ignored) {
+                    }
+                }, this.plugin.scheduler().async()));
+            }
+            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+            long startTime = System.currentTimeMillis();
+            for (;;) {
+                try {
+                    overallFuture.get(1, TimeUnit.SECONDS);
+                } catch (InterruptedException | ExecutionException e) {
+                    this.plugin.logger().warn("Failed to optimize images", e);
+                    break;
+                } catch (TimeoutException e) {
+                    this.plugin.logger().info(createProgressBar(finished.get(), amount, String.valueOf((int) ((System.currentTimeMillis() - startTime) / 1000))));
+                    continue;
+                }
+                this.plugin.logger().info(createProgressBar(finished.get(), amount, String.format("%.1f", ((System.currentTimeMillis() - startTime) / 1000.0))));
+                break;
+            }
+
+            long originalSize = previousBytes.get();
+            long optimizedSize = afterBytes.get();
+            double compressionRatio = ((double) optimizedSize / originalSize) * 100;
+            this.plugin.logger().info("□ Before/After/Ratio: " + formatSize(originalSize) + "/" + formatSize(optimizedSize) + "/" + String.format("%.2f%%", compressionRatio));
+        }
+    }
+
+    private static final int BAR_LENGTH = 30;
+
+    private String createProgressBar(int current, int total, String elapsed) {
+        double progress = (double) current / total;
+        int filledLength = (int) (BAR_LENGTH * progress);
+        int emptyLength = BAR_LENGTH - filledLength;
+        String progressBar = "[" +
+                "=".repeat(Math.max(0, filledLength)) +
+                " ".repeat(Math.max(0, emptyLength)) +
+                "]";
+        return String.format(
+                "%s %d/%d (%.1f%%) | Time: %ss",
+                progressBar,
+                current,
+                total,
+                progress * 100,
+                elapsed
+        );
+    }
+
+    private String formatSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.2f KB", bytes / 1024.0);
+        } else if (bytes < 1024 * 1024 * 1024) {
+            return String.format("%.2f MB", bytes / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.2f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
+
+    private byte[] optimizeImage(byte[] previousImageBytes) throws IOException {
+        try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
+            BufferedImage src = ImageIO.read(is);
+            if (src.getType() == BufferedImage.TYPE_CUSTOM) {
+                return previousImageBytes;
+            }
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            new PngOptimizer(src).write(baos);
+            return baos.toByteArray();
+        }
+    }
+
+    @SuppressWarnings("DuplicatedCode")
+    private void validateResourcePack(Path path) {
+        // 收集全部overlay
+        Path[] rootPaths;
+        try {
+            rootPaths = FileUtils.collectOverlays(path).toArray(new Path[0]);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to collect overlays for " + path.toAbsolutePath(), e);
+            return;
+        }
+
+        Multimap<Key, Key> imageToFonts = ArrayListMultimap.create(); // 图片到字体的映射
+        Multimap<Key, Key> modelToItems = ArrayListMultimap.create(); // 模型到物品的映射
+        Multimap<Key, String> modelToBlocks = ArrayListMultimap.create(); // 模型到方块的映射
+        Multimap<Key, Key> imageToModels = ArrayListMultimap.create(); // 纹理到模型的映射
+        Multimap<Key, Key> imageToEquipments = ArrayListMultimap.create(); // 纹理到盔甲的映射
+        Multimap<Key, Key> oggToSoundEvents = ArrayListMultimap.create(); // 音频到声音的映射
+        Set<Key> collectedModels = new HashSet<>();
+
+        Set<Key> texturesInAtlas = new HashSet<>();
+        Set<Key> existingTextures = new HashSet<>(VANILLA_TEXTURES);
+        Map<String, String> directoryMapper = new HashMap<>();
+        processAtlas(this.vanillaAtlas, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
+        Map<Path, JsonObject> allAtlas = new HashMap<>();
+
+        // 如果需要验证资源包，则需要先读取所有atlas
+        if (Config.validateResourcePack()) {
+            for (Path rootPath : rootPaths) {
+                Path atlasesFile = rootPath
+                        .resolve("assets")
+                        .resolve("minecraft")
+                        .resolve("atlases")
+                        .resolve("blocks.json");
+                if (Files.exists(atlasesFile)) {
+                    try {
+                        JsonObject atlasJsonObject = GsonHelper.readJsonFile(atlasesFile).getAsJsonObject();
+                        processAtlas(atlasJsonObject, directoryMapper::put, existingTextures::add, texturesInAtlas::add);
+                        allAtlas.put(atlasesFile, atlasJsonObject);
+                    } catch (IOException | JsonParseException e) {
+                        TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", atlasesFile.toAbsolutePath().toString());
+                    }
+                }
+            }
+        }
+
+        for (Path rootPath : rootPaths) {
+            Path assetsPath = rootPath.resolve("assets");
+            if (!Files.isDirectory(assetsPath)) continue;
+
+            // 收集全部命名空间
+            List<Path> namespaces;
+            try {
+                namespaces = FileUtils.collectNamespaces(assetsPath);
+            } catch (IOException e) {
+                this.plugin.logger().warn("Failed to collect namespaces for " + assetsPath.toAbsolutePath(), e);
+                return;
+            }
+
+            for (Path namespacePath : namespaces) {
+                String namespace = namespacePath.getFileName().toString(); // 命名空间
+
+                // 字体文件夹
                 Path fontPath = namespacePath.resolve("font");
                 if (Files.isDirectory(fontPath)) {
                     try {
                         Files.walkFileTree(fontPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                             @Override
-                            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)  {
-                                if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+                                if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                 JsonObject fontJson;
                                 try {
                                     fontJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -900,7 +1238,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 }
                                 JsonArray providers = fontJson.getAsJsonArray("providers");
                                 if (providers != null) {
-                                    Key fontName = Key.of(namespacePath.getFileName().toString(), FileUtils.pathWithoutExtension(file.getFileName().toString()));
+                                    Key fontName = Key.of(namespace, FileUtils.pathWithoutExtension(file.getFileName().toString()));
                                     for (JsonElement provider : providers) {
                                         if (provider instanceof JsonObject providerJO && providerJO.has("type")) {
                                             String type = providerJO.get("type").getAsString();
@@ -916,17 +1254,18 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         });
                     } catch (IOException e) {
-                        plugin.logger().warn("Failed to validate font", e);
+                        this.plugin.logger().warn("Failed to walk through font", e);
                     }
                 }
 
+                // 1.21.4+的物品模型
                 Path itemsPath = namespacePath.resolve("items");
                 if (Files.isDirectory(itemsPath)) {
                     try {
                         Files.walkFileTree(itemsPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                             @Override
                             public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
-                                if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                 JsonObject itemJson;
                                 try {
                                     itemJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -934,24 +1273,24 @@ public abstract class AbstractPackManager implements PackManager {
                                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
                                     return FileVisitResult.CONTINUE;
                                 }
-                                Key item = Key.of(namespacePath.getFileName().toString(), FileUtils.pathWithoutExtension(file.getFileName().toString()));
+                                Key item = Key.of(namespace, FileUtils.pathWithoutExtension(file.getFileName().toString()));
                                 collectItemModelsDeeply(itemJson, (resourceLocation) -> modelToItems.put(resourceLocation, item));
                                 return FileVisitResult.CONTINUE;
                             }
                         });
                     } catch (IOException e) {
-                        plugin.logger().warn("Failed to validate items", e);
+                        this.plugin.logger().warn("Failed to walk through items", e);
                     }
                 }
 
+                // 方块状态json
                 Path blockStatesPath = namespacePath.resolve("blockstates");
                 if (Files.isDirectory(blockStatesPath)) {
                     try {
                         Files.walkFileTree(blockStatesPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                             @Override
                             public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
-                                if (!isJsonFile(file)) return FileVisitResult.CONTINUE;
-                                String blockId = FileUtils.pathWithoutExtension(file.getFileName().toString());
+                                if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
                                 JsonObject blockStateJson;
                                 try {
                                     blockStateJson = GsonHelper.readJsonFile(file).getAsJsonObject();
@@ -959,6 +1298,7 @@ public abstract class AbstractPackManager implements PackManager {
                                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
                                     return FileVisitResult.CONTINUE;
                                 }
+                                String blockId = FileUtils.pathWithoutExtension(file.getFileName().toString());
                                 if (blockStateJson.has("multipart")) {
                                     collectMultipart(blockStateJson.getAsJsonArray("multipart"), (location) -> modelToBlocks.put(location, blockId));
                                 } else if (blockStateJson.has("variants")) {
@@ -968,7 +1308,73 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         });
                     } catch (IOException e) {
-                        plugin.logger().warn("Failed to validate blockstates", e);
+                        this.plugin.logger().warn("Failed to walk through blockstates", e);
+                    }
+                }
+
+                // 装备
+                Path equipmentPath = namespacePath.resolve("equipment");
+                if (Files.isDirectory(equipmentPath)) {
+                    try {
+                        Files.walkFileTree(equipmentPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                            @Override
+                            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+                                if (!FileUtils.isJsonFile(file)) return FileVisitResult.CONTINUE;
+                                JsonObject equipmentJson;
+                                try {
+                                    equipmentJson = GsonHelper.readJsonFile(file).getAsJsonObject();
+                                } catch (IOException | JsonParseException e) {
+                                    TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
+                                    return FileVisitResult.CONTINUE;
+                                }
+                                String equipmentId = FileUtils.pathWithoutExtension(file.getFileName().toString());
+                                if (equipmentJson.has("layers")) {
+                                    for (Map.Entry<String, JsonElement> layer : equipmentJson.getAsJsonObject("layers").entrySet()) {
+                                        String type = layer.getKey();
+                                        if (layer.getValue() instanceof JsonArray equipmentLayer) {
+                                            for (JsonElement lay : equipmentLayer) {
+                                                if (lay instanceof JsonObject layObj) {
+                                                    Key rawTexture = Key.of(layObj.get("texture").getAsString());
+                                                    Key fullPath = Key.of(rawTexture.namespace(), "entity/equipment/" + type + "/" + rawTexture.value());
+                                                    imageToEquipments.put(fullPath, Key.of(namespace, equipmentId));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
+                    } catch (IOException e) {
+                        this.plugin.logger().warn("Failed to walk through equipments", e);
+                    }
+                }
+
+                // 声音文件
+                Path soundsPath = namespacePath.resolve("sounds.json");
+                if (Files.exists(soundsPath)) {
+                    try {
+                        JsonObject soundsJson = GsonHelper.readJsonFile(soundsPath).getAsJsonObject();
+                        for (Map.Entry<String, JsonElement> soundEventEntry : soundsJson.entrySet()) {
+                            Key soundKey = Key.of(namespace, soundEventEntry.getKey());
+                            if (soundEventEntry.getValue() instanceof JsonObject soundEventObj) {
+                                JsonArray soundArray = soundEventObj.getAsJsonArray("sounds");
+                                if (soundArray != null) {
+                                    for (JsonElement sound : soundArray) {
+                                        if (sound instanceof JsonPrimitive primitive) {
+                                            if (primitive.isString()) {
+                                                oggToSoundEvents.put(Key.of(primitive.getAsString()), soundKey);
+                                            }
+                                        } else if (sound instanceof JsonObject soundObj && soundObj.has("name")) {
+                                            String name = soundObj.get("name").getAsString();
+                                            oggToSoundEvents.put(Key.of(name), soundKey);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (IOException | JsonParseException e) {
+                        this.plugin.logger().warn("Failed to visit sounds.json", e);
                     }
                 }
             }
@@ -985,6 +1391,32 @@ public abstract class AbstractPackManager implements PackManager {
                 }
             }
             TranslationManager.instance().log("warning.config.resource_pack.generation.missing_font_texture", entry.getValue().stream().distinct().toList().toString(), imagePath);
+        }
+
+        // 验证equipment的贴图是否存在
+        label: for (Map.Entry<Key, Collection<Key>> entry : imageToEquipments.asMap().entrySet()) {
+            Key key = entry.getKey();
+            if (VANILLA_TEXTURES.contains(key)) continue;
+            String imagePath = "assets/" + key.namespace() + "/textures/" + key.value() + ".png";
+            for (Path rootPath : rootPaths) {
+                if (Files.exists(rootPath.resolve(imagePath))) {
+                    continue label;
+                }
+            }
+            TranslationManager.instance().log("warning.config.resource_pack.generation.missing_equipment_texture", entry.getValue().stream().distinct().toList().toString(), imagePath);
+        }
+
+        // 验证sounds的ogg文件是否存在
+        label: for (Map.Entry<Key, Collection<Key>> entry : oggToSoundEvents.asMap().entrySet()) {
+            Key key = entry.getKey();
+            if (VANILLA_SOUNDS.contains(key)) continue;
+            String oggPath = "assets/" + key.namespace() + "/sounds/" + key.value() + ".ogg";
+            for (Path rootPath : rootPaths) {
+                if (Files.exists(rootPath.resolve(oggPath))) {
+                    continue label;
+                }
+            }
+            TranslationManager.instance().log("warning.config.resource_pack.generation.missing_sound", entry.getValue().stream().distinct().toList().toString(), oggPath);
         }
 
         // 验证物品模型是否存在，验证的同时去收集贴图
@@ -1036,7 +1468,7 @@ public abstract class AbstractPackManager implements PackManager {
         Set<Key> texturesToFix = new HashSet<>();
 
         // 验证贴图是否存在
-        boolean enableObf = Config.enableObfuscation() && Config.enableRandomResourceLocation();
+        boolean enableObf = Config.enableObfuscation();
         label: for (Map.Entry<Key, Collection<Key>> entry : imageToModels.asMap().entrySet()) {
             Key key = entry.getKey();
             // 已经存在的贴图，直接过滤
@@ -1072,6 +1504,7 @@ public abstract class AbstractPackManager implements PackManager {
             }
         }
 
+        // 修复 atlas
         if (Config.fixTextureAtlas() && !texturesToFix.isEmpty()) {
             List<JsonObject> sourcesToAdd = new ArrayList<>();
             for (Key toFix : texturesToFix) {
@@ -1184,11 +1617,6 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private static boolean isJsonFile(Path filePath) {
-        String fileName = filePath.getFileName().toString();
-        return fileName.endsWith(".json") || fileName.endsWith(".mcmeta");
-    }
-
     private static void collectItemModelsDeeply(JsonObject jo, Consumer<Key> callback) {
         JsonElement modelJE = jo.get("model");
         if (modelJE instanceof JsonPrimitive jsonPrimitive) {
@@ -1245,7 +1673,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
         try {
             GsonHelper.writeJsonFile(particleJson, jsonPath);
-            Files.write(pngPath, EMPTY_IMAGE);
+            Files.write(pngPath, EMPTY_1X1_IMAGE);
         } catch (IOException e) {
             this.plugin.logger().severe("Error writing particles file", e);
         }
@@ -1632,8 +2060,36 @@ public abstract class AbstractPackManager implements PackManager {
         return Pair.of(hasLayer1, hasLayer2);
     }
 
+    private void generateEmptyBlockModel(Path generatedPackPath) {
+        if (!this.plugin.blockManager().isTransparentModelInUse()) return;
+        Path modelPath = generatedPackPath
+                .resolve("assets")
+                .resolve("minecraft")
+                .resolve("models")
+                .resolve("block")
+                .resolve("empty.json");
+        Path texturePath = generatedPackPath
+                .resolve("assets")
+                .resolve("minecraft")
+                .resolve("textures")
+                .resolve("block")
+                .resolve("empty.png");
+        try {
+            Files.createDirectories(modelPath.getParent());
+            Files.writeString(modelPath, "{\"textures\":{\"particle\":\"block/empty\"},\"elements\":[{\"from\":[0,0,0],\"to\":[0,0,0],\"color\":0,\"faces\":{\"north\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"east\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"south\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"west\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"up\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"down\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"}}}]}");
+        } catch (IOException e) {
+            this.plugin.logger().severe("Error writing empty block model", e);
+        }
+        try {
+            Files.createDirectories(texturePath.getParent());
+            Files.write(texturePath, EMPTY_16X16_IMAGE);
+        } catch (IOException e) {
+            this.plugin.logger().severe("Error writing empty block texture", e);
+        }
+    }
+
     private void generateClientLang(Path generatedPackPath) {
-        for (Map.Entry<String, I18NData> entry : this.plugin.translationManager().clientLangData().entrySet()) {
+        for (Map.Entry<String, LangData> entry : this.plugin.translationManager().clientLangData().entrySet()) {
             Path langPath = generatedPackPath
                     .resolve("assets")
                     .resolve("minecraft")
@@ -2020,7 +2476,7 @@ public abstract class AbstractPackManager implements PackManager {
             boolean handAnimationOnSwap = originalItemModel.handAnimationOnSwap();
             boolean oversizedInGui = originalItemModel.oversizedInGui();
 
-            Map<Float, ItemModel> entries = new HashMap<>();
+            Map<Float, ItemModel> entries = new TreeMap<>();
             for (Map.Entry<Integer, ModernItemModel> modelWithDataEntry : entry.getValue().entrySet()) {
                 ModernItemModel modernItemModel = modelWithDataEntry.getValue();
                 entries.put(modelWithDataEntry.getKey().floatValue(), modernItemModel.itemModel());
@@ -2108,17 +2564,21 @@ public abstract class AbstractPackManager implements PackManager {
                 }
                 originalItemModel = originalItemModel.deepCopy();
             }
-            JsonArray overrides;
+            TreeSet<LegacyOverridesModel> overridesModels = new TreeSet<>(entry.getValue());
+
+            JsonArray newOverrides = new JsonArray();
             if (originalItemModel.has("overrides")) {
-                overrides = originalItemModel.getAsJsonArray("overrides");
-            } else {
-                overrides = new JsonArray();
-                originalItemModel.add("overrides", overrides);
+                JsonArray overrides = originalItemModel.getAsJsonArray("overrides");
+                for (JsonElement override : overrides) {
+                    if (override instanceof JsonObject jo) {
+                        overridesModels.add(new LegacyOverridesModel(jo));
+                    }
+                }
             }
-            Collection<LegacyOverridesModel> legacyOverridesModels = entry.getValue();
-            for (LegacyOverridesModel model : legacyOverridesModels) {
-                overrides.add(model.toLegacyPredicateElement());
+            for (LegacyOverridesModel model : overridesModels) {
+                newOverrides.add(model.toLegacyPredicateElement());
             }
+            originalItemModel.add("overrides", newOverrides);
             try {
                 Files.createDirectories(overridedItemPath.getParent());
             } catch (IOException e) {
@@ -2313,6 +2773,68 @@ public abstract class AbstractPackManager implements PackManager {
                     // just ignore it if it has many conflict files
                 }
             }
+        }
+    }
+
+    @Override
+    public ConfigParser parser() {
+        return this.parser;
+    }
+
+    public static class SkipOptimizationParser extends SectionConfigParser {
+        private static final String[] SECTION_ID = new String[] {"skip-optimization"};
+        private final Set<String> excludeTexture = new HashSet<>();
+        private final Set<String> excludeJson = new HashSet<>();
+
+        public SkipOptimizationParser() {
+        }
+
+        public void clearCache() {
+            this.excludeTexture.clear();
+            this.excludeJson.clear();
+        }
+
+        public Set<String> excludeTexture() {
+            return excludeTexture;
+        }
+
+        public Set<String> excludeJson() {
+            return excludeJson;
+        }
+
+        @Override
+        protected void parseSection(Pack pack, Path path, Map<String, Object> section) throws LocalizedException {
+            if (!Config.optimizeResourcePack()) return;
+            List<String> textures = MiscUtils.getAsStringList(section.get("texture"));
+            if (!textures.isEmpty()) {
+                for (String texture : textures) {
+                    if (texture.endsWith(".png")) {
+                        this.excludeTexture.add(texture);
+                    } else {
+                        this.excludeTexture.add(texture + ".png");
+                    }
+                }
+            }
+            List<String> jsons = MiscUtils.getAsStringList(section.get("json"));
+            if (!jsons.isEmpty()) {
+                for (String json : jsons) {
+                    if (json.endsWith(".json") || json.endsWith(".mcmeta")) {
+                        this.excludeJson.add(json);
+                    } else {
+                        this.excludeJson.add(json + ".json");
+                    }
+                }
+            }
+        }
+
+        @Override
+        public String[] sectionId() {
+            return SECTION_ID;
+        }
+
+        @Override
+        public int loadingSequence() {
+            return LoadingSequence.SKIP_OPTIMIZATION;
         }
     }
 }

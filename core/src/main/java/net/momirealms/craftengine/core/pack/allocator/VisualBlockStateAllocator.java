@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,13 +20,16 @@ import java.util.function.Predicate;
 
 public class VisualBlockStateAllocator {
     private final Path cacheFilePath;
-    private final Map<String, BlockStateWrapper> cachedBlockStates = new HashMap<>();
+    private final Map<String, BlockStateWrapper> cachedBlockStates = new LinkedHashMap<>();
     private final Map<String, Pair<AutoStateGroup, CompletableFuture<BlockStateWrapper>>> pendingAllocations = new LinkedHashMap<>();
     @SuppressWarnings("unchecked")
     private final List<Pair<String, CompletableFuture<BlockStateWrapper>>>[] pendingAllocationFutures = new List[AutoStateGroup.values().length];
     private final BlockStateCandidate[] candidates;
     private final Function<String, BlockStateWrapper> factory;
     private final Set<BlockStateWrapper> forcedStates = new HashSet<>();
+
+    private boolean dirty;
+    private long lastModified;
 
     public VisualBlockStateAllocator(Path cacheFilePath, BlockStateCandidate[] candidates, Function<String, BlockStateWrapper> factory) {
         this.cacheFilePath = cacheFilePath;
@@ -37,13 +41,17 @@ public class VisualBlockStateAllocator {
         for (int i = 0; i < this.pendingAllocationFutures.length; i++) {
             this.pendingAllocationFutures[i] = new ArrayList<>();
         }
-        this.cachedBlockStates.clear();
         this.pendingAllocations.clear();
         this.forcedStates.clear();
     }
 
     public boolean isForcedState(final BlockStateWrapper state) {
         return this.forcedStates.contains(state);
+    }
+
+    @NotNull
+    public Map<String, BlockStateWrapper> cachedBlockStates() {
+        return Collections.unmodifiableMap(this.cachedBlockStates);
     }
 
     public CompletableFuture<BlockStateWrapper> assignFixedBlockState(String name, BlockStateWrapper state) {
@@ -57,6 +65,9 @@ public class VisualBlockStateAllocator {
     }
 
     public CompletableFuture<BlockStateWrapper> requestAutoState(String name, AutoStateGroup group) {
+        if (this.pendingAllocations.containsKey(name)) {
+            return this.pendingAllocations.get(name).right();
+        }
         CompletableFuture<BlockStateWrapper> future = new CompletableFuture<>();
         this.pendingAllocations.put(name, new Pair<>(group, future));
         this.pendingAllocationFutures[group.ordinal()].add(Pair.of(name, future));
@@ -70,8 +81,11 @@ public class VisualBlockStateAllocator {
                 idsToRemove.add(entry.getKey());
             }
         }
-        for (String id : idsToRemove) {
-            this.cachedBlockStates.remove(id);
+        if (!idsToRemove.isEmpty()) {
+            this.dirty = true;
+            for (String id : idsToRemove) {
+                this.cachedBlockStates.remove(id);
+            }
         }
         return idsToRemove;
     }
@@ -115,6 +129,7 @@ public class VisualBlockStateAllocator {
                     if (nextCandidate != null) {
                         nextCandidate.setUsed();
                         this.cachedBlockStates.put(pair.left(), nextCandidate.blockState());
+                        this.dirty = true;
                         pair.right().complete(nextCandidate.blockState());
                     } else {
                         pair.right().completeExceptionally(new StateExhaustedException(group));
@@ -141,16 +156,25 @@ public class VisualBlockStateAllocator {
      */
     public void loadFromCache() throws IOException {
         if (!Files.exists(this.cacheFilePath)) {
+            if (!this.cachedBlockStates.isEmpty()) {
+                this.cachedBlockStates.clear();
+            }
             return;
         }
-        JsonElement element = GsonHelper.readJsonFile(this.cacheFilePath);
-        if (element instanceof JsonObject jsonObject) {
-            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-                if (entry.getValue() instanceof JsonPrimitive primitive) {
-                    String id = primitive.getAsString();
-                    BlockStateWrapper state = this.factory.apply(id);
-                    if (state != null) {
-                        this.cachedBlockStates.put(entry.getKey(), state);
+
+        long lastTime = Files.getLastModifiedTime(this.cacheFilePath).toMillis();
+        if (lastTime != this.lastModified) {
+            this.lastModified = lastTime;
+            this.cachedBlockStates.clear();
+            JsonElement element = GsonHelper.readJsonFile(this.cacheFilePath);
+            if (element instanceof JsonObject jsonObject) {
+                for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                    if (entry.getValue() instanceof JsonPrimitive primitive) {
+                        String id = primitive.getAsString();
+                        BlockStateWrapper state = this.factory.apply(id);
+                        if (state != null) {
+                            this.cachedBlockStates.put(entry.getKey(), state);
+                        }
                     }
                 }
             }
@@ -161,6 +185,12 @@ public class VisualBlockStateAllocator {
      * 保存缓存到文件
      */
     public void saveToCache() throws IOException {
+        if (!this.dirty) {
+            return;
+        }
+
+        this.dirty = false;
+
         // 创建按ID排序的TreeMap
         Map<BlockStateWrapper, String> sortedById = new TreeMap<>();
         for (Map.Entry<String, BlockStateWrapper> entry : this.cachedBlockStates.entrySet()) {

@@ -27,7 +27,7 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.config.SectionConfigParser;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventFunctions;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
@@ -51,6 +51,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractBlockManager extends AbstractModelGenerator implements BlockManager {
+    private static final JsonElement EMPTY_VARIANT_MODEL = MiscUtils.init(new JsonObject(), o -> o.addProperty("model", "minecraft:block/empty"));
     protected final BlockParser blockParser;
     protected final BlockStateMappingParser blockStateMappingParser;
     // 根据id获取自定义方块
@@ -86,6 +87,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final Set<Key> tempVisualBlocksInUse = new HashSet<>();
     // 声音映射表，和使用了哪些视觉方块有关
     protected Map<Key, Key> soundReplacements = Map.of();
+    // 是否使用了透明方块模型
+    protected boolean isTransparentModelInUse = false;
 
     protected AbstractBlockManager(CraftEngine plugin, int vanillaBlockStateCount, int customBlockCount) {
         super(plugin);
@@ -128,6 +131,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.byId.clear();
         this.blockStateArranger.clear();
         this.appearanceToRealState.clear();
+        this.isTransparentModelInUse = false;
         Arrays.fill(this.blockStateMappings, -1);
         Arrays.fill(this.immutableBlockStates, EmptyBlock.STATE);
         Arrays.fill(this.autoVisualBlockStateCandidates, null);
@@ -142,6 +146,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.resendTags();
         this.processSounds();
         this.clearCache();
+    }
+
+    @Override
+    public boolean isTransparentModelInUse() {
+        return this.isTransparentModelInUse;
     }
 
     @Override
@@ -237,7 +246,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     protected abstract CustomBlock createCustomBlock(@NotNull Holder.Reference<CustomBlock> holder,
                                                      @NotNull BlockStateVariantProvider variantProvider,
-                                                     @NotNull Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                                                     @NotNull Map<EventTrigger, List<Function<Context>>> events,
                                                      @Nullable LootTable<?> lootTable);
 
     public class BlockStateMappingParser extends SectionConfigParser {
@@ -354,15 +363,17 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             } catch (IOException e) {
                 AbstractBlockManager.this.plugin.logger().warn("Error while loading custom block states allocation cache", e);
             }
-            for (PendingConfigSection section : this.pendingConfigSections) {
-                ResourceConfigUtils.runCatching(
-                        section.path(),
-                        section.node(),
-                        () -> parseSection(section.pack(), section.path(), section.node(), section.id(), section.config()),
-                        () -> GsonHelper.get().toJson(section.config())
-                );
+            if (!this.pendingConfigSections.isEmpty()) {
+                for (PendingConfigSection section : this.pendingConfigSections) {
+                    ResourceConfigUtils.runCatching(
+                            section.path(),
+                            section.node(),
+                            () -> parseSection(section.pack(), section.path(), section.node(), section.id(), section.config()),
+                            () -> GsonHelper.get().toJson(section.config())
+                    );
+                }
+                this.pendingConfigSections.clear();
             }
-            this.pendingConfigSections.clear();
         }
 
         @Override
@@ -480,13 +491,24 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     }
                 }
 
+                ExceptionCollector<LocalizedResourceConfigException> eCollector1 = new ExceptionCollector<>();
+
+                Map<EventTrigger, List<Function<Context>>> events;
+                try {
+                    events = EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event"));
+                } catch (LocalizedResourceConfigException e) {
+                    eCollector1.add(e);
+                    events = Map.of();
+                }
+                LootTable<?> lootTable;
+                try {
+                    lootTable = LootTable.fromMap(ResourceConfigUtils.getAsMapOrNull(section.get("loot"), "loot"));
+                } catch (LocalizedResourceConfigException e) {
+                    eCollector1.add(e);
+                    lootTable = null;
+                }
                 // 创建自定义方块
-                AbstractCustomBlock customBlock = (AbstractCustomBlock) createCustomBlock(
-                        holder,
-                        variantProvider,
-                        EventFunctions.parseEvents(ResourceConfigUtils.get(section, "events", "event")),
-                        LootTable.fromMap(ResourceConfigUtils.getAsMapOrNull(section.get("loot"), "loot"))
-                );
+                AbstractCustomBlock customBlock = (AbstractCustomBlock) createCustomBlock(holder, variantProvider, events, lootTable);
                 BlockBehavior blockBehavior = createBlockBehavior(customBlock, MiscUtils.getAsMapList(ResourceConfigUtils.get(section, "behavior", "behaviors")));
 
                 Map<String, Map<String, Object>> appearanceConfigs;
@@ -510,16 +532,27 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 this.visualBlockStateAllocator.assignFixedBlockState(appearanceName.isEmpty() ? id.asString() : id.asString() + ":" + appearanceName, parsePluginFormattedBlockState(appearanceSection.get("state").toString()))
                         );
                     } else if (appearanceSection.containsKey("auto-state")) {
-                        String autoStateId = appearanceSection.get("auto-state").toString();
-                        AutoStateGroup group = AutoStateGroup.byId(autoStateId);
+                        String appearanceName = entry.getKey();
+                        Object autoState = appearanceSection.get("auto-state");
+                        String autoStateType;
+                        String autoStateId;
+                        if (autoState instanceof Map<?,?> map) {
+                            Map<String, Object> config = ResourceConfigUtils.getAsMap(map, "auto-state");
+                            autoStateType = config.getOrDefault("type", "solid").toString();
+                            if (map.containsKey("id")) {
+                                autoStateId = autoStateType + "[id=" + map.get("id").toString() + "]";
+                            } else {
+                                autoStateId = appearanceName.isEmpty() ? id.asString() : id.asString() + "[appearance=" + appearanceName + "]";
+                            }
+                        } else {
+                            autoStateType = autoState.toString();
+                            autoStateId = appearanceName.isEmpty() ? id.asString() : id.asString() + "[appearance=" + appearanceName + "]";
+                        }
+                        AutoStateGroup group = AutoStateGroup.byId(autoStateType);
                         if (group == null) {
                             throw new LocalizedResourceConfigException("warning.config.block.state.invalid_auto_state", autoStateId, EnumUtils.toString(AutoStateGroup.values()));
                         }
-                        String appearanceName = entry.getKey();
-                        futureVisualStates.put(
-                                appearanceName,
-                                this.visualBlockStateAllocator.requestAutoState(appearanceName.isEmpty() ? id.asString() : id.asString() + ":" + appearanceName, group)
-                        );
+                        futureVisualStates.put(appearanceName, this.visualBlockStateAllocator.requestAutoState(autoStateId, group));
                     } else {
                         throw new LocalizedResourceConfigException("warning.config.block.state.missing_state");
                     }
@@ -551,7 +584,15 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                             AbstractBlockManager.this.plugin.logger().warn("Interrupted while allocating visual block state for block " + id.asString(), e);
                             return;
                         }
-                        this.arrangeModelForStateAndVerify(visualBlockState, ResourceConfigUtils.get(appearanceSection, "model", "models"));
+                        if (ResourceConfigUtils.getAsBoolean(appearanceSection.getOrDefault("transparent", false), "transparent")) {
+                            AbstractBlockManager.this.isTransparentModelInUse = true;
+                            this.arrangeModelForStateAndVerify(visualBlockState, EMPTY_VARIANT_MODEL);
+                        } else {
+                            Object modelConfig = ResourceConfigUtils.get(appearanceSection, "model", "models");
+                            if (modelConfig != null) {
+                                this.arrangeModelForStateAndVerify(visualBlockState, parseBlockModel(modelConfig));
+                            }
+                        }
                         BlockStateAppearance blockStateAppearance = new BlockStateAppearance(visualBlockState, parseBlockEntityRender(appearanceSection.get("entity-renderer")));
                         appearances.put(appearanceName, blockStateAppearance);
                         if (anyAppearance == null) {
@@ -562,7 +603,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     // 至少有一个外观吧
                     Objects.requireNonNull(anyAppearance, "any appearance should not be null");
 
-                    ExceptionCollector<LocalizedResourceConfigException> exceptionCollector = new ExceptionCollector<>();
+                    ExceptionCollector<LocalizedResourceConfigException> eCollector2 = new ExceptionCollector<>();
                     if (!singleState) {
                         Map<String, Object> variantsSection = ResourceConfigUtils.getAsMapOrNull(stateSection.get("variants"), "variants");
                         if (variantsSection != null) {
@@ -572,7 +613,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 // 先解析nbt，找到需要修改的方块状态
                                 CompoundTag tag = BlockNbtParser.deserialize(variantProvider, variantNBT);
                                 if (tag == null) {
-                                    exceptionCollector.add(new LocalizedResourceConfigException("warning.config.block.state.property.invalid_format", variantNBT));
+                                    eCollector2.add(new LocalizedResourceConfigException("warning.config.block.state.property.invalid_format", variantNBT));
                                     continue;
                                 }
                                 List<ImmutableBlockState> possibleStates = variantProvider.getPossibleStates(tag);
@@ -582,11 +623,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                         possibleState.setSettings(BlockSettings.ofFullCopy(possibleState.settings(), anotherSetting));
                                     }
                                 }
-                                String appearanceName = ResourceConfigUtils.getAsString(variantSection.get("appearance"));
+                                String appearanceName = ResourceConfigUtils.getAsStringOrNull(variantSection.get("appearance"));
                                 if (appearanceName != null) {
                                     BlockStateAppearance appearance = appearances.get(appearanceName);
                                     if (appearance == null) {
-                                        exceptionCollector.add(new LocalizedResourceConfigException("warning.config.block.state.variant.invalid_appearance", variantNBT, appearanceName));
+                                        eCollector2.add(new LocalizedResourceConfigException("warning.config.block.state.variant.invalid_appearance", variantNBT, appearanceName));
                                         continue;
                                     }
                                     for (ImmutableBlockState possibleState : possibleStates) {
@@ -605,7 +646,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     // 绑定行为
                     for (ImmutableBlockState state : states) {
                         if (isEntityBlock) {
-                            state.setBlockEntityType(entityBlockBehavior.blockEntityType());
+                            state.setBlockEntityType(entityBlockBehavior.blockEntityType(state));
                         }
                         state.setBehavior(blockBehavior);
                         int internalId = state.customBlockState().registryId();
@@ -645,8 +686,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     AbstractBlockManager.this.byId.put(customBlock.id(), customBlock);
 
                     // 抛出次要警告
-                    exceptionCollector.throwIfPresent();
+                    eCollector2.throwIfPresent();
                 }, () -> GsonHelper.get().toJson(section)));
+
+                // 抛出次要警告
+                eCollector1.throwIfPresent();
             }, () -> GsonHelper.get().toJson(section)));
         }
 
@@ -668,37 +712,33 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             return properties;
         }
 
-        private void arrangeModelForStateAndVerify(BlockStateWrapper blockStateWrapper, Object modelOrModels) {
-            // 如果没有配置models
-            if (modelOrModels == null) {
-                return;
-            }
-            // 获取variants
+        @Nullable
+        private JsonElement parseBlockModel(Object modelOrModels) {
+            if (modelOrModels == null) return null;
             List<JsonObject> variants;
             if (modelOrModels instanceof String model) {
-                JsonObject json = new JsonObject();
-                json.addProperty("model", model);
-                variants = Collections.singletonList(json);
+                variants = Collections.singletonList(MiscUtils.init(new JsonObject(), j -> j.addProperty("model", model)));
             } else {
                 variants = ResourceConfigUtils.parseConfigAsList(modelOrModels, this::parseAppearanceModelSectionAsJson);
-                if (variants.isEmpty()) {
-                    return;
-                }
             }
+            return variants.isEmpty() ? null : GsonHelper.combine(variants);
+        }
+
+        private void arrangeModelForStateAndVerify(BlockStateWrapper blockStateWrapper, JsonElement variant) {
+            if (variant == null) return;
             // 拆分方块id与属性
             String blockState = blockStateWrapper.getAsString();
             int firstIndex = blockState.indexOf('[');
             Key blockId = firstIndex == -1 ? Key.of(blockState) : Key.of(blockState.substring(0, firstIndex));
             String propertyNBT = firstIndex == -1 ? "" : blockState.substring(firstIndex + 1, blockState.lastIndexOf(']'));
-            // 结合variants
-            JsonElement combinedVariant = GsonHelper.combine(variants);
+
             Map<String, JsonElement> overrideMap = AbstractBlockManager.this.blockStateOverrides.computeIfAbsent(blockId, k -> new HashMap<>());
             JsonElement previous = overrideMap.get(propertyNBT);
-            if (previous != null && !previous.equals(combinedVariant)) {
-                throw new LocalizedResourceConfigException("warning.config.block.state.model.conflict", GsonHelper.get().toJson(combinedVariant), blockState, GsonHelper.get().toJson(previous));
+            if (previous != null && !previous.equals(variant)) {
+                throw new LocalizedResourceConfigException("warning.config.block.state.model.conflict", GsonHelper.get().toJson(variant), blockState, GsonHelper.get().toJson(previous));
             }
-            overrideMap.put(propertyNBT, combinedVariant);
-            AbstractBlockManager.this.tempVanillaBlockStateModels[blockStateWrapper.registryId()] = combinedVariant;
+            overrideMap.put(propertyNBT, variant);
+            AbstractBlockManager.this.tempVanillaBlockStateModels[blockStateWrapper.registryId()] = variant;
         }
 
         private JsonObject parseAppearanceModelSectionAsJson(Map<String, Object> section) {

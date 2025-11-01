@@ -1,0 +1,152 @@
+items:
+  default:magma_fruit:
+    material: carrot
+    model:
+      template: default:model/simplified_generated
+      arguments:
+        path: minecraft:item/custom/magma_fruit
+    data:
+      item-name: <!i><white><i18n:item.magma_fruit>
+      $$>=1.20.5:
+        food:
+          nutrition: 3
+          saturation: 0.5
+          can-always-eat: true
+    settings:
+      invulnerable:
+        - lava
+        - fire_tick
+      $$<1.20.5:
+        food:
+          nutrition: 3
+          saturation: 0.5
+    events:
+      - on: consume
+        functions:
+          - type: damage
+            target: self
+            amount: 1.0
+            damage-type: lava
+          - type: potion_effect
+            duration: 200
+            amplifier: 0
+            particles: true
+            potion-effect: minecraft:fire_resistance
+    behavior:
+      type: liquid_collision_block_item
+      block: default:magma_plant
+blocks:
+  default:magma_plant:
+    settings:
+      template:
+        - default:hardness/none
+        - default:sound/grass
+      overrides:
+        item: default:magma_fruit
+        push-reaction: destroy
+        map-color: 24
+        is-randomly-ticking: true
+    behavior:
+      - type: crop_block
+        grow-speed: 0.25
+        light-requirement: 10
+        is-bone-meal-target: true
+        bone-meal-age-bonus:
+          type: uniform
+          min: 1
+          max: 2
+      - type: on_liquid_block
+        stackable: false
+        liquid-type:
+          - lava
+    states:
+      properties:
+        age:
+          type: int
+          default: 0
+          range: 0~3
+      appearances:
+        age=0:
+          auto-state: lower_tripwire
+          model: minecraft:block/custom/magma_plant_stage_0
+        age=1:
+          auto-state: higher_tripwire
+          model: minecraft:block/custom/magma_plant_stage_1
+        age=2:
+          auto-state: sugar_cane
+          model: minecraft:block/custom/magma_plant_stage_2
+        age=3:
+          auto-state: sugar_cane
+          models:
+            - path: minecraft:block/custom/magma_plant_stage_3
+              weight: 1
+            - path: minecraft:block/custom/magma_plant_stage_3
+              y: 90
+              weight: 1
+            - path: minecraft:block/custom/magma_plant_stage_3
+              y: 180
+              weight: 1
+            - path: minecraft:block/custom/magma_plant_stage_3
+              y: 270
+              weight: 1
+      variants:
+        age=0:
+          appearance: age=0
+        age=1:
+          appearance: age=1
+        age=2:
+          appearance: age=2
+        age=3:
+          appearance: age=3
+          settings:
+            is-randomly-ticking: false
+    loot:
+      template: default:loot_table/crop
+      arguments:
+        crop_item: default:magma_fruit
+        ripe_age: 3
+    events:
+      - on: break
+        conditions:
+          - type: match_block_property
+            properties:
+              age: 3
+        functions:
+          - type: particle
+            x: <arg:block.block_x> + 0.5
+            y: <arg:block.block_y> + 0.5
+            z: <arg:block.block_z> + 0.5
+            particle: minecraft:lava
+            count: 10
+            offset-x: 0.05
+            offset-y: 0.02
+            offset-z: 0.05
+            speed: 0.08
+          - type: play_sound
+            sound: minecraft:entity.firework_rocket.blast
+            x: <arg:block.block_x> + 0.5
+            y: <arg:block.block_y> + 0.5
+            z: <arg:block.block_z> + 0.5
+      - on: right_click
+        conditions:
+          - type: match_block_property
+            properties:
+              age: 3
+          - type: hand
+            hand: main_hand
+          - type: '!has_item'
+        functions:
+          - type: break_block
+            x: <arg:block.block_x>
+            y: <arg:block.block_y>
+            z: <arg:block.block_z>
+          - type: place_block
+            x: <arg:block.block_x>
+            y: <arg:block.block_y>
+            z: <arg:block.block_z>
+            block-state: default:magma_plant[age=0]
+          - type: swing_hand
+          - type: damage
+            target: self
+            amount: 1.0
+            damage-type: on_fire

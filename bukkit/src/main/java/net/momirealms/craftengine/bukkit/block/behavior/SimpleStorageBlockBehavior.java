@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntity;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
@@ -24,6 +25,7 @@ import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -71,15 +73,23 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
     public InteractionResult useWithoutItem(UseOnContext context, ImmutableBlockState state) {
         CEWorld world = context.getLevel().storageWorld();
         net.momirealms.craftengine.core.entity.player.Player player = context.getPlayer();
-        BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(context.getClickedPos());
-        if (player != null && blockEntity instanceof SimpleStorageBlockEntity entity) {
-            Player bukkitPlayer = (Player) player.platformPlayer();
-            Optional.ofNullable(entity.inventory()).ifPresent(inventory -> {
-                entity.onPlayerOpen(player);
-                bukkitPlayer.openInventory(inventory);
-                new BukkitInventory(inventory).open(player, AdventureHelper.miniMessage().deserialize(this.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
-            });
+        if (player == null) {
+            return InteractionResult.SUCCESS_AND_CANCEL;
         }
+        BlockPos blockPos = context.getClickedPos();
+        World bukkitWorld = (World) context.getLevel().platformWorld();
+        Location location = new Location(bukkitWorld, blockPos.x(), blockPos.y(), blockPos.z());
+        Player bukkitPlayer = (Player) player.platformPlayer();
+        if (!BukkitCraftEngine.instance().antiGriefProvider().canOpenContainer(bukkitPlayer, location)) {
+            return InteractionResult.SUCCESS_AND_CANCEL;
+        }
+        BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(blockPos);
+        if (!(blockEntity instanceof SimpleStorageBlockEntity entity) || entity.inventory() == null) {
+            return InteractionResult.SUCCESS_AND_CANCEL;
+        }
+        entity.onPlayerOpen(player);
+        bukkitPlayer.openInventory(entity.inventory());
+        new BukkitInventory(entity.inventory()).open(player, AdventureHelper.miniMessage().deserialize(this.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
@@ -106,7 +116,7 @@ public class SimpleStorageBlockBehavior extends BukkitBlockBehavior implements E
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType() {
+    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
         return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.SIMPLE_STORAGE);
     }
 

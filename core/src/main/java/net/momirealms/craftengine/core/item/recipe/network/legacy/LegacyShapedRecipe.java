@@ -1,31 +1,29 @@
 package net.momirealms.craftengine.core.item.recipe.network.legacy;
 
-import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.recipe.CraftingRecipeCategory;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @ApiStatus.Obsolete
-public class LegacyShapedRecipe implements LegacyRecipe {
+@SuppressWarnings({"unchecked", "rawtypes", "DuplicatedCode"})
+public class LegacyShapedRecipe<I> implements LegacyRecipe<I> {
     private final int width;
     private final int height;
-    private final List<LegacyIngredient> ingredients;
-    private Item<Object> result;
+    private final List<LegacyIngredient<I>> ingredients;
+    private Item<I> result;
     private final String group;
     private final CraftingRecipeCategory category;
     private final boolean showNotification;
 
     public LegacyShapedRecipe(int width, int height,
-                              List<LegacyIngredient> ingredients,
-                              Item<Object> result,
+                              List<LegacyIngredient<I>> ingredients,
+                              Item<I> result,
                               String group,
                               CraftingRecipeCategory category,
                               boolean showNotification) {
@@ -38,74 +36,61 @@ public class LegacyShapedRecipe implements LegacyRecipe {
         this.showNotification = showNotification;
     }
 
-    private static final Function<FriendlyByteBuf, LegacyShapedRecipe> READER = VersionHelper.isOrAbove1_20_3() ?
-            (buf) -> {
-                String group = buf.readUtf();
-                int category = buf.readVarInt();
-                int width = buf.readVarInt();
-                int height = buf.readVarInt();
-                int size = width * height;
-                List<LegacyIngredient> ingredients = new ArrayList<>(size);
-                for (int i = 0; i < size; i++) {
-                    ingredients.add(LegacyIngredient.read(buf));
-                }
-                Item<Object> result = CraftEngine.instance().itemManager().decode(buf);
-                boolean flag = buf.readBoolean();
-                return new LegacyShapedRecipe(width, height, ingredients, result, group, CraftingRecipeCategory.byId(category), flag);
-            } :
-            (buf) -> {
-                int width = buf.readVarInt();
-                int height = buf.readVarInt();
-                String group = buf.readUtf();
-                int category = buf.readVarInt();
-                int size = width * height;
-                List<LegacyIngredient> ingredients = new ArrayList<>(size);
-                for (int i = 0; i < size; i++) {
-                    ingredients.add(LegacyIngredient.read(buf));
-                }
-                Item<Object> result = CraftEngine.instance().itemManager().decode(buf);
-                boolean flag = buf.readBoolean();
-                return new LegacyShapedRecipe(width, height, ingredients, result, group, CraftingRecipeCategory.byId(category), flag);
-            };
-
-    private static final BiConsumer<LegacyShapedRecipe, FriendlyByteBuf> WRITER = VersionHelper.isOrAbove1_20_3() ?
-            (recipe, buf) -> {
-                buf.writeUtf(recipe.group);
-                buf.writeVarInt(recipe.category.ordinal());
-                buf.writeVarInt(recipe.width);
-                buf.writeVarInt(recipe.height);
-                for (LegacyIngredient ingredient : recipe.ingredients) {
-                    ingredient.write(buf);
-                }
-                CraftEngine.instance().itemManager().encode(buf, recipe.result);
-                buf.writeBoolean(recipe.showNotification);
-            } :
-            (recipe, buf) -> {
-                buf.writeVarInt(recipe.width);
-                buf.writeVarInt(recipe.height);
-                buf.writeUtf(recipe.group);
-                buf.writeVarInt(recipe.category.ordinal());
-                for (LegacyIngredient ingredient : recipe.ingredients) {
-                    ingredient.write(buf);
-                }
-                CraftEngine.instance().itemManager().encode(buf, recipe.result);
-                buf.writeBoolean(recipe.showNotification);
-            };
-
     @Override
-    public void applyClientboundData(Player player) {
-        this.result = CraftEngine.instance().itemManager().s2c(this.result, player);
+    public void applyClientboundData(Function<Item<I>, Item<I>> function) {
+        this.result = function.apply(this.result);
         for (LegacyIngredient ingredient : this.ingredients) {
-            ingredient.applyClientboundData(player);
+            ingredient.applyClientboundData(function);
         }
     }
 
-    public static LegacyShapedRecipe read(FriendlyByteBuf buf) {
-        return READER.apply(buf);
+    public static <I> LegacyShapedRecipe<I> read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item<I>> reader) {
+        if (VersionHelper.isOrAbove1_20_3()) {
+            String group = buf.readUtf();
+            int category = buf.readVarInt();
+            int width = buf.readVarInt();
+            int height = buf.readVarInt();
+            int size = width * height;
+            List<LegacyIngredient<I>> ingredients = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                ingredients.add(LegacyIngredient.read(buf, reader));
+            }
+            Item<I> result = reader.apply(buf);
+            boolean flag = buf.readBoolean();
+            return new LegacyShapedRecipe(width, height, ingredients, result, group, CraftingRecipeCategory.byId(category), flag);
+        } else {
+            int width = buf.readVarInt();
+            int height = buf.readVarInt();
+            String group = buf.readUtf();
+            int category = buf.readVarInt();
+            int size = width * height;
+            List<LegacyIngredient<I>> ingredients = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                ingredients.add(LegacyIngredient.read(buf, reader));
+            }
+            Item<I> result = reader.apply(buf);
+            boolean flag = buf.readBoolean();
+            return new LegacyShapedRecipe(width, height, ingredients, result, group, CraftingRecipeCategory.byId(category), flag);
+        }
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-        WRITER.accept(this, buf);
+    public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item<I>> writer) {
+        if (VersionHelper.isOrAbove1_20_3()) {
+            buf.writeUtf(this.group);
+            buf.writeVarInt(this.category.ordinal());
+            buf.writeVarInt(this.width);
+            buf.writeVarInt(this.height);
+        } else {
+            buf.writeVarInt(this.width);
+            buf.writeVarInt(this.height);
+            buf.writeUtf(this.group);
+            buf.writeVarInt(category.ordinal());
+        }
+        for (LegacyIngredient ingredient : this.ingredients) {
+            ingredient.write(buf, writer);
+        }
+        writer.accept(buf, this.result);
+        buf.writeBoolean(this.showNotification);
     }
 }

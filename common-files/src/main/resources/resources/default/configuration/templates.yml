@@ -898,8 +898,7 @@ templates#block_states:
         appearance: axisY
       axis=z:
         appearance: axisZ
-  # leaves block
-  default:block_state/leaves:
+  default:block_state/__leaves__:
     properties:
       waterlogged:
         type: boolean
@@ -913,7 +912,7 @@ templates#block_states:
         range: 1~7
     appearances:
       default:
-        auto-state: leaves
+        auto-state: ${auto_state}
         model:
           path: ${model_path}
           generation:
@@ -921,7 +920,7 @@ templates#block_states:
             textures:
               all: ${texture_path}
       waterlogged:
-        auto-state: waterlogged_leaves
+        auto-state: waterlogged_${auto_state}
         model:
           path: ${model_path}
     variants:
@@ -936,6 +935,21 @@ templates#block_states:
       distance=7,persistent=false:
         settings:
           is-randomly-ticking: true
+  # any leaves block
+  default:block_state/leaves:
+    template: default:block_state/__leaves__
+    arguments:
+      auto_state: leaves
+  # tintable leaves block
+  default:block_state/tintable_leaves:
+    template: default:block_state/__leaves__
+    arguments:
+      auto_state: tintable_leaves
+  # non-tintable leaves block
+  default:block_state/non_tintable_leaves:
+    template: default:block_state/__leaves__
+    arguments:
+      auto_state: non_tintable_leaves
   # trapdoor block
   default:block_state/trapdoor:
     properties:
@@ -3222,10 +3236,15 @@ templates#loot_tables:
 
   # crop drops
 
+  #
+  # This template is suitable for crops such as wheat and beetroot
+  #
   # template: default:loot_table/seed_crop
   # arguments:
-  #   crop_item: the ripe crop
-  #   crop_seed: the seed of the crop
+  #   crop_item: the mature crop item
+  #   crop_item_count: quantity of mature crop items
+  #   crop_seed: the seed item of the crop
+  #   extra_seed_count: additional seeds dropped when crop reaches maturity
   #   ripe_age: the max age
   default:loot_table/seed_crop:
     pools:
@@ -3239,6 +3258,10 @@ templates#loot_tables:
                   - type: match_block_property
                     properties:
                       age: ${ripe_age}
+                functions:
+                  - type: set_count
+                    add: false
+                    count: ${crop_item_count:-1}
               - type: item
                 item: ${crop_seed}
       - rolls: 1
@@ -3254,12 +3277,15 @@ templates#loot_tables:
                 enchantment: minecraft:fortune
                 formula:
                   type: binomial_with_bonus_count
-                  extra: 3
+                  extra: ${extra_seed_count:-3}
                   probability: 0.5714286
-
+  #
+  # This template is suitable for crops like carrots and potatoes.
+  #
   # template: default:loot_table/crop
   # arguments:
-  #   crop_item: the ripe crop
+  #   crop_item: the crop item
+  #   extra_crop_count: additional crops dropped when crop reaches maturity
   #   ripe_age: the max age
   default:loot_table/crop:
     pools:
@@ -3280,7 +3306,7 @@ templates#loot_tables:
                 enchantment: minecraft:fortune
                 formula:
                   type: binomial_with_bonus_count
-                  extra: 3
+                  extra: ${extra_crop_count:-3}
                   probability: 0.5714286
 
   # ore drops

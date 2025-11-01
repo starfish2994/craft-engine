@@ -4,7 +4,8 @@ import com.mojang.authlib.GameProfile;
 
 import java.util.UUID;
 
-public class LegacyAuthLibUtils {
+public final class LegacyAuthLibUtils {
+    private LegacyAuthLibUtils() {}
 
     public static String getName(GameProfile profile) {
         return profile.getName();

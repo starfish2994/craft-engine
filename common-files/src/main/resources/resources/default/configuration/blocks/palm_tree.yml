@@ -168,6 +168,7 @@ items:
         settings:
           template: default:settings/sapling
         behaviors:
+          - type: liquid_flowable_block
           - type: bush_block
             bottom-block-tags:
               - minecraft:dirt
@@ -193,20 +194,11 @@ items:
                   parent: minecraft:block/cross
                   textures:
                     cross: minecraft:block/custom/palm_sapling
-          variants:
-            stage=0:
-              appearance: default
-            stage=1:
-              appearance: default
   default:palm_leaves:
     material: oak_leaves
     data:
       item-name: <!i><i18n:item.palm_leaves>
-      components:
-        minecraft:block_state:
-          distance: '1'
-          persistent: 'false'
-          waterlogged: 'false'
+      block-state: default:palm_leaves[persistent=true,waterlogged=false,distance=7]
     model:
       type: minecraft:model
       path: minecraft:item/custom/palm_leaves
@@ -228,10 +220,8 @@ items:
         settings:
           template: default:settings/leaves
         states:
-          template: default:block_state/leaves
+          template: default:block_state/tintable_leaves
           arguments:
-            default_state: oak_leaves[distance=1,persistent=false,waterlogged=false]
-            waterlogged_state: oak_leaves[distance=1,persistent=false,waterlogged=true]
             model_path: minecraft:block/custom/palm_leaves
             texture_path: minecraft:block/custom/palm_leaves
   default:palm_trapdoor:
@@ -622,8 +612,7 @@ blocks#fence:
           - minecraft:wooden_fences
     behavior:
       type: fence_block
-      self-tag: fences
-      connectable-tag: wooden_fences
+      connectable-block-tag: minecraft:wooden_fences
       can-leash: true
     states:
       template: default:block_state/fence
@@ -685,6 +674,7 @@ blocks#button:
           - minecraft:mineable/axe
           - minecraft:wooden_buttons
     behaviors:
+      - type: liquid_flowable_block
       - type: face_attached_horizontal_directional_block
       - type: button_block
         ticks-to-stay-pressed: 30

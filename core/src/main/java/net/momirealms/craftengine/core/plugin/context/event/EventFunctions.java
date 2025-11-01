@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.event;
 
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.*;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
@@ -24,6 +24,8 @@ public class EventFunctions {
         register(CommonFunctions.CANCEL_EVENT, new CancelEventFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.RUN, new RunFunction.FactoryImpl<>(EventFunctions::fromMap, EventConditions::fromMap));
         register(CommonFunctions.PLACE_BLOCK, new PlaceBlockFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.UPDATE_BLOCK_PROPERTY, new UpdateBlockPropertyFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.TRANSFORM_BLOCK, new TransformBlockFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.BREAK_BLOCK, new BreakBlockFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.UPDATE_INTERACTION_TICK, new UpdateInteractionFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.SET_COUNT, new SetCountFunction.FactoryImpl<>(EventConditions::fromMap));
@@ -46,26 +48,32 @@ public class EventFunctions {
         register(CommonFunctions.SET_VARIABLE, new SetVariableFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.TOAST, new ToastFunction.FactoryImpl<>(EventConditions::fromMap));
         register(CommonFunctions.DAMAGE, new DamageFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.MERCHANT_TRADE, new MerchantTradeFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.REMOVE_ENTITY, new RemoveEntityFunction.FactoryImpl<>(EventConditions::fromMap));
+        register(CommonFunctions.IF_ELSE, new IfElseFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
+        register(CommonFunctions.ALTERNATIVES, new IfElseFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
+        register(CommonFunctions.WHEN, new WhenFunction.FactoryImpl<>(EventConditions::fromMap, EventFunctions::fromMap));
+        register(CommonFunctions.DAMAGE_ITEM, new DamageItemFunction.FactoryImpl<>(EventConditions::fromMap));
     }
 
-    public static void register(Key key, FunctionFactory<PlayerOptionalContext> factory) {
-        ((WritableRegistry<FunctionFactory<PlayerOptionalContext>>) BuiltInRegistries.EVENT_FUNCTION_FACTORY)
+    public static void register(Key key, FunctionFactory<Context> factory) {
+        ((WritableRegistry<FunctionFactory<Context>>) BuiltInRegistries.EVENT_FUNCTION_FACTORY)
                 .register(ResourceKey.create(Registries.EVENT_FUNCTION_FACTORY.location(), key), factory);
     }
 
-    public static Function<PlayerOptionalContext> fromMap(Map<String, Object> map) {
+    public static Function<Context> fromMap(Map<String, Object> map) {
         String type = ResourceConfigUtils.requireNonEmptyStringOrThrow(map.get("type"), "warning.config.function.missing_type");
         Key key = Key.withDefaultNamespace(type, Key.DEFAULT_NAMESPACE);
-        FunctionFactory<PlayerOptionalContext> factory = BuiltInRegistries.EVENT_FUNCTION_FACTORY.getValue(key);
+        FunctionFactory<Context> factory = BuiltInRegistries.EVENT_FUNCTION_FACTORY.getValue(key);
         if (factory == null) {
             throw new LocalizedResourceConfigException("warning.config.function.invalid_type", type);
         }
         return factory.create(map);
     }
 
-    public static Map<EventTrigger, List<Function<PlayerOptionalContext>>> parseEvents(Object eventsObj) {
+    public static Map<EventTrigger, List<Function<Context>>> parseEvents(Object eventsObj) {
         if (eventsObj == null) return Map.of();
-        EnumMap<EventTrigger, List<Function<PlayerOptionalContext>>> events = new EnumMap<>(EventTrigger.class);
+        EnumMap<EventTrigger, List<Function<Context>>> events = new EnumMap<>(EventTrigger.class);
         if (eventsObj instanceof Map<?, ?> eventsSection) {
             Map<String, Object> eventsSectionMap = MiscUtils.castToMap(eventsSection, false);
             for (Map.Entry<String, Object> eventEntry : eventsSectionMap.entrySet()) {
@@ -84,7 +92,7 @@ public class EventFunctions {
                 try {
                     EventTrigger eventTrigger = EventTrigger.byName(on);
                     if (eventSection.containsKey("type")) {
-                        Function<PlayerOptionalContext> function = EventFunctions.fromMap(eventSection);
+                        Function<Context> function = EventFunctions.fromMap(eventSection);
                         events.computeIfAbsent(eventTrigger, k -> new ArrayList<>(4)).add(function);
                     } else if (eventSection.containsKey("functions")) {
                         events.computeIfAbsent(eventTrigger, k -> new ArrayList<>(4)).add(Objects.requireNonNull(BuiltInRegistries.EVENT_FUNCTION_FACTORY.getValue(CommonFunctions.RUN)).create(eventSection));

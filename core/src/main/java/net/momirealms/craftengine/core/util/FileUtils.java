@@ -2,18 +2,23 @@ package net.momirealms.craftengine.core.util;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.core.pack.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class FileUtils {
 
     private FileUtils() {}
+
+    public static boolean isAbsolute(final String path) {
+        return path.startsWith("/") || path.matches("^[A-Za-z]:\\\\.*");
+    }
 
     public static String getExtension(Path path) {
         final String name = path.getFileName().toString();
@@ -84,5 +89,35 @@ public class FileUtils {
                     .toList());
         }
         return folders;
+    }
+
+    public static List<Path> getFilesDeeply(Path path) throws IOException {
+        List<Path> files = new ObjectArrayList<>();
+        Files.walkFileTree(path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+            @Override
+            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+                if (attrs.isRegularFile()) {
+                    files.add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return files;
+    }
+
+    public static boolean isJsonFile(Path filePath) {
+        return filePath.getFileName().toString().endsWith(".json");
+    }
+
+    public static boolean isMcMetaFile(Path filePath) {
+        return filePath.getFileName().toString().endsWith(".mcmeta");
+    }
+
+    public static boolean isPngFile(Path filePath) {
+        return filePath.getFileName().toString().endsWith(".png");
+    }
+
+    public static boolean isOggFile(Path filePath) {
+        return filePath.getFileName().toString().endsWith(".ogg");
     }
 }

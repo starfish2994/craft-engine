@@ -97,7 +97,7 @@ warning.config.recipe.smithing_transform.post_processor.missing_type: "<yellow><
 warning.config.recipe.smithing_transform.post_processor.invalid_type: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' demircilik dönüşüm tarifi geçersiz bir işlem sonrası işleyici türü '<arg:2>' kullanıyor.</yellow>"
 warning.config.recipe.smithing_transform.post_processor.keep_component.missing_components: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' demircilik dönüşüm tarifi, 'keep_components' işlem sonrası işleyicisi için gerekli 'components' argümanı eksik.</yellow>"
 warning.config.recipe.smithing_transform.post_processor.keep_component.missing_tags: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' demircilik dönüşüm tarifi, 'keep_tags' işlem sonrası işleyicisi için gerekli 'tags' argümanı eksik.</yellow>"
-warning.config.i18n.unknown_locale: "<yellow><arg:0> dosyasında sorun bulundu - Bilinmeyen yerel ayar '<arg:1>'.</yellow>"
+warning.config.translation.unknown_locale: "<yellow><arg:0> dosyasında sorun bulundu - Bilinmeyen yerel ayar '<arg:1>'.</yellow>"
 warning.config.template.duplicate: "<yellow><arg:0> dosyasında sorun bulundu - Yinelenen şablon '<arg:1>'. Diğer dosyalarda aynı yapılandırmanın olup olmadığını kontrol edin.</yellow>"
 warning.config.template.argument.self_increase_int.invalid_range: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' şablonu, 'self_increase_int' argümanında 'to' '<arg:3>' değerinden daha büyük bir 'from' '<arg:2>' değeri kullanıyor.</yellow>"
 warning.config.template.argument.list.invalid_type: "<yellow><arg:0> dosyasında sorun bulundu - '<arg:1>' şablonu, argüman olarak bir 'List' bekleyen bir 'list' argümanı kullanıyor, ancak giriş argümanı bir '<arg:2>' türünde.</yellow>"

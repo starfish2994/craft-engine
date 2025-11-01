@@ -11,7 +11,6 @@ import net.momirealms.craftengine.core.pack.model.ModernItemModel;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
-import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.UniqueKey;
 import org.incendo.cloud.suggestion.Suggestion;
@@ -110,19 +109,17 @@ public interface ItemManager<T> extends Manageable, ModelGenerator {
 
     boolean isVanillaItem(Key item);
 
-    Item<T> decode(FriendlyByteBuf byteBuf);
+    Optional<Item<T>> c2s(Item<T> item);
 
-    void encode(FriendlyByteBuf byteBuf, Item<T> item);
-
-    Item<T> s2c(Item<T> item, Player player);
-
-    Item<T> c2s(Item<T> item);
+    Optional<Item<T>> s2c(Item<T> item, Player player);
 
     UniqueIdItem<T> uniqueEmptyItem();
 
     Item<T> applyTrim(Item<T> base, Item<T> addition, Item<T> template, Key pattern);
 
     Item<T> build(DatapackRecipeResult result);
+
+    List<UniqueKey> getIngredientSubstitutes(Key item);
 
     ItemUpdateResult updateItem(Item<T> item, Supplier<ItemBuildContext> contextSupplier);
 }

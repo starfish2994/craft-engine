@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.util.Key;
 
-public abstract class AbstractedFixedResultRecipe<T> extends AbstractRecipe<T> {
+public abstract class AbstractedFixedResultRecipe<T> extends AbstractRecipe<T> implements FixedResultRecipe<T> {
     protected CustomRecipeResult<T> result;
 
     public AbstractedFixedResultRecipe(Key id, boolean showNotification, CustomRecipeResult<T> result) {
@@ -13,10 +13,7 @@ public abstract class AbstractedFixedResultRecipe<T> extends AbstractRecipe<T> {
         this.result = result;
     }
 
-    public T result(ItemBuildContext context) {
-        return this.result.buildItemStack(context);
-    }
-
+    @Override
     public CustomRecipeResult<T> result() {
         return this.result;
     }

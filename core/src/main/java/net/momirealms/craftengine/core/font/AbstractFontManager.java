@@ -70,6 +70,7 @@ public abstract class AbstractFontManager implements FontManager {
     @Override
     public void load() {
         this.offsetFont = Optional.ofNullable(plugin.config().settings().getSection("image.offset-characters"))
+                .filter(section -> section.getBoolean("enable", true))
                 .map(OffsetFont::new)
                 .orElse(null);
         this.networkTagMapper = new HashMap<>(1024);
@@ -122,12 +123,21 @@ public abstract class AbstractFontManager implements FontManager {
         this.registerImageTags();
         this.registerShiftTags();
         this.registerGlobalTags();
+        this.registerL10nTags();
         this.buildNetworkTagTrie();
         this.buildEmojiKeywordsTrie();
         this.emojiList = new ArrayList<>(this.emojis.values());
         this.allEmojiSuggestions = this.emojis.values().stream()
                 .flatMap(emoji -> emoji.keywords().stream())
                 .collect(Collectors.toList());
+    }
+
+    private void registerL10nTags() {
+        for (String key : this.plugin.translationManager().translationKeys()) {
+            String l10nTag = l10nTag(key);
+            this.networkTagMapper.put(l10nTag, ComponentProvider.l10n(key));
+            this.networkTagMapper.put("\\" + l10nTag, ComponentProvider.constant(Component.text(l10nTag)));
+        }
     }
 
     private void registerGlobalTags() {
@@ -139,6 +149,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     private void registerShiftTags() {
+        if (this.offsetFont == null) return;
         for (int i = -256; i <= 256; i++) {
             String shiftTag = "<shift:" + i + ">";
             this.networkTagMapper.put(shiftTag, ComponentProvider.constant(this.offsetFont.createOffset(i)));
@@ -148,10 +159,14 @@ public abstract class AbstractFontManager implements FontManager {
 
     private void registerImageTags() {
         for (BitmapImage image : this.images.values()) {
-            String id = image.id().toString();
+            Key key = image.id();
+            String id = key.toString();
             String simpleImageTag = imageTag(id);
             this.networkTagMapper.put(simpleImageTag, ComponentProvider.constant(image.componentAt(0, 0)));
             this.networkTagMapper.put("\\" + simpleImageTag, ComponentProvider.constant(Component.text(simpleImageTag)));
+            String simplerImageTag = imageTag(key.value());
+            this.networkTagMapper.put(simplerImageTag, ComponentProvider.constant(image.componentAt(0, 0)));
+            this.networkTagMapper.put("\\" + simplerImageTag, ComponentProvider.constant(Component.text(simplerImageTag)));
             for (int i = 0; i < image.rows(); i++) {
                 for (int j = 0; j < image.columns(); j++) {
                     String imageArgs = id + ":" + i + ":" + j;
@@ -164,12 +179,12 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     @Override
-    public Map<String, ComponentProvider> matchTags(String json) {
+    public Map<String, ComponentProvider> matchTags(String text) {
         if (this.networkTagTrie == null) {
             return Collections.emptyMap();
         }
         Map<String, ComponentProvider> tags = new HashMap<>();
-        for (Token token : this.networkTagTrie.tokenize(json)) {
+        for (Token token : this.networkTagTrie.tokenize(text)) {
             if (token.isMatch()) {
                 tags.put(token.getFragment(), this.networkTagMapper.get(token.getFragment()));
             }
@@ -354,6 +369,10 @@ public abstract class AbstractFontManager implements FontManager {
         return "<global:" + text + ">";
     }
 
+    private static String l10nTag(String text) {
+        return "<l10n:" + text + ">";
+    }
+
     @Override
     public boolean isDefaultFontInUse() {
         return !this.illegalChars.isEmpty();
@@ -401,7 +420,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     public class EmojiParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"emoji", "emojis"};
+        public static final String[] CONFIG_SECTION_NAME = new String[] {"emojis", "emoji"};
 
         @Override
         public String[] sectionId() {

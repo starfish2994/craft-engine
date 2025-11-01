@@ -15,6 +15,7 @@ public class ItemParameterProvider implements ChainParameterProvider<Item<?>> {
         CONTEXT_FUNCTIONS.put(DirectContextParameters.ID, Item::id);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.CUSTOM_MODEL_DATA, i -> i.customModelData().orElse(null));
         CONTEXT_FUNCTIONS.put(DirectContextParameters.IS_CUSTOM, Item::isCustomItem);
+        CONTEXT_FUNCTIONS.put(DirectContextParameters.COUNT, Item::count);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.IS_BLOCK_ITEM, Item::isBlockItem);
     }
 

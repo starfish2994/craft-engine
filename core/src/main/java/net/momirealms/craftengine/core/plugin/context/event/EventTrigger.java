@@ -10,6 +10,7 @@ public enum EventTrigger {
     CONSUME("eat", "consume", "drink"),
     BREAK("break", "dig"),
     PLACE("place", "build"),
+    PICK_UP("pick_up", "pick"),
     STEP("step"),;
 
     public static final Map<String, EventTrigger> BY_NAME = new HashMap<>();

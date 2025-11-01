@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.item;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.modifier.ItemDataModifier;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.event.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
@@ -24,7 +24,7 @@ public abstract class AbstractCustomItem<I> implements CustomItem<I> {
     protected final ItemDataModifier<I>[] clientBoundModifiers;
     protected final List<ItemBehavior> behaviors;
     protected final ItemSettings settings;
-    protected final Map<EventTrigger, List<Function<PlayerOptionalContext>>> events;
+    protected final Map<EventTrigger, List<Function<Context>>> events;
     protected final ItemUpdateConfig updater;
 
     @SuppressWarnings("unchecked")
@@ -33,7 +33,7 @@ public abstract class AbstractCustomItem<I> implements CustomItem<I> {
                               List<ItemDataModifier<I>> modifiers,
                               List<ItemDataModifier<I>> clientBoundModifiers,
                               ItemSettings settings,
-                              Map<EventTrigger, List<Function<PlayerOptionalContext>>> events,
+                              Map<EventTrigger, List<Function<Context>>> events,
                               ItemUpdateConfig updater) {
         this.isVanillaItem = isVanillaItem;
         this.id = id;
@@ -50,8 +50,8 @@ public abstract class AbstractCustomItem<I> implements CustomItem<I> {
     }
 
     @Override
-    public void execute(PlayerOptionalContext context, EventTrigger trigger) {
-        for (Function<PlayerOptionalContext> function : Optional.ofNullable(this.events.get(trigger)).orElse(Collections.emptyList())) {
+    public void execute(Context context, EventTrigger trigger) {
+        for (Function<Context> function : Optional.ofNullable(this.events.get(trigger)).orElse(Collections.emptyList())) {
             function.run(context);
         }
     }

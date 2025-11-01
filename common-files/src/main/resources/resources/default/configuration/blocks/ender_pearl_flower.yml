@@ -22,6 +22,7 @@ blocks:
         map-color: 24
         is-randomly-ticking: true
     behaviors:
+      - type: liquid_flowable_block
       - type: bush_block
         bottom-blocks:
           - minecraft:end_stone
@@ -63,11 +64,8 @@ blocks:
           - type: match_block_property
             properties:
               age: 2
-          - type: '!is_null'
-            argument: item_in_hand
-          - type: equals
-            value1: <arg:item_in_hand.id>
-            value2: default:ender_pearl_flower_seeds
+          - type: match_item
+            id: default:ender_pearl_flower_seeds
         functions:
           - type: break_block
             x: <arg:block.block_x>

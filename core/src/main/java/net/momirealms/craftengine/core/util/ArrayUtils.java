@@ -1,10 +1,7 @@
 package net.momirealms.craftengine.core.util;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class ArrayUtils {
 
@@ -45,6 +42,26 @@ public class ArrayUtils {
         return mergedArray;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> T[] mergeNoCopy(T[] array1, T[] array2) {
+        if (array1 == null && array2 == null) {
+            return null;
+        }
+        if (array1 == null) {
+            return array2;
+        }
+        if (array2 == null) {
+            return array1;
+        }
+        T[] mergedArray = (T[]) Array.newInstance(
+                array1.getClass().getComponentType(),
+                array1.length + array2.length
+        );
+        System.arraycopy(array1, 0, mergedArray, 0, array1.length);
+        System.arraycopy(array2, 0, mergedArray, array1.length, array2.length);
+        return mergedArray;
+    }
+
     public static <T> List<T[]> splitArray(T[] array, int chunkSize) {
         List<T[]> result = new ArrayList<>();
         for (int i = 0; i < array.length; i += chunkSize) {
@@ -75,6 +92,18 @@ public class ArrayUtils {
         return value.substring(value.indexOf('[') + 1, value.lastIndexOf(']'))
                 .replaceAll("\\s", "")
                 .split(",");
+    }
+
+    public static <T> boolean contains(T[] array, T element) {
+        if (array == null || element == null) {
+            return false;
+        }
+        for (T item : array) {
+            if (Objects.equals(item, element)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean isEmpty(Object[] array) {

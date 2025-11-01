@@ -19,6 +19,14 @@ import java.util.Optional;
 public final class BlockStateUtils {
     private BlockStateUtils() {}
 
+    public static boolean isTag(BlockData blockData, Key tag) {
+        return isTag(blockDataToBlockState(blockData), tag);
+    }
+
+    public static boolean isTag(Object blockState, Key tag) {
+        return FastNMS.INSTANCE.method$BlockStateBase$is(blockState, BlockTags.getOrCreate(tag));
+    }
+
     public static BlockStateWrapper toBlockStateWrapper(BlockData blockData) {
         Object state = blockDataToBlockState(blockData);
         return toBlockStateWrapper(state);
