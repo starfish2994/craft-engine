@@ -12,7 +12,7 @@ repositories {
     maven("https://repo.viaversion.com") // via
     maven("https://repo.skriptlang.org/releases/") // skript
     maven("https://nexus.neetgames.com/repository/maven-releases/") // mcmmo
-    maven("https://repo.dmulloy2.net/repository/public/") // mcmmo required
+    maven("https://repo.dmulloy2.net/repository/public/") // mcmmo required (可保留，但已排除传递依赖)
     maven("https://repo.auxilor.io/repository/maven-public/") // eco
     maven("https://repo.hiusers.com/releases") // zaphkiel
     maven("https://jitpack.io") // sxitem slimefun
@@ -58,8 +58,10 @@ dependencies {
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
     // MythicMobs
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
-    // McMMO
-    compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.2.038")
+    // McMMO (关键修改：排除传递的ProtocolLib依赖，避免远程下载)
+    compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.2.038") {
+        exclude group: "com.comphenix.protocol", module: "ProtocolLib"
+    }
     // MMOCore
     compileOnly("net.Indyuce:MMOCore-API:1.12.1-SNAPSHOT")
     // JobsReborn
@@ -87,6 +89,7 @@ dependencies {
     compileOnly("io.github.Slimefun:Slimefun4:RC-32")
     // QuickShop
     compileOnly("com.ghostchu:quickshop-api:6.2.0.10")
+    // 本地ProtocolLib 5.3.0（确保文件名与本地文件一致：ProtocolLib_5.3.0.jar）
     compileOnly(files("${rootProject.rootDir}/libs/ProtocolLib_5.3.0.jar"))
 }
 
