@@ -87,6 +87,7 @@ dependencies {
     compileOnly("io.github.Slimefun:Slimefun4:RC-32")
     // QuickShop
     compileOnly("com.ghostchu:quickshop-api:6.2.0.10")
+    compileOnly(files("${rootProject.rootDir}/libs/ProtocolLib_5.3.0.jar"))
 }
 
 java {
