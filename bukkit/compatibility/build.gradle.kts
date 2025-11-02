@@ -58,9 +58,9 @@ dependencies {
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
     // MythicMobs
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
-    // McMMO (关键修改：排除传递的ProtocolLib依赖，避免远程下载)
+    // McMMO（修复语法错误：Kotlin DSL 需用命名参数调用 exclude）
     compileOnly("com.gmail.nossr50.mcMMO:mcMMO:2.2.038") {
-        exclude group: "com.comphenix.protocol", module: "ProtocolLib"
+        exclude(group = "com.comphenix.protocol", module = "ProtocolLib")
     }
     // MMOCore
     compileOnly("net.Indyuce:MMOCore-API:1.12.1-SNAPSHOT")
@@ -89,7 +89,7 @@ dependencies {
     compileOnly("io.github.Slimefun:Slimefun4:RC-32")
     // QuickShop
     compileOnly("com.ghostchu:quickshop-api:6.2.0.10")
-    // 本地ProtocolLib 5.3.0（确保文件名与本地文件一致：ProtocolLib_5.3.0.jar）
+    // 本地 ProtocolLib 5.3.0（Kotlin DSL 中 files 函数用法不变）
     compileOnly(files("${rootProject.rootDir}/libs/ProtocolLib_5.3.0.jar"))
 }
 
