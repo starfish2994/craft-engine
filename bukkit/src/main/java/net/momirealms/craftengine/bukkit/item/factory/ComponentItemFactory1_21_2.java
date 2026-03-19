@@ -3,10 +3,13 @@ package net.momirealms.craftengine.bukkit.item.factory;
 import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.setting.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.proxy.minecraft.world.item.component.UseRemainderProxy;
 
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +47,24 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
     @Override
     protected Optional<String> itemModel(ComponentItemWrapper item) {
         return item.getJavaComponent(DataComponentTypes.ITEM_MODEL);
+    }
+
+    @Override
+    protected void useRemainder(ComponentItemWrapper item, Item data) {
+        Object useRemainder = UseRemainderProxy.INSTANCE.newInstance(data.getMinecraftItem());
+        item.setExactComponent(DataComponentTypes.USE_REMAINDER, useRemainder);
+    }
+
+    @Override
+    protected Optional<ComponentItemWrapper> useRemainder(ComponentItemWrapper item) {
+        Object exactComponent = item.getExactComponent(DataComponentKeys.USE_REMAINDER);
+        if (exactComponent != null) {
+            // todo
+            Object itemStack = null;
+            return Optional.of(wrap(itemStack));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override

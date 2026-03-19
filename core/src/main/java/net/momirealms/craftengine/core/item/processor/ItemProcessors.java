@@ -58,6 +58,7 @@ public final class ItemProcessors {
     public static final ItemProcessorType<ConditionalProcessor> CONDITION = register(Key.ce("condition"), ConditionalProcessor.FACTORY, VersionHelper.PREMIUM);
     public static final ItemProcessorType<ProfileProcessor> PROFILE = register(Key.ce("profile"), ProfileProcessor.FACTORY);
     public static final ItemProcessorType<OverwritableDyedColorProcessor> OVERWRITABLE_DYED_COLOR = register(Key.ce("overwritable_dyed_color"), OverwritableDyedColorProcessor.FACTORY);
+    public static final ItemProcessorType<UseRemainderProcessor> USE_REMAINDER = register(Key.ce("use_remainder"), UseRemainderProcessor.FACTORY, VersionHelper.isOrAbove1_21_2());
 
     public static <T extends ItemProcessor> ItemProcessorType<T> register(Key key, ItemProcessorFactory<T> factory) {
         ItemProcessorType<T> type = new ItemProcessorType<>(key, factory);
