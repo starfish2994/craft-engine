@@ -7,8 +7,9 @@ import java.util.Locale;
 import java.util.Map;
 
 public enum EventTrigger {
-    LEFT_CLICK("attack", "left_click", "hit"),
+    LEFT_CLICK("left_click"),
     RIGHT_CLICK("right_click", "use_on", "use", "use_item_on"),
+    ATTACK("attack", "hit"),
     CONSUME("eat", "consume", "drink"),
     BREAK("break", "dig"),
     PLACE("place", "build"),

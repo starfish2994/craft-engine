@@ -1,11 +1,13 @@
 package net.momirealms.craftengine.bukkit.item.listener;
 
 import io.papermc.paper.event.block.CompostItemEvent;
+import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.entity.BukkitItemEntity;
 import net.momirealms.craftengine.bukkit.item.BukkitCustomItem;
+import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
@@ -58,10 +60,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
@@ -506,6 +505,31 @@ public final class ItemEventListener implements Listener {
                             event.setCancelled(true);
                         }
                     });
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerAttackEntity(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player player) {
+            Entity hitEntity = event.getEntity();
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+
+            // 获取物品
+            BukkitItem itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
+            if (ItemUtils.isEmpty(itemInHand)) return;
+            Optional<CustomItem> optionalCustomItem = itemInHand.getCustomItem();
+            if (optionalCustomItem.isEmpty()) return;
+
+            // 如果目标实体与手中物品可以产生交互，那么忽略
+            Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
+            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
+                    .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
+                    .withParameter(DirectContextParameters.EVENT, cancellable)
+                    .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(hitEntity))
+                    .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(hitEntity.getLocation()))
+            );
+            CustomItem customItem = optionalCustomItem.get();
+            customItem.execute(context, EventTrigger.ATTACK);
         }
     }
 
