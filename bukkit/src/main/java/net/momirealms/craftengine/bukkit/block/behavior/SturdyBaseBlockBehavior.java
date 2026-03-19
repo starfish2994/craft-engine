@@ -69,13 +69,13 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
             return false;
         }
 
-        // 是否是最底层的方块.
-        boolean isLowest = BlockStateUtils.getOptionalCustomBlockState(blockState)
+        // 检查依靠的方块是否也是相同方块.
+        boolean isSameCustomBlock = BlockStateUtils.getOptionalCustomBlockState(blockState)
                 .map(immutableBlockState -> immutableBlockState.owner().value() == super.customBlock)
                 .orElse(false);
 
-        // 如果相邻方块既不能提供基础支撑，也不是同类自定义方块，则无法存活
-        if (!isLowest) {
+        // 如果依靠的方块既不能提供基础支撑，也不是相同方块，则无法存活.
+        if (!isSameCustomBlock) {
             return false;
         }
 
