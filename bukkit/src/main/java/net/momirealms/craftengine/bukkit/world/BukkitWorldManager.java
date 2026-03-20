@@ -595,7 +595,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
             }
             Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
-            // 注入 CachedCheck
+            // 注入 ChunkAccess 的 BlockEntities 字段.
             Map<?, ?> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
             MapListener<?, ?> mapListener = new MapListener<>(blockEntities); // <BlockPos, BlockEntity>
             ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
