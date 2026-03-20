@@ -520,7 +520,7 @@ public final class ItemEventListener implements Listener {
             Optional<CustomItem> optionalCustomItem = itemInHand.getCustomItem();
             if (optionalCustomItem.isEmpty()) return;
 
-            // 如果目标实体与手中物品可以产生交互，那么忽略
+            // 触发事件
             Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                     .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
