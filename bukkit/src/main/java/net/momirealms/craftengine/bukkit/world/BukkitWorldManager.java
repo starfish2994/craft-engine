@@ -37,7 +37,12 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheP
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ThreadedLevelLightEngineProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.CrudeIncrementalIntIdentityHashBiMapProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.BlastFurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.FurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.SmokerBlockEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.*;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.status.WorldGenContextProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.levelgen.feature.ConfiguredFeatureProxy;
@@ -589,6 +594,25 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
             }
             Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
+            // 注入 CachedCheck
+            Map<?, ?> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
+            ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, new MapListener<>(blockEntities));
+            // 注入 熔炉/高炉/烟熏炉 的 QuickCheck 以支持配方条件.
+            if (Config.recipeInjectBlockEntities()) {
+                for (Object blockEntity : blockEntities.values()) {
+                    Object recipeType = null;
+                    if (SmokerBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+                        recipeType = RecipeTypeProxy.SMOKING;
+                    } else if (BlastFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+                        recipeType = RecipeTypeProxy.BLASTING;
+                    } else if (FurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+                        recipeType = RecipeTypeProxy.SMELTING;
+                    }
+                    if (recipeType != null) {
+                        AbstractFurnaceBlockEntityProxy.INSTANCE.setQuickCheck(blockEntity, FastNMS.INSTANCE.createInjectedFurnaceCachedCheck(recipeType, blockEntity));
+                    }
+                }
+            }
             synchronized (sections) {
                 for (int i = 0; i < ceSections.length; i++) {
                     CESection ceSection = ceSections[i];
@@ -959,5 +983,16 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             return processedList;
         }
         return value;
+    }
+
+    public static Object getChunkAccess(@NotNull Chunk bukkitChunk) {
+        Object worldServer = CraftChunkProxy.INSTANCE.getWorld(bukkitChunk);
+        Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
+
+        if (VersionHelper.isOrAbove1_21()) {
+            return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, bukkitChunk.getX(), bukkitChunk.getZ());
+        } else {
+            return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, bukkitChunk.getX(), bukkitChunk.getZ());
+        }
     }
 }

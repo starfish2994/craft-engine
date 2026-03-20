@@ -22,6 +22,11 @@ public interface BlocksProxy {
     Object JACK_O_LANTERN = INSTANCE.getJackOLantern();
     Object MELON = INSTANCE.getMelon();
     Object PUMPKIN = INSTANCE.getPumpkin();
+    Object CAMPFIRE = INSTANCE.getCampFire();
+    Object SOUL_CAMPFIRE = INSTANCE.getSoulCampFire();
+    Object FURNACE = INSTANCE.getFurnace();
+    Object SMOKER = INSTANCE.getSmoker();
+    Object BLAST_FURNACE = INSTANCE.getBlastFurnace();
     Object AIR$defaultState = BlockProxy.INSTANCE.getDefaultBlockState(AIR);
     Object STONE$defaultState = BlockProxy.INSTANCE.getDefaultBlockState(STONE);
     Object WATER$defaultState = BlockProxy.INSTANCE.getDefaultBlockState(WATER);
@@ -72,4 +77,18 @@ public interface BlocksProxy {
     @FieldGetter(name = "PUMPKIN", isStatic = true)
     Object getPumpkin();
 
+    @FieldGetter(name = "CAMPFIRE", isStatic = true)
+    Object getCampFire();
+
+    @FieldGetter(name = "SOUL_CAMPFIRE", isStatic = true)
+    Object getSoulCampFire();
+
+    @FieldGetter(name = "FURNACE", isStatic = true)
+    Object getFurnace();
+
+    @FieldGetter(name = "SMOKER", isStatic = true)
+    Object getSmoker();
+
+    @FieldGetter(name = "BLAST_FURNACE", isStatic = true)
+    Object getBlastFurnace();
 }

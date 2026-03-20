@@ -450,6 +450,9 @@ recipe:
   # Whether to automatically unlock the corresponding recipe when the player obtains its required ingredients.
   # This option can be set individually for each recipe to override the global setting.
   unlock-on-ingredient-obtained: true
+  # Plugin will inject logic for searching furnace recipes, allowing furnace recipes to support custom condition.
+  # Changing this setting requires restarting the server.
+  inject-block-entities: true
 
 gui:
   browser:

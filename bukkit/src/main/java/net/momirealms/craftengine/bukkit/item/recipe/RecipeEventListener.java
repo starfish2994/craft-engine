@@ -3,11 +3,15 @@ package net.momirealms.craftengine.bukkit.item.recipe;
 import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
+import net.momirealms.craftengine.bukkit.nms.Clearable;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.equipment.TrimBasedEquipment;
@@ -18,6 +22,7 @@ import net.momirealms.craftengine.core.item.recipe.input.SingleItemInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
@@ -29,6 +34,7 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftComple
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryAnvilProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryViewProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
 import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.ContainerProxy;
@@ -37,27 +43,41 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContai
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.CraftingContainerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.*;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.BlastFurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.FurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.SmokerBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkAccessProxy;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.block.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.view.AnvilView;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @SuppressWarnings("DuplicatedCode")
 public final class RecipeEventListener implements Listener {
     private final ItemManager itemManager;
     private final BukkitRecipeManager recipeManager;
     private final BukkitCraftEngine plugin;
+
+    public static final NamespacedKey FURNACE_PLAYER_KEY = new NamespacedKey("craftengine", "furnace-player");
 
     public RecipeEventListener(BukkitCraftEngine plugin, BukkitRecipeManager recipeManager, ItemManager itemManager) {
         this.itemManager = itemManager;
@@ -260,6 +280,147 @@ public final class RecipeEventListener implements Listener {
         int fuelTime = this.itemManager.getFuelTime(BukkitAdaptor.adapt(fuel).id());
         if (fuelTime != 0) {
             event.setBurnTime(fuelTime);
+        }
+    }
+
+    // 当把物品放入熔炉时, 在熔炉实体的PDC内记录玩家的 UUID.
+    @EventHandler(ignoreCancelled = true)
+    public void onClickInventoryWithFurnaceInput(InventoryClickEvent event) {
+        if (!Config.recipeInjectBlockEntities()) return; // 功能未开启.
+        Inventory inventory = event.getInventory();
+        if (!(inventory instanceof FurnaceInventory furnaceInventory)) return;
+        InventoryHolder inventoryHolder = furnaceInventory.getHolder(false);
+        if (!(inventoryHolder instanceof Furnace furnace)) return;
+        Inventory clickedInventory = event.getClickedInventory();
+
+        ItemStack smeltStack = furnaceInventory.getSmelting();
+        Player player = (Player) event.getWhoClicked();
+        boolean shouldRecord = false;
+
+        // 如果玩家操作的自己背包, 用shift+左右键放入物品
+        if (clickedInventory == player.getInventory()) {
+            if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) {
+                BukkitItem item = ItemStackUtils.wrap(event.getCurrentItem());
+                if (item.isEmpty()) return;
+
+                // 如果输入槽位是空的, 则检查交互的物品是否拥有熔炉配方.
+                if (ItemStackUtils.isEmpty(smeltStack)) {
+                    RecipeType recipeType = this.getRecipeTypeByCookingInventoryHolder(inventoryHolder);
+                    Recipe recipe = BukkitRecipeManager.instance().recipeByInput(recipeType, new SingleItemInput(UniqueIdItem.of(item)));
+                    shouldRecord = recipe != null;
+                }
+                // 如果槽位不是空的, 则检查物品是否和已经存在的物品一致.
+                else {
+                    shouldRecord = smeltStack.isSimilar(item.getBukkitItem()) && smeltStack.getAmount() < smeltStack.getMaxStackSize();
+                }
+            }
+        }
+        // 如果玩家直接操作熔炉输入槽
+        else if (event.getSlot() == 0) {
+            ClickType clickType = event.getClick();
+            shouldRecord = switch (clickType) {
+                // 如果操作的是 F 或者 快捷栏, 则检查对应槽位是否有物品, 有物品就代表肯定放入成功了.
+                case SWAP_OFFHAND, NUMBER_KEY -> {
+                    ItemStack item = clickType == ClickType.SWAP_OFFHAND
+                            ? player.getInventory().getItemInOffHand()
+                            : player.getInventory().getItem(event.getHotbarButton());
+                    yield !ItemStackUtils.isEmpty(smeltStack) || !ItemStackUtils.isEmpty(item);
+                }
+                // 如果操作的是左右键, 则检查目标槽位和光标是否至少有一个位置有物品, 有就代表有变动.
+                case LEFT, RIGHT -> !ItemStackUtils.isEmpty(event.getCursor()) || !ItemStackUtils.isEmpty(smeltStack);
+                default -> false;
+            };
+        }
+
+        // 记录玩家的 UUID 到熔炉的 PDC 上.
+        if (shouldRecord) {
+            UUID uniqueId = player.getUniqueId();
+            // 清理 QuickCache 的缓存.
+            Chunk chunk = furnace.getBlock().getChunk();
+            Object chunkAccess = BukkitWorldManager.getChunkAccess(chunk);
+            Object blockEntity = ChunkAccessProxy.INSTANCE.getBlockEntities(chunkAccess).get(BlockPosProxy.INSTANCE.newInstance(furnace.getX(), furnace.getY(), furnace.getZ()));
+            if (AbstractFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+                Object quickCheck = AbstractFurnaceBlockEntityProxy.INSTANCE.getQuickCheck(blockEntity);
+                if (quickCheck instanceof Clearable clearable) {
+                    clearable.clear();
+                }
+            }
+            // 检查旧的数据是否和当前要写入的一致, 一致就不写入了.
+            long[] uuidLongs = furnace.getPersistentDataContainer().get(FURNACE_PLAYER_KEY, PersistentDataType.LONG_ARRAY);
+            if (uuidLongs != null && new UUID(uuidLongs[0], uuidLongs[1]).equals(uniqueId)) {
+                return;
+            }
+            // 写入 UUID.
+            furnace.getPersistentDataContainer().set(FURNACE_PLAYER_KEY, PersistentDataType.LONG_ARRAY,
+                    new long[]{uniqueId.getMostSignificantBits(), uniqueId.getLeastSignificantBits()}
+            );
+        }
+    }
+
+    // 当放置熔炉方块时, 自动注入 QuickCheck
+    @EventHandler(ignoreCancelled = true)
+    public void onPlaceFurnaceBlock(BlockPlaceEvent event) {
+        if (!Config.recipeInjectBlockEntities()) return; // 功能未开启.
+        // 检查是不是熔炉
+        Block block = event.getBlock();
+        Furnace furnace = (Furnace) Optional.of(block)
+                .map(Block::getState)
+                .filter(it -> it instanceof Furnace)
+                .orElse(null);
+        if (furnace == null) {
+            return;
+        }
+        // 获取这个方块实体
+        Object chunkAccess = BukkitWorldManager.getChunkAccess(block.getChunk());
+        Object blockEntity = ChunkAccessProxy.INSTANCE.getBlockEntities(chunkAccess)
+                .get(BlockPosProxy.INSTANCE.newInstance(block.getX(), block.getY(), block.getZ()));
+        // 注入 QuickCheck.
+        if (AbstractFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+            Object recipeType = null;
+            if (SmokerBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+                recipeType = RecipeTypeProxy.SMOKING;
+            } else if (BlastFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+                recipeType = RecipeTypeProxy.BLASTING;
+            } else if (FurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+                recipeType = RecipeTypeProxy.SMELTING;
+            }
+            if (recipeType != null) {
+                AbstractFurnaceBlockEntityProxy.INSTANCE.setQuickCheck(blockEntity, FastNMS.INSTANCE.createInjectedFurnaceCachedCheck(recipeType, blockEntity));
+            }
+        }
+    }
+
+    // 当玩家往篝火上放入物品时, 检查配方条件.
+    @EventHandler(ignoreCancelled = true)
+    public void onPrepareCampfireRecipe(PlayerInteractEvent event) {
+        EquipmentSlot equipmentSlot = event.getHand();
+        if (equipmentSlot == null) return;
+        ItemStack itemInHand = event.getPlayer().getInventory().getItem(equipmentSlot);
+        if (ItemStackUtils.isEmpty(itemInHand)) return;
+        // 获取营火
+        Campfire campfire = (Campfire) Optional.ofNullable(event.getClickedBlock())
+                .map(Block::getState)
+                .filter(it -> it instanceof Campfire)
+                .orElse(null);
+        if (campfire == null) return;
+        // 检查营火是否已满
+        boolean isFull = true;
+        for (int i = 0; i < campfire.getSize(); i++) {
+            ItemStack item = campfire.getItem(i);
+            if (item == null) {
+                isFull = false;
+                break;
+            }
+        }
+        if (isFull) return;
+        // 获取配方
+        SingleItemInput itemInput = new SingleItemInput(UniqueIdItem.of(ItemStackUtils.wrap(itemInHand)));
+        ConditionalRecipe recipe = (ConditionalRecipe) CraftEngine.instance().recipeManager().recipeByInput(RecipeType.CAMPFIRE_COOKING, itemInput);
+        if (recipe != null && recipe.hasCondition()) {
+            boolean result = recipe.canUse(PlayerOptionalContext.of(BukkitAdaptor.adapt(event.getPlayer())));
+            if (!result) {
+                event.setCancelled(true);
+            }
         }
     }
 
@@ -1128,5 +1289,15 @@ public final class RecipeEventListener implements Listener {
                 ItemStackUtils.getUniqueIdItem(inventory.getInputTemplate()),
                 ItemStackUtils.getUniqueIdItem(inventory.getInputMineral())
         );
+    }
+
+    @Nullable
+    private RecipeType getRecipeTypeByCookingInventoryHolder(InventoryHolder inventoryHolder) {
+        return switch (inventoryHolder) {
+            case BlastFurnace blastFurnace -> RecipeType.BLASTING;
+            case Smoker smoker -> RecipeType.SMOKING;
+            case Furnace furnace -> RecipeType.SMELTING;
+            case null, default -> null;
+        };
     }
 }

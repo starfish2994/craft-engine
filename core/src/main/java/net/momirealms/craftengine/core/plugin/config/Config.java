@@ -165,6 +165,7 @@ public final class Config {
     private boolean recipe$unlock_on_ingredient_obtained;
     private Set<Key> recipe$disable_vanilla_recipes$list;
     private List<String> recipe$ingredient_sources;
+    private boolean recipe$inject_block_entities;
 
     private List<String> loot$entity_sources;
 
@@ -565,6 +566,7 @@ public final class Config {
         this.recipe$disable_vanilla_recipes$list = config.getStringList("recipe.disable-vanilla-recipes.list").stream().map(Key::of).collect(Collectors.toSet());
         this.recipe$ingredient_sources = config.getStringList("recipe.ingredient-sources");
         this.recipe$unlock_on_ingredient_obtained = config.getBoolean("recipe.unlock-on-ingredient-obtained", true);
+        this.recipe$inject_block_entities = config.getBoolean("recipe.inject-block-entities", true);
 
         // loot
         this.loot$entity_sources = config.getStringList("recipe.entity-sources");
@@ -1203,6 +1205,10 @@ public final class Config {
 
     public static List<String> recipeIngredientSources() {
         return instance.recipe$ingredient_sources;
+    }
+
+    public static boolean recipeInjectBlockEntities() {
+        return instance.recipe$inject_block_entities;
     }
 
     public static List<String> lootEntitySources() {

@@ -4,11 +4,16 @@ import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Predicate;
+
 public final class CustomSmokingRecipe extends CustomCookingRecipe {
-    public static final Serializer<?> SERIALIZER = new Serializer<>();
+    public static final Serializer SERIALIZER = new Serializer();
 
     public CustomSmokingRecipe(Key id,
                                boolean showNotification,
@@ -17,8 +22,9 @@ public final class CustomSmokingRecipe extends CustomCookingRecipe {
                                CookingRecipeCategory category,
                                Ingredient ingredient,
                                int cookingTime,
-                               float experience) {
-        super(id, showNotification, result, group, category, ingredient, cookingTime, experience);
+                               float experience,
+                               Predicate<Context> craftingCondition) {
+        super(id, showNotification, result, group, category, ingredient, cookingTime, experience, craftingCondition);
     }
 
     @Override
@@ -31,7 +37,7 @@ public final class CustomSmokingRecipe extends CustomCookingRecipe {
         return RecipeType.SMOKING;
     }
 
-    public static class Serializer<A> extends AbstractRecipeSerializer<CustomSmokingRecipe> {
+    public static class Serializer extends AbstractRecipeSerializer<CustomSmokingRecipe> {
 
         @SuppressWarnings("DuplicatedCode")
         @Override
@@ -44,7 +50,8 @@ public final class CustomSmokingRecipe extends CustomCookingRecipe {
                     section.getEnum("category", CookingRecipeCategory.class),
                     section.getNonNullValue(INGREDIENTS, ConfigConstants.ARGUMENT_LIST, super::parseIngredient),
                     section.getInt("time", 80),
-                    section.getFloat(EXP)
+                    section.getFloat(EXP),
+                    MiscUtils.allOf(section.getList(CONDITIONS, CommonConditions::fromConfig))
             );
         }
 
@@ -56,7 +63,8 @@ public final class CustomSmokingRecipe extends CustomCookingRecipe {
                     parseResult(VANILLA_RECIPE_HELPER.cookingResult(json.get("result"))), VANILLA_RECIPE_HELPER.readGroup(json), VANILLA_RECIPE_HELPER.cookingCategory(json),
                     toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("ingredient"))),
                     VANILLA_RECIPE_HELPER.cookingTime(json),
-                    VANILLA_RECIPE_HELPER.cookingExperience(json)
+                    VANILLA_RECIPE_HELPER.cookingExperience(json),
+                    null
             );
         }
     }
