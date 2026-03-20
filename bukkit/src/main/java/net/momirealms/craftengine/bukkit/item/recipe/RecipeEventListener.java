@@ -357,39 +357,6 @@ public final class RecipeEventListener implements Listener {
         }
     }
 
-    // 当放置熔炉方块时, 自动注入 QuickCheck
-    @EventHandler(ignoreCancelled = true)
-    public void onPlaceFurnaceBlock(BlockPlaceEvent event) {
-        if (!Config.recipeInjectBlockEntities()) return; // 功能未开启.
-        // 检查是不是熔炉
-        Block block = event.getBlock();
-        Furnace furnace = (Furnace) Optional.of(block)
-                .map(Block::getState)
-                .filter(it -> it instanceof Furnace)
-                .orElse(null);
-        if (furnace == null) {
-            return;
-        }
-        // 获取这个方块实体
-        Object chunkAccess = BukkitWorldManager.getChunkAccess(block.getChunk());
-        Object blockEntity = ChunkAccessProxy.INSTANCE.getBlockEntities(chunkAccess)
-                .get(BlockPosProxy.INSTANCE.newInstance(block.getX(), block.getY(), block.getZ()));
-        // 注入 QuickCheck.
-        if (AbstractFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
-            Object recipeType = null;
-            if (SmokerBlockEntityProxy.CLASS.isInstance(blockEntity)) {
-                recipeType = RecipeTypeProxy.SMOKING;
-            } else if (BlastFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
-                recipeType = RecipeTypeProxy.BLASTING;
-            } else if (FurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
-                recipeType = RecipeTypeProxy.SMELTING;
-            }
-            if (recipeType != null) {
-                AbstractFurnaceBlockEntityProxy.INSTANCE.setQuickCheck(blockEntity, FastNMS.INSTANCE.createInjectedFurnaceCachedCheck(recipeType, blockEntity));
-            }
-        }
-    }
-
     // 当玩家往篝火上放入物品时, 检查配方条件.
     @EventHandler(ignoreCancelled = true)
     public void onPrepareCampfireRecipe(PlayerInteractEvent event) {

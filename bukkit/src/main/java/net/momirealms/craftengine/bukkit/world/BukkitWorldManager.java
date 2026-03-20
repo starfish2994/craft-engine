@@ -67,6 +67,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -596,10 +597,11 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
             // 注入 CachedCheck
             Map<?, ?> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
-            ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, new MapListener<>(blockEntities));
+            MapListener<?, ?> mapListener = new MapListener<>(blockEntities); // <BlockPos, BlockEntity>
+            ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
             // 注入 熔炉/高炉/烟熏炉 的 QuickCheck 以支持配方条件.
             if (Config.recipeInjectBlockEntities()) {
-                for (Object blockEntity : blockEntities.values()) {
+                Consumer<Object> handleFurnaceInject = blockEntity -> {
                     Object recipeType = null;
                     if (SmokerBlockEntityProxy.CLASS.isInstance(blockEntity)) {
                         recipeType = RecipeTypeProxy.SMOKING;
@@ -611,7 +613,15 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     if (recipeType != null) {
                         AbstractFurnaceBlockEntityProxy.INSTANCE.setQuickCheck(blockEntity, FastNMS.INSTANCE.createInjectedFurnaceCachedCheck(recipeType, blockEntity));
                     }
+                };
+                // 修改当前区块存在的
+                for (Object blockEntity : blockEntities.values()) {
+                    handleFurnaceInject.accept(blockEntity);
                 }
+                // 监听新增的熔炉/高炉/烟熏炉.
+                mapListener.registerPutListener((blockPos, blockEntity) -> {
+                    handleFurnaceInject.accept(blockEntity);
+                });
             }
             synchronized (sections) {
                 for (int i = 0; i < ceSections.length; i++) {
