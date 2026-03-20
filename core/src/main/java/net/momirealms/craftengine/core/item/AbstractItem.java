@@ -54,8 +54,8 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Item useRemainder(Item item) {
-        this.factory.useRemainder(this.item, item);
+    public Item useRemainder(Item item, int count) {
+        this.factory.useRemainder(this.item, item, count);
         return this;
     }
 

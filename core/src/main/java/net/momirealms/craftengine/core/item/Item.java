@@ -118,7 +118,7 @@ public interface Item {
 
     Optional<String> itemModel();
 
-    Item useRemainder(Item item);
+    Item useRemainder(Item item, int count);
 
     Optional<Item> useRemainder();
 

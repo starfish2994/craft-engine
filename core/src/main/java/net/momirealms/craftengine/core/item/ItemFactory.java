@@ -189,7 +189,7 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract Optional<String> itemModel(W item);
 
-    protected abstract void useRemainder(W item, Item data);
+    protected abstract void useRemainder(W item, Item data, int count);
 
     protected abstract Optional<W> useRemainder(W item);
 

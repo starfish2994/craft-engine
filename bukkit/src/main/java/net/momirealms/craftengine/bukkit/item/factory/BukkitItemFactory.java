@@ -200,7 +200,7 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
     }
 
     @Override
-    protected void useRemainder(W item, Item data) {
+    protected void useRemainder(W item, Item data, int count) {
         throw new UnsupportedOperationException("This feature is only available on 1.21.2+");
     }
 
