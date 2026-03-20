@@ -32,3 +32,4 @@ build/
 .vscode/settings.json
 /runPaper/
 /buildSrc/.kotlin/
+/publishing-credentials.properties
