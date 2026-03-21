@@ -28,6 +28,7 @@ import net.momirealms.craftengine.core.pack.mcmeta.overlay.OverlayCombination;
 import net.momirealms.craftengine.core.pack.model.definition.ItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ModernItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.RangeDispatchItemModel;
+import net.momirealms.craftengine.core.pack.model.definition.Transformation;
 import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.CustomModelDataRangeDispatchProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
@@ -3122,6 +3123,7 @@ public abstract class AbstractPackManager implements PackManager {
             boolean handAnimationOnSwap = originalItemModel.handAnimationOnSwap();
             boolean oversizedInGui = originalItemModel.oversizedInGui();
             float swapAnimationScale = originalItemModel.swapAnimationScale();
+            Transformation transformation = originalItemModel.transformation();
 
             Map<Float, ItemModel> entries = new TreeMap<>();
             for (Map.Entry<Integer, ModernItemModel> modelWithDataEntry : entry.getValue().entrySet()) {
@@ -3141,7 +3143,7 @@ public abstract class AbstractPackManager implements PackManager {
                     entries, originalItemModel.itemModel()
             );
 
-            ModernItemModel newItemModel = new ModernItemModel(rangeDispatch, handAnimationOnSwap, oversizedInGui, swapAnimationScale);
+            ModernItemModel newItemModel = new ModernItemModel(rangeDispatch, handAnimationOnSwap, oversizedInGui, swapAnimationScale, transformation);
             try {
                 Files.createDirectories(overridedItemPath.getParent());
             } catch (IOException e) {

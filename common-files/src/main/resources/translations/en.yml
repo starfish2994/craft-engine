@@ -162,6 +162,7 @@ resource.argument.type.number: Number (https://xiao-momi.github.io/craft-engine-
 resource.argument.type.item_model_definition: Item Model Definition
 resource.argument.type.json: Json
 resource.argument.type.any: Any
+resource.argument.type.rotation: Rotation
 resource.argument.type.blockstate: Block State
 resource.argument.parser.section: Expected a configuration section, found '<arg:0>'
 resource.argument.parser.boolean: 'Cannot parse ''<arg:0>'' as a boolean. (Allowed values: true/false, yes/no, on/off)'
@@ -183,6 +184,7 @@ resource.argument.parser.nonempty_string: Expected to be a non-empty string
 resource.argument.parser.split: Expected split into '<arg:0>' parts, but got '<arg:1>'
 resource.argument.parser.number: Expected to be a number, found '<arg:0>'
 resource.argument.parser.uuid: Cannot parse '<arg:0>' as a uuid.
+resource.argument.parser.transformation: 'Cannot parse ''<arg:0>'' as a transformation.'
 resource.config_loaded: Loaded <arg:0> in <arg:1>ms (<arg:2>)
 resource.pack_loaded: 'Loaded pack: <arg:0>. Default namespace: <arg:1>'
 resource.errors_detected: 'Found <arg:1> issue(s) in file ''<arg:0>'':'

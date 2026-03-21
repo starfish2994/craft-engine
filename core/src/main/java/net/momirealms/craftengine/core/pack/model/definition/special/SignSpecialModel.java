@@ -9,17 +9,23 @@ public final class SignSpecialModel implements SpecialModel {
     public static final SpecialModelFactory<SignSpecialModel> FACTORY = new Factory();
     public static final SpecialModelReader<SignSpecialModel> READER = new Reader();
     private final Key type;
+    private final String attachment;
     private final String woodType;
     private final String texture;
 
-    public SignSpecialModel(Key type, String woodType, String texture) {
+    public SignSpecialModel(Key type, String attachment, String woodType, String texture) {
         this.type = type;
+        this.attachment = attachment;
         this.woodType = woodType;
         this.texture = texture;
     }
 
     public Key type() {
         return this.type;
+    }
+
+    public String attachment() {
+        return this.attachment;
     }
 
     public String woodType() {
@@ -34,8 +40,13 @@ public final class SignSpecialModel implements SpecialModel {
     public JsonObject apply(MinecraftVersion version) {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.type.asMinimalString());
+        if (version.isAtOrAbove(MinecraftVersion.V26_1) && attachment != null) {
+            json.addProperty("attachment", attachment);
+        }
         json.addProperty("wood_type", woodType);
-        json.addProperty("texture", texture);
+        if (texture != null) {
+            json.addProperty("texture", texture);
+        }
         return json;
     }
 
@@ -46,8 +57,9 @@ public final class SignSpecialModel implements SpecialModel {
         public SignSpecialModel create(ConfigSection section) {
             return new SignSpecialModel(
                     section.getNonNullIdentifier("type"),
+                    section.getString("attachment"),
                     section.getNonNullString(WOOD_TYPES),
-                    section.getNonNullString("texture")
+                    section.getString("texture")
             );
         }
     }
@@ -56,9 +68,10 @@ public final class SignSpecialModel implements SpecialModel {
         @Override
         public SignSpecialModel read(JsonObject json) {
             Key type = Key.of(json.get("type").toString());
+            String attachment = json.has("attachment") ? json.get("attachment").getAsString() : null;
             String woodType = json.get("wood_type").getAsString();
-            String texture = json.get("texture").getAsString();
-            return new SignSpecialModel(type, woodType, texture);
+            String texture = json.has("texture") ? json.get("texture").getAsString() : null;
+            return new SignSpecialModel(type, attachment, woodType, texture);
         }
     }
 }

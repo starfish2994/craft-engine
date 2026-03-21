@@ -13,12 +13,15 @@ public final class ModernItemModel {
     private final boolean oversizedInGui;
     private final boolean handAnimationOnSwap;
     private final float swapAnimationScale;
+    private final Transformation transformation;
 
-    public ModernItemModel(ItemModel itemModel, boolean handAnimationOnSwap, boolean oversizedInGui, float swapAnimationScale) {
+    public ModernItemModel(ItemModel itemModel, boolean handAnimationOnSwap, boolean oversizedInGui, float swapAnimationScale, Transformation transformation) {
         this.handAnimationOnSwap = handAnimationOnSwap;
         this.itemModel = itemModel;
         this.oversizedInGui = oversizedInGui;
         this.swapAnimationScale = swapAnimationScale;
+        this.transformation = transformation;
+
     }
 
     public static ModernItemModel fromJson(JsonObject json) {
@@ -27,7 +30,8 @@ public final class ModernItemModel {
                 model,
                 GsonHelper.getAsBoolean(json.get("hand_animation_on_swap"), true),
                 GsonHelper.getAsBoolean(json.get("oversized_in_gui"), false),
-                GsonHelper.getAsFloat(json.get("swap_animation_scale"), 1.0f)
+                GsonHelper.getAsFloat(json.get("swap_animation_scale"), 1.0f),
+                json.has("transformation") ? Transformation.fromJson(json.get("transformation")) : null
         );
     }
 
@@ -43,6 +47,9 @@ public final class ModernItemModel {
             json.addProperty("swap_animation_scale", this.swapAnimationScale);
         }
         json.add("model", this.itemModel.apply(version));
+        if (version.isAtOrAbove(MinecraftVersion.V26_1) && this.transformation != null) {
+            json.add("transformation", this.transformation.toJson());
+        }
         return json;
     }
 
@@ -66,5 +73,9 @@ public final class ModernItemModel {
 
     public float swapAnimationScale() {
         return this.swapAnimationScale;
+    }
+
+    public Transformation transformation() {
+        return this.transformation;
     }
 }

@@ -50,6 +50,7 @@ public final class ConfigConstants {
     public static final String PARSE_NONEMPTY_LIST_FAILED = "resource.argument.parser.nonempty_list";
     public static final String PARSE_FIXED_SIZE_LIST_FAILED = "resource.argument.parser.fixed_size_list";
     public static final String PARSE_NONEMPTY_STRING_FAILED = "resource.argument.parser.nonempty_string";
+    public static final String PARSE_TRANSFORMATION_FAILED = "resource.argument.parser.transformation";
     public static final String MISSING_ARGUMENT = "resource.missing_argument";
     public static final String ARGUMENT_SECTION = "resource.argument.type.section";
     public static final String ARGUMENT_STRING = "resource.argument.type.string";
@@ -70,6 +71,7 @@ public final class ConfigConstants {
     public static final String ARGUMENT_COLOR = "resource.argument.type.color";
     public static final String ARGUMENT_ITEM_MODEL_DEFINITION = "resource.argument.type.item_model_definition";
     public static final String ARGUMENT_ANY = "resource.argument.type.any";
+    public static final String ARGUMENT_ROTATION = "resource.argument.type.rotation";
 
     private ConfigConstants() {}
 }
