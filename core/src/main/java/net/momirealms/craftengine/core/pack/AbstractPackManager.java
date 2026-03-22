@@ -162,12 +162,12 @@ public abstract class AbstractPackManager implements PackManager {
         this.initInternalData();
         try (InputStream inputStream = plugin.resourceStream("internal/atlases/blocks.json")) {
             this.vanillaBlockAtlas = JsonParser.parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).getAsJsonObject();
-        } catch (IOException e) {
+        } catch (IOException | IllegalStateException e) {
             throw new RuntimeException("Failed to read internal/atlases/blocks.json", e);
         }
         try (InputStream inputStream = plugin.resourceStream("internal/atlases/items.json")) {
             this.vanillaItemAtlas = JsonParser.parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).getAsJsonObject();
-        } catch (IOException e) {
+        } catch (IOException | IllegalStateException e) {
             throw new RuntimeException("Failed to read internal/atlases/items.json", e);
         }
     }
@@ -238,7 +238,7 @@ public abstract class AbstractPackManager implements PackManager {
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | IllegalStateException e) {
             this.plugin.logger().warn("Failed to load " + path, e);
         }
     }
@@ -253,7 +253,7 @@ public abstract class AbstractPackManager implements PackManager {
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | IllegalStateException e) {
             this.plugin.logger().warn("Failed to load " + path, e);
         }
     }
@@ -1040,7 +1040,7 @@ public abstract class AbstractPackManager implements PackManager {
                             afterBytes.addAndGet(before.length);
                         }
                         finished.incrementAndGet();
-                    } catch (IOException | JsonParseException ignored) {
+                    } catch (IOException | JsonParseException | IllegalStateException ignored) {
                     }
                 }, this.plugin.scheduler().async()));
             }
@@ -1339,7 +1339,7 @@ public abstract class AbstractPackManager implements PackManager {
             if (Files.exists(blockAtlasFile)) {
                 try {
                     lastBlocksAtlas = GsonHelper.readJsonFile(blockAtlasFile).getAsJsonObject();
-                } catch (IOException | JsonParseException e) {
+                } catch (IOException | JsonParseException | IllegalStateException e) {
                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", blockAtlasFile.toAbsolutePath().toString());
                 }
             }
@@ -1352,7 +1352,7 @@ public abstract class AbstractPackManager implements PackManager {
                 if (Files.exists(itemAtlasFile)) {
                     try {
                         lastItemAtlas = GsonHelper.readJsonFile(itemAtlasFile).getAsJsonObject();
-                    } catch (IOException | JsonParseException e) {
+                    } catch (IOException | JsonParseException | IllegalStateException e) {
                         TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", itemAtlasFile.toAbsolutePath().toString());
                     }
                 }
@@ -1404,7 +1404,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 JsonObject fontJson;
                                 try {
                                     fontJson = GsonHelper.readJsonFile(file).getAsJsonObject();
-                                } catch (IOException | JsonParseException e) {
+                                } catch (IOException | JsonParseException | IllegalStateException e) {
                                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
                                     return FileVisitResult.CONTINUE;
                                 }
@@ -1443,7 +1443,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 JsonObject itemJson;
                                 try {
                                     itemJson = GsonHelper.readJsonFile(file).getAsJsonObject();
-                                } catch (IOException | JsonParseException e) {
+                                } catch (IOException | JsonParseException | IllegalStateException e) {
                                     AbstractPackManager.this.plugin.logger().warn(TranslationManager.instance().plainTranslation("resource_pack.malformatted_json", file.toAbsolutePath().toString()));
                                     return FileVisitResult.CONTINUE;
                                 }
@@ -1468,7 +1468,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 JsonObject blockStateJson;
                                 try {
                                     blockStateJson = GsonHelper.readJsonFile(file).getAsJsonObject();
-                                } catch (IOException | JsonParseException e) {
+                                } catch (IOException | JsonParseException | IllegalStateException e) {
                                     AbstractPackManager.this.plugin.logger().warn(TranslationManager.instance().plainTranslation("resource_pack.malformatted_json", file.toAbsolutePath().toString()));
                                     return FileVisitResult.CONTINUE;
                                 }
@@ -1481,7 +1481,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 return FileVisitResult.CONTINUE;
                             }
                         });
-                    } catch (IOException e) {
+                    } catch (IOException | ClassCastException e) {
                         this.plugin.logger().warn("Failed to walk through blockstates", e);
                     }
                 }
@@ -1497,7 +1497,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 JsonObject equipmentJson;
                                 try {
                                     equipmentJson = GsonHelper.readJsonFile(file).getAsJsonObject();
-                                } catch (IOException | JsonParseException e) {
+                                } catch (IOException | JsonParseException | IllegalStateException e) {
                                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", file.toAbsolutePath().toString());
                                     return FileVisitResult.CONTINUE;
                                 }
@@ -1521,7 +1521,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 return FileVisitResult.CONTINUE;
                             }
                         });
-                    } catch (IOException e) {
+                    } catch (IOException | ClassCastException e) {
                         this.plugin.logger().warn("Failed to walk through equipments", e);
                     }
                 }
@@ -1551,7 +1551,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 }
                             }
                         }
-                    } catch (IOException | JsonParseException e) {
+                    } catch (IOException | JsonParseException | IllegalStateException e) {
                         this.plugin.logger().warn("Failed to visit sounds.json", e);
                     }
                 }
@@ -1616,7 +1616,7 @@ public abstract class AbstractPackManager implements PackManager {
                     JsonObject modelJson;
                     try {
                         modelJson = GsonHelper.readJsonFile(modelJsonPath).getAsJsonObject();
-                    } catch (IOException | JsonParseException e) {
+                    } catch (IOException | JsonParseException | IllegalStateException e) {
                         TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", modelJsonPath.toAbsolutePath().toString());
                         continue;
                     }
@@ -1677,7 +1677,7 @@ public abstract class AbstractPackManager implements PackManager {
                     JsonObject modelJson;
                     try {
                         modelJson = GsonHelper.readJsonFile(modelJsonPath).getAsJsonObject();
-                    } catch (IOException | JsonParseException e) {
+                    } catch (IOException | JsonParseException | IllegalStateException e) {
                         TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", modelJsonPath.toAbsolutePath().toString());
                         continue;
                     }
@@ -2172,7 +2172,7 @@ public abstract class AbstractPackManager implements PackManager {
                 JsonObject parentModelJson;
                 try {
                     parentModelJson = GsonHelper.readJsonFile(modelJsonPath).getAsJsonObject();
-                } catch (IOException | JsonParseException e) {
+                } catch (IOException | JsonParseException | IllegalStateException e) {
                     TranslationManager.instance().log("warning.config.resource_pack.generation.malformatted_json", modelJsonPath.toAbsolutePath().toString());
                     continue;
                 }
@@ -2509,7 +2509,7 @@ public abstract class AbstractPackManager implements PackManager {
             if (Files.exists(equipmentPath)) {
                 try (BufferedReader reader = Files.newBufferedReader(equipmentPath)) {
                     equipmentJson = JsonParser.parseReader(reader).getAsJsonObject();
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     plugin.logger().warn("Failed to load existing sounds.json", e);
                     return;
                 }
@@ -2543,7 +2543,7 @@ public abstract class AbstractPackManager implements PackManager {
             if (Files.exists(equipmentPath)) {
                 try (BufferedReader reader = Files.newBufferedReader(equipmentPath)) {
                     equipmentJson = JsonParser.parseReader(reader).getAsJsonObject();
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     plugin.logger().warn("Failed to load existing sounds.json", e);
                     return;
                 }
@@ -2771,7 +2771,7 @@ public abstract class AbstractPackManager implements PackManager {
             if (Files.exists(soundPath)) {
                 try (BufferedReader reader = Files.newBufferedReader(soundPath)) {
                     soundJson = JsonParser.parseReader(reader).getAsJsonObject();
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     plugin.logger().warn("Failed to load existing sounds.json", e);
                     return;
                 }
@@ -2810,7 +2810,7 @@ public abstract class AbstractPackManager implements PackManager {
                 return;
             }
             soundTemplate = JsonParser.parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).getAsJsonObject();
-        } catch (IOException e) {
+        } catch (IOException | IllegalStateException e) {
             plugin.logger().warn("Failed to load internal/sounds.json", e);
             return;
         }
@@ -2819,7 +2819,7 @@ public abstract class AbstractPackManager implements PackManager {
         if (Files.exists(soundPath)) {
             try (BufferedReader reader = Files.newBufferedReader(soundPath)) {
                 soundJson = JsonParser.parseReader(reader).getAsJsonObject();
-            } catch (IOException e) {
+            } catch (IOException | IllegalStateException e) {
                 plugin.logger().warn("Failed to load existing sounds.json", e);
                 return;
             }
@@ -2833,11 +2833,16 @@ public abstract class AbstractPackManager implements PackManager {
             empty.add("sounds", new JsonArray());
             empty.addProperty("replace", true);
             soundJson.add(originalKey.value(), empty);
-            JsonObject originalSounds = soundTemplate.getAsJsonObject(originalKey.value());
-            if (originalSounds != null) {
-                soundJson.add(mapper.getValue().value(), originalSounds);
-            } else {
-                plugin.logger().warn("Cannot find " + originalKey.value() + " in sound template");
+            try {
+                JsonObject originalSounds = soundTemplate.getAsJsonObject(originalKey.value());
+                if (originalSounds != null) {
+                    soundJson.add(mapper.getValue().value(), originalSounds);
+                } else {
+                    plugin.logger().warn("Cannot find " + originalKey.value() + " in sound template");
+                }
+            } catch (ClassCastException e) {
+                plugin.logger().warn("Failed to load existing sounds.json", e);
+                return;
             }
         }
         try {
@@ -2898,7 +2903,7 @@ public abstract class AbstractPackManager implements PackManager {
                     if (stateJson.has("multipart")) {
                         stateJson.remove("multipart");
                     }
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     stateJson = new JsonObject();
                 }
             } else {
@@ -2993,7 +2998,7 @@ public abstract class AbstractPackManager implements PackManager {
                     if (!overrides.isEmpty()) {
                         itemJson.add("overrides", overrides);
                     }
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     this.plugin.logger().warn("Failed to read item json " + itemPath.toAbsolutePath());
                     continue;
                 }
@@ -3108,7 +3113,7 @@ public abstract class AbstractPackManager implements PackManager {
             if (Files.exists(overridedItemPath)) {
                 try {
                     originalItemModel = ModernItemModel.fromJson(GsonHelper.readJsonFile(overridedItemPath).getAsJsonObject());
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     this.plugin.logger().warn("Failed to load existing item model (modern)", e);
                     continue;
                 }
@@ -3200,7 +3205,7 @@ public abstract class AbstractPackManager implements PackManager {
             if (Files.exists(overridedItemPath)) {
                 try (BufferedReader reader = Files.newBufferedReader(overridedItemPath)) {
                     originalItemModel = JsonParser.parseReader(reader).getAsJsonObject();
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     this.plugin.logger().warn("Failed to load existing item model (legacy)", e);
                     continue;
                 }
@@ -3255,7 +3260,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     String content = Files.readString(fontPath);
                     fontJson = JsonParser.parseString(content).getAsJsonObject();
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     fontJson = new JsonObject();
                     this.plugin.logger().warn(fontPath + " is not a valid font json file");
                 }

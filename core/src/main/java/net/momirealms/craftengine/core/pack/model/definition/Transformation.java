@@ -7,7 +7,6 @@ import com.mojang.datafixers.util.Either;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
-import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.util.Pair;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -19,6 +18,7 @@ import java.util.Map;
 public final class Transformation {
     private static final String[] RIGHT_ROTATION = new String[]{"right_rotation", "right-rotation"};
     private static final String[] LEFT_ROTATION = new String[]{"left_rotation", "left-rotation"};
+    private static final Either<Pair<Float, Vector3f>, Quaternionf> DEFAULT_ROTATION = Either.right(ConfigConstants.ZERO_QUATERNION);
     public final Either<Pair<Float, Vector3f>, Quaternionf> rightRotation;
     public final Either<Pair<Float, Vector3f>, Quaternionf> leftRotation;
     public final Vector3f scale;
@@ -45,35 +45,31 @@ public final class Transformation {
     }
 
     public static Transformation fromValue(ConfigValue value) {
-        if (value.is(Map.class)) {
-            ConfigSection section = value.getAsSection();
-            Either<Pair<Float, Vector3f>, Quaternionf> rightRotation = section.getNonNullValue(RIGHT_ROTATION, ConfigConstants.ARGUMENT_ROTATION, Transformation::parseRotation);
-            Either<Pair<Float, Vector3f>, Quaternionf> leftRotation = section.getNonNullValue(LEFT_ROTATION, ConfigConstants.ARGUMENT_ROTATION, Transformation::parseRotation);
-            Vector3f scale = section.getNonNullVector3f("scale");
-            Vector3f translation = section.getNonNullVector3f("translation");
-            return new Transformation(rightRotation, leftRotation, scale, translation);
-        } else if (value.is(List.class)) {
+        if (value.is(List.class)) {
             return new Transformation(value.getAsFixedSizeList(16, ConfigValue::getAsFloat));
         }
-        throw new KnownResourceException(ConfigConstants.PARSE_TRANSFORMATION_FAILED, value.path());
+        ConfigSection section = value.getAsSection();
+        Either<Pair<Float, Vector3f>, Quaternionf> rightRotation = section.getValue(RIGHT_ROTATION, Transformation::parseRotation, DEFAULT_ROTATION);
+        Either<Pair<Float, Vector3f>, Quaternionf> leftRotation = section.getValue(LEFT_ROTATION, Transformation::parseRotation, DEFAULT_ROTATION);
+        Vector3f scale = section.getVector3f("scale", ConfigConstants.NORMAL_SCALE);
+        Vector3f translation = section.getVector3f("translation", ConfigConstants.ZERO_VECTOR3);
+        return new Transformation(rightRotation, leftRotation, scale, translation);
     }
 
     public static Transformation fromJson(JsonElement json) {
-        if (json.isJsonObject()) {
-            JsonObject jsonObject = json.getAsJsonObject();
-            Either<Pair<Float, Vector3f>, Quaternionf> rightRotation = parseRotation(jsonObject.get("right_rotation"));
-            Either<Pair<Float, Vector3f>, Quaternionf> leftRotation = parseRotation(jsonObject.get("left_rotation"));
-            JsonArray scaleArray = jsonObject.getAsJsonArray("scale");
-            Vector3f scale = new Vector3f(scaleArray.get(0).getAsFloat(), scaleArray.get(1).getAsFloat(), scaleArray.get(2).getAsFloat());
-            JsonArray translationArray = jsonObject.getAsJsonArray("translation");
-            Vector3f translation = new Vector3f(translationArray.get(0).getAsFloat(), translationArray.get(1).getAsFloat(), translationArray.get(2).getAsFloat());
-            return new Transformation(rightRotation, leftRotation, scale, translation);
-        } else if (json.isJsonArray()) {
+        if (json.isJsonArray()) {
             List<Float> list = json.getAsJsonArray().asList().stream().map(JsonElement::getAsFloat).toList();
             if (list.size() != 16) throw new IllegalArgumentException();
             return new Transformation(list);
         }
-        throw new IllegalArgumentException();
+        JsonObject jsonObject = json.getAsJsonObject();
+        Either<Pair<Float, Vector3f>, Quaternionf> rightRotation = parseRotation(jsonObject.get("right_rotation"));
+        Either<Pair<Float, Vector3f>, Quaternionf> leftRotation = parseRotation(jsonObject.get("left_rotation"));
+        JsonArray scaleArray = jsonObject.getAsJsonArray("scale");
+        Vector3f scale = new Vector3f(scaleArray.get(0).getAsFloat(), scaleArray.get(1).getAsFloat(), scaleArray.get(2).getAsFloat());
+        JsonArray translationArray = jsonObject.getAsJsonArray("translation");
+        Vector3f translation = new Vector3f(translationArray.get(0).getAsFloat(), translationArray.get(1).getAsFloat(), translationArray.get(2).getAsFloat());
+        return new Transformation(rightRotation, leftRotation, scale, translation);
     }
 
     @SuppressWarnings("DuplicatedCode")
@@ -140,25 +136,19 @@ public final class Transformation {
             float angle = section.getNonNullFloat("angle");
             Vector3f axis = section.getNonNullVector3f("axis");
             return Either.left(Pair.of(angle, axis));
-        } else if (value.is(List.class)) {
-            return Either.right(value.getAsQuaternion());
-        } else {
-            throw new KnownResourceException(ConfigConstants.PARSE_TRANSFORMATION_FAILED, value.path());
         }
+        return Either.right(value.getAsQuaternion());
     }
 
     private static Either<Pair<Float, Vector3f>, Quaternionf> parseRotation(JsonElement json) {
-        if (json.isJsonObject()) {
-            JsonObject rotation = json.getAsJsonObject();
-            float angle = rotation.get("angle").getAsFloat();
-            JsonArray axisArray = rotation.getAsJsonArray("axis");
-            Vector3f axis = new Vector3f(axisArray.get(0).getAsFloat(), axisArray.get(1).getAsFloat(), axisArray.get(2).getAsFloat());
-            return Either.left(Pair.of(angle, axis));
-        } else if (json.isJsonArray()) {
+        if (json.isJsonArray()) {
             JsonArray rotationArray = json.getAsJsonArray();
             return Either.right(new Quaternionf(rotationArray.get(0).getAsFloat(), rotationArray.get(1).getAsFloat(), rotationArray.get(2).getAsFloat(), rotationArray.get(3).getAsFloat()));
-        } else {
-            throw new IllegalArgumentException();
         }
+        JsonObject rotation = json.getAsJsonObject();
+        float angle = rotation.get("angle").getAsFloat();
+        JsonArray axisArray = rotation.getAsJsonArray("axis");
+        Vector3f axis = new Vector3f(axisArray.get(0).getAsFloat(), axisArray.get(1).getAsFloat(), axisArray.get(2).getAsFloat());
+        return Either.left(Pair.of(angle, axis));
     }
 }
