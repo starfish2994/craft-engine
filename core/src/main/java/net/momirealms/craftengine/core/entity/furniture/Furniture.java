@@ -47,13 +47,13 @@ public abstract class Furniture implements Cullable {
 
     protected CullingData cullingData;
     protected FurnitureVariant currentVariant;
-    protected FurnitureElement[] elements;
-    protected Collider[] colliders;
-    protected FurnitureHitBox[] hitboxes;
+    protected List<FurnitureElement> elements;
+    protected List<Collider> colliders;
+    protected List<FurnitureHitBox> hitboxes;
     protected Int2ObjectMap<FurnitureHitBox> hitboxMap;
     protected Item sourceItem;
     /** IDs of virtual entities that need to be sent to clients */
-    protected int[] virtualEntityIds;
+    protected int[] interactableEntityIds;
     /** IDs of entities specifically acting as physics colliders */
     protected int[] colliderEntityIds;
     private boolean hasExternalModel;
@@ -224,57 +224,74 @@ public abstract class Furniture implements Cullable {
     protected void setVariantInternal(FurnitureVariant variant) {
         this.currentVariant = variant;
         this.hitboxMap = new Int2ObjectOpenHashMap<>();
-        // 初始化家具元素
-        IntList virtualEntityIds = new IntArrayList();
+
+        // 所有可供交互的实体列表
+        IntList interactableEntityIds = new IntArrayList();
+
+        // 获取全部家具显示元素，从行为和配置里获取
         FurnitureElementConfig<?>[] elementConfigs = variant.elementConfigs();
-        this.elements = new FurnitureElement[elementConfigs.length];
-        for (int i = 0; i < elementConfigs.length; i++) {
-            FurnitureElement element = elementConfigs[i].create(this);
-            this.elements[i] = element;
-            element.collectVirtualEntityId(virtualEntityIds::addLast);
+        this.elements = new ArrayList<>(elementConfigs.length);
+        for (FurnitureElementConfig<?> elementConfig : elementConfigs) {
+            FurnitureElement element = elementConfig.create(this);
+            this.elements.add(element);
+            element.collectInteractableEntityId(interactableEntityIds::addLast);
         }
+        this.config.behavior().createFurnitureElements(this, element -> {
+            this.elements.add(element);
+            element.collectInteractableEntityId(interactableEntityIds::addLast);
+        });
+
         // 初始化碰撞箱
         FurnitureHitBoxConfig<?>[] furnitureHitBoxConfigs = variant.hitBoxConfigs();
-        ObjectArrayList<Collider> colliders = new ObjectArrayList<>(furnitureHitBoxConfigs.length);
-        this.hitboxes = new FurnitureHitBox[furnitureHitBoxConfigs.length];
+        this.colliders = new ObjectArrayList<>(furnitureHitBoxConfigs.length);
+        this.hitboxes = new ArrayList<>(furnitureHitBoxConfigs.length);
+
         // 辅助map，用于排除重复的座椅
         LazyReference<Map<Vector3f, Seat<FurnitureHitBox>>> seatMap = LazyReference.lazyReference(HashMap::new);
-        for (int i = 0; i < furnitureHitBoxConfigs.length; i++) {
-            FurnitureHitBox hitbox = furnitureHitBoxConfigs[i].create(this);
-            this.hitboxes[i] = hitbox;
-            for (FurnitureHitboxPart part : hitbox.parts()) {
-                this.hitboxMap.put(part.entityId(), hitbox);
-            }
-            Seat<FurnitureHitBox>[] seats = hitbox.seats();
-            for (int index = 0; index < seats.length; index++) {
-                Map<Vector3f, Seat<FurnitureHitBox>> tempMap = seatMap.get();
-                Vector3f seatPos = seats[index].config().position();
-                if (tempMap.containsKey(seatPos)) {
-                    seats[index] = tempMap.get(seatPos);
-                } else {
-                    tempMap.put(seatPos, seats[index]);
-                }
-            }
-            hitbox.collectVirtualEntityId(virtualEntityIds::addLast);
-            colliders.addAll(hitbox.colliders());
+        for (FurnitureHitBoxConfig<?> furnitureHitBoxConfig : furnitureHitBoxConfigs) {
+            FurnitureHitBox hitbox = furnitureHitBoxConfig.create(this);
+            addHitbox(hitbox, seatMap, interactableEntityIds);
         }
+        this.config.behavior().createFurnitureHitboxes(this, hitbox -> {
+            addHitbox(hitbox, seatMap, interactableEntityIds);
+        });
+
         // 虚拟碰撞箱的实体id
-        this.virtualEntityIds = virtualEntityIds.toIntArray();
-        this.colliders = colliders.toArray(new Collider[0]);
+        this.interactableEntityIds = interactableEntityIds.toIntArray();
         this.colliderEntityIds = colliders.stream().mapToInt(Collider::entityId).toArray();
         this.cullingData = createCullingData(variant.cullingData());
+
         // 外部模型
         Optional<ExternalModel> externalModel = variant.externalModel();
         if (externalModel.isPresent()) {
             this.hasExternalModel = true;
             try {
                 externalModel.get().bindModel((AbstractEntity) this.metaDataEntity);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 CraftEngine.instance().logger().warn("Failed to load external model for furniture " + id(), e);
             }
         } else {
             this.hasExternalModel = false;
         }
+    }
+
+    private void addHitbox(FurnitureHitBox hitbox, LazyReference<Map<Vector3f, Seat<FurnitureHitBox>>> seatMap, IntList interactableEntityIds) {
+        this.hitboxes.add(hitbox);
+        for (FurnitureHitboxPart part : hitbox.parts()) {
+            this.hitboxMap.put(part.entityId(), hitbox);
+        }
+        Seat<FurnitureHitBox>[] seats = hitbox.seats();
+        for (int index = 0; index < seats.length; index++) {
+            Map<Vector3f, Seat<FurnitureHitBox>> tempMap = seatMap.get();
+            Vector3f seatPos = seats[index].config().position();
+            if (tempMap.containsKey(seatPos)) {
+                seats[index] = tempMap.get(seatPos);
+            } else {
+                tempMap.put(seatPos, seats[index]);
+            }
+        }
+        hitbox.collectInteractableEntityId(interactableEntityIds::addLast);
+        this.colliders.addAll(hitbox.colliders());
     }
 
     /**
@@ -361,8 +378,8 @@ public abstract class Furniture implements Cullable {
         return this.config.id();
     }
 
-    public int[] virtualEntityIds() {
-        return this.virtualEntityIds;
+    public int[] interactableEntityIds() {
+        return this.interactableEntityIds;
     }
 
     public int[] colliderEntityIds() {
@@ -497,8 +514,8 @@ public abstract class Furniture implements Cullable {
      * and player collision.
      * </p>
      */
-    public Collider[] colliders() {
-        return this.colliders;
+    public List<Collider> colliders() {
+        return Collections.unmodifiableList(this.colliders);
     }
 
     public WorldPosition position() {
@@ -543,16 +560,16 @@ public abstract class Furniture implements Cullable {
      * These elements handle the model rendering, animations, and client-side displays.
      * * @return An array of {@link FurnitureElement} currently active for this furniture instance.
      */
-    public FurnitureElement[] elements() {
-        return elements;
+    public List<FurnitureElement> elements() {
+        return Collections.unmodifiableList(this.elements);
     }
 
     /**
      * Retrieves all functional hitboxes associated with this furniture.
      * * @return An array of {@link FurnitureHitBox} defining the physical interaction bounds.
      */
-    public FurnitureHitBox[] hitboxes() {
-        return hitboxes;
+    public List<FurnitureHitBox> hitboxes() {
+        return Collections.unmodifiableList(this.hitboxes);
     }
 
     public World world() {

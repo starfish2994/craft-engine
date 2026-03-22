@@ -94,7 +94,7 @@ public final class ShulkerFurnitureHitbox extends AbstractFurnitureHitBox {
     }
 
     @Override
-    public void collectVirtualEntityId(Consumer<Integer> collector) {
+    public void collectInteractableEntityId(Consumer<Integer> collector) {
         for (int entityId : entityIds) {
             collector.accept(entityId);
         }

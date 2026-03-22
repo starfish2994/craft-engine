@@ -34,7 +34,7 @@ public interface FurnitureManager extends Manageable {
     Furniture loadedFurnitureByMetaEntityId(int entityId);
 
     @Nullable
-    Furniture loadedFurnitureByVirtualEntityId(int entityId);
+    Furniture loadedFurnitureByInteractableEntityId(int entityId);
 
     @Nullable
     Furniture loadedFurnitureByColliderEntityId(int entityId);

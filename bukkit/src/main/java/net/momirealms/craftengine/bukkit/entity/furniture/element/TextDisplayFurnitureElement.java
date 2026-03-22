@@ -66,12 +66,6 @@ public final class TextDisplayFurnitureElement extends AbstractFurnitureElement 
     }
 
     @Override
-    public int[] virtualEntityIds() {
-        return new int[] {this.entityId};
-    }
-
-    @Override
-    public void collectVirtualEntityId(Consumer<Integer> collector) {
-        collector.accept(this.entityId);
+    public void collectInteractableEntityId(Consumer<Integer> collector) {
     }
 }

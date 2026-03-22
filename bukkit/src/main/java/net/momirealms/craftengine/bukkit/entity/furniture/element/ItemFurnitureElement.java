@@ -83,13 +83,6 @@ public final class ItemFurnitureElement extends AbstractFurnitureElement {
     }
 
     @Override
-    public int[] virtualEntityIds() {
-        return new int[] {this.entityId1, this.entityId2};
-    }
-
-    @Override
-    public void collectVirtualEntityId(Consumer<Integer> collector) {
-        collector.accept(this.entityId1);
-        collector.accept(this.entityId2);
+    public void collectInteractableEntityId(Consumer<Integer> collector) {
     }
 }

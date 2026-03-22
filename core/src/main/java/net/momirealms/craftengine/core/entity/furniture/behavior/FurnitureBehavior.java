@@ -2,6 +2,8 @@ package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
+import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -10,6 +12,8 @@ import net.momirealms.craftengine.core.world.context.InteractEntityContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 @ApiStatus.Experimental
 public abstract class FurnitureBehavior {
@@ -33,12 +37,18 @@ public abstract class FurnitureBehavior {
         return null;
     }
 
-    public InteractionResult useOnFurniture(InteractEntityContext context, Furniture furniture) {
+    public InteractionResult useOnFurniture(Furniture furniture, FurnitureHitBox hitBox, InteractEntityContext context) {
         return InteractionResult.TRY_EMPTY_HAND;
     }
 
-    public InteractionResult useWithoutItem(InteractEntityContext context, Furniture furniture) {
+    public InteractionResult useWithoutItem(Furniture furniture, InteractEntityContext context) {
         return InteractionResult.PASS;
+    }
+
+    public void createFurnitureElements(Furniture furniture, Consumer<FurnitureElement> consumer) {
+    }
+
+    public void createFurnitureHitboxes(Furniture furniture, Consumer<FurnitureHitBox> consumer) {
     }
 
     /**
@@ -50,7 +60,7 @@ public abstract class FurnitureBehavior {
     /**
      * Triggered when the furniture is first placed in the world.
      */
-    public void onPlace(UseOnContext context, Furniture furniture) {
+    public void onPlace(Furniture furniture, UseOnContext context) {
     }
 
     /**

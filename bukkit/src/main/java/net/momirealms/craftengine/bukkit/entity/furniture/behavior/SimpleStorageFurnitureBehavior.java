@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
+import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -55,7 +56,7 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
     }
 
     @Override
-    public InteractionResult useOnFurniture(InteractEntityContext context, Furniture furniture) {
+    public InteractionResult useOnFurniture(Furniture furniture, FurnitureHitBox hitBox, InteractEntityContext context) {
         ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
         if (storage == null) return InteractionResult.SUCCESS_AND_CANCEL;
         BlockPos blockPos = context.getClickedPos();

@@ -8,7 +8,9 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
+import net.momirealms.craftengine.bukkit.util.WorldUtils;
 import net.momirealms.craftengine.core.entity.furniture.*;
+import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.core.entity.furniture.tick.TickingFurnitureImpl;
@@ -54,7 +56,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     private final BukkitCraftEngine plugin;
 
     private final Map<Integer, BukkitFurniture> byMetaEntityId = new ConcurrentHashMap<>(256, 0.5f);
-    private final Map<Integer, BukkitFurniture> byVirtualEntityId = new ConcurrentHashMap<>(512, 0.5f);
+    private final Map<Integer, BukkitFurniture> byInteractableEntityId = new ConcurrentHashMap<>(512, 0.5f);
     private final Map<Integer, BukkitFurniture> byColliderEntityId = new ConcurrentHashMap<>(512, 0.5f);
     // Event listeners
     private final FurnitureEventListener furnitureEventListener;
@@ -165,8 +167,8 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
     @Nullable
     @Override
-    public BukkitFurniture loadedFurnitureByVirtualEntityId(int entityId) {
-        return this.byVirtualEntityId.get(entityId);
+    public BukkitFurniture loadedFurnitureByInteractableEntityId(int entityId) {
+        return this.byInteractableEntityId.get(entityId);
     }
 
     @Nullable
@@ -182,28 +184,24 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             return;
         }
         int id = entity.getEntityId();
-        BukkitFurniture furniture = this.byMetaEntityId.remove(id);
+        BukkitFurniture furniture = this.byMetaEntityId.get(id);
         if (furniture != null) {
-            Location location = entity.getLocation();
+
+            // 标记无效
+            this.invalidateFurniture(furniture);
+
             // 区块还在加载的时候，就重复卸载了。为极其特殊情况
-            Object world = CraftWorldProxy.INSTANCE.getWorld(location.getWorld());
-            Object entityLookup;
-            if (VersionHelper.isOrAbove1_21()) {
-                entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(world);
-            } else {
-                entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(world);
+            {
+                Location location = entity.getLocation();
+                Object entityLookup = WorldUtils.getEntityLookup(location.getWorld());
+                Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
+                boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
+                if (!isPreventing) {
+                    furniture.destroySeats();
+                }
             }
-            Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
-            boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
-            if (!isPreventing) {
-                furniture.destroySeats();
-            }
-            for (int sub : furniture.virtualEntityIds()) {
-                this.byVirtualEntityId.remove(sub);
-            }
-            for (int sub : furniture.colliderEntityIds()) {
-                this.byColliderEntityId.remove(sub);
-            }
+
+            // 触发行为卸载
             try {
                 furniture.config.behavior().onUnload(furniture);
             } finally {
@@ -219,6 +217,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     // 检查这个区块的实体是否已经被加载了
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isEntitiesLoaded(Location location) {
         CEWorld ceWorld = this.plugin.worldManager().getWorld(location.getWorld());
         CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4);
@@ -362,15 +361,20 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         BukkitFurniture bukkitFurniture = new BukkitFurniture(display, furniture, getFurnitureDataAccessor(display));
         initFurniture(bukkitFurniture);
         Location location = display.getLocation();
-        runSafeEntityOperation(location, bukkitFurniture::addCollidersToWorld);
+        runSafeEntityOperation(location, () -> {
+            bukkitFurniture.addCollidersToWorld();;
+            for (FurnitureElement element : bukkitFurniture.elements()) {
+                element.activate();
+            }
+        });
         return bukkitFurniture;
     }
 
     void initFurniture(BukkitFurniture furniture) {
         int entityId = furniture.entityId();
         this.byMetaEntityId.put(entityId, furniture);
-        for (int id : furniture.virtualEntityIds()) {
-            this.byVirtualEntityId.put(id, furniture);
+        for (int id : furniture.interactableEntityIds()) {
+            this.byInteractableEntityId.put(id, furniture);
         }
         for (Collider collisionEntity : furniture.colliders()) {
             this.byColliderEntityId.put(collisionEntity.entityId(), furniture);
@@ -397,11 +401,14 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         int entityId = furniture.entityId();
         // 移除entity id映射
         this.byMetaEntityId.remove(entityId);
-        for (int id : furniture.virtualEntityIds()) {
-            this.byVirtualEntityId.remove(id);
+        for (int id : furniture.interactableEntityIds()) {
+            this.byInteractableEntityId.remove(id);
         }
         for (Collider collisionEntity : furniture.colliders()) {
             this.byColliderEntityId.remove(collisionEntity.entityId());
+        }
+        for (FurnitureElement element : furniture.elements()) {
+            element.deactivate();
         }
     }
 

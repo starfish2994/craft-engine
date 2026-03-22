@@ -1387,7 +1387,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             BukkitServerPlayer player = (BukkitServerPlayer) user;
             if (player == null) return;
             int entityId = ServerboundPickItemFromEntityPacketProxy.INSTANCE.getId(packet);
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByVirtualEntityId(entityId);
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
             if (furniture == null) {
                 return;
             }
@@ -3939,7 +3939,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
             FriendlyByteBuf buf = event.getBuffer();
             int entityId = hasModelEngine() ? plugin.compatibilityManager().interactionToBaseEntity(buf.readVarInt()) : buf.readVarInt();
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByVirtualEntityId(entityId);
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
             if (furniture == null) return;
             CustomFurniture config = furniture.config;
             int actionType = buf.readVarInt();
@@ -4089,13 +4089,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     // 执行家具行为
                     FurnitureBehavior behavior = furniture.config.behavior();
                     InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
-                    InteractionResult result = behavior.useOnFurniture(interactEntityContext, furniture);
+                    InteractionResult result = behavior.useOnFurniture(furniture, hitBox, interactEntityContext);
                     if (result.success()) {
                         serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                         return;
                     }
                     if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
-                        result = behavior.useWithoutItem(interactEntityContext, furniture);
+                        result = behavior.useWithoutItem(furniture, interactEntityContext);
                         if (result.success()) {
                             serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                             return;
@@ -4304,7 +4304,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
                 BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(id);
                 if (furniture != null) {
-                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, new FurniturePacketHandler(id, furniture.virtualEntityIds()));
+                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, new FurniturePacketHandler(id, furniture.interactableEntityIds()));
                     if (Config.enableEntityCulling()) {
                         serverPlayer.addTrackedEntity(id, furniture);
                     } else {

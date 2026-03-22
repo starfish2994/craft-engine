@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class MapListener<K, V> implements Map<K, V> {
-
     private final Map<K, V> delegateMap;
     private final Consumer<V> putListener;
 

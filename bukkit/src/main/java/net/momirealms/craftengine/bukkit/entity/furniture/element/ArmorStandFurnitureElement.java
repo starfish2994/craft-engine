@@ -98,12 +98,7 @@ public final class ArmorStandFurnitureElement extends AbstractFurnitureElement {
     }
 
     @Override
-    public int[] virtualEntityIds() {
-        return new int[] {this.entityId};
-    }
-
-    @Override
-    public void collectVirtualEntityId(Consumer<Integer> collector) {
+    public void collectInteractableEntityId(Consumer<Integer> collector) {
         collector.accept(this.entityId);
     }
 }
