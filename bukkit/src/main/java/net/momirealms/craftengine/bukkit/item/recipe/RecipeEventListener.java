@@ -7,7 +7,6 @@ import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.nms.Clearable;
-import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
@@ -44,9 +43,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.CraftingContai
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.*;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.BlastFurnaceBlockEntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.FurnaceBlockEntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.SmokerBlockEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkAccessProxy;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -57,7 +53,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -76,8 +71,6 @@ public final class RecipeEventListener implements Listener {
     private final ItemManager itemManager;
     private final BukkitRecipeManager recipeManager;
     private final BukkitCraftEngine plugin;
-
-    public static final NamespacedKey FURNACE_PLAYER_KEY = new NamespacedKey("craftengine", "furnace-player");
 
     public RecipeEventListener(BukkitCraftEngine plugin, BukkitRecipeManager recipeManager, ItemManager itemManager) {
         this.itemManager = itemManager;
@@ -346,12 +339,12 @@ public final class RecipeEventListener implements Listener {
                 }
             }
             // 检查旧的数据是否和当前要写入的一致, 一致就不写入了.
-            long[] uuidLongs = furnace.getPersistentDataContainer().get(FURNACE_PLAYER_KEY, PersistentDataType.LONG_ARRAY);
+            long[] uuidLongs = furnace.getPersistentDataContainer().get(BukkitRecipeManager.FURNACE_PLAYER_KEY, PersistentDataType.LONG_ARRAY);
             if (uuidLongs != null && new UUID(uuidLongs[0], uuidLongs[1]).equals(uniqueId)) {
                 return;
             }
             // 写入 UUID.
-            furnace.getPersistentDataContainer().set(FURNACE_PLAYER_KEY, PersistentDataType.LONG_ARRAY,
+            furnace.getPersistentDataContainer().set(BukkitRecipeManager.FURNACE_PLAYER_KEY, PersistentDataType.LONG_ARRAY,
                     new long[]{uniqueId.getMostSignificantBits(), uniqueId.getLeastSignificantBits()}
             );
         }

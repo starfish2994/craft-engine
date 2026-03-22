@@ -60,8 +60,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
     protected Optional<ComponentItemWrapper> useRemainder(ComponentItemWrapper item) {
         Object exactComponent = item.getExactComponent(DataComponentKeys.USE_REMAINDER);
         if (exactComponent != null) {
-            // todo
-            Object itemStack = null;
+            Object itemStack = UseRemainderProxy.INSTANCE.getConvertInto(exactComponent);
             return Optional.of(wrap(itemStack));
         } else {
             return Optional.empty();
