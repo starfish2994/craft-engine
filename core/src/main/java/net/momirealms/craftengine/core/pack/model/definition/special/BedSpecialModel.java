@@ -3,10 +3,10 @@ package net.momirealms.craftengine.core.pack.model.definition.special;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public final class BedSpecialModel implements SpecialModel {
@@ -40,7 +40,7 @@ public final class BedSpecialModel implements SpecialModel {
         JsonObject json = new JsonObject();
         json.addProperty("type", "bed");
         if (version.isAtOrAbove(MinecraftVersion.V26_1)) {
-            json.addProperty("part", Objects.requireNonNull(this.part)); // 必填项只能在生成时检查
+            json.addProperty("part", this.part);
         }
         json.addProperty("texture", this.texture);
         return json;
@@ -50,7 +50,7 @@ public final class BedSpecialModel implements SpecialModel {
         @Override
         public BedSpecialModel create(ConfigSection section) {
             return new BedSpecialModel(
-                    section.getString("part"),
+                    Config.packMaxVersion().isAtOrAbove(MinecraftVersion.V26_1) ? section.getNonEmptyString("part") : null,
                     section.getNonNullIdentifier("texture").asMinimalString()
             );
         }
