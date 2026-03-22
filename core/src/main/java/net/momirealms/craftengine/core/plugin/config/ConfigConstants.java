@@ -70,7 +70,6 @@ public final class ConfigConstants {
     public static final String ARGUMENT_COLOR = "resource.argument.type.color";
     public static final String ARGUMENT_ITEM_MODEL_DEFINITION = "resource.argument.type.item_model_definition";
     public static final String ARGUMENT_ANY = "resource.argument.type.any";
-    public static final String ARGUMENT_ROTATION = "resource.argument.type.rotation";
 
     private ConfigConstants() {}
 }

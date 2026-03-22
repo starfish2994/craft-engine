@@ -133,8 +133,8 @@ public final class Transformation {
     private static Either<Pair<Float, Vector3f>, Quaternionf> parseRotation(ConfigValue value) {
         if (value.is(Map.class)) {
             ConfigSection section = value.getAsSection();
-            float angle = section.getNonNullFloat("angle");
-            Vector3f axis = section.getNonNullVector3f("axis");
+            float angle = section.getFloat("angle");
+            Vector3f axis = section.getVector3f("axis", ConfigConstants.ZERO_VECTOR3);
             return Either.left(Pair.of(angle, axis));
         }
         return Either.right(value.getAsQuaternion());
