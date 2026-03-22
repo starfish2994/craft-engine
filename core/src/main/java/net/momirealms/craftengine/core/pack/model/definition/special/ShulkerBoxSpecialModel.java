@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.core.pack.model.definition.special;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
@@ -8,6 +10,7 @@ import net.momirealms.craftengine.core.util.MiscUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public final class ShulkerBoxSpecialModel implements SpecialModel {
     public static final SpecialModelFactory<ShulkerBoxSpecialModel> FACTORY = new Factory();
@@ -32,6 +35,13 @@ public final class ShulkerBoxSpecialModel implements SpecialModel {
 
     public Direction orientation() {
         return this.orientation;
+    }
+
+    @Override
+    public void collectRevision(Consumer<Revision> consumer) {
+        if (this.orientation != null) {
+            consumer.accept(Revisions.From_1_21_4_To_1_21_11);
+        }
     }
 
     @Override

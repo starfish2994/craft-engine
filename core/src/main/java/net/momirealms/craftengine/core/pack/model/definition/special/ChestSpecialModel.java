@@ -1,9 +1,13 @@
 package net.momirealms.craftengine.core.pack.model.definition.special;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import net.momirealms.craftengine.core.util.MiscUtils;
+
+import java.util.function.Consumer;
 
 public final class ChestSpecialModel implements SpecialModel {
     public static final SpecialModelFactory<ChestSpecialModel> FACTORY = new Factory();
@@ -28,6 +32,13 @@ public final class ChestSpecialModel implements SpecialModel {
 
     public String chestType() {
         return this.chestType;
+    }
+
+    @Override
+    public void collectRevision(Consumer<Revision> consumer) {
+        if (this.chestType != null) {
+            consumer.accept(Revisions.SINCE_26_1);
+        }
     }
 
     @Override

@@ -1,10 +1,13 @@
 package net.momirealms.craftengine.core.pack.model.definition.special;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public final class BedSpecialModel implements SpecialModel {
     public static final SpecialModelFactory<BedSpecialModel> FACTORY = new Factory();
@@ -23,6 +26,13 @@ public final class BedSpecialModel implements SpecialModel {
 
     public String texture() {
         return this.texture;
+    }
+
+    @Override
+    public void collectRevision(Consumer<Revision> consumer) {
+        if (this.part != null) {
+            consumer.accept(Revisions.SINCE_26_1);
+        }
     }
 
     @Override

@@ -1963,7 +1963,6 @@ block_state_mappings:
     note_block[instrument=trumpet,note=23,powered=false]: note_block[instrument=harp,note=23,powered=false]
     note_block[instrument=trumpet,note=24,powered=true]: note_block[instrument=harp,note=24,powered=true]
     note_block[instrument=trumpet,note=24,powered=false]: note_block[instrument=harp,note=24,powered=false]
-
     note_block[instrument=trumpet_exposed,note=0,powered=true]: note_block[instrument=harp,note=0,powered=true]
     note_block[instrument=trumpet_exposed,note=0,powered=false]: note_block[instrument=harp,note=0,powered=false]
     note_block[instrument=trumpet_exposed,note=1,powered=true]: note_block[instrument=harp,note=1,powered=true]
@@ -2014,7 +2013,6 @@ block_state_mappings:
     note_block[instrument=trumpet_exposed,note=23,powered=false]: note_block[instrument=harp,note=23,powered=false]
     note_block[instrument=trumpet_exposed,note=24,powered=true]: note_block[instrument=harp,note=24,powered=true]
     note_block[instrument=trumpet_exposed,note=24,powered=false]: note_block[instrument=harp,note=24,powered=false]
-
     note_block[instrument=trumpet_oxidized,note=0,powered=true]: note_block[instrument=harp,note=0,powered=true]
     note_block[instrument=trumpet_oxidized,note=0,powered=false]: note_block[instrument=harp,note=0,powered=false]
     note_block[instrument=trumpet_oxidized,note=1,powered=true]: note_block[instrument=harp,note=1,powered=true]
@@ -2065,7 +2063,6 @@ block_state_mappings:
     note_block[instrument=trumpet_oxidized,note=23,powered=false]: note_block[instrument=harp,note=23,powered=false]
     note_block[instrument=trumpet_oxidized,note=24,powered=true]: note_block[instrument=harp,note=24,powered=true]
     note_block[instrument=trumpet_oxidized,note=24,powered=false]: note_block[instrument=harp,note=24,powered=false]
-
     note_block[instrument=trumpet_weathered,note=0,powered=true]: note_block[instrument=harp,note=0,powered=true]
     note_block[instrument=trumpet_weathered,note=0,powered=false]: note_block[instrument=harp,note=0,powered=false]
     note_block[instrument=trumpet_weathered,note=1,powered=true]: note_block[instrument=harp,note=1,powered=true]

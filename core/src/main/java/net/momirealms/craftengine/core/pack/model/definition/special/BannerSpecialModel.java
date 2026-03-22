@@ -1,8 +1,12 @@
 package net.momirealms.craftengine.core.pack.model.definition.special;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
+
+import java.util.function.Consumer;
 
 public final class BannerSpecialModel implements SpecialModel {
     public static final SpecialModelFactory<BannerSpecialModel> FACTORY = new Factory();
@@ -17,6 +21,13 @@ public final class BannerSpecialModel implements SpecialModel {
 
     public String color() {
         return this.color;
+    }
+
+    @Override
+    public void collectRevision(Consumer<Revision> consumer) {
+        if (this.attachment != null) {
+            consumer.accept(Revisions.SINCE_26_1);
+        }
     }
 
     @Override
