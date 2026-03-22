@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.world;
 
 import com.google.gson.JsonElement;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.WorldStorageInjector;
@@ -37,12 +38,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheP
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ThreadedLevelLightEngineProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.CrudeIncrementalIntIdentityHashBiMapProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.BlastFurnaceBlockEntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.FurnaceBlockEntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.SmokerBlockEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.*;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.status.WorldGenContextProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.levelgen.feature.ConfiguredFeatureProxy;
@@ -67,7 +63,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -596,32 +591,17 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             }
             Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
             // 注入 ChunkAccess 的 BlockEntities 字段.
-            Map<?, ?> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
-            MapListener<?, ?> mapListener = new MapListener<>(blockEntities); // <BlockPos, BlockEntity>
-            ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
-            // 注入 熔炉/高炉/烟熏炉 的 QuickCheck 以支持配方条件.
             if (Config.recipeInjectBlockEntities()) {
-                Consumer<Object> handleFurnaceInject = blockEntity -> {
-                    Object recipeType = null;
-                    if (SmokerBlockEntityProxy.CLASS.isInstance(blockEntity)) {
-                        recipeType = RecipeTypeProxy.SMOKING;
-                    } else if (BlastFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
-                        recipeType = RecipeTypeProxy.BLASTING;
-                    } else if (FurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
-                        recipeType = RecipeTypeProxy.SMELTING;
+                Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
+                if (!(blockEntities instanceof MapListener<?,?>)) {
+                    // <BlockPos, BlockEntity>
+                    MapListener<Object, Object> mapListener = new MapListener<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
+                    ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
+                    // 修改当前区块存在的
+                    for (Object blockEntity : blockEntities.values()) {
+                        BukkitRecipeManager.injectFurnaceBlockEntity(blockEntity);
                     }
-                    if (recipeType != null) {
-                        AbstractFurnaceBlockEntityProxy.INSTANCE.setQuickCheck(blockEntity, FastNMS.INSTANCE.createInjectedFurnaceCachedCheck(recipeType, blockEntity));
-                    }
-                };
-                // 修改当前区块存在的
-                for (Object blockEntity : blockEntities.values()) {
-                    handleFurnaceInject.accept(blockEntity);
                 }
-                // 监听新增的熔炉/高炉/烟熏炉.
-                mapListener.registerPutListener((blockPos, blockEntity) -> {
-                    handleFurnaceInject.accept(blockEntity);
-                });
             }
             synchronized (sections) {
                 for (int i = 0; i < ceSections.length; i++) {
@@ -993,16 +973,5 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             return processedList;
         }
         return value;
-    }
-
-    public static Object getChunkAccess(@NotNull Chunk bukkitChunk) {
-        Object worldServer = CraftChunkProxy.INSTANCE.getWorld(bukkitChunk);
-        Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
-
-        if (VersionHelper.isOrAbove1_21()) {
-            return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, bukkitChunk.getX(), bukkitChunk.getZ());
-        } else {
-            return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, bukkitChunk.getX(), bukkitChunk.getZ());
-        }
     }
 }

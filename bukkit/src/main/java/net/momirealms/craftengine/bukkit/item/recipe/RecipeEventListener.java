@@ -330,7 +330,7 @@ public final class RecipeEventListener implements Listener {
             UUID uniqueId = player.getUniqueId();
             // 清理 QuickCache 的缓存.
             Chunk chunk = furnace.getBlock().getChunk();
-            Object chunkAccess = BukkitWorldManager.getChunkAccess(chunk);
+            Object chunkAccess = WorldUtils.getMinecraftChunk(chunk);
             Object blockEntity = ChunkAccessProxy.INSTANCE.getBlockEntities(chunkAccess).get(BlockPosProxy.INSTANCE.newInstance(furnace.getX(), furnace.getY(), furnace.getZ()));
             if (AbstractFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
                 Object quickCheck = AbstractFurnaceBlockEntityProxy.INSTANCE.getQuickCheck(blockEntity);

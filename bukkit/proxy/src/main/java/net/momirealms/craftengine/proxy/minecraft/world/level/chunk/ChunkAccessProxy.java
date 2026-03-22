@@ -13,10 +13,10 @@ public interface ChunkAccessProxy {
     ChunkAccessProxy INSTANCE = ASMProxyFactory.create(ChunkAccessProxy.class);
 
     @FieldGetter(name = "blockEntities")
-    Map<?, ?> getBlockEntities(Object target);
+    Map<Object, Object> getBlockEntities(Object target);
 
     @FieldSetter(name = "blockEntities")
-    void setBlockEntities(Object target, Map<?, ?> value);
+    void setBlockEntities(Object target, Map<Object, Object> value);
 
     @MethodInvoker(name = "isUnsaved")
     boolean isUnsaved(Object target);

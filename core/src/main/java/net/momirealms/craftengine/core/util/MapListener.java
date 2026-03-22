@@ -5,23 +5,16 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class MapListener<K, V> implements Map<K, V> {
 
     private final Map<K, V> delegateMap;
-    private final List<BiConsumer<K, V>> putListeners = new ArrayList<>();
-    private final List<BiConsumer<K, V>> removeListeners = new ArrayList<>();
+    private final Consumer<V> putListener;
 
-    public MapListener(Map<K, V> original) {
+    public MapListener(Map<K, V> original, Consumer<V> putListener) {
         this.delegateMap = original;
-    }
-
-    public void registerPutListener(BiConsumer<K, V> listener) {
-        this.putListeners.add(listener);
-    }
-
-    public void registerRemoveListener(BiConsumer<K, V> listener) {
-        this.removeListeners.add(listener);
+        this.putListener = putListener;
     }
 
     @Override
@@ -51,27 +44,21 @@ public class MapListener<K, V> implements Map<K, V> {
 
     @Override
     public @Nullable V put(K key, V value) {
-        for (BiConsumer<K, V> listener : this.putListeners) {
-            listener.accept(key, value);
-        }
+        putListener.accept(value);
         return this.delegateMap.put(key, value);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public V remove(Object key) {
-        V removed = this.delegateMap.remove(key);
-        if (removed != null) {
-            for (BiConsumer<K, V> listener : this.removeListeners) {
-                listener.accept((K) key, removed);
-            }
-        }
-        return removed;
+        return this.delegateMap.remove(key);
     }
 
     @Override
-    public void putAll(@NonNull Map<? extends K, ? extends V> m) {
-        this.delegateMap.putAll(m);
+    public void putAll(@NonNull Map<? extends K, ? extends V> map) {
+        for (Entry<? extends K, ? extends V> entry : map.entrySet()) {
+            putListener.accept(entry.getValue());
+        }
+        this.delegateMap.putAll(map);
     }
 
     @Override
