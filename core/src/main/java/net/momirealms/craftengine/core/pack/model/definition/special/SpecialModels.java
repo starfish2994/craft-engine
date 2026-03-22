@@ -23,6 +23,9 @@ public final class SpecialModels {
     public static final SpecialModelType<SignSpecialModel> STANDING_SIGN = register(Key.of("standing_sign"), SignSpecialModel.FACTORY, SignSpecialModel.READER);
     public static final SpecialModelType<SignSpecialModel> HANGING_SIGN = register(Key.of("hanging_sign"), SignSpecialModel.FACTORY, SignSpecialModel.READER);
     public static final SpecialModelType<SimpleSpecialModel> TRIDENT = register(Key.of("trident"), SimpleSpecialModel.FACTORY, SimpleSpecialModel.READER);
+    public static final SpecialModelType<SimpleSpecialModel> BELL = register(Key.of("bell"), SimpleSpecialModel.FACTORY, SimpleSpecialModel.READER);
+    public static final SpecialModelType<BookSpecialModel> BOOK = register(Key.of("book"), BookSpecialModel.FACTORY, BookSpecialModel.READER);
+    public static final SpecialModelType<EndCubeSpecialModel> END_CUBE = register(Key.of("end_cube"), EndCubeSpecialModel.FACTORY, EndCubeSpecialModel.READER);
 
     private SpecialModels() {}
 
