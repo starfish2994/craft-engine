@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.item.listener;
 
 import io.papermc.paper.event.block.CompostItemEvent;
-import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;

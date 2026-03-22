@@ -48,7 +48,7 @@ import java.util.function.Function;
 
 public final class BukkitRecipeManager extends AbstractRecipeManager {
     private static BukkitRecipeManager instance;
-    public static final NamespacedKey FURNACE_PLAYER_KEY = new NamespacedKey("craftengine", "furnace-player");
+    public static final NamespacedKey FURNACE_LAST_USER = new NamespacedKey("craftengine", "furnace_last_user");
 
     public static final Map<Key, Function<Recipe, Object>> RECIPE_GENERATOR = Map.of(
             RecipeSerializers.SHAPED, recipe -> FastNMS.INSTANCE.createShapedRecipe((CustomShapedRecipe) recipe),

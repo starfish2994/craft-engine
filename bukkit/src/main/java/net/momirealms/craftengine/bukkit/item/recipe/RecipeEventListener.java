@@ -10,7 +10,6 @@ import net.momirealms.craftengine.bukkit.nms.Clearable;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.equipment.TrimBasedEquipment;
@@ -21,7 +20,6 @@ import net.momirealms.craftengine.core.item.recipe.input.SingleItemInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
@@ -42,11 +40,11 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContai
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.CraftingContainerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.*;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkAccessProxy;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -277,7 +275,7 @@ public final class RecipeEventListener implements Listener {
     }
 
     // 当把物品放入熔炉时, 在熔炉实体的PDC内记录玩家的 UUID.
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onClickInventoryWithFurnaceInput(InventoryClickEvent event) {
         if (!Config.recipeInjectBlockEntities()) return; // 功能未开启.
         Inventory inventory = event.getInventory();
@@ -339,12 +337,12 @@ public final class RecipeEventListener implements Listener {
                 }
             }
             // 检查旧的数据是否和当前要写入的一致, 一致就不写入了.
-            long[] uuidLongs = furnace.getPersistentDataContainer().get(BukkitRecipeManager.FURNACE_PLAYER_KEY, PersistentDataType.LONG_ARRAY);
+            long[] uuidLongs = furnace.getPersistentDataContainer().get(BukkitRecipeManager.FURNACE_LAST_USER, PersistentDataType.LONG_ARRAY);
             if (uuidLongs != null && new UUID(uuidLongs[0], uuidLongs[1]).equals(uniqueId)) {
                 return;
             }
             // 写入 UUID.
-            furnace.getPersistentDataContainer().set(BukkitRecipeManager.FURNACE_PLAYER_KEY, PersistentDataType.LONG_ARRAY,
+            furnace.getPersistentDataContainer().set(BukkitRecipeManager.FURNACE_LAST_USER, PersistentDataType.LONG_ARRAY,
                     new long[]{uniqueId.getMostSignificantBits(), uniqueId.getLeastSignificantBits()}
             );
         }
@@ -353,33 +351,34 @@ public final class RecipeEventListener implements Listener {
     // 当玩家往篝火上放入物品时, 检查配方条件.
     @EventHandler(ignoreCancelled = true)
     public void onPrepareCampfireRecipe(PlayerInteractEvent event) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) return;
         EquipmentSlot equipmentSlot = event.getHand();
         if (equipmentSlot == null) return;
         ItemStack itemInHand = event.getPlayer().getInventory().getItem(equipmentSlot);
         if (ItemStackUtils.isEmpty(itemInHand)) return;
+        Object blockOwner = BlockStateUtils.getBlockOwner(BlockStateUtils.getBlockState(clickedBlock));
+        if (blockOwner != BlocksProxy.CAMPFIRE && blockOwner != BlocksProxy.SOUL_CAMPFIRE) return;
         // 获取营火
-        Campfire campfire = (Campfire) Optional.ofNullable(event.getClickedBlock())
-                .map(Block::getState)
-                .filter(it -> it instanceof Campfire)
-                .orElse(null);
-        if (campfire == null) return;
-        // 检查营火是否已满
-        boolean isFull = true;
-        for (int i = 0; i < campfire.getSize(); i++) {
-            ItemStack item = campfire.getItem(i);
-            if (item == null) {
-                isFull = false;
-                break;
+        if (clickedBlock.getState() instanceof Campfire campfire) {
+            // 检查营火是否已满
+            boolean isFull = true;
+            for (int i = 0; i < campfire.getSize(); i++) {
+                ItemStack item = campfire.getItem(i);
+                if (item == null) {
+                    isFull = false;
+                    break;
+                }
             }
-        }
-        if (isFull) return;
-        // 获取配方
-        SingleItemInput itemInput = new SingleItemInput(UniqueIdItem.of(ItemStackUtils.wrap(itemInHand)));
-        ConditionalRecipe recipe = (ConditionalRecipe) CraftEngine.instance().recipeManager().recipeByInput(RecipeType.CAMPFIRE_COOKING, itemInput);
-        if (recipe != null && recipe.hasCondition()) {
-            boolean result = recipe.canUse(PlayerOptionalContext.of(BukkitAdaptor.adapt(event.getPlayer())));
-            if (!result) {
-                event.setCancelled(true);
+            if (isFull) return;
+            // 获取配方
+            SingleItemInput itemInput = new SingleItemInput(UniqueIdItem.of(ItemStackUtils.wrap(itemInHand)));
+            ConditionalRecipe recipe = (ConditionalRecipe) BukkitRecipeManager.instance().recipeByInput(RecipeType.CAMPFIRE_COOKING, itemInput);
+            if (recipe != null && recipe.hasCondition()) {
+                boolean result = recipe.canUse(PlayerOptionalContext.of(BukkitAdaptor.adapt(event.getPlayer())));
+                if (!result) {
+                    event.setCancelled(true);
+                }
             }
         }
     }
