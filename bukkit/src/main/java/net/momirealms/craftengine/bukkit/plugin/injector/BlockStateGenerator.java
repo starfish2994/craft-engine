@@ -1,8 +1,9 @@
 package net.momirealms.craftengine.bukkit.plugin.injector;
 
-import com.google.common.collect.ArrayListMultimap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Scheduler;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
 import com.mojang.serialization.MapCodec;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.bytebuddy.ByteBuddy;
@@ -24,15 +25,13 @@ import net.momirealms.craftengine.core.block.BlockSettings;
 import net.momirealms.craftengine.core.block.DelegatingBlockState;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.properties.type.DoubleBlockHalf;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
-import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.util.Pair;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
-import net.momirealms.craftengine.proxy.minecraft.core.DirectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
@@ -40,7 +39,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.StateDefinitionProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.properties.DoubleBlockHalfProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.properties.PropertyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.LootParamsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.parameters.LootContextParamsProxy;
@@ -49,21 +47,16 @@ import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.constructor.SConstructor3;
 import net.momirealms.sparrow.reflection.constructor.matcher.ConstructorMatcher;
 
+import java.time.Duration;
 import java.util.List;
 
 public final class BlockStateGenerator {
     private static SConstructor3 constructor$CraftEngineBlockState;
     public static Object instance$StateDefinition$Factory;
-    private static final Multimap<Class<? extends Enum<?>>, Class<? extends Enum<?>>> ENUM_MAPPER = ArrayListMultimap.create();
-
-    static {
-        registerEquivalentEnums(Direction.class, DirectionProxy.CLASS);
-        registerEquivalentEnums(DoubleBlockHalf.class, DoubleBlockHalfProxy.CLASS);
-    }
-
-    public static void registerEquivalentEnums(Class<? extends Enum<?>> custom, Class<? extends Enum<?>> minecraft) {
-        ENUM_MAPPER.put(minecraft, custom);
-    }
+    private static final Cache<Pair<Property<?>, Object>, Boolean> COMPATIBLE_PROPERTIES = Caffeine.newBuilder()
+            .scheduler(Scheduler.systemScheduler())
+            .expireAfterAccess(Duration.ofMinutes(10))
+            .build();
 
     public static void init() {
         ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V17);
@@ -163,7 +156,7 @@ public final class BlockStateGenerator {
     public static class HasPropertyInterceptor {
         public static final HasPropertyInterceptor INSTANCE = new HasPropertyInterceptor();
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("DuplicatedCode")
         @RuntimeType
         public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
             DelegatingBlockState customState = (DelegatingBlockState) thisObj;
@@ -176,11 +169,23 @@ public final class BlockStateGenerator {
             Class<?> mcPropertyClass = PropertyProxy.INSTANCE.getValueClass(mcProperty);
             Class<?> cePropertyClass = ceProperty.valueClass();
             if (cePropertyClass == mcPropertyClass) {
-                return PropertyProxy.INSTANCE.getPossibleValues(mcProperty).size() == ceProperty.possibleValues().size();
+                Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
+                return Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
+                        k -> PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues())));
             } else if (mcPropertyClass.isEnum() && cePropertyClass.isEnum()) {
-                if (ENUM_MAPPER.get((Class<? extends Enum<?>>) mcPropertyClass).contains(cePropertyClass)) {
-                    return PropertyProxy.INSTANCE.getPossibleValues(mcPropertyClass).size() == ceProperty.possibleValues().size();
-                }
+                Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
+                return Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
+                        k -> {
+                            List<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                            List<?> possibleCEValues = ceProperty.possibleValues();
+                            if (possibleMCValues.size() != possibleCEValues.size()) return false;
+                            for (int i = 0; i < possibleMCValues.size(); i++) {
+                                if (!possibleMCValues.get(i).toString().equals(possibleCEValues.get(i).toString())) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }));
             }
             return false;
         }
@@ -189,7 +194,7 @@ public final class BlockStateGenerator {
     public static class GetPropertyValueInterceptor {
         public static final GetPropertyValueInterceptor INSTANCE = new GetPropertyValueInterceptor();
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "DuplicatedCode", "rawtypes"})
         @RuntimeType
         public Object intercept(@This Object thisObj, @AllArguments Object[] args) {
             DelegatingBlockState customState = (DelegatingBlockState) thisObj;
@@ -201,21 +206,28 @@ public final class BlockStateGenerator {
             if (ceProperty == null) return null;
             Class<?> mcPropertyClass = PropertyProxy.INSTANCE.getValueClass(mcProperty);
             Class<?> cePropertyClass = ceProperty.valueClass();
-            if (mcPropertyClass == cePropertyClass) {
-                if (PropertyProxy.INSTANCE.getPossibleValues(mcProperty).size() == ceProperty.possibleValues().size()) {
+            if (cePropertyClass == mcPropertyClass) {
+                Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
+                if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
+                        k -> PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues())))) {
                     return state.get(ceProperty);
                 }
-            }
-            if (mcPropertyClass.isEnum() && cePropertyClass.isEnum()) {
-                if (ENUM_MAPPER.get((Class<? extends Enum<?>>) mcPropertyClass).contains(cePropertyClass)) {
-                    if (PropertyProxy.INSTANCE.getPossibleValues(mcPropertyClass).size() == ceProperty.possibleValues().size()) {
-                        Enum<?> ceEnumValue = (Enum<?>) state.get(ceProperty);
-                        Object[] mcConstants = mcPropertyClass.getEnumConstants();
-                        int ordinal = ceEnumValue.ordinal();
-                        if (ordinal < mcConstants.length) {
-                            return mcConstants[ordinal];
-                        }
-                    }
+            } else if (mcPropertyClass.isEnum() && cePropertyClass.isEnum()) {
+                Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
+                if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
+                        k -> {
+                            List<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                            List<?> possibleCEValues = ceProperty.possibleValues();
+                            if (possibleMCValues.size() != possibleCEValues.size()) return false;
+                            for (int i = 0; i < possibleMCValues.size(); i++) {
+                                if (!possibleMCValues.get(i).toString().equals(possibleCEValues.get(i).toString())) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }))) {
+                    Class<Enum> mcEnumClass = (Class<Enum>) mcPropertyClass;
+                    return Enum.valueOf(mcEnumClass, ((Enum<?>) state.get(ceProperty)).name());
                 }
             }
             return null;
@@ -225,7 +237,7 @@ public final class BlockStateGenerator {
     public static class SetPropertyValueInterceptor {
         public static final SetPropertyValueInterceptor INSTANCE = new SetPropertyValueInterceptor();
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "DuplicatedCode", "rawtypes"})
         @RuntimeType
         public Object intercept(@This Object thisObj, @AllArguments Object[] args) {
             DelegatingBlockState customState = (DelegatingBlockState) thisObj;
@@ -239,20 +251,27 @@ public final class BlockStateGenerator {
             Class<?> mcPropertyClass = PropertyProxy.INSTANCE.getValueClass(mcProperty);
             Class<?> cePropertyClass = ceProperty.valueClass();
             Object valueToSet = null;
-            if (mcPropertyClass == cePropertyClass) {
-                if (PropertyProxy.INSTANCE.getPossibleValues(mcProperty).size() == ceProperty.possibleValues().size()) {
+            if (cePropertyClass == mcPropertyClass) {
+                Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
+                if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
+                        k -> PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues())))) {
                     valueToSet = mcValue;
                 }
             } else if (mcPropertyClass.isEnum() && cePropertyClass.isEnum()) {
-                if (ENUM_MAPPER.get((Class<? extends Enum<?>>) mcPropertyClass).contains(cePropertyClass)) {
-                    if (PropertyProxy.INSTANCE.getPossibleValues(mcProperty).size() == ceProperty.possibleValues().size()) {
-                        Enum<?> mcEnumValue = (Enum<?>) mcValue;
-                        Object[] ceConstants = cePropertyClass.getEnumConstants();
-                        int ordinal = mcEnumValue.ordinal();
-                        if (ordinal < ceConstants.length) {
-                            valueToSet = ceConstants[ordinal];
-                        }
-                    }
+                Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
+                if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
+                        k -> {
+                            List<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                            List<?> possibleCEValues = ceProperty.possibleValues();
+                            if (possibleMCValues.size() != possibleCEValues.size()) return false;
+                            for (int i = 0; i < possibleMCValues.size(); i++) {
+                                if (!possibleMCValues.get(i).toString().equals(possibleCEValues.get(i).toString())) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }))) {
+                    valueToSet = Enum.valueOf((Class<Enum>) cePropertyClass, ((Enum<?>) mcValue).name());
                 }
             }
             if (valueToSet != null) {
