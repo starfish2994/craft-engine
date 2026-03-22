@@ -1,9 +1,13 @@
 package net.momirealms.craftengine.core.pack.model.definition.special;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import net.momirealms.craftengine.core.util.MiscUtils;
+
+import java.util.function.Consumer;
 
 public final class BookSpecialModel implements SpecialModel {
     public static final SpecialModelFactory<BookSpecialModel> FACTORY = new Factory();
@@ -28,6 +32,11 @@ public final class BookSpecialModel implements SpecialModel {
 
     public float page2() {
         return this.page2;
+    }
+
+    @Override
+    public void collectRevision(Consumer<Revision> consumer) {
+        consumer.accept(Revisions.SINCE_26_1);
     }
 
     @Override
