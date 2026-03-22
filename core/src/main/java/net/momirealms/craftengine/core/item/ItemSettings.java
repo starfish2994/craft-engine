@@ -140,7 +140,6 @@ public final class ItemSettings {
         if (section != null) {
             for (String type : section.keySet()) {
                 ConfigValue value = section.getValue(type);
-                if (value == null) continue;
                 String key = StringUtils.normalizeSettingsType(type);
                 collector.runCatching(() -> {
                     Optional.ofNullable(BuiltInRegistries.ITEM_SETTINGS_TYPE.getValue(Key.ce(key)))

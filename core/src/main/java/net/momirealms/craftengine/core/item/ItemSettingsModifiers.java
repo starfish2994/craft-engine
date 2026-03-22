@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.equipment.Equipments;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainders;
+import net.momirealms.craftengine.core.item.recipe.remainder.EmptyCraftRemainder;
 import net.momirealms.craftengine.core.item.setting.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -80,7 +81,11 @@ public final class ItemSettingsModifiers {
         settings.craftRemainder(CraftRemainders.fromConfig(value));
     }));
     public static final ItemSettingsModifierType<ItemSettingsModifier> CRAFT_REMAINDER = register(Key.ce("craft_remainder"), (value -> settings -> {
-        settings.craftRemainder(CraftRemainders.fromConfig(value));
+        if (value == null) {
+            settings.craftRemainder(EmptyCraftRemainder.INSTANCE);
+        } else {
+            settings.craftRemainder(CraftRemainders.fromConfig(value));
+        }
     }));
     public static final ItemSettingsModifierType<ItemSettingsModifier> TAGS = register(Key.ce("tags"), (value -> settings -> settings.tags(new HashSet<>(value.getAsList(it -> {
         String asString = it.getAsString();

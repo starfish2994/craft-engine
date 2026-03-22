@@ -643,10 +643,10 @@ public final class Config {
     }
 
     private static MinecraftVersion getVersion(String version) {
-        if (version.equalsIgnoreCase("latest")) {
+        if (version.equalsIgnoreCase("latest") || version.equalsIgnoreCase("latest_version")) {
             return MinecraftVersion.byName(PluginProperties.getValue("latest-version"));
         }
-        if (version.equalsIgnoreCase("server")) {
+        if (version.equalsIgnoreCase("server") || version.equalsIgnoreCase("server_version")) {
             return VersionHelper.MINECRAFT_VERSION;
         }
         return MinecraftVersion.byName(version);
