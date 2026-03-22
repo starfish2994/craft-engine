@@ -2,6 +2,8 @@ package net.momirealms.craftengine.core.block.properties;
 
 import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.sparrow.nbt.StringTag;
 import net.momirealms.sparrow.nbt.Tag;
 
@@ -77,7 +79,7 @@ public final class EnumProperty<T extends Enum<T>> extends Property<T> {
     }
 
     @Override
-    public final int idFor(T value) {
+    public int idFor(T value) {
         final Class<T> target = this.valueClass();
         return ((value.getClass() != target && value.getDeclaringClass() != target)) ? -1 : this.idLookupTable[value.ordinal()];
     }
@@ -120,7 +122,13 @@ public final class EnumProperty<T extends Enum<T>> extends Property<T> {
 
         @Override
         public Property<A> create(String name, ConfigSection section) {
-            List<A> enums = Arrays.asList(this.enumClass.getEnumConstants());
+            ConfigValue values = section.getValue("values");
+            List<A> enums;
+            if (values == null) {
+                enums = Arrays.asList(this.enumClass.getEnumConstants());
+            } else {
+                enums = values.getAsList(v -> v.getAsEnum(enumClass)).stream().distinct().toList();
+            }
             String defaultValueName = section.getString("default");
             A defaultValue = enums.stream()
                     .filter(e -> e.name().toLowerCase(Locale.ROOT).equals(defaultValueName))
