@@ -15,6 +15,7 @@ import org.joml.Vector3f;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("DataFlowIssue") // 通过判断 isMatrix 确保空安全
 public final class Transformation {
     private static final String[] RIGHT_ROTATION = new String[]{"right_rotation", "right-rotation"};
     private static final String[] LEFT_ROTATION = new String[]{"left_rotation", "left-rotation"};
@@ -41,9 +42,6 @@ public final class Transformation {
         this.translation = null;
         this.transformation = transformation;
         this.isMatrix = true;
-        if (transformation.size() != 16) {
-            throw new IllegalArgumentException();
-        }
     }
 
     public static Transformation fromValue(ConfigValue value) {
@@ -55,7 +53,7 @@ public final class Transformation {
             Vector3f translation = section.getNonNullVector3f("translation");
             return new Transformation(rightRotation, leftRotation, scale, translation);
         } else if (value.is(List.class)) {
-            return new Transformation(value.getAsList(ConfigValue::getAsFloat));
+            return new Transformation(value.getAsFixedSizeList(16, ConfigValue::getAsFloat));
         }
         throw new KnownResourceException(ConfigConstants.PARSE_TRANSFORMATION_FAILED, value.path());
     }
@@ -71,7 +69,9 @@ public final class Transformation {
             Vector3f translation = new Vector3f(translationArray.get(0).getAsFloat(), translationArray.get(1).getAsFloat(), translationArray.get(2).getAsFloat());
             return new Transformation(rightRotation, leftRotation, scale, translation);
         } else if (json.isJsonArray()) {
-            return new Transformation(json.getAsJsonArray().asList().stream().map(JsonElement::getAsFloat).toList());
+            List<Float> list = json.getAsJsonArray().asList().stream().map(JsonElement::getAsFloat).toList();
+            if (list.size() != 16) throw new IllegalArgumentException();
+            return new Transformation(list);
         }
         throw new IllegalArgumentException();
     }
