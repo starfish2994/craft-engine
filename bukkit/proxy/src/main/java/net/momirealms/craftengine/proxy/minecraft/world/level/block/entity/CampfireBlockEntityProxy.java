@@ -4,20 +4,18 @@ import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
-import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
-@ReflectionProxy(name = "net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity")
-public interface AbstractFurnaceBlockEntityProxy extends BaseContainerBlockEntityProxy {
+@ReflectionProxy(name = "net.minecraft.world.level.block.entity.CampfireBlockEntity")
+public interface CampfireBlockEntityProxy extends BaseContainerBlockEntityProxy {
     AbstractFurnaceBlockEntityProxy INSTANCE = ASMProxyFactory.create(AbstractFurnaceBlockEntityProxy.class);
-    Class<?> CLASS = SparrowClass.find("net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity");
+    Class<?> CLASS = SparrowClass.find("net.minecraft.world.level.block.entity.CampfireBlockEntity");
 
-    @FieldGetter(name = "quickCheck")
+    @FieldGetter(name = "quickCheck", activeIf = "max_version=1.21.2")
     Object getQuickCheck(Object target);
 
-    @FieldSetter(name = "quickCheck")
+    @FieldSetter(name = "quickCheck", activeIf = "max_version=1.21.2")
     void setQuickCheck(Object target, Object value);
 
-    @MethodInvoker(name = "getItem", activeIf = "max_version=1.20.4")
-    Object getItem(Object target, int slot);
 }
+

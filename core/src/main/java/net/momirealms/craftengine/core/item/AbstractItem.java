@@ -54,6 +54,17 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
+    public Item useRemainder(Item item, int count) {
+        this.factory.useRemainder(this.item, item, count);
+        return this;
+    }
+
+    @Override
+    public Optional<Item> useRemainder() {
+        return this.factory.useRemainder(this.item).map(this::withSameFactory);
+    }
+
+    @Override
     public Optional<JukeboxPlayable> jukeboxSong() {
         return this.factory.jukeboxSong(this.item);
     }

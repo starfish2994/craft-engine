@@ -32,7 +32,13 @@ import net.momirealms.craftengine.proxy.minecraft.server.packs.resources.MultiPa
 import net.momirealms.craftengine.proxy.minecraft.server.packs.resources.ResourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.players.PlayerListProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeManagerProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.BlastFurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.FurnaceBlockEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.SmokerBlockEntityProxy;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.event.HandlerList;
 import org.bukkit.potion.PotionBrewer;
 
@@ -42,6 +48,7 @@ import java.util.function.Function;
 
 public final class BukkitRecipeManager extends AbstractRecipeManager {
     private static BukkitRecipeManager instance;
+    public static final NamespacedKey FURNACE_LAST_USER = new NamespacedKey("craftengine", "furnace_last_user");
 
     public static final Map<Key, Function<Recipe, Object>> RECIPE_GENERATOR = Map.of(
             RecipeSerializers.SHAPED, recipe -> FastNMS.INSTANCE.createShapedRecipe((CustomShapedRecipe) recipe),
@@ -319,5 +326,19 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         int lastDotIndex = input.lastIndexOf('.');
         String fileName = input.substring(lastSlashIndex + 1, lastDotIndex);
         return Key.of(prefix, fileName);
+    }
+
+    public static void injectFurnaceBlockEntity(Object blockEntity) {
+        Object recipeType = null;
+        if (SmokerBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+            recipeType = RecipeTypeProxy.SMOKING;
+        } else if (BlastFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+            recipeType = RecipeTypeProxy.BLASTING;
+        } else if (FurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+            recipeType = RecipeTypeProxy.SMELTING;
+        }
+        if (recipeType != null) {
+            AbstractFurnaceBlockEntityProxy.INSTANCE.setQuickCheck(blockEntity, FastNMS.INSTANCE.createInjectedFurnaceCachedCheck(recipeType, blockEntity));
+        }
     }
 }

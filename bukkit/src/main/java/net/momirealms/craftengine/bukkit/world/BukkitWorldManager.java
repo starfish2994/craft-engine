@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.world;
 
 import com.google.gson.JsonElement;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.WorldStorageInjector;
@@ -589,6 +590,19 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
             }
             Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
+            // 注入 ChunkAccess 的 BlockEntities 字段.
+            if (Config.recipeInjectBlockEntities()) {
+                Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
+                if (!(blockEntities instanceof MapListener<?,?>)) {
+                    // <BlockPos, BlockEntity>
+                    MapListener<Object, Object> mapListener = new MapListener<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
+                    ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
+                    // 修改当前区块存在的
+                    for (Object blockEntity : blockEntities.values()) {
+                        BukkitRecipeManager.injectFurnaceBlockEntity(blockEntity);
+                    }
+                }
+            }
             synchronized (sections) {
                 for (int i = 0; i < ceSections.length; i++) {
                     CESection ceSection = ceSections[i];

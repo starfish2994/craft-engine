@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import net.momirealms.craftengine.bukkit.item.BukkitItemWrapper;
 import net.momirealms.craftengine.bukkit.util.ItemTags;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemFactory;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.data.JukeboxPlayable;
@@ -190,6 +191,16 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
 
     @Override
     protected void itemModel(W item, String data) {
+        throw new UnsupportedOperationException("This feature is only available on 1.21.2+");
+    }
+
+    @Override
+    protected Optional<W> useRemainder(W item) {
+        throw new UnsupportedOperationException("This feature is only available on 1.21.2+");
+    }
+
+    @Override
+    protected void useRemainder(W item, Item data, int count) {
         throw new UnsupportedOperationException("This feature is only available on 1.21.2+");
     }
 

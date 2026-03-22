@@ -118,6 +118,10 @@ public interface Item {
 
     Optional<String> itemModel();
 
+    Item useRemainder(Item item, int count);
+
+    Optional<Item> useRemainder();
+
     Item tooltipStyle(String tooltipStyle);
 
     Optional<String> tooltipStyle();

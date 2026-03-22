@@ -11,11 +11,11 @@ publishing {
     repositories {
         maven {
             val repoName = if (isSnapshot) "snapshots" else "releases"
-            name = repoName
+            name = "XiaoMoMi"
             url = URI("https://repo.momirealms.net/$repoName")
-            credentials {
-                username = System.getenv("REPO_USERNAME")
-                password = System.getenv("REPO_PASSWORD")
+            credentials(PasswordCredentials::class)
+            authentication {
+                create<BasicAuthentication>("basic")
             }
         }
     }
