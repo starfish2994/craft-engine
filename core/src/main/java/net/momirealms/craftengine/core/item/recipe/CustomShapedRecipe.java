@@ -217,7 +217,7 @@ public final class CustomShapedRecipe extends CustomCraftingTableRecipe {
             Map<Character, Ingredient> ingredients = new HashMap<>();
             boolean hasAdditionalIngredients = false;
             for (String ingredientChar : ingredientSection.keySet()) {
-                if (ingredientChar.length() != 1) {
+                if (ingredientChar.length() != 1 || ingredientChar.equals(" ")) {
                     throw new KnownResourceException("resource.recipe.shaped.invalid_symbol", ingredientSection.path(), ingredientChar);
                 }
                 char ch = ingredientChar.charAt(0);
