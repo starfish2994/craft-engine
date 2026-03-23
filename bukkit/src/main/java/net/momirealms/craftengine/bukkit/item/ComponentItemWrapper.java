@@ -34,7 +34,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
     }
 
     public ItemType createItemType() {
-        return new ComponentItemType(super.itemStack);
+        return new ComponentItemType(ItemStackProxy.INSTANCE.getItem(this.getMinecraftItem()));
     }
 
     @Override
