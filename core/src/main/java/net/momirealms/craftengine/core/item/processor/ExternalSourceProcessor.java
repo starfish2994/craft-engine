@@ -55,8 +55,7 @@ public final class ExternalSourceProcessor implements ItemProcessor {
                 CraftEngine.instance().logger().warn("'" + this.id + "' could not be found in " + provider.plugin());
                 return item;
             }
-            Item anotherWrapped = (Item) CraftEngine.instance().itemManager().wrap(another);
-            item.merge(anotherWrapped);
+            item.merge(another);
             return item;
         } catch (Throwable e) {
             CraftEngine.instance().logger().warn("Failed to build item '" + this.id + "' from plugin '" + provider.plugin() + "'", e);
