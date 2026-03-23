@@ -66,10 +66,9 @@ public final class LobFileHost implements ResourcePackHost {
             if (uuidString != null && !uuidString.isEmpty()) {
                 this.uuid = UUID.fromString(uuidString);
             }
-            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("info.host.cache.load", "LobFile"));
+            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.lobfile.a"));
         } catch (Exception e) {
-            CraftEngine.instance().logger().warn(
-                    "[LobFile] Failed to read cache file: " + e.getMessage());
+            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.lobfile.b", cachePath.toString()), e);
         }
     }
 
@@ -88,17 +87,17 @@ public final class LobFileHost implements ResourcePackHost {
                     StandardOpenOption.TRUNCATE_EXISTING
             );
         } catch (IOException e) {
-            CraftEngine.instance().logger().warn(
-                    "[LobFile] Failed to save cache: " + e.getMessage());
+            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.lobfile.c"), e);
         }
     }
 
     public String getSpaceUsageText() {
-        if (this.accountInfo == null) return "Usage data not available";
-        return String.format("Storage: %d/%d MB (%.1f%% used)",
-                this.accountInfo.account.usage.spaceUsed / 1_000_000,
-                this.accountInfo.account.limits.spaceQuota / 1_000_000,
-                (this.accountInfo.account.usage.spaceUsed * 100.0) / this.accountInfo.account.limits.spaceQuota
+        if (this.accountInfo == null) return TranslationManager.instance().plainTranslation("host.lobfile.d");
+        return TranslationManager.instance().plainTranslation(
+                "host.lobfile.e",
+                String.valueOf(this.accountInfo.account.usage.spaceUsed / 1_000_000),
+                String.valueOf(this.accountInfo.account.limits.spaceQuota / 1_000_000),
+                String.valueOf(Math.round((this.accountInfo.account.usage.spaceUsed * 100.0) / this.accountInfo.account.limits.spaceQuota * 10) / 10.0)
         );
     }
 
@@ -129,28 +128,25 @@ public final class LobFileHost implements ResourcePackHost {
                             .build();
 
                     long uploadStart = System.currentTimeMillis();
-                    CraftEngine.instance().logger().info("[LobFile] Starting file upload...");
+                    CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.lobfile.f"));
 
                     client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                             .thenAccept(response -> {
                                 long uploadTime = System.currentTimeMillis() - uploadStart;
-                                CraftEngine.instance().logger().info(
-                                        "[LobFile] Upload request completed in " + uploadTime + "ms");
+                                CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.lobfile.g", String.valueOf(uploadTime)));
 
                                 handleUploadResponse(response, future, sha1Hash);
                             })
                             .exceptionally(ex -> {
                                 long totalTime = System.currentTimeMillis() - totalStartTime;
-                                CraftEngine.instance().logger().severe(
-                                        "[LobFile] Upload failed after " + totalTime + "ms", ex);
+                                CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.lobfile.h", String.valueOf(totalTime)), ex);
                                 future.completeExceptionally(ex);
                                 return null;
                             });
                 }
             } catch (IOException | NoSuchAlgorithmException e) {
                 long totalTime = System.currentTimeMillis() - totalStartTime;
-                CraftEngine.instance().logger().severe(
-                        "[LobFile] Upload preparation failed after " + totalTime + "ms", e);
+                CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.lobfile.i", String.valueOf(totalTime)), e);
                 future.completeExceptionally(e);
             }
         });
@@ -174,7 +170,7 @@ public final class LobFileHost implements ResourcePackHost {
                                 return info;
                             }
                         }
-                        throw new RuntimeException("Failed to fetch account info: " + response.statusCode());
+                        throw new RuntimeException(TranslationManager.instance().plainTranslation("host.lobfile.j", String.valueOf(response.statusCode())));
                     });
         }
     }
@@ -231,14 +227,14 @@ public final class LobFileHost implements ResourcePackHost {
                     this.sha1 = localSha1;
                     this.uuid = UUID.randomUUID();
                     saveCacheToDisk();
-                    CraftEngine.instance().logger().info("[LobFile] Upload success! Resource pack URL: " + this.url);
+                    CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.lobfile.k", this.url));
                     fetchAccountInfo()
                             .thenAccept(info -> {
-                                CraftEngine.instance().logger().info("[LobFile] Account usage updated: " + getSpaceUsageText());
+                                CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.lobfile.l", getSpaceUsageText()));
                                 future.complete(null);
                             })
                             .exceptionally(ex -> {
-                                CraftEngine.instance().logger().warn("[LobFile] Usage check failed (upload still succeeded): ", ex);
+                                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.lobfile.m"), ex);
                                 future.complete(null);
                                 return null;
                             });
@@ -246,7 +242,7 @@ public final class LobFileHost implements ResourcePackHost {
                     future.completeExceptionally(new RuntimeException((String) json.get("error")));
                 }
             } else {
-                future.completeExceptionally(new RuntimeException("Upload failed: " + response.statusCode()));
+                future.completeExceptionally(new RuntimeException(TranslationManager.instance().plainTranslation("host.lobfile.n", String.valueOf(response.statusCode()))));
             }
         } catch (Exception e) {
             future.completeExceptionally(e);
