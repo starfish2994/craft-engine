@@ -82,7 +82,7 @@ public final class FoliaCEWorld extends BukkitCEWorld {
         }
 
         public boolean isValid() {
-            return this.chunk.isEntitiesLoaded();
+            return this.chunk.isLoaded();
         }
 
         public ChunkPos chunkPos() {
