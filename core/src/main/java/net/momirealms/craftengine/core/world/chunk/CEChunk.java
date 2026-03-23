@@ -26,22 +26,22 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public final class CEChunk {
-    private static final int DEFAULT_MAP_SIZE = 8;
+public class CEChunk {
+    protected static final int DEFAULT_MAP_SIZE = 8;
     public final CEWorld world;
     public final ChunkPos chunkPos;
-    public final CESection[] sections;
-    public final WorldHeight worldHeightAccessor;
-    private final Map<BlockPos, BlockEntity> blockEntities;  // 从区域线程上访问，安全
-    private final Map<BlockPos, ReplaceableTickingBlockEntity> tickingSyncBlockEntitiesByPos; // 从区域线程上访问，安全
-    private final Map<BlockPos, ReplaceableTickingBlockEntity> tickingAsyncBlockEntitiesByPos; // 从区域线程上访问，安全
-    private final Map<BlockPos, ConstantBlockEntityRenderer> constantBlockEntityRenderers; // 会从区域线程上读写，netty线程上读取
-    private final Map<BlockPos, DynamicBlockEntityRenderer> dynamicBlockEntityRenderers; // 会从区域线程上读写，netty线程上读取
-    private final ReentrantReadWriteLock renderLock = new ReentrantReadWriteLock();
-    private volatile boolean dirty;
-    private volatile boolean loaded;
-    private volatile boolean activated;
-    private boolean isEntitiesLoaded;
+    protected final CESection[] sections;
+    protected final WorldHeight worldHeightAccessor;
+    protected final Map<BlockPos, BlockEntity> blockEntities;  // 从区域线程上访问，安全
+    protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingSyncBlockEntitiesByPos; // 从区域线程上访问，安全
+    protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingAsyncBlockEntitiesByPos; // 从区域线程上访问，安全
+    protected final Map<BlockPos, ConstantBlockEntityRenderer> constantBlockEntityRenderers; // 会从区域线程上读写，netty线程上读取
+    protected final Map<BlockPos, DynamicBlockEntityRenderer> dynamicBlockEntityRenderers; // 会从区域线程上读写，netty线程上读取
+    protected final ReentrantReadWriteLock renderLock = new ReentrantReadWriteLock();
+    protected volatile boolean dirty;
+    protected volatile boolean loaded;
+    protected volatile boolean activated;
+    protected boolean isEntitiesLoaded;
 
     public CEChunk(CEWorld world, ChunkPos chunkPos) {
         this.world = world;
@@ -502,21 +502,21 @@ public final class CEChunk {
         }
     }
 
-    private void removeSyncBlockEntityTicker(BlockPos pos) {
+    protected void removeSyncBlockEntityTicker(BlockPos pos) {
         ReplaceableTickingBlockEntity e1 = this.tickingSyncBlockEntitiesByPos.remove(pos);
         if (e1 != null) {
             e1.setTicker(DummyTickingBlockEntity.INSTANCE);
         }
     }
 
-    private void removeAsyncBlockEntityTicker(BlockPos pos) {
+    protected void removeAsyncBlockEntityTicker(BlockPos pos) {
         ReplaceableTickingBlockEntity e2 = this.tickingAsyncBlockEntitiesByPos.remove(pos);
         if (e2 != null) {
             e2.setTicker(DummyTickingBlockEntity.INSTANCE);
         }
     }
 
-    private void removeBlockEntityTicker(BlockPos pos) {
+    protected void removeBlockEntityTicker(BlockPos pos) {
         removeSyncBlockEntityTicker(pos);
         removeAsyncBlockEntityTicker(pos);
     }

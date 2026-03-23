@@ -384,7 +384,15 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             if (ticker != null) {
                 TickingFurnitureImpl<BukkitFurniture> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.syncTickers.put(entityId, tickingFurniture);
-                this.addSyncFurnitureTicker(tickingFurniture);
+                if (VersionHelper.isFolia()) {
+                    furniture.bukkitEntity().getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> {
+                        if (tickingFurniture.isValid()) {
+                            tickingFurniture.tick();
+                        }
+                    }, () -> this.syncTickers.remove(tickingFurniture.entityId()), 1, 1);
+                } else {
+                    this.addSyncFurnitureTicker(tickingFurniture);
+                }
             }
         }
         if (!this.asyncTickers.containsKey(entityId)) {

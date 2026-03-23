@@ -49,6 +49,7 @@ public final class Config {
 
     private boolean misc$filterConfigurationPhaseDisconnect;
     private boolean misc$delayConfigurationLoad;
+    private boolean misc$multi_threaded_configuration_load;
     private boolean misc$inject_packet_vents;
 
     private boolean debug$common;
@@ -323,7 +324,8 @@ public final class Config {
     public void loadFullSettings() {
         YamlDocument config = settings();
         this.forcedLocale = TranslationManager.parseLocale(config.getString("forced-locale", ""));
-        this.misc$delayConfigurationLoad = config.getBoolean("misc.delay-configuration-load", false);
+        this.misc$delayConfigurationLoad = config.getBoolean("misc.delay-configuration-load", true);
+        this.misc$multi_threaded_configuration_load = config.getBoolean("misc.multi-threaded-configuration-load", true);
         this.misc$inject_packet_vents = config.getBoolean("misc.inject-packetevents", false);
 
         // basics
@@ -1327,6 +1329,10 @@ public final class Config {
 
     public static boolean isPacketIgnored(Class<?> clazz) {
         return instance.debug$ignored_packets.contains(clazz.toString());
+    }
+
+    public static boolean multiThreadedConfigLoad() {
+        return instance.misc$multi_threaded_configuration_load;
     }
 
     public static boolean enableBedrockEditionSupport() {

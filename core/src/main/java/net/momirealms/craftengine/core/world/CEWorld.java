@@ -23,7 +23,6 @@ public abstract class CEWorld {
     protected final ConcurrentLong2ReferenceChainedHashTable<CEChunk> loadedChunkMap;
     protected final WorldDataStorage worldDataStorage;
     protected final WorldHeight worldHeightAccessor;
-    protected List<SectionPos> pendingLightSections = new ArrayList<>();
     protected final Set<SectionPos> lightSections = ConcurrentHashMap.newKeySet(128);
     protected final TickersList<TickingBlockEntity> syncTickingBlockEntities = new TickersList<>();
     protected final List<TickingBlockEntity> pendingSyncTickingBlockEntities = new ArrayList<>();
@@ -32,6 +31,7 @@ public abstract class CEWorld {
     protected volatile boolean isTickingSyncBlockEntities = false;
     protected volatile boolean isTickingAsyncBlockEntities = false;
     protected volatile boolean isUpdatingLights = false;
+    protected List<SectionPos> pendingLightSections = new ArrayList<>();
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
 
@@ -190,7 +190,7 @@ public abstract class CEWorld {
 
     public abstract void updateLight();
 
-    public synchronized void addSyncBlockEntityTicker(TickingBlockEntity ticker) {
+    public void addSyncBlockEntityTicker(TickingBlockEntity ticker) {
         if (this.isTickingSyncBlockEntities) {
             this.pendingSyncTickingBlockEntities.add(ticker);
         } else {
@@ -198,14 +198,15 @@ public abstract class CEWorld {
         }
     }
 
-    public synchronized void addAsyncBlockEntityTicker(TickingBlockEntity ticker) {
+    public void addAsyncBlockEntityTicker(TickingBlockEntity ticker) {
         if (this.isTickingAsyncBlockEntities) {
             this.pendingAsyncTickingBlockEntities.add(ticker);
         } else {
-            this.asyncTickingBlockEntities.add(ticker);
+            this.syncTickingBlockEntities.add(ticker);
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     protected void tickSyncBlockEntities() {
         this.isTickingSyncBlockEntities = true;
         if (!this.pendingSyncTickingBlockEntities.isEmpty()) {

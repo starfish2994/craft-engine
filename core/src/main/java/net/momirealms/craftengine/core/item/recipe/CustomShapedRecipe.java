@@ -47,13 +47,11 @@ public final class CustomShapedRecipe extends CustomCraftingTableRecipe {
         return this.parsedPattern;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean matches(RecipeInput input) {
         return this.parsedPattern.matches((CraftingInput) input);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void takeInput(@NotNull RecipeInput input, int ignore) {
         this.parsedPattern.matchesAndTake((CraftingInput) input, ignore);

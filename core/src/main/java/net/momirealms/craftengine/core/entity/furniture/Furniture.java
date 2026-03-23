@@ -229,8 +229,8 @@ public abstract class Furniture implements Cullable {
         IntList interactableEntityIds = new IntArrayList();
 
         // 获取全部家具显示元素，从行为和配置里获取
-        FurnitureElementConfig<?>[] elementConfigs = variant.elementConfigs();
-        this.elements = new ArrayList<>(elementConfigs.length);
+        List<FurnitureElementConfig<? extends FurnitureElement>> elementConfigs = variant.elementConfigs();
+        this.elements = new ArrayList<>(elementConfigs.size());
         for (FurnitureElementConfig<?> elementConfig : elementConfigs) {
             FurnitureElement element = elementConfig.create(this);
             this.elements.add(element);
@@ -242,9 +242,9 @@ public abstract class Furniture implements Cullable {
         });
 
         // 初始化碰撞箱
-        FurnitureHitBoxConfig<?>[] furnitureHitBoxConfigs = variant.hitBoxConfigs();
-        this.colliders = new ObjectArrayList<>(furnitureHitBoxConfigs.length);
-        this.hitboxes = new ArrayList<>(furnitureHitBoxConfigs.length);
+        List<FurnitureHitBoxConfig<? extends FurnitureHitBox>> furnitureHitBoxConfigs = variant.hitBoxConfigs();
+        this.colliders = new ObjectArrayList<>(furnitureHitBoxConfigs.size());
+        this.hitboxes = new ArrayList<>(furnitureHitBoxConfigs.size());
 
         // 辅助map，用于排除重复的座椅
         LazyReference<Map<Vector3f, Seat<FurnitureHitBox>>> seatMap = LazyReference.lazyReference(HashMap::new);

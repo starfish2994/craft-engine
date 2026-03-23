@@ -132,7 +132,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override

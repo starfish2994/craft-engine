@@ -24,7 +24,6 @@ import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.CESection;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
-import net.momirealms.craftengine.core.world.chunk.storage.DefaultStorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftChunkProxy;
@@ -94,7 +93,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         }
         this.plugin = plugin;
         this.worlds = ConcurrentUUID2ReferenceChainedHashTable.createWithCapacity(10, 0.5f);
-        this.storageAdaptor = new DefaultStorageAdaptor();
+        this.storageAdaptor = new BukkitStorageAdaptor();
         instance = this;
     }
 
@@ -131,7 +130,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         for (World world : Bukkit.getWorlds()) {
             BukkitWorld wrappedWorld = wrap(world);
             try {
-                CEWorld ceWorld = this.worlds.computeIfAbsent(world.getUID(), k -> new BukkitCEWorld(wrappedWorld, this.storageAdaptor));
+                CEWorld ceWorld = this.worlds.computeIfAbsent(world.getUID(), k -> VersionHelper.isFolia() ? new FoliaCEWorld(wrappedWorld, this.storageAdaptor) : new BukkitCEWorld(wrappedWorld, this.storageAdaptor));
                 injectWorld(ceWorld);
                 for (Chunk chunk : world.getLoadedChunks()) {
                     if (VersionHelper.isFolia()) {
@@ -268,7 +267,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         World world = event.getWorld();
         UUID uuid = world.getUID();
         if (this.worlds.containsKey(uuid)) return;
-        CEWorld ceWorld = new BukkitCEWorld(wrap(world), this.storageAdaptor);
+        CEWorld ceWorld = VersionHelper.isFolia() ? new FoliaCEWorld(wrap(world), this.storageAdaptor) : new BukkitCEWorld(wrap(world), this.storageAdaptor);
         this.worlds.put(uuid, ceWorld);
         this.resetWorldArray();
         this.injectWorld(ceWorld);
@@ -353,7 +352,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         if (this.worlds.containsKey(uuid)) {
             return this.worlds.get(uuid);
         }
-        CEWorld ceWorld = new BukkitCEWorld(world, this.storageAdaptor);
+        CEWorld ceWorld = VersionHelper.isFolia() ? new FoliaCEWorld(world, this.storageAdaptor) : new BukkitCEWorld(world, this.storageAdaptor);
         this.worlds.put(uuid, ceWorld);
         this.resetWorldArray();
         this.injectWorld(ceWorld);
@@ -443,7 +442,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public CEWorld createWorld(net.momirealms.craftengine.core.world.World world, WorldDataStorage storage) {
-        return new BukkitCEWorld(world, storage);
+        return VersionHelper.isFolia() ? new FoliaCEWorld(world, storage) : new BukkitCEWorld(world, storage);
     }
 
     @Override
@@ -728,7 +727,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override
@@ -773,7 +772,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override

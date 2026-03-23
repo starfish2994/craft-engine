@@ -64,7 +64,7 @@ public final class TemplateManagerImpl implements TemplateManager {
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         // 覆写父类逻辑，禁止应用模板

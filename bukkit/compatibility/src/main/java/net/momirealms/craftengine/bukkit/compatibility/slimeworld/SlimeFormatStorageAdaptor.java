@@ -3,12 +3,12 @@ package net.momirealms.craftengine.bukkit.compatibility.slimeworld;
 import com.infernalsuite.asp.api.AdvancedSlimePaperAPI;
 import com.infernalsuite.asp.api.events.LoadSlimeWorldEvent;
 import com.infernalsuite.asp.api.world.SlimeWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitStorageAdaptor;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldManager;
 import net.momirealms.craftengine.core.world.chunk.storage.CachedStorage;
-import net.momirealms.craftengine.core.world.chunk.storage.DefaultStorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 import net.momirealms.craftengine.proxy.adventure.nbt.ByteArrayBinaryTagProxy;
 import org.bukkit.Bukkit;
@@ -16,7 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
-public final class SlimeFormatStorageAdaptor extends DefaultStorageAdaptor implements Listener {
+public final class SlimeFormatStorageAdaptor extends BukkitStorageAdaptor implements Listener {
     private final WorldManager worldManager;
 
     @EventHandler

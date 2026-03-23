@@ -176,7 +176,7 @@ public abstract class AbstractRecipeManager implements RecipeManager {
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override

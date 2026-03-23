@@ -186,7 +186,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
                     section.getBoolean(HAS_SIGNAL, true),
                     section.getBoolean(ALLOW_INPUT, true),
                     section.getBoolean(ALLOW_OUTPUT, true),
-                    BlockBehaviorFactory.getProperty(section.path(), block, "open", Boolean.class)
+                    BlockBehaviorFactory.getOptionalProperty(block, "open", Boolean.class)
             );
         }
     }

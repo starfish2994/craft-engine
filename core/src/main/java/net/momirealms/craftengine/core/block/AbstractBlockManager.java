@@ -391,7 +391,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override

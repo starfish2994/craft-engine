@@ -279,7 +279,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override
@@ -337,7 +337,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override

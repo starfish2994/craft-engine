@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviors;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
@@ -23,6 +22,7 @@ import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.TickersList;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +31,7 @@ import org.joml.Vector3f;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class AbstractFurnitureManager implements FurnitureManager {
     protected final Map<Key, CustomFurniture> byId = new ConcurrentHashMap<>();
@@ -39,14 +40,13 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     // Cached command suggestions
     protected final List<Suggestion> cachedSuggestions = new ArrayList<>();
 
-    protected final Int2ObjectOpenHashMap<TickingFurniture> syncTickers = new Int2ObjectOpenHashMap<>(256, 0.5f);
-    protected final Int2ObjectOpenHashMap<TickingFurniture> asyncTickers = new Int2ObjectOpenHashMap<>(256, 0.5f);
+    protected final Map<Integer, TickingFurniture> syncTickers = new ConcurrentHashMap<>(256, 0.5f);
+    protected final Map<Integer, TickingFurniture> asyncTickers = new ConcurrentHashMap<>(256, 0.5f);
     protected final TickersList<TickingFurniture> syncTickingFurniture = new TickersList<>();
     protected final List<TickingFurniture> pendingSyncTickingFurniture = new ArrayList<>();
     protected final TickersList<TickingFurniture> asyncTickingFurniture = new TickersList<>();
-    protected final List<TickingFurniture> pendingAsyncTickingFurniture = new ArrayList<>();
+    protected final Queue<TickingFurniture> pendingAsyncTickingFurniture = new ConcurrentLinkedQueue<>();
     private boolean isTickingSyncFurniture = false;
-    private boolean isTickingAsyncFurniture = false;
 
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
@@ -112,11 +112,11 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     }
 
     private void asyncTick() {
-        this.isTickingAsyncFurniture = true;
-        if (!this.pendingAsyncTickingFurniture.isEmpty()) {
-            this.asyncTickingFurniture.addAll(this.pendingAsyncTickingFurniture);
-            this.pendingAsyncTickingFurniture.clear();
+        TickingFurniture pending;
+        while ((pending = this.pendingAsyncTickingFurniture.poll()) != null) {
+            this.asyncTickingFurniture.add(pending);
         }
+
         if (!this.asyncTickingFurniture.isEmpty()) {
             Object[] entities = this.asyncTickingFurniture.elements();
             for (int i = 0, size = this.asyncTickingFurniture.size(); i < size; i++) {
@@ -130,10 +130,9 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
             }
             this.asyncTickingFurniture.removeMarkedEntries();
         }
-        this.isTickingAsyncFurniture = false;
     }
 
-    public synchronized void addSyncFurnitureTicker(TickingFurniture ticker) {
+    public void addSyncFurnitureTicker(TickingFurniture ticker) {
         if (this.isTickingSyncFurniture) {
             this.pendingSyncTickingFurniture.add(ticker);
         } else {
@@ -141,18 +140,17 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
         }
     }
 
-    public synchronized void addAsyncFurnitureTicker(TickingFurniture ticker) {
-        if (this.isTickingAsyncFurniture) {
-            this.pendingAsyncTickingFurniture.add(ticker);
-        } else {
-            this.asyncTickingFurniture.add(ticker);
-        }
+    // 此方法可能会被多个区域线程同时调用
+    public void addAsyncFurnitureTicker(TickingFurniture ticker) {
+        this.pendingAsyncTickingFurniture.add(ticker);
     }
 
     @Override
     public void delayedInit() {
-        if (this.syncTickTask == null || this.syncTickTask.cancelled())
-            this.syncTickTask = CraftEngine.instance().scheduler().sync().runRepeating(this::syncTick, 1, 1);
+        if (!VersionHelper.isFolia()) {
+            if (this.syncTickTask == null || this.syncTickTask.cancelled())
+                this.syncTickTask = CraftEngine.instance().scheduler().sync().runRepeating(this::syncTick, 1, 1);
+        }
         if (this.asyncTickTask == null || this.asyncTickTask.cancelled())
             this.asyncTickTask = CraftEngine.instance().scheduler().sync().runAsyncRepeating(this::asyncTick, 1, 1);
     }
@@ -192,7 +190,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override
@@ -242,11 +240,27 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                     hitboxes = List.of(defaultHitBox());
                 }
 
+                // 虚假光源
+                List<FurnitureLight> lights = variantSection.getList("lights", v -> {
+                   if (v.is(String.class)) {
+                       ConfigValue[] configValues = v.splitValues(" ", 2);
+                       if (configValues.length == 2) {
+                           return new FurnitureLight(configValues[0].getAsVector3f(), configValues[1].getAsInt());
+                       } else {
+                           return new FurnitureLight(configValues[0].getAsVector3f(), 15);
+                       }
+                   } else {
+                       ConfigSection lightSection=  v.getAsSection();
+                       return new FurnitureLight(lightSection.getNonNullVector3f("pos"), lightSection.getInt("level", 15));
+                   }
+                });
+
                 variants.put(variant, new FurnitureVariant(
                         variant,
                         parseCullingData(section.getValue(ENTITY_CULLING)),
-                        elements.toArray(new FurnitureElementConfig[0]),
-                        hitboxes.toArray(new FurnitureHitBoxConfig[0]),
+                        elements,
+                        hitboxes,
+                        lights,
                         externalModel,
                         lootSpawnOffset
                 ));

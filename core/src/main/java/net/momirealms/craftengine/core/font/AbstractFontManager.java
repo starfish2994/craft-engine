@@ -365,7 +365,7 @@ public abstract class AbstractFontManager implements FontManager {
 
         @Override
         public boolean async() {
-            return true;
+            return Config.multiThreadedConfigLoad();
         }
 
         @Override
