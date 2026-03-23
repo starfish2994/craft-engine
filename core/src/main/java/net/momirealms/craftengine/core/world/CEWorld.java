@@ -202,7 +202,7 @@ public abstract class CEWorld {
         if (this.isTickingAsyncBlockEntities) {
             this.pendingAsyncTickingBlockEntities.add(ticker);
         } else {
-            this.syncTickingBlockEntities.add(ticker);
+            this.asyncTickingBlockEntities.add(ticker);
         }
     }
 
