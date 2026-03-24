@@ -914,10 +914,9 @@ public final class ConfigSection {
 
     public <T> List<T> getNonEmptyList(String key, Function<ConfigValue, T> parser) {
         ConfigValue value = getNonNullValue(key, ConfigConstants.ARGUMENT_LIST);
-        List<Object> list = value.getAsNonEmptyList();
+        List<ConfigValue> list = value.getAsNonEmptyValueList();
         List<T> result = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            ConfigValue configValue = new ConfigValue(value.assemblePath(i), list.get(i));
+        for (ConfigValue configValue : list) {
             result.add(parser.apply(configValue));
         }
         return result;
@@ -925,10 +924,9 @@ public final class ConfigSection {
 
     public <T> List<T> getNonEmptyList(String[] keys, Function<ConfigValue, T> parser) {
         ConfigValue value = getNonNullValue(keys, ConfigConstants.ARGUMENT_LIST);
-        List<Object> list = value.getAsNonEmptyList();
+        List<ConfigValue> list = value.getAsNonEmptyValueList();
         List<T> result = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            ConfigValue configValue = new ConfigValue(value.assemblePath(i), list.get(i));
+        for (ConfigValue configValue : list) {
             result.add(parser.apply(configValue));
         }
         return result;
@@ -939,10 +937,9 @@ public final class ConfigSection {
         if (value == null) {
             return List.of();
         }
-        List<Object> list = value.getAsList();
+        List<ConfigValue> list = value.getAsValueList();
         List<T> result = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            ConfigValue configValue = new ConfigValue(value.assemblePath(i), list.get(i));
+        for (ConfigValue configValue : list) {
             result.add(parser.apply(configValue));
         }
         return result;
@@ -953,10 +950,9 @@ public final class ConfigSection {
         if (value == null) {
             return List.of();
         }
-        List<Object> list = value.getAsList();
+        List<ConfigValue> list = value.getAsValueList();
         List<T> result = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            ConfigValue configValue = new ConfigValue(value.assemblePath(i), list.get(i));
+        for (ConfigValue configValue : list) {
             result.add(parser.apply(configValue));
         }
         return result;
@@ -967,10 +963,9 @@ public final class ConfigSection {
         if (value == null) {
             return List.of();
         }
-        List<Object> list = value.getAsList();
+        List<ConfigValue> list = value.getAsValueList();
         List<T> result = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            ConfigValue configValue = new ConfigValue(value.assemblePath(i), list.get(i));
+        for (ConfigValue configValue : list) {
             result.add(parser.apply(configValue.getAsSection()));
         }
         return result;
@@ -981,10 +976,9 @@ public final class ConfigSection {
         if (value == null) {
             return List.of();
         }
-        List<Object> list = value.getAsList();
+        List<ConfigValue> list = value.getAsValueList();
         List<T> result = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            ConfigValue configValue = new ConfigValue(value.assemblePath(i), list.get(i));
+        for (ConfigValue configValue : list) {
             result.add(parser.apply(configValue.getAsSection()));
         }
         return result;

@@ -52,13 +52,13 @@ public final class PlayerUtils {
         }
     }
 
-    public static void giveItem(Player player, Item original, Item item, boolean spawnEntity) {
+    public static void giveItem(Player player, Item original, Item item, boolean spawnFakeEntity) {
         if (player == null) return;
         Object serverPlayer = player.serverPlayer();
         Object inventory = PlayerProxy.INSTANCE.getInventory(serverPlayer);
         boolean flag = InventoryProxy.INSTANCE.add(inventory, item.getMinecraftItem());
         if (flag && item.isEmpty()) {
-            if (spawnEntity) {
+            if (spawnFakeEntity) {
                 double pitchRad = player.xRot() * (Math.PI / 180F);
                 double yawRad = player.yRot() * (Math.PI / 180F);
 
@@ -96,11 +96,11 @@ public final class PlayerUtils {
                 );
 
                 player.sendPackets(List.of(addEntityPacket, itemMetaPacket), false);
+                player.world().playSound(player.position(), Sounds.ENTITY_ITEM_PICKUP, 0.2F, ((RandomUtils.generateRandomFloat() - RandomUtils.generateRandomFloat()) * 0.7F + 1.0F) * 2.0F, SoundSource.PLAYER);
                 CraftEngine.instance().scheduler().sync().runDelayed(() -> {
                     player.sendPacket(ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), k -> k.add(entityId))), false);
                 });
             }
-            player.world().playSound(player.position(), Sounds.ENTITY_ITEM_PICKUP, 0.2F, ((RandomUtils.generateRandomFloat() - RandomUtils.generateRandomFloat()) * 0.7F + 1.0F) * 2.0F, SoundSource.PLAYER);
             AbstractContainerMenuProxy.INSTANCE.broadcastChanges(PlayerProxy.INSTANCE.getContainerMenu(serverPlayer));
         } else {
             Object droppedItem;

@@ -239,7 +239,13 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
 
     @Override
     public ExternalModel createModel(String id) {
-        return this.modelProviders.values().iterator().next().createModel(id);
+        for (ModelProvider modelProvider : this.modelProviders.values()) {
+            ExternalModel model = modelProvider.createModel(id);
+            if (model != null) {
+                return model;
+            }
+        }
+        return null;
     }
 
     @Override

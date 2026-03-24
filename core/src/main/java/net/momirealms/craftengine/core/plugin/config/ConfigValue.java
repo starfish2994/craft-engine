@@ -356,6 +356,18 @@ public record ConfigValue(String path, @NotNull Object value) {
         return List.of(this.value);
     }
 
+    public List<ConfigValue> getAsValueList() {
+        if (this.value instanceof List<?> list) {
+            List<ConfigValue> values = new ArrayList<>();
+            for (int i = 0; i < list.size(); i++) {
+                values.add(new ConfigValue(assemblePath(i), list.get(i)));
+            }
+            return values;
+        } else {
+            return List.of(this);
+        }
+    }
+
     public <T> List<T> getAsList(Function<ConfigValue, T> convertor) {
         if (this.is(List.class)) {
             List<Object> asList = getAsList();
@@ -379,6 +391,21 @@ public record ConfigValue(String path, @NotNull Object value) {
             return (List<Object>) list;
         } else {
             return List.of(this.value);
+        }
+    }
+
+    public List<ConfigValue> getAsNonEmptyValueList() {
+        if (this.value instanceof List<?> list) {
+            if (list.isEmpty()) {
+                throw new KnownResourceException(ConfigConstants.PARSE_NONEMPTY_LIST_FAILED, this.path);
+            }
+            List<ConfigValue> values = new ArrayList<>();
+            for (int i = 0; i < list.size(); i++) {
+                values.add(new ConfigValue(assemblePath(i), list.get(i)));
+            }
+            return values;
+        } else {
+            return List.of(this);
         }
     }
 
