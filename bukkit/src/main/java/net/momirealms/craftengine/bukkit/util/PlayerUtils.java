@@ -1,69 +1,106 @@
 package net.momirealms.craftengine.bukkit.util;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.sound.Sounds;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundEntityEventPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEquipmentPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSoundPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundStopSoundPacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
 import net.momirealms.craftengine.proxy.minecraft.resources.IdentifierProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundSourceProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.item.ItemEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.InventoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public final class PlayerUtils {
     private PlayerUtils() {
     }
 
-    public static void giveItem(Player player, int amount, Item original) {
+    public static void giveItem(Player player, int amount, Item original, boolean spawnEntity) {
         int amountToGive = amount;
         int maxStack = original.maxStackSize();
         while (amountToGive > 0) {
             int perStackSize = Math.min(maxStack, amountToGive);
             amountToGive -= perStackSize;
-            PlayerUtils.giveItem(player, original, original.copyWithCount(perStackSize));
+            PlayerUtils.giveItem(player, original, original.copyWithCount(perStackSize), spawnEntity);
         }
     }
 
-    public static void giveItem(Player player, Item original, Item item) {
+    public static void giveItem(Player player, Item original, Item item, boolean spawnEntity) {
         if (player == null) return;
         Object serverPlayer = player.serverPlayer();
         Object inventory = PlayerProxy.INSTANCE.getInventory(serverPlayer);
         boolean flag = InventoryProxy.INSTANCE.add(inventory, item.getMinecraftItem());
         if (flag && item.isEmpty()) {
-            Object droppedItem;
-            if (VersionHelper.isOrAbove1_21_4()) {
-                droppedItem = ServerPlayerProxy.INSTANCE.drop(serverPlayer, original.copyWithCount(1).getMinecraftItem(), false, false, false, null);
-            } else if (VersionHelper.isOrAbove1_20_3()) {
-                droppedItem = ServerPlayerProxy.INSTANCE.drop$1(serverPlayer, original.copyWithCount(1).getMinecraftItem(), false, false, false);
-            } else {
-                droppedItem = PlayerProxy.INSTANCE.drop$0(serverPlayer, original.copyWithCount(1).getMinecraftItem(), false, false, true);
+            if (spawnEntity) {
+                double pitchRad = player.xRot() * (Math.PI / 180F);
+                double yawRad = player.yRot() * (Math.PI / 180F);
+
+                double sinPitch = Math.sin(pitchRad);
+                double cosPitch = Math.cos(pitchRad);
+                double sinYaw = Math.sin(yawRad);
+                double cosYaw = Math.cos(yawRad);
+
+                float randomAngle = RandomUtils.generateRandomFloat() * ((float) Math.PI * 2F);
+                float spreadIntensity = 0.02F * RandomUtils.generateRandomFloat();
+
+                int entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
+
+                double velX = (-sinYaw * cosPitch * 0.3F) + Math.cos(randomAngle) * (double) spreadIntensity;
+                double velY = -sinPitch * 0.3F + 0.1F + (RandomUtils.generateRandomFloat() - RandomUtils.generateRandomFloat()) * 0.1F;
+                double velZ = (cosYaw * cosPitch * 0.3F) + Math.sin(randomAngle) * (double) spreadIntensity;
+
+                Object addEntityPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
+                        entityId,
+                        UUID.randomUUID(),
+                        player.x(),
+                        EntityProxy.INSTANCE.getEyeY(player.serverPlayer()) - 0.3,
+                        player.z(),
+                        player.xRot(),
+                        player.yRot(),
+                        EntityTypeProxy.ITEM,
+                        0,
+                        Vec3Proxy.INSTANCE.newInstance(velX, velY, velZ),
+                        0
+                );
+
+                Object itemMetaPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(
+                        entityId,
+                        List.of(ItemEntityData.Item.createEntityData(original.copyWithCount(1).getMinecraftItem()))
+                );
+
+                player.sendPackets(List.of(addEntityPacket, itemMetaPacket), false);
+                CraftEngine.instance().scheduler().sync().runDelayed(() -> {
+                    player.sendPacket(ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), k -> k.add(entityId))), false);
+                });
             }
-            if (droppedItem != null) {
-                ItemEntityProxy.INSTANCE.makeFakeItem(droppedItem);
-            }
-            player.world().playSound(player.position(), Sounds.ENTITY_ITEM_PICKUP, 0.2F, ((RandomUtils.generateRandomFloat(0, 1) - RandomUtils.generateRandomFloat(0, 1)) * 0.7F + 1.0F) * 2.0F, SoundSource.PLAYER);
+            player.world().playSound(player.position(), Sounds.ENTITY_ITEM_PICKUP, 0.2F, ((RandomUtils.generateRandomFloat() - RandomUtils.generateRandomFloat()) * 0.7F + 1.0F) * 2.0F, SoundSource.PLAYER);
             AbstractContainerMenuProxy.INSTANCE.broadcastChanges(PlayerProxy.INSTANCE.getContainerMenu(serverPlayer));
         } else {
             Object droppedItem;

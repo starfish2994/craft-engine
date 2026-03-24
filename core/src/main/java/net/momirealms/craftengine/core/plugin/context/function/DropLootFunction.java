@@ -46,7 +46,7 @@ public final class DropLootFunction<CTX extends Context> extends AbstractConditi
             List<? extends Item> items = lootTable.getRandomItems(ctx.contexts(), world, player);
             if (this.toInv && player != null) {
                 for (Item item : items) {
-                    player.giveItem(item);
+                    player.giveItem(item, true);
                 }
             } else {
                 for (Item item : items) {

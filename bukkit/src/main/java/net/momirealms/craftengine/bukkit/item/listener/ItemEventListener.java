@@ -466,7 +466,7 @@ public final class ItemEventListener implements Listener {
                 if (replacement != null) {
                     Item replacementItem = this.plugin.itemManager().createWrappedItem(replacement, serverPlayer);
                     if (replacementItem != null) {
-                        PlayerUtils.giveItem(serverPlayer, 1, replacementItem);
+                        PlayerUtils.giveItem(serverPlayer, 1, replacementItem, false);
                     }
                 }
             }

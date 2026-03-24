@@ -488,8 +488,8 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void giveItem(Item item) {
-        PlayerUtils.giveItem(this, item.count(), item);
+    public void giveItem(Item item, boolean spawnEntity) {
+        PlayerUtils.giveItem(this, item.count(), item, spawnEntity);
     }
 
     @Override

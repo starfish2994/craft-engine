@@ -74,7 +74,7 @@ public final class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
                                 if (serverPlayer != null) {
                                     Item builtItem = finalCustomItem.buildItem(serverPlayer);
                                     if (builtItem != null) {
-                                        PlayerUtils.giveItem(serverPlayer, amount, builtItem);
+                                        PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);
                                     }
                                 }
                             }, null);
@@ -82,7 +82,7 @@ public final class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
                             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                             Item builtItem = finalCustomItem.buildItem(serverPlayer);
                             if (builtItem != null) {
-                                PlayerUtils.giveItem(serverPlayer, amount, builtItem);
+                                PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);
                             }
                         }
                     }

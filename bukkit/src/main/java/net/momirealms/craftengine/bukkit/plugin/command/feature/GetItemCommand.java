@@ -64,7 +64,7 @@ public final class GetItemCommand extends BukkitCommandFeature<CommandSender> {
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                     Item builtItem = customItem.buildItem(serverPlayer);
                     if (builtItem != null) {
-                        PlayerUtils.giveItem(serverPlayer, amount, builtItem);
+                        PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);
                     }
                     handleFeedback(context, MessageConstants.COMMAND_ITEM_GET_SUCCESS, Component.text(amount), Component.text(itemId.toString()));
                 });

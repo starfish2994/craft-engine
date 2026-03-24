@@ -136,7 +136,11 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
         this.playSound(pos, data.id(), source, data.volume().get(), data.pitch().get());
     }
 
-    public abstract void giveItem(Item item);
+    public abstract void giveItem(Item item, boolean spawnEntity);
+
+    public void giveItem(Item item) {
+        giveItem(item, true);
+    }
 
     public abstract void closeInventory();
 

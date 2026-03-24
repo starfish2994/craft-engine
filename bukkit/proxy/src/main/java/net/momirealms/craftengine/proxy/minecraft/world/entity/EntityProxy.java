@@ -140,4 +140,7 @@ public interface EntityProxy {
 
     @MethodInvoker(name = "isAlive")
     boolean isAlive(Object target);
+
+    @MethodInvoker(name = "getEyeY")
+    double getEyeY(Object target);
 }
