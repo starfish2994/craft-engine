@@ -5,50 +5,48 @@ import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.HashUtils;
-import net.momirealms.craftengine.core.util.Tuple;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class OneDriveHost implements ResourcePackHost {
     public static final ResourcePackHostFactory<OneDriveHost> FACTORY = new Factory();
     private final String clientId;
     private final String clientSecret;
-    private final ProxySelector proxy;
     private final String uploadPath;
-    private Tuple<@NotNull String, @NotNull String, @NotNull Date> refreshToken;
-    private String sha1;
-    private String fileId;
+    private final ReentrantLock tokenLock = new ReentrantLock();
 
-    public OneDriveHost(String clientId,
-                        String clientSecret,
-                        String refreshToken,
-                        String uploadPath,
-                        ProxySelector proxy) {
+    private String refreshToken;
+    private String accessToken;
+    private long expiresAt;
+
+    private String cachedSha1;
+    private String cachedFileId;
+
+    public OneDriveHost(String clientId, String clientSecret, String refreshToken, String uploadPath) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
-        this.proxy = proxy;
+        this.refreshToken = refreshToken;
         this.uploadPath = uploadPath;
-        this.refreshToken = Tuple.of(refreshToken, "", new Date());
-        readCacheFromDisk();
+
+        this.readCacheFromDisk();
     }
 
     @Override
@@ -61,167 +59,191 @@ public final class OneDriveHost implements ResourcePackHost {
         return ResourcePackHosts.ONEDRIVE;
     }
 
-    public void readCacheFromDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("onedrive.json");
-        if (!Files.exists(cachePath) || !Files.isRegularFile(cachePath)) return;
-        try (InputStream is = Files.newInputStream(cachePath)) {
-            Map<String, String> cache = GsonHelper.get().fromJson(
-                    new InputStreamReader(is, StandardCharsets.UTF_8),
-                    new TypeToken<Map<String, String>>(){}.getType()
-            );
-
-            this.refreshToken = Tuple.of(
-                    Objects.requireNonNull(cache.get("refresh-token")),
-                    Objects.requireNonNull(cache.get("access-token")),
-                    new Date(Long.parseLong(cache.get("refresh-token-expires-in"))));
-            this.sha1 = cache.get("sha1");
-            this.fileId = cache.get("file-id");
-
-            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.onedrive.a"));
-        } catch (Exception e) {
-            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.onedrive.b", cachePath.toString()), e);
-        }
-    }
-
-    public void saveCacheToDisk() {
-        Map<String, String> cache = new HashMap<>();
-        cache.put("refresh-token", this.refreshToken.left());
-        cache.put("access-token", this.refreshToken.mid());
-        cache.put("refresh-token-expires-in", String.valueOf(this.refreshToken.right().getTime()));
-        cache.put("sha1", this.sha1);
-        cache.put("file-id", this.fileId);
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("onedrive.json");
-        try {
-            Files.createDirectories(cachePath.getParent());
-            Files.writeString(
-                    cachePath,
-                    GsonHelper.get().toJson(cache),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING
-            );
-        } catch (IOException e) {
-            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.onedrive.c"), e);
-        }
-    }
-
     @Override
     public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(UUID player) {
         CompletableFuture<List<ResourcePackDownloadData>> future = new CompletableFuture<>();
+
+        if (this.cachedFileId == null || this.cachedSha1 == null) {
+            future.completeExceptionally(new IllegalStateException("OneDrive host is not initialized. Please upload first."));
+            return future;
+        }
+
         CraftEngine.instance().scheduler().executeAsync(() -> {
-            try (HttpClient client = HttpClient.newBuilder().proxy(this.proxy).build()) {
-                String accessToken = getOrRefreshJwtToken();
-                saveCacheToDisk();
+            try {
+                String token = getOrRefreshAccessToken();
+                if (token == null) {
+                    future.completeExceptionally(new RuntimeException("Failed to obtain OneDrive access token"));
+                    return;
+                }
+
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("https://graph.microsoft.com/v1.0/drive/items/" + this.fileId))
-                        .header("Authorization", "Bearer " + accessToken)
-                        .header("Content-Type", "application/octet-stream")
+                        .uri(URI.create("https://graph.microsoft.com/v1.0/drive/items/" + this.cachedFileId))
+                        .header("Authorization", "Bearer " + token)
                         .GET()
                         .build();
-                client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                        .thenAccept(response -> {
-                            if (response.statusCode() != 200) {
-                                CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.onedrive.d", String.valueOf(response.statusCode()), response.body()));
-                                future.completeExceptionally(new IOException(TranslationManager.instance().plainTranslation("host.onedrive.e", String.valueOf(response.statusCode()), response.body())));
-                                return;
-                            }
-                            String downloadUrl = GsonHelper.parseJsonToJsonObject(response.body()).get("@microsoft.graph.downloadUrl").getAsString();
-                            future.complete(List.of(new ResourcePackDownloadData(
-                                    downloadUrl,
-                                    UUID.nameUUIDFromBytes(this.sha1.getBytes(StandardCharsets.UTF_8)),
-                                    this.sha1
-                            )));
-                        })
+
+                HttpClientManager.get().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                        .thenAccept(response -> handleDownloadLinkResponse(response, future))
                         .exceptionally(ex -> {
-                            CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.onedrive.f"), ex);
                             future.completeExceptionally(ex);
                             return null;
                         });
+            } catch (Exception e) {
+                future.completeExceptionally(e);
             }
         });
+
         return future;
+    }
+
+    private void handleDownloadLinkResponse(HttpResponse<String> response, CompletableFuture<List<ResourcePackDownloadData>> future) {
+        if (response.statusCode() != 200) {
+            fail(future, "GetItem HTTP " + response.statusCode(), response.body());
+            return;
+        }
+
+        try {
+            JsonObject json = GsonHelper.parseJsonToJsonObject(response.body());
+            if (json.has("@microsoft.graph.downloadUrl")) {
+                String downloadUrl = json.get("@microsoft.graph.downloadUrl").getAsString();
+                UUID uuid = UUID.nameUUIDFromBytes(this.cachedSha1.getBytes(StandardCharsets.UTF_8));
+                future.complete(List.of(new ResourcePackDownloadData(downloadUrl, uuid, this.cachedSha1)));
+            } else {
+                fail(future, "Response missing download URL", response.body());
+            }
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+        }
     }
 
     @Override
     public CompletableFuture<Void> upload(Path resourcePackPath) {
         CompletableFuture<Void> future = new CompletableFuture<>();
+
         CraftEngine.instance().scheduler().executeAsync(() -> {
-            this.sha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
-            String accessToken = getOrRefreshJwtToken();
-            try (HttpClient client = HttpClient.newBuilder().proxy(this.proxy).build()) {
+            try {
+                String token = getOrRefreshAccessToken();
+                if (token == null) {
+                    future.completeExceptionally(new RuntimeException("Failed to obtain OneDrive access token"));
+                    return;
+                }
+
+                String localSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
+
+                // OneDrive 简单上传支持最大 4MB，大文件建议改用 uploadSession。
+                // 这里暂时保持你的逻辑，即简单上传覆盖。
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create("https://graph.microsoft.com/v1.0/drive/root:/" + this.uploadPath + ":/content"))
-                        .header("Authorization", "Bearer " + accessToken)
+                        .header("Authorization", "Bearer " + token)
                         .header("Content-Type", "application/octet-stream")
                         .PUT(HttpRequest.BodyPublishers.ofFile(resourcePackPath))
                         .build();
-                long uploadStart = System.currentTimeMillis();
-                CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.onedrive.g"));
-                client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+
+                HttpClientManager.get().sendAsync(request, HttpResponse.BodyHandlers.ofString())
                         .thenAccept(response -> {
-                            long elapsedTime = System.currentTimeMillis() - uploadStart;
                             if (response.statusCode() == 200 || response.statusCode() == 201) {
-                                CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.onedrive.h", String.valueOf(elapsedTime)));
-                                this.fileId = GsonHelper.parseJsonToJsonObject(response.body()).get("id").getAsString();
+                                JsonObject json = GsonHelper.parseJsonToJsonObject(response.body());
+                                this.cachedFileId = json.get("id").getAsString();
+                                this.cachedSha1 = localSha1;
                                 saveCacheToDisk();
                                 future.complete(null);
                             } else {
-                                CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.onedrive.i", String.valueOf(elapsedTime), response.body()));
-                                future.completeExceptionally(new RuntimeException(TranslationManager.instance().plainTranslation("host.onedrive.e", String.valueOf(response.statusCode()), response.body())));
+                                fail(future, "Upload HTTP " + response.statusCode(), response.body());
                             }
                         })
-                        .exceptionally(ex -> {
-                            CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.onedrive.j"), ex);
-                            future.completeExceptionally(ex);
+                        .exceptionally(t -> {
+                            future.completeExceptionally(t);
                             return null;
                         });
-            } catch (FileNotFoundException e) {
-                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.onedrive.k"), e);
+
+            } catch (Exception e) {
                 future.completeExceptionally(e);
             }
         });
+
         return future;
     }
 
-    private String getOrRefreshJwtToken() {
-        if (this.refreshToken == null || this.refreshToken.mid().isEmpty() || this.refreshToken.right().before(new Date())) {
-            try (HttpClient client = HttpClient.newBuilder().proxy(this.proxy).build()) {
-                String formData = "client_id=" + URLEncoder.encode(this.clientId, StandardCharsets.UTF_8) +
-                        "&client_secret=" + URLEncoder.encode(Objects.requireNonNull(this.clientSecret), StandardCharsets.UTF_8) +
-                        "&refresh_token=" + URLEncoder.encode(this.refreshToken.left(), StandardCharsets.UTF_8) +
-                        "&grant_type=refresh_token" +
-                        "&scope=Files.ReadWrite.All+offline_access";
-
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("https://login.microsoftonline.com/common/oauth2/v2.0/token"))
-                        .header("Content-Type", "application/x-www-form-urlencoded")
-                        .POST(HttpRequest.BodyPublishers.ofString(formData))
-                        .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response.statusCode() != 200) {
-                    CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.onedrive.l", String.valueOf(response.statusCode()), response.body()));
-                    return this.refreshToken != null ? this.refreshToken.mid() : "";
-                }
-
-                JsonObject jsonData = GsonHelper.parseJsonToJsonObject(response.body());
-                if (jsonData.has("error")) {
-                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.onedrive.m", jsonData.toString()));
-                    throw new RuntimeException(TranslationManager.instance().plainTranslation("host.onedrive.n", jsonData.toString()));
-                }
-                long expiresInMillis = jsonData.get("expires_in").getAsInt() * 1000L;
-                this.refreshToken = Tuple.of(
-                        jsonData.get("refresh_token").getAsString(),
-                        jsonData.get("access_token").getAsString(),
-                        new Date(System.currentTimeMillis() + expiresInMillis - 10_000)
-                );
-            } catch (IOException | InterruptedException e) {
-                CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.onedrive.o"), e);
-                throw new RuntimeException(TranslationManager.instance().plainTranslation("host.onedrive.p"), e);
-            }
+    @Nullable
+    private String getOrRefreshAccessToken() throws IOException, InterruptedException {
+        // 预留 5 分钟缓冲
+        if (this.accessToken != null && System.currentTimeMillis() < expiresAt - 300000) {
+            return this.accessToken;
         }
 
-        return this.refreshToken.mid();
+        this.tokenLock.lock();
+        try {
+            // Double-check
+            if (this.accessToken != null && System.currentTimeMillis() < expiresAt - 300000) {
+                return this.accessToken;
+            }
+
+            String formData = "client_id=" + URLEncoder.encode(this.clientId, StandardCharsets.UTF_8) +
+                    "&client_secret=" + URLEncoder.encode(this.clientSecret, StandardCharsets.UTF_8) +
+                    "&refresh_token=" + URLEncoder.encode(this.refreshToken, StandardCharsets.UTF_8) +
+                    "&grant_type=refresh_token" +
+                    "&scope=Files.ReadWrite.All+offline_access";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://login.microsoftonline.com/common/oauth2/v2.0/token"))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString(formData))
+                    .build();
+
+            HttpResponse<String> response = HttpClientManager.get().send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                CraftEngine.instance().logger().warn("OneDrive Token Refresh Failed: " + response.body());
+                return null;
+            }
+
+            JsonObject json = GsonHelper.parseJsonToJsonObject(response.body());
+            this.accessToken = json.get("access_token").getAsString();
+            this.refreshToken = json.get("refresh_token").getAsString();
+            long expiresInSeconds = json.get("expires_in").getAsLong();
+            this.expiresAt = System.currentTimeMillis() + (expiresInSeconds * 1000L);
+
+            saveCacheToDisk();
+            return this.accessToken;
+        } finally {
+            this.tokenLock.unlock();
+        }
+    }
+
+    private void fail(CompletableFuture<?> future, String reason, String body) {
+        String msg = "OneDriveHost Error: " + reason + (body != null ? " | Body: " + body : "");
+        future.completeExceptionally(new RuntimeException(msg));
+    }
+
+    private void readCacheFromDisk() {
+        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("onedrive.json");
+        if (!Files.exists(cachePath)) return;
+        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(cachePath), StandardCharsets.UTF_8)) {
+            Map<String, String> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, String>>(){}.getType());
+            this.refreshToken = cache.getOrDefault("refresh-token", this.refreshToken);
+            this.accessToken = cache.get("access-token");
+            this.expiresAt = Long.parseLong(cache.getOrDefault("expires-at", "0"));
+            this.cachedSha1 = cache.get("sha1");
+            this.cachedFileId = cache.get("file-id");
+        } catch (Exception e) {
+            CraftEngine.instance().logger().warn("Failed to load OneDrive cache", e);
+        }
+    }
+
+    private void saveCacheToDisk() {
+        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("onedrive.json");
+        try {
+            Files.createDirectories(cachePath.getParent());
+            Map<String, String> cache = new HashMap<>();
+            cache.put("refresh-token", this.refreshToken);
+            cache.put("access-token", this.accessToken != null ? this.accessToken : "");
+            cache.put("expires-at", String.valueOf(this.expiresAt));
+            cache.put("sha1", this.cachedSha1 != null ? this.cachedSha1 : "");
+            cache.put("file-id", this.cachedFileId != null ? this.cachedFileId : "");
+            Files.writeString(cachePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            CraftEngine.instance().logger().warn("Failed to persist OneDrive cache", e);
+        }
     }
 
     private static class Factory implements ResourcePackHostFactory<OneDriveHost> {
@@ -238,7 +260,7 @@ public final class OneDriveHost implements ResourcePackHost {
             String clientSecret = useEnv ? getNonNullEnvironmentVariable(section, "CE_ONEDRIVE_CLIENT_SECRET") : section.getNonEmptyString(CLIENT_SECRET);
             String refreshToken = useEnv ? getNonNullEnvironmentVariable(section, "CE_ONEDRIVE_REFRESH_TOKEN") : section.getNonEmptyString(REFRESH_TOKEN);
             String uploadPath = section.getString(UPLOAD_PATH, "resource_pack.zip");
-            return new OneDriveHost(clientId, clientSecret, refreshToken, uploadPath, getProxySelector(section.getSection("proxy")));
+            return new OneDriveHost(clientId, clientSecret, refreshToken, uploadPath);
         }
     }
 }

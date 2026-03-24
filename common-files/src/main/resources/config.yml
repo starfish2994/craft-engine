@@ -211,6 +211,14 @@ resource-pack:
           max-bandwidth-per-second: 5_000_000
           min-download-speed-per-player: 50_000
           qps-per-ip: 5/60
+    # HTTP proxy settings for routing resource pack download requests. For most users, this option is unnecessary.
+    proxy:
+      enable: false
+      port: 7890
+      host: localhost
+      username: ""
+      password: ""
+      scheme: http
 
 item:
   # [Premium Exclusive]

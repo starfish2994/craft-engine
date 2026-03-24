@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ConditionalResolution;
+import net.momirealms.craftengine.core.pack.host.HttpClientManager;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.PluginProperties;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
@@ -127,6 +128,12 @@ public final class Config {
     private boolean resource_pack$delivery$auto_upload;
     private boolean resource_pack$delivery$strict_player_uuid_validation;
     private Path resource_pack$delivery$file_to_upload;
+    private boolean resource_pack$delivery$proxy$enable;
+    private int resource_pack$delivery$proxy$port;
+    private String resource_pack$delivery$proxy$host;
+    private String resource_pack$delivery$proxy$username;
+    private String resource_pack$delivery$proxy$password;
+    private String resource_pack$delivery$proxy$scheme;
     private Component resource_pack$send$prompt;
 
     private boolean light_system$async_update;
@@ -365,6 +372,19 @@ public final class Config {
         this.resource_pack$delivery$auto_upload = config.getBoolean("resource-pack.delivery.auto-upload", true);
         this.resource_pack$delivery$strict_player_uuid_validation = config.getBoolean("resource-pack.delivery.strict-player-uuid-validation", true);
         this.resource_pack$delivery$file_to_upload = resolvePath(config.getString("resource-pack.delivery.file-to-upload", "./generated/resource_pack.zip"));
+        this.resource_pack$delivery$proxy$enable = config.getBoolean("resource-pack.delivery.proxy.enable", false);
+        this.resource_pack$delivery$proxy$port = config.getInt("resource-pack.delivery.proxy.port", 7890);
+        this.resource_pack$delivery$proxy$host = config.getString("resource-pack.delivery.proxy.host", "localhost");
+        this.resource_pack$delivery$proxy$username = config.getString("resource-pack.delivery.proxy.username", "");
+        this.resource_pack$delivery$proxy$password = config.getString("resource-pack.delivery.proxy.password", "");
+        this.resource_pack$delivery$proxy$scheme = config.getString("resource-pack.delivery.proxy.scheme", "http");
+        HttpClientManager.init(
+                this.resource_pack$delivery$proxy$enable,
+                this.resource_pack$delivery$proxy$host,
+                this.resource_pack$delivery$proxy$port,
+                this.resource_pack$delivery$proxy$username,
+                this.resource_pack$delivery$proxy$password
+        );
         this.resource_pack$send$prompt = AdventureHelper.miniMessage().deserialize(config.getString("resource-pack.delivery.prompt", "<yellow>To fully experience our server, please accept our custom resource pack.</yellow>"));
         this.resource_pack$protection$unprotected_copy = config.getBoolean("resource-pack.protection.unprotected-copy", false);
         this.resource_pack$protection$crash_tools$method_1 = config.getBoolean("resource-pack.protection.crash-tools.method-1", false);
@@ -1345,6 +1365,30 @@ public final class Config {
 
     public static boolean createUnprotectedCopy() {
         return instance.resource_pack$protection$unprotected_copy;
+    }
+
+    public static boolean enableProxy() {
+        return instance.resource_pack$delivery$proxy$enable;
+    }
+
+    public static int proxyPort() {
+        return instance.resource_pack$delivery$proxy$port;
+    }
+
+    public static String proxyHost() {
+        return instance.resource_pack$delivery$proxy$host;
+    }
+
+    public static String proxyUsername() {
+        return instance.resource_pack$delivery$proxy$username;
+    }
+
+    public static String proxyPassword() {
+        return instance.resource_pack$delivery$proxy$password;
+    }
+
+    public static String proxyScheme() {
+        return instance.resource_pack$delivery$proxy$scheme;
     }
 
     public YamlDocument loadOrCreateYamlData(String fileName) {

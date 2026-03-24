@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.pack.host.impl;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
@@ -15,10 +14,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -41,19 +37,11 @@ public final class AlistHost implements ResourcePackHost {
     private final Duration jwtTokenExpiration;
     private final String uploadPath;
     private final boolean disableUpload;
-    private final ProxySelector proxy;
     private Pair<String, Date> jwtToken;
     private String cachedSha1;
 
-    public AlistHost(String apiUrl,
-                     String userName,
-                     String password,
-                     String filePassword,
-                     String otpCode,
-                     Duration jwtTokenExpiration,
-                     String uploadPath,
-                     boolean disableUpload,
-                     ProxySelector proxy) {
+    public AlistHost(String apiUrl, String userName, String password, String filePassword, String otpCode,
+                     Duration jwtTokenExpiration, String uploadPath, boolean disableUpload) {
         this.apiUrl = apiUrl;
         this.userName = userName;
         this.password = password;
@@ -62,7 +50,7 @@ public final class AlistHost implements ResourcePackHost {
         this.jwtTokenExpiration = jwtTokenExpiration;
         this.uploadPath = uploadPath;
         this.disableUpload = disableUpload;
-        this.proxy = proxy;
+
         this.readCacheFromDisk();
     }
 
@@ -76,61 +64,75 @@ public final class AlistHost implements ResourcePackHost {
         return ResourcePackHosts.ALIST;
     }
 
-    private void readCacheFromDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("alist.json");
-        if (!Files.exists(cachePath) || !Files.isRegularFile(cachePath)) return;
-        try (InputStream is = Files.newInputStream(cachePath)) {
-            Map<String, String> cache = GsonHelper.get().fromJson(
-                    new InputStreamReader(is, StandardCharsets.UTF_8),
-                    new TypeToken<Map<String, String>>(){}.getType()
-            );
-            this.cachedSha1 = cache.get("sha1");
-        } catch (Exception e) {
-            CraftEngine.instance().logger().warn("Failed to load pack cache " + cachePath, e);
-        }
-    }
-
-    private void saveCacheToDisk() {
-        Map<String, String> cache = new HashMap<>();
-        cache.put("sha1", this.cachedSha1 != null ? this.cachedSha1 : "");
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("alist.json");
-        try {
-            Files.createDirectories(cachePath.getParent());
-            Files.writeString(
-                    cachePath,
-                    GsonHelper.get().toJson(cache),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING
-            );
-        } catch (IOException e) {
-            CraftEngine.instance().logger().warn("Failed to persist pack cache to disk", e);
-        }
-    }
-
     @Override
     public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(UUID player) {
         CompletableFuture<List<ResourcePackDownloadData>> future = new CompletableFuture<>();
+
         CraftEngine.instance().scheduler().executeAsync(() -> {
-            try (HttpClient client = HttpClient.newBuilder().proxy(this.proxy).build()) {
+            try {
+                String token = getOrRefreshJwtToken();
+                if (token == null) {
+                    future.completeExceptionally(new RuntimeException("Failed to obtain JWT token"));
+                    return;
+                }
+
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(this.apiUrl + "/api/fs/get"))
-                        .header("Authorization", getOrRefreshJwtToken())
+                        .header("Authorization", token)
                         .header("Content-Type", "application/json")
                         .POST(getRequestResourcePackDownloadLinkPost())
                         .build();
-                client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                        .whenComplete((response, ex) -> {
-                            if (ex != null) {
-                                future.completeExceptionally(ex);
-                                return;
-                            }
-                            handleResourcePackDownloadLinkResponse(response, future);
+
+                HttpClientManager.get().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                        .thenAccept(response -> handleResourcePackDownloadLinkResponse(response, future))
+                        .exceptionally(ex -> {
+                            future.completeExceptionally(ex);
+                            return null;
                         });
-            } catch (Throwable t) {
-                future.completeExceptionally(t);
+            } catch (Exception e) {
+                future.completeExceptionally(e);
             }
         });
+
         return future;
+    }
+
+    private void handleResourcePackDownloadLinkResponse(
+            HttpResponse<String> response, CompletableFuture<List<ResourcePackDownloadData>> future) {
+
+        if (response.statusCode() != 200) {
+            fail(future, "HTTP " + response.statusCode(), response.body());
+            return;
+        }
+
+        try {
+            JsonObject json = GsonHelper.parseJsonToJsonObject(response.body());
+
+            if (!isResponseSuccess(json)) {
+                fail(future, "Business code error", response.body());
+                return;
+            }
+
+            JsonObject dataObj = json.getAsJsonObject("data");
+            if (dataObj == null || dataObj.get("is_dir").getAsBoolean()) {
+                fail(future, "Invalid data or target is a directory", null);
+                return;
+            }
+
+            String url = dataObj.get("raw_url").getAsString();
+
+            if (shouldUpdateCache()) {
+                this.cachedSha1 = fetchRemoteSha1(url);
+                saveCacheToDisk();
+            }
+
+            if (this.cachedSha1 == null) throw new IllegalStateException("SHA1 is still null");
+            UUID uuid = UUID.nameUUIDFromBytes(this.cachedSha1.getBytes(StandardCharsets.UTF_8));
+            future.complete(List.of(new ResourcePackDownloadData(url, uuid, this.cachedSha1)));
+
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+        }
     }
 
     @Override
@@ -140,134 +142,134 @@ public final class AlistHost implements ResourcePackHost {
             saveCacheToDisk();
             return CompletableFuture.completedFuture(null);
         }
+
         CompletableFuture<Void> future = new CompletableFuture<>();
         CraftEngine.instance().scheduler().executeAsync(() -> {
-            try (HttpClient client = HttpClient.newBuilder().proxy(this.proxy).build()) {
+            try {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(this.apiUrl + "/api/fs/put"))
                         .header("Authorization", getOrRefreshJwtToken())
-                        .header("File-Path", URLEncoder.encode(this.uploadPath, StandardCharsets.UTF_8)
-                                .replace("/", "%2F"))
+                        .header("File-Path", URLEncoder.encode(this.uploadPath, StandardCharsets.UTF_8).replace("/", "%2F"))
                         .header("overwrite", "true")
                         .header("password", this.filePassword)
                         .header("Content-Type", "application/x-zip-compressed")
                         .PUT(HttpRequest.BodyPublishers.ofFile(resourcePackPath))
                         .build();
-                client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                        .whenComplete((response, t) -> {
-                            if (t != null) {
-                                future.completeExceptionally(t);
-                                return;
-                            }
-                            if (response.statusCode() == 200) {
+
+                HttpClientManager.get().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                        .thenAccept(resp -> {
+                            if (resp.statusCode() == 200) {
                                 this.cachedSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
                                 saveCacheToDisk();
                                 future.complete(null);
                             } else {
-                                future.completeExceptionally(new RuntimeException("Upload failed with status code: " + response.statusCode()));
+                                future.completeExceptionally(new RuntimeException("Upload failed: " + resp.statusCode()));
                             }
+                        }).exceptionally(t -> {
+                            future.completeExceptionally(t);
+                            return null;
                         });
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 future.completeExceptionally(e);
             }
         });
         return future;
     }
 
-    @Nullable
-    private String getOrRefreshJwtToken() throws IOException, InterruptedException {
-        if (this.jwtToken == null || this.jwtToken.right().before(new Date())) {
-            try (HttpClient client = HttpClient.newBuilder().proxy(this.proxy).build()) {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(this.apiUrl + "/api/auth/login"))
-                        .header("Content-Type", "application/json")
-                        .POST(getLoginPost())
-                        .build();
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                if (response.statusCode() != 200) {
-                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.j", String.valueOf(response.statusCode()), response.body()));
-                    return null;
-                }
-                JsonObject jsonData = GsonHelper.parseJsonToJsonObject(response.body());
-                JsonElement code = jsonData.get("code");
-                if (code.isJsonPrimitive() && code.getAsJsonPrimitive().isNumber() && code.getAsJsonPrimitive().getAsInt() == 200) {
-                    JsonElement data = jsonData.get("data");
-                    if (data.isJsonObject()) {
-                        JsonObject jsonObj = data.getAsJsonObject();
-                        this.jwtToken = Pair.of(
-                                jsonObj.getAsJsonPrimitive("token").getAsString(),
-                                new Date(System.currentTimeMillis() + this.jwtTokenExpiration.toMillis())
-                        );
-                        return this.jwtToken.left();
-                    }
-                    throw new IllegalArgumentException("Invalid jwt token: " + response.body());
-                }
-                throw new IllegalStateException("Authentication rejected: " + response.body());
+    private String fetchRemoteSha1(String url) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+        HttpResponse<InputStream> response = HttpClientManager.get().send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+        try (InputStream is = response.body()) {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] buffer = new byte[8192];
+            int len;
+            while ((len = is.read(buffer)) != -1) {
+                md.update(buffer, 0, len);
             }
+            return HexFormat.of().formatHex(md.digest());
         }
-        return this.jwtToken.left();
+    }
+
+    private boolean isResponseSuccess(JsonObject json) {
+        return json.has("code") && json.get("code").getAsInt() == 200;
+    }
+
+    private boolean shouldUpdateCache() {
+        return (this.cachedSha1 == null || this.cachedSha1.isEmpty()) && this.disableUpload;
+    }
+
+    private void fail(CompletableFuture<?> future, String reason, String body) {
+        String msg = "AlistHost Error: " + reason + (body != null ? " | Body: " + body : "");
+        future.completeExceptionally(new RuntimeException(msg));
+    }
+
+    @Nullable
+    private synchronized String getOrRefreshJwtToken() throws IOException, InterruptedException {
+        if (this.jwtToken != null && this.jwtToken.right().after(new Date())) {
+            return this.jwtToken.left();
+        }
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(this.apiUrl + "/api/auth/login"))
+                .header("Content-Type", "application/json")
+                .POST(getLoginPost())
+                .build();
+
+        HttpResponse<String> response = HttpClientManager.get().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.j", String.valueOf(response.statusCode()), response.body()));
+            return null;
+        }
+
+        JsonObject json = GsonHelper.parseJsonToJsonObject(response.body());
+        if (isResponseSuccess(json)) {
+            String token = json.getAsJsonObject("data").get("token").getAsString();
+            this.jwtToken = Pair.of(token, new Date(System.currentTimeMillis() + this.jwtTokenExpiration.toMillis()));
+            return token;
+        }
+
+        throw new IllegalStateException("Authentication failed: " + response.body());
     }
 
     private HttpRequest.BodyPublisher getLoginPost() {
-        String body = "{\"username\":\"" + this.userName + "\",\"password\":\"" + this.password + "\"";
+        Map<String, String> map = new HashMap<>();
+        map.put("username", this.userName);
+        map.put("password", this.password);
         if (this.otpCode != null && !this.otpCode.isEmpty()) {
-            body += ",\"otp_code\":\"" + this.otpCode + "\"";
+            map.put("otp_code", this.otpCode);
         }
-        body += "}";
-        return HttpRequest.BodyPublishers.ofString(body);
+        return HttpRequest.BodyPublishers.ofString(GsonHelper.get().toJson(map));
     }
 
     private HttpRequest.BodyPublisher getRequestResourcePackDownloadLinkPost() {
-        String body = "{\"path\":\"" + this.uploadPath + "\",\"password\":\"" + this.filePassword + "\"}";
-        return HttpRequest.BodyPublishers.ofString(body);
+        Map<String, String> map = new HashMap<>();
+        map.put("path", this.uploadPath);
+        map.put("password", this.filePassword);
+        return HttpRequest.BodyPublishers.ofString(GsonHelper.get().toJson(map));
     }
 
-    private void handleResourcePackDownloadLinkResponse(
-            HttpResponse<String> response, CompletableFuture<List<ResourcePackDownloadData>> future) {
-        if (response.statusCode() == 200) {
-            JsonObject json = GsonHelper.parseJsonToJsonObject(response.body());
-            JsonElement code = json.get("code");
-            if (code.isJsonPrimitive() && code.getAsJsonPrimitive().isNumber() && code.getAsJsonPrimitive().getAsInt() == 200) {
-                JsonElement data = json.get("data");
-                if (data.isJsonObject()) {
-                    JsonObject dataObj = data.getAsJsonObject();
-                    boolean isDir = dataObj.getAsJsonPrimitive("is_dir").getAsBoolean();
-                    if (!isDir) {
-                        String url = dataObj.getAsJsonPrimitive("raw_url").getAsString();
-                        if ((this.cachedSha1 == null || this.cachedSha1.isEmpty()) && this.disableUpload) {
-                            try (HttpClient client = HttpClient.newBuilder().proxy(this.proxy).build()) {
-                                HttpRequest request = HttpRequest.newBuilder()
-                                        .uri(URI.create(url))
-                                        .GET()
-                                        .build();
-                                HttpResponse<InputStream> responseHash = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-                                try (InputStream inputStream = responseHash.body()) {
-                                    MessageDigest md = MessageDigest.getInstance("SHA-1");
-                                    byte[] buffer = new byte[8192];
-                                    int len;
-                                    while ((len = inputStream.read(buffer)) != -1) {
-                                        md.update(buffer, 0, len);
-                                    }
-                                    byte[] digest = md.digest();
-                                    this.cachedSha1 = HexFormat.of().formatHex(digest);
-                                    saveCacheToDisk();
-                                } catch (NoSuchAlgorithmException e) {
-                                    future.completeExceptionally(new RuntimeException("SHA-1 hash algorithm not found", e));
-                                    return;
-                                }
-                            } catch (IOException | InterruptedException e) {
-                                future.completeExceptionally(e);
-                                return;
-                            }
-                        }
-                        UUID uuid = UUID.nameUUIDFromBytes(Objects.requireNonNull(this.cachedSha1).getBytes(StandardCharsets.UTF_8));
-                        future.complete(List.of(new ResourcePackDownloadData(url, uuid, this.cachedSha1)));
-                        return;
-                    }
-                }
-            }
+    private void readCacheFromDisk() {
+        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("alist.json");
+        if (!Files.exists(cachePath) || !Files.isRegularFile(cachePath)) return;
+        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(cachePath), StandardCharsets.UTF_8)) {
+            Map<String, String> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, String>>(){}.getType());
+            this.cachedSha1 = cache.get("sha1");
+        } catch (Exception e) {
+            CraftEngine.instance().logger().warn("Failed to load Alist cache " + cachePath, e);
         }
-        future.completeExceptionally(new RuntimeException(new RuntimeException("Failed to obtain resource pack download URL (HTTP " + response.statusCode() + "): " + response.body())));
+    }
+
+    private void saveCacheToDisk() {
+        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("alist.json");
+        try {
+            Files.createDirectories(cachePath.getParent());
+            Map<String, String> cache = Collections.singletonMap("sha1", this.cachedSha1 != null ? this.cachedSha1 : "");
+            Files.writeString(cachePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            CraftEngine.instance().logger().warn("Failed to persist Alist cache", e);
+        }
     }
 
     private static class Factory implements ResourcePackHostFactory<AlistHost> {
@@ -276,6 +278,7 @@ public final class AlistHost implements ResourcePackHost {
         private static final String[] JWT_TOKEN_EXPIRATION = new String[] {"jwt_token_expiration", "jwt-token-expiration"};
         private static final String[] UPLOAD_PATH = new String[] {"upload_path", "upload-path"};
         private static final String[] DISABLE_UPLOAD = new String[] {"disable_upload", "disable-upload"};
+        private static final String[] OPT_CODE = new String[] {"otp_code", "otp-code"};
 
         @Override
         public AlistHost create(ConfigSection section) {
@@ -284,11 +287,11 @@ public final class AlistHost implements ResourcePackHost {
             String userName = useEnv ? getNonNullEnvironmentVariable(section, "CE_ALIST_USERNAME") : section.getNonEmptyString("username");
             String password = useEnv ? getNonNullEnvironmentVariable(section, "CE_ALIST_PASSWORD") : section.getNonEmptyString("password");
             String filePassword = useEnv ? getNonNullEnvironmentVariable(section, "CE_ALIST_FILE_PASSWORD") : section.getString("file_password", "");
-            String otpCode = section.getString("otp_code", "otp-code");
+            String otpCode = section.getString(OPT_CODE, "");
             Duration jwtTokenExpiration = Duration.ofHours(section.getInt(JWT_TOKEN_EXPIRATION, 48));
             String uploadPath = section.getNonEmptyString(UPLOAD_PATH);
             boolean disableUpload = section.getBoolean(DISABLE_UPLOAD);
-            return new AlistHost(apiUrl, userName, password, filePassword, otpCode, jwtTokenExpiration, uploadPath, disableUpload, getProxySelector(section.getSection("proxy")));
+            return new AlistHost(apiUrl, userName, password, filePassword, otpCode, jwtTokenExpiration, uploadPath, disableUpload);
         }
     }
 }

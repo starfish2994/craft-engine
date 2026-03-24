@@ -20,7 +20,7 @@ dependencies {
     compression(project)
     adventure(project)
     // S3
-    implementation("net.momirealms:craft-engine-s3:0.17")
+    implementation("net.momirealms:craft-engine-s3:0.18")
     // Util
     compileOnly("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     // Reflection
