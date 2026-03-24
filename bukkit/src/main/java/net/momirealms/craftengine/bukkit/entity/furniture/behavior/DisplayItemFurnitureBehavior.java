@@ -81,7 +81,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         if (trackedHitboxes == null || !trackedHitboxes.contains(hitBox)) {
             return InteractionResult.TRY_EMPTY_HAND;
         }
-        Item displayItem = getDisplayItem(furniture);
+        Item displayItem = displayItem(furniture);
         Item itemInHand = context.getItem();
         // 如果当前不存在物品并且手中有物品, 则放入1个物品进去.
         if (ItemUtils.isEmpty(displayItem) && !ItemUtils.isEmpty(itemInHand)) {
@@ -142,7 +142,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
     // 获取存储的展示物品
     @NotNull
-    private static Item getDisplayItem(Furniture furniture) {
+    private static Item displayItem(Furniture furniture) {
         Item displayItem = furniture.getTempData(DISPLAY_ITEM);
         if (ItemUtils.isEmpty(displayItem)) {
             return ItemStackUtils.wrap(null);
@@ -212,7 +212,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
                     this.spawnPassengerPacket,
                     this.ridePacket,
                     ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, new ArrayList<>() {{
-                        ItemEntityData.Item.addEntityData(getDisplayItem(furniture).getMinecraftItem(), this);
+                        ItemEntityData.Item.addEntityData(displayItem(furniture).getMinecraftItem(), this);
                     }})
             ), false);
         }
@@ -225,7 +225,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         @Override
         public void refresh(Player player) {
             Object changeDisplayItemPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, new ArrayList<>() {{
-                ItemEntityData.Item.addEntityData(getDisplayItem(furniture).getMinecraftItem(), this);
+                ItemEntityData.Item.addEntityData(displayItem(furniture).getMinecraftItem(), this);
             }});
             player.sendPackets(List.of(
                     despawnPassengerPacket, spawnPassengerPacket, ridePacket, changeDisplayItemPacket
