@@ -2,11 +2,14 @@ package net.momirealms.craftengine.bukkit.plugin.network.handler;
 
 import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitCustomProjectile;
+import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
@@ -104,13 +107,17 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
 
     public List<Object> createCustomProjectileEntityDataValues(Player player) {
         List<Object> itemDisplayValues = new ArrayList<>();
-        Optional<CustomItem> customItem = BukkitItemManager.instance().getCustomItem(this.projectile.metadata().item());
-        if (customItem.isEmpty()) return itemDisplayValues;
+        Item displayedItem = BukkitItemManager.instance().createWrappedItem(this.projectile.metadata().item(), player);
+        if (displayedItem == null) return itemDisplayValues;
         ProjectileMeta meta = this.projectile.metadata();
-        Item displayedItem = customItem.get().buildItem(ItemBuildContext.empty());
-        // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承
-        Item item = this.projectile.item().mergeCopy(displayedItem);
-        displayedItem = BukkitItemManager.instance().s2c(item, player).orElse(item);
+
+        // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承.
+        Item item = this.projectile.item();
+        Object itemEnchantments = item.getExactComponent(DataComponentTypes.ENCHANTMENTS);
+        Object itemGlint = item.getExactComponent(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
+        displayedItem.setExactComponent(DataComponentTypes.ENCHANTMENTS, itemEnchantments);
+        displayedItem.setExactComponent(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, itemGlint);
+
         ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);
         ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(meta.translation(), itemDisplayValues);
         ItemDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(meta.scale(), itemDisplayValues);
