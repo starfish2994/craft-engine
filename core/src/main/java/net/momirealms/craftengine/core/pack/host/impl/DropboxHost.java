@@ -60,9 +60,9 @@ public final class DropboxHost implements ResourcePackHost {
             this.refreshToken = getString(cache, "refresh_token");
             this.accessToken = getString(cache, "access_token");
             this.expiresAt = getLong(cache, "expires_at");
-            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("info.host.cache.load", "Dropbox"));
+            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.dropbox.a"));
         } catch (Exception e) {
-            CraftEngine.instance().logger().warn("[Dropbox] Failed to load cache " + cachePath, e);
+            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.dropbox.b", cachePath.toString()), e);
         }
     }
 
@@ -83,7 +83,7 @@ public final class DropboxHost implements ResourcePackHost {
                     StandardOpenOption.TRUNCATE_EXISTING
             );
         } catch (IOException e) {
-            CraftEngine.instance().logger().warn("[Dropbox] Failed to save cache", e);
+            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.dropbox.c"), e);
         }
     }
 
@@ -127,25 +127,23 @@ public final class DropboxHost implements ResourcePackHost {
                             .build();
 
                     long startTime = System.currentTimeMillis();
-                    CraftEngine.instance().logger().info("[Dropbox] Starting upload...");
+                    CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.dropbox.d"));
 
                     client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                             .thenAccept(response -> {
                                 long elapsed = System.currentTimeMillis() - startTime;
                                 if (response.statusCode() == 200) {
-                                    CraftEngine.instance().logger().info(
-                                            "[Dropbox] Upload completed in " + elapsed + "ms");
+                                    CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.dropbox.e", String.valueOf(elapsed)));
                                     this.url = getDownloadUrl(validToken);
                                     saveCacheToDisk();
                                     future.complete(null);
                                 } else {
-                                    CraftEngine.instance().logger().warn(
-                                            "[Dropbox] Upload failed (HTTP " + response.statusCode() + "): " + response.body());
+                                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.dropbox.f", String.valueOf(response.statusCode()), response.body()));
                                     future.completeExceptionally(new RuntimeException(response.body()));
                                 }
                             })
                             .exceptionally(ex -> {
-                                CraftEngine.instance().logger().warn("[Dropbox] Upload error", ex);
+                                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.dropbox.g"), ex);
                                 future.completeExceptionally(ex);
                                 return null;
                             });
@@ -196,7 +194,7 @@ public final class DropboxHost implements ResourcePackHost {
             JsonObject responseData = GsonHelper.parseJsonToJsonObject(response.body());
             return responseData.get("url").getAsString().replace("dl=0", "dl=1");
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Failed to get download URL", e);
+            throw new RuntimeException(TranslationManager.instance().plainTranslation("host.dropbox.h"), e);
         }
     }
 
@@ -251,7 +249,7 @@ public final class DropboxHost implements ResourcePackHost {
                 saveCacheToDisk();
                 return this.accessToken;
             } catch (IOException | InterruptedException e) {
-                throw new RuntimeException("Token refresh failed", e);
+                throw new RuntimeException(TranslationManager.instance().plainTranslation("host.dropbox.i"), e);
             }
         } finally {
             this.tokenLock.unlock();

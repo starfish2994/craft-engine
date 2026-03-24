@@ -57,10 +57,9 @@ public final class GitLabHost implements ResourcePackHost {
             if (uuidString != null && !uuidString.isEmpty()) {
                 this.uuid = UUID.fromString(uuidString);
             }
-            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("info.host.cache.load", "GitLab"));
+            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.gitlab.a"));
         } catch (Exception e) {
-            CraftEngine.instance().logger().warn(
-                    "[GitLab] Failed to read cache file: " + cachePath, e);
+            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.gitlab.b", cachePath.toString()), e);
         }
     }
 
@@ -79,8 +78,7 @@ public final class GitLabHost implements ResourcePackHost {
                     StandardOpenOption.TRUNCATE_EXISTING
             );
         } catch (IOException e) {
-            CraftEngine.instance().logger().warn(
-                    "[GitLab] Failed to save cache: " + e.getMessage());
+            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.gitlab.c"), e);
         }
     }
 
@@ -110,13 +108,11 @@ public final class GitLabHost implements ResourcePackHost {
                         .POST(buildMultipartBody(resourcePackPath, boundary))
                         .build();
                 long uploadStart = System.currentTimeMillis();
-                CraftEngine.instance().logger().info(
-                        "[GitLab] Initiating resource pack upload...");
+                CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.gitlab.d"));
                 client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                         .thenAccept(response -> {
                             long uploadTime = System.currentTimeMillis() - uploadStart;
-                            CraftEngine.instance().logger().info(
-                                    "[GitLab] Upload request completed in " + uploadTime + "ms");
+                            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.gitlab.e", String.valueOf(uploadTime)));
                             if (response.statusCode() == 200 || response.statusCode() == 201) {
                                 Map<String, Object> json = GsonHelper.parseJsonToMap(response.body());
                                 if (json.containsKey("full_path")) {
@@ -126,18 +122,16 @@ public final class GitLabHost implements ResourcePackHost {
                                     return;
                                 }
                             }
-                            CraftEngine.instance().logger().warn("[GitLab] Upload failed: " + response.body());
-                            future.completeExceptionally(new RuntimeException("Upload failed: " + response.body()));
+                            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.gitlab.f", response.body()));
+                            future.completeExceptionally(new RuntimeException(TranslationManager.instance().plainTranslation("host.gitlab.g", response.body())));
                         })
                         .exceptionally(ex -> {
-                            CraftEngine.instance().logger().warn(
-                                    "[GitLab] Upload error: " + ex.getMessage());
+                            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.gitlab.h"), ex);
                             future.completeExceptionally(ex);
                             return null;
                         });
             } catch (IOException e) {
-                CraftEngine.instance().logger().warn(
-                        "[GitLab] Failed to upload resource pack: " + e.getMessage());
+                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.gitlab.i"), e);
             }
         });
         return future;
