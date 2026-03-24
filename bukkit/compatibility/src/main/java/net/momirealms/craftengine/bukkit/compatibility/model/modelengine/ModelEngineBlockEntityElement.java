@@ -29,7 +29,7 @@ public final class ModelEngineBlockEntityElement implements BlockEntityElement {
             return null;
         } else {
             Dummy<?> dummy = new Dummy<>();
-            dummy.setLocation(this.location);
+            dummy.syncLocation(this.location);
             dummy.setDetectingPlayers(false);
             ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(dummy);
             modeledEntity.addModel(activeModel, false);
