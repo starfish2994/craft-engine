@@ -40,14 +40,7 @@ items:
               - type: item_display
                 item: default:showcase
                 position: 0,0.5,0
-            hitboxes:
-              - position: 0,0,0
-                type: interaction
-                blocks_building: false
-                invisible: false
-                width: 0.01
-                height: 0.01
-                interactive: false
+            hitboxes: []
         loot:
           template: default:loot_table/furniture
           arguments:
