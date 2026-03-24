@@ -45,6 +45,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     public static final FurnitureBehaviorFactory<DisplayItemFurnitureBehavior> FACTORY = new Factory();
     public static final CustomDataType<Item> DISPLAY_ITEM = new CustomDataType<>();
     public static final CustomDataType<HashSet<FurnitureHitBox>> TRACKED_HITBOXES = new CustomDataType<>();
+    public static final CustomDataType<DisplayItemElement> DISPLAY_ELEMENT = new CustomDataType<>();
     private static final String DISPLAY_ITEM_PD = "display_item";
     @NotNull
     private final Map<String, VariantRule> relatives;
@@ -83,20 +84,33 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         }
         Item displayItem = displayItem(furniture);
         Item itemInHand = context.getItem();
+        Player player = context.getPlayer();
         // 如果当前不存在物品并且手中有物品, 则放入1个物品进去.
         if (ItemUtils.isEmpty(displayItem) && !ItemUtils.isEmpty(itemInHand)) {
             Item inputItem = itemInHand.copyWithCount(1);
-            itemInHand.shrink(1);
+            if (!player.canInstabuild()) {
+                itemInHand.shrink(1);
+            }
             this.handlePutDisplayItem(furniture, inputItem);
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
         // 如果当前存在物品, 并且手中没有物品, 则取出物品到手中.
         else if (!ItemUtils.isEmpty(displayItem) && ItemUtils.isEmpty(itemInHand)) {
-            context.getPlayer().setItemInHand(context.getHand(), displayItem);
+            player.setItemInHand(context.getHand(), displayItem);
             this.handleTakeDisplayItem(furniture);
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
         return InteractionResult.TRY_EMPTY_HAND;
+    }
+
+    // 破坏家具时, 掉落存储的展示物品.
+    @Override
+    public void onDestroy(Furniture furniture) {
+        Item displayItem = displayItem(furniture);
+        DisplayItemElement displayItemElement = furniture.getTempData(DISPLAY_ELEMENT);
+        if (!ItemUtils.isEmpty(displayItem) && displayItemElement != null) {
+            furniture.world().dropItemNaturally(displayItemElement.position, displayItem);
+        }
     }
 
     // 处理放入展示物品, 存储刷新并播放音效.
@@ -123,6 +137,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         VariantRule variantRule = relatives.get(furniture.getCurrentVariant().name());
         if (variantRule != null) {
             DisplayItemElement displayItemElement = new DisplayItemElement(furniture, variantRule.itemRelative);
+            furniture.putTempData(DISPLAY_ELEMENT, displayItemElement);
             consumer.accept(displayItemElement);
         }
     }
@@ -163,7 +178,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         }
     }
 
-    private static final class DisplayItemElement implements FurnitureElement {
+    public static final class DisplayItemElement implements FurnitureElement {
         public final Furniture furniture;
         public final WorldPosition position;
         public final int vehicleId;
