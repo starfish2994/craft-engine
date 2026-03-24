@@ -170,10 +170,10 @@ public final class SelfHostHttpServer {
                 });
         try {
             this.serverChannel = b.bind(this.port).sync().channel();
-            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.self.a", String.valueOf(this.port)));
+            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.self.http_server_started", String.valueOf(this.port)));
             this.enabled = true;
         } catch (InterruptedException e) {
-            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.self.b"), e);
+            CraftEngine.instance().logger().warn("Failed to start Netty server", e);
             Thread.currentThread().interrupt();
         }
     }
@@ -200,7 +200,7 @@ public final class SelfHostHttpServer {
                         .getAddress().getHostAddress();
 
                 if (!checkIpRateLimit(clientIp)) {
-                    sendError(ctx, HttpResponseStatus.TOO_MANY_REQUESTS, TranslationManager.instance().plainTranslation("host.self.c"));
+                    sendError(ctx, HttpResponseStatus.TOO_MANY_REQUESTS, "Forbidden");
                     SelfHostHttpServer.this.blockedRequests.incrementAndGet();
                     return;
                 }
@@ -213,11 +213,11 @@ public final class SelfHostHttpServer {
                 } else if ("/metrics".equals(path)) {
                     handleMetrics(ctx);
                 } else {
-                    sendError(ctx, HttpResponseStatus.NOT_FOUND, TranslationManager.instance().plainTranslation("host.self.d"));
+                    sendError(ctx, HttpResponseStatus.NOT_FOUND, "Not Found");
                 }
             } catch (Exception e) {
-                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.self.e"), e);
-                sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, TranslationManager.instance().plainTranslation("host.self.f"));
+                CraftEngine.instance().logger().warn("Request handling failed", e);
+                sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "Internal Error");
             }
         }
 
@@ -227,7 +227,7 @@ public final class SelfHostHttpServer {
                 String token = queryDecoder.parameters().getOrDefault("token", Collections.emptyList()).stream().findFirst().orElse(null);
                 String clientUUID = SelfHostHttpServer.this.strictValidation ? request.headers().get("X-Minecraft-UUID") : null;
                 if (!validateToken(token, clientUUID)) {
-                    sendError(ctx, HttpResponseStatus.FORBIDDEN, TranslationManager.instance().plainTranslation("host.self.g"));
+                    sendError(ctx, HttpResponseStatus.FORBIDDEN, "Forbidden");
                     SelfHostHttpServer.this.blockedRequests.incrementAndGet();
                     return;
                 }
@@ -242,7 +242,7 @@ public final class SelfHostHttpServer {
                     nonMinecraftClient = !Objects.equals(clientVersion, userAgent.substring("Minecraft Java/".length()));
                 }
                 if (nonMinecraftClient) {
-                    sendError(ctx, HttpResponseStatus.FORBIDDEN, TranslationManager.instance().plainTranslation("host.self.h"));
+                    sendError(ctx, HttpResponseStatus.FORBIDDEN, "Forbidden");
                     SelfHostHttpServer.this.blockedRequests.incrementAndGet();
                     return;
                 }
@@ -250,7 +250,7 @@ public final class SelfHostHttpServer {
 
             // 没有资源包
             if (SelfHostHttpServer.this.resourcePackBytes == null) {
-                sendError(ctx, HttpResponseStatus.NOT_FOUND, TranslationManager.instance().plainTranslation("host.self.i"));
+                sendError(ctx, HttpResponseStatus.NOT_FOUND, "Pack Not Found");
                 SelfHostHttpServer.this.blockedRequests.incrementAndGet();
                 return;
             }
@@ -411,7 +411,7 @@ public final class SelfHostHttpServer {
                 this.resourcePackBytes = null;
             }
         } catch (IOException e) {
-            CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.self.j"), e);
+            CraftEngine.instance().logger().severe("Failed to load resource pack", e);
         }
     }
 
@@ -428,7 +428,7 @@ public final class SelfHostHttpServer {
             this.packHash = hexString.toString();
             this.packUUID = UUID.nameUUIDFromBytes(this.packHash.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException e) {
-            CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.self.k"), e);
+            CraftEngine.instance().logger().severe("SHA-1 algorithm not available", e);
         }
     }
 }

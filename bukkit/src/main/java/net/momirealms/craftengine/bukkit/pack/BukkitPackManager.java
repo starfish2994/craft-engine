@@ -89,13 +89,14 @@ public final class BukkitPackManager extends AbstractPackManager implements List
 
     @Override
     public void uploadResourcePack() {
+        long time1 = System.currentTimeMillis();
         resourcePackHost().upload(Config.fileToUpload()).whenComplete((d, e) -> {
             if (e != null) {
-                CraftEngine.instance().logger().warn("Failed to upload resource pack", e);
+                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.upload_failed"), e);
                 return;
             }
+            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.upload_finished", (System.currentTimeMillis() - time1) + "ms"));
             if (!Config.sendPackOnUpload()) return;
-            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("info.resource_pack.upload"));
             for (BukkitServerPlayer player : this.plugin.networkManager().onlineUsers()) {
                 sendResourcePack(player);
             }

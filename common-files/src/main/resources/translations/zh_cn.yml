@@ -128,7 +128,7 @@ loot.function.unknown_type: 未知的战利品函数类型“<arg:0>”
 loot.function.formula.unknown_type: 未知的公式类型“<arg:0>”
 host.unknown_type: 未知的资源包托管类型“<arg:0>”
 host.missing_environment_variable: 缺少环境变量“<arg:0>”
-host.alist.a: "[Alist] 已加载缓存的资源包元数据"
+host.alist.cache_loaded: "[Alist] 已加载缓存的资源包元数据"
 host.alist.b: "[Alist] 加载缓存失败<arg:0>"
 host.alist.c: "[Alist] 将缓存持久化到磁盘失败"
 host.alist.d: "[Alist] 获取资源包下载地址失败"
@@ -192,11 +192,11 @@ host.onedrive.m: "[OneDrive] 令牌刷新错误：<arg:0>"
 host.onedrive.n: "认证错误：<arg:0>"
 host.onedrive.o: "[OneDrive] 令牌刷新失败"
 host.onedrive.p: "认证过程失败"
-host.self.a: "[自托管] Netty HTTP服务器已在端口启动：<arg:0>"
-host.self.b: "[自托管] 启动Netty服务器失败"
+host.self.http_server_started: "[自托管] Netty HTTP服务器已在端口启动：<arg:0>"
+host.self.http_server_failed: "[自托管] 启动Netty服务器失败"
 host.self.c: "超出速率限制"
 host.self.d: "未找到"
-host.self.e: "请求处理失败"
+host.self.request_error: "请求处理失败"
 host.self.f: "内部错误"
 host.self.g: "无效的令牌"
 host.self.h: "无效的客户端"

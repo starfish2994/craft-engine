@@ -85,9 +85,8 @@ public final class AlistHost implements ResourcePackHost {
                     new TypeToken<Map<String, String>>(){}.getType()
             );
             this.cachedSha1 = cache.get("sha1");
-            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.alist.a"));
         } catch (Exception e) {
-            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.b", cachePath.toString()), e);
+            CraftEngine.instance().logger().warn("Failed to load pack cache " + cachePath, e);
         }
     }
 
@@ -104,7 +103,7 @@ public final class AlistHost implements ResourcePackHost {
                     StandardOpenOption.TRUNCATE_EXISTING
             );
         } catch (IOException e) {
-            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.c") + e);
+            CraftEngine.instance().logger().warn("Failed to persist pack cache to disk", e);
         }
     }
 
@@ -120,12 +119,15 @@ public final class AlistHost implements ResourcePackHost {
                         .POST(getRequestResourcePackDownloadLinkPost())
                         .build();
                 client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                        .thenAccept(response -> handleResourcePackDownloadLinkResponse(response, future))
-                        .exceptionally(ex -> {
-                            CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.alist.d"), ex);
-                            future.completeExceptionally(ex);
-                            return null;
+                        .whenComplete((response, ex) -> {
+                            if (ex != null) {
+                                future.completeExceptionally(ex);
+                                return;
+                            }
+                            handleResourcePackDownloadLinkResponse(response, future);
                         });
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
             }
         });
         return future;
@@ -151,28 +153,21 @@ public final class AlistHost implements ResourcePackHost {
                         .header("Content-Type", "application/x-zip-compressed")
                         .PUT(HttpRequest.BodyPublishers.ofFile(resourcePackPath))
                         .build();
-                long requestStart = System.currentTimeMillis();
-                CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.alist.e"));
                 client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                        .thenAccept(response -> {
-                            long uploadTime = System.currentTimeMillis() - requestStart;
+                        .whenComplete((response, t) -> {
+                            if (t != null) {
+                                future.completeExceptionally(t);
+                                return;
+                            }
                             if (response.statusCode() == 200) {
                                 this.cachedSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
                                 saveCacheToDisk();
-                                CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.alist.f", String.valueOf(uploadTime)));
                                 future.complete(null);
                             } else {
-                                future.completeExceptionally(new RuntimeException(TranslationManager.instance().plainTranslation("host.alist.g", String.valueOf(response.statusCode()))));
+                                future.completeExceptionally(new RuntimeException("Upload failed with status code: " + response.statusCode()));
                             }
-                        })
-                        .exceptionally(ex -> {
-                            long uploadTime = System.currentTimeMillis() - requestStart;
-                            CraftEngine.instance().logger().severe(TranslationManager.instance().plainTranslation("host.alist.h", String.valueOf(uploadTime)), ex);
-                            future.completeExceptionally(ex);
-                            return null;
                         });
-            } catch (IOException e) {
-                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.i"), e);
+            } catch (Throwable e) {
                 future.completeExceptionally(e);
             }
         });
@@ -180,7 +175,7 @@ public final class AlistHost implements ResourcePackHost {
     }
 
     @Nullable
-    private String getOrRefreshJwtToken() {
+    private String getOrRefreshJwtToken() throws IOException, InterruptedException {
         if (this.jwtToken == null || this.jwtToken.right().before(new Date())) {
             try (HttpClient client = HttpClient.newBuilder().proxy(this.proxy).build()) {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -205,14 +200,9 @@ public final class AlistHost implements ResourcePackHost {
                         );
                         return this.jwtToken.left();
                     }
-                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.k", response.body()));
-                    return null;
+                    throw new IllegalArgumentException("Invalid jwt token: " + response.body());
                 }
-                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.l", response.body()));
-                return null;
-            } catch (IOException | InterruptedException e) {
-                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.m"), e);
-                return null;
+                throw new IllegalStateException("Authentication rejected: " + response.body());
             }
         }
         return this.jwtToken.left();
@@ -262,11 +252,11 @@ public final class AlistHost implements ResourcePackHost {
                                     this.cachedSha1 = HexFormat.of().formatHex(digest);
                                     saveCacheToDisk();
                                 } catch (NoSuchAlgorithmException e) {
-                                    future.completeExceptionally(new RuntimeException(TranslationManager.instance().plainTranslation("host.alist.n"), e));
+                                    future.completeExceptionally(new RuntimeException("SHA-1 hash algorithm not found", e));
                                     return;
                                 }
                             } catch (IOException | InterruptedException e) {
-                                future.completeExceptionally(new RuntimeException(TranslationManager.instance().plainTranslation("host.alist.o"), e));
+                                future.completeExceptionally(e);
                                 return;
                             }
                         }
@@ -277,7 +267,7 @@ public final class AlistHost implements ResourcePackHost {
                 }
             }
         }
-        future.completeExceptionally(new RuntimeException(TranslationManager.instance().plainTranslation("host.alist.p", String.valueOf(response.statusCode()), response.body())));
+        future.completeExceptionally(new RuntimeException(new RuntimeException("Failed to obtain resource pack download URL (HTTP " + response.statusCode() + "): " + response.body())));
     }
 
     private static class Factory implements ResourcePackHostFactory<AlistHost> {

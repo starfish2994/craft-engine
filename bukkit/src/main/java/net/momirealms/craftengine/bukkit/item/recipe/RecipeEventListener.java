@@ -1253,9 +1253,9 @@ public final class RecipeEventListener implements Listener {
     @Nullable
     private RecipeType getRecipeTypeByCookingInventoryHolder(InventoryHolder inventoryHolder) {
         return switch (inventoryHolder) {
-            case BlastFurnace blastFurnace -> RecipeType.BLASTING;
-            case Smoker smoker -> RecipeType.SMOKING;
-            case Furnace furnace -> RecipeType.SMELTING;
+            case BlastFurnace ignored -> RecipeType.BLASTING;
+            case Smoker ignored -> RecipeType.SMOKING;
+            case Furnace ignored -> RecipeType.SMELTING;
             case null, default -> null;
         };
     }

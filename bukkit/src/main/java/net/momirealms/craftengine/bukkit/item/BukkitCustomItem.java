@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.bukkit.item;
 
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.AbstractCustomItem;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
@@ -46,8 +48,24 @@ public final class BukkitCustomItem extends AbstractCustomItem {
         return wrapped;
     }
 
+    public ItemStack buildBukkitItem(org.bukkit.entity.Player player) {
+        return buildItem(ItemBuildContext.of(BukkitAdaptor.adapt(player)), 1).getBukkitItem();
+    }
+
+    public ItemStack buildBukkitItem(Player player) {
+        return buildItem(ItemBuildContext.of(player), 1).getBukkitItem();
+    }
+
     public ItemStack buildBukkitItem(ItemBuildContext context, int count) {
         return buildItem(context, count).getBukkitItem();
+    }
+
+    public ItemStack buildBukkitItem(ItemBuildContext context) {
+        return buildItem(context, 1).getBukkitItem();
+    }
+
+    public ItemStack buildBukkitItem() {
+        return buildItem(ItemBuildContext.empty(), 1).getBukkitItem();
     }
 
     public Object clientItem() {

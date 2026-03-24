@@ -1920,12 +1920,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             // 检查用户UUID是否已经校验
             if (!user.isUUIDVerified()) {
                 if (Config.strictPlayerUuidValidation()) {
-                    TranslationManager.instance().log("warning.network.resource_pack.unverified_uuid", user.name(), user.uuid().toString());
                     user.kick(Component.translatable("disconnect.loginFailedInfo").arguments(Component.translatable("argument.uuid.invalid")));
                     return;
-                }
-                if (Config.debugResourcePack()) {
-                    TranslationManager.instance().log("warning.network.resource_pack.unverified_uuid", user.name(), user.uuid().toString());
                 }
             }
 
@@ -1947,7 +1943,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             host.requestResourcePackDownloadLink(user.uuid()).whenComplete((dataList, t) -> {
                 Queue<Object> configurationTasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
                 if (t != null) {
-                    CraftEngine.instance().logger().warn("Failed to get pack data for player " + user.name(), t);
+                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.get_url_failed", user.name()), t);
                     returnToWorld(configurationTasks, packetListener);
                     return;
                 }
