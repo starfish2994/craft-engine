@@ -15,7 +15,8 @@ public final class ResourcePackHosts {
     public static final ResourcePackHostType<ExternalHost> EXTERNAL = register(Key.ce("external"), ExternalHost.FACTORY);
     public static final ResourcePackHostType<LobFileHost> LOBFILE = register(Key.ce("lobfile"), LobFileHost.FACTORY);
     public static final ResourcePackHostType<S3Host> S3 = register(Key.ce("s3"), S3HostFactory.INSTANCE);
-    public static final ResourcePackHostType<AlistHost> ALIST = register(Key.ce("alist"), AlistHost.FACTORY);
+    public static final ResourcePackHostType<OpenListHost> OPENLIST = register(Key.ce("openlist"), OpenListHost.FACTORY);
+    public static final ResourcePackHostType<OpenListHost> ALIST = register(Key.ce("alist"), OpenListHost.FACTORY);
     public static final ResourcePackHostType<DropboxHost> DROPBOX = register(Key.ce("dropbox"), DropboxHost.FACTORY);
     public static final ResourcePackHostType<OneDriveHost> ONEDRIVE = register(Key.ce("onedrive"), OneDriveHost.FACTORY);
     public static final ResourcePackHostType<GitLabHost> GITLAB = register(Key.ce("gitlab"), GitLabHost.FACTORY);

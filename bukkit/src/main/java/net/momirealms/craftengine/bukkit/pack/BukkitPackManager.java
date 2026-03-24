@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackCacheEvent;
 import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackGenerateEvent;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.ReloadCommand;
-import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
 import net.momirealms.craftengine.bukkit.util.ResourcePackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -14,7 +13,6 @@ import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.pack.obfuscation.ObfA;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.util.Base64Utils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Bukkit;
@@ -79,29 +77,6 @@ public final class BukkitPackManager extends AbstractPackManager implements List
     public void disable() {
         super.disable();
         HandlerList.unregisterAll(this);
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onAsyncResourcePackGenerate(AsyncResourcePackGenerateEvent event) {
-        if (!Config.autoUpload()) return;
-        uploadResourcePack();
-    }
-
-    @Override
-    public void uploadResourcePack() {
-        long time1 = System.currentTimeMillis();
-        CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.upload_started"));
-        resourcePackHost().upload(Config.fileToUpload()).whenComplete((d, e) -> {
-            if (e != null) {
-                CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.upload_failed"), e);
-                return;
-            }
-            CraftEngine.instance().logger().info(TranslationManager.instance().plainTranslation("host.upload_finished", String.valueOf(System.currentTimeMillis() - time1)));
-            if (!Config.sendPackOnUpload()) return;
-            for (BukkitServerPlayer player : this.plugin.networkManager().onlineUsers()) {
-                sendResourcePack(player);
-            }
-        });
     }
 
     @Override
