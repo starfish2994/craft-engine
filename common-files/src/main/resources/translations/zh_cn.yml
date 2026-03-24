@@ -1,4 +1,3 @@
-lang-version: '55'
 exception.invalid_syntax: <red>语法错误。正确语法：<white><arg:0></white></red>
 exception.invalid_argument: <red>参数无效。原因：<white><arg:0></white></red>
 exception.invalid_sender: <red><arg:0>不允许执行此命令。执行者必须是<arg:1></red>
@@ -127,13 +126,13 @@ loot.entry.unknown_type: 未知的战利品条目类型“<arg:0>”
 loot.function.unknown_type: 未知的战利品函数类型“<arg:0>”
 loot.function.formula.unknown_type: 未知的公式类型“<arg:0>”
 host.unknown_type: 未知的资源包托管类型“<arg:0>”
-host.missing_environment_variable: 缺少环境变量 '<arg:0>'
-host.get_url_failed: "获取玩家 <arg:0> 的资源包下载链接失败"
-host.upload_started: "正在启动资源包上传..."
-host.upload_finished: "资源包上传成功，耗时<arg:0>毫秒"
-host.upload_failed: "资源包上传失败"
-host.lobfile.storage_usage: "账户使用情况：<arg:0>/<arg:1> MB | <arg:2>/<arg:3> Files"
-host.self.http_server_started: "Netty HTTP 服务器已启动，端口：<arg:0>"
+host.missing_environment_variable: 缺少环境变量“<arg:0>”
+host.get_url_failed: 获取玩家<arg:0>的资源包下载链接失败
+host.upload_started: 正在上传资源包…
+host.upload_finished: 资源包上传成功，耗时<arg:0>毫秒
+host.upload_failed: 资源包上传失败
+host.lobfile.storage_usage: 账户使用情况：<arg:0>/<arg:1> MB | <arg:2>/<arg:3> 个文件
+host.self.http_server_started: Netty HTTP服务器已在<arg:0>端口启动
 config.errors_detected: 在config.yml中发现错误 - <arg:0>
 update.available: 新版本<arg:0>已发布：<arg:1>
 update.is_latest: 你正在使用最新版本
@@ -156,7 +155,7 @@ resource.argument.type.long: 长整数
 resource.argument.type.float: 单精度浮点数
 resource.argument.type.double: 双精度浮点数
 resource.argument.type.string: 字符串
-resource.argument.type.enum: '[<arg:0>] 之一'
+resource.argument.type.enum: '[<arg:0>]之一'
 resource.argument.type.vec3: 三维向量
 resource.argument.type.quaternion: 四元数（https://quaternions.online/）
 resource.argument.type.aabb: 轴对齐包围盒

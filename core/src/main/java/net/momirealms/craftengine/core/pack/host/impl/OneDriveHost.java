@@ -130,8 +130,6 @@ public final class OneDriveHost implements ResourcePackHost {
 
                 String localSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
 
-                // OneDrive 简单上传支持最大 4MB，大文件建议改用 uploadSession。
-                // 这里暂时保持你的逻辑，即简单上传覆盖。
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create("https://graph.microsoft.com/v1.0/drive/root:/" + this.uploadPath + ":/content"))
                         .header("Authorization", "Bearer " + token)
@@ -166,14 +164,12 @@ public final class OneDriveHost implements ResourcePackHost {
 
     @Nullable
     private String getOrRefreshAccessToken() throws IOException, InterruptedException {
-        // 预留 5 分钟缓冲
-        if (this.accessToken != null && System.currentTimeMillis() < expiresAt - 300000) {
+        if (this.accessToken != null && System.currentTimeMillis() < expiresAt - 300000) { // 提前刷新
             return this.accessToken;
         }
 
         this.tokenLock.lock();
         try {
-            // Double-check
             if (this.accessToken != null && System.currentTimeMillis() < expiresAt - 300000) {
                 return this.accessToken;
             }

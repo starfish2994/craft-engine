@@ -12,6 +12,7 @@ public final class ModelEngineProvider implements ModelProvider {
 
     @Override
     public ExternalModel createModel(String id) {
+        if (!ModelEngineUtils.hasModel(id)) return null;
         return new ModelEngineModel(id);
     }
 }

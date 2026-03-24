@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.gson.*;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.font.BitmapImage;
 import net.momirealms.craftengine.core.font.Font;
 import net.momirealms.craftengine.core.item.ItemKeys;
@@ -305,6 +306,23 @@ public abstract class AbstractPackManager implements PackManager {
     @Override
     public ResourcePackHost resourcePackHost() {
         return this.resourcePackHost;
+    }
+
+    @Override
+    public void uploadResourcePack() {
+        long time1 = System.currentTimeMillis();
+        this.plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_started"));
+        resourcePackHost().upload(Config.fileToUpload()).whenComplete((d, e) -> {
+            if (e != null) {
+                this.plugin.logger().warn(TranslationManager.instance().plainTranslation("host.upload_failed"), e);
+                return;
+            }
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_finished", String.valueOf(System.currentTimeMillis() - time1)));
+            if (!Config.sendPackOnUpload()) return;
+            for (Player player : this.plugin.networkManager().onlineUsers()) {
+                sendResourcePack(player);
+            }
+        });
     }
 
     @Override
@@ -723,6 +741,9 @@ public abstract class AbstractPackManager implements PackManager {
             long time5 = System.currentTimeMillis();
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_finished", String.valueOf(time5 - time4)));
             this.generationEventDispatcher.accept(generatedPackPath, finalPath);
+            if (Config.autoUpload() && resourcePackHost().canUpload()) {
+                uploadResourcePack();
+            }
         } catch (IOException e) {
             this.plugin.logger().severe("Error generating resource pack", e);
         }

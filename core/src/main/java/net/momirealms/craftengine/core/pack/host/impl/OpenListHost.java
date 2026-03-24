@@ -27,8 +27,8 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public final class AlistHost implements ResourcePackHost {
-    public static final ResourcePackHostFactory<AlistHost> FACTORY = new Factory();
+public final class OpenListHost implements ResourcePackHost {
+    public static final ResourcePackHostFactory<OpenListHost> FACTORY = new Factory();
     private final String apiUrl;
     private final String userName;
     private final String password;
@@ -37,11 +37,12 @@ public final class AlistHost implements ResourcePackHost {
     private final Duration jwtTokenExpiration;
     private final String uploadPath;
     private final boolean disableUpload;
+    private final boolean isAlist;
     private Pair<String, Date> jwtToken;
     private String cachedSha1;
 
-    public AlistHost(String apiUrl, String userName, String password, String filePassword, String otpCode,
-                     Duration jwtTokenExpiration, String uploadPath, boolean disableUpload) {
+    public OpenListHost(String apiUrl, String userName, String password, String filePassword, String otpCode,
+                        Duration jwtTokenExpiration, String uploadPath, boolean disableUpload, boolean isAlist) {
         this.apiUrl = apiUrl;
         this.userName = userName;
         this.password = password;
@@ -50,6 +51,7 @@ public final class AlistHost implements ResourcePackHost {
         this.jwtTokenExpiration = jwtTokenExpiration;
         this.uploadPath = uploadPath;
         this.disableUpload = disableUpload;
+        this.isAlist = isAlist;
 
         this.readCacheFromDisk();
     }
@@ -60,8 +62,8 @@ public final class AlistHost implements ResourcePackHost {
     }
 
     @Override
-    public ResourcePackHostType<AlistHost> type() {
-        return ResourcePackHosts.ALIST;
+    public ResourcePackHostType<OpenListHost> type() {
+        return this.isAlist ? ResourcePackHosts.ALIST : ResourcePackHosts.OPENLIST;
     }
 
     @Override
@@ -219,8 +221,7 @@ public final class AlistHost implements ResourcePackHost {
         HttpResponse<String> response = HttpClientManager.get().send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
-            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.alist.j", String.valueOf(response.statusCode()), response.body()));
-            return null;
+            throw new IllegalStateException("Authentication failed (HTTP " + response.statusCode() + "): " + response.body());
         }
 
         JsonObject json = GsonHelper.parseJsonToJsonObject(response.body());
@@ -251,28 +252,30 @@ public final class AlistHost implements ResourcePackHost {
     }
 
     private void readCacheFromDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("alist.json");
+        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache")
+                .resolve(this.isAlist ? "alist.json" : "openlist.json");
         if (!Files.exists(cachePath) || !Files.isRegularFile(cachePath)) return;
         try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(cachePath), StandardCharsets.UTF_8)) {
             Map<String, String> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, String>>(){}.getType());
             this.cachedSha1 = cache.get("sha1");
         } catch (Exception e) {
-            CraftEngine.instance().logger().warn("Failed to load Alist cache " + cachePath, e);
+            CraftEngine.instance().logger().warn("Failed to load OpenList cache " + cachePath, e);
         }
     }
 
     private void saveCacheToDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("alist.json");
+        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache")
+                .resolve(this.isAlist ? "alist.json" : "openlist.json");
         try {
             Files.createDirectories(cachePath.getParent());
             Map<String, String> cache = Collections.singletonMap("sha1", this.cachedSha1 != null ? this.cachedSha1 : "");
             Files.writeString(cachePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            CraftEngine.instance().logger().warn("Failed to persist Alist cache", e);
+            CraftEngine.instance().logger().warn("Failed to persist OpenList cache", e);
         }
     }
 
-    private static class Factory implements ResourcePackHostFactory<AlistHost> {
+    private static class Factory implements ResourcePackHostFactory<OpenListHost> {
         private static final String[] USE_ENVIRONMENT_VARIABLES = new String[] {"use_environment_variables", "use-environment-variables"};
         private static final String[] API_URL = new String[] {"api_url", "api-url"};
         private static final String[] JWT_TOKEN_EXPIRATION = new String[] {"jwt_token_expiration", "jwt-token-expiration"};
@@ -281,17 +284,18 @@ public final class AlistHost implements ResourcePackHost {
         private static final String[] OPT_CODE = new String[] {"otp_code", "otp-code"};
 
         @Override
-        public AlistHost create(ConfigSection section) {
+        public OpenListHost create(ConfigSection section) {
             boolean useEnv = section.getBoolean(USE_ENVIRONMENT_VARIABLES);
+            boolean isAlist = "alist".equals(section.get("type")); // 简单的判断是否为 alist 以便兼容旧版本环境变量及缓存读取
             String apiUrl = section.getNonEmptyString(API_URL);
-            String userName = useEnv ? getNonNullEnvironmentVariable(section, "CE_ALIST_USERNAME") : section.getNonEmptyString("username");
-            String password = useEnv ? getNonNullEnvironmentVariable(section, "CE_ALIST_PASSWORD") : section.getNonEmptyString("password");
-            String filePassword = useEnv ? getNonNullEnvironmentVariable(section, "CE_ALIST_FILE_PASSWORD") : section.getString("file_password", "");
+            String userName = useEnv ? getNonNullEnvironmentVariable(section, isAlist ? "CE_ALIST_USERNAME" : "CE_OPENLIST_USERNAME") : section.getNonEmptyString("username");
+            String password = useEnv ? getNonNullEnvironmentVariable(section, isAlist ? "CE_ALIST_PASSWORD" : "CE_OPENLIST_PASSWORD") : section.getNonEmptyString("password");
+            String filePassword = useEnv ? getNonNullEnvironmentVariable(section, isAlist ? "CE_ALIST_FILE_PASSWORD" : "CE_OPENLIST_FILE_PASSWORD") : section.getString("file_password", "");
             String otpCode = section.getString(OPT_CODE, "");
             Duration jwtTokenExpiration = Duration.ofHours(section.getInt(JWT_TOKEN_EXPIRATION, 48));
             String uploadPath = section.getNonEmptyString(UPLOAD_PATH);
             boolean disableUpload = section.getBoolean(DISABLE_UPLOAD);
-            return new AlistHost(apiUrl, userName, password, filePassword, otpCode, jwtTokenExpiration, uploadPath, disableUpload);
+            return new OpenListHost(apiUrl, userName, password, filePassword, otpCode, jwtTokenExpiration, uploadPath, disableUpload, isAlist);
         }
     }
 }

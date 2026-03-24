@@ -61,7 +61,6 @@ public final class DropboxHost implements ResourcePackHost {
         if (this.cachedUrl == null || this.cachedSha1 == null) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
-
         UUID uuid = UUID.nameUUIDFromBytes(this.cachedSha1.getBytes(StandardCharsets.UTF_8));
         return CompletableFuture.completedFuture(List.of(new ResourcePackDownloadData(this.cachedUrl, uuid, this.cachedSha1)));
     }
@@ -82,13 +81,12 @@ public final class DropboxHost implements ResourcePackHost {
                 JsonObject apiArg = new JsonObject();
                 apiArg.addProperty("path", this.uploadPath);
                 apiArg.addProperty("mode", "overwrite");
-                apiArg.addProperty("mute", true);
 
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create("https://content.dropboxapi.com/2/files/upload"))
                         .header("Authorization", "Bearer " + token)
-                        .header("Dropbox-API-Arg", GsonHelper.get().toJson(apiArg))
                         .header("Content-Type", "application/octet-stream")
+                        .header("Dropbox-API-Arg", GsonHelper.get().toJson(apiArg))
                         .POST(HttpRequest.BodyPublishers.ofFile(resourcePackPath))
                         .build();
 
@@ -124,39 +122,44 @@ public final class DropboxHost implements ResourcePackHost {
     }
 
     private String fetchDirectDownloadUrl(String token) throws IOException, InterruptedException {
-        JsonObject requestBody = new JsonObject();
-        requestBody.addProperty("path", this.uploadPath);
+        JsonObject createLink = new JsonObject();
+        createLink.addProperty("path", this.uploadPath);
+        createLink.add("settings", new JsonObject());
+        createLink.getAsJsonObject("settings").addProperty("requested_visibility", "public");
 
-        HttpRequest createRequest = HttpRequest.newBuilder()
+        HttpRequest createLinkRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings"))
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(GsonHelper.get().toJson(requestBody)))
+                .POST(HttpRequest.BodyPublishers.ofString(GsonHelper.get().toJson(createLink)))
                 .build();
 
-        HttpResponse<String> response = HttpClientManager.get().send(createRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = HttpClientManager.get().send(createLinkRequest, HttpResponse.BodyHandlers.ofString());
 
-        String rawUrl;
-        if (response.statusCode() == 409) {
-            HttpRequest listRequest = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.dropboxapi.com/2/sharing/list_shared_links"))
-                    .header("Authorization", "Bearer " + token)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(GsonHelper.get().toJson(requestBody)))
-                    .build();
+        try {
+            if (response.statusCode() == 409) {
+                JsonObject listLinks = new JsonObject();
+                listLinks.addProperty("path", this.uploadPath);
 
-            HttpResponse<String> listResp = HttpClientManager.get().send(listRequest, HttpResponse.BodyHandlers.ofString());
-            JsonObject data = GsonHelper.parseJsonToJsonObject(listResp.body());
-            JsonArray links = data.getAsJsonArray("links");
-            if (links.isEmpty()) throw new RuntimeException("No shared links found for path: " + this.uploadPath);
-            rawUrl = links.get(0).getAsJsonObject().get("url").getAsString();
-        } else if (response.statusCode() == 200) {
-            rawUrl = GsonHelper.parseJsonToJsonObject(response.body()).get("url").getAsString();
-        } else {
-            throw new RuntimeException("Dropbox Sharing API Error: " + response.body());
+                HttpRequest listLinksRequest = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.dropboxapi.com/2/sharing/list_shared_links"))
+                        .header("Authorization", "Bearer " + token)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(GsonHelper.get().toJson(listLinks)))
+                        .build();
+
+                HttpResponse<String> listResp = HttpClientManager.get().send(listLinksRequest, HttpResponse.BodyHandlers.ofString());
+                JsonObject data = GsonHelper.parseJsonToJsonObject(listResp.body());
+                JsonArray links = data.getAsJsonArray("links");
+                if (!links.isEmpty()) {
+                    return links.get(0).getAsJsonObject().get("url").getAsString().replace("dl=0", "dl=1");
+                }
+            }
+            JsonObject responseData = GsonHelper.parseJsonToJsonObject(response.body());
+            return responseData.get("url").getAsString().replace("dl=0", "dl=1");
+        } catch (Exception e) {
+            throw new RuntimeException("Dropbox Sharing API Error: " + response.body(), e);
         }
-
-        return rawUrl.split("\\?")[0] + "?raw=1";
     }
 
     @Nullable
@@ -216,7 +219,8 @@ public final class DropboxHost implements ResourcePackHost {
             Map<String, Object> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, Object>>(){}.getType());
             this.cachedUrl = (String) cache.get("url");
             this.cachedSha1 = (String) cache.get("sha1");
-            this.refreshToken = (String) cache.getOrDefault("refresh_token", this.refreshToken);
+            String cachedRefreshToken = (String) cache.get("refresh_token");
+            if (cachedRefreshToken != null) this.refreshToken = cachedRefreshToken;
             this.accessToken = (String) cache.get("access_token");
             this.expiresAt = cache.containsKey("expires_at") ? ((Double) cache.get("expires_at")).longValue() : 0;
         } catch (Exception e) {

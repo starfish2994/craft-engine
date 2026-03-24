@@ -1,4 +1,3 @@
-lang-version: '55'
 exception.invalid_syntax: '<red>Invalid syntax. Correct syntax: <white><arg:0></white></red>'
 exception.invalid_argument: '<red>Invalid argument. Reason: <white><arg:0></white></red>'
 exception.invalid_sender: <red><arg:0> is not allowed to execute that command. Must be of type <arg:1></red>

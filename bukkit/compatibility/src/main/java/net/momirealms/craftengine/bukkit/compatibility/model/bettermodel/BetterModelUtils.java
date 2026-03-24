@@ -18,4 +18,8 @@ public final class BetterModelUtils {
         }
         renderer.get().create(BaseEntity.of(BukkitAdapter.adapt(base)));
     }
+
+    public static boolean hasModel(String id) {
+        return BetterModel.modelOrNull(id) != null;
+    }
 }
