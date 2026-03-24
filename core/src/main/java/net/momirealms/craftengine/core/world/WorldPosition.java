@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.core.world;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
 
 public final class WorldPosition implements Position {
@@ -84,6 +86,18 @@ public final class WorldPosition implements Position {
 
     public Vec3d toVec3d() {
         return new Vec3d(x, y, z);
+    }
+
+    public WorldPosition relative(Vec3d relative) {
+        return new WorldPosition(world, x + relative.x, y + relative.y, z + relative.z);
+    }
+
+    public static WorldPosition relative(WorldPosition worldPosition, @Nullable Vec3d relative) {
+        if (relative == null) {
+            return worldPosition;
+        } else {
+            return worldPosition.relative(relative);
+        }
     }
 
     @Override

@@ -1,16 +1,17 @@
 package net.momirealms.craftengine.bukkit.block.entity;
 
 import net.momirealms.craftengine.core.block.entity.BlockEntityType;
-import net.momirealms.craftengine.core.block.entity.BlockEntityTypeKeys;
 import net.momirealms.craftengine.core.block.entity.BlockEntityTypes;
+import net.momirealms.craftengine.core.util.Key;
 
 public class BukkitBlockEntityTypes extends BlockEntityTypes {
-    public static final BlockEntityType<SimpleStorageBlockEntity> SIMPLE_STORAGE = register(BlockEntityTypeKeys.SIMPLE_STORAGE);
-    public static final BlockEntityType<SimpleParticleBlockEntity> SIMPLE_PARTICLE = register(BlockEntityTypeKeys.SIMPLE_PARTICLE);
-    public static final BlockEntityType<WallTorchParticleBlockEntity> WALL_TORCH_PARTICLE = register(BlockEntityTypeKeys.WALL_TORCH_PARTICLE);
-    public static final BlockEntityType<SeatBlockEntity> SEAT = register(BlockEntityTypeKeys.SEAT);
-    public static final BlockEntityType<ItemFrameBlockEntity> ITEM_FRAME = register(BlockEntityTypeKeys.ITEM_FRAME);
-    public static final BlockEntityType<BedBlockEntity> BED = register(BlockEntityTypeKeys.BED);
+    public static final BlockEntityType<SimpleStorageBlockEntity> SIMPLE_STORAGE = register(Key.ce("simple_storage"));
+    public static final BlockEntityType<SimpleParticleBlockEntity> SIMPLE_PARTICLE = register(Key.ce("simple_particle"));
+    public static final BlockEntityType<WallTorchParticleBlockEntity> WALL_TORCH_PARTICLE = register(Key.ce("wall_torch_particle"));
+    public static final BlockEntityType<SeatBlockEntity> SEAT = register(Key.ce("seat"));
+    public static final BlockEntityType<ItemFrameBlockEntity> ITEM_FRAME = register(Key.ce("item_frame"));
+    public static final BlockEntityType<BedBlockEntity> BED = register(Key.ce("bed"));
+    public static final BlockEntityType<DisplayItemEntity> DISPLAY_ITEM = register(Key.ce("display_item"));
 
     private BukkitBlockEntityTypes() {}
 }

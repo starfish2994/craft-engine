@@ -293,8 +293,10 @@ lang#furniture:
     furniture.default.flower_basket: Flower Basket
     furniture.default.globe: Globe
     furniture.default.wooden_chair: Wooden Chair
+    furniture.default.showcase: Showcase
   zh_cn:
     furniture.default.bench: 长椅
     furniture.default.flower_basket: 花篮
     furniture.default.globe: 地球仪
     furniture.default.wooden_chair: 木椅
+    furniture.default.showcase: 物品展示柜
