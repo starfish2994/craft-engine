@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block.entity.renderer;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.block.entity.DisplayItemEntity;
 import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.block.entity.render.DynamicBlockEntityRenderer;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -15,7 +16,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +37,7 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
     @NotNull private Object spawnVehiclePacket;
     @NotNull private Object spawnPassengerPacket;
     @NotNull private Object changeDisplayItemPacket;
+    @NotNull private Object updatePosPacket;
 
     public DynamicDropItemRenderer(@NotNull DisplayItemEntity blockEntity, @NotNull WorldPosition displayItemPosition) {
         this.blockEntity = blockEntity;
@@ -77,6 +78,9 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
                 passengerId, passengeUUID, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
                 0, 0, EntityTypeProxy.ITEM, 0, Vec3Proxy.ZERO, 0
         );
+        this.updatePosPacket = EntityUtils.createUpdatePosPacket(vehicleId, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
+                0.0f, 0.0f, true
+        );
     }
 
     public void positionDirty(boolean dirtyFlag) {
@@ -100,21 +104,18 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
 
     @Override
     public void update(Player player) {
-        // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包
+        // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
         Object minecraftItem = blockEntity.displayItem().getMinecraftItem();
         if (lastUpdateMinecraftItem != minecraftItem) {
             this.refreshChangeDisplayItemPacket(minecraftItem);
         }
-        // 如果缓存的显示位置和最新的不一样, 重发所有包.
+        // 如果缓存的显示位置和最新的不一样, 额外发送一个同步位置包.
         if (this.positionDirty) {
-            this.hide(player);
-            this.show(player);
+            player.sendPacket(updatePosPacket, false);
         }
-        // 如果一样, 只发重发物品刷新包即可.
-        else {
-            player.sendPackets(List.of(
-                    despawnPassengerPacket, spawnPassengerPacket, ridePacket, changeDisplayItemPacket
-            ), false);
-        }
+        // 重发物品刷新包.
+        player.sendPackets(List.of(
+                despawnPassengerPacket, spawnPassengerPacket, ridePacket, changeDisplayItemPacket
+        ), false);
     }
 }

@@ -1,7 +1,9 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.behavior;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
@@ -34,6 +36,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -82,10 +86,16 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         if (trackedHitboxes != null && !trackedHitboxes.contains(hitBox)) {
             return InteractionResult.PASS;
         }
+        // 检查区域保护权限
+        Player player = context.getPlayer();
+        WorldPosition pos = furniture.position();
+        Location location = new Location((World) pos.world.platformWorld(), pos.x, pos.y, pos.z);
+        if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
+            return InteractionResult.SUCCESS_AND_CANCEL;
+        }
+        // 如果当前不存在物品并且手中有物品, 则放入1个物品进去.
         Item displayItem = displayItem(furniture);
         Item itemInHand = context.getItem();
-        Player player = context.getPlayer();
-        // 如果当前不存在物品并且手中有物品, 则放入1个物品进去.
         if (ItemUtils.isEmpty(displayItem) && !ItemUtils.isEmpty(itemInHand)) {
             Item inputItem = itemInHand.copyWithCount(1);
             if (!player.canInstabuild()) {

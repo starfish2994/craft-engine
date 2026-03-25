@@ -1,7 +1,9 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
+import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
 import net.momirealms.craftengine.bukkit.block.entity.DisplayItemEntity;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.CustomBlock;
@@ -25,6 +27,7 @@ import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
+import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -58,6 +61,10 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         if (player == null) return InteractionResult.PASS;
         World world = context.getLevel();
         BlockPos pos = context.getClickedPos();
+        Location location = new Location((org.bukkit.World) context.getWorld().platformWorld(), pos.x, pos.y, pos.z);
+        if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
+            return InteractionResult.SUCCESS_AND_CANCEL;
+        }
         BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
         if (!(blockEntity instanceof DisplayItemEntity displayItemEntity && displayItemEntity.isValid())) {
             return InteractionResult.PASS;

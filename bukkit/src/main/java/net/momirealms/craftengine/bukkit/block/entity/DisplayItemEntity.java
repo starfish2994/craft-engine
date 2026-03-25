@@ -8,7 +8,6 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityType;
-import net.momirealms.craftengine.core.block.entity.render.DynamicBlockEntityRenderer;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -20,7 +19,6 @@ import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 public final class DisplayItemEntity extends BlockEntity {
@@ -40,6 +38,8 @@ public final class DisplayItemEntity extends BlockEntity {
         this.blockCenter = new Vector3f((float) (pos.x + 0.5), (float) (pos.y + 0.5), (float) (pos.z + 0.5));
         this.relativePosition = relativePosition;
         this.displayItem = BukkitItemManager.instance().emptyItem();
+        this.displayItemPosition = this.calculateDisplayItemPosition();
+        this.blockEntityRenderer = new DynamicDropItemRenderer(this, this.displayItemPosition);
     }
 
     @Override
@@ -81,13 +81,6 @@ public final class DisplayItemEntity extends BlockEntity {
     }
 
     @Override
-    public DynamicBlockEntityRenderer blockEntityRenderer() {
-        this.displayItemPosition = this.calculateDisplayItemPosition();
-        this.blockEntityRenderer = new DynamicDropItemRenderer(this, this.displayItemPosition);
-        return this.blockEntityRenderer;
-    }
-
-    @Override
     public void setBlockState(ImmutableBlockState blockState) {
         super.setBlockState(blockState);
         this.displayItemPosition = this.calculateDisplayItemPosition();
@@ -110,11 +103,15 @@ public final class DisplayItemEntity extends BlockEntity {
     @Override
     public void loadCustomData(CompoundTag tag) {
         Tag itemTag = tag.get("display_item");
-        if (itemTag != null) {
-            int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
-            this.displayItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
-        } else {
+        if (itemTag == null) {
             this.displayItem = BukkitItemManager.instance().emptyItem();
+            return;
+        }
+        // 如果里面有物品, 同时刷新Render的包缓存.
+        int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+        this.displayItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
+        if (super.blockEntityRenderer instanceof DynamicDropItemRenderer dynamicDropItemRenderer) {
+            dynamicDropItemRenderer.refreshChangeDisplayItemPacket(this.displayItem.getMinecraftItem());
         }
     }
 
@@ -153,6 +150,6 @@ public final class DisplayItemEntity extends BlockEntity {
         double rotatedX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
         double rotatedZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
 
-        return new WorldPosition(world.world(), this.blockCenter.x + rotatedX, this.blockCenter.y + this.relativePosition.y, this.blockCenter.z + rotatedZ);
+        return new WorldPosition(null, this.blockCenter.x + rotatedX, this.blockCenter.y + this.relativePosition.y, this.blockCenter.z + rotatedZ);
     }
 }
