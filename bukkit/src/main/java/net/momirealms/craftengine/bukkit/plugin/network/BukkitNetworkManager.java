@@ -4300,7 +4300,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
                 BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(id);
                 if (furniture != null) {
-                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, new FurniturePacketHandler(id, furniture.interactableEntityIds()));
+                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, new FurniturePacketHandler(furniture));
                     if (Config.enableEntityCulling()) {
                         serverPlayer.addTrackedEntity(id, furniture);
                     } else {
