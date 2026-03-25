@@ -93,9 +93,20 @@ public final class InteractionFurnitureHitboxConfig extends AbstractFurnitureHit
             float height;
             ConfigValue optionalScale = section.getValue("scale");
             if (optionalScale != null) {
-                ConfigValue[] split = optionalScale.splitValuesRestrict(",", 2);
-                width = split[0].getAsFloat();
-                height = split[1].getAsFloat();
+                String scaleString = optionalScale.getAsString();
+                String[] splitScale = scaleString.split(",");
+                if (splitScale.length == 1) {
+                    width = optionalScale.getAsFloat();
+                    height = optionalScale.getAsFloat();
+                } else if (splitScale.length == 2) {
+                    ConfigValue[] split = optionalScale.splitValuesRestrict(",", 2);
+                    width = split[0].getAsFloat();
+                    height = split[1].getAsFloat();
+                } else {
+                    ConfigValue[] split = optionalScale.splitValues(",");
+                    width = split[0].getAsFloat();
+                    height = split[1].getAsFloat();
+                }
             } else {
                 width = section.getFloat("width", 1f);
                 height = section.getFloat("height", 1f);
