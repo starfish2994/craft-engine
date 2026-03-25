@@ -2,6 +2,7 @@ package net.momirealms.craftengine.proxy.minecraft.world.level.block.state;
 
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.DirectionProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.TypedInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.tags.TagKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.RandomSourceProxy;
@@ -72,7 +73,7 @@ public interface BlockBehaviourProxy {
     void setDescriptionId(Object target, String descriptionId);
 
     @ReflectionProxy(name = "net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase")
-    interface BlockStateBaseProxy extends StateHolderProxy {
+    interface BlockStateBaseProxy extends StateHolderProxy, TypedInstanceProxy {
         BlockStateBaseProxy INSTANCE = ASMProxyFactory.create(BlockStateBaseProxy.class);
         Class<?> CLASS = SparrowClass.find("net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase");
 
@@ -265,7 +266,7 @@ public interface BlockBehaviourProxy {
         @MethodInvoker(name = "getSoundType")
         Object getSoundType(Object target);
 
-        @MethodInvoker(name = "is")
+        @MethodInvoker(name = "is", activeIf = "max_version=1.21.11")
         boolean is$0(Object target, @Type(clazz = BlockProxy.class) Object block);
 
         @MethodInvoker(name = "isPathfindable", activeIf = "min_version=1.20.5")
@@ -277,7 +278,7 @@ public interface BlockBehaviourProxy {
         @MethodInvoker(name = "isFaceSturdy")
         boolean isFaceSturdy(Object target, @Type(clazz = BlockGetterProxy.class) Object world, @Type(clazz = BlockPosProxy.class) Object pos, @Type(clazz = DirectionProxy.class) Object face, @Type(clazz = SupportTypeProxy.class) Object supportType);
 
-        @MethodInvoker(name = "is")
+        @MethodInvoker(name = "is", activeIf = "max_version=1.21.11")
         boolean is$1(Object target, @Type(clazz = TagKeyProxy.class) Object tag);
 
         @MethodInvoker(name = "isCollisionShapeFullBlock")
