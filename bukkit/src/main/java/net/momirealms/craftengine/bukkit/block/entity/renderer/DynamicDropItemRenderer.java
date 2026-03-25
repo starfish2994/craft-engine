@@ -21,13 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class DynamicDropItemRenderer implements DynamicBlockEntityRenderer {
+public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer {
     public final DisplayItemEntity blockEntity;
-    public WorldPosition displayItemPosition;
-    @Nullable
-    public Object lastUpdateMinecraftItem; // 最后一次发送更新掉落物品
-    @NotNull
-    public WorldPosition lastUpdateDisplayItemPosition; // 最后一次发送包位置时使用的展示物品位置.
+    private WorldPosition displayItemPosition;
+    @NotNull private Object lastUpdateMinecraftItem; // 最后一次发送更新掉落物品
+    private boolean positionDirty; // 坐标脏位
     public final int vehicleId;
     public final int passengerId;
     public final UUID vehicleUUID = UUID.randomUUID();
@@ -36,14 +34,13 @@ public class DynamicDropItemRenderer implements DynamicBlockEntityRenderer {
     public final Object despawnVehiclePacket;
     public final Object despawnPassengerPacket;
     public final Object despawnAllPacket;
-    public Object spawnVehiclePacket;
-    public Object spawnPassengerPacket;
-    public Object changeDisplayItemPacket; //
+    @NotNull private Object spawnVehiclePacket;
+    @NotNull private Object spawnPassengerPacket;
+    @NotNull private Object changeDisplayItemPacket;
 
     public DynamicDropItemRenderer(@NotNull DisplayItemEntity blockEntity, @NotNull WorldPosition displayItemPosition) {
         this.blockEntity = blockEntity;
         this.displayItemPosition = displayItemPosition;
-        this.lastUpdateDisplayItemPosition = displayItemPosition;
         this.vehicleId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         this.passengerId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         // 包缓存
@@ -56,7 +53,8 @@ public class DynamicDropItemRenderer implements DynamicBlockEntityRenderer {
                     a.add(passengerId);
                 }
         ));
-        this.refreshSpawnVehicleAndPassengerPacket(displayItemPosition);
+        this.refreshChangeDisplayItemPacket(blockEntity.displayItem().getMinecraftItem());
+        this.refreshSpawnVehicleAndPassengerPacket(displayItemPosition, false);
     }
 
     // 更新展示的物品
@@ -67,8 +65,10 @@ public class DynamicDropItemRenderer implements DynamicBlockEntityRenderer {
         }});
     }
 
-    // 更新展示物品的位置, 刷新缓存的数据包
-    public void refreshSpawnVehicleAndPassengerPacket(WorldPosition displayItemPosition) {
+    // 更新展示物品的位置, 这里的 lastUpdateDisplayItemPosition 由 DisplayItemEntity#setBlockState 刷新.
+    public void refreshSpawnVehicleAndPassengerPacket(WorldPosition displayItemPosition, boolean dirtyFlag) {
+        this.positionDirty = dirtyFlag;
+        this.displayItemPosition = displayItemPosition;
         this.spawnVehiclePacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 vehicleId, vehicleUUID, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
                 0, 0, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
@@ -79,14 +79,12 @@ public class DynamicDropItemRenderer implements DynamicBlockEntityRenderer {
         );
     }
 
+    public void positionDirty(boolean dirtyFlag) {
+        this.positionDirty = dirtyFlag;
+    }
+
     @Override
     public void show(Player player) {
-        // 刷新物品缓存包
-        Object minecraftItem = blockEntity.displayItem().getMinecraftItem();
-        if (lastUpdateMinecraftItem != minecraftItem) {
-            this.refreshChangeDisplayItemPacket(minecraftItem);
-        }
-        // 发包
         player.sendPackets(List.of(
                 this.spawnVehiclePacket,
                 this.spawnPassengerPacket,
@@ -102,23 +100,21 @@ public class DynamicDropItemRenderer implements DynamicBlockEntityRenderer {
 
     @Override
     public void update(Player player) {
-        // 如果最后发送的数据包位置和目前不一样时, 重发所有数据包;
-        if (lastUpdateDisplayItemPosition != displayItemPosition) {
+        // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包
+        Object minecraftItem = blockEntity.displayItem().getMinecraftItem();
+        if (lastUpdateMinecraftItem != minecraftItem) {
+            this.refreshChangeDisplayItemPacket(minecraftItem);
+        }
+        // 如果缓存的显示位置和最新的不一样, 重发所有包.
+        if (this.positionDirty) {
             this.hide(player);
             this.show(player);
         }
-        // 位置一样, 只检查物品
+        // 如果一样, 只发重发物品刷新包即可.
         else {
-            // 刷新缓存的掉落物的包
-            Object minecraftItem = blockEntity.displayItem().getMinecraftItem();
-            if (lastUpdateMinecraftItem != minecraftItem) {
-                this.refreshChangeDisplayItemPacket(minecraftItem);
-            }
-            // 发包
             player.sendPackets(List.of(
                     despawnPassengerPacket, spawnPassengerPacket, ridePacket, changeDisplayItemPacket
             ), false);
         }
     }
-
 }

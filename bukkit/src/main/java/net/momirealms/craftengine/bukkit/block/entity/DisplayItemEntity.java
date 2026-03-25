@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-public class DisplayItemEntity extends BlockEntity {
+public final class DisplayItemEntity extends BlockEntity {
     private final DisplayItemBlockBehavior behavior;
     @NotNull
     private Item displayItem;
@@ -81,7 +81,7 @@ public class DisplayItemEntity extends BlockEntity {
     }
 
     @Override
-    public @Nullable DynamicBlockEntityRenderer blockEntityRenderer() {
+    public DynamicBlockEntityRenderer blockEntityRenderer() {
         this.displayItemPosition = this.calculateDisplayItemPosition();
         this.blockEntityRenderer = new DynamicDropItemRenderer(this, this.displayItemPosition);
         return this.blockEntityRenderer;
@@ -92,8 +92,8 @@ public class DisplayItemEntity extends BlockEntity {
         super.setBlockState(blockState);
         this.displayItemPosition = this.calculateDisplayItemPosition();
         if (super.blockEntityRenderer != null && super.blockEntityRenderer instanceof DynamicDropItemRenderer dynamicDropItemRenderer) {
-            // 修改Render内部的展示坐标
-            dynamicDropItemRenderer.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition);
+            // 刷新Render内部缓存的生成包
+            dynamicDropItemRenderer.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition, true);
             // 发送数据包
             CEChunk chunk = super.world.getChunkAtIfLoaded(super.pos.x >> 4, super.pos.z >> 4);
             if (chunk != null) {
@@ -101,8 +101,8 @@ public class DisplayItemEntity extends BlockEntity {
                     dynamicDropItemRenderer.update(trackedPlayer);
                 }
             }
-            // 更新Render的缓存
-            dynamicDropItemRenderer.lastUpdateDisplayItemPosition = this.displayItemPosition;
+            // 更新脏位, 必须得所有玩家都刷完了才更新.
+            dynamicDropItemRenderer.positionDirty(false);
         }
     }
 

@@ -28,7 +28,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
+public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
     public static final BlockBehaviorFactory<DisplayItemBlockBehavior> FACTORY = new Factory();
     public final SoundData putSound;
     public final SoundData takeSound;
