@@ -881,13 +881,37 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             }
         }
 
-        String decoderName = pipeline.names().contains("inbound_config") ? "inbound_config" : "decoder";
-        pipeline.addBefore(decoderName, PACKET_DECODER, new PluginChannelDecoder(user));
-        String encoderName = pipeline.names().contains("outbound_config") ? "outbound_config" : "encoder";
-        pipeline.addBefore(encoderName, PACKET_ENCODER, new PluginChannelEncoder(user));
-
+        addToPipeline(pipeline, new PluginChannelEncoder(user), new PluginChannelDecoder(user));
         channel.closeFuture().addListener((ChannelFutureListener) future -> handleDisconnection(user.nettyChannel()));
         setUser(channel, user);
+    }
+
+    private static void addToPipeline(ChannelPipeline pipeline, PluginChannelEncoder encoder, PluginChannelDecoder decoder) {
+        boolean addedDecoder = false;
+        String lastPEEncoderName = null;
+        List<String> names = pipeline.names();
+        for (String name : names) {
+            if (!addedDecoder) {
+                if (name.startsWith("pe-decoder-")) {
+                    pipeline.addBefore(name, PACKET_DECODER, decoder);
+                    addedDecoder = true;
+                } else if (name.equals("inbound_config") || name.equals("decoder")) {
+                    pipeline.addBefore(name, PACKET_DECODER, decoder);
+                    addedDecoder = true;
+                }
+            } else{
+                if (name.startsWith("pe-encoder-")) {
+                    lastPEEncoderName = name;
+                }
+            }
+        }
+
+        if (lastPEEncoderName != null) {
+            pipeline.addAfter(lastPEEncoderName, PACKET_ENCODER, encoder);
+        } else {
+            String encoderName = pipeline.names().contains("outbound_config") ? "outbound_config" : "encoder";
+            pipeline.addBefore(encoderName, PACKET_ENCODER, encoder);
+        }
     }
 
     public static boolean isFakeChannel(Object channel) {
@@ -971,24 +995,22 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
         private boolean handleCompression(ChannelHandlerContext ctx, ByteBuf buffer) {
             if (this.handledCompression) return false;
-            int compressIndex = ctx.pipeline().names().indexOf("compress");
+            ChannelPipeline pipeline = ctx.pipeline();
+            int compressIndex = pipeline.names().indexOf("compress");
             if (compressIndex == -1) return false;
             this.handledCompression = true;
-            int encoderIndex = ctx.pipeline().names().indexOf(PACKET_ENCODER);
+            int encoderIndex = pipeline.names().indexOf(PACKET_ENCODER);
             if (encoderIndex == -1) return false;
             if (compressIndex > encoderIndex) {
                 decompress(ctx, buffer, buffer);
-                PluginChannelDecoder decoder = (PluginChannelDecoder) ctx.pipeline().get(PACKET_DECODER);
+                PluginChannelDecoder decoder = (PluginChannelDecoder) pipeline.get(PACKET_DECODER);
                 if (decoder != null) {
                     if (decoder.relocated) return true;
                     decoder.relocated = true;
                 }
-                PluginChannelEncoder encoder = (PluginChannelEncoder) ctx.pipeline().remove(PACKET_ENCODER);
-                String encoderName = ctx.pipeline().names().contains("outbound_config") ? "outbound_config" : "encoder";
-                ctx.pipeline().addBefore(encoderName, PACKET_ENCODER, new PluginChannelEncoder(encoder));
+                PluginChannelEncoder encoder = (PluginChannelEncoder) pipeline.remove(PACKET_ENCODER);
                 decoder = (PluginChannelDecoder) ctx.pipeline().remove(PACKET_DECODER);
-                String decoderName = ctx.pipeline().names().contains("inbound_config") ? "inbound_config" : "decoder";
-                ctx.pipeline().addBefore(decoderName, PACKET_DECODER, new PluginChannelDecoder(decoder));
+                addToPipeline(ctx.pipeline(), new PluginChannelEncoder(encoder), new PluginChannelDecoder(decoder));
                 return true;
             }
             return false;
