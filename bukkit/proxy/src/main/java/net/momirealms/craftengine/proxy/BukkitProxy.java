@@ -14,7 +14,10 @@ public final class BukkitProxy {
         if (!init) {
             SReflection.setAsmClassPrefix("CraftEngine");
             SReflection.setActivePredicate(new MinecraftPredicate(version, patches));
-            SReflection.setRemapper(CraftBukkitRemapper.create(Remapper.createFromPaperJar()));
+            Remapper remapper = Remapper.createFromPaperJar();
+            if (remapper != Remapper.noOp()) {
+                SReflection.setRemapper(CraftBukkitRemapper.create(remapper));
+            }
             init = true;
         }
     }
