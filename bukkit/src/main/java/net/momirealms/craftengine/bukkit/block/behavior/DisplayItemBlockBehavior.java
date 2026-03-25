@@ -33,7 +33,7 @@ public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements Ent
     public final SoundData putSound;
     public final SoundData takeSound;
     public final boolean hasAnalogOutputSignal;
-    public final Vector3f position;
+    public final Vector3f relativePosition;
     @Nullable
     public final Property<HorizontalDirection> directionProperty;
 
@@ -41,14 +41,14 @@ public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements Ent
                                     SoundData putSound,
                                     SoundData takeSound,
                                     boolean hasAnalogOutputSignal,
-                                    Vector3f position,
+                                    Vector3f relativePosition,
                                     @Nullable Property<HorizontalDirection> directionProperty
     ) {
         super(customBlock);
         this.putSound = putSound;
         this.takeSound = takeSound;
         this.hasAnalogOutputSignal = hasAnalogOutputSignal;
-        this.position = position;
+        this.relativePosition = relativePosition;
         this.directionProperty = directionProperty;
     }
 
@@ -93,7 +93,7 @@ public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements Ent
 
     @Override
     public @Nullable BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
-        return new DisplayItemEntity(pos, state, this.position, this.directionProperty);
+        return new DisplayItemEntity(pos, state, this.relativePosition);
     }
 
     // 比较器红石信号.

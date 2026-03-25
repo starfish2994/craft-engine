@@ -89,15 +89,7 @@ public final class WorldPosition implements Position {
     }
 
     public WorldPosition relative(Vec3d relative) {
-        return new WorldPosition(world, x + relative.x, y + relative.y, z + relative.z);
-    }
-
-    public static WorldPosition relative(WorldPosition worldPosition, @Nullable Vec3d relative) {
-        if (relative == null) {
-            return worldPosition;
-        } else {
-            return worldPosition.relative(relative);
-        }
+        return new WorldPosition(world, x + relative.x, y + relative.y, z + relative.z, xRot, yRot);
     }
 
     @Override

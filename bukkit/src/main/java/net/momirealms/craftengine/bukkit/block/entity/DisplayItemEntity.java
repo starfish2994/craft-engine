@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.block.entity;
 
+import net.momirealms.craftengine.bukkit.block.behavior.DisplayItemBlockBehavior;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.DynamicDropItemRenderer;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
@@ -8,7 +9,6 @@ import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityType;
 import net.momirealms.craftengine.core.block.entity.render.DynamicBlockEntityRenderer;
-import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
@@ -23,24 +24,22 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 public class DisplayItemEntity extends BlockEntity {
-    @Nullable
+    private final DisplayItemBlockBehavior behavior;
+    @NotNull
     private Item displayItem;
-    @Nullable
-    private DynamicDropItemRenderer cachedRenderer;
     private WorldPosition displayItemPosition;
-    private final HorizontalDirection direction;
     private final Vector3f blockCenter;
-    private final Vector3f relative;
+    private final Vector3f relativePosition;
 
     public DisplayItemEntity(@NotNull BlockPos pos,
                              @NotNull ImmutableBlockState blockState,
-                             @NotNull Vector3f relative,
-                             @Nullable Property<HorizontalDirection> directionProperty
+                             @NotNull Vector3f relativePosition
     ) {
         super(BukkitBlockEntityTypes.DISPLAY_ITEM, pos, blockState);
-        this.direction = blockState.get(directionProperty, HorizontalDirection.SOUTH);
+        this.behavior = blockState.behavior().getAs(DisplayItemBlockBehavior.class).orElseThrow();
         this.blockCenter = new Vector3f((float) (pos.x + 0.5), (float) (pos.y + 0.5), (float) (pos.z + 0.5));
-        this.relative = relative;
+        this.relativePosition = relativePosition;
+        this.displayItem = BukkitItemManager.instance().emptyItem();
     }
 
     @Override
@@ -50,52 +49,61 @@ public class DisplayItemEntity extends BlockEntity {
 
     @NotNull
     public Item displayItem() {
-        if (this.displayItem == null) {
-            return ItemStackUtils.wrap(null);
-        }
         return this.displayItem;
     }
 
     // 放入方块内的展示物品
     public void putDisplayItem(Item inputItem, Player player) {
         this.displayItem = inputItem;
-        if (this.cachedRenderer != null) {
-            this.cachedRenderer.displayItem(inputItem);
-            this.cachedRenderer.update(player);
+        if (super.blockEntityRenderer != null && super.blockEntityRenderer instanceof DynamicDropItemRenderer dynamicDropItemRenderer) {
+            CEChunk chunk = super.world.getChunkAtIfLoaded(super.pos.x >> 4, super.pos.z >> 4);
+            if (chunk != null) {
+                for (Player trackedPlayer : chunk.getTrackedBy()) {
+                    dynamicDropItemRenderer.update(trackedPlayer);
+                }
+            }
         }
     }
 
     // 取走方块内的展示物品
     public Item takeDisplayItem(Player player) {
         Item temp = this.displayItem;
-        this.displayItem = null;
-        if (this.cachedRenderer != null) {
-            this.cachedRenderer.displayItem(BukkitItemManager.instance().emptyItem());
-            this.cachedRenderer.update(player);
+        this.displayItem = BukkitItemManager.instance().emptyItem();
+        if (super.blockEntityRenderer != null && super.blockEntityRenderer instanceof DynamicDropItemRenderer dynamicDropItemRenderer) {
+            CEChunk chunk = super.world.getChunkAtIfLoaded(super.pos.x >> 4, super.pos.z >> 4);
+            if (chunk != null) {
+                for (Player trackedPlayer : chunk.getTrackedBy()) {
+                    dynamicDropItemRenderer.update(trackedPlayer);
+                }
+            }
         }
         return temp;
     }
 
     @Override
     public @Nullable DynamicBlockEntityRenderer blockEntityRenderer() {
-        float angleDeg;
-        switch (direction) {
-            case NORTH-> angleDeg = 0f;
-            case EAST -> angleDeg = 90f;
-            case SOUTH -> angleDeg = 180f;
-            case WEST -> angleDeg = 270f;
-            default -> angleDeg = 0f;
+        this.displayItemPosition = this.calculateDisplayItemPosition();
+        this.blockEntityRenderer = new DynamicDropItemRenderer(this, this.displayItemPosition);
+        return this.blockEntityRenderer;
+    }
+
+    @Override
+    public void setBlockState(ImmutableBlockState blockState) {
+        super.setBlockState(blockState);
+        this.displayItemPosition = this.calculateDisplayItemPosition();
+        if (super.blockEntityRenderer != null && super.blockEntityRenderer instanceof DynamicDropItemRenderer dynamicDropItemRenderer) {
+            // 修改Render内部的展示坐标
+            dynamicDropItemRenderer.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition);
+            // 发送数据包
+            CEChunk chunk = super.world.getChunkAtIfLoaded(super.pos.x >> 4, super.pos.z >> 4);
+            if (chunk != null) {
+                for (Player trackedPlayer : chunk.getTrackedBy()) {
+                    dynamicDropItemRenderer.update(trackedPlayer);
+                }
+            }
+            // 更新Render的缓存
+            dynamicDropItemRenderer.lastUpdateDisplayItemPosition = this.displayItemPosition;
         }
-        double angleRad = Math.toRadians(angleDeg);
-
-        float x = -relative.x;
-        float z = relative.z;
-        double rotatedX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-        double rotatedZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-
-        this.displayItemPosition = new WorldPosition(world.world(), this.blockCenter.x + rotatedX, this.blockCenter.y + this.relative.y, this.blockCenter.z + rotatedZ);
-        this.cachedRenderer = new DynamicDropItemRenderer(displayItem(), this.displayItemPosition);
-        return cachedRenderer;
     }
 
     // 读取方块内存储的物品
@@ -105,6 +113,8 @@ public class DisplayItemEntity extends BlockEntity {
         if (itemTag != null) {
             int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
             this.displayItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
+        } else {
+            this.displayItem = BukkitItemManager.instance().emptyItem();
         }
     }
 
@@ -122,6 +132,27 @@ public class DisplayItemEntity extends BlockEntity {
         if (!ItemUtils.isEmpty(displayItem)) {
             super.world.world().dropItemNaturally(this.displayItemPosition, this.displayItem);
         }
-        this.displayItem = null;
+        this.displayItem = BukkitItemManager.instance().emptyItem();;
+    }
+
+    // 根据当前状态计算最终渲染DisplayItem的位置
+    public WorldPosition calculateDisplayItemPosition() {
+        float angleDeg;
+        HorizontalDirection direction = blockState.get(behavior.directionProperty, HorizontalDirection.SOUTH);
+        switch (direction) {
+            case NORTH-> angleDeg = 0f;
+            case EAST -> angleDeg = 90f;
+            case SOUTH -> angleDeg = 180f;
+            case WEST -> angleDeg = 270f;
+            default -> angleDeg = 0f;
+        }
+        double angleRad = Math.toRadians(angleDeg);
+
+        float x = -relativePosition.x;
+        float z = relativePosition.z;
+        double rotatedX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+        double rotatedZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+
+        return new WorldPosition(world.world(), this.blockCenter.x + rotatedX, this.blockCenter.y + this.relativePosition.y, this.blockCenter.z + rotatedZ);
     }
 }

@@ -44,32 +44,32 @@ import java.util.function.Consumer;
 public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     public static final FurnitureBehaviorFactory<DisplayItemFurnitureBehavior> FACTORY = new Factory();
     public static final CustomDataType<Item> DISPLAY_ITEM = new CustomDataType<>();
-    public static final CustomDataType<HashSet<FurnitureHitBox>> TRACKED_HITBOXES = new CustomDataType<>();
+    public static final CustomDataType<Set<FurnitureHitBox>> TRACKED_HITBOXES = new CustomDataType<>();
     public static final CustomDataType<DisplayItemElement> DISPLAY_ELEMENT = new CustomDataType<>();
-    private static final String DISPLAY_ITEM_PD = "display_item";
+    private static final String DISPLAY_ITEM_TAG = "display_item";
     @NotNull
-    private final Map<String, VariantRule> relatives;
+    private final Map<String, VariantRule> variantRules;
     @Nullable
     private final SoundData putSound;
     @Nullable
     private final SoundData takeSound;
 
     protected DisplayItemFurnitureBehavior(CustomFurniture furniture,
-                                           @NotNull Map<String, VariantRule> relatives,
+                                           @NotNull Map<String, VariantRule> variantRules,
                                            @Nullable SoundData putSound,
                                            @Nullable SoundData takeSound
     ) {
         super(furniture);
-        this.relatives = relatives;
+        this.variantRules = variantRules;
         this.putSound = putSound;
         this.takeSound = takeSound;
     }
 
     @Override
     public void onLoad(Furniture furniture) {
-        CompoundTag displayItem = (CompoundTag) furniture.persistentData.getCustomData(DISPLAY_ITEM_PD);
+        CompoundTag displayItem = (CompoundTag) furniture.persistentData.getCustomData(DISPLAY_ITEM_TAG);
         if (displayItem != null) {
-            int dataVersion = displayItem.getInt(DISPLAY_ITEM_PD, Config.itemDataFixerUpperFallbackVersion());
+            int dataVersion = displayItem.getInt(DISPLAY_ITEM_TAG, Config.itemDataFixerUpperFallbackVersion());
             Item savedItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(displayItem, dataVersion));
             furniture.putTempData(DISPLAY_ITEM, savedItem);
         }
@@ -78,9 +78,9 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     @Override
     public InteractionResult useOnFurniture(Furniture furniture, FurnitureHitBox hitBox, InteractEntityContext context) {
         // 如果配置了追踪碰撞箱, 则检查是不是追踪的碰撞箱, 如果没配置则全部碰撞箱都可以.
-        HashSet<FurnitureHitBox> trackedHitboxes = furniture.getTempData(TRACKED_HITBOXES);
+        Set<FurnitureHitBox> trackedHitboxes = furniture.getTempData(TRACKED_HITBOXES);
         if (trackedHitboxes != null && !trackedHitboxes.contains(hitBox)) {
-            return InteractionResult.TRY_EMPTY_HAND;
+            return InteractionResult.PASS;
         }
         Item displayItem = displayItem(furniture);
         Item itemInHand = context.getItem();
@@ -100,7 +100,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
             this.handleTakeDisplayItem(furniture);
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
-        return InteractionResult.TRY_EMPTY_HAND;
+        return InteractionResult.PASS;
     }
 
     // 破坏家具时, 掉落存储的展示物品.
@@ -134,7 +134,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     // 根据当前家具变体查找对应的展示物品相对坐标
     @Override
     public void createFurnitureElements(Furniture furniture, Consumer<FurnitureElement> consumer) {
-        VariantRule variantRule = relatives.get(furniture.getCurrentVariant().name());
+        VariantRule variantRule = variantRules.get(furniture.getCurrentVariant().name());
         if (variantRule != null) {
             DisplayItemElement displayItemElement = new DisplayItemElement(furniture, variantRule.itemRelative);
             furniture.putTempData(DISPLAY_ELEMENT, displayItemElement);
@@ -145,7 +145,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     // 根据当前家具变体查找对应的碰撞箱并创建
     @Override
     public void createFurnitureHitboxes(Furniture furniture, Consumer<FurnitureHitBox> consumer) {
-        VariantRule variantRule = relatives.get(furniture.getCurrentVariant().name());
+        VariantRule variantRule = variantRules.get(furniture.getCurrentVariant().name());
         if (variantRule != null && !variantRule.hitBoxConfigs.isEmpty()) {
             HashSet<FurnitureHitBox> trackedHitBoxes = new HashSet<>();
             for (FurnitureHitBoxConfig<? extends FurnitureHitBox> hitBoxConfig : variantRule.hitBoxConfigs) {
@@ -171,11 +171,10 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     private void saveDisplayItem(Furniture furniture, @Nullable Item item) {
         if (item != null) {
             Tag itemStackAsTag = ItemStackUtils.saveMinecraftItemStackAsTag(item.getMinecraftItem());
-            furniture.persistentData.addCustomData(DISPLAY_ITEM_PD, itemStackAsTag);
+            furniture.persistentData.addCustomData(DISPLAY_ITEM_TAG, itemStackAsTag);
             furniture.putTempData(DISPLAY_ITEM, item);
-        }
-        else  {
-            furniture.persistentData.removeCustomData(DISPLAY_ITEM_PD);
+        } else {
+            furniture.persistentData.removeCustomData(DISPLAY_ITEM_TAG);
             furniture.putTempData(DISPLAY_ITEM, ItemStackUtils.wrap(null));
         }
     }
@@ -261,13 +260,13 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
                 return new DisplayItemFurnitureBehavior(furniture, Map.of(), null, null);
             }
             // 读取变体展示规则
-            HashMap<String, VariantRule> relatives = new HashMap<>();
+            HashMap<String, VariantRule> variantRule = new HashMap<>();
             for (String variantName : variantsSection.keySet()) {
                 ConfigSection variantSection = variantsSection.getSection(variantName);
                 Vector3f itemRelative = variantSection.getVector3f(ITEM_POSITION, ConfigConstants.ZERO_VECTOR3);
                 List<? extends FurnitureHitBoxConfig<? extends FurnitureHitBox>> hitboxes =
                         variantSection.getList("hitboxes", v -> FurnitureHitBoxConfigs.fromConfig(v.getAsSection()));
-                relatives.put(variantName, new VariantRule(itemRelative, hitboxes));
+                variantRule.put(variantName, new VariantRule(itemRelative, hitboxes));
             }
             // 读取放入取出音效
             ConfigSection soundSection = section.getSection("sounds");
@@ -277,7 +276,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
                 inputSound = soundSection.getValue("put", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.RANGED_0_9_1));
                 takeSound = soundSection.getValue("take", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.RANGED_0_9_1));
             }
-            return new DisplayItemFurnitureBehavior(furniture, relatives, inputSound, takeSound);
+            return new DisplayItemFurnitureBehavior(furniture, variantRule, inputSound, takeSound);
         }
     }
 
