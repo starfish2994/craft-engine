@@ -899,7 +899,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     pipeline.addBefore(name, PACKET_DECODER, decoder);
                     addedDecoder = true;
                 }
-            } else{
+            } else {
                 if (name.startsWith("pe-encoder-")) {
                     lastPEEncoderName = name;
                 }
