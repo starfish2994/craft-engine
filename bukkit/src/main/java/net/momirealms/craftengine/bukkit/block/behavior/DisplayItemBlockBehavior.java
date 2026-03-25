@@ -33,7 +33,7 @@ public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements Ent
     public final SoundData putSound;
     public final SoundData takeSound;
     public final boolean hasAnalogOutputSignal;
-    public final Vector3f relative;
+    public final Vector3f position;
     @Nullable
     public final Property<HorizontalDirection> directionProperty;
 
@@ -41,14 +41,14 @@ public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements Ent
                                     SoundData putSound,
                                     SoundData takeSound,
                                     boolean hasAnalogOutputSignal,
-                                    Vector3f relative,
+                                    Vector3f position,
                                     @Nullable Property<HorizontalDirection> directionProperty
     ) {
         super(customBlock);
         this.putSound = putSound;
         this.takeSound = takeSound;
         this.hasAnalogOutputSignal = hasAnalogOutputSignal;
-        this.relative = relative;
+        this.position = position;
         this.directionProperty = directionProperty;
     }
 
@@ -93,7 +93,7 @@ public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements Ent
 
     @Override
     public @Nullable BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
-        return new DisplayItemEntity(pos, state, this.relative, this.directionProperty);
+        return new DisplayItemEntity(pos, state, this.position, this.directionProperty);
     }
 
     // 比较器红石信号.
@@ -125,7 +125,7 @@ public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements Ent
         @Override
         public DisplayItemBlockBehavior create(CustomBlock block, ConfigSection section) {
             // 读取展示相对位置
-            Vector3f relative = section.getVector3f("relative", ConfigConstants.CENTER_VECTOR3);
+            Vector3f position = section.getVector3f("position", ConfigConstants.CENTER_VECTOR3);
             // 读取放入取出音效
             ConfigSection soundSection = section.getSection("sounds");
             SoundData putSound = null;
@@ -141,7 +141,7 @@ public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements Ent
                     putSound,
                     takeSound,
                     section.getBoolean(HAS_SIGNAL, true),
-                    relative,
+                    position,
                     facing
             );
         }

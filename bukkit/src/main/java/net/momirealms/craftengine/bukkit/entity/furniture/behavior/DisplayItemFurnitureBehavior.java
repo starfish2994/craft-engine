@@ -77,9 +77,9 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
     @Override
     public InteractionResult useOnFurniture(Furniture furniture, FurnitureHitBox hitBox, InteractEntityContext context) {
-        // 检查是不是追踪的碰撞箱.
+        // 如果配置了追踪碰撞箱, 则检查是不是追踪的碰撞箱, 如果没配置则全部碰撞箱都可以.
         HashSet<FurnitureHitBox> trackedHitboxes = furniture.getTempData(TRACKED_HITBOXES);
-        if (trackedHitboxes == null || !trackedHitboxes.contains(hitBox)) {
+        if (trackedHitboxes != null && !trackedHitboxes.contains(hitBox)) {
             return InteractionResult.TRY_EMPTY_HAND;
         }
         Item displayItem = displayItem(furniture);
@@ -146,13 +146,15 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     @Override
     public void createFurnitureHitboxes(Furniture furniture, Consumer<FurnitureHitBox> consumer) {
         VariantRule variantRule = relatives.get(furniture.getCurrentVariant().name());
-        HashSet<FurnitureHitBox> trackedHitBoxes = new HashSet<>();
-        for (FurnitureHitBoxConfig<? extends FurnitureHitBox> hitBoxConfig : variantRule.hitBoxConfigs) {
-            FurnitureHitBox furnitureHitBox = hitBoxConfig.create(furniture);
-            trackedHitBoxes.add(furnitureHitBox);
-            consumer.accept(furnitureHitBox);
+        if (variantRule != null && !variantRule.hitBoxConfigs.isEmpty()) {
+            HashSet<FurnitureHitBox> trackedHitBoxes = new HashSet<>();
+            for (FurnitureHitBoxConfig<? extends FurnitureHitBox> hitBoxConfig : variantRule.hitBoxConfigs) {
+                FurnitureHitBox furnitureHitBox = hitBoxConfig.create(furniture);
+                trackedHitBoxes.add(furnitureHitBox);
+                consumer.accept(furnitureHitBox);
+            }
+            furniture.putTempData(TRACKED_HITBOXES, trackedHitBoxes);
         }
-        furniture.putTempData(TRACKED_HITBOXES, trackedHitBoxes);
     }
 
     // 获取存储的展示物品

@@ -16,16 +16,7 @@ items:
               put: minecraft:block.decorated_pot.insert
               take: minecraft:block.decorated_pot.insert_fail
             variants:
-              ground:
-                item_position: 0,0.07,0
-                hitboxes:
-                  - position: 0,0,0
-                    type: shulker
-                    peek: 28
-                    scale: 0.75
-                    blocks_building: true
-                    interactive: true
-                    interaction_entity: true
+              ground::item_position: 0,0.07,0
         settings:
           item: default:showcase
           hit_times: 3
@@ -40,7 +31,14 @@ items:
               - type: item_display
                 item: default:showcase
                 position: 0,0.5,0
-            hitboxes: []
+            hitboxes:
+              - position: 0,0,0
+                type: shulker
+                peek: 28
+                scale: 0.75
+                blocks_building: true
+                interactive: true
+                interaction_entity: true
         loot:
           template: default:loot_table/furniture
           arguments:
