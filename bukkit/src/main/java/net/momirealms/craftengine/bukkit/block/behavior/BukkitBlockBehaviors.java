@@ -55,7 +55,7 @@ public final class BukkitBlockBehaviors extends BlockBehaviors {
     public static final BlockBehaviorType<SpreadingBlockBehavior> SPREADING_BLOCK = register(Key.ce("spreading_block"), SpreadingBlockBehavior.FACTORY);
     public static final BlockBehaviorType<ItemFrameBlockBehavior> ITEM_FRAME_BLOCK = register(Key.ce("item_frame_block"), ItemFrameBlockBehavior.FACTORY);
     public static final BlockBehaviorType<BedBlockBehavior> BED_BLOCK = register(Key.ce("bed_block"), BedBlockBehavior.FACTORY);
-    public static final BlockBehaviorType<DisplayItemBehavior> DISPLAY_ITEM = register(Key.ce("display_item"), DisplayItemBehavior.FACTORY);
+    public static final BlockBehaviorType<DisplayItemBlockBehavior> DISPLAY_ITEM = register(Key.ce("display_item"), DisplayItemBlockBehavior.FACTORY);
 
     public static void init() {
     }

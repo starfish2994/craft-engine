@@ -59,9 +59,9 @@ public class DisplayItemEntity extends BlockEntity {
     // 放入方块内的展示物品
     public void putDisplayItem(Item inputItem, Player player) {
         this.displayItem = inputItem;
-        if (cachedRenderer != null) {
-            cachedRenderer.displayItem(inputItem);
-            cachedRenderer.update(player);
+        if (this.cachedRenderer != null) {
+            this.cachedRenderer.displayItem(inputItem);
+            this.cachedRenderer.update(player);
         }
     }
 
@@ -69,9 +69,9 @@ public class DisplayItemEntity extends BlockEntity {
     public Item takeDisplayItem(Player player) {
         Item temp = this.displayItem;
         this.displayItem = null;
-        if (cachedRenderer != null) {
-            cachedRenderer.displayItem(BukkitItemManager.instance().emptyItem());
-            cachedRenderer.update(player);
+        if (this.cachedRenderer != null) {
+            this.cachedRenderer.displayItem(BukkitItemManager.instance().emptyItem());
+            this.cachedRenderer.update(player);
         }
         return temp;
     }
@@ -88,12 +88,12 @@ public class DisplayItemEntity extends BlockEntity {
         }
         double angleRad = Math.toRadians(angleDeg);
 
-        float x = -relative.x();
-        float z = relative.z();
+        float x = -relative.x;
+        float z = relative.z;
         double rotatedX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
         double rotatedZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
 
-        this.displayItemPosition = new WorldPosition(world.world(), blockCenter.x + rotatedX, blockCenter.y + relative.y, blockCenter.z + rotatedZ);
+        this.displayItemPosition = new WorldPosition(world.world(), this.blockCenter.x + rotatedX, this.blockCenter.y + this.relative.y, this.blockCenter.z + rotatedZ);
         this.cachedRenderer = new DynamicDropItemRenderer(displayItem(), this.displayItemPosition);
         return cachedRenderer;
     }
@@ -112,7 +112,7 @@ public class DisplayItemEntity extends BlockEntity {
     @Override
     protected void saveCustomData(CompoundTag tag) {
         if (!ItemUtils.isEmpty(displayItem)) {
-            tag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(displayItem.getMinecraftItem()));
+            tag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.getMinecraftItem()));
         }
     }
 
@@ -120,7 +120,7 @@ public class DisplayItemEntity extends BlockEntity {
     @Override
     public void preRemove() {
         if (!ItemUtils.isEmpty(displayItem)) {
-            super.world.world().dropItemNaturally(this.displayItemPosition, displayItem);
+            super.world.world().dropItemNaturally(this.displayItemPosition, this.displayItem);
         }
         this.displayItem = null;
     }

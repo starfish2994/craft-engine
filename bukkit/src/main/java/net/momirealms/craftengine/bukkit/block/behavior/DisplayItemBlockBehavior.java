@@ -28,8 +28,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-public class DisplayItemBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
-    public static final BlockBehaviorFactory<DisplayItemBehavior> FACTORY = new Factory();
+public class DisplayItemBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
+    public static final BlockBehaviorFactory<DisplayItemBlockBehavior> FACTORY = new Factory();
     public final SoundData putSound;
     public final SoundData takeSound;
     public final boolean hasAnalogOutputSignal;
@@ -37,12 +37,12 @@ public class DisplayItemBehavior extends BukkitBlockBehavior implements EntityBl
     @Nullable
     public final Property<HorizontalDirection> directionProperty;
 
-    public DisplayItemBehavior(CustomBlock customBlock,
-                               SoundData putSound,
-                               SoundData takeSound,
-                               boolean hasAnalogOutputSignal,
-                               Vector3f relative,
-                               @Nullable Property<HorizontalDirection> directionProperty
+    public DisplayItemBlockBehavior(CustomBlock customBlock,
+                                    SoundData putSound,
+                                    SoundData takeSound,
+                                    boolean hasAnalogOutputSignal,
+                                    Vector3f relative,
+                                    @Nullable Property<HorizontalDirection> directionProperty
     ) {
         super(customBlock);
         this.putSound = putSound;
@@ -119,11 +119,11 @@ public class DisplayItemBehavior extends BukkitBlockBehavior implements EntityBl
         return this.hasAnalogOutputSignal;
     }
 
-    private static class Factory implements BlockBehaviorFactory<DisplayItemBehavior> {
+    private static class Factory implements BlockBehaviorFactory<DisplayItemBlockBehavior> {
         private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
 
         @Override
-        public DisplayItemBehavior create(CustomBlock block, ConfigSection section) {
+        public DisplayItemBlockBehavior create(CustomBlock block, ConfigSection section) {
             // 读取展示相对位置
             Vector3f relative = section.getVector3f("relative", ConfigConstants.CENTER_VECTOR3);
             // 读取放入取出音效
@@ -136,7 +136,7 @@ public class DisplayItemBehavior extends BukkitBlockBehavior implements EntityBl
             }
             // 获取方向
             Property<HorizontalDirection> facing = BlockBehaviorFactory.getOptionalProperty(block, "facing", HorizontalDirection.class);
-            return new DisplayItemBehavior(
+            return new DisplayItemBlockBehavior(
                     block,
                     putSound,
                     takeSound,
