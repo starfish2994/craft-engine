@@ -2,16 +2,11 @@ package net.momirealms.craftengine.bukkit.plugin.network.handler;
 
 import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitCustomProjectile;
-import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
-import net.momirealms.craftengine.core.item.CustomItem;
-import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
@@ -29,7 +24,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.PositionMoveRotat
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public final class ProjectilePacketHandler implements EntityPacketHandler {
@@ -113,10 +107,10 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
 
         // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承.
         Item item = this.projectile.item();
-        Object itemEnchantments = item.getExactComponent(DataComponentTypes.ENCHANTMENTS);
-        Object itemGlint = item.getExactComponent(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
-        displayedItem.setExactComponent(DataComponentTypes.ENCHANTMENTS, itemEnchantments);
-        displayedItem.setExactComponent(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, itemGlint);
+        item.enchantments().ifPresent(displayedItem::setEnchantments);
+        if (VersionHelper.isOrAbove1_20_5()) {
+            displayedItem.setEnchantmentGlintOverride(item.enchantmentGlintOverride());
+        }
 
         ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);
         ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(meta.translation(), itemDisplayValues);

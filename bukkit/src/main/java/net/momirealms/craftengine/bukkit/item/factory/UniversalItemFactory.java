@@ -23,6 +23,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.Tag;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.inventory.ItemFlag;
@@ -242,6 +243,14 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
         item.setTag(tags, "StoredEnchantments");
     }
 
+    @Override
+    protected boolean enchantmentGlintOverride(LegacyItemWrapper item) {
+        if (this.enchantments(item).isPresent()) {
+            return true;
+        }
+        return item.getBukkitItem().getType().equals(Material.ENCHANTED_BOOK);
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     protected Optional<Enchantment> getEnchantment(LegacyItemWrapper item, Key key) {
@@ -276,6 +285,11 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
             }
         }
         return Optional.of(enchantments);
+    }
+
+    @Override
+    protected void enchantmentGlintOverride(LegacyItemWrapper item, boolean value) {
+        throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override

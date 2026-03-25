@@ -488,6 +488,11 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
+    protected boolean enchantmentGlintOverride(ComponentItemWrapper item) {
+        return item.hasComponent(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
+    }
+
+    @Override
     protected void storedEnchantments(ComponentItemWrapper item, List<Enchantment> enchantments) {
         if (enchantments == null || enchantments.isEmpty()) {
             item.resetComponent(DataComponentTypes.STORED_ENCHANTMENTS);
@@ -497,6 +502,15 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
                 enchants.put(enchantment.id().toString(), enchantment.level());
             }
             item.setJavaComponent(DataComponentTypes.STORED_ENCHANTMENTS, enchants);
+        }
+    }
+
+    @Override
+    protected void enchantmentGlintOverride(ComponentItemWrapper item, boolean value) {
+        if (value) {
+            item.setJavaComponent(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, Map.of());
+        } else {
+            item.resetComponent(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
         }
     }
 

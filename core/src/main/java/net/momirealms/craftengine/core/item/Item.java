@@ -156,9 +156,13 @@ public interface Item {
 
     Optional<List<Enchantment>> storedEnchantments();
 
+    boolean enchantmentGlintOverride();
+
     Item setEnchantments(List<Enchantment> enchantments);
 
     Item setStoredEnchantments(List<Enchantment> enchantments);
+
+    Item setEnchantmentGlintOverride(boolean value);
 
     Item itemFlags(List<String> flags);
 
