@@ -113,7 +113,7 @@ snbt.parser.leading_zero_not_allowed: Decimal numbers can't start with 0
 snbt.parser.infinity_not_allowed: Non-finite numbers are not allowed
 snbt.parser.incorrect: Expected literal <arg:0>
 number.unknown_type: Unknown number type '<arg:0>'
-number.fixed.invalid_expression: Invalid expression '<arg:0>'. (https://ezylang.github.io/EvalEx/references/references.html)
+number.fixed.invalid_expression: Invalid expression '<arg:0>'. https://ezylang.github.io/EvalEx/references/references.html
 number.greater_than: '''<arg:0>'' should be greater than ''<arg:1>'''
 number.no_greater_than: '''<arg:0>'' should be no greater than ''<arg:1>'''
 number.less_than: '''<arg:0>'' should be less than ''<arg:1>'''
@@ -157,13 +157,13 @@ resource.argument.type.double: Double
 resource.argument.type.string: String
 resource.argument.type.enum: One of [<arg:0>]
 resource.argument.type.vec3: Vector3
-resource.argument.type.quaternion: Quaternion (https://quaternions.online/)
+resource.argument.type.quaternion: Quaternion https://quaternions.online/
 resource.argument.type.aabb: Axis-aligned Bounding Box
-resource.argument.type.snbt: SNBT (https://minecraft.wiki/w/NBT_format#SNBT_format)
-resource.argument.type.identifier: Identifier (https://minecraft.wiki/w/Identifier)
+resource.argument.type.snbt: SNBT https://minecraft.wiki/w/NBT_format#SNBT_format
+resource.argument.type.identifier: Identifier https://minecraft.wiki/w/Identifier
 resource.argument.type.list: List
 resource.argument.type.color: Color
-resource.argument.type.number: Number (https://xiao-momi.github.io/craft-engine-wiki/reference/number_format)
+resource.argument.type.number: Number https://xiao-momi.github.io/craft-engine-wiki/reference/number_format
 resource.argument.type.item_model_definition: Item Model Definition
 resource.argument.type.json: Json
 resource.argument.type.any: Any
@@ -177,10 +177,10 @@ resource.argument.parser.double: Cannot parse '<arg:0>' as a high-precision deci
 resource.argument.parser.enum: 'Invalid constant ''<arg:0>''. (Must be one of: [<arg:1>])'
 resource.argument.parser.vec3: Cannot parse '<arg:0>' as a vector. (Expected format 'x,y,z', e.g., 1.5,22,0)
 resource.argument.parser.quaternion: Cannot parse '<arg:0>' as a quaternion. (Expected format 'x,y,z,w', e.g., 0,0,0,1)
-resource.argument.parser.snbt: 'Invalid SNBT format ''<arg:0>''. Details: <arg:1>. (Guide: https://minecraft.wiki/w/NBT_format#SNBT_format)'
+resource.argument.parser.snbt: 'Invalid SNBT format ''<arg:0>''. Details: <arg:1>. Guide: https://minecraft.wiki/w/NBT_format#SNBT_format'
 resource.argument.parser.aabb: Cannot parse '<arg:0>' as an AABB. (Expected two points format 'x1,y1,z1,x2,y2,z2', e.g., 0,0,0,1,1,1)
 resource.argument.parser.blockstate: Cannot parse '<arg:0>' as a blockstate. (e.g., minecraft:wheat[age=3])
-resource.argument.parser.identifier: 'Cannot parse ''<arg:0>'' as an identifier. (Guide: https://minecraft.wiki/w/Identifier#Legal_characters)'
+resource.argument.parser.identifier: 'Cannot parse ''<arg:0>'' as an identifier. Guide: https://minecraft.wiki/w/Identifier#Legal_characters'
 resource.argument.parser.list: Expected to be a list, found '<arg:0>'
 resource.argument.parser.nonempty_list: Expected to be a non-empty list
 resource.argument.parser.fixed_size_list: Expected to be a list with '<arg:0>' element(s)
@@ -216,7 +216,7 @@ resource.furniture.behavior.unknown_type: Unknown furniture behavior type '<arg:
 resource.template.unknown_argument_type: Unknown template argument type '<arg:0>'
 resource.template.invalid_template: Invalid template '<arg:0>'
 resource.template.missing_argument: 'Missing template argument: ''<arg:0>''. Please provide this argument using the ''arguments'' option or set a default value for it'
-resource.block.behavior.missing_property: Behavior requires the block state property '<arg:0>' to be defined. (https://xiao-momi.github.io/craft-engine-wiki/configuration/block/states/properties)
+resource.block.behavior.missing_property: Behavior requires the block state property '<arg:0>' to be defined. https://xiao-momi.github.io/craft-engine-wiki/configuration/block/states/properties
 resource.block.behavior.property_type_mismatch: Expected property typed '<arg:0>', but got '<arg:1>'
 resource.block.behavior.unknown_type: Unknown block behavior type '<arg:0>'
 resource.block.state.property.unknown_type: Unknown property type '<arg:0>'
