@@ -109,7 +109,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         Item item = this.projectile.item();
         item.enchantments().ifPresent(displayedItem::setEnchantments);
         if (VersionHelper.isOrAbove1_20_5()) {
-            displayedItem.setEnchantmentGlintOverride(item.enchantmentGlintOverride());
+            displayedItem.glint(item.glint().orElse(false));
         }
 
         ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);

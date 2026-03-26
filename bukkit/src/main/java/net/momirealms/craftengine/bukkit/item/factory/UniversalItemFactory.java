@@ -243,14 +243,6 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
         item.setTag(tags, "StoredEnchantments");
     }
 
-    @Override
-    protected boolean enchantmentGlintOverride(LegacyItemWrapper item) {
-        if (this.enchantments(item).isPresent()) {
-            return true;
-        }
-        return item.getBukkitItem().getType().equals(Material.ENCHANTED_BOOK);
-    }
-
     @SuppressWarnings("deprecation")
     @Override
     protected Optional<Enchantment> getEnchantment(LegacyItemWrapper item, Key key) {
@@ -285,11 +277,6 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
             }
         }
         return Optional.of(enchantments);
-    }
-
-    @Override
-    protected void enchantmentGlintOverride(LegacyItemWrapper item, boolean value) {
-        throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override

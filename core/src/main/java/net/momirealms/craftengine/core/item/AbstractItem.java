@@ -342,11 +342,6 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public boolean enchantmentGlintOverride() {
-        return this.factory.enchantmentGlintOverride(this.item);
-    }
-
-    @Override
     public Item setEnchantments(List<Enchantment> enchantments) {
         this.factory.enchantments(this.item, enchantments);
         return this;
@@ -359,8 +354,13 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Item setEnchantmentGlintOverride(boolean value) {
-        this.factory.enchantmentGlintOverride(this.item, value);
+    public Optional<Boolean> glint() {
+        return this.factory.glint(this.item);
+    }
+
+    @Override
+    public Item glint(boolean value) {
+        this.factory.glint(this.item, value);
         return this;
     }
 

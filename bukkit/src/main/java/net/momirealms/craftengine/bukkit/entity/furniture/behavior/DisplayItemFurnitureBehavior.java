@@ -233,13 +233,14 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
         @Override
         public void show(Player player) {
+            List<Object> list = new ArrayList<>();
+            ItemEntityData.Item.addEntityData(displayItem(furniture).getMinecraftItem(), list);
+            Object setEntityDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
             player.sendPackets(List.of(
                     this.spawnVehiclePacket,
                     this.spawnPassengerPacket,
                     this.ridePacket,
-                    ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, new ArrayList<>() {{
-                        ItemEntityData.Item.addEntityData(displayItem(furniture).getMinecraftItem(), this);
-                    }})
+                    setEntityDataPacket
             ), false);
         }
 
@@ -250,9 +251,8 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
         @Override
         public void refresh(Player player) {
-            Object changeDisplayItemPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, new ArrayList<>() {{
-                ItemEntityData.Item.addEntityData(displayItem(furniture).getMinecraftItem(), this);
-            }});
+            List<Object> list = MiscUtils.init(new ArrayList<>(), it -> ItemEntityData.Item.addEntityData(displayItem(furniture).getMinecraftItem(), it));
+            Object changeDisplayItemPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
             player.sendPackets(List.of(
                     despawnPassengerPacket, spawnPassengerPacket, ridePacket, changeDisplayItemPacket
             ), false);

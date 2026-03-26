@@ -145,13 +145,9 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract Optional<List<Enchantment>> storedEnchantments(W item);
 
-    protected abstract boolean enchantmentGlintOverride(W item);
-
     protected abstract void enchantments(W item, List<Enchantment> enchantments);
 
     protected abstract void storedEnchantments(W item, List<Enchantment> enchantments);
-
-    protected abstract void enchantmentGlintOverride(W item, boolean value);
 
     protected abstract Optional<Enchantment> getEnchantment(W item, Key key);
 
