@@ -959,7 +959,7 @@ public class BukkitServerPlayer extends Player {
         // 进行实现追踪找到指向的方块
         org.bukkit.entity.Player player = platformPlayer();
         double range = getCachedInteractionRange();
-        RayTraceResult result = rayTrace(new Location(player.getWorld(), this.eyeLocation.x, this.eyeLocation.y, this.eyeLocation.z), range, FluidCollisionMode.NEVER);
+        RayTraceResult result = rayTrace(new Location(player.getWorld(), this.eyeLocation.x, this.eyeLocation.y, this.eyeLocation.z, yRot(), xRot()), range, FluidCollisionMode.NEVER);
         if (result == null) return;
         if (result.getHitEntity() != null) return;
         Block hitBlock = result.getHitBlock();
@@ -1693,8 +1693,8 @@ public class BukkitServerPlayer extends Player {
             Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, player);
             return new Vec3d(mountPos.x, mountPos.y + player.getEyeHeight(), mountPos.z);
         } else {
-            Location location = player.getLocation();
-            return new Vec3d(location.getX(), location.getY() + player.getEyeHeight(), location.getZ());
+            Location location = player.getEyeLocation();
+            return new Vec3d(location.getX(), location.getY(), location.getZ());
         }
     }
 

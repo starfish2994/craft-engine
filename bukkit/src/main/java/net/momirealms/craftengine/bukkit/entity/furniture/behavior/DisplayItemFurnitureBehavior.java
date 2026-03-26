@@ -88,6 +88,9 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         }
         // 检查区域保护权限
         Player player = context.getPlayer();
+        if (player.isSneaking()) {
+            return InteractionResult.PASS;
+        }
         WorldPosition pos = furniture.position();
         Location location = new Location((World) pos.world.platformWorld(), pos.x, pos.y, pos.z);
         if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
