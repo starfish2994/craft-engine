@@ -15,4 +15,4 @@ equipments:
   $$>=1.21.2#flame_elytra:
     default:flame:
       type: component
-      wings: minecraft:entity/equipment/flame
+      wings: minecraft:entity/equipment/wings/flame

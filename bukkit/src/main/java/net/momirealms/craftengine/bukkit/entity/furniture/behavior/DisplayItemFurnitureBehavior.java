@@ -45,7 +45,7 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
+public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     public static final FurnitureBehaviorFactory<DisplayItemFurnitureBehavior> FACTORY = new Factory();
     public static final CustomDataType<Item> DISPLAY_ITEM = new CustomDataType<>();
     public static final CustomDataType<Set<FurnitureHitBox>> TRACKED_HITBOXES = new CustomDataType<>();
@@ -58,10 +58,10 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     @Nullable
     private final SoundData takeSound;
 
-    protected DisplayItemFurnitureBehavior(CustomFurniture furniture,
-                                           @NotNull Map<String, VariantRule> variantRules,
-                                           @Nullable SoundData putSound,
-                                           @Nullable SoundData takeSound
+    private DisplayItemFurnitureBehavior(CustomFurniture furniture,
+                                         @NotNull Map<String, VariantRule> variantRules,
+                                         @Nullable SoundData putSound,
+                                         @Nullable SoundData takeSound
     ) {
         super(furniture);
         this.variantRules = variantRules;
@@ -260,7 +260,7 @@ public class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     }
 
     private static class Factory implements FurnitureBehaviorFactory<DisplayItemFurnitureBehavior> {
-        private static final String[] ITEM_POSITION = new String[] {"item_position", "item_position"};
+        private static final String[] ITEM_POSITION = new String[] {"item_position", "item-position"};
 
         @Override
         public DisplayItemFurnitureBehavior create(CustomFurniture furniture, ConfigSection section) {
