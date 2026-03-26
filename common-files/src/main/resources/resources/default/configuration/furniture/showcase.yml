@@ -11,7 +11,7 @@ items:
           alignment: center
       furniture:
         behaviors:
-          - type: dispaly_item_furniture
+          - type: display_item_furniture
             sounds:
               put: minecraft:block.decorated_pot.insert
               take: minecraft:block.decorated_pot.insert_fail
