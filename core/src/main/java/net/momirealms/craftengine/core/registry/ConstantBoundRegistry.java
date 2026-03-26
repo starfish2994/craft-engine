@@ -15,7 +15,7 @@ public final class ConstantBoundRegistry<T> extends AbstractMappedRegistry<T> {
     private final Map<T, Holder.Reference<T>> byValue;
 
     public ConstantBoundRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize) {
-        super(key, expectedSize);
+        super(key, expectedSize, false);
         this.byValue = new IdentityHashMap<>(expectedSize);
     }
 

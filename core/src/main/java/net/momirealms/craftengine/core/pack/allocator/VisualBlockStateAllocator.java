@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -52,7 +53,11 @@ public final class VisualBlockStateAllocator {
         return CompletableFutures.allOf(this.combinedFutures);
     }
 
-    public synchronized void addCombinedFuture(@Nullable CompletableFuture<?> future) {
+    public List<CompletableFuture<?>> combinedFutures() {
+        return this.combinedFutures;
+    }
+
+    public synchronized void addCombinedFuture(@Nullable CompletableFuture<Void> future) {
         this.combinedFutures.add(future);
     }
 
@@ -165,6 +170,19 @@ public final class VisualBlockStateAllocator {
 
         public AutoStateGroup group() {
             return this.group;
+        }
+
+        @Override
+        public String getMessage() {
+            return toString();
+        }
+
+        @Override
+        public String toString() {
+            return "StateExhaustedException{" +
+                    "group=" + group +
+                    ", appearance='" + appearance + '\'' +
+                    '}';
         }
     }
 

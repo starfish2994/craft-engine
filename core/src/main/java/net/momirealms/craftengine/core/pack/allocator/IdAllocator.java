@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
@@ -58,8 +59,8 @@ public final class IdAllocator {
         this.combinedFutures.clear();
     }
 
-    public CompletableFuture<Void> combinedFuture() {
-        return CompletableFutures.allOf(this.combinedFutures);
+    public List<CompletableFuture<?>> combinedFutures() {
+        return combinedFutures;
     }
 
     public synchronized void addCombinedFuture(@NotNull CompletableFuture<?> future) {
@@ -138,7 +139,7 @@ public final class IdAllocator {
             // 检查ID是否被其他名称占用
             String existingOwner = this.forcedIdMap.inverse().get(id);
             if (existingOwner != null && !existingOwner.equals(name)) {
-                return CompletableFuture.failedFuture(new IdConflictException(existingOwner, id));
+                return CompletableFuture.failedFuture(new CompletionException(new IdConflictException(existingOwner, id)));
             }
 
             this.forcedIdMap.put(name, id);

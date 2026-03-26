@@ -444,7 +444,17 @@ public abstract class AbstractFontManager implements FontManager {
             for (Map.Entry<Key, IdAllocator> entry : this.idAllocators.entrySet()) {
                 IdAllocator allocator = entry.getValue();
                 allocator.processPendingAllocations();
-                allocator.combinedFuture().join();
+                for (CompletableFuture<?> future : allocator.combinedFutures()) {
+                    try {
+                        future.join();
+                    } catch (CompletionException e) {
+                        Throwable cause = e.getCause();
+                        if (cause instanceof IdAllocator.IdExhaustedException || cause instanceof IdAllocator.IdConflictException) {
+                            continue;
+                        }
+                        AbstractFontManager.this.plugin.logger().warn("Error while assigning codepoint for font " + entry.getKey().asString(), e);
+                    }
+                }
                 try {
                     entry.getValue().saveToCache();
                 } catch (IOException e) {
@@ -641,17 +651,18 @@ public abstract class AbstractFontManager implements FontManager {
                         if (t instanceof CompletionException e) {
                             Throwable cause = e.getCause();
                             if (cause instanceof IdAllocator.IdConflictException conflict) {
-                                throw new KnownResourceException("resource.image.codepoint_conflict", section.path(),
+                                error(new KnownResourceException(path, "resource.image.codepoint_conflict",
+                                        section.path(),
                                         CharacterUtils.encodeCharsToUnicode(Character.toChars(conflict.id())),
                                         new String(Character.toChars(conflict.id())),
                                         fontId.asString(),
                                         conflict.previousOwner()
-                                );
+                                ));
                             } else if (cause instanceof IdAllocator.IdExhaustedException) {
-                                throw new KnownResourceException("resource.image.codepoint_exhausted", section.path(), fontId.asString());
+                                error(new KnownResourceException(path, "resource.image.codepoint_exhausted", section.path(), fontId.asString()));
                             }
                         }
-                        throw new RuntimeException("Unknown error occurred", t);
+                        return;
                     }
 
                     int[][] codepointGrid = new int[rows][columns];

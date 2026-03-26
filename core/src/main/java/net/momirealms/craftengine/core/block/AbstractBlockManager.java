@@ -352,14 +352,32 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         @Override
         public void postProcess() {
             AbstractBlockManager.this.internalIdAllocator.processPendingAllocations();
-            AbstractBlockManager.this.internalIdAllocator.combinedFuture().join();
+            for (CompletableFuture<?> future : AbstractBlockManager.this.internalIdAllocator.combinedFutures()) {
+                try {
+                    future.join();
+                } catch (CompletionException e) {
+                    if (e.getCause() instanceof IdAllocator.IdExhaustedException) {
+                        continue;
+                    }
+                    AbstractBlockManager.this.plugin.logger().warn("Error while assigning internal block states", e);
+                }
+            }
             try {
                 AbstractBlockManager.this.internalIdAllocator.saveToCache();
             } catch (IOException e) {
                 AbstractBlockManager.this.plugin.logger().warn("Error while saving custom block states allocation", e);
             }
             AbstractBlockManager.this.visualBlockStateAllocator.processPendingAllocations();
-            AbstractBlockManager.this.visualBlockStateAllocator.combinedFuture().join();
+            for (CompletableFuture<?> future : AbstractBlockManager.this.visualBlockStateAllocator.combinedFutures()) {
+                try {
+                    future.join();
+                } catch (CompletionException e) {
+                    if (e.getCause() instanceof VisualBlockStateAllocator.StateExhaustedException) {
+                        continue;
+                    }
+                    AbstractBlockManager.this.plugin.logger().warn("Error while assigning visual block states", e);
+                }
+            }
             try {
                 AbstractBlockManager.this.visualBlockStateAllocator.saveToCache();
             } catch (IOException e) {
@@ -507,10 +525,10 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                         Throwable cause = e.getCause();
                         // 这里不会有conflict了，因为之前已经判断过了
                         if (cause instanceof IdAllocator.IdExhaustedException) {
-                            throw new KnownResourceException("resource.block.state.real_state_exhausted", stateSection.path());
+                            error(new KnownResourceException(path, "resource.block.state.real_state_exhausted", stateSection.path()));
                         }
                     }
-                    ThrowableUtils.sneakyThrow(t1);
+                    return;
                 }
 
                 // 将自定义状态与nms状态绑定
@@ -598,14 +616,18 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                         if (t2 instanceof CompletionException e) {
                             Throwable cause = e.getCause();
                             if (cause instanceof VisualBlockStateAllocator.StateExhaustedException exhausted) {
-                                throw new KnownResourceException("resource.block.state.visual_state_exhausted",
+                                error(new KnownResourceException(path,
+                                        "resource.block.state.visual_state_exhausted",
+                                        stateSection.path(),
                                         exhausted.group().id(),
                                         String.valueOf(exhausted.group().candidateCount()),
                                         exhausted.appearance()
-                                );
+                                ));
+                                return;
                             }
                         }
-                        ThrowableUtils.sneakyThrow(t2);
+                        // 并不改变 future 结果
+                        return;
                     }
 
                     BlockStateAppearance anyAppearance = null;

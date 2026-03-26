@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -376,8 +377,16 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     AbstractItemManager.this.plugin.logger().warn("Error while saving custom model data allocation for material " + entry.getKey().asString(), e);
                 }
             }
-
-            CompletableFutures.allOf(this.futures).join();
+            for (CompletableFuture<?> future : this.futures) {
+                try {
+                    future.join();
+                } catch (CompletionException e) {
+                    if (e.getCause() instanceof IdAllocator.IdExhaustedException || e.getCause() instanceof IdAllocator.IdConflictException) {
+                        continue;
+                    }
+                    AbstractItemManager.this.plugin.logger().warn("Error while assigning custom model data", e);
+                }
+            }
             this.futures.clear();
 
             // 获取有序的物品id
@@ -512,20 +521,26 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             this.futures.add(customModelDataFuture.whenCompleteAsync((cmd, throwable) -> ResourceConfigUtils.runCatching(path, section.path(), () -> {
                 int customModelData;
                 if (throwable != null) {
-                    // 检测custom model data 冲突
-                    if (throwable instanceof IdAllocator.IdConflictException exception) {
-                        if (section.containsKey(MODEL_KEYS)) {
-                            throw new KnownResourceException("resource.item.custom_model_data_conflict", section.path(), String.valueOf(exception.id()), exception.previousOwner());
+                    if (throwable instanceof CompletionException e) {
+                        // 检测custom model data 冲突
+                        if (e.getCause() instanceof IdAllocator.IdConflictException exception) {
+                            if (section.containsKey(MODEL_KEYS)) {
+                                error(new KnownResourceException(path, "resource.item.custom_model_data_conflict", section.path(), String.valueOf(exception.id()), exception.previousOwner()));
+                                return;
+                            }
+                            customModelData = exception.id();
                         }
-                        customModelData = exception.id();
-                    }
-                    // custom model data 已被用尽，不太可能
-                    else if (throwable instanceof IdAllocator.IdExhaustedException) {
-                        throw new KnownResourceException("resource.item.custom_model_data_exhausted", section.path(), clientBoundMaterial.asString());
-                    } else {
+                        // custom model data 已被用尽，不太可能
+                        else if (e.getCause() instanceof IdAllocator.IdExhaustedException) {
+                            error(new KnownResourceException(path, "resource.item.custom_model_data_exhausted", section.path(), clientBoundMaterial.asString()));
+                            return;
+                        }
                         // 未知错误
-                        ThrowableUtils.sneakyThrow(throwable);
-                        customModelData = cmd;
+                        else {
+                            return;
+                        }
+                    } else {
+                        return;
                     }
                 } else {
                     customModelData = cmd;
