@@ -189,6 +189,13 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         }
     }
 
+    @Override
+    public @Nullable Item getItemToPickup(Furniture furniture, Player player) {
+        Item tempData = furniture.getTempData(DISPLAY_ITEM);
+        if (ItemUtils.isEmpty(tempData)) return null;
+        return tempData;
+    }
+
     public static final class DisplayItemElement implements FurnitureElement {
         public final Furniture furniture;
         public final WorldPosition position;

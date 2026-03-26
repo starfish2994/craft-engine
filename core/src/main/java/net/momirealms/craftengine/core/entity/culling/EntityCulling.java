@@ -152,7 +152,7 @@ public final class EntityCulling {
      * 检测射线与轴对齐边界框(AABB)是否相交
      * 使用slab方法进行射线-AABB相交检测
      */
-    private boolean rayIntersection(int x, int y, int z, Vec3d rayOrigin, MutableVec3d rayDirection) {
+    private boolean rayIntersection(int x, int y, int z, MutableVec3d rayOrigin, MutableVec3d rayDirection) {
         // 计算射线方向的倒数，避免除法运算
         // 这对于处理射线方向分量为0的情况很重要
         MutableVec3d inverseRayDirection = new MutableVec3d(1, 1, 1).divide(rayDirection);
@@ -204,13 +204,13 @@ public final class EntityCulling {
             MutableVec3d currentTarget = targets[targetIndex];
 
             // 计算起点到目标的相对向量（世界坐标差）
-            double deltaX = start.x - currentTarget.x;
-            double deltaY = start.y - currentTarget.y;
-            double deltaZ = start.z - currentTarget.z;
+            double deltaX = currentTarget.x - start.x;
+            double deltaY = currentTarget.y - start.y;
+            double deltaZ = currentTarget.z - start.z;
 
             // 检查之前命中的方块，大概率还是命中
             if (this.canCheckLastHitBlock) {
-                if (rayIntersection(this.lastHitBlock[0], this.lastHitBlock[1], this.lastHitBlock[2], start, new MutableVec3d(deltaX, deltaY, deltaZ).normalize())) {
+                if (rayIntersection(this.lastHitBlock[0], this.lastHitBlock[1], this.lastHitBlock[2], currentTarget, new MutableVec3d(deltaX, deltaY, deltaZ).normalize())) {
                     continue;
                 }
             }
