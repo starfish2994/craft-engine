@@ -362,7 +362,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         initFurniture(bukkitFurniture);
         Location location = display.getLocation();
         runSafeEntityOperation(location, () -> {
-            bukkitFurniture.addCollidersToWorld();;
+            bukkitFurniture.addCollidersToWorld();
             for (FurnitureElement element : bukkitFurniture.elements()) {
                 element.activate();
             }

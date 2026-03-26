@@ -160,6 +160,10 @@ public interface Item {
 
     Item setStoredEnchantments(List<Enchantment> enchantments);
 
+    Optional<Boolean> glint();
+
+    Item glint(boolean value);
+
     Item itemFlags(List<String> flags);
 
     Object getJavaTag(Object... path);

@@ -235,8 +235,11 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
                 // 元素与碰撞箱
                 List<FurnitureElementConfig<? extends FurnitureElement>> elements = variantSection.getList("elements", v -> FurnitureElementConfigs.fromConfig(v.getAsSection()));
-                List<FurnitureHitBoxConfig<? extends FurnitureHitBox>> hitboxes = variantSection.getList("hitboxes", v -> FurnitureHitBoxConfigs.fromConfig(v.getAsSection()));
-                if (hitboxes.isEmpty() && externalModel.isEmpty()) {
+                ConfigValue hitboxValue = variantSection.getValue("hitboxes");
+                List<FurnitureHitBoxConfig<? extends FurnitureHitBox>> hitboxes;
+                if (hitboxValue != null) {
+                    hitboxes = variantSection.getList("hitboxes", v -> FurnitureHitBoxConfigs.fromConfig(v.getAsSection()));
+                } else {
                     hitboxes = List.of(defaultHitBox());
                 }
 

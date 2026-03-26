@@ -456,4 +456,8 @@ public final class BukkitItemManager extends AbstractItemManager {
             player.discoverRecipes(recipesToUnlock);
         }
     }
+
+    public Item emptyItem() {
+        return this.emptyItem;
+    }
 }

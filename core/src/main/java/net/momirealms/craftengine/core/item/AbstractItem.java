@@ -354,6 +354,17 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
+    public Optional<Boolean> glint() {
+        return this.factory.glint(this.item);
+    }
+
+    @Override
+    public Item glint(boolean value) {
+        this.factory.glint(this.item, value);
+        return this;
+    }
+
+    @Override
     public int maxStackSize() {
         return this.factory.maxStackSize(this.item);
     }
