@@ -3,6 +3,8 @@ items:
     material: player_head
     client_bound_data:
       profile: <arg:player.name>
+      hide_tooltip:
+        - minecraft:profile
     model:
       type: minecraft:special
       path: minecraft:item/custom/gui_head_size_1
@@ -19,6 +21,8 @@ items:
     material: player_head
     client_bound_data:
       profile: <arg:player.name>
+      hide_tooltip:
+        - minecraft:profile
     model:
       type: minecraft:special
       path: minecraft:item/custom/gui_head_size_4
