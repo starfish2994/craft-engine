@@ -186,7 +186,7 @@ public class BukkitServerPlayer extends Player {
     // 是否启用实体剔除
     private boolean enableEntityCulling;
     // 玩家眼睛所在位置
-    private Location eyeLocation;
+    private Vec3d eyeLocation;
     // 是否启用家具调试
     private boolean enableFurnitureDebug;
     // 上一次对准的家具
@@ -251,7 +251,7 @@ public class BukkitServerPlayer extends Player {
         this.selectedLocale = TranslationManager.parseLocale(locale);
         this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
         this.entityTypeView = new ConcurrentHashMap<>(256);
-        this.eyeLocation = getEyeLocation();
+        this.eyeLocation = getEyePos();
         try {
             this.cooldownData = CooldownData.fromBytes(bytes);
         } catch (IOException e) {
@@ -636,14 +636,7 @@ public class BukkitServerPlayer extends Player {
 
         // 更新眼睛位置
         {
-            org.bukkit.entity.Player bukkitPlayer = platformPlayer();
-            Location unsureEyeLocation = bukkitPlayer.getEyeLocation();
-            Entity vehicle = bukkitPlayer.getVehicle();
-            if (vehicle != null) {
-                Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, bukkitPlayer);
-                unsureEyeLocation.set(mountPos.x, mountPos.y + bukkitPlayer.getEyeHeight(), mountPos.z);
-            }
-            this.eyeLocation = unsureEyeLocation;
+            this.eyeLocation = getEyePos();
         }
 
         // 本tick内有挥手
@@ -658,7 +651,7 @@ public class BukkitServerPlayer extends Player {
                         // 连续挥手且没被重置
                         if (++this.awfulBreakFixer >= 4) {
                             this.awfulBreakFixer = 0;
-                            RayTraceResult result = rayTrace(this.eyeLocation, getCachedInteractionRange(), FluidCollisionMode.NEVER);
+                            RayTraceResult result = rayTrace(new Location(platformPlayer().getWorld(), this.eyeLocation.x, this.eyeLocation.y, this.eyeLocation.z), getCachedInteractionRange(), FluidCollisionMode.NEVER);
                             if (result != null) {
                                 Entity hitEntity = result.getHitEntity();
                                 if (hitEntity == null) {
@@ -682,8 +675,7 @@ public class BukkitServerPlayer extends Player {
         // 实体剔除更新相机位置
         if (Config.entityCullingRayTracing()) {
             org.bukkit.entity.Player player = platformPlayer();
-            Location eyeLocation = this.eyeLocation.clone();
-            this.firstPersonCameraVec3 = LocationUtils.toVec3d(eyeLocation);
+            this.firstPersonCameraVec3 = this.eyeLocation;
             int distance = 4;
             if (VersionHelper.isOrAbove1_21_6()) {
                 Entity vehicle = player.getVehicle();
@@ -691,7 +683,14 @@ public class BukkitServerPlayer extends Player {
                     distance = 8;
                 }
             }
-            this.thirdPersonCameraVec3 = LocationUtils.toVec3d(eyeLocation.subtract(eyeLocation.getDirection().multiply(distance)));
+
+            float rotX = player.getYaw();
+            float rotY = player.getPitch();
+            float y = -MiscUtils.sin(MiscUtils.toRadians(rotY));
+            float xz = MiscUtils.cos(MiscUtils.toRadians(rotY));
+            float x = -xz * MiscUtils.sin(MiscUtils.toRadians(rotX));
+            float z = xz * MiscUtils.cos(MiscUtils.toRadians(rotX));
+            this.thirdPersonCameraVec3 = this.eyeLocation.subtract(x * distance, y * distance, z * distance);
         }
     }
 
@@ -777,12 +776,12 @@ public class BukkitServerPlayer extends Player {
 
     public boolean canInteractWithBlock(BlockPos pos, double distance) {
         double d = this.getCachedInteractionRange() + distance;
-        return (new AABB(pos)).distanceToSqr(LocationUtils.toVec3d(this.eyeLocation)) < d * d;
+        return (new AABB(pos)).distanceToSqr(this.eyeLocation) < d * d;
     }
 
     public boolean canInteractPoint(Vec3d pos, double distance) {
         double d = this.getCachedInteractionRange() + distance;
-        return Vec3d.distanceToSqr(LocationUtils.toVec3d(this.eyeLocation), pos) < d * d;
+        return Vec3d.distanceToSqr(this.eyeLocation, pos) < d * d;
     }
 
     @Override
@@ -960,7 +959,7 @@ public class BukkitServerPlayer extends Player {
         // 进行实现追踪找到指向的方块
         org.bukkit.entity.Player player = platformPlayer();
         double range = getCachedInteractionRange();
-        RayTraceResult result = rayTrace(this.eyeLocation, range, FluidCollisionMode.NEVER);
+        RayTraceResult result = rayTrace(new Location(player.getWorld(), this.eyeLocation.x, this.eyeLocation.y, this.eyeLocation.z), range, FluidCollisionMode.NEVER);
         if (result == null) return;
         if (result.getHitEntity() != null) return;
         Block hitBlock = result.getHitBlock();
@@ -1679,13 +1678,12 @@ public class BukkitServerPlayer extends Player {
 
     public Location getEyeLocation() {
         org.bukkit.entity.Player player = platformPlayer();
-        Location eyeLocation = player.getEyeLocation();
         Entity vehicle = player.getVehicle();
         if (vehicle != null) {
             Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, player);
-            eyeLocation.set(mountPos.x, mountPos.y + player.getEyeHeight(), mountPos.z);
+            return new Location(player.getWorld(), mountPos.x, mountPos.y + player.getEyeHeight(), mountPos.z);
         }
-        return eyeLocation;
+        return player.getEyeLocation();
     }
 
     public Vec3d getEyePos() {

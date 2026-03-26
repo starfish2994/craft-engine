@@ -397,4 +397,8 @@ public final class MiscUtils {
     public static int growByHalf(int value, int minValue) {
         return (int) Math.max(Math.min((long) value + (value >> 1), 2147483639L), minValue);
     }
+
+    public static float toRadians(float degree) {
+        return degree * DEG_TO_RAD;
+    }
 }
