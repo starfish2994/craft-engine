@@ -9,7 +9,11 @@ import java.util.Objects;
 public final class BlockRegistry<T> extends AbstractMappedRegistry<T> {
 
     public BlockRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize) {
-        super(key, expectedSize, true);
+        super(key, expectedSize);
+    }
+
+    public synchronized Holder.Reference<T> getOrRegisterForHolder(ResourceKey<T> key) {
+        return this.get(key).orElseGet(() -> registerForHolder(key));
     }
 
     @Override

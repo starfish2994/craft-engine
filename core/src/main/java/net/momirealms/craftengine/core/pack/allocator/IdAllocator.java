@@ -182,6 +182,10 @@ public final class IdAllocator {
      * @return 分配结果的Future
      */
     public synchronized CompletableFuture<Integer> requestAutoId(String name) {
+        CompletableFuture<Integer> previousFuture = this.pendingAllocations.get(name);
+        if (previousFuture != null) {
+            return previousFuture;
+        }
         CompletableFuture<Integer> future = new CompletableFuture<>();
         this.pendingAllocations.put(name, future);
         return future;

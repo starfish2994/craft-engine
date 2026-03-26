@@ -6,7 +6,6 @@ import net.momirealms.craftengine.core.util.ResourceKey;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractMappedRegistry<T> implements WritableRegistry<T> {
     protected final ResourceKey<? extends Registry<T>> key;
@@ -14,11 +13,11 @@ public abstract class AbstractMappedRegistry<T> implements WritableRegistry<T> {
     protected final Map<ResourceKey<T>, Holder.Reference<T>> byResourceKey;
     protected final List<Holder.Reference<T>> byId;
 
-    protected AbstractMappedRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize, boolean threadSafe) {
+    protected AbstractMappedRegistry(ResourceKey<? extends Registry<T>> key, int expectedSize) {
         this.key = key;
-        this.byIdentifier = threadSafe ? new ConcurrentHashMap<>(expectedSize) : new HashMap<>(expectedSize);
-        this.byResourceKey = threadSafe ? new ConcurrentHashMap<>(expectedSize) : new HashMap<>(expectedSize);
-        this.byId = threadSafe ? Collections.synchronizedList(new ArrayList<>(expectedSize)) : new ArrayList<>(expectedSize);
+        this.byIdentifier = new HashMap<>(expectedSize);
+        this.byResourceKey = new HashMap<>(expectedSize);
+        this.byId = new ArrayList<>(expectedSize);
     }
 
     @Override
