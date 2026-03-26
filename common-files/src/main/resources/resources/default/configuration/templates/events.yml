@@ -2,6 +2,7 @@ templates:
   default:rotatable_block:
     on: right_click
     conditions:
+      - type: "!has_item"
       - type: expression
         expression: <arg:player.is_sneaking>
     functions:
@@ -19,9 +20,9 @@ templates:
   default:rotatable_furniture_4:
     on: right_click
     conditions:
+      - type: "!has_item"
       - type: expression
         expression: <arg:player.is_sneaking>
-      - type: "!has_item"
     functions:
       - type: update_interaction_tick
       - type: rotate_furniture

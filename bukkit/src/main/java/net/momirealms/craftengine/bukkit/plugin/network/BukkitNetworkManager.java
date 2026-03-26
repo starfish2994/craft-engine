@@ -199,6 +199,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -886,7 +887,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         setUser(channel, user);
     }
 
-    private static void addToPipeline(ChannelPipeline pipeline, PluginChannelEncoder encoder, PluginChannelDecoder decoder) {
+    private void addToPipeline(ChannelPipeline pipeline, PluginChannelEncoder encoder, PluginChannelDecoder decoder) {
         boolean addedDecoder = false;
         String lastPEEncoderName = null;
         List<String> names = pipeline.names();
@@ -912,6 +913,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             String encoderName = pipeline.names().contains("outbound_config") ? "outbound_config" : "encoder";
             pipeline.addBefore(encoderName, PACKET_ENCODER, encoder);
         }
+
+        Debugger.PACKET.debug(() -> "pipelines: " + pipeline.names());
     }
 
     public static boolean isFakeChannel(Object channel) {
