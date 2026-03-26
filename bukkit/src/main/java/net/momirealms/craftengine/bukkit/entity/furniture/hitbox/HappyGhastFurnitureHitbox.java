@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.entity.furniture.Collider;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.collision.AABB;
@@ -51,7 +52,7 @@ public final class HappyGhastFurnitureHitbox extends AbstractFurnitureHitBox {
         this.packets.add(EntityUtils.createUpdatePosPacket(this.entityId, this.pos.x, this.pos.y, this.pos.z, position.yRot, 0, false));
         this.collider = createCollider(furniture.world(), this.pos, aabb, config.hardCollision(), config.blocksBuilding(), config.canBeHitByProjectile());
         this.part = new FurnitureHitboxPart(this.entityId, aabb, this.pos, false);
-        this.despawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(new IntArrayList() {{ add(entityId); }});
+        this.despawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), l -> l.add(this.entityId)));
     }
 
     @Override
