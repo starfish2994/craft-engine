@@ -18,10 +18,7 @@ import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.recipe.*;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
-import net.momirealms.craftengine.core.util.AdventureHelper;
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.UniqueKey;
-import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftServerProxy;
 import net.momirealms.craftengine.proxy.minecraft.resources.FileToIdConverterProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.MinecraftServerProxy;
@@ -166,6 +163,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         }
 
         // 注册配方
+        ExceptionCollector<Exception> collector = new ExceptionCollector<>(Exception.class);
         for (Recipe recipe : super.nativeRecipes) {
             Key id = recipe.id();
             if (isDataPackRecipe(id)) {
@@ -183,7 +181,12 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
                 }
                 super.recipeRegistry.unregister(id);
             }
-            super.recipeRegistry.register(id, RECIPE_GENERATOR.get(recipe.serializerType()).apply(recipe));
+            try {
+                super.recipeRegistry.register(id, RECIPE_GENERATOR.get(recipe.serializerType()).apply(recipe));
+            } catch (Exception e) {
+                collector.add(e);
+            }
+
         }
 
         // 重新注入特殊配方
@@ -206,6 +209,10 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         if (!VersionHelper.isOrAbove1_21_6() || VersionHelper.isFolia()) {
             PlayerListProxy.INSTANCE.reloadRecipeData(CraftServerProxy.INSTANCE.getPlayerList(Bukkit.getServer()));
         }
+
+        Optional.ofNullable(collector.result()).ifPresent(t -> {
+            this.plugin.logger().warn("Failed to load recipes", t);
+        });
     }
 
     @Override

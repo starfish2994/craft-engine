@@ -680,7 +680,13 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     if (textureValue != null) {
                         Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
                         SimplifiedModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
-                        modernModel = simplifiedModelReader.read(textureValue, Optional.ofNullable(modelValue), id);
+                        modernModel = simplifiedModelReader.read(textureValue, Optional.ofNullable(modelValue).map(it -> {
+                            if (it.is(Map.class)) {
+                                ConfigSection modelSection = it.getAsSection();
+                                return modelSection.getValue(new String[] {"path", "model"});
+                            }
+                            return it;
+                        }), id);
                     } else if (modelValue != null) {
                         if (modelValue.is(List.class)) {
                             Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;

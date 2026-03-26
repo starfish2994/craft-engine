@@ -35,7 +35,7 @@ public final class DropExpFunction extends AbstractLootConditionalFunction {
         public DropExpFunction create(ConfigSection section) {
             return new DropExpFunction(
                     section.getList("conditions", CommonConditions::fromConfig),
-                    NumberProviders.fromConfig(section.getNonNullValue(COUNT, ConfigConstants.ARGUMENT_NUMBER))
+                    section.getNonNullNumber(COUNT)
             );
         }
     }

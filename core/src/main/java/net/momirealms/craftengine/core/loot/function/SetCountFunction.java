@@ -37,7 +37,7 @@ public final class SetCountFunction extends AbstractLootConditionalFunction {
         public SetCountFunction create(ConfigSection section) {
             return new SetCountFunction(
                     section.getList("conditions", CommonConditions::fromConfig),
-                    section.getNonNullValue(COUNT, ConfigConstants.ARGUMENT_NUMBER).getAsNumber(),
+                    section.getNonNullNumber(COUNT),
                     section.getBoolean("add")
             );
         }

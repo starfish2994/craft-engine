@@ -19,6 +19,10 @@ public final class ExceptionCollector<T extends Throwable> {
         }
     }
 
+    public @Nullable T result() {
+        return result;
+    }
+
     public void throwIfPresent() throws T {
         if (this.result != null) {
             throw this.result;

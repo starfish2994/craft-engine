@@ -171,7 +171,7 @@ public final class AttributeModifiersProcessor implements SimpleNetworkItemProce
                     ConfigSection displaySection = section.getNonNullSection("display");
                     AttributeModifier.Display.Type displayType = displaySection.getNonNullEnum("type", AttributeModifier.Display.Type.class);
                     if (displayType == AttributeModifier.Display.Type.OVERRIDE) {
-                        display = new PreModifier.PreDisplay(displayType, section.getNonNullString("value"));
+                        display = new PreModifier.PreDisplay(displayType, displaySection.getNonNullString("value"));
                     } else {
                         display = new PreModifier.PreDisplay(displayType, null);
                     }
