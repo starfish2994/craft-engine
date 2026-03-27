@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -30,7 +31,7 @@ public record SoundData(Key id, SoundValue volume, SoundValue pitch) {
     }
 
     public interface SoundValue extends Supplier<Float> {
-        Map<Float, SoundValue> FIXED = new HashMap<>();
+        Map<Float, SoundValue> FIXED = Collections.synchronizedMap(new HashMap<>());
         SoundValue FIXED_1 = new Fixed(1f);
         SoundValue FIXED_0_8 = new Fixed(0.8f);
         SoundValue FIXED_0_75 = new Fixed(0.75f);

@@ -20,8 +20,8 @@ public abstract class AbstractCustomItem implements CustomItem {
     protected final UniqueKey id;
     protected final Key material;
     protected final Key clientBoundMaterial;
-    protected final ItemProcessor[] modifiers;
-    protected final ItemProcessor[] clientBoundModifiers;
+    protected final ItemProcessor[] processors;
+    protected final ItemProcessor[] clientBoundProcessors;
     protected final List<ItemBehavior> behaviors;
     protected final ItemSettings settings;
     protected final Map<EventTrigger, List<Function<Context>>> events;
@@ -29,8 +29,8 @@ public abstract class AbstractCustomItem implements CustomItem {
 
     public AbstractCustomItem(boolean isVanillaItem, UniqueKey id, Key material, Key clientBoundMaterial,
                               List<ItemBehavior> behaviors,
-                              List<ItemProcessor> modifiers,
-                              List<ItemProcessor> clientBoundModifiers,
+                              List<ItemProcessor> processors,
+                              List<ItemProcessor> clientBoundProcessors,
                               ItemSettings settings,
                               Map<EventTrigger, List<Function<Context>>> events,
                               ItemUpdateConfig updater) {
@@ -40,9 +40,9 @@ public abstract class AbstractCustomItem implements CustomItem {
         this.clientBoundMaterial = clientBoundMaterial;
         this.events = events;
         // unchecked cast
-        this.modifiers = modifiers.toArray(new ItemProcessor[0]);
+        this.processors = processors.toArray(new ItemProcessor[0]);
         // unchecked cast
-        this.clientBoundModifiers = clientBoundModifiers.toArray(new ItemProcessor[0]);
+        this.clientBoundProcessors = clientBoundProcessors.toArray(new ItemProcessor[0]);
         this.behaviors = List.copyOf(behaviors);
         this.settings = settings;
         this.updater = updater;
@@ -81,8 +81,8 @@ public abstract class AbstractCustomItem implements CustomItem {
     }
 
     @Override
-    public ItemProcessor[] dataModifiers() {
-        return this.modifiers;
+    public ItemProcessor[] processors() {
+        return this.processors;
     }
 
     @Override
@@ -91,13 +91,13 @@ public abstract class AbstractCustomItem implements CustomItem {
     }
 
     @Override
-    public boolean hasClientBoundDataModifier() {
-        return this.clientBoundModifiers.length != 0;
+    public boolean hasClientBoundProcessor() {
+        return this.clientBoundProcessors.length != 0;
     }
 
     @Override
-    public ItemProcessor[] clientBoundDataModifiers() {
-        return this.clientBoundModifiers;
+    public ItemProcessor[] clientBoundProcessors() {
+        return this.clientBoundProcessors;
     }
 
     @Override

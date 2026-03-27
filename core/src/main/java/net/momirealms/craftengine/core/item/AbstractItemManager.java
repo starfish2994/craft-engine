@@ -577,17 +577,17 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 boolean hasModelSection = modelValue != null || textureValue != null || legacyModelSection != null;
 
                 if (customModelData > 0 && (hasModelSection || forceCustomModelData)) {
-                    if (clientBoundModel) itemBuilder.clientBoundDataModifier(new OverwritableCustomModelDataProcessor(ConstantNumberProvider.constant(customModelData)));
-                    else itemBuilder.dataModifier(new CustomModelDataProcessor(ConstantNumberProvider.constant(customModelData)));
+                    if (clientBoundModel) itemBuilder.clientBoundProcessor(new OverwritableCustomModelDataProcessor(ConstantNumberProvider.constant(customModelData)));
+                    else itemBuilder.dataProcessor(new CustomModelDataProcessor(ConstantNumberProvider.constant(customModelData)));
                 }
                 if (itemModel != null && (hasModelSection || forceItemModel)) {
-                    if (clientBoundModel) itemBuilder.clientBoundDataModifier(new OverwritableItemModelProcessor(itemModel));
-                    else itemBuilder.dataModifier(new ItemModelProcessor(itemModel));
+                    if (clientBoundModel) itemBuilder.clientBoundProcessor(new OverwritableItemModelProcessor(itemModel));
+                    else itemBuilder.dataProcessor(new ItemModelProcessor(itemModel));
                 }
 
                 // 应用物品数据
                 try {
-                    ItemProcessors.collectProcessors(section.getSection("data"), itemBuilder::dataModifier);
+                    ItemProcessors.collectProcessors(section.getSection("data"), itemBuilder::dataProcessor);
                 } catch (KnownResourceException e) {
                     error(e, path);
                 }
@@ -595,7 +595,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 // 应用客户端侧数据
                 try {
                     if (VersionHelper.PREMIUM) {
-                        ItemProcessors.collectProcessors(section.getSection(CLIENT_BOUND_DATA), itemBuilder::clientBoundDataModifier);
+                        ItemProcessors.collectProcessors(section.getSection(CLIENT_BOUND_DATA), itemBuilder::clientBoundProcessor);
                     }
                 } catch (KnownResourceException e) {
                     error(e, path);
@@ -603,7 +603,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
                 // 如果不是原版物品，那么加入ce的标识符
                 if (!isVanillaItem)
-                    itemBuilder.dataModifier(new IdProcessor(id));
+                    itemBuilder.dataProcessor(new IdProcessor(id));
 
                 // 事件
                 Map<EventTrigger, List<net.momirealms.craftengine.core.plugin.context.function.Function<Context>>> events = new EnumMap<>(EventTrigger.class);
@@ -649,7 +649,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     }
                     ItemUpdateConfig config = new ItemUpdateConfig(versions);
                     itemBuilder.updater(config);
-                    itemBuilder.dataModifier(new ItemVersionProcessor(config.maxVersion()));
+                    itemBuilder.dataProcessor(new ItemVersionProcessor(config.maxVersion()));
                 }
 
                 // 构建自定义物品

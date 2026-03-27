@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.item.processor;
 
 import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.data.Enchantment;
+import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -101,7 +102,7 @@ public final class EnchantmentsProcessor implements SimpleNetworkItemProcessor {
             }
             List<Enchantment> enchantments = new ArrayList<>();
             for (String enchantment : enchantSection.keySet()) {
-                enchantments.add(new Enchantment(Key.of(enchantment), enchantSection.getInt(enchantment)));
+                enchantments.add(new Enchantment(Key.of(enchantment), enchantSection.getNonNullValue(enchantment, ConfigConstants.ARGUMENT_INT, v -> v.getAsInt(1, 255))));
             }
             return new EnchantmentsProcessor(enchantments, merge);
         }

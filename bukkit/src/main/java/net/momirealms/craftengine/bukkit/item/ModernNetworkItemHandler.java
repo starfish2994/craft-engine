@@ -180,7 +180,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             forceReturn = true;
         }
         // 没有 client-bound-data
-        if (!customItem.hasClientBoundDataModifier()) {
+        if (!customItem.hasClientBoundProcessor()) {
             if (!Config.interceptItem()) {
                 return forceReturn ? Optional.of(wrapped) : Optional.empty();
             }
@@ -204,7 +204,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
         // 准备阶段
         CompoundTag tag = new CompoundTag();
-        for (ItemProcessor modifier : customItem.clientBoundDataModifiers()) {
+        for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
             modifier.prepareNetworkItem(original, context, tag);
         }
         // 如果拦截物品的描述名称等
@@ -223,7 +223,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             }
         }
         // 应用阶段
-        for (ItemProcessor modifier : customItem.clientBoundDataModifiers()) {
+        for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
             modifier.apply(wrapped, context);
         }
         // 如果tag不空，则需要返回

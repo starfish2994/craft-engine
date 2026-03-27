@@ -35,11 +35,11 @@ public interface CustomItem extends BuildableItem {
 
     Key clientBoundMaterial();
 
-    ItemProcessor[] dataModifiers();
+    ItemProcessor[] processors();
 
-    boolean hasClientBoundDataModifier();
+    boolean hasClientBoundProcessor();
 
-    ItemProcessor[] clientBoundDataModifiers();
+    ItemProcessor[] clientBoundProcessors();
 
     ItemSettings settings();
 
@@ -63,13 +63,13 @@ public interface CustomItem extends BuildableItem {
 
         Builder material(Key material);
 
-        Builder dataModifier(ItemProcessor modifier);
+        Builder dataProcessor(ItemProcessor modifier);
 
-        Builder dataModifiers(List<ItemProcessor> modifiers);
+        Builder dataProcessors(List<ItemProcessor> modifiers);
 
-        Builder clientBoundDataModifier(ItemProcessor modifier);
+        Builder clientBoundProcessor(ItemProcessor modifier);
 
-        Builder clientBoundDataModifiers(List<ItemProcessor> modifiers);
+        Builder clientBoundProcessors(List<ItemProcessor> modifiers);
 
         Builder behavior(ItemBehavior behavior);
 

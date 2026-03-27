@@ -42,7 +42,7 @@ public final class BukkitCustomItem extends AbstractCustomItem {
     public BukkitItem buildItem(ItemBuildContext context, int count) {
         ItemStack item = ItemStackUtils.getBukkitStack(ItemStackProxy.INSTANCE.newInstance(this.item, count));
         BukkitItem wrapped = BukkitItemManager.instance().wrap(item);
-        for (ItemProcessor modifier : dataModifiers()) {
+        for (ItemProcessor modifier : processors()) {
             modifier.apply(wrapped, context);
         }
         return wrapped;
@@ -93,8 +93,8 @@ public final class BukkitCustomItem extends AbstractCustomItem {
         private final Object clientBoundItem;
         private final Map<EventTrigger, List<Function<Context>>> events = new EnumMap<>(EventTrigger.class);
         private final List<ItemBehavior> behaviors = new ArrayList<>(4);
-        private final List<ItemProcessor> modifiers = new ArrayList<>(4);
-        private final List<ItemProcessor> clientBoundModifiers = new ArrayList<>(4);
+        private final List<ItemProcessor> processors = new ArrayList<>(4);
+        private final List<ItemProcessor> clientBoundProcessors = new ArrayList<>(4);
         private ItemSettings settings;
         private ItemUpdateConfig updater;
 
@@ -128,26 +128,26 @@ public final class BukkitCustomItem extends AbstractCustomItem {
         }
 
         @Override
-        public Builder dataModifier(ItemProcessor modifier) {
-            this.modifiers.add(modifier);
+        public Builder dataProcessor(ItemProcessor modifier) {
+            this.processors.add(modifier);
             return this;
         }
 
         @Override
-        public Builder dataModifiers(List<ItemProcessor> modifiers) {
-            this.modifiers.addAll(modifiers);
+        public Builder dataProcessors(List<ItemProcessor> modifiers) {
+            this.processors.addAll(modifiers);
             return this;
         }
 
         @Override
-        public Builder clientBoundDataModifier(ItemProcessor modifier) {
-            this.clientBoundModifiers.add(modifier);
+        public Builder clientBoundProcessor(ItemProcessor modifier) {
+            this.clientBoundProcessors.add(modifier);
             return this;
         }
 
         @Override
-        public Builder clientBoundDataModifiers(List<ItemProcessor> modifiers) {
-            this.clientBoundModifiers.addAll(modifiers);
+        public Builder clientBoundProcessors(List<ItemProcessor> modifiers) {
+            this.clientBoundProcessors.addAll(modifiers);
             return null;
         }
 
@@ -183,10 +183,10 @@ public final class BukkitCustomItem extends AbstractCustomItem {
 
         @Override
         public CustomItem build() {
-            this.modifiers.addAll(this.settings.processors());
-            this.clientBoundModifiers.addAll(this.settings.clientBoundProcessors());
+            this.processors.addAll(this.settings.processors());
+            this.clientBoundProcessors.addAll(this.settings.clientBoundProcessors());
             return new BukkitCustomItem(this.isVanillaItem, this.id, this.item, this.clientBoundItem, this.itemKey, this.clientBoundItemKey, List.copyOf(this.behaviors),
-                    List.copyOf(this.modifiers), List.copyOf(this.clientBoundModifiers), this.settings, this.events, updater);
+                    List.copyOf(this.processors), List.copyOf(this.clientBoundProcessors), this.settings, this.events, updater);
         }
     }
 }

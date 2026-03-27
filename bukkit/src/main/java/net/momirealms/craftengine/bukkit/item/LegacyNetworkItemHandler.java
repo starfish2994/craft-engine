@@ -206,7 +206,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         }
 
         // 没有客户端侧组件
-        if (!customItem.hasClientBoundDataModifier()) {
+        if (!customItem.hasClientBoundProcessor()) {
             if (!Config.interceptItem()) {
                 return forceReturn ? Optional.of(wrapped) : Optional.empty();
             }
@@ -228,7 +228,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
             context = NetworkItemBuildContext.of(player);
         }
         // 准备阶段
-        for (ItemProcessor modifier : customItem.clientBoundDataModifiers()) {
+        for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
             modifier.prepareNetworkItem(wrapped, context, tag);
         }
         // 如果拦截物品的描述名称等
@@ -241,7 +241,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
             }
         }
         // 应用阶段
-        for (ItemProcessor modifier : customItem.clientBoundDataModifiers()) {
+        for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
             modifier.apply(wrapped, context);
         }
         // 如果tag不空，则需要返回
