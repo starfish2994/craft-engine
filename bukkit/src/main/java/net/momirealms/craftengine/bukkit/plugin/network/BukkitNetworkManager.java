@@ -4179,7 +4179,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                                         0
                                 );
                                 try {
-                                    ServerLevelProxy.INSTANCE.setBlock(serverLevel, BlockProxy.INSTANCE.getDefaultBlockState(BlocksProxy.COBWEB), previousBlockState, UpdateFlags.UPDATE_INVISIBLE);
+                                    ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, BlockProxy.INSTANCE.getDefaultBlockState(BlocksProxy.COBWEB), UpdateFlags.UPDATE_INVISIBLE);
                                     ServerboundUseItemOnPacketProxy.INSTANCE.setTimestamp(useItemPacket, System.currentTimeMillis());
                                     ServerGamePacketListenerImplProxy.INSTANCE.handleUseItemOn(ServerPlayerProxy.INSTANCE.getConnection(nmsPlayer), useItemPacket);
                                 } finally {
