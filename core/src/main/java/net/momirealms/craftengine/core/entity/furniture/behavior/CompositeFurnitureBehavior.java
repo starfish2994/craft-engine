@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 // 复合家具行为
 @ApiStatus.Experimental
 public class CompositeFurnitureBehavior extends FurnitureBehavior {
-
     public final FurnitureBehavior[] furnitureBehaviors;
 
     public CompositeFurnitureBehavior(CustomFurniture furniture, List<FurnitureBehavior> furnitureBehaviors) {
@@ -30,11 +29,108 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
 
     @Override
     public Handler createHandler(Furniture furniture) {
-        Handler[] handlers = new Handler[furnitureBehaviors.length];
-        for (int i = 0; i < furnitureBehaviors.length; i++) {
-            handlers[i] = furnitureBehaviors[i].createHandler(furniture);
+        // 双行为处理器
+        if (furnitureBehaviors.length == 2) {
+            return new DoubleHandler(
+                    furniture,
+                    furnitureBehaviors[0].createHandler(furniture),
+                    furnitureBehaviors[1].createHandler(furniture)
+            );
         }
-        return new CompositeHandler(furniture, handlers);
+        // 复合行为处理器
+        else {
+            Handler[] handlers = new Handler[furnitureBehaviors.length];
+            for (int i = 0; i < furnitureBehaviors.length; i++) {
+                handlers[i] = furnitureBehaviors[i].createHandler(furniture);
+            }
+            return new CompositeHandler(furniture, handlers);
+        }
+    }
+
+    // 双家具行为处理器
+    public static class DoubleHandler extends Handler {
+        protected final Handler first;
+        protected final Handler second;
+
+        public DoubleHandler(Furniture furniture, Handler first, Handler second) {
+            super(furniture);
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
+            FurnitureTicker<Furniture> firstFurnitureTicker = this.first.createFurnitureTicker();
+            FurnitureTicker<Furniture> secondFurnitureTicker = this.second.createFurnitureTicker();
+            return furniture -> {
+                firstFurnitureTicker.tick(furniture);
+                secondFurnitureTicker.tick(furniture);
+            };
+        }
+
+        @Override
+        public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
+            FurnitureTicker<Furniture> firstFurnitureTicker = this.first.createAsyncFurnitureTicker();
+            FurnitureTicker<Furniture> secondFurnitureTicker = this.second.createAsyncFurnitureTicker();
+            return furniture -> {
+                firstFurnitureTicker.tick(furniture);
+                secondFurnitureTicker.tick(furniture);
+            };
+        }
+
+        @Override
+        public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
+            InteractionResult result = this.first.useOnFurniture(hitBox, context);
+            return result == InteractionResult.PASS ? this.second.useOnFurniture(hitBox, context) : result;
+        }
+
+        @Override
+        public InteractionResult useWithoutItem(InteractEntityContext context) {
+            InteractionResult result = this.first.useWithoutItem(context);
+            return result == InteractionResult.PASS ? this.second.useWithoutItem(context) : result;
+        }
+
+        @Override
+        public void createFurnitureElements(Consumer<FurnitureElement> register) {
+            this.first.createFurnitureElements(register);
+            this.second.createFurnitureElements(register);
+        }
+
+        @Override
+        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> register) {
+            this.first.createFurnitureHitboxes(register);
+            this.second.createFurnitureHitboxes(register);
+        }
+
+        @Override
+        public void onDestroy() {
+            this.first.onDestroy();
+            this.second.onDestroy();
+        }
+
+        @Override
+        public void onPlace(UseOnContext context) {
+            this.first.onPlace(context);
+            this.second.onPlace(context);
+        }
+
+        @Override
+        public void onUnload() {
+            this.first.onUnload();
+            this.second.onUnload();
+        }
+
+        @Override
+        public void onLoad() {
+            this.first.onLoad();
+            this.second.onLoad();
+        }
+
+        @Override
+        public @Nullable Item getItemToPickup(Player player) {
+            Item firstItemToPickup = this.first.getItemToPickup(player);
+            return firstItemToPickup != null ? firstItemToPickup : this.second.getItemToPickup(player);
+        }
     }
 
     // 复合家具行为处理器
@@ -79,7 +175,7 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
             InteractionResult result = InteractionResult.TRY_EMPTY_HAND;
             for (int i = 0; i < handlers.length; i++) {
                 result = handlers[i].useOnFurniture(hitBox, context);
-                if (result.success()) {
+                if (result != InteractionResult.PASS) {
                     return result;
                 }
             }
@@ -91,7 +187,7 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
             InteractionResult result = InteractionResult.PASS;
             for (int i = 0; i < handlers.length; i++) {
                 result = handlers[i].useWithoutItem(context);
-                if (result.success()) {
+                if (result != InteractionResult.PASS) {
                     return result;
                 }
             }
@@ -152,11 +248,13 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
 
         @Override
         public @Nullable Item getItemToPickup(Player player) {
-            Item itemToPickup = null;
             for (int i = 0; i < handlers.length; i++) {
-                itemToPickup = handlers[i].getItemToPickup(player);
+                Item itemToPickup = handlers[i].getItemToPickup(player);
+                if (itemToPickup != null) {
+                    return itemToPickup;
+                }
             }
-            return itemToPickup;
+            return null;
         }
     }
 }

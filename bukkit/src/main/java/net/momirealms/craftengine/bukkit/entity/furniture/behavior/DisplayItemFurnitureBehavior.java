@@ -99,8 +99,12 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         @Override
         public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
             // 如果配置了追踪碰撞箱, 则检查是不是追踪的碰撞箱, 如果没配置则全部碰撞箱都可以.
-            if (trackedHitboxes != null && !trackedHitboxes.contains(hitBox)) {
-                return InteractionResult.PASS;
+            boolean hitSpecial = false;
+            if (trackedHitboxes != null) {
+                hitSpecial = true;
+                if (!trackedHitboxes.contains(hitBox)) {
+                    return InteractionResult.PASS;
+                }
             }
             // 检查区域保护权限
             Player player = context.getPlayer();
@@ -128,7 +132,8 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
                 this.handleTakeDisplayItem();
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
-            return InteractionResult.PASS;
+            // 如果玩家交互的本身就是特殊的碰撞箱, 则让结果为失败, 不继续传递到下一个行为处理.
+            return hitSpecial ? InteractionResult.FAIL : InteractionResult.PASS;
         }
 
         // 破坏家具时, 掉落存储的展示物品.
