@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
-import net.momirealms.craftengine.core.entity.furniture.EmptyFurniture;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -14,8 +13,6 @@ import net.momirealms.craftengine.core.world.context.UseOnContext;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 // 独立家具行为

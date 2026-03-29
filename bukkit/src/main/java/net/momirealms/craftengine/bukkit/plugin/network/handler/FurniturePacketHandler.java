@@ -3,8 +3,6 @@ package net.momirealms.craftengine.bukkit.plugin.network.handler;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureSnapshotState;
-import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
-import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;

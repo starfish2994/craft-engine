@@ -1,7 +1,5 @@
 package net.momirealms.craftengine.core.world;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Objects;
 
 public final class WorldPosition implements Position {

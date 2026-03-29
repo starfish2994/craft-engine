@@ -8,7 +8,6 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.CollisionUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.entity.furniture.*;
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
@@ -209,7 +208,6 @@ public final class BukkitFurniture extends Furniture {
     public void destroy() {
         try {
             this.handler.onDestroy();
-//            this.config.behavior().onDestroy(this);
         } finally {
             Optional.ofNullable(this.metaEntity.get()).ifPresent(Entity::remove);
             for (Collider entity : super.snapshot.colliders()) {

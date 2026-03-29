@@ -5,7 +5,6 @@ import com.google.common.collect.HashBiMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.momirealms.craftengine.core.util.CompletableFutures;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Pair;
