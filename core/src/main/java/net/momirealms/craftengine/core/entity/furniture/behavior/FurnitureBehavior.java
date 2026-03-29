@@ -59,10 +59,10 @@ public abstract class FurnitureBehavior {
             return InteractionResult.PASS;
         }
 
-        public void createFurnitureElements(Consumer<FurnitureElement> register) {
+        public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
         }
 
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> register) {
+        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
         }
 
         /**
@@ -90,7 +90,7 @@ public abstract class FurnitureBehavior {
         }
 
         @Nullable
-        public Item getItemToPickup(Player player) {
+        public Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
             return null;
         }
     }

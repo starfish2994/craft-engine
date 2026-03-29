@@ -97,13 +97,11 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
         @Override
         public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
-            // 如果配置了追踪碰撞箱, 则检查是不是追踪的碰撞箱, 如果没配置则全部碰撞箱都可以.
-            boolean hitSpecial = false;
-            if (trackedHitboxes != null) {
-                hitSpecial = true;
-                if (!trackedHitboxes.contains(hitBox)) {
-                    return InteractionResult.PASS;
-                }
+            // 如果配置了追踪碰撞箱, 则检查是不是追踪的碰撞箱, 不是则直接PASS不处理;
+            // 如果没配置, 则全部碰撞箱都可以.
+            boolean hasSpecialHitBoxes = (trackedHitboxes != null);
+            if (hasSpecialHitBoxes && !trackedHitboxes.contains(hitBox)) {
+                return InteractionResult.PASS;
             }
             // 检查区域保护权限
             Player player = context.getPlayer();
@@ -131,8 +129,9 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
                 this.handleTakeDisplayItem();
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
-            // 如果玩家交互的本身就是特殊的碰撞箱, 则让结果为失败, 不继续传递到下一个行为处理.
-            return hitSpecial ? InteractionResult.FAIL : InteractionResult.PASS;
+            // 如果交互行为无效, 且交互的是特殊碰撞箱, 则让结果为失败 (不传递给下个行为);
+            // 否则继续传递到下一个行为处理.
+            return hasSpecialHitBoxes ? InteractionResult.FAIL : InteractionResult.PASS;
         }
 
         // 破坏家具时, 掉落存储的展示物品.
@@ -163,24 +162,24 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
         // 根据当前家具变体查找对应的展示物品相对坐标
         @Override
-        public void createFurnitureElements(Consumer<FurnitureElement> register) {
+        public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
             VariantRule variantRule = behavior.variantRules.get(furniture.getCurrentVariant().name());
             if (variantRule != null) {
                 this.displayItemElement = new DisplayItemElement(furniture, this, variantRule.itemRelative);
-                register.accept(this.displayItemElement);
+                consumer.accept(this.displayItemElement);
             }
         }
 
         // 根据当前家具变体查找对应的碰撞箱并创建
         @Override
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> register) {
+        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
             VariantRule variantRule = behavior.variantRules.get(furniture.getCurrentVariant().name());
             if (variantRule != null && !variantRule.hitBoxConfigs.isEmpty()) {
                 this.trackedHitboxes = new HashSet<>();
                 for (FurnitureHitBoxConfig<? extends FurnitureHitBox> hitBoxConfig : variantRule.hitBoxConfigs) {
                     FurnitureHitBox furnitureHitBox = hitBoxConfig.create(furniture);
                     this.trackedHitboxes.add(furnitureHitBox);
-                    register.accept(furnitureHitBox);
+                    consumer.accept(furnitureHitBox);
                 }
             }
         }
@@ -198,8 +197,15 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
-        public @Nullable Item getItemToPickup(Player player) {
+        public @Nullable Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
             if (ItemUtils.isEmpty(savedItem)) return null;
+            boolean hasSpecialHitBoxes = (trackedHitboxes != null);
+            if (hasSpecialHitBoxes) {
+                if (trackedHitboxes.contains(hitBox)) {
+                    return savedItem;
+                }
+                return null;
+            }
             return savedItem;
         }
 

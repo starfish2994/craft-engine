@@ -111,15 +111,15 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
-        public void createFurnitureElements(Consumer<FurnitureElement> register) {
-            this.first.createFurnitureElements(register);
-            this.second.createFurnitureElements(register);
+        public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
+            this.first.createFurnitureElements(consumer);
+            this.second.createFurnitureElements(consumer);
         }
 
         @Override
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> register) {
-            this.first.createFurnitureHitboxes(register);
-            this.second.createFurnitureHitboxes(register);
+        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
+            this.first.createFurnitureHitboxes(consumer);
+            this.second.createFurnitureHitboxes(consumer);
         }
 
         @Override
@@ -147,9 +147,9 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
-        public @Nullable Item getItemToPickup(Player player) {
-            Item firstItemToPickup = this.first.getItemToPickup(player);
-            return firstItemToPickup != null ? firstItemToPickup : this.second.getItemToPickup(player);
+        public @Nullable Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
+            Item firstItemToPickup = this.first.getItemToPickup(player, hitBox);
+            return firstItemToPickup != null ? firstItemToPickup : this.second.getItemToPickup(player, hitBox);
         }
     }
 
@@ -229,16 +229,16 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
-        public void createFurnitureElements(Consumer<FurnitureElement> register) {
+        public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
             for (int i = 0; i < handlers.length; i++) {
-                handlers[i].createFurnitureElements(register);
+                handlers[i].createFurnitureElements(consumer);
             }
         }
 
         @Override
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> register) {
+        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
             for (int i = 0; i < handlers.length; i++) {
-                handlers[i].createFurnitureHitboxes(register);
+                handlers[i].createFurnitureHitboxes(consumer);
             }
         }
 
@@ -271,9 +271,9 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
-        public @Nullable Item getItemToPickup(Player player) {
+        public @Nullable Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
             for (int i = 0; i < handlers.length; i++) {
-                Item itemToPickup = handlers[i].getItemToPickup(player);
+                Item itemToPickup = handlers[i].getItemToPickup(player, hitBox);
                 if (itemToPickup != null) {
                     return itemToPickup;
                 }

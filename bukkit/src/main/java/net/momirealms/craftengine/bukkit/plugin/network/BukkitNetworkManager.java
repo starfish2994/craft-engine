@@ -1421,15 +1421,15 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             }
             BukkitNetworkManager.this.plugin.scheduler().sync().run(() -> {
                 try {
-                    handlePickItemFromEntityOnMainThread((BukkitServerPlayer) user, furniture);
+                    handlePickItemFromEntityOnMainThread((BukkitServerPlayer) user, furniture, furniture.hitboxByEntityId(entityId));
                 } catch (Throwable e) {
                     CraftEngine.instance().logger().warn("Failed to handle ServerboundPickItemFromEntityPacket on region thread", e);
                 }
             }, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
         }
 
-        private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture) throws Throwable {
-            Item item = furniture.handler.getItemToPickup(player);
+        private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture, FurnitureHitBox hitbox) throws Throwable {
+            Item item = furniture.handler.getItemToPickup(player, hitbox);
             Object itemStack;
             if (item == null) {
                 Key itemId = furniture.config().settings().itemId();
