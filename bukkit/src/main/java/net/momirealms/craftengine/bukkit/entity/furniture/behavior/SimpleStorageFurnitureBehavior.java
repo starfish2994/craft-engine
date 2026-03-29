@@ -62,6 +62,7 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
 
     static final class SimpleStorageHandler extends Handler {
         public final SimpleStorageFurnitureBehavior behavior;
+        private ItemStorage storage;
 
         public SimpleStorageHandler(Furniture furniture, SimpleStorageFurnitureBehavior behavior) {
             super(furniture);
@@ -70,8 +71,9 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
 
         @Override
         public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
-            ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
-            if (storage == null) return InteractionResult.SUCCESS_AND_CANCEL;
+            if (storage == null) {
+                return InteractionResult.SUCCESS_AND_CANCEL;
+            }
             BlockPos blockPos = context.getClickedPos();
             World bukkitWorld = (World) context.getLevel().platformWorld();
             Location location = new Location(bukkitWorld, blockPos.x(), blockPos.y(), blockPos.z());
@@ -85,30 +87,25 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
 
         @Override
         public void onDestroy() {
-            ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
-            if (storage == null) return;
-            storage.destroy();
-            furniture.removeTempData(ItemStorage.TYPE);
+            if (storage != null) {
+                storage.destroy();
+            }
         }
 
         @Override
         public void onLoad() {
-            ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
             if (storage == null) {
                 storage = new ItemStorage(furniture, this.behavior);
-                furniture.putTempData(ItemStorage.TYPE, storage);
             }
             storage.load();
         }
 
         @Override
         public void onUnload() {
-            ItemStorage itemStorage = furniture.getTempData(ItemStorage.TYPE);
-            if (itemStorage == null) return;
-            itemStorage.unload();
-            furniture.removeTempData(ItemStorage.TYPE);
+            if (storage != null) {
+                storage.unload();
+            }
         }
-
     }
 
     private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehavior> {

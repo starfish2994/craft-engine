@@ -31,7 +31,7 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
     public Handler createHandler(Furniture furniture) {
         // 双行为处理器
         if (furnitureBehaviors.length == 2) {
-            return new DoubleHandler(
+            return new BiHandler(
                     furniture,
                     furnitureBehaviors[0].createHandler(furniture),
                     furnitureBehaviors[1].createHandler(furniture)
@@ -48,11 +48,11 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
     }
 
     // 双家具行为处理器
-    public static class DoubleHandler extends Handler {
+    public static class BiHandler extends Handler {
         protected final Handler first;
         protected final Handler second;
 
-        public DoubleHandler(Furniture furniture, Handler first, Handler second) {
+        public BiHandler(Furniture furniture, Handler first, Handler second) {
             super(furniture);
             this.first = first;
             this.second = second;
