@@ -4107,7 +4107,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     }
 
                     // 执行家具行为
-                    FurnitureBehavior behavior = furniture.config.behavior();
                     InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
                     InteractionResult result = furniture.handler.useOnFurniture(hitBox, interactEntityContext);
                     if (result.success()) {

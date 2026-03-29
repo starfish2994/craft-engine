@@ -111,7 +111,7 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
             WorldPosition pos = furniture.position();
             Location location = new Location((World) pos.world.platformWorld(), pos.x, pos.y, pos.z);
             if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
-                return InteractionResult.SUCCESS_AND_CANCEL;
+                return InteractionResult.FAIL;
             }
             // 如果当前不存在物品并且手中有物品, 则放入1个物品进去.
             Item itemInHand = context.getItem();

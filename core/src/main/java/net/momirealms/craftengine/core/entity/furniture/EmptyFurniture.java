@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 public final class EmptyFurniture implements CustomFurniture {
@@ -48,7 +49,7 @@ public final class EmptyFurniture implements CustomFurniture {
     }
 
     @Override
-    public @NotNull FurnitureBehavior behavior() {
-        return EmptyFurnitureBehavior.INSTANCE;
+    public @NotNull List<FurnitureBehavior> behaviors() {
+        return List.of(EmptyFurnitureBehavior.INSTANCE);
     }
 }

@@ -61,7 +61,7 @@ public abstract class Furniture implements Cullable {
         this.persistentData = data;
         this.metaDataEntity = metaDataEntity;
         this.metaDataEntityId = metaDataEntity.entityId();
-        this.handler = config.behavior().createHandler(this);
+        this.handler = config.createHandler(this);
         this.setVariantInternal(config.getVariant(data));
         this.sourceItem = data.item().orElse(null);
     }

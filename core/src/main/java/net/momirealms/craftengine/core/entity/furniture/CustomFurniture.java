@@ -44,7 +44,23 @@ public interface CustomFurniture {
     FurnitureVariant getVariant(String variantName);
 
     @NotNull
-    FurnitureBehavior behavior();
+    List<FurnitureBehavior> behaviors();
+
+    default FurnitureBehavior.Handler createHandler(Furniture furniture) {
+        List<FurnitureBehavior> behaviors = this.behaviors();
+        return switch (behaviors.size()) {
+            case 0 -> new FurnitureBehavior.Handler(furniture) {};
+            case 1 -> behaviors.getFirst().createHandler(furniture);
+            case 2 -> new FurnitureBehavior.BiHandler(furniture, behaviors.get(0).createHandler(furniture), behaviors.get(1).createHandler(furniture));
+            default -> {
+                FurnitureBehavior.Handler[] handlers = new FurnitureBehavior.Handler[behaviors.size()];
+                for (int i = 0; i < behaviors.size(); i++) {
+                    handlers[i] = behaviors.get(i).createHandler(furniture);
+                }
+                yield new FurnitureBehavior.CompositeHandler(furniture, handlers);
+            }
+        };
+    }
 
     @NotNull
     default FurnitureVariant getVariant(FurniturePersistentData accessor) {

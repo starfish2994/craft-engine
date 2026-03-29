@@ -79,7 +79,7 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
             Location location = new Location(bukkitWorld, blockPos.x(), blockPos.y(), blockPos.z());
             Player player = context.getPlayer();
             if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
-                return InteractionResult.SUCCESS_AND_CANCEL;
+                return InteractionResult.FAIL;
             }
             storage.onOpen(player);
             return InteractionResult.SUCCESS_AND_CANCEL;
