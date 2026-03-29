@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
+import net.momirealms.craftengine.core.entity.furniture.EmptyFurniture;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -13,74 +14,87 @@ import net.momirealms.craftengine.core.world.context.UseOnContext;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
+// 独立家具行为
 @ApiStatus.Experimental
 public abstract class FurnitureBehavior {
     public final CustomFurniture furniture;
-
     protected FurnitureBehavior(CustomFurniture furniture) {
         this.furniture = furniture;
     }
 
-    /**
-     * Creates a ticker that runs on the main server thread.
-     */
-    public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker(T furniture) {
-        return null;
-    }
-
-    /**
-     * Creates a ticker that runs asynchronously.
-     */
-    public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker(T furniture) {
-        return null;
-    }
-
-    public InteractionResult useOnFurniture(Furniture furniture, FurnitureHitBox hitBox, InteractEntityContext context) {
-        return InteractionResult.TRY_EMPTY_HAND;
-    }
-
-    public InteractionResult useWithoutItem(Furniture furniture, InteractEntityContext context) {
-        return InteractionResult.PASS;
-    }
-
-    public void createFurnitureElements(Furniture furniture, Consumer<FurnitureElement> consumer) {
-    }
-
-    public void createFurnitureHitboxes(Furniture furniture, Consumer<FurnitureHitBox> consumer) {
-    }
-
-    /**
-     * Triggered when the furniture is broken.
-     */
-    public void onDestroy(Furniture furniture) {
-    }
-
-    /**
-     * Triggered when the furniture is first placed in the world.
-     */
-    public void onPlace(Furniture furniture, UseOnContext context) {
-    }
-
-    /**
-     * Triggered when the chunk containing the furniture is unloaded.
-     */
-    public void onUnload(Furniture furniture) {
-    }
-
-    /**
-     * Triggered when the chunk containing the furniture is loaded into the world.
-     */
-    public void onLoad(Furniture furniture) {
-    }
-
-    @Nullable
-    public Item getItemToPickup(Furniture furniture, Player player) {
-        return null;
-    }
-
     public CustomFurniture furniture() {
         return this.furniture;
+    }
+
+    public abstract Handler createHandler(Furniture furniture);
+
+    // 独立家具行为处理器.
+    public static abstract class Handler {
+        protected final Furniture furniture;
+
+        public Handler(Furniture furniture) {
+            this.furniture = furniture;
+        }
+
+        /**
+         * Creates a ticker that runs on the main server thread.
+         */
+        public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
+            return null;
+        }
+
+        /**
+         * Creates a ticker that runs asynchronously.
+         */
+        public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
+            return null;
+        }
+
+        public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
+            return InteractionResult.TRY_EMPTY_HAND;
+        }
+
+        public InteractionResult useWithoutItem(InteractEntityContext context) {
+            return InteractionResult.PASS;
+        }
+
+        public void createFurnitureElements(Consumer<FurnitureElement> register) {
+        }
+
+        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> register) {
+        }
+
+        /**
+         * Triggered when the furniture is broken.
+         */
+        public void onDestroy() {
+        }
+
+        /**
+         * Triggered when the furniture is first placed in the world.
+         */
+        public void onPlace(UseOnContext context) {
+        }
+
+        /**
+         * Triggered when the chunk containing the furniture is unloaded.
+         */
+        public void onUnload() {
+        }
+
+        /**
+         * Triggered when the chunk containing the furniture is loaded into the world.
+         */
+        public void onLoad() {
+        }
+
+        @Nullable
+        public Item getItemToPickup(Player player) {
+            return null;
+        }
     }
 }

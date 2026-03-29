@@ -56,44 +56,59 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
     }
 
     @Override
-    public InteractionResult useOnFurniture(Furniture furniture, FurnitureHitBox hitBox, InteractEntityContext context) {
-        ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
-        if (storage == null) return InteractionResult.SUCCESS_AND_CANCEL;
-        BlockPos blockPos = context.getClickedPos();
-        World bukkitWorld = (World) context.getLevel().platformWorld();
-        Location location = new Location(bukkitWorld, blockPos.x(), blockPos.y(), blockPos.z());
-        Player player = context.getPlayer();
-        if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
+    public Handler createHandler(Furniture furniture) {
+        return new SimpleStorageHandler(furniture, this);
+    }
+
+    static final class SimpleStorageHandler extends Handler {
+        public final SimpleStorageFurnitureBehavior behavior;
+
+        public SimpleStorageHandler(Furniture furniture, SimpleStorageFurnitureBehavior behavior) {
+            super(furniture);
+            this.behavior = behavior;
+        }
+
+        @Override
+        public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
+            ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
+            if (storage == null) return InteractionResult.SUCCESS_AND_CANCEL;
+            BlockPos blockPos = context.getClickedPos();
+            World bukkitWorld = (World) context.getLevel().platformWorld();
+            Location location = new Location(bukkitWorld, blockPos.x(), blockPos.y(), blockPos.z());
+            Player player = context.getPlayer();
+            if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
+                return InteractionResult.SUCCESS_AND_CANCEL;
+            }
+            storage.onOpen(player);
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
-        storage.onOpen(player);
-        return InteractionResult.SUCCESS_AND_CANCEL;
-    }
 
-    @Override
-    public void onDestroy(Furniture furniture) {
-        ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
-        if (storage == null) return;
-        storage.destroy();
-        furniture.removeTempData(ItemStorage.TYPE);
-    }
-
-    @Override
-    public void onLoad(Furniture furniture) {
-        ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
-        if (storage == null) {
-            storage = new ItemStorage(furniture, this);
-            furniture.putTempData(ItemStorage.TYPE, storage);
+        @Override
+        public void onDestroy() {
+            ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
+            if (storage == null) return;
+            storage.destroy();
+            furniture.removeTempData(ItemStorage.TYPE);
         }
-        storage.load();
-    }
 
-    @Override
-    public void onUnload(Furniture furniture) {
-        ItemStorage itemStorage = furniture.getTempData(ItemStorage.TYPE);
-        if (itemStorage == null) return;
-        itemStorage.unload();
-        furniture.removeTempData(ItemStorage.TYPE);
+        @Override
+        public void onLoad() {
+            ItemStorage storage = furniture.getTempData(ItemStorage.TYPE);
+            if (storage == null) {
+                storage = new ItemStorage(furniture, this.behavior);
+                furniture.putTempData(ItemStorage.TYPE, storage);
+            }
+            storage.load();
+        }
+
+        @Override
+        public void onUnload() {
+            ItemStorage itemStorage = furniture.getTempData(ItemStorage.TYPE);
+            if (itemStorage == null) return;
+            itemStorage.unload();
+            furniture.removeTempData(ItemStorage.TYPE);
+        }
+
     }
 
     private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehavior> {

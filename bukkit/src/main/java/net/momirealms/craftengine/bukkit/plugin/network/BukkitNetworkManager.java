@@ -1430,7 +1430,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
 
         private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture) throws Throwable {
-            Item item = furniture.config().behavior().getItemToPickup(furniture, player);
+            Item item = furniture.handler.getItemToPickup(player);
             Object itemStack;
             if (item == null) {
                 Key itemId = furniture.config().settings().itemId();
@@ -4110,13 +4110,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     // 执行家具行为
                     FurnitureBehavior behavior = furniture.config.behavior();
                     InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
-                    InteractionResult result = behavior.useOnFurniture(furniture, hitBox, interactEntityContext);
+                    InteractionResult result = furniture.handler.useOnFurniture(hitBox, interactEntityContext);
                     if (result.success()) {
                         serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                         return;
                     }
                     if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
-                        result = behavior.useWithoutItem(furniture, interactEntityContext);
+                        result = furniture.handler.useWithoutItem(interactEntityContext);
                         if (result.success()) {
                             serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                             return;

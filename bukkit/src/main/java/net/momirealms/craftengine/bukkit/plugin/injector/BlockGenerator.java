@@ -132,8 +132,7 @@ public final class BlockGenerator {
                 .method(ElementMatchers.is(BlockReflections.method$Fallable$onLand))
                 .intercept(MethodDelegation.to(OnLandInterceptor.INSTANCE))
                 // canSurvive
-                .method(ElementMatchers.is(BlockReflections.method$BlockBehaviour$canSurvive)
-                )
+                .method(ElementMatchers.is(BlockReflections.method$BlockBehaviour$canSurvive))
                 .intercept(MethodDelegation.to(CanSurviveInterceptor.INSTANCE))
                 // updateShape
                 .method(ElementMatchers.is(BlockReflections.method$BlockBehaviour$updateShape))
