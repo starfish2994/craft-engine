@@ -59,9 +59,19 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
             FurnitureTicker<Furniture> firstFurnitureTicker = this.first.createFurnitureTicker();
             FurnitureTicker<Furniture> secondFurnitureTicker = this.second.createFurnitureTicker();
+            if (firstFurnitureTicker == null && secondFurnitureTicker == null) {
+                return null;
+            }
+            if (firstFurnitureTicker == null) {
+                return (FurnitureTicker<T>) secondFurnitureTicker;
+            }
+            if (secondFurnitureTicker == null) {
+                return (FurnitureTicker<T>) firstFurnitureTicker;
+            }
             return furniture -> {
                 firstFurnitureTicker.tick(furniture);
                 secondFurnitureTicker.tick(furniture);
@@ -69,9 +79,19 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
             FurnitureTicker<Furniture> firstFurnitureTicker = this.first.createAsyncFurnitureTicker();
             FurnitureTicker<Furniture> secondFurnitureTicker = this.second.createAsyncFurnitureTicker();
+            if (firstFurnitureTicker == null && secondFurnitureTicker == null) {
+                return null;
+            }
+            if (firstFurnitureTicker == null) {
+                return (FurnitureTicker<T>) secondFurnitureTicker;
+            }
+            if (secondFurnitureTicker == null) {
+                return (FurnitureTicker<T>) firstFurnitureTicker;
+            }
             return furniture -> {
                 firstFurnitureTicker.tick(furniture);
                 secondFurnitureTicker.tick(furniture);
@@ -143,31 +163,45 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
-        public void onPlace(UseOnContext context) {
+        @SuppressWarnings("unchecked")
+        public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
+            ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
             for (int i = 0; i < handlers.length; i++) {
-                handlers[i].onPlace(context);
+                FurnitureTicker<T> syncFurnitureTicker = handlers[i].createFurnitureTicker();
+                if (syncFurnitureTicker != null) {
+                    furnitureTickers.add(syncFurnitureTicker);
+                }
             }
+            if (furnitureTickers.isEmpty()) return null;
+            if (furnitureTickers.size() == 1) return furnitureTickers.getFirst();
+            // 新建一个包含所有tick任务的tick任务.
+            FurnitureTicker<T>[] tickers = furnitureTickers.toArray(new FurnitureTicker[0]);
+            return furniture -> {
+                for (int i = 0; i < tickers.length; i++) {
+                    tickers[i].tick(furniture);
+                }
+            };
         }
 
         @Override
-        public void onDestroy() {
+        @SuppressWarnings("unchecked")
+        public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
+            ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
             for (int i = 0; i < handlers.length; i++) {
-                handlers[i].onDestroy();
+                FurnitureTicker<T> asyncFurnitureTicker = handlers[i].createAsyncFurnitureTicker();
+                if (asyncFurnitureTicker != null) {
+                    furnitureTickers.add(asyncFurnitureTicker);
+                }
             }
-        }
-
-        @Override
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> register) {
-            for (int i = 0; i < handlers.length; i++) {
-                handlers[i].createFurnitureHitboxes(register);
-            }
-        }
-
-        @Override
-        public void createFurnitureElements(Consumer<FurnitureElement> register) {
-            for (int i = 0; i < handlers.length; i++) {
-                handlers[i].createFurnitureElements(register);
-            }
+            if (furnitureTickers.isEmpty()) return null;
+            if (furnitureTickers.size() == 1) return furnitureTickers.getFirst();
+            // 新建一个包含所有tick任务的tick任务.
+            FurnitureTicker<T>[] tickers = furnitureTickers.toArray(new FurnitureTicker[0]);
+            return furniture -> {
+                for (int i = 0; i < tickers.length; i++) {
+                    tickers[i].tick(furniture);
+                }
+            };
         }
 
         @Override
@@ -195,41 +229,31 @@ public class CompositeFurnitureBehavior extends FurnitureBehavior {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
-            ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
+        public void createFurnitureElements(Consumer<FurnitureElement> register) {
             for (int i = 0; i < handlers.length; i++) {
-                FurnitureTicker<T> asyncFurnitureTicker = handlers[i].createAsyncFurnitureTicker();
-                if (asyncFurnitureTicker != null) {
-                    furnitureTickers.add(asyncFurnitureTicker);
-                }
+                handlers[i].createFurnitureElements(register);
             }
-            FurnitureTicker<T>[] tickers = furnitureTickers.toArray(new FurnitureTicker[0]);
-            // 新建一个包含所有tick任务的tick任务.
-            return furniture -> {
-                for (int i = 0; i < tickers.length; i++) {
-                    tickers[i].tick(furniture);
-                }
-            };
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
-            ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
+        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> register) {
             for (int i = 0; i < handlers.length; i++) {
-                FurnitureTicker<T> syncFurnitureTicker = handlers[i].createFurnitureTicker();
-                if (syncFurnitureTicker != null) {
-                    furnitureTickers.add(syncFurnitureTicker);
-                }
+                handlers[i].createFurnitureHitboxes(register);
             }
-            FurnitureTicker<T>[] tickers = furnitureTickers.toArray(new FurnitureTicker[0]);
-            // 新建一个包含所有tick任务的tick任务.
-            return furniture -> {
-                for (int i = 0; i < tickers.length; i++) {
-                    tickers[i].tick(furniture);
-                }
-            };
+        }
+
+        @Override
+        public void onDestroy() {
+            for (int i = 0; i < handlers.length; i++) {
+                handlers[i].onDestroy();
+            }
+        }
+
+        @Override
+        public void onPlace(UseOnContext context) {
+            for (int i = 0; i < handlers.length; i++) {
+                handlers[i].onPlace(context);
+            }
         }
 
         @Override
