@@ -318,6 +318,9 @@ public abstract class Furniture implements Cullable {
         } else {
             this.hasExternalModel = false;
         }
+
+        // 触发变体变化
+        this.controller.onVariantChange();
     }
 
     protected abstract FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements,

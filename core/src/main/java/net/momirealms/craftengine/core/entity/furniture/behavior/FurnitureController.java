@@ -45,6 +45,9 @@ public abstract class FurnitureController {
         return InteractionResult.PASS;
     }
 
+    public void onVariantChange() {
+    }
+
     public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
     }
 

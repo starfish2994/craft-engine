@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntity;
-import net.momirealms.craftengine.bukkit.entity.furniture.behavior.SimpleStorageFurnitureBehaviorTemplate;
+import net.momirealms.craftengine.bukkit.entity.furniture.FurnitureInventoryHolder;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
@@ -131,9 +131,8 @@ public final class BukkitGuiManager implements GuiManager, Listener {
                 simpleStorageBlockEntity.onPlayerClose(BukkitAdaptor.adapt(player));
                 return;
             }
-        }
-        if (holder instanceof SimpleStorageFurnitureBehaviorTemplate.ItemStorage itemStorage) {
-            itemStorage.onClose(BukkitAdaptor.adapt(player));
+        } else if (holder instanceof FurnitureInventoryHolder furnitureInventoryHolder) {
+            furnitureInventoryHolder.onClose(BukkitAdaptor.adapt(player));
         }
     }
 
@@ -149,8 +148,8 @@ public final class BukkitGuiManager implements GuiManager, Listener {
                 return;
             }
         }
-        if (holder instanceof SimpleStorageFurnitureBehaviorTemplate.ItemStorage itemStorage) {
-            itemStorage.onClose(BukkitAdaptor.adapt(player));
+        if (holder instanceof FurnitureInventoryHolder furnitureInventoryHolder) {
+            furnitureInventoryHolder.onClose(BukkitAdaptor.adapt(player));
         }
     }
 
