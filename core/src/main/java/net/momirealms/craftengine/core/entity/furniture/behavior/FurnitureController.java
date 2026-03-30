@@ -13,12 +13,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class FurnitureController {
     protected final Furniture furniture;
 
-    public FurnitureController(@NotNull Furniture furniture) {
+    protected FurnitureController(@NotNull Furniture furniture) {
         this.furniture = furniture;
     }
 
@@ -79,41 +80,48 @@ public abstract class FurnitureController {
         return null;
     }
 
-    public static class BiController extends FurnitureController {
-        protected final FurnitureController first;
-        protected final FurnitureController second;
+    public static FurnitureController createController(@NotNull Furniture furniture) {
+        List<FurnitureBehaviorTemplate> behaviors = furniture.config.behaviors();
+        return switch (behaviors.size()) {
+            case 0 -> new EmptyFurnitureBehaviorTemplate.EmptyFurnitureController(furniture);
+            case 1 -> behaviors.getFirst().createController(furniture);
+            case 2 -> new BiController(furniture, behaviors.getFirst().createController(furniture), behaviors.getLast().createController(furniture));
+            default -> {
+                FurnitureController[] controllers = new FurnitureController[behaviors.size()];
+                for (int i = 0; i < behaviors.size(); i++) {
+                    controllers[i] = behaviors.get(i).createController(furniture);
+                }
+                yield new CompositeController(furniture, controllers);
+            }
+        };
+    }
 
-        public BiController(Furniture furniture, FurnitureController first, FurnitureController second) {
+    private static final class BiController extends FurnitureController {
+        private final FurnitureController first;
+        private final FurnitureController second;
+
+        private BiController(Furniture furniture, FurnitureController first, FurnitureController second) {
             super(furniture);
             this.first = first;
             this.second = second;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
             FurnitureTicker<Furniture> firstFurnitureTicker = this.first.createFurnitureTicker();
             FurnitureTicker<Furniture> secondFurnitureTicker = this.second.createFurnitureTicker();
-            if (firstFurnitureTicker == null && secondFurnitureTicker == null) {
-                return null;
-            }
-            if (firstFurnitureTicker == null) {
-                return (FurnitureTicker<T>) secondFurnitureTicker;
-            }
-            if (secondFurnitureTicker == null) {
-                return (FurnitureTicker<T>) firstFurnitureTicker;
-            }
-            return furniture -> {
-                firstFurnitureTicker.tick(furniture);
-                secondFurnitureTicker.tick(furniture);
-            };
+            return gettFurnitureTicker(firstFurnitureTicker, secondFurnitureTicker);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
             FurnitureTicker<Furniture> firstFurnitureTicker = this.first.createAsyncFurnitureTicker();
             FurnitureTicker<Furniture> secondFurnitureTicker = this.second.createAsyncFurnitureTicker();
+            return gettFurnitureTicker(firstFurnitureTicker, secondFurnitureTicker);
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T extends Furniture> FurnitureTicker<T> gettFurnitureTicker(FurnitureTicker<Furniture> firstFurnitureTicker, FurnitureTicker<Furniture> secondFurnitureTicker) {
             if (firstFurnitureTicker == null && secondFurnitureTicker == null) {
                 return null;
             }
@@ -188,10 +196,10 @@ public abstract class FurnitureController {
     }
 
     // 复合家具行为处理器
-    public static class CompositeController extends FurnitureController {
-        protected final FurnitureController[] controllers;
+    private static final class CompositeController extends FurnitureController {
+        private final FurnitureController[] controllers;
 
-        public CompositeController(Furniture furniture, FurnitureController... controllers) {
+        private CompositeController(Furniture furniture, FurnitureController[] controllers) {
             super(furniture);
             this.controllers = controllers;
         }
@@ -200,8 +208,8 @@ public abstract class FurnitureController {
         @SuppressWarnings("unchecked")
         public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
             ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
-            for (int i = 0; i < this.controllers.length; i++) {
-                FurnitureTicker<T> syncFurnitureTicker = this.controllers[i].createFurnitureTicker();
+            for (FurnitureController controller : this.controllers) {
+                FurnitureTicker<T> syncFurnitureTicker = controller.createFurnitureTicker();
                 if (syncFurnitureTicker != null) {
                     furnitureTickers.add(syncFurnitureTicker);
                 }
@@ -211,8 +219,8 @@ public abstract class FurnitureController {
             // 新建一个包含所有tick任务的tick任务.
             FurnitureTicker<T>[] tickers = furnitureTickers.toArray(new FurnitureTicker[0]);
             return furniture -> {
-                for (int i = 0; i < tickers.length; i++) {
-                    tickers[i].tick(furniture);
+                for (FurnitureTicker<T> ticker : tickers) {
+                    ticker.tick(furniture);
                 }
             };
         }
@@ -221,8 +229,8 @@ public abstract class FurnitureController {
         @SuppressWarnings("unchecked")
         public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
             ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
-            for (int i = 0; i < this.controllers.length; i++) {
-                FurnitureTicker<T> asyncFurnitureTicker = this.controllers[i].createAsyncFurnitureTicker();
+            for (FurnitureController controller : this.controllers) {
+                FurnitureTicker<T> asyncFurnitureTicker = controller.createAsyncFurnitureTicker();
                 if (asyncFurnitureTicker != null) {
                     furnitureTickers.add(asyncFurnitureTicker);
                 }
@@ -232,16 +240,16 @@ public abstract class FurnitureController {
             // 新建一个包含所有tick任务的tick任务.
             FurnitureTicker<T>[] tickers = furnitureTickers.toArray(new FurnitureTicker[0]);
             return furniture -> {
-                for (int i = 0; i < tickers.length; i++) {
-                    tickers[i].tick(furniture);
+                for (FurnitureTicker<T> ticker : tickers) {
+                    ticker.tick(furniture);
                 }
             };
         }
 
         @Override
         public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
-            for (int i = 0; i < this.controllers.length; i++) {
-                InteractionResult result = this.controllers[i].useOnFurniture(hitBox, context);
+            for (FurnitureController controller : this.controllers) {
+                InteractionResult result = controller.useOnFurniture(hitBox, context);
                 if (result != InteractionResult.PASS && result != InteractionResult.TRY_EMPTY_HAND) {
                     return result;
                 }
@@ -251,8 +259,8 @@ public abstract class FurnitureController {
 
         @Override
         public InteractionResult useWithoutItem(InteractEntityContext context) {
-            for (int i = 0; i < this.controllers.length; i++) {
-                InteractionResult result = this.controllers[i].useWithoutItem(context);
+            for (FurnitureController controller : this.controllers) {
+                InteractionResult result = controller.useWithoutItem(context);
                 if (result != InteractionResult.PASS) {
                     return result;
                 }
@@ -262,50 +270,50 @@ public abstract class FurnitureController {
 
         @Override
         public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
-            for (int i = 0; i < this.controllers.length; i++) {
-                this.controllers[i].createFurnitureElements(consumer);
+            for (FurnitureController controller : this.controllers) {
+                controller.createFurnitureElements(consumer);
             }
         }
 
         @Override
         public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
-            for (int i = 0; i < this.controllers.length; i++) {
-                this.controllers[i].createFurnitureHitboxes(consumer);
+            for (FurnitureController controller : this.controllers) {
+                controller.createFurnitureHitboxes(consumer);
             }
         }
 
         @Override
         public void onDestroy(Player player) {
-            for (int i = 0; i < this.controllers.length; i++) {
-                this.controllers[i].onDestroy(player);
+            for (FurnitureController controller : this.controllers) {
+                controller.onDestroy(player);
             }
         }
 
         @Override
         public void onPlace(UseOnContext context) {
-            for (int i = 0; i < this.controllers.length; i++) {
-                this.controllers[i].onPlace(context);
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlace(context);
             }
         }
 
         @Override
         public void onUnload() {
-            for (int i = 0; i < this.controllers.length; i++) {
-                this.controllers[i].onUnload();
+            for (FurnitureController controller : this.controllers) {
+                controller.onUnload();
             }
         }
 
         @Override
         public void onLoad() {
-            for (int i = 0; i < this.controllers.length; i++) {
-                this.controllers[i].onLoad();
+            for (FurnitureController controller : this.controllers) {
+                controller.onLoad();
             }
         }
 
         @Override
         public @Nullable Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
-            for (int i = 0; i < this.controllers.length; i++) {
-                Item itemToPickup = this.controllers[i].getItemToPickup(player, hitBox);
+            for (FurnitureController controller : this.controllers) {
+                Item itemToPickup = controller.getItemToPickup(player, hitBox);
                 if (itemToPickup != null) {
                     return itemToPickup;
                 }

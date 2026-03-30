@@ -12,8 +12,10 @@ import net.momirealms.craftengine.bukkit.compatibility.item.ItemBridgeSource;
 import net.momirealms.craftengine.bukkit.compatibility.legacy.slimeworld.LegacySlimeFormatStorageAdaptor;
 import net.momirealms.craftengine.bukkit.compatibility.leveler.LevelerBridgeLeveler;
 import net.momirealms.craftengine.bukkit.compatibility.model.bettermodel.BetterModelBlockEntityElementConfig;
+import net.momirealms.craftengine.bukkit.compatibility.model.bettermodel.BetterModelFurnitureElementConfig;
 import net.momirealms.craftengine.bukkit.compatibility.model.bettermodel.BetterModelProvider;
 import net.momirealms.craftengine.bukkit.compatibility.model.modelengine.ModelEngineBlockEntityElementConfig;
+import net.momirealms.craftengine.bukkit.compatibility.model.modelengine.ModelEngineFurnitureElementConfig;
 import net.momirealms.craftengine.bukkit.compatibility.model.modelengine.ModelEngineProvider;
 import net.momirealms.craftengine.bukkit.compatibility.model.modelengine.ModelEngineUtils;
 import net.momirealms.craftengine.bukkit.compatibility.mythicmobs.MythicItemDropListener;
@@ -30,6 +32,7 @@ import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatSto
 import net.momirealms.craftengine.bukkit.compatibility.viaversion.ViaVersionUtils;
 import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockRegister;
 import net.momirealms.craftengine.bukkit.compatibility.worldguard.WorldGuardRegionCondition;
+import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
@@ -132,12 +135,14 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.hasPlugin("BetterModel")) {
             runCatchingHook(() -> {
                 BukkitBlockEntityElementConfigs.register(Key.ce("better_model"), new BetterModelBlockEntityElementConfig.Factory());
+                BukkitFurnitureElementConfigs.register(Key.ce("better_model"), BetterModelFurnitureElementConfig.FACTORY);
                 registerModelProvider(new BetterModelProvider());
             }, "BetterModel");
         }
         if (this.hasPlugin("ModelEngine")) {
             runCatchingHook(() -> {
                 BukkitBlockEntityElementConfigs.register(Key.ce("model_engine"), new ModelEngineBlockEntityElementConfig.Factory());
+                BukkitFurnitureElementConfigs.register(Key.ce("model_engine"), ModelEngineFurnitureElementConfig.FACTORY);
                 registerModelProvider(new ModelEngineProvider());
             }, "ModelEngine");
         }
