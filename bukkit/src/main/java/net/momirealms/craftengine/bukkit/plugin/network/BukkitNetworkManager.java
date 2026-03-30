@@ -199,7 +199,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1422,15 +1421,15 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             }
             BukkitNetworkManager.this.plugin.scheduler().sync().run(() -> {
                 try {
-                    handlePickItemFromEntityOnMainThread((BukkitServerPlayer) user, furniture);
+                    handlePickItemFromEntityOnMainThread((BukkitServerPlayer) user, furniture, furniture.hitboxByEntityId(entityId));
                 } catch (Throwable e) {
                     CraftEngine.instance().logger().warn("Failed to handle ServerboundPickItemFromEntityPacket on region thread", e);
                 }
             }, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
         }
 
-        private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture) throws Throwable {
-            Item item = furniture.config().behavior().getItemToPickup(furniture, player);
+        private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture, FurnitureHitBox hitbox) throws Throwable {
+            Item item = furniture.handler.getItemToPickup(player, hitbox);
             Object itemStack;
             if (item == null) {
                 Key itemId = furniture.config().settings().itemId();
@@ -4108,15 +4107,14 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     }
 
                     // 执行家具行为
-                    FurnitureBehavior behavior = furniture.config.behavior();
                     InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
-                    InteractionResult result = behavior.useOnFurniture(furniture, hitBox, interactEntityContext);
+                    InteractionResult result = furniture.handler.useOnFurniture(hitBox, interactEntityContext);
                     if (result.success()) {
                         serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                         return;
                     }
                     if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
-                        result = behavior.useWithoutItem(furniture, interactEntityContext);
+                        result = furniture.handler.useWithoutItem(interactEntityContext);
                         if (result.success()) {
                             serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                             return;

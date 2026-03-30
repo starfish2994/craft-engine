@@ -203,7 +203,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
             // 触发行为卸载
             try {
-                furniture.config.behavior().onUnload(furniture);
+                furniture.handler.onUnload();
             } finally {
                 furniture.saveIfDirty();
             }
@@ -266,7 +266,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
         // 创建新的家具
         BukkitFurniture furnitureInstance = createFurnitureInstance(entity, customFurniture);
-        customFurniture.behavior().onLoad(furnitureInstance);
+        furnitureInstance.handler.onLoad();
     }
 
     @SuppressWarnings("deprecation")
@@ -380,7 +380,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             this.byColliderEntityId.put(collisionEntity.entityId(), furniture);
         }
         if (!this.syncTickers.containsKey(entityId)) {
-            FurnitureTicker<BukkitFurniture> ticker = furniture.config.behavior().createFurnitureTicker(furniture);
+            FurnitureTicker<BukkitFurniture> ticker = furniture.handler.createFurnitureTicker();
             if (ticker != null) {
                 TickingFurnitureImpl<BukkitFurniture> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.syncTickers.put(entityId, tickingFurniture);
@@ -396,7 +396,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             }
         }
         if (!this.asyncTickers.containsKey(entityId)) {
-            FurnitureTicker<BukkitFurniture> ticker = furniture.config.behavior().createAsyncFurnitureTicker(furniture);
+            FurnitureTicker<BukkitFurniture> ticker = furniture.handler.createAsyncFurnitureTicker();
             if (ticker != null) {
                 TickingFurnitureImpl<BukkitFurniture> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.asyncTickers.put(entityId, tickingFurniture);

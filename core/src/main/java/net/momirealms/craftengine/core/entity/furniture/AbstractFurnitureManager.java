@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
 import net.momirealms.craftengine.core.entity.culling.CullingData;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviors;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
@@ -293,10 +294,11 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                     .lootTable(lootTable)
                     .build();
 
-            // TODO 复合行为
-            ConfigSection behaviorSection = section.getSection(BEHAVIORS);
-            if (behaviorSection != null) {
-                ((CustomFurnitureImpl) furniture).setBehavior(FurnitureBehaviors.fromConfig(furniture, behaviorSection));
+            // 家具行为
+            ConfigValue value = section.getValue(BEHAVIORS);
+            if (value != null) {
+                List<FurnitureBehavior> furnitureBehaviors = value.getAsList(v -> FurnitureBehaviors.fromConfig(furniture, v.getAsSection()));
+                ((CustomFurnitureImpl) furniture).setBehaviors(furnitureBehaviors);
             }
             AbstractFurnitureManager.this.byId.put(id, furniture);
         }

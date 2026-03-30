@@ -23,7 +23,7 @@ class CustomFurnitureImpl implements CustomFurniture {
     private final Map<EventTrigger, List<Function<Context>>> events;
     @Nullable
     private final LootTable lootTable;
-    private FurnitureBehavior behavior = EmptyFurnitureBehavior.INSTANCE;
+    private List<FurnitureBehavior> behaviors = List.of(EmptyFurnitureBehavior.INSTANCE);
 
     private CustomFurnitureImpl(@NotNull Key id,
                                 @NotNull FurnitureSettings settings,
@@ -37,8 +37,8 @@ class CustomFurnitureImpl implements CustomFurniture {
         this.events = events;
     }
 
-    public void setBehavior(FurnitureBehavior behavior) {
-        this.behavior = behavior;
+    public void setBehaviors(List<FurnitureBehavior> behaviors) {
+        this.behaviors = behaviors;
     }
 
     @Override
@@ -69,8 +69,8 @@ class CustomFurnitureImpl implements CustomFurniture {
     }
 
     @Override
-    public @NotNull FurnitureBehavior behavior() {
-        return this.behavior;
+    public @NotNull List<FurnitureBehavior> behaviors() {
+        return this.behaviors;
     }
 
     @Nullable
