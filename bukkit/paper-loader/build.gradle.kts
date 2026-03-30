@@ -206,6 +206,7 @@ fun registerPaperTask(
             }
             systemProperties["com.mojang.eula.agree"] = true
             systemProperties["net.momirealms.craftengine.dev"] = true
+            jvmArgs("-Dorg.bukkit.plugin.java.LibraryLoader.centralURL=https://maven.aliyun.com/repository/central")
             jvmArgs("-Dsun.stdout.encoding=UTF-8")
             jvmArgs("-Dsun.stderr.encoding=UTF-8")
             jvmArgs("-Ddisable.watchdog=true")
