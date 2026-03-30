@@ -57,59 +57,12 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
 
     @Override
     public FurnitureController createController(Furniture furniture) {
-        return new SimpleStorageController(furniture, this);
-    }
-
-    static final class SimpleStorageController extends FurnitureController {
-        public final SimpleStorageFurnitureBehaviorTemplate behavior;
-        private ItemStorage storage;
-
-        public SimpleStorageController(Furniture furniture, SimpleStorageFurnitureBehaviorTemplate behavior) {
-            super(furniture);
-            this.behavior = behavior;
-        }
-
-        @Override
-        public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
-            if (this.storage == null) {
-                return InteractionResult.SUCCESS_AND_CANCEL;
-            }
-            BlockPos blockPos = context.getClickedPos();
-            World bukkitWorld = (World) context.getLevel().platformWorld();
-            Location location = new Location(bukkitWorld, blockPos.x(), blockPos.y(), blockPos.z());
-            Player player = context.getPlayer();
-            if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
-                return InteractionResult.FAIL;
-            }
-            this.storage.onOpen(player);
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        }
-
-        @Override
-        public void onDestroy(Player player) {
-            if (this.storage != null) {
-                this.storage.destroy();
-            }
-        }
-
-        @Override
-        public void onLoad() {
-            if (this.storage == null) {
-                this.storage = new ItemStorage(this.furniture, this.behavior);
-            }
-            this.storage.load();
-        }
-
-        @Override
-        public void onUnload() {
-            if (this.storage != null) {
-                this.storage.unload();
-            }
-        }
+        return new ItemStorage(furniture, this);
     }
 
     private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehaviorTemplate> {
 
+        @SuppressWarnings("DuplicatedCode")
         @Override
         public SimpleStorageFurnitureBehaviorTemplate create(FurnitureDefinition furniture, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
@@ -129,27 +82,43 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
         }
     }
 
-    public static final class ItemStorage implements InventoryHolder {
+    public static final class ItemStorage extends FurnitureController implements InventoryHolder {
         private static final String KEY = "craftengine:simple_storage_furniture";
         public final Furniture furniture;
-        private final SimpleStorageFurnitureBehaviorTemplate behavior;
+        private final SimpleStorageFurnitureBehaviorTemplate template;
         private final Inventory inventory;
 
-        private ItemStorage(Furniture furniture, SimpleStorageFurnitureBehaviorTemplate behavior) {
+        private ItemStorage(Furniture furniture, SimpleStorageFurnitureBehaviorTemplate template) {
+            super(furniture);
             this.furniture = furniture;
-            this.behavior = behavior;
-            this.inventory = FastNMS.INSTANCE.createSimpleStorageContainer(this, this.behavior.rows * 9, false, false);
+            this.template = template;
+            this.inventory = FastNMS.INSTANCE.createSimpleStorageContainer(this, this.template.rows * 9, false, false);
         }
 
-        public void load() {
+        @Override
+        public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
+            BlockPos blockPos = context.getClickedPos();
+            World bukkitWorld = (World) context.getLevel().platformWorld();
+            Location location = new Location(bukkitWorld, blockPos.x(), blockPos.y(), blockPos.z());
+            Player player = context.getPlayer();
+            if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
+                return InteractionResult.FAIL;
+            }
+            this.onOpen(player);
+            return InteractionResult.SUCCESS_AND_CANCEL;
+        }
+
+        @Override
+        public void onLoad() {
             this.inventory.close();
             CompoundTag data = this.furniture.persistentData.getCustomData(KEY) instanceof CompoundTag tag ? tag : new CompoundTag();
             int dataVersion = data.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
             ListTag items = Optional.ofNullable(data.getList("items")).orElseGet(ListTag::new);
-            this.inventory.setStorageContents(ItemStackUtils.parseBukkitItems(items, this.behavior.rows * 9, dataVersion));
+            this.inventory.setStorageContents(ItemStackUtils.parseBukkitItems(items, this.template.rows * 9, dataVersion));
         }
 
-        public void unload() {
+        @Override
+        public void onUnload() {
             this.inventory.close();
             CompoundTag data = this.furniture.persistentData.getCustomData(KEY) instanceof CompoundTag tag ? tag : new CompoundTag();
             data.put("items", ItemStackUtils.saveBukkitItemsAsListTag(this.inventory.getStorageContents()));
@@ -157,7 +126,8 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
             this.furniture.persistentData.addCustomData(KEY, data);
         }
 
-        public void destroy() {
+        @Override
+        public void onDestroy(Player player) {
             this.inventory.close();
             this.furniture.persistentData.removeCustomData(KEY);
             for (ItemStack stack : this.inventory.getContents()) {
@@ -173,12 +143,12 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
                 for (HumanEntity viewer : this.inventory.getViewers()) {
                     if (viewer.getGameMode() != GameMode.SPECTATOR) return;
                 }
-                SoundData sound = this.behavior.openSound;
+                SoundData sound = this.template.openSound;
                 if (sound != null) {
                     this.furniture.world().playSound(this.furniture.position(), sound.id(), sound.volume().get(), sound.pitch().get(), SoundSource.MASTER);
                 }
             }
-            new BukkitInventory(this.inventory).open(player, AdventureHelper.miniMessage().deserialize(this.behavior.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
+            new BukkitInventory(this.inventory).open(player, AdventureHelper.miniMessage().deserialize(this.template.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
         }
 
         public void onClose(Player player) {
@@ -187,7 +157,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
                     if (viewer.getGameMode() == GameMode.SPECTATOR || viewer == player.platformPlayer()) continue;
                     return;
                 }
-                SoundData sound = this.behavior.closeSound;
+                SoundData sound = this.template.closeSound;
                 if (sound != null) {
                     this.furniture.world().playSound(this.furniture.position(), sound.id(), sound.volume().get(), sound.pitch().get(), SoundSource.MASTER);
                 }

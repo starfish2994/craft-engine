@@ -43,7 +43,7 @@ public abstract class Furniture implements Cullable {
     public final Entity metaDataEntity;
     /** Cached entity ID of the metadata entity */
     public final int metaDataEntityId;
-    /** Behavior controller */
+    /** Furniture controller */
     public final FurnitureController controller;
 
     protected CullingData cullingData;
@@ -61,7 +61,7 @@ public abstract class Furniture implements Cullable {
         this.persistentData = data;
         this.metaDataEntity = metaDataEntity;
         this.metaDataEntityId = metaDataEntity.entityId();
-        this.controller = config.createController(this);
+        this.controller = FurnitureController.createController(this);
         this.setVariantInternal(config.getVariant(data));
         this.sourceItem = data.item().orElse(null);
     }

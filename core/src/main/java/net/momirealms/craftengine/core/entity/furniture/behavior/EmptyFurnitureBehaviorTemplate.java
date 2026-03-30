@@ -17,7 +17,7 @@ public final class EmptyFurnitureBehaviorTemplate extends FurnitureBehaviorTempl
         return new EmptyFurnitureController(furniture);
     }
 
-    public static class EmptyFurnitureController extends FurnitureController {
+    public static final class EmptyFurnitureController extends FurnitureController {
 
         public EmptyFurnitureController(@NotNull Furniture furniture) {
             super(furniture);
