@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
@@ -25,11 +25,11 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
     public final Key fruit;
     public final Key stem;
 
-    private AttachedStemBlockBehavior(CustomBlock customBlock,
+    private AttachedStemBlockBehavior(BlockDefinition blockDefinition,
                                       Property<HorizontalDirection> facingProperty,
                                       Key fruit,
                                       Key stem) {
-        super(customBlock);
+        super(blockDefinition);
         this.facingProperty = facingProperty;
         this.fruit = fruit;
         this.stem = stem;
@@ -73,9 +73,9 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
     }
 
     private Object resetStemBlock() {
-        Optional<CustomBlock> optionalStemBlock = BukkitBlockManager.instance().blockById(this.stem);
+        Optional<BlockDefinition> optionalStemBlock = BukkitBlockManager.instance().blockById(this.stem);
         if (optionalStemBlock.isPresent()) {
-            CustomBlock stemBlock = optionalStemBlock.get();
+            BlockDefinition stemBlock = optionalStemBlock.get();
             IntegerProperty ageProperty = (IntegerProperty) stemBlock.getProperty("age");
             if (ageProperty == null) return stemBlock.defaultState().customBlockState().literalObject();
             return stemBlock.defaultState().with(ageProperty, ageProperty.max).customBlockState().literalObject();
@@ -86,7 +86,7 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
     private static class Factory implements BlockBehaviorFactory<AttachedStemBlockBehavior> {
 
         @Override
-        public AttachedStemBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public AttachedStemBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new AttachedStemBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),

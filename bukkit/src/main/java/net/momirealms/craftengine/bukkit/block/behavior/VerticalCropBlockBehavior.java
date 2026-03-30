@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -26,12 +26,12 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
     public final float growSpeed;
     public final boolean direction;
 
-    private VerticalCropBlockBehavior(CustomBlock customBlock,
+    private VerticalCropBlockBehavior(BlockDefinition blockDefinition,
                                       IntegerProperty ageProperty,
                                       int maxHeight,
                                       float growSpeed,
                                       boolean direction) {
-        super(customBlock);
+        super(blockDefinition);
         this.maxHeight = maxHeight;
         this.ageProperty = ageProperty;
         this.growSpeed = growSpeed;
@@ -56,7 +56,7 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
                 Object nextPos = LocationUtils.toBlockPos(currentPos.x(), this.direction ? currentPos.y() - currentHeight : currentPos.y() + currentHeight, currentPos.z());
                 Object nextState = BlockGetterProxy.INSTANCE.getBlockState(level, nextPos);
                 Optional<ImmutableBlockState> optionalBelowCustomState = BlockStateUtils.getOptionalCustomBlockState(nextState);
-                if (optionalBelowCustomState.isPresent() && optionalBelowCustomState.get().owner().value() == super.customBlock) {
+                if (optionalBelowCustomState.isPresent() && optionalBelowCustomState.get().owner().value() == super.blockDefinition) {
                     currentHeight++;
                 } else {
                     break;
@@ -68,9 +68,9 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
                     Object nextPos = this.direction ? LocationUtils.above(blockPos) : LocationUtils.below(blockPos);
                     boolean success;
                     if (VersionHelper.isOrAbove1_21_5()) {
-                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.customBlock.defaultState().customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
                     } else {
-                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.customBlock.defaultState().customBlockState().literalObject());
+                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().literalObject());
                     }
                     if (success) {
                         LevelWriterProxy.INSTANCE.setBlock(level, blockPos, currentState.with(this.ageProperty, this.ageProperty.min).customBlockState().literalObject(), UpdateFlags.UPDATE_NONE);
@@ -87,7 +87,7 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
         private static final String[] GROW_SPEED = new String[] {"grow_speed", "grow-speed"};
 
         @Override
-        public VerticalCropBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public VerticalCropBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new VerticalCropBlockBehavior(
                     block,
                     (IntegerProperty) BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),

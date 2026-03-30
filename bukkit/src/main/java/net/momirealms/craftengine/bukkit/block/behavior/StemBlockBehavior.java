@@ -5,7 +5,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.BlockTags;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -42,14 +42,14 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
     public final Object tagMayPlaceFruit;
     public final Object blockMayPlaceFruit;
 
-    private StemBlockBehavior(CustomBlock customBlock,
-                             IntegerProperty ageProperty,
-                             Key fruit,
-                             Key attachedStem,
-                             int minGrowLight,
-                             Object tagMayPlaceFruit,
-                             Object blockMayPlaceFruit) {
-        super(customBlock);
+    private StemBlockBehavior(BlockDefinition blockDefinition,
+                              IntegerProperty ageProperty,
+                              Key fruit,
+                              Key attachedStem,
+                              int minGrowLight,
+                              Object tagMayPlaceFruit,
+                              Object blockMayPlaceFruit) {
+        super(blockDefinition);
         this.ageProperty = ageProperty;
         this.fruit = fruit;
         this.attachedStem = attachedStem;
@@ -83,7 +83,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
             return;
         Object blockState = BlockGetterProxy.INSTANCE.getBlockState(level, BlockPosProxy.INSTANCE.relative(blockPos, DirectionProxy.DOWN));
         if (mayPlaceFruit(blockState)) {
-            Optional<CustomBlock> optionalFruit = BukkitBlockManager.instance().blockById(this.fruit);
+            Optional<BlockDefinition> optionalFruit = BukkitBlockManager.instance().blockById(this.fruit);
             Object fruitState = null;
             if (optionalFruit.isPresent()) {
                 fruitState = optionalFruit.get().defaultState().customBlockState().literalObject();
@@ -93,9 +93,9 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
                         IdentifierProxy.INSTANCE.newInstance("minecraft", fruit.value())
                 ));
             }
-            Optional<CustomBlock> optionalAttachedStem = BukkitBlockManager.instance().blockById(this.attachedStem);
+            Optional<BlockDefinition> optionalAttachedStem = BukkitBlockManager.instance().blockById(this.attachedStem);
             if (fruitState == null || optionalAttachedStem.isEmpty()) return;
-            CustomBlock attachedStem = optionalAttachedStem.get();
+            BlockDefinition attachedStem = optionalAttachedStem.get();
             @SuppressWarnings("unchecked")
             Property<HorizontalDirection> facing = (Property<HorizontalDirection>) attachedStem.getProperty("facing");
             if (facing == null) return;
@@ -140,7 +140,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
         private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement"};
 
         @Override
-        public StemBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public StemBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new StemBlockBehavior(
                     block,
                     (IntegerProperty) BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),

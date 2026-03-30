@@ -1,10 +1,10 @@
 package net.momirealms.craftengine.core.block.behavior;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
@@ -21,14 +21,14 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 
 public abstract class BlockBehavior {
-    protected final CustomBlock customBlock;
+    protected final BlockDefinition blockDefinition;
 
-    public BlockBehavior(CustomBlock customBlock) {
-        this.customBlock = customBlock;
+    public BlockBehavior(BlockDefinition blockDefinition) {
+        this.blockDefinition = blockDefinition;
     }
 
-    public CustomBlock block() {
-        return this.customBlock;
+    public BlockDefinition block() {
+        return this.blockDefinition;
     }
 
     @SuppressWarnings("unchecked")
@@ -220,9 +220,9 @@ public abstract class BlockBehavior {
     public boolean canBeReplaced(BlockPlaceContext context, ImmutableBlockState state) {
         Key clickedBlockId = state.owner().value().id();
         Item item = context.getItem();
-        Optional<CustomItem> customItem = CraftEngine.instance().itemManager().getCustomItem(item.id());
+        Optional<ItemDefinition> customItem = CraftEngine.instance().itemManager().getCustomItem(item.id());
         if (customItem.isEmpty()) return state.settings().replaceable();
-        CustomItem custom = customItem.get();
+        ItemDefinition custom = customItem.get();
         for (ItemBehavior behavior : custom.behaviors()) {
             if (behavior instanceof BlockBoundItemBehavior blockItemBehavior) {
                 Key blockId = blockItemBehavior.block();

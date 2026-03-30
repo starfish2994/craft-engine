@@ -9,7 +9,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
@@ -46,7 +46,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     public final SoundData rotateSound;
     public final Property<Direction> directionProperty;
 
-    private ItemFrameBlockBehavior(CustomBlock customBlock,
+    private ItemFrameBlockBehavior(BlockDefinition blockDefinition,
                                    Vector3f position,
                                    boolean glow,
                                    boolean invisible,
@@ -55,7 +55,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                                    SoundData takeSound,
                                    SoundData rotateSound,
                                    Property<Direction> directionProperty) {
-        super(customBlock);
+        super(blockDefinition);
         this.position = position;
         this.glow = glow;
         this.invisible = invisible;
@@ -177,7 +177,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
         private static final String[] RENDER_MAP_ITEM = new String[]{"render_map_item", "render-map-item"};
 
         @Override
-        public ItemFrameBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public ItemFrameBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData putSound = null;
             SoundData takeSound = null;

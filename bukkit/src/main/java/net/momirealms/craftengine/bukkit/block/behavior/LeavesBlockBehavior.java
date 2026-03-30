@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.BlockTags;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -36,7 +36,7 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
     public final Property<Integer> distanceProperty;
     public final Property<Boolean> persistentProperty;
 
-    private LeavesBlockBehavior(CustomBlock block,
+    private LeavesBlockBehavior(BlockDefinition block,
                                 Property<Integer> distanceProperty,
                                 Property<Boolean> persistentProperty) {
         super(block);
@@ -166,7 +166,7 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
     private static class Factory implements BlockBehaviorFactory<LeavesBlockBehavior> {
 
         @Override
-        public LeavesBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public LeavesBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new LeavesBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "distance", Integer.class),

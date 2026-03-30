@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.item;
 
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.NetworkItemHandler;
@@ -101,9 +101,9 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
             }
         }
 
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+            BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
             if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
                 forceReturn = true;
@@ -189,7 +189,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
 
         // todo 处理book
 
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         // 不是自定义物品或修改过的原版物品
         if (optionalCustomItem.isEmpty()) {
             if (!Config.interceptItem()) {
@@ -199,7 +199,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         }
 
         // 应用 client-bound-material
-        BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+        BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
         if (customItem.hasClientboundMaterial() && ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem()) != customItem.clientItem()) {
             wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
             forceReturn = true;

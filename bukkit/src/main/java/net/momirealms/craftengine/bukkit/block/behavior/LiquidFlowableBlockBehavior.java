@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.PlaceLiquidBlockBehavior;
@@ -17,8 +17,8 @@ import java.util.concurrent.Callable;
 public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior implements PlaceLiquidBlockBehavior {
     public static final BlockBehaviorFactory<LiquidFlowableBlockBehavior> FACTORY = new Factory();
 
-    private LiquidFlowableBlockBehavior(CustomBlock customBlock) {
-        super(customBlock);
+    private LiquidFlowableBlockBehavior(BlockDefinition blockDefinition) {
+        super(blockDefinition);
     }
 
     @Override
@@ -45,7 +45,7 @@ public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior imple
     private static class Factory implements BlockBehaviorFactory<LiquidFlowableBlockBehavior> {
 
         @Override
-        public LiquidFlowableBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public LiquidFlowableBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new LiquidFlowableBlockBehavior(block);
         }
     }

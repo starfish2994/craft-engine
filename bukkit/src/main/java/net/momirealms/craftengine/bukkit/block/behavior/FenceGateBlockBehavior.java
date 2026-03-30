@@ -9,7 +9,7 @@ import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.InteractUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -61,7 +61,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
     public final SoundData openSound;
     public final SoundData closeSound;
 
-    private FenceGateBlockBehavior(CustomBlock customBlock,
+    private FenceGateBlockBehavior(BlockDefinition blockDefinition,
                                    Property<HorizontalDirection> facing,
                                    Property<Boolean> inWall,
                                    Property<Boolean> open,
@@ -70,7 +70,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
                                    boolean canOpenByWindCharge,
                                    SoundData openSound,
                                    SoundData closeSound) {
-        super(customBlock);
+        super(blockDefinition);
         this.facingProperty = facing;
         this.inWallProperty = inWall;
         this.openProperty = open;
@@ -293,7 +293,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
         private static final String[] CAN_OPEN_BY_WIND_CHARGE = new String[] {"can_open_by_wind_charge", "can-open-by-wind-charge"};
 
         @Override
-        public FenceGateBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public FenceGateBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData openSound = null;
             SoundData closeSound = null;

@@ -92,7 +92,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         this.plugin = plugin;
         this.blockEventListener = new BlockEventListener(plugin, this);
         this.registerServerSideCustomBlocks(Config.serverSideBlocks());
-        EmptyBlock.init();
+        EmptyBlockDefinition.init();
         instance = this;
     }
 
@@ -104,7 +104,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         this.deceiveBukkitRegistry();
         this.markVanillaNoteBlocks();
         this.findViewBlockingVanillaBlocks();
-        Arrays.fill(this.immutableBlockStates, EmptyBlock.INSTANCE.defaultState());
+        Arrays.fill(this.immutableBlockStates, EmptyBlockDefinition.INSTANCE.defaultState());
         this.registerBlockStatePacketListener(); // 一定要预先初始化一次，预防id超出上限
     }
 
@@ -127,8 +127,8 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             this.burnOdds.remove(block);
         }
         this.burnableBlocks.clear();
-        if (EmptyBlock.STATE != null)
-            Arrays.fill(this.immutableBlockStates, EmptyBlock.STATE);
+        if (EmptyBlockDefinition.STATE != null)
+            Arrays.fill(this.immutableBlockStates, EmptyBlockDefinition.STATE);
         for (DelegatingBlock block : this.customBlocks) {
             block.behaviorDelegate().bindValue(EmptyBlockBehavior.INSTANCE);
             block.shapeDelegate().bindValue(BukkitBlockShape.STONE);
@@ -161,20 +161,20 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     }
 
     @Override
-    public BlockBehavior createBlockBehavior(CustomBlock customBlock, ConfigValue behaviorValue) {
+    public BlockBehavior createBlockBehavior(BlockDefinition blockDefinition, ConfigValue behaviorValue) {
         if (behaviorValue == null) {
-            return new EmptyBlockBehavior(customBlock);
+            return new EmptyBlockBehavior(blockDefinition);
         } else if (behaviorValue.is(List.class)) {
-            List<BlockBehavior> behaviors = behaviorValue.getAsList(v -> BlockBehaviors.fromConfig(customBlock, v.getAsSection()));
+            List<BlockBehavior> behaviors = behaviorValue.getAsList(v -> BlockBehaviors.fromConfig(blockDefinition, v.getAsSection()));
             if (behaviors.size() == 1) {
                 return behaviors.getFirst();
             } else if (behaviors.isEmpty()) {
-                return new EmptyBlockBehavior(customBlock);
+                return new EmptyBlockBehavior(blockDefinition);
             } else {
-                return new UnsafeCompositeBlockBehavior(customBlock, behaviors);
+                return new UnsafeCompositeBlockBehavior(blockDefinition, behaviors);
             }
         } else {
-            return BlockBehaviors.fromConfig(customBlock, behaviorValue.getAsSection());
+            return BlockBehaviors.fromConfig(blockDefinition, behaviorValue.getAsSection());
         }
     }
 
@@ -244,7 +244,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     }
 
     @Override
-    protected void applyPlatformSettings(CustomBlock block, ImmutableBlockState state) {
+    protected void applyPlatformSettings(BlockDefinition block, ImmutableBlockState state) {
         DelegatingBlockState nmsState = (DelegatingBlockState) state.customBlockState().literalObject();
         nmsState.setBlockState(state);
         nmsState.setBlockOwner(BlockStateUtils.getBlockOwner(block.defaultState().customBlockState().literalObject()));
@@ -582,10 +582,10 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     }
 
     @Override
-    protected CustomBlock createCustomBlock(@NotNull Holder.Reference<CustomBlock> holder, 
-                                            @NotNull BlockStateVariantProvider variantProvider,
-                                            @NotNull Map<EventTrigger, List<Function<Context>>> events,
-                                            @Nullable LootTable lootTable) {
-        return new BukkitCustomBlock(holder, variantProvider, events, lootTable);
+    protected BlockDefinition createCustomBlock(@NotNull Holder.Reference<BlockDefinition> holder,
+                                                @NotNull BlockStateVariantProvider variantProvider,
+                                                @NotNull Map<EventTrigger, List<Function<Context>>> events,
+                                                @Nullable LootTable lootTable) {
+        return new BukkitBlockDefinition(holder, variantProvider, events, lootTable);
     }
 }

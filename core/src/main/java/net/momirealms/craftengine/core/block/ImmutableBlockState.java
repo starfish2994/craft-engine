@@ -30,7 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public final class ImmutableBlockState {
-    private final Holder.Reference<CustomBlock> owner;
+    private final Holder.Reference<BlockDefinition> owner;
     private final Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap;
     private Map<Property<?>, ImmutableBlockState[]> withMap;
 
@@ -48,7 +48,7 @@ public final class ImmutableBlockState {
     private CullingData cullingData;
 
     ImmutableBlockState(
-            Holder.Reference<CustomBlock> owner,
+            Holder.Reference<BlockDefinition> owner,
             Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap
     ) {
         this.owner = owner;
@@ -80,7 +80,7 @@ public final class ImmutableBlockState {
     }
 
     public boolean isEmpty() {
-        return this == EmptyBlock.STATE;
+        return this == EmptyBlockDefinition.STATE;
     }
 
     public BlockEntityElementConfig<? extends BlockEntityElement>[] constantRenderers() {
@@ -157,7 +157,7 @@ public final class ImmutableBlockState {
     }
 
     public List<Item> getDrops(@NotNull ContextHolder.Builder builder, @NotNull World world, @Nullable Player player) {
-        CustomBlock block = this.owner.value();
+        BlockDefinition block = this.owner.value();
         if (block == null) return List.of();
         LootTable lootTable = block.lootTable();
         if (lootTable == null) return List.of();
@@ -178,7 +178,7 @@ public final class ImmutableBlockState {
         return (BlockEntityTicker<T>) blockBehavior.createAsyncBlockEntityTicker(world, this, type);
     }
 
-    public Holder<CustomBlock> owner() {
+    public Holder<BlockDefinition> owner() {
         return this.owner;
     }
 
@@ -269,7 +269,7 @@ public final class ImmutableBlockState {
     }
 
     public ImmutableBlockState with(CompoundTag propertiesNBT) {
-        CustomBlock owner = this.owner.value();
+        BlockDefinition owner = this.owner.value();
         ImmutableBlockState finalState = this;
         for (Map.Entry<String, Tag> entry : propertiesNBT.entrySet()) {
             Property<?> property = owner.getProperty(entry.getKey());

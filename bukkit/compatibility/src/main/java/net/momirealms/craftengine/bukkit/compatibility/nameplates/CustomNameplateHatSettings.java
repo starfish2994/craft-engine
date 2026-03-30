@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.compatibility.nameplates;
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.CustomItemSettingType;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemSettingsModifiers;
@@ -73,7 +73,7 @@ public final class CustomNameplateHatSettings implements Listener {
         TagRenderer tagRender = CustomNameplates.getInstance().getUnlimitedTagManager().getTagRender(cnPlayer);
         if (tagRender == null) return;
         Item wrapped = BukkitItemManager.instance().wrap(newItem);
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) {
             tagRender.hatOffset(0d);
             return;

@@ -6,7 +6,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -37,8 +37,8 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<MultiHighBlockBehavior> FACTORY = new Factory();
     public final IntegerProperty property;
 
-    private MultiHighBlockBehavior(CustomBlock customBlock, IntegerProperty property) {
-        super(customBlock);
+    private MultiHighBlockBehavior(BlockDefinition blockDefinition, IntegerProperty property) {
+        super(blockDefinition);
         this.property = property;
     }
 
@@ -174,13 +174,13 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
         if (value != property.min && value != property.max) {
             Object aboveState = BlockGetterProxy.INSTANCE.getBlockState(world, LocationUtils.above(blockPos));
             Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, LocationUtils.below(blockPos));
-            CustomBlock aboveCustomBlock = BlockStateUtils.getOptionalCustomBlockState(aboveState).map(blockState -> blockState.owner().value()).orElse(null);
-            CustomBlock belowCustomBlock = BlockStateUtils.getOptionalCustomBlockState(belowState).map(blockState -> blockState.owner().value()).orElse(null);
-            return aboveCustomBlock == behavior.customBlock && belowCustomBlock == behavior.customBlock;
+            BlockDefinition aboveBlockDefinition = BlockStateUtils.getOptionalCustomBlockState(aboveState).map(blockState -> blockState.owner().value()).orElse(null);
+            BlockDefinition belowBlockDefinition = BlockStateUtils.getOptionalCustomBlockState(belowState).map(blockState -> blockState.owner().value()).orElse(null);
+            return aboveBlockDefinition == behavior.blockDefinition && belowBlockDefinition == behavior.blockDefinition;
         } else if (value == property.max) {
             Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, LocationUtils.below(blockPos));
-            CustomBlock belowCustomBlock = BlockStateUtils.getOptionalCustomBlockState(belowState).map(blockState -> blockState.owner().value()).orElse(null);
-            return belowCustomBlock == behavior.customBlock;
+            BlockDefinition belowBlockDefinition = BlockStateUtils.getOptionalCustomBlockState(belowState).map(blockState -> blockState.owner().value()).orElse(null);
+            return belowBlockDefinition == behavior.blockDefinition;
         }
         return true;
     }
@@ -249,7 +249,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
     private static class Factory implements BlockBehaviorFactory<MultiHighBlockBehavior> {
 
         @Override
-        public MultiHighBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public MultiHighBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new MultiHighBlockBehavior(
                     block,
                     (IntegerProperty) BlockBehaviorFactory.getProperty(section.path(), block, section.getNonNullString("property"), Integer.class)

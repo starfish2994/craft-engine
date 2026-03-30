@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
@@ -47,7 +47,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
     @Nullable
     public final Property<Boolean> openProperty;
 
-    private SimpleStorageBlockBehavior(CustomBlock customBlock,
+    private SimpleStorageBlockBehavior(BlockDefinition blockDefinition,
                                        String containerTitle,
                                        int rows,
                                        SoundData openSound,
@@ -56,7 +56,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
                                        boolean canPlaceItem,
                                        boolean canTakeItem,
                                        @Nullable Property<Boolean> openProperty) {
-        super(customBlock);
+        super(blockDefinition);
         this.containerTitle = containerTitle;
         this.rows = rows;
         this.openSound = openSound;
@@ -169,7 +169,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
 
         @Override
-        public SimpleStorageBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SimpleStorageBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData openSound = null;
             SoundData closeSound = null;

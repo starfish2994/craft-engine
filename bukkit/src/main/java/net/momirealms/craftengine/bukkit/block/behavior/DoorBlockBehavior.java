@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -68,16 +68,16 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     public final SoundData openSound;
     public final SoundData closeSound;
 
-    private DoorBlockBehavior(CustomBlock block,
-                             Property<DoubleBlockHalf> halfProperty,
-                             Property<HorizontalDirection> facingProperty,
-                             Property<DoorHinge> hingeProperty,
-                             Property<Boolean> poweredProperty,
-                             Property<Boolean> openProperty,
-                             boolean canOpenWithHand,
-                             boolean canOpenByWindCharge,
-                             SoundData openSound,
-                             SoundData closeSound) {
+    private DoorBlockBehavior(BlockDefinition block,
+                              Property<DoubleBlockHalf> halfProperty,
+                              Property<HorizontalDirection> facingProperty,
+                              Property<DoorHinge> hingeProperty,
+                              Property<Boolean> poweredProperty,
+                              Property<Boolean> openProperty,
+                              boolean canOpenWithHand,
+                              boolean canOpenByWindCharge,
+                              SoundData openSound,
+                              SoundData closeSound) {
         super(block, 0);
         this.halfProperty = halfProperty;
         this.facingProperty = facingProperty;
@@ -353,7 +353,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
         Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
         if (optionalCustomState.get().get(this.halfProperty) == DoubleBlockHalf.UPPER) {
             Optional<ImmutableBlockState> belowCustomState = BlockStateUtils.getOptionalCustomBlockState(belowState);
-            return belowCustomState.filter(immutableBlockState -> immutableBlockState.owner().value() == super.customBlock).isPresent();
+            return belowCustomState.filter(immutableBlockState -> immutableBlockState.owner().value() == super.blockDefinition).isPresent();
         } else {
             return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(
                     belowState, world, belowPos, DirectionProxy.UP,
@@ -367,7 +367,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
         private static final String[] CAN_OPEN_BY_WIND_CHARGE = new String[] {"can_open_by_wind_charge", "can-open-by-wind-charge"};
 
         @Override
-        public DoorBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public DoorBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData openSound = null;
             SoundData closeSound = null;

@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.FallOnBlockBehavior;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -23,11 +23,11 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
     public final boolean syncPlayerPosition;
     public final double fallDamageMultiplier;
 
-    private BouncingBlockBehavior(CustomBlock customBlock,
+    private BouncingBlockBehavior(BlockDefinition blockDefinition,
                                   double bounceHeight,
                                   boolean syncPlayerPosition,
                                   double fallDamageMultiplier) {
-        super(customBlock);
+        super(blockDefinition);
         this.bounceHeight = bounceHeight;
         this.syncPlayerPosition = syncPlayerPosition;
         this.fallDamageMultiplier = fallDamageMultiplier;
@@ -93,7 +93,7 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
         private static final String[] FALL_DAMAGE_MULTIPLIER = new String[] {"fall_damage_multiplier", "fall-damage-multiplier"};
 
         @Override
-        public BouncingBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public BouncingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new BouncingBlockBehavior(
                     block,
                     section.getDouble(BOUNCE_HEIGHT, 0.66),

@@ -5,7 +5,7 @@ import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -49,7 +49,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     public final PressurePlateSensitivity pressurePlateSensitivity;
     public final int pressedTime;
 
-    private PressurePlateBlockBehavior(CustomBlock block,
+    private PressurePlateBlockBehavior(BlockDefinition block,
                                        Property<Boolean> poweredProperty,
                                        SoundData onSound,
                                        SoundData offSound,
@@ -239,7 +239,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         private static final String[] PRESSED_TIME = new String[] {"pressed_time", "pressed-time"};
 
         @Override
-        public PressurePlateBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public PressurePlateBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData onSound = null;
             SoundData offSound = null;

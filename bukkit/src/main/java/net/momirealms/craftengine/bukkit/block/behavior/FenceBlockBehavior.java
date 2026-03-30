@@ -4,7 +4,7 @@ import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
@@ -52,14 +52,14 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
     public final Object connectableBlockTag;
     public final boolean canLeash;
 
-    private FenceBlockBehavior(CustomBlock customBlock,
+    private FenceBlockBehavior(BlockDefinition blockDefinition,
                                Property<Boolean> northProperty,
                                Property<Boolean> eastProperty,
                                Property<Boolean> southProperty,
                                Property<Boolean> westProperty,
                                Object connectableBlockTag,
                                boolean canLeash) {
-        super(customBlock);
+        super(blockDefinition);
         this.northProperty = northProperty;
         this.eastProperty = eastProperty;
         this.southProperty = southProperty;
@@ -96,7 +96,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
         Object blockState = state.literalObject();
         return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(blockState, BlockTagsProxy.FENCES)
                 && BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(blockState, this.connectableBlockTag)
-                == BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(this.customBlock.defaultState().customBlockState().literalObject(), this.connectableBlockTag);
+                == BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(this.blockDefinition.defaultState().customBlockState().literalObject(), this.connectableBlockTag);
     }
 
     @Override
@@ -172,7 +172,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
         private static final String[] CONNECTABLE_BLOCK_TAG = new String[]{"connectable_block_tag", "connectable-block-tag"};
 
         @Override
-        public FenceBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public FenceBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new FenceBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "north", Boolean.class),

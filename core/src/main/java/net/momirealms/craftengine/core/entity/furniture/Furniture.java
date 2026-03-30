@@ -9,7 +9,7 @@ import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
-import net.momirealms.craftengine.core.entity.furniture.behavior.Controller;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -36,7 +36,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class Furniture implements Cullable {
-    public final CustomFurniture config;
+    public final FurnitureDefinition config;
     /** Accessor for persistent furniture data */
     public final FurniturePersistentData persistentData;
     /** The base entity that carries metadata for this furniture */
@@ -44,7 +44,7 @@ public abstract class Furniture implements Cullable {
     /** Cached entity ID of the metadata entity */
     public final int metaDataEntityId;
     /** Behavior controller */
-    public final Controller controller;
+    public final FurnitureController controller;
 
     protected CullingData cullingData;
     protected FurnitureSnapshotState snapshot;
@@ -56,7 +56,7 @@ public abstract class Furniture implements Cullable {
     protected int[] colliderEntityIds;
     private boolean hasExternalModel;
 
-    protected Furniture(Entity metaDataEntity, FurniturePersistentData data, CustomFurniture config) {
+    protected Furniture(Entity metaDataEntity, FurniturePersistentData data, FurnitureDefinition config) {
         this.config = config;
         this.persistentData = data;
         this.metaDataEntity = metaDataEntity;
@@ -456,18 +456,18 @@ public abstract class Furniture implements Cullable {
     /**
      * Gets the configuration of this furniture.
      *
-     * @return The {@link CustomFurniture} configuration.
+     * @return The {@link FurnitureDefinition} configuration.
      */
-    public CustomFurniture config() {
+    public FurnitureDefinition config() {
         return this.config;
     }
 
     /**
      * Alias for {@link #config()}.
      *
-     * @return The {@link CustomFurniture} configuration.
+     * @return The {@link FurnitureDefinition} configuration.
      */
-    public CustomFurniture furniture() {
+    public FurnitureDefinition furniture() {
         return this.config;
     }
 

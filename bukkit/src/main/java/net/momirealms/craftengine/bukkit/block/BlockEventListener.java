@@ -13,7 +13,7 @@ import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.loot.LootTable;
@@ -130,11 +130,11 @@ public final class BlockEventListener implements Listener {
         Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
 
         if (!event.isCancelled() && !ItemUtils.isEmpty(itemInHand)) {
-            Optional<CustomItem> optionalCustomItem = itemInHand.getCustomItem();
+            Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
             if (optionalCustomItem.isPresent()) {
-                CustomItem customItem = optionalCustomItem.get();
+                ItemDefinition itemDefinition = optionalCustomItem.get();
                 Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
-                customItem.execute(
+                itemDefinition.execute(
                         PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                             .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                             .withParameter(DirectContextParameters.POSITION, position)
@@ -146,7 +146,7 @@ public final class BlockEventListener implements Listener {
                 if (cancellable.isCancelled()) {
                     return;
                 }
-                for (ItemBehavior behavior : customItem.behaviors()) {
+                for (ItemBehavior behavior : itemDefinition.behaviors()) {
                     behavior.onBreakBlock(world, serverPlayer, blockPos);
                 }
             }

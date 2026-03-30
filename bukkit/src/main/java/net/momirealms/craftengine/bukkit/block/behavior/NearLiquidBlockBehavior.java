@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -28,7 +28,7 @@ public final class NearLiquidBlockBehavior extends AbstractCanSurviveBlockBehavi
     public final boolean stackable;
     public final BlockPos[] positions;
 
-    private NearLiquidBlockBehavior(CustomBlock block,
+    private NearLiquidBlockBehavior(BlockDefinition block,
                                     int delay,
                                     BlockPos[] positions,
                                     boolean stackable,
@@ -45,7 +45,7 @@ public final class NearLiquidBlockBehavior extends AbstractCanSurviveBlockBehavi
         private static final String[] LIQUID_TYPE = new String[] {"liquid_type", "liquid-type"};
 
         @Override
-        public NearLiquidBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public NearLiquidBlockBehavior create(BlockDefinition block, ConfigSection section) {
             List<String> liquidTypes = section.getStringList(LIQUID_TYPE, List.of("water"));
             BlockPos[] positions = section.getList("positions", v -> {
                 ConfigValue[] configValues = v.splitValuesRestrict(",", 3);
@@ -71,7 +71,7 @@ public final class NearLiquidBlockBehavior extends AbstractCanSurviveBlockBehavi
             Object belowPos = BlockPosProxy.INSTANCE.newInstance(x, y - 1, z);
             Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
             Optional<ImmutableBlockState> optionalBelowCustomState = BlockStateUtils.getOptionalCustomBlockState(belowState);
-            if (optionalBelowCustomState.isPresent() && optionalBelowCustomState.get().owner().value() == super.customBlock) {
+            if (optionalBelowCustomState.isPresent() && optionalBelowCustomState.get().owner().value() == super.blockDefinition) {
                 return true;
             }
         }

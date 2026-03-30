@@ -7,7 +7,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -49,7 +49,7 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior {
     public final double boneMealSuccessChance;
     public final float growSpeed;
 
-    private SaplingBlockBehavior(CustomBlock block,
+    private SaplingBlockBehavior(BlockDefinition block,
                                  Key feature,
                                  IntegerProperty stageProperty,
                                  double boneMealSuccessChance,
@@ -202,7 +202,7 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior {
         private static final String[] GROW_SPEED = new String[]{"grow_speed", "grow-speed"};
 
         @Override
-        public SaplingBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SaplingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SaplingBlockBehavior(
                     block,
                     section.getNonNullIdentifier(FEATURE),

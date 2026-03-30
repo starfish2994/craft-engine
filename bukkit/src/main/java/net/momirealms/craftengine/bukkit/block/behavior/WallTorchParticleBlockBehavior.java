@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
 import net.momirealms.craftengine.bukkit.block.entity.WallTorchParticleBlockEntity;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
@@ -22,11 +22,11 @@ public final class WallTorchParticleBlockBehavior extends BukkitBlockBehavior im
     public final int tickInterval;
     public final Property<HorizontalDirection> facingProperty;
 
-    private WallTorchParticleBlockBehavior(CustomBlock customBlock,
+    private WallTorchParticleBlockBehavior(BlockDefinition blockDefinition,
                                            ParticleConfig[] particles,
                                            int tickInterval,
                                            Property<HorizontalDirection> facingProperty) {
-        super(customBlock);
+        super(blockDefinition);
         this.particles = particles;
         this.tickInterval = tickInterval;
         this.facingProperty = facingProperty;
@@ -53,7 +53,7 @@ public final class WallTorchParticleBlockBehavior extends BukkitBlockBehavior im
         private static final String[] TICK_INTERVAL = new String[] {"tick_interval", "tick-interval"};
 
         @Override
-        public WallTorchParticleBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public WallTorchParticleBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new WallTorchParticleBlockBehavior(
                     block,
                     section.getSectionList(PARTICLES, ParticleConfig::fromConfig$blockEntity).toArray(new ParticleConfig[0]),

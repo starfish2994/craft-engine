@@ -9,7 +9,7 @@ import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
@@ -58,9 +58,9 @@ public final class DebugCustomModelDataCommand extends BukkitCommandFeature<Comm
 
         if (namespacedKey != null) {
             Key itemId = KeyUtils.namespacedKeyToKey(namespacedKey);
-            CustomItem customItem = CraftEngineItems.byId(itemId);
-            if (customItem == null) return;
-            Item item = customItem.buildItem(player);
+            ItemDefinition itemDefinition = CraftEngineItems.byId(itemId);
+            if (itemDefinition == null) return;
+            Item item = itemDefinition.buildItem(player);
             sendMessage(context, item, player);
             return;
         }

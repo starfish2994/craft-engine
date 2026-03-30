@@ -5,7 +5,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -36,9 +36,9 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
     public static final BlockBehaviorFactory<DoubleHighBlockBehavior> FACTORY = new Factory();
     public final Property<DoubleBlockHalf> halfProperty;
 
-    private DoubleHighBlockBehavior(CustomBlock customBlock,
+    private DoubleHighBlockBehavior(BlockDefinition blockDefinition,
                                     Property<DoubleBlockHalf> halfProperty) {
-        super(customBlock, 0);
+        super(blockDefinition, 0);
         this.halfProperty = halfProperty;
     }
 
@@ -115,7 +115,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
             Object belowPos = BlockPosProxy.INSTANCE.newInstance(x, y, z);
             Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
             Optional<ImmutableBlockState> belowCustomState = BlockStateUtils.getOptionalCustomBlockState(belowState);
-            return belowCustomState.filter(immutableBlockState -> immutableBlockState.owner().value() == super.customBlock).isPresent();
+            return belowCustomState.filter(immutableBlockState -> immutableBlockState.owner().value() == super.blockDefinition).isPresent();
         }
         return true;
     }
@@ -154,7 +154,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
     private static class Factory implements BlockBehaviorFactory<DoubleHighBlockBehavior> {
 
         @Override
-        public DoubleHighBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public DoubleHighBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new DoubleHighBlockBehavior(block, BlockBehaviorFactory.getProperty(section.path(), block, "half", DoubleBlockHalf.class));
         }
     }

@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -23,7 +23,7 @@ public final class OnLiquidBlockBehavior extends AbstractCanSurviveBlockBehavior
     public final boolean onLava;
     public final boolean stackable;
 
-    private OnLiquidBlockBehavior(CustomBlock block, int delay, boolean stackable, boolean onWater, boolean onLava) {
+    private OnLiquidBlockBehavior(BlockDefinition block, int delay, boolean stackable, boolean onWater, boolean onLava) {
         super(block, delay);
         this.onWater = onWater;
         this.onLava = onLava;
@@ -34,7 +34,7 @@ public final class OnLiquidBlockBehavior extends AbstractCanSurviveBlockBehavior
         private static final String[] LIQUID_TYPE = new String[] {"liquid_type", "liquid-type"};
 
         @Override
-        public OnLiquidBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public OnLiquidBlockBehavior create(BlockDefinition block, ConfigSection section) {
             List<String> liquidTypes = section.getStringList(LIQUID_TYPE, List.of("water"));
             return new OnLiquidBlockBehavior(
                     block,
@@ -60,7 +60,7 @@ public final class OnLiquidBlockBehavior extends AbstractCanSurviveBlockBehavior
     private boolean mayPlaceOn(Object belowState, Object world, Object belowPos) {
         if (this.stackable) {
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(belowState);
-            if (optionalCustomState.isPresent() && optionalCustomState.get().owner().value() == super.customBlock) {
+            if (optionalCustomState.isPresent() && optionalCustomState.get().owner().value() == super.blockDefinition) {
                 return true;
             }
         }

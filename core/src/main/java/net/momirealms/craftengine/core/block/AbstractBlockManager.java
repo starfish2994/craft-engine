@@ -56,7 +56,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final IdSectionConfigParser blockParser = new BlockParser();
     protected final SectionConfigParser blockStateMappingParser;
     // 根据id获取自定义方块
-    protected final Map<Key, CustomBlock> byId = new ConcurrentHashMap<>(128, 0.5f);
+    protected final Map<Key, BlockDefinition> byId = new ConcurrentHashMap<>(128, 0.5f);
     // 缓存的指令建议
     protected final List<Suggestion> cachedSuggestions = new ArrayList<>(128);
     // 缓存的使用中的命名空间
@@ -141,7 +141,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.appearanceToRealState.clear();
         this.isTransparentModelInUse = false;
         Arrays.fill(this.blockStateMappings, -1);
-        Arrays.fill(this.immutableBlockStates, EmptyBlock.STATE);
+        Arrays.fill(this.immutableBlockStates, EmptyBlockDefinition.STATE);
         Arrays.fill(this.autoVisualBlockStateCandidates, null);
         for (AutoStateGroup autoStateGroup : AutoStateGroup.values()) {
             autoStateGroup.reset();
@@ -162,12 +162,12 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     }
 
     @Override
-    public Map<Key, CustomBlock> loadedBlocks() {
+    public Map<Key, BlockDefinition> loadedBlocks() {
         return Collections.unmodifiableMap(this.byId);
     }
 
     @Override
-    public Optional<CustomBlock> blockById(Key id) {
+    public Optional<BlockDefinition> blockById(Key id) {
         return Optional.ofNullable(this.byId.get(id));
     }
 
@@ -175,7 +175,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         return this.blockStateArranger;
     }
 
-    protected abstract void applyPlatformSettings(CustomBlock block, ImmutableBlockState state);
+    protected abstract void applyPlatformSettings(BlockDefinition block, ImmutableBlockState state);
 
     @Override
     public ConfigParser[] parsers() {
@@ -221,7 +221,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.cachedSuggestions.clear();
         this.namespacesInUse.clear();
         Set<String> states = new HashSet<>();
-        for (CustomBlock block : this.byId.values()) {
+        for (BlockDefinition block : this.byId.values()) {
             states.add(block.id().toString());
             this.namespacesInUse.add(block.id().namespace());
             for (ImmutableBlockState state : block.variantProvider().states()) {
@@ -240,7 +240,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     public abstract void registerBlockStatePacketListener();
 
-    public abstract BlockBehavior createBlockBehavior(CustomBlock customBlock, ConfigValue value);
+    public abstract BlockBehavior createBlockBehavior(BlockDefinition blockDefinition, ConfigValue value);
 
     public boolean isViewBlockingBlock(int stateId) {
         return this.viewBlockingBlocks[stateId];
@@ -258,10 +258,10 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     protected abstract void processSounds();
 
-    protected abstract CustomBlock createCustomBlock(@NotNull Holder.Reference<CustomBlock> holder,
-                                                     @NotNull BlockStateVariantProvider variantProvider,
-                                                     @NotNull Map<EventTrigger, List<Function<Context>>> events,
-                                                     @Nullable LootTable lootTable);
+    protected abstract BlockDefinition createCustomBlock(@NotNull Holder.Reference<BlockDefinition> holder,
+                                                         @NotNull BlockStateVariantProvider variantProvider,
+                                                         @NotNull Map<EventTrigger, List<Function<Context>>> events,
+                                                         @Nullable LootTable lootTable);
 
     private final class BlockStateMappingParser extends SectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"block-state-mappings", "block-state-mapping", "block_state_mappings", "block_state_mapping"};
@@ -460,9 +460,9 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             // 读取方块属性
             Map<String, Property<?>> properties = stateSection.getValue("properties", v -> parseBlockProperties(v.getAsSection()), Map.of());
             // 注册方块容器
-            Holder.Reference<CustomBlock> holder = ((WritableRegistry<CustomBlock>) BuiltInRegistries.BLOCK).getOrRegisterForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), id));
+            Holder.Reference<BlockDefinition> holder = ((WritableRegistry<BlockDefinition>) BuiltInRegistries.BLOCK).getOrRegisterForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), id));
             // 先绑定无效方块，防止因为后续报错导致未绑定
-            holder.bindValue(new InactiveCustomBlock(holder));
+            holder.bindValue(new InactiveBlockDefinition(holder));
             // 根据properties生成variant provider
             BlockStateVariantProvider variantProvider = new BlockStateVariantProvider(holder, (owner, propertyMap) -> {
                 ImmutableBlockState blockState = new ImmutableBlockState(owner, propertyMap);
@@ -560,7 +560,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 }
 
                 // 创建自定义方块
-                AbstractCustomBlock customBlock = (AbstractCustomBlock) createCustomBlock(holder, variantProvider, events, lootTable);
+                AbstractBlockDefinition customBlock = (AbstractBlockDefinition) createCustomBlock(holder, variantProvider, events, lootTable);
 
                 // 读取外观设置
                 Map<String, ConfigSection> appearanceConfigs;

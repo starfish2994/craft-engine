@@ -9,20 +9,20 @@ import net.momirealms.craftengine.core.util.ResourceKey;
 
 import java.util.Map;
 
-public final class EmptyBlock extends AbstractCustomBlock {
-    public static final EmptyBlock INSTANCE;
+public final class EmptyBlockDefinition extends AbstractBlockDefinition {
+    public static final EmptyBlockDefinition INSTANCE;
     public static final ImmutableBlockState STATE;
 
     static {
-        Holder.Reference<CustomBlock> holder = ((WritableRegistry<CustomBlock>) BuiltInRegistries.BLOCK).registerForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), Key.withCraftEngineNamespace("empty")));
-        INSTANCE = new EmptyBlock(holder);
+        Holder.Reference<BlockDefinition> holder = ((WritableRegistry<BlockDefinition>) BuiltInRegistries.BLOCK).registerForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), Key.withCraftEngineNamespace("empty")));
+        INSTANCE = new EmptyBlockDefinition(holder);
         holder.bindValue(INSTANCE);
         STATE = INSTANCE.defaultState();
         STATE.setSettings(BlockSettings.of());
         STATE.setBehavior(EmptyBlockBehavior.INSTANCE);
     }
 
-    private EmptyBlock(Holder.Reference<CustomBlock> holder) {
+    private EmptyBlockDefinition(Holder.Reference<BlockDefinition> holder) {
         super(holder, new BlockStateVariantProvider(holder, ImmutableBlockState::new, Map.of()), Map.of(), null);
     }
 

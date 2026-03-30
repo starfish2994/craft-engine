@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.plugin.locale;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -17,7 +17,7 @@ public final class ClientLangData {
     static {
         LANG_KEY_PROCESSORS.put("block_name", (id) -> {
             Key blockId = Key.of(id);
-            Optional<CustomBlock> blockOptional = CraftEngine.instance().blockManager().blockById(blockId);
+            Optional<BlockDefinition> blockOptional = CraftEngine.instance().blockManager().blockById(blockId);
             if (blockOptional.isPresent() && Config.generateModAssets()) {
                 List<String> keys = new ArrayList<>();
                 List<ImmutableBlockState> states = blockOptional.get().variantProvider().states();

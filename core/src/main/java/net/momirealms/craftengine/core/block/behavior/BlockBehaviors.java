@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.block.behavior;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
@@ -22,7 +22,7 @@ public abstract class BlockBehaviors {
         return type;
     }
 
-    public static BlockBehavior fromConfig(CustomBlock block, ConfigSection section) {
+    public static BlockBehavior fromConfig(BlockDefinition block, ConfigSection section) {
         String type = section.getNonEmptyString("type");
         Key key = Key.ce(type);
         BlockBehaviorType<? extends BlockBehavior> factory = BuiltInRegistries.BLOCK_BEHAVIOR_TYPE.getValue(key);

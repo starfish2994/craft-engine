@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public abstract class AbstractCustomItem implements CustomItem {
+public abstract class AbstractItemDefinition implements ItemDefinition {
     protected final boolean isVanillaItem;
     protected final UniqueKey id;
     protected final Key material;
@@ -27,13 +27,13 @@ public abstract class AbstractCustomItem implements CustomItem {
     protected final Map<EventTrigger, List<Function<Context>>> events;
     protected final ItemUpdateConfig updater;
 
-    public AbstractCustomItem(boolean isVanillaItem, UniqueKey id, Key material, Key clientBoundMaterial,
-                              List<ItemBehavior> behaviors,
-                              List<ItemProcessor> processors,
-                              List<ItemProcessor> clientBoundProcessors,
-                              ItemSettings settings,
-                              Map<EventTrigger, List<Function<Context>>> events,
-                              ItemUpdateConfig updater) {
+    public AbstractItemDefinition(boolean isVanillaItem, UniqueKey id, Key material, Key clientBoundMaterial,
+                                  List<ItemBehavior> behaviors,
+                                  List<ItemProcessor> processors,
+                                  List<ItemProcessor> clientBoundProcessors,
+                                  ItemSettings settings,
+                                  Map<EventTrigger, List<Function<Context>>> events,
+                                  ItemUpdateConfig updater) {
         this.isVanillaItem = isVanillaItem;
         this.id = id;
         this.material = material;

@@ -9,7 +9,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.BukkitItemUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -65,7 +65,7 @@ public final class DebugStickListener implements Listener {
         BlockStateUtils.getOptionalCustomBlockState(blockState).ifPresent(customState -> {
             event.setCancelled(true);
             boolean update = event.getAction() == Action.RIGHT_CLICK_BLOCK;
-            CustomBlock block = customState.owner().value();
+            BlockDefinition block = customState.owner().value();
             Collection<Property<?>> properties = block.properties();
             String blockId = block.id().toString();
             if (properties.isEmpty()) {

@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.CanBeReplacedBlockBehavior;
@@ -24,7 +24,7 @@ public final class StackableBlockBehavior extends BukkitBlockBehavior implements
     public final List<Key> items;
     public final String propertyName;
 
-    private StackableBlockBehavior(CustomBlock block,
+    private StackableBlockBehavior(BlockDefinition block,
                                    IntegerProperty amountProperty,
                                    List<Key> items,
                                    String propertyName) {
@@ -75,7 +75,7 @@ public final class StackableBlockBehavior extends BukkitBlockBehavior implements
         private static final String[] ITEMS = new String[] {"items", "item"};
 
         @Override
-        public StackableBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public StackableBlockBehavior create(BlockDefinition block, ConfigSection section) {
             String propertyName = section.getString("property", "amount");
             return new StackableBlockBehavior(
                     block,

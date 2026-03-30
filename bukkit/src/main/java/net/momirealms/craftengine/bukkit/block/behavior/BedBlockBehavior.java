@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -51,12 +51,12 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
     public final SeatConfig seatConfig;
     public final Vector3f sleepOffset;
 
-    private BedBlockBehavior(CustomBlock customBlock,
+    private BedBlockBehavior(BlockDefinition blockDefinition,
                              Property<HorizontalDirection> facingProperty,
                              Property<BedPart> partProperty,
                              SeatConfig seatConfig,
                              Vector3f sleepOffset) {
-        super(customBlock);
+        super(blockDefinition);
         this.facingProperty = facingProperty;
         this.partProperty = partProperty;
         this.seatConfig = seatConfig;
@@ -289,7 +289,7 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
         private static final String[] SLEEP_OFFSET = new String[] {"sleep_offset", "sleep-offset"};
 
         @Override
-        public BedBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public BedBlockBehavior create(BlockDefinition block, ConfigSection section) {
             if (!VersionHelper.isOrAbove1_20_2()) {
                 throw new UnsupportedOperationException("bed_block requires at least 1.20.2");
             }

@@ -410,9 +410,9 @@ public final class RecipeEventListener implements Listener {
         ItemStack second = inventory.getSecondItem();
         if (first == null || second == null) return;
         Item wrappedFirst = BukkitItemManager.instance().wrap(first);
-        Optional<CustomItem> firstCustom = wrappedFirst.getCustomItem();
+        Optional<ItemDefinition> firstCustom = wrappedFirst.getCustomItem();
         Item wrappedSecond = BukkitItemManager.instance().wrap(second);
-        Optional<CustomItem> secondCustom = wrappedFirst.getCustomItem();
+        Optional<ItemDefinition> secondCustom = wrappedFirst.getCustomItem();
         // 两个都是原版物品
         if (firstCustom.isEmpty() && secondCustom.isEmpty()) {
             return;
@@ -453,14 +453,14 @@ public final class RecipeEventListener implements Listener {
         }
 
         if (firstCustom.isPresent()) {
-            CustomItem firstCustomItem = firstCustom.get();
-            if (firstCustomItem.settings().repairable().anvilCombine() == Tristate.FALSE) {
+            ItemDefinition firstItemDefinition = firstCustom.get();
+            if (firstItemDefinition.settings().repairable().anvilCombine() == Tristate.FALSE) {
                 event.setResult(null);
                 return;
             }
 
             Item wrappedResult = BukkitItemManager.instance().wrap(event.getResult());
-            if (!firstCustomItem.settings().canEnchant()) {
+            if (!firstItemDefinition.settings().canEnchant()) {
                 Object previousEnchantment = wrappedFirst.getExactComponent(DataComponentTypes.ENCHANTMENTS);
                 if (previousEnchantment != null) {
                     wrappedResult.setExactComponent(DataComponentTypes.ENCHANTMENTS, previousEnchantment);
@@ -484,13 +484,13 @@ public final class RecipeEventListener implements Listener {
 
         Item wrappedSecond = BukkitItemManager.instance().wrap(second);
         // 如果材料不是自定义的，那么忽略
-        Optional<CustomItem> customItemOptional = this.plugin.itemManager().getCustomItem(wrappedSecond.id());
+        Optional<ItemDefinition> customItemOptional = this.plugin.itemManager().getCustomItem(wrappedSecond.id());
         if (customItemOptional.isEmpty()) {
             return;
         }
 
-        CustomItem customItem = customItemOptional.get();
-        List<AnvilRepairItem> repairItems = customItem.settings().repairItems();
+        ItemDefinition itemDefinition = customItemOptional.get();
+        List<AnvilRepairItem> repairItems = itemDefinition.settings().repairItems();
         // 如果材料不支持修复物品，则忽略
         if (repairItems.isEmpty()) {
             return;
@@ -504,7 +504,7 @@ public final class RecipeEventListener implements Listener {
         if (damage == 0 || maxDamage == 0) return;
 
         Key firstId = wrappedFirst.id();
-        Optional<CustomItem> optionalCustomTool = wrappedFirst.getCustomItem();
+        Optional<ItemDefinition> optionalCustomTool = wrappedFirst.getCustomItem();
         // 物品无法被修复
         if (optionalCustomTool.isPresent() && optionalCustomTool.get().settings().repairable().anvilRepair() == Tristate.FALSE) {
             return;
@@ -685,7 +685,7 @@ public final class RecipeEventListener implements Listener {
                 int durability1 = first.maxDamage() - first.damage().orElse(0);
                 int durability2 = right.maxDamage() - right.damage().orElse(0);
                 int finalDurability = durability1 + durability2 + max * 5 / 100;
-                Optional<CustomItem> customItemOptional = plugin.itemManager().getCustomItem(first.id());
+                Optional<ItemDefinition> customItemOptional = plugin.itemManager().getCustomItem(first.id());
                 if (customItemOptional.isEmpty()) {
                     inventory.setResult(null);
                     return;
@@ -938,10 +938,10 @@ public final class RecipeEventListener implements Listener {
             ItemStack equipment = inventory.getInputEquipment();
             if (!ItemStackUtils.isEmpty(equipment)) {
                 Item wrappedEquipment = this.itemManager.wrap(equipment);
-                Optional<CustomItem> optionalCustomItem = wrappedEquipment.getCustomItem();
+                Optional<ItemDefinition> optionalCustomItem = wrappedEquipment.getCustomItem();
                 if (optionalCustomItem.isPresent()) {
-                    CustomItem customItem = optionalCustomItem.get();
-                    ItemEquipment itemEquipmentSettings = customItem.settings().equipment();
+                    ItemDefinition itemDefinition = optionalCustomItem.get();
+                    ItemEquipment itemEquipmentSettings = itemDefinition.settings().equipment();
                     if (itemEquipmentSettings != null && itemEquipmentSettings.equipment() instanceof TrimBasedEquipment) {
                         // 不允许trim类型的盔甲再次被使用trim
                         event.setResult(null);

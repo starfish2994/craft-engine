@@ -6,9 +6,9 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
-import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
-import net.momirealms.craftengine.core.entity.furniture.behavior.Controller;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -43,7 +43,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
     public final SoundData openSound;
     public final SoundData closeSound;
 
-    private SimpleStorageFurnitureBehaviorTemplate(CustomFurniture furniture,
+    private SimpleStorageFurnitureBehaviorTemplate(FurnitureDefinition furniture,
                                                    String containerTitle,
                                                    int rows,
                                                    SoundData openSound,
@@ -56,11 +56,11 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
     }
 
     @Override
-    public Controller createController(Furniture furniture) {
+    public FurnitureController createController(Furniture furniture) {
         return new SimpleStorageController(furniture, this);
     }
 
-    static final class SimpleStorageController extends Controller {
+    static final class SimpleStorageController extends FurnitureController {
         public final SimpleStorageFurnitureBehaviorTemplate behavior;
         private ItemStorage storage;
 
@@ -111,7 +111,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
     private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehaviorTemplate> {
 
         @Override
-        public SimpleStorageFurnitureBehaviorTemplate create(CustomFurniture furniture, ConfigSection section) {
+        public SimpleStorageFurnitureBehaviorTemplate create(FurnitureDefinition furniture, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData openSound = null;
             SoundData closeSound = null;

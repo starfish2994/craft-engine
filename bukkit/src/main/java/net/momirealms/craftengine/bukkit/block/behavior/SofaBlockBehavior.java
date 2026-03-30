@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -27,7 +27,7 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
     public final Property<HorizontalDirection> facingProperty;
     public final Property<SofaShape> shapeProperty;
 
-    private SofaBlockBehavior(CustomBlock block,
+    private SofaBlockBehavior(BlockDefinition block,
                               Property<HorizontalDirection> facing,
                               Property<SofaShape> shape) {
         super(block);
@@ -104,7 +104,7 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
     private static class Factory implements BlockBehaviorFactory<SofaBlockBehavior> {
 
         @Override
-        public SofaBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SofaBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SofaBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),

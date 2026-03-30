@@ -81,7 +81,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
     }
 
     public InteractionResult place(UseOnContext context) {
-        Optional<CustomFurniture> optionalCustomFurniture = BukkitFurnitureManager.instance().furnitureById(this.id);
+        Optional<FurnitureDefinition> optionalCustomFurniture = BukkitFurnitureManager.instance().furnitureById(this.id);
         if (optionalCustomFurniture.isEmpty()) {
             CraftEngine.instance().logger().warn("Furniture " + this.id + " not found");
             return InteractionResult.FAIL;
@@ -94,8 +94,8 @@ public class FurnitureItemBehavior extends ItemBehavior {
             case DOWN -> AnchorType.CEILING;
         };
 
-        CustomFurniture customFurniture = optionalCustomFurniture.get();
-        FurnitureVariant variant = customFurniture.getVariant(anchorType.variantName());
+        FurnitureDefinition furnitureDefinition = optionalCustomFurniture.get();
+        FurnitureVariant variant = furnitureDefinition.getVariant(anchorType.variantName());
         if (variant == null) {
             return InteractionResult.FAIL;
         }
@@ -171,7 +171,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
         ContextHolder.Builder contextBuilder = ContextHolder.builder();
         // 触发尝试放置的事件
         if (player != null) {
-            FurnitureAttemptPlaceEvent attemptPlaceEvent = new FurnitureAttemptPlaceEvent(bukkitPlayer, customFurniture, variant, furnitureLocation.clone(), context.getHand(), world.getBlockAt(context.getClickedPos().x(), context.getClickedPos().y(), context.getClickedPos().z()), contextBuilder);
+            FurnitureAttemptPlaceEvent attemptPlaceEvent = new FurnitureAttemptPlaceEvent(bukkitPlayer, furnitureDefinition, variant, furnitureLocation.clone(), context.getHand(), world.getBlockAt(context.getClickedPos().x(), context.getClickedPos().y(), context.getClickedPos().z()), contextBuilder);
             if (EventUtils.fireAndCheckCancel(attemptPlaceEvent)) {
                 return InteractionResult.FAIL;
             }
@@ -183,7 +183,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
         dataAccessor.setVariant(variant.name());
         dataAccessor.setItem(item.copyWithCount(1));
         // 放置家具
-        BukkitFurniture bukkitFurniture = BukkitFurnitureManager.instance().place(furnitureLocation.clone(), customFurniture, dataAccessor, false);
+        BukkitFurniture bukkitFurniture = BukkitFurnitureManager.instance().place(furnitureLocation.clone(), furnitureDefinition, dataAccessor, false);
         // 触发放置事件
         if (player != null) {
             FurniturePlaceEvent placeEvent = new FurniturePlaceEvent(bukkitPlayer, bukkitFurniture, furnitureLocation, context.getHand(), contextBuilder);
@@ -202,7 +202,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
                 .withParameter(DirectContextParameters.HAND, context.getHand())
                 .withParameter(DirectContextParameters.ITEM_IN_HAND, item)
         );
-        customFurniture.execute(functionContext, EventTrigger.PLACE);
+        furnitureDefinition.execute(functionContext, EventTrigger.PLACE);
         if (dummy.isCancelled()) {
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
@@ -213,7 +213,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
             }
             player.swingHand(context.getHand());
         }
-        context.getLevel().playBlockSound(finalPlacePosition, customFurniture.settings().sounds().placeSound());
+        context.getLevel().playBlockSound(finalPlacePosition, furnitureDefinition.settings().sounds().placeSound());
         bukkitFurniture.controller.onPlace(context);
         return InteractionResult.SUCCESS;
     }

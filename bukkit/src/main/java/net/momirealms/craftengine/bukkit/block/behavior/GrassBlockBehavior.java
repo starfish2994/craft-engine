@@ -7,7 +7,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -44,7 +44,7 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<GrassBlockBehavior> FACTORY = new Factory();
     public final Key feature;
 
-    private GrassBlockBehavior(CustomBlock block, Key feature) {
+    private GrassBlockBehavior(BlockDefinition block, Key feature) {
         super(block);
         this.feature = feature;
     }
@@ -155,7 +155,7 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior {
                 if (optionalCustomState.isEmpty()) {
                     continue out;
                 }
-                if (optionalCustomState.get().owner().value() != super.customBlock) {
+                if (optionalCustomState.get().owner().value() != super.blockDefinition) {
                     continue out;
                 }
                 Object nmsCurrentPos = LocationUtils.toBlockPos(currentPos);
@@ -179,7 +179,7 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior {
         private static final String[] FEATURE = new String[]{"feature", "placed_feature", "placed-feature"};
 
         @Override
-        public GrassBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public GrassBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new GrassBlockBehavior(
                     block,
                     section.getNonNullIdentifier(FEATURE)

@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleParticleBlockEntity;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
@@ -19,10 +19,10 @@ public final class SimpleParticleBlockBehavior extends BukkitBlockBehavior imple
     public final ParticleConfig[] particles;
     public final int tickInterval;
 
-    private SimpleParticleBlockBehavior(CustomBlock customBlock,
+    private SimpleParticleBlockBehavior(BlockDefinition blockDefinition,
                                         ParticleConfig[] particles,
                                         int tickInterval) {
-        super(customBlock);
+        super(blockDefinition);
         this.particles = particles;
         this.tickInterval = tickInterval;
     }
@@ -48,7 +48,7 @@ public final class SimpleParticleBlockBehavior extends BukkitBlockBehavior imple
         private static final String[] TICK_INTERVAL = new String[] {"tick_interval", "tick-interval"};
 
         @Override
-        public SimpleParticleBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SimpleParticleBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SimpleParticleBlockBehavior(
                     block,
                     section.getSectionList(PARTICLES, ParticleConfig::fromConfig$blockEntity).toArray(new ParticleConfig[0]),

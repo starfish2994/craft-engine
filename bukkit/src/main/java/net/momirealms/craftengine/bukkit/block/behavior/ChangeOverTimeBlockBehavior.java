@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -22,11 +22,11 @@ public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior {
     public final LazyReference<BlockStateWrapper> lazyState;
     public final List<String> excludedProperties;
 
-    private ChangeOverTimeBlockBehavior(CustomBlock customBlock,
+    private ChangeOverTimeBlockBehavior(BlockDefinition blockDefinition,
                                         float changeSpeed,
                                         String nextBlock,
                                         List<String> excludedProperties) {
-        super(customBlock);
+        super(blockDefinition);
         this.changeSpeed = changeSpeed;
         this.nextBlock = nextBlock;
         this.excludedProperties = excludedProperties;
@@ -62,7 +62,7 @@ public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior {
         private static final String[] EXCLUDED_PROPERTIES = new String[] {"excluded_properties", "excluded-properties"};
 
         @Override
-        public ChangeOverTimeBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public ChangeOverTimeBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new ChangeOverTimeBlockBehavior(
                     block,
                     section.getFloat(CHANGE_SPEED, 0.057F),

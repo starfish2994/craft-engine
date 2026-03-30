@@ -11,7 +11,7 @@ import net.momirealms.craftengine.bukkit.world.gen.ConditionalFeature;
 import net.momirealms.craftengine.bukkit.world.gen.CraftEngineFeatures;
 import net.momirealms.craftengine.bukkit.world.gen.InjectedChunkGenerator;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.pack.Pack;
@@ -903,10 +903,10 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         // 处理方块状态
         Object rawName = result.get("Name");
         if (rawName instanceof String blockName) {
-            Optional<CustomBlock> customBlock = this.plugin.blockManager().blockById(Key.of(blockName));
+            Optional<BlockDefinition> customBlock = this.plugin.blockManager().blockById(Key.of(blockName));
             // 如果是自定义方块名
             if (customBlock.isPresent()) {
-                CustomBlock block = customBlock.get();
+                BlockDefinition block = customBlock.get();
                 ImmutableBlockState blockState = block.defaultState();
                 // 移除 properties 否则无法解析
                 Object properties = result.remove("Properties");
@@ -929,9 +929,9 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         Object rawBlocks = result.get("blocks");
         if (rawBlocks != null) {
             if (rawBlocks instanceof String blockName && blockName.charAt(0) != '#') {
-                Optional<CustomBlock> customBlock = this.plugin.blockManager().blockById(Key.of(blockName));
+                Optional<BlockDefinition> customBlock = this.plugin.blockManager().blockById(Key.of(blockName));
                 if (customBlock.isPresent()) {
-                    CustomBlock block = customBlock.get();
+                    BlockDefinition block = customBlock.get();
                     ImmutableBlockState blockState = block.defaultState();
                     result.put("blocks", BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().literalObject()).asString());
                 }
@@ -940,9 +940,9 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 List<String> newBlockList = new ArrayList<>(list.size());
                 for (Object rawBlockName : list) {
                     if (rawBlockName instanceof String blockName) {
-                        Optional<CustomBlock> customBlock = this.plugin.blockManager().blockById(Key.of(blockName));
+                        Optional<BlockDefinition> customBlock = this.plugin.blockManager().blockById(Key.of(blockName));
                         if (customBlock.isPresent()) {
-                            CustomBlock block = customBlock.get();
+                            BlockDefinition block = customBlock.get();
                             ImmutableBlockState blockState = block.defaultState();
                             newBlockList.add(BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().literalObject()).asString());
                         } else {

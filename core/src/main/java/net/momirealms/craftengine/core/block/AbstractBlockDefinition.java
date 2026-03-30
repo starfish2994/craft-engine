@@ -18,9 +18,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiFunction;
 
-public abstract class AbstractCustomBlock implements CustomBlock {
+public abstract class AbstractBlockDefinition implements BlockDefinition {
     protected final Key id;
-    protected final Holder.Reference<CustomBlock> holder;
+    protected final Holder.Reference<BlockDefinition> holder;
     protected final BlockStateVariantProvider variantProvider;
     protected final BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> placementFunction;
     protected final ImmutableBlockState defaultState;
@@ -29,8 +29,8 @@ public abstract class AbstractCustomBlock implements CustomBlock {
     protected final LootTable lootTable;
     protected BlockBehavior behavior;
 
-    protected AbstractCustomBlock(
-            @NotNull Holder.Reference<CustomBlock> holder,
+    protected AbstractBlockDefinition(
+            @NotNull Holder.Reference<BlockDefinition> holder,
             @NotNull BlockStateVariantProvider variantProvider,
             @NotNull Map<EventTrigger, List<Function<Context>>> events,
             @Nullable LootTable lootTable

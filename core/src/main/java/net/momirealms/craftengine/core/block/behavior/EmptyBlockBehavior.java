@@ -1,12 +1,12 @@
 package net.momirealms.craftengine.core.block.behavior;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
-import net.momirealms.craftengine.core.block.EmptyBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 
 public final class EmptyBlockBehavior extends BlockBehavior {
-    public static final EmptyBlockBehavior INSTANCE = new EmptyBlockBehavior(EmptyBlock.INSTANCE);
+    public static final EmptyBlockBehavior INSTANCE = new EmptyBlockBehavior(EmptyBlockDefinition.INSTANCE);
 
-    public EmptyBlockBehavior(CustomBlock block) {
+    public EmptyBlockBehavior(BlockDefinition block) {
         super(block);
     }
 }

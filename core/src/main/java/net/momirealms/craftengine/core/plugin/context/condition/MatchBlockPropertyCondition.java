@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.StatePropertyAccessor;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -43,7 +43,7 @@ public final class MatchBlockPropertyCondition<CTX extends Context> implements C
             }
         }
         if (customBlockState != null) {
-            CustomBlock block = customBlockState.owner().value();
+            BlockDefinition block = customBlockState.owner().value();
             for (Pair<String, String> property : this.properties) {
                 Property<?> propertyIns = block.getProperty(property.left());
                 if (propertyIns == null) {

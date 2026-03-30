@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
@@ -27,8 +27,8 @@ public final class HangableBlockBehavior extends BukkitBlockBehavior implements 
     public static final BlockBehaviorFactory<HangableBlockBehavior> FACTORY = new Factory();
     public final Property<Boolean> hangingProperty;
 
-    private HangableBlockBehavior(CustomBlock customBlock, Property<Boolean> hangingProperty) {
-        super(customBlock);
+    private HangableBlockBehavior(BlockDefinition blockDefinition, Property<Boolean> hangingProperty) {
+        super(blockDefinition);
         this.hangingProperty = hangingProperty;
     }
 
@@ -82,7 +82,7 @@ public final class HangableBlockBehavior extends BukkitBlockBehavior implements 
     private static class Factory implements BlockBehaviorFactory<HangableBlockBehavior> {
 
         @Override
-        public HangableBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public HangableBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new HangableBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "hanging", Boolean.class)

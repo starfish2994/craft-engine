@@ -16,7 +16,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.ItemTags;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.data.FireworkExplosion;
@@ -242,7 +242,7 @@ public final class RecipeInjector {
         if (input1.count() != 1 || !isDamageableItem(input1)) return false;
         if (input2.count() != 1 || !isDamageableItem(input2)) return false;
         if (!input1.id().equals(input2.id())) return false;
-        Optional<CustomItem> customItem = input1.getCustomItem();
+        Optional<ItemDefinition> customItem = input1.getCustomItem();
         return customItem.isEmpty() || customItem.get().settings().repairable().craftingTable() != Tristate.FALSE;
     }
 
@@ -328,20 +328,20 @@ public final class RecipeInjector {
 
     @Nullable
     private static Color getDyeColor(final Item dyeItem) {
-        Optional<CustomItem> optionalCustomItem = dyeItem.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = dyeItem.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            CustomItem customItem = optionalCustomItem.get();
-            return Optional.ofNullable(customItem.settings().dyeColor()).orElseGet(() -> getVanillaDyeColor(dyeItem));
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            return Optional.ofNullable(itemDefinition.settings().dyeColor()).orElseGet(() -> getVanillaDyeColor(dyeItem));
         }
         return getVanillaDyeColor(dyeItem);
     }
 
     @Nullable
     private static Color getFireworkColor(final Item dyeItem) {
-        Optional<CustomItem> optionalCustomItem = dyeItem.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = dyeItem.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            CustomItem customItem = optionalCustomItem.get();
-            return Optional.ofNullable(customItem.settings().fireworkColor()).orElseGet(() -> getVanillaFireworkColor(dyeItem));
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            return Optional.ofNullable(itemDefinition.settings().fireworkColor()).orElseGet(() -> getVanillaFireworkColor(dyeItem));
         }
         return getVanillaFireworkColor(dyeItem);
     }
@@ -355,13 +355,13 @@ public final class RecipeInjector {
                     });
 
     private static boolean isDyeable(final Item item) {
-        Optional<CustomItem> optionalCustomItem = item.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = item.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            CustomItem customItem = optionalCustomItem.get();
-            if (customItem.settings().dyeable() == Tristate.FALSE) {
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            if (itemDefinition.settings().dyeable() == Tristate.FALSE) {
                 return false;
             }
-            if (customItem.settings().dyeable() == Tristate.TRUE) {
+            if (itemDefinition.settings().dyeable() == Tristate.TRUE) {
                 return true;
             }
         }
@@ -397,19 +397,19 @@ public final class RecipeInjector {
     }
 
     private static boolean isArmorDye(Item dyeItem) {
-        Optional<CustomItem> optionalCustomItem = dyeItem.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = dyeItem.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            CustomItem customItem = optionalCustomItem.get();
-            return customItem.settings().dyeColor() != null || isVanillaDyeItem(dyeItem);
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            return itemDefinition.settings().dyeColor() != null || isVanillaDyeItem(dyeItem);
         }
         return isVanillaDyeItem(dyeItem);
     }
 
     private static boolean isFireworkDye(Item dyeItem) {
-        Optional<CustomItem> optionalCustomItem = dyeItem.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = dyeItem.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            CustomItem customItem = optionalCustomItem.get();
-            return customItem.settings().fireworkColor() != null || isVanillaDyeItem(dyeItem);
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            return itemDefinition.settings().fireworkColor() != null || isVanillaDyeItem(dyeItem);
         }
         return isVanillaDyeItem(dyeItem);
     }

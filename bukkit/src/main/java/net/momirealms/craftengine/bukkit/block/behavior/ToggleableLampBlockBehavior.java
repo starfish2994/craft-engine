@@ -4,7 +4,7 @@ import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -29,7 +29,7 @@ public final class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
     public final Property<Boolean> poweredProperty;
     public final boolean canOpenWithHand;
 
-    private ToggleableLampBlockBehavior(CustomBlock block,
+    private ToggleableLampBlockBehavior(BlockDefinition block,
                                         Property<Boolean> litProperty,
                                         Property<Boolean> poweredProperty,
                                         boolean canOpenWithHand) {
@@ -108,7 +108,7 @@ public final class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
         private static final String[] CAN_OPEN_WITH_HAND = new String[] {"can_open_with_hand", "can_toggle_with_hand", "can-open-with-hand", "can-toggle-with-hand"};
 
         @Override
-        public ToggleableLampBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public ToggleableLampBlockBehavior create(BlockDefinition block, ConfigSection section) {
             boolean canOpenWithHand = section.getBoolean(CAN_OPEN_WITH_HAND);
             return new ToggleableLampBlockBehavior(
                     block,

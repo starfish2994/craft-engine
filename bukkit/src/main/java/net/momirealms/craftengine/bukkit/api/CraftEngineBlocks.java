@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.item.Item;
@@ -48,7 +48,7 @@ public final class CraftEngineBlocks {
      * @return a non-null map containing all loaded custom blocks
      */
     @NotNull
-    public static Map<Key, CustomBlock> loadedBlocks() {
+    public static Map<Key, BlockDefinition> loadedBlocks() {
         return BukkitBlockManager.instance().loadedBlocks();
     }
 
@@ -59,7 +59,7 @@ public final class CraftEngineBlocks {
      * @return the custom block
      */
     @Nullable
-    public static CustomBlock byId(@NotNull Key id) {
+    public static BlockDefinition byId(@NotNull Key id) {
         return BukkitBlockManager.instance().blockById(id).orElse(null);
     }
 
@@ -88,7 +88,7 @@ public final class CraftEngineBlocks {
     public static boolean place(@NotNull Location location,
                                 @NotNull Key blockId,
                                 boolean playSound) {
-        CustomBlock block = byId(blockId);
+        BlockDefinition block = byId(blockId);
         if (block == null) return false;
         return place(location, block.defaultState(), UpdateFlags.UPDATE_ALL, playSound);
     }
@@ -106,7 +106,7 @@ public final class CraftEngineBlocks {
                                 @NotNull Key blockId,
                                 @NotNull CompoundTag properties,
                                 boolean playSound) {
-        CustomBlock block = byId(blockId);
+        BlockDefinition block = byId(blockId);
         if (block == null) return false;
         return place(location, block.getBlockState(properties), UpdateFlags.UPDATE_ALL, playSound);
     }
@@ -126,7 +126,7 @@ public final class CraftEngineBlocks {
                                 @NotNull CompoundTag properties,
                                 int flags,
                                 boolean playSound) {
-        CustomBlock block = byId(blockId);
+        BlockDefinition block = byId(blockId);
         if (block == null) return false;
         return place(location, block.getBlockState(properties), flags, playSound);
     }

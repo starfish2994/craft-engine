@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.world.chunk;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import net.momirealms.craftengine.core.block.EmptyBlock;
+import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.IndexedIterable;
@@ -69,7 +69,7 @@ public final class PalettedContainer<T> implements PaletteResizeListener<T>, Rea
     public boolean isEmpty() {
         Data<T> data = this.data;
         if (data.palette instanceof SingularPalette<T> singularPalette) {
-            return singularPalette.get(0) == EmptyBlock.STATE;
+            return singularPalette.get(0) == EmptyBlockDefinition.STATE;
         }
         return false;
     }

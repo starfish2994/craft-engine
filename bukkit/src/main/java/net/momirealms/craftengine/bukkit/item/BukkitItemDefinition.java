@@ -3,8 +3,8 @@ package net.momirealms.craftengine.bukkit.item;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.AbstractCustomItem;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.AbstractItemDefinition;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemSettings;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
@@ -23,16 +23,16 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-public final class BukkitCustomItem extends AbstractCustomItem {
+public final class BukkitItemDefinition extends AbstractItemDefinition {
     private final Object item;
     private final Object clientItem;
 
-    public BukkitCustomItem(boolean isVanillaItem, UniqueKey id, Object item, Object clientItem, Key materialKey, Key clientBoundMaterialKey,
-                            List<ItemBehavior> behaviors,
-                            List<ItemProcessor> modifiers, List<ItemProcessor> clientBoundModifiers,
-                            ItemSettings settings,
-                            Map<EventTrigger, List<Function<Context>>> events,
-                            ItemUpdateConfig updater) {
+    public BukkitItemDefinition(boolean isVanillaItem, UniqueKey id, Object item, Object clientItem, Key materialKey, Key clientBoundMaterialKey,
+                                List<ItemBehavior> behaviors,
+                                List<ItemProcessor> modifiers, List<ItemProcessor> clientBoundModifiers,
+                                ItemSettings settings,
+                                Map<EventTrigger, List<Function<Context>>> events,
+                                ItemUpdateConfig updater) {
         super(isVanillaItem, id, materialKey, clientBoundMaterialKey, behaviors, modifiers, clientBoundModifiers, settings, events, updater);
         this.item = item;
         this.clientItem = clientItem;
@@ -182,10 +182,10 @@ public final class BukkitCustomItem extends AbstractCustomItem {
         }
 
         @Override
-        public CustomItem build() {
+        public ItemDefinition build() {
             this.processors.addAll(this.settings.processors());
             this.clientBoundProcessors.addAll(this.settings.clientBoundProcessors());
-            return new BukkitCustomItem(this.isVanillaItem, this.id, this.item, this.clientBoundItem, this.itemKey, this.clientBoundItemKey, List.copyOf(this.behaviors),
+            return new BukkitItemDefinition(this.isVanillaItem, this.id, this.item, this.clientBoundItem, this.itemKey, this.clientBoundItemKey, List.copyOf(this.behaviors),
                     List.copyOf(this.processors), List.copyOf(this.clientBoundProcessors), this.settings, this.events, updater);
         }
     }

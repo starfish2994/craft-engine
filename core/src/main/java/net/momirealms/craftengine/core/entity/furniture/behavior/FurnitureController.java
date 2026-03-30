@@ -15,10 +15,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-public abstract class Controller {
+public abstract class FurnitureController {
     protected final Furniture furniture;
 
-    public Controller(@NotNull Furniture furniture) {
+    public FurnitureController(@NotNull Furniture furniture) {
         this.furniture = furniture;
     }
 
@@ -79,11 +79,11 @@ public abstract class Controller {
         return null;
     }
 
-    public static class BiController extends Controller {
-        protected final Controller first;
-        protected final Controller second;
+    public static class BiController extends FurnitureController {
+        protected final FurnitureController first;
+        protected final FurnitureController second;
 
-        public BiController(Furniture furniture, Controller first, Controller second) {
+        public BiController(Furniture furniture, FurnitureController first, FurnitureController second) {
             super(furniture);
             this.first = first;
             this.second = second;
@@ -188,10 +188,10 @@ public abstract class Controller {
     }
 
     // 复合家具行为处理器
-    public static class CompositeController extends Controller {
-        protected final Controller[] controllers;
+    public static class CompositeController extends FurnitureController {
+        protected final FurnitureController[] controllers;
 
-        public CompositeController(Furniture furniture, Controller... controllers) {
+        public CompositeController(Furniture furniture, FurnitureController... controllers) {
             super(furniture);
             this.controllers = controllers;
         }

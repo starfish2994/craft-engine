@@ -2,9 +2,9 @@ package net.momirealms.craftengine.bukkit.block;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.AbstractCustomBlock;
+import net.momirealms.craftengine.core.block.AbstractBlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateVariantProvider;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.loot.LootTable;
@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public final class BukkitCustomBlock extends AbstractCustomBlock {
+public final class BukkitBlockDefinition extends AbstractBlockDefinition {
 
-    public BukkitCustomBlock(
-            @NotNull Holder.Reference<CustomBlock> holder,
+    public BukkitBlockDefinition(
+            @NotNull Holder.Reference<BlockDefinition> holder,
             @NotNull BlockStateVariantProvider variantProvider,
             @NotNull Map<EventTrigger, List<Function<Context>>> events,
             @Nullable LootTable lootTable

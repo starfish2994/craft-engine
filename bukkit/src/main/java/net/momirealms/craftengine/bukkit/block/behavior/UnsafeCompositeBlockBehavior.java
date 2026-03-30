@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.*;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -19,8 +19,8 @@ public final class UnsafeCompositeBlockBehavior extends BlockBehavior
         implements FallOnBlockBehavior, PlaceLiquidBlockBehavior, IsPathFindableBlockBehavior, CanBeReplacedBlockBehavior {
     private final BlockBehavior[] behaviors;
 
-    public UnsafeCompositeBlockBehavior(CustomBlock customBlock, List<BlockBehavior> behaviors) {
-        super(customBlock);
+    public UnsafeCompositeBlockBehavior(BlockDefinition blockDefinition, List<BlockBehavior> behaviors) {
+        super(blockDefinition);
         this.behaviors = behaviors.toArray(new BlockBehavior[0]);
     }
 

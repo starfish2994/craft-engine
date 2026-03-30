@@ -3,14 +3,14 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.CanBeReplacedBlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.SlabType;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
@@ -33,7 +33,7 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
     public static final BlockBehaviorFactory<SlabBlockBehavior> FACTORY = new Factory();
     public final Property<SlabType> typeProperty;
 
-    private SlabBlockBehavior(CustomBlock block,
+    private SlabBlockBehavior(BlockDefinition block,
                               Property<SlabType> typeProperty) {
         super(block);
         this.typeProperty = typeProperty;
@@ -45,16 +45,16 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
         SlabType type = state.get(this.typeProperty);
         Item item = (Item) context.getItem();
         if (type == SlabType.DOUBLE || ItemUtils.isEmpty(item)) return false;
-        Optional<CustomItem> itemInHand = item.getCustomItem();
+        Optional<ItemDefinition> itemInHand = item.getCustomItem();
         if (itemInHand.isEmpty()) return false;
-        CustomItem customItem = itemInHand.get();
+        ItemDefinition itemDefinition = itemInHand.get();
         Key blockId = null;
-        for (ItemBehavior itemBehavior : customItem.behaviors()) {
+        for (ItemBehavior itemBehavior : itemDefinition.behaviors()) {
             if (itemBehavior instanceof BlockBoundItemBehavior behavior) {
                 blockId = behavior.block();
             }
         }
-        if (blockId == null || !blockId.equals(super.customBlock.id())) return false;
+        if (blockId == null || !blockId.equals(super.blockDefinition.id())) return false;
         if (!context.replacingClickedBlock()) return true;
         boolean upper = context.getClickedLocation().y - (double) context.getClickedPos().y() > (double) 0.5F;
         Direction clickedFace = context.getClickedFace();
@@ -67,7 +67,7 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         BlockPos clickedPos = context.getClickedPos();
         ImmutableBlockState blockState = context.getLevel().getBlock(clickedPos).customBlockState();
-        if (blockState != null && blockState.owner().value() == super.customBlock) {
+        if (blockState != null && blockState.owner().value() == super.blockDefinition) {
             if (super.waterloggedProperty != null)
                 blockState = blockState.with(super.waterloggedProperty, false);
             return blockState.with(this.typeProperty, SlabType.DOUBLE);
@@ -121,7 +121,7 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
     private static class Factory implements BlockBehaviorFactory<SlabBlockBehavior> {
 
         @Override
-        public SlabBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SlabBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SlabBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "type", SlabType.class)

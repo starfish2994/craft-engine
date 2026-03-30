@@ -5,10 +5,10 @@ import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.font.BitmapImage;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.pack.allocator.VisualBlockStateAllocator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -75,8 +75,8 @@ public final class CleanCacheCommand extends BukkitCommandFeature<CommandSender>
     private void handleVisualBlockState(CommandContext<CommandSender> context) {
         BukkitBlockManager instance = BukkitBlockManager.instance();
         Set<BlockStateWrapper> ids = new HashSet<>();
-        for (CustomBlock customBlock : instance.loadedBlocks().values()) {
-            for (ImmutableBlockState state : customBlock.variantProvider().states()) {
+        for (BlockDefinition blockDefinition : instance.loadedBlocks().values()) {
+            for (ImmutableBlockState state : blockDefinition.variantProvider().states()) {
                 ids.add(state.visualBlockState());
             }
         }
@@ -96,8 +96,8 @@ public final class CleanCacheCommand extends BukkitCommandFeature<CommandSender>
     private void handleCustomBlockState(CommandContext<CommandSender> context) {
         BukkitBlockManager instance = BukkitBlockManager.instance();
         Set<String> ids = new HashSet<>();
-        for (CustomBlock customBlock : instance.loadedBlocks().values()) {
-            for (ImmutableBlockState state : customBlock.variantProvider().states()) {
+        for (BlockDefinition blockDefinition : instance.loadedBlocks().values()) {
+            for (ImmutableBlockState state : blockDefinition.variantProvider().states()) {
                 ids.add(state.toString());
             }
         }
@@ -150,7 +150,7 @@ public final class CleanCacheCommand extends BukkitCommandFeature<CommandSender>
     private void handleCustomModelData(CommandContext<CommandSender> context) {
         BukkitItemManager instance = BukkitItemManager.instance();
         Map<Key, Set<String>> idsMap = new HashMap<>();
-        for (CustomItem item : instance.loadedItems().values()) {
+        for (ItemDefinition item : instance.loadedItems().values()) {
             Set<String> ids = idsMap.computeIfAbsent(item.clientBoundMaterial(), k -> new HashSet<>());
             ids.add(item.id().asString());
         }

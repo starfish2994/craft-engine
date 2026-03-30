@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -30,7 +30,7 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
     public final Property<SingleBlockHalf> halfProperty;
     public final Property<StairsShape> shapeProperty;
 
-    private StairsBlockBehavior(CustomBlock block,
+    private StairsBlockBehavior(BlockDefinition block,
                                 Property<HorizontalDirection> facing,
                                 Property<SingleBlockHalf> half,
                                 Property<StairsShape> shape) {
@@ -131,7 +131,7 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
     private static class Factory implements BlockBehaviorFactory<StairsBlockBehavior> {
 
         @Override
-        public StairsBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public StairsBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new StairsBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),

@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.InteractUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -62,7 +62,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
     public final SoundData openSound;
     public final SoundData closeSound;
 
-    private TrapDoorBlockBehavior(CustomBlock block,
+    private TrapDoorBlockBehavior(BlockDefinition block,
                                   Property<SingleBlockHalf> halfProperty,
                                   Property<HorizontalDirection> facingProperty,
                                   Property<Boolean> poweredProperty,
@@ -248,7 +248,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
         private static final String[] CAN_OPEN_BY_WIND_CHARGE = new String[] {"can_open_by_wind_charge", "can-open-by-wind-charge"};
 
         @Override
-        public TrapDoorBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public TrapDoorBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData openSound = null;
             SoundData closeSound = null;

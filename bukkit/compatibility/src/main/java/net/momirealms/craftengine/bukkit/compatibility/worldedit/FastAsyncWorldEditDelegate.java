@@ -26,7 +26,7 @@ import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.plugin.injector.WorldStorageInjector;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.core.block.EmptyBlock;
+import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -233,7 +233,7 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
             CESection ceSection = ceChunk.sectionById(SectionPos.blockToSectionCoord(blockY));
             ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockState(newStateId);
             if (immutableBlockState == null) {
-                ceSection.setBlockState(blockX & 15, blockY & 15, blockZ & 15, EmptyBlock.STATE);
+                ceSection.setBlockState(blockX & 15, blockY & 15, blockZ & 15, EmptyBlockDefinition.STATE);
             } else {
                 ceSection.setBlockState(blockX & 15, blockY & 15, blockZ & 15, immutableBlockState);
             }

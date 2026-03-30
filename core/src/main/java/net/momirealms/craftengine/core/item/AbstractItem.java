@@ -164,7 +164,7 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Optional<CustomItem> getCustomItem() {
+    public Optional<ItemDefinition> getCustomItem() {
         return factory.plugin.itemManager().getCustomItem(id());
     }
 

@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
@@ -18,8 +18,8 @@ public final class ChimeBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<ChimeBlockBehavior> FACTORY = new Factory();
     public final SoundData hitSound;
 
-    private ChimeBlockBehavior(CustomBlock customBlock, SoundData hitSound) {
-        super(customBlock);
+    private ChimeBlockBehavior(BlockDefinition blockDefinition, SoundData hitSound) {
+        super(blockDefinition);
         this.hitSound = hitSound;
     }
 
@@ -39,7 +39,7 @@ public final class ChimeBlockBehavior extends BukkitBlockBehavior {
         private static final String[] CHIME = new String[] {"chime", "projectile_hit", "projectile-hit"};
 
         @Override
-        public ChimeBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public ChimeBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundsSection = section.getSection("sounds");
             SoundData hitSound = null;
             if (soundsSection != null) {

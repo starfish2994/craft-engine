@@ -5,19 +5,19 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.entity.BukkitItemEntity;
-import net.momirealms.craftengine.bukkit.item.BukkitCustomItem;
+import net.momirealms.craftengine.bukkit.item.BukkitItemDefinition;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemSettings;
@@ -90,7 +90,7 @@ public final class ItemEventListener implements Listener {
         Item itemInHand = serverPlayer.getItemInHand(hand);
 
         if (ItemUtils.isEmpty(itemInHand)) return;
-        Optional<CustomItem> optionalCustomItem = itemInHand.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
         if (optionalCustomItem.isEmpty()) return;
         // 如果目标实体与手中物品可以产生交互，那么忽略
         if (InteractUtils.isEntityInteractable(player, entity, itemInHand)) return;
@@ -103,8 +103,8 @@ public final class ItemEventListener implements Listener {
                 .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(entity))
                 .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(event.getRightClicked().getLocation()))
         );
-        CustomItem customItem = optionalCustomItem.get();
-        customItem.execute(context, EventTrigger.RIGHT_CLICK);
+        ItemDefinition itemDefinition = optionalCustomItem.get();
+        itemDefinition.execute(context, EventTrigger.RIGHT_CLICK);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -168,7 +168,7 @@ public final class ItemEventListener implements Listener {
 
             Cancellable dummy = Cancellable.dummy();
             // run custom functions
-            CustomBlock customBlock = immutableBlockState.owner().value();
+            BlockDefinition blockDefinition = immutableBlockState.owner().value();
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, contextBuilder
                     .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                     .withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, immutableBlockState)
@@ -177,8 +177,8 @@ public final class ItemEventListener implements Listener {
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
                     .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand)
             );
-            if (action.isRightClick()) customBlock.execute(context, EventTrigger.RIGHT_CLICK);
-            else customBlock.execute(context, EventTrigger.LEFT_CLICK);
+            if (action.isRightClick()) blockDefinition.execute(context, EventTrigger.RIGHT_CLICK);
+            else blockDefinition.execute(context, EventTrigger.LEFT_CLICK);
             if (dummy.isCancelled()) {
                 event.setCancelled(true);
                 return;
@@ -251,7 +251,7 @@ public final class ItemEventListener implements Listener {
         }
 
         boolean hasItem = !itemInHand.isEmpty();
-        Optional<CustomItem> optionalCustomItem = hasItem ? itemInHand.getCustomItem() : Optional.empty();
+        Optional<ItemDefinition> optionalCustomItem = hasItem ? itemInHand.getCustomItem() : Optional.empty();
         boolean hasCustomItem = optionalCustomItem.isPresent();
 
         // interact block with items
@@ -345,8 +345,8 @@ public final class ItemEventListener implements Listener {
                             .withParameter(DirectContextParameters.HAND, hand)
                             .withParameter(DirectContextParameters.EVENT, dummy)
                     );
-                    CustomItem customItem = optionalCustomItem.get();
-                    customItem.execute(context, EventTrigger.RIGHT_CLICK);
+                    ItemDefinition itemDefinition = optionalCustomItem.get();
+                    itemDefinition.execute(context, EventTrigger.RIGHT_CLICK);
                     if (dummy.isCancelled()) {
                         event.setCancelled(true);
                         return;
@@ -365,8 +365,8 @@ public final class ItemEventListener implements Listener {
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
                     .withParameter(DirectContextParameters.HAND, hand)
             );
-            CustomItem customItem = optionalCustomItem.get();
-            customItem.execute(context, EventTrigger.LEFT_CLICK);
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            itemDefinition.execute(context, EventTrigger.LEFT_CLICK);
             if (dummy.isCancelled()) {
                 event.setCancelled(true);
                 return;
@@ -395,16 +395,16 @@ public final class ItemEventListener implements Listener {
         // should never be null
         if (ItemUtils.isEmpty(itemInHand)) return;
 
-        Optional<CustomItem> optionalCustomItem = itemInHand.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
         if (optionalCustomItem.isPresent()) {
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                     .withParameter(DirectContextParameters.HAND, hand)
                     .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(player.getLocation()))
             );
-            CustomItem customItem = optionalCustomItem.get();
-            if (action.isRightClick()) customItem.execute(context, EventTrigger.RIGHT_CLICK);
-            else customItem.execute(context, EventTrigger.LEFT_CLICK);
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            if (action.isRightClick()) itemDefinition.execute(context, EventTrigger.RIGHT_CLICK);
+            else itemDefinition.execute(context, EventTrigger.LEFT_CLICK);
         }
 
         // 事件里已经有交互了
@@ -437,25 +437,25 @@ public final class ItemEventListener implements Listener {
         ItemStack consumedItem = event.getItem();
         if (ItemStackUtils.isEmpty(consumedItem)) return;
         Item wrapped = this.plugin.itemManager().wrap(consumedItem);
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) {
             return;
         }
         Player player = event.getPlayer();
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
-        CustomItem customItem = optionalCustomItem.get();
+        ItemDefinition itemDefinition = optionalCustomItem.get();
         PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                 .withParameter(DirectContextParameters.ITEM_IN_HAND, wrapped)
                 .withParameter(DirectContextParameters.EVENT, cancellable)
                 .withParameter(DirectContextParameters.HAND, event.getHand() == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND)
         );
-        customItem.execute(context, EventTrigger.CONSUME);
+        itemDefinition.execute(context, EventTrigger.CONSUME);
         if (event.isCancelled()) {
             return;
         }
         if (event.getPlayer().getGameMode() != GameMode.CREATIVE) {
-            Key replacement = customItem.settings().consumeReplacement();
+            Key replacement = itemDefinition.settings().consumeReplacement();
             if (wrapped.count() == 1) {
                 if (replacement != null) {
                     ItemStack replacementItem = this.plugin.itemManager().buildItemStack(replacement, serverPlayer);
@@ -480,12 +480,12 @@ public final class ItemEventListener implements Listener {
         ItemStack consumedItem = event.getItem();
         if (ItemStackUtils.isEmpty(consumedItem)) return;
         Item wrapped = this.plugin.itemManager().wrap(consumedItem);
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) {
             return;
         }
-        CustomItem customItem = optionalCustomItem.get();
-        FoodData foodData = customItem.settings().foodData();
+        ItemDefinition itemDefinition = optionalCustomItem.get();
+        FoodData foodData = itemDefinition.settings().foodData();
         if (foodData == null) return;
         event.setCancelled(true);
         int oldFoodLevel = player.getFoodLevel();
@@ -516,7 +516,7 @@ public final class ItemEventListener implements Listener {
             // 获取物品
             BukkitItem itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
             if (ItemUtils.isEmpty(itemInHand)) return;
-            Optional<CustomItem> optionalCustomItem = itemInHand.getCustomItem();
+            Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
             if (optionalCustomItem.isEmpty()) return;
 
             // 触发事件
@@ -527,8 +527,8 @@ public final class ItemEventListener implements Listener {
                     .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(hitEntity))
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(hitEntity.getLocation()))
             );
-            CustomItem customItem = optionalCustomItem.get();
-            customItem.execute(context, EventTrigger.ATTACK);
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            itemDefinition.execute(context, EventTrigger.ATTACK);
         }
     }
 
@@ -537,10 +537,10 @@ public final class ItemEventListener implements Listener {
     public void onEnchant(PrepareItemEnchantEvent event) {
         ItemStack itemToEnchant = event.getItem();
         Item wrapped = this.plugin.itemManager().wrap(itemToEnchant);
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) return;
-        CustomItem customItem = optionalCustomItem.get();
-        if (!customItem.settings().canEnchant()) {
+        ItemDefinition itemDefinition = optionalCustomItem.get();
+        if (!itemDefinition.settings().canEnchant()) {
             event.setCancelled(true);
         }
     }
@@ -550,7 +550,7 @@ public final class ItemEventListener implements Listener {
     public void onCompost(CompostItemEvent event) {
         ItemStack itemToCompost = event.getItem();
         Item wrapped = this.plugin.itemManager().wrap(itemToCompost);
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) return;
         event.setWillRaiseLevel(RandomUtils.generateRandomFloat(0, 1) < optionalCustomItem.get().settings().compostProbability());
     }
@@ -566,9 +566,9 @@ public final class ItemEventListener implements Listener {
         if (ItemStackUtils.isEmpty(item)) return;
         Item wrapped = this.plugin.itemManager().wrap(item);
         if (ItemUtils.isEmpty(wrapped)) return;
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) return;
-        BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+        BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
         if (customItem.clientItem() == ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem())) return;
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return;
@@ -618,18 +618,18 @@ public final class ItemEventListener implements Listener {
         if (!VersionHelper.isOrAbove1_20_3()) {
             this.itemManager.unlockRecipeOnInventoryChanged(player, wrapped);
         }
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) return;
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
-        CustomItem customItem = optionalCustomItem.get();
-        if (Config.triggerUpdatePickUp() && customItem.updater().isPresent()) {
+        ItemDefinition itemDefinition = optionalCustomItem.get();
+        if (Config.triggerUpdatePickUp() && itemDefinition.updater().isPresent()) {
             ItemUpdateResult result = this.itemManager.updateItem(wrapped, () -> ItemBuildContext.of(serverPlayer));
             if (result.updated()) {
                 itemDrop.setItemStack(ItemStackUtils.getBukkitStack(result.finalItem().getMinecraftItem()));
             }
         }
         Cancellable dummy = Cancellable.dummy();
-        customItem.execute(PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
+        itemDefinition.execute(PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                 .withParameter(DirectContextParameters.ENTITY, new BukkitItemEntity(itemDrop))
                 .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(itemDrop.getLocation()))
                 .withParameter(DirectContextParameters.EVENT, dummy)
@@ -683,11 +683,11 @@ public final class ItemEventListener implements Listener {
             for (ItemStack item : inventory.getContents()) {
                 if (item == null) continue;
 
-                Optional<CustomItem> optional = instance.wrap(item).getCustomItem();
+                Optional<ItemDefinition> optional = instance.wrap(item).getCustomItem();
                 if (optional.isEmpty()) continue;
 
-                CustomItem customItem = optional.get();
-                ItemSettings settings = customItem.settings();
+                ItemDefinition itemDefinition = optional.get();
+                ItemSettings settings = itemDefinition.settings();
                 float destroyChance = settings.destroyOnDeathChance();
                 if (destroyChance <= 0f) continue;
 
@@ -718,11 +718,11 @@ public final class ItemEventListener implements Listener {
 
             while (iterator.hasNext()) {
                 ItemStack item = iterator.next();
-                Optional<CustomItem> optional = instance.wrap(item).getCustomItem();
+                Optional<ItemDefinition> optional = instance.wrap(item).getCustomItem();
                 if (optional.isEmpty()) continue;
 
-                CustomItem customItem = optional.get();
-                ItemSettings settings = customItem.settings();
+                ItemDefinition itemDefinition = optional.get();
+                ItemSettings settings = itemDefinition.settings();
 
                 float destroyChance = settings.destroyOnDeathChance();
                 float keepChance = settings.keepOnDeathChance();

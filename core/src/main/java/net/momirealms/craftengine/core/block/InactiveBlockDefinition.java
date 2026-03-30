@@ -8,10 +8,10 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class InactiveCustomBlock extends AbstractCustomBlock {
+public final class InactiveBlockDefinition extends AbstractBlockDefinition {
     private final Map<CompoundTag, ImmutableBlockState> cachedData = new HashMap<>();
 
-    public InactiveCustomBlock(Holder.Reference<CustomBlock> holder) {
+    public InactiveBlockDefinition(Holder.Reference<BlockDefinition> holder) {
         super(holder, new BlockStateVariantProvider(holder, ImmutableBlockState::new, Map.of()), Map.of(), null);
     }
 

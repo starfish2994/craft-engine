@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -45,13 +45,13 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
     public final SoundData buttonClickOnSound;
     public final SoundData buttonClickOffSound;
 
-    private ButtonBlockBehavior(CustomBlock customBlock,
+    private ButtonBlockBehavior(BlockDefinition blockDefinition,
                                 Property<Boolean> powered,
                                 int ticksToStayPressed,
                                 boolean canButtonBeActivatedByArrows,
                                 SoundData buttonClickOnSound,
                                 SoundData buttonClickOffSound) {
-        super(customBlock);
+        super(blockDefinition);
         this.poweredProperty = powered;
         this.ticksToStayPressed = ticksToStayPressed;
         this.canButtonBeActivatedByArrows = canButtonBeActivatedByArrows;
@@ -223,7 +223,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
 
         @SuppressWarnings("DuplicatedCode")
         @Override
-        public ButtonBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public ButtonBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData buttonClickOnSound = null;
             SoundData buttonClickOffSound = null;

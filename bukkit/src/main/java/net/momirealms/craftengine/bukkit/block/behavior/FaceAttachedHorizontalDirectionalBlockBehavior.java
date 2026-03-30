@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -35,14 +35,14 @@ public final class FaceAttachedHorizontalDirectionalBlockBehavior extends Bukkit
     public final Set<String> customBlocksCansSurviveOn;
     public final boolean blacklistMode;
 
-    private FaceAttachedHorizontalDirectionalBlockBehavior(CustomBlock customBlock,
+    private FaceAttachedHorizontalDirectionalBlockBehavior(BlockDefinition blockDefinition,
                                                            boolean blacklist,
                                                            List<Object> tagsCanSurviveOn,
                                                            Set<Object> blockStatesCanSurviveOn,
                                                            Set<String> customBlocksCansSurviveOn,
                                                            Property<AnchorType> anchorType,
                                                            Property<HorizontalDirection> facing) {
-        super(customBlock);
+        super(blockDefinition);
         this.tagsCanSurviveOn = tagsCanSurviveOn;
         this.blockStatesCanSurviveOn = blockStatesCanSurviveOn;
         this.customBlocksCansSurviveOn = customBlocksCansSurviveOn;
@@ -139,7 +139,7 @@ public final class FaceAttachedHorizontalDirectionalBlockBehavior extends Bukkit
     private static class Factory implements BlockBehaviorFactory<FaceAttachedHorizontalDirectionalBlockBehavior> {
 
         @Override
-        public FaceAttachedHorizontalDirectionalBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public FaceAttachedHorizontalDirectionalBlockBehavior create(BlockDefinition block, ConfigSection section) {
             Tuple<List<Object>, Set<Object>, Set<String>> tuple = DirectionalAttachedBlockBehavior.readTagsAndState(section);
             return new FaceAttachedHorizontalDirectionalBlockBehavior(
                     block,

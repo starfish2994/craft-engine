@@ -27,9 +27,9 @@ public final class UnsafeBlockStateMatcher {
         if (!state.owner().value().id().equals(this.id)) {
             return false;
         }
-        CustomBlock customBlock = state.owner().value();
+        BlockDefinition blockDefinition = state.owner().value();
         for (Pair<String, String> matcher : matchers) {
-            Property<?> property = customBlock.getProperty(matcher.left());
+            Property<?> property = blockDefinition.getProperty(matcher.left());
             if (property == null) {
                 return false;
             }
@@ -61,11 +61,11 @@ public final class UnsafeBlockStateMatcher {
             reader.skip();
             blockIdString = blockIdString + ":" + reader.readUnquotedString();
         }
-        Optional<Holder.Reference<CustomBlock>> optional = BuiltInRegistries.BLOCK.get(Key.from(blockIdString));
+        Optional<Holder.Reference<BlockDefinition>> optional = BuiltInRegistries.BLOCK.get(Key.from(blockIdString));
         if (optional.isEmpty()) {
             return null;
         }
-        Holder<CustomBlock> holder = optional.get();
+        Holder<BlockDefinition> holder = optional.get();
         List<Pair<String, String>> properties = new ArrayList<>();
         if (reader.canRead() && reader.peek() == '[') {
             reader.skip();

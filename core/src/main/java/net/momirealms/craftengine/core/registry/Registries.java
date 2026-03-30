@@ -2,7 +2,7 @@ package net.momirealms.craftengine.core.registry;
 
 import net.momirealms.craftengine.core.block.BlockSettingsModifier;
 import net.momirealms.craftengine.core.block.BlockSettingsModifierType;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorType;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
@@ -84,7 +84,7 @@ public final class Registries {
     private Registries() {}
 
     public static final Key ROOT_REGISTRY = Key.withCraftEngineNamespace("root");
-    public static final ResourceKey<Registry<CustomBlock>> BLOCK = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block"));
+    public static final ResourceKey<Registry<BlockDefinition>> BLOCK = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block"));
     public static final ResourceKey<Registry<ItemProcessorType<? extends ItemProcessor>>> ITEM_PROCESSOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_processor_type"));
     public static final ResourceKey<Registry<PropertyType<? extends Comparable<?>>>> PROPERTY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("property_type"));
     public static final ResourceKey<Registry<BlockBehaviorType<? extends BlockBehavior>>> BLOCK_BEHAVIOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block_behavior_type"));

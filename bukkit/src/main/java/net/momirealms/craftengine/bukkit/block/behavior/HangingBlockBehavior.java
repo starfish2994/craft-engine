@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Tuple;
@@ -13,7 +13,7 @@ import java.util.Set;
 public final class HangingBlockBehavior extends BushBlockBehavior {
     public static final BlockBehaviorFactory<HangingBlockBehavior> FACTORY = new Factory();
 
-    private HangingBlockBehavior(CustomBlock block,
+    private HangingBlockBehavior(BlockDefinition block,
                                  int delay,
                                  boolean blacklist,
                                  boolean stackable,
@@ -33,7 +33,7 @@ public final class HangingBlockBehavior extends BushBlockBehavior {
     private static class Factory implements BlockBehaviorFactory<HangingBlockBehavior> {
 
         @Override
-        public HangingBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public HangingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             Tuple<List<Object>, Set<Object>, Set<String>> tuple = readTagsAndState(section, true);
             return new HangingBlockBehavior(
                     block,

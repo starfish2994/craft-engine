@@ -63,7 +63,7 @@ import net.momirealms.craftengine.core.advancement.network.AdvancementHolder;
 import net.momirealms.craftengine.core.advancement.network.AdvancementProgress;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
-import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureHitData;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
@@ -72,7 +72,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.font.EmojiTextProcessResult;
 import net.momirealms.craftengine.core.font.FontManager;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipeHolder;
@@ -3960,7 +3960,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             int entityId = hasModelEngine() ? plugin.compatibilityManager().interactionToBaseEntity(buf.readVarInt()) : buf.readVarInt();
             BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
             if (furniture == null) return;
-            CustomFurniture config = furniture.config;
+            FurnitureDefinition config = furniture.config;
             int actionType = buf.readVarInt();
             Player platformPlayer = serverPlayer.platformPlayer();
             Location location = furniture.location();
@@ -4149,7 +4149,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     }
                     // 必须从网络包层面处理，否则无法获取交互的具体实体
                     if (serverPlayer.isSecondaryUseActive() && !itemInHand.isEmpty() && hitBox.config().canUseItemOn()) {
-                        Optional<CustomItem> optionalCustomItem = itemInHand.getCustomItem();
+                        Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
                         if (optionalCustomItem.isPresent() && !optionalCustomItem.get().behaviors().isEmpty()) {
                             for (ItemBehavior itemBehavior : optionalCustomItem.get().behaviors()) {
                                 if (itemBehavior instanceof FurnitureItemBehavior) {

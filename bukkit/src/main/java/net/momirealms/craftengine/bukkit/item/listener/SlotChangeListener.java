@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.item.listener;
 
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,10 +21,10 @@ public final class SlotChangeListener implements Listener {
     public void onSlotChange(final PlayerInventorySlotChangeEvent event) {
         ItemStack newItemStack = event.getNewItemStack();
         Item wrap = this.itemManager.wrap(newItemStack);
-        Optional<CustomItem> optionalCustomItem = wrap.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrap.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            CustomItem customItem = optionalCustomItem.get();
-            if (!customItem.settings().triggerAdvancement()) {
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            if (!itemDefinition.settings().triggerAdvancement()) {
                 event.setShouldTriggerAdvancements(false);
             }
         }

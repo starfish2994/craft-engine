@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -19,9 +19,9 @@ public final class SnowyBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<SnowyBlockBehavior> FACTORY = new Factory();
     public final Property<Boolean> snowyProperty;
 
-    private SnowyBlockBehavior(CustomBlock customBlock,
+    private SnowyBlockBehavior(BlockDefinition blockDefinition,
                                Property<Boolean> snowyProperty) {
-        super(customBlock);
+        super(blockDefinition);
         this.snowyProperty = snowyProperty;
     }
 
@@ -47,7 +47,7 @@ public final class SnowyBlockBehavior extends BukkitBlockBehavior {
     private static class Factory implements BlockBehaviorFactory<SnowyBlockBehavior> {
 
         @Override
-        public SnowyBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SnowyBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SnowyBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "snowy", Boolean.class)

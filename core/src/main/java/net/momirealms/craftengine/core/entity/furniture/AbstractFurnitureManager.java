@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class AbstractFurnitureManager implements FurnitureManager {
-    protected final Map<Key, CustomFurniture> byId = new ConcurrentHashMap<>();
+    protected final Map<Key, FurnitureDefinition> byId = new ConcurrentHashMap<>();
     protected final CraftEngine plugin;
     protected final IdSectionConfigParser furnitureParser;
     // Cached command suggestions
@@ -81,12 +81,12 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     }
 
     @Override
-    public Optional<CustomFurniture> furnitureById(Key id) {
+    public Optional<FurnitureDefinition> furnitureById(Key id) {
         return Optional.ofNullable(this.byId.get(id));
     }
 
     @Override
-    public Map<Key, CustomFurniture> loadedFurniture() {
+    public Map<Key, FurnitureDefinition> loadedFurniture() {
         return Collections.unmodifiableMap(this.byId);
     }
 
@@ -286,7 +286,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                 error(e, path);
             }
 
-            CustomFurniture furniture = CustomFurniture.builder()
+            FurnitureDefinition furniture = FurnitureDefinition.builder()
                     .id(id)
                     .settings(settings)
                     .variants(variants)
@@ -298,7 +298,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
             ConfigValue value = section.getValue(BEHAVIORS);
             if (value != null) {
                 List<FurnitureBehaviorTemplate> furnitureBehaviorTemplates = value.getAsList(v -> FurnitureBehaviors.fromConfig(furniture, v.getAsSection()));
-                ((CustomFurnitureImpl) furniture).setBehaviors(furnitureBehaviorTemplates);
+                ((FurnitureDefinitionImpl) furniture).setBehaviors(furnitureBehaviorTemplates);
             }
             AbstractFurnitureManager.this.byId.put(id, furniture);
         }

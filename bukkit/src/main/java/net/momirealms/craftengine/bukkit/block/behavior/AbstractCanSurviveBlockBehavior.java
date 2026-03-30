@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldEvents;
@@ -21,8 +21,8 @@ import java.util.concurrent.Callable;
 public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavior {
     protected final int delay;
 
-    protected AbstractCanSurviveBlockBehavior(CustomBlock customBlock, int delay) {
-        super(customBlock);
+    protected AbstractCanSurviveBlockBehavior(BlockDefinition blockDefinition, int delay) {
+        super(blockDefinition);
         this.delay = delay;
     }
 
@@ -34,7 +34,7 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
         Object blockPos = args[2];
         if (!canSurvive(thisBlock, args, () -> true)) {
             BlockStateUtils.getOptionalCustomBlockState(blockState).ifPresent(customState -> {
-                if (!customState.isEmpty() && customState.owner().value() == this.customBlock) {
+                if (!customState.isEmpty() && customState.owner().value() == this.blockDefinition) {
                     net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(level));
                     WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(LocationUtils.fromBlockPos(blockPos)));
                     world.playBlockSound(position, customState.settings().sounds().breakSound());

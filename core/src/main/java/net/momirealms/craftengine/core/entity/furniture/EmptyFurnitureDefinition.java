@@ -12,11 +12,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
-public final class EmptyFurniture implements CustomFurniture {
-    public static final EmptyFurniture INSTANCE = new EmptyFurniture();
+public final class EmptyFurnitureDefinition implements FurnitureDefinition {
+    public static final EmptyFurnitureDefinition INSTANCE = new EmptyFurnitureDefinition();
     public static final Key ID = Key.ce("empty");
 
-    private EmptyFurniture() {}
+    private EmptyFurnitureDefinition() {}
 
     @Override
     public void execute(Context context, EventTrigger trigger) {

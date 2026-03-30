@@ -5,7 +5,7 @@ import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.MirrorUtils;
 import net.momirealms.craftengine.bukkit.util.RotationUtils;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -90,12 +90,12 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
     protected final Property<Boolean> waterloggedProperty;
 
     @SuppressWarnings("unchecked")
-    public BukkitBlockBehavior(CustomBlock customBlock) {
-        super(customBlock);
-        for (Property<?> property : customBlock.properties()) {
+    public BukkitBlockBehavior(BlockDefinition blockDefinition) {
+        super(blockDefinition);
+        for (Property<?> property : blockDefinition.properties()) {
             Optional.ofNullable(HARD_CODED_PROPERTY_DATA.get(property.name())).ifPresent(c -> c.accept(this, property));
         }
-        this.waterloggedProperty = (Property<Boolean>) customBlock.getProperty("waterlogged");
+        this.waterloggedProperty = (Property<Boolean>) blockDefinition.getProperty("waterlogged");
     }
 
     @Override

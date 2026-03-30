@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.parameter;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
@@ -49,7 +49,7 @@ public final class DirectContextParameters {
     public static final ContextKey<Item> MAIN_HAND_ITEM = ContextKey.direct("main_hand_item");
     public static final ContextKey<Item> OFF_HAND_ITEM = ContextKey.direct("off_hand_item");
     public static final ContextKey<Item> ITEM = ContextKey.direct("item");
-    public static final ContextKey<CustomBlock> CUSTOM_BLOCK = ContextKey.direct("custom_block");
+    public static final ContextKey<BlockDefinition> CUSTOM_BLOCK = ContextKey.direct("custom_block");
     public static final ContextKey<ExistingBlock> BLOCK = ContextKey.direct("block");
     public static final ContextKey<Long> TIME = ContextKey.direct("time");
     public static final ContextKey<Key> ID = ContextKey.direct("id");

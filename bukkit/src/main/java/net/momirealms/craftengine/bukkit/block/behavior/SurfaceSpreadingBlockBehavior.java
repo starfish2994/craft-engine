@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -33,8 +33,8 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior {
     public final LazyReference<Object> baseBlock;
     public final Property<Boolean> snowyProperty;
 
-    private SurfaceSpreadingBlockBehavior(CustomBlock customBlock, int requiredLight, String baseBlock, @Nullable Property<Boolean> snowyProperty) {
-        super(customBlock);
+    private SurfaceSpreadingBlockBehavior(BlockDefinition blockDefinition, int requiredLight, String baseBlock, @Nullable Property<Boolean> snowyProperty) {
+        super(blockDefinition);
         this.requiredLight = requiredLight;
         this.snowyProperty = snowyProperty;
         this.baseBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(baseBlock)).literalObject());
@@ -110,7 +110,7 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior {
         private static final String[] BASE_BLOCK = new String[]{"base_block", "base-block"};
 
         @Override
-        public SurfaceSpreadingBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SurfaceSpreadingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SurfaceSpreadingBlockBehavior(
                     block,
                     section.getInt(REQUIRED_LIGHT, 0),

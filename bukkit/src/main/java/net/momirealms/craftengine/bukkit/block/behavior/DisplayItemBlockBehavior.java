@@ -6,7 +6,7 @@ import net.momirealms.craftengine.bukkit.block.entity.DisplayItemEntity;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
@@ -40,14 +40,14 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     @Nullable
     public final Property<HorizontalDirection> directionProperty;
 
-    public DisplayItemBlockBehavior(CustomBlock customBlock,
+    public DisplayItemBlockBehavior(BlockDefinition blockDefinition,
                                     SoundData putSound,
                                     SoundData takeSound,
                                     boolean hasAnalogOutputSignal,
                                     Vector3f relativePosition,
                                     @Nullable Property<HorizontalDirection> directionProperty
     ) {
-        super(customBlock);
+        super(blockDefinition);
         this.putSound = putSound;
         this.takeSound = takeSound;
         this.hasAnalogOutputSignal = hasAnalogOutputSignal;
@@ -130,7 +130,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
 
         @Override
-        public DisplayItemBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public DisplayItemBlockBehavior create(BlockDefinition block, ConfigSection section) {
             // 读取展示相对位置
             Vector3f position = section.getVector3f("position", ConfigConstants.CENTER_VECTOR3);
             // 读取放入取出音效

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface CustomItem extends BuildableItem {
+public interface ItemDefinition extends BuildableItem {
 
     /**
      * Since CraftEngine allows users to add certain functionalities to vanilla items, this custom item might actually be a vanilla item.
@@ -81,6 +81,6 @@ public interface CustomItem extends BuildableItem {
 
         Builder events(Map<EventTrigger, List<Function<Context>>> events);
 
-        CustomItem build();
+        ItemDefinition build();
     }
 }

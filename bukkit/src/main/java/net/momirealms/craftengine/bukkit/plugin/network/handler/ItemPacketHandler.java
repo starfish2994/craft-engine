@@ -10,7 +10,7 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemSettings;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -64,7 +64,7 @@ public final class ItemPacketHandler implements EntityPacketHandler {
                 // 处理 drop-display 物品设置
                 // 一定要处理经历过客户端侧组件修改的物品
                 Item wrappedItem = BukkitItemManager.instance().wrap(itemStack);
-                Optional<CustomItem> optionalCustomItem = wrappedItem.getCustomItem();
+                Optional<ItemDefinition> optionalCustomItem = wrappedItem.getCustomItem();
                 String showName = null;
                 if (optionalCustomItem.isPresent()) {
                     ItemSettings settings = optionalCustomItem.get().settings();

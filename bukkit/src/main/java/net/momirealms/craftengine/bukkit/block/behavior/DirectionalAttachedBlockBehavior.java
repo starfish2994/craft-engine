@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.BlockTags;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -41,14 +41,14 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
     public final Set<String> customBlocksCansSurviveOn;
     public final boolean blacklistMode;
 
-    private DirectionalAttachedBlockBehavior(CustomBlock customBlock,
+    private DirectionalAttachedBlockBehavior(BlockDefinition blockDefinition,
                                              Property<?> facingProperty,
                                              boolean isSixDirection,
                                              boolean blacklist,
                                              List<Object> tagsCanSurviveOn,
                                              Set<Object> blockStatesCanSurviveOn,
                                              Set<String> customBlocksCansSurviveOn) {
-        super(customBlock);
+        super(blockDefinition);
         this.facingProperty = facingProperty;
         this.isSixDirection = isSixDirection;
         this.tagsCanSurviveOn = tagsCanSurviveOn;
@@ -142,7 +142,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
     private static class Factory implements BlockBehaviorFactory<DirectionalAttachedBlockBehavior> {
 
         @Override
-        public DirectionalAttachedBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public DirectionalAttachedBlockBehavior create(BlockDefinition block, ConfigSection section) {
             Property<?> facing = block.getProperty("facing");
             if (facing == null) {
                 throw new KnownResourceException("resource.block.behavior.missing_property", section.path(), "facing");

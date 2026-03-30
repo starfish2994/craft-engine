@@ -326,9 +326,9 @@ public final class BukkitItemManager extends AbstractItemManager {
 
     @Override
     public BukkitItem createWrappedItem(Key id, @Nullable Player player) {
-        CustomItem customItem = this.customItemsById.get(id);
-        if (customItem != null) {
-            return (BukkitItem) customItem.buildItem(player);
+        ItemDefinition itemDefinition = this.customItemsById.get(id);
+        if (itemDefinition != null) {
+            return (BukkitItem) itemDefinition.buildItem(player);
         }
         ItemStack itemStack = this.createVanillaItemStack(id);
         if (itemStack != null) {
@@ -361,7 +361,7 @@ public final class BukkitItemManager extends AbstractItemManager {
     }
 
     @Override
-    protected CustomItem.Builder createPlatformItemBuilder(UniqueKey id, Key materialId, Key clientBoundMaterialId) {
+    protected ItemDefinition.Builder createPlatformItemBuilder(UniqueKey id, Key materialId, Key clientBoundMaterialId) {
         Object item = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(materialId));
         Object clientBoundItem = materialId == clientBoundMaterialId ? item : RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(clientBoundMaterialId));
         if (item == ItemsProxy.AIR) {
@@ -370,7 +370,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         if (clientBoundItem == ItemsProxy.AIR) {
             throw new LocalizedResourceConfigException("warning.config.item.invalid_material", clientBoundMaterialId.toString());
         }
-        return BukkitCustomItem.builder(item, clientBoundItem)
+        return BukkitItemDefinition.builder(item, clientBoundItem)
                 .id(id)
                 .material(materialId)
                 .clientBoundMaterial(clientBoundMaterialId);

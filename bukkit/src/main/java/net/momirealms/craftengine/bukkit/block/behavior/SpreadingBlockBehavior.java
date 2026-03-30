@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -19,9 +19,9 @@ public final class SpreadingBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<SpreadingBlockBehavior> FACTORY = new Factory();
     public final LazyReference<Object> targetBlock;
 
-    private SpreadingBlockBehavior(CustomBlock customBlock,
+    private SpreadingBlockBehavior(BlockDefinition blockDefinition,
                                    String targetBlock) {
-        super(customBlock);
+        super(blockDefinition);
         this.targetBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(targetBlock)).literalObject());
     }
 
@@ -39,7 +39,7 @@ public final class SpreadingBlockBehavior extends BukkitBlockBehavior {
         private static final String[] TARGET_BLOCK = new String[] {"target_block", "target-block"};
 
         @Override
-        public SpreadingBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SpreadingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SpreadingBlockBehavior(
                     block,
                     section.getNonNullString(TARGET_BLOCK)

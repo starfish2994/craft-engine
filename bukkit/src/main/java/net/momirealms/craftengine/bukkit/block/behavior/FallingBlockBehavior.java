@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -34,7 +34,7 @@ public final class FallingBlockBehavior extends BukkitBlockBehavior {
     public final SoundData landSound;
     public final SoundData destroySound;
 
-    public FallingBlockBehavior(CustomBlock block,
+    public FallingBlockBehavior(BlockDefinition block,
                                 float hurtAmount,
                                 int maxHurt,
                                 SoundData landSound,
@@ -128,7 +128,7 @@ public final class FallingBlockBehavior extends BukkitBlockBehavior {
         private static final String[] MAX_HURT = new String[] {"max_hurt", "max-hurt"};
 
         @Override
-        public FallingBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public FallingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData landSound = null;
             SoundData destroySound = null;

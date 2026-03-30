@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -20,8 +20,8 @@ public final class ExprBlockCustomBlockID extends SimplePropertyExpression<Objec
     public @Nullable String convert(Object object) {
         if (object instanceof ImmutableBlockState immutableBlockState)
             return immutableBlockState.owner().value().id().toString();
-        if (object instanceof CustomBlock customBlock)
-            return customBlock.id().toString();
+        if (object instanceof BlockDefinition blockDefinition)
+            return blockDefinition.id().toString();
         if (object instanceof Block block)
             return Optional.ofNullable(CraftEngineBlocks.getCustomBlockState(block)).map(it -> it.owner().value().id().toString()).orElse(null);
         if (object instanceof BlockData blockData)

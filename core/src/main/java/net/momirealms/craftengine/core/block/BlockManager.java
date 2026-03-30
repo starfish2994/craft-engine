@@ -23,14 +23,14 @@ public interface BlockManager extends Manageable, ModelGenerator {
 
     boolean isTransparentModelInUse();
 
-    Map<Key, CustomBlock> loadedBlocks();
+    Map<Key, BlockDefinition> loadedBlocks();
 
     @Deprecated(forRemoval = true)
-    default Map<Key, CustomBlock> blocks() {
+    default Map<Key, BlockDefinition> blocks() {
         return loadedBlocks();
     }
 
-    Optional<CustomBlock> blockById(Key key);
+    Optional<BlockDefinition> blockById(Key key);
 
     Collection<Suggestion> cachedSuggestions();
 

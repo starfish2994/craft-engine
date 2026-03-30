@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -23,7 +23,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<LampBlockBehavior> FACTORY = new Factory();
     public final Property<Boolean> litProperty;
 
-    private LampBlockBehavior(CustomBlock block, Property<Boolean> litProperty) {
+    private LampBlockBehavior(BlockDefinition block, Property<Boolean> litProperty) {
         super(block);
         this.litProperty = litProperty;
     }
@@ -87,7 +87,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
     private static class Factory implements BlockBehaviorFactory<LampBlockBehavior> {
 
         @Override
-        public LampBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public LampBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new LampBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "lit", Boolean.class)

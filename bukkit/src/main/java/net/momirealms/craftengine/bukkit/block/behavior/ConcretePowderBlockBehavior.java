@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -36,7 +36,7 @@ public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<ConcretePowderBlockBehavior> FACTORY = new Factory();
     public final LazyReference<@Nullable ImmutableBlockState> targetBlock;
 
-    private ConcretePowderBlockBehavior(CustomBlock block, String targetBlock) {
+    private ConcretePowderBlockBehavior(BlockDefinition block, String targetBlock) {
         super(block);
         this.targetBlock = LazyReference.lazyReference(() -> BlockStateParser.deserialize(targetBlock));
     }
@@ -135,7 +135,7 @@ public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
         private static final String[] SOLID_BLOCK = new String[] {"solid_block", "solid-block"};
 
         @Override
-        public ConcretePowderBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public ConcretePowderBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new ConcretePowderBlockBehavior(
                     block,
                     section.getNonNullString(SOLID_BLOCK)

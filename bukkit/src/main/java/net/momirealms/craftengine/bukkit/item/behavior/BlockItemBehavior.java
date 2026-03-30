@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.api.event.CustomBlockPlaceEvent;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -75,7 +75,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
 
     @SuppressWarnings("UnstableApiUsage")
     public InteractionResult place(BlockPlaceContext context) {
-        Optional<CustomBlock> optionalBlock = BukkitBlockManager.instance().blockById(this.blockId);
+        Optional<BlockDefinition> optionalBlock = BukkitBlockManager.instance().blockById(this.blockId);
         if (optionalBlock.isEmpty()) {
             CraftEngine.instance().logger().warn("Failed to place unknown block " + this.blockId);
             return InteractionResult.FAIL;
@@ -85,7 +85,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
         }
 
         Player player = context.getPlayer();
-        CustomBlock block = optionalBlock.get();
+        BlockDefinition block = optionalBlock.get();
         BlockPos pos = context.getClickedPos();
         int maxY = context.getLevel().worldHeight().getMaxBuildHeight() - 1;
         if (context.getClickedFace() == Direction.UP && pos.y() > maxY) {
@@ -193,7 +193,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
         return InteractionResult.SUCCESS;
     }
 
-    protected ImmutableBlockState getPlacementState(BlockPlaceContext context, CustomBlock block) {
+    protected ImmutableBlockState getPlacementState(BlockPlaceContext context, BlockDefinition block) {
         ImmutableBlockState state = block.getStateForPlacement(context);
         return state != null && this.canPlace(context, state) ? state : null;
     }

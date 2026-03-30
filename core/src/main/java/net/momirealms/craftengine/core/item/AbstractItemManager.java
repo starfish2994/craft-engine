@@ -54,8 +54,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     private final ItemParser itemParser;
     private final EquipmentParser equipmentParser;
     // 缓存
-    protected final Map<Key, CustomItem> customItemsById = new ConcurrentHashMap<>();
-    protected final Map<String, CustomItem> customItemsByPath = new ConcurrentHashMap<>();
+    protected final Map<Key, ItemDefinition> customItemsById = new ConcurrentHashMap<>();
+    protected final Map<String, ItemDefinition> customItemsByPath = new ConcurrentHashMap<>();
     protected final Map<Key, List<UniqueKey>> customItemTags = new HashMap<>();
     protected final Map<Key, ModernItemModel> modernItemModels1_21_4 = new ConcurrentHashMap<>();
     protected final Map<Key, TreeSet<LegacyOverridesModel>> modernItemModels1_21_2 = new ConcurrentHashMap<>();
@@ -124,12 +124,12 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     }
 
     @Override
-    public Optional<CustomItem> getCustomItem(Key key) {
+    public Optional<ItemDefinition> getCustomItem(Key key) {
         return Optional.ofNullable(this.customItemsById.get(key));
     }
 
     @Override
-    public Optional<CustomItem> getCustomItemByPathOnly(String path) {
+    public Optional<ItemDefinition> getCustomItemByPathOnly(String path) {
         return Optional.ofNullable(this.customItemsByPath.get(path));
     }
 
@@ -144,10 +144,10 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public ItemUpdateResult updateItem(Item item, Supplier<ItemBuildContext> contextSupplier) {
-        Optional<CustomItem> optionalCustomItem = item.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = item.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            CustomItem customItem = optionalCustomItem.get();
-            Optional<ItemUpdateConfig> updater = customItem.updater();
+            ItemDefinition itemDefinition = optionalCustomItem.get();
+            Optional<ItemUpdateConfig> updater = itemDefinition.updater();
             if (updater.isPresent()) {
                 return updater.get().update(item, contextSupplier);
             }
@@ -184,15 +184,15 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public Optional<List<ItemBehavior>> getItemBehavior(Key key) {
-        Optional<CustomItem> customItemOptional = getCustomItem(key);
+        Optional<ItemDefinition> customItemOptional = getCustomItem(key);
         if (customItemOptional.isPresent()) {
-            CustomItem customItem = customItemOptional.get();
-            Key vanillaMaterial = customItem.material();
+            ItemDefinition itemDefinition = customItemOptional.get();
+            Key vanillaMaterial = itemDefinition.material();
             List<ItemBehavior> behavior = VANILLA_ITEM_EXTRA_BEHAVIORS.get(vanillaMaterial);
             if (behavior != null) {
-                return Optional.of(Stream.concat(customItem.behaviors().stream(), behavior.stream()).toList());
+                return Optional.of(Stream.concat(itemDefinition.behaviors().stream(), behavior.stream()).toList());
             } else {
-                return Optional.of(List.copyOf(customItem.behaviors()));
+                return Optional.of(List.copyOf(itemDefinition.behaviors()));
             }
         } else {
             List<ItemBehavior> behavior = VANILLA_ITEM_EXTRA_BEHAVIORS.get(key);
@@ -205,7 +205,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     }
 
     @Override
-    public Map<Key, CustomItem> loadedItems() {
+    public Map<Key, ItemDefinition> loadedItems() {
         return Collections.unmodifiableMap(this.customItemsById);
     }
 
@@ -251,7 +251,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         return featureFlag$destroyOnDeathChance;
     }
 
-    protected abstract CustomItem.Builder createPlatformItemBuilder(UniqueKey id, Key material, Key clientBoundMaterial);
+    protected abstract ItemDefinition.Builder createPlatformItemBuilder(UniqueKey id, Key material, Key clientBoundMaterial);
 
     protected abstract void registerArmorTrimPattern(Collection<Key> equipments);
 
@@ -394,31 +394,31 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             Object[] pendingElements = this.pendingConfigSections.elements();
             for (int i = 0; i < size; i++) {
                 PendingConfigSection pending = (PendingConfigSection) pendingElements[i];
-                CustomItem customItem = AbstractItemManager.this.customItemsById.get(pending.id);
-                if (customItem != null) {
-                    Key id = customItem.id();
+                ItemDefinition itemDefinition = AbstractItemManager.this.customItemsById.get(pending.id);
+                if (itemDefinition != null) {
+                    Key id = itemDefinition.id();
                     AbstractItemManager.this.orderedItemIds.add(id);
-                    if (customItem.isVanillaItem()) continue;
+                    if (itemDefinition.isVanillaItem()) continue;
                     // cache command suggestions
                     AbstractItemManager.this.cachedCustomItemSuggestions.add(Suggestion.suggestion(id.asString()));
                     // totem animations
                     if (VersionHelper.isOrAbove1_21_2()) {
                         AbstractItemManager.this.cachedTotemSuggestions.add(Suggestion.suggestion(id.asString()));
-                    } else if (customItem.material().equals(ItemKeys.TOTEM_OF_UNDYING)) {
+                    } else if (itemDefinition.material().equals(ItemKeys.TOTEM_OF_UNDYING)) {
                         AbstractItemManager.this.cachedTotemSuggestions.add(Suggestion.suggestion(id.asString()));
                     }
                     // tags
-                    ItemSettings settings = customItem.settings();
+                    ItemSettings settings = itemDefinition.settings();
                     Set<Key> tags = settings.tags();
                     for (Key tag : tags) {
-                        AbstractItemManager.this.customItemTags.computeIfAbsent(tag, k -> new ArrayList<>()).add(customItem.uniqueId());
+                        AbstractItemManager.this.customItemTags.computeIfAbsent(tag, k -> new ArrayList<>()).add(itemDefinition.uniqueId());
                     }
                     // ingredient substitutes
                     List<Key> substitutes = settings.ingredientSubstitutes();
                     if (!substitutes.isEmpty()) {
                         for (Key key : substitutes) {
                             if (VANILLA_ITEMS.contains(key)) {
-                                AbstractItemManager.this.ingredientSubstitutes.computeIfAbsent(key, k -> new ArrayList<>()).add(customItem.uniqueId());
+                                AbstractItemManager.this.ingredientSubstitutes.computeIfAbsent(key, k -> new ArrayList<>()).add(itemDefinition.uniqueId());
                             }
                         }
                     }
@@ -568,7 +568,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 // 是否使用客户端侧模型
                 boolean clientBoundModel = VersionHelper.PREMIUM && section.getBoolean(CLIENT_BOUND_MODEL, Config.globalClientboundModel());
 
-                CustomItem.Builder itemBuilder = createPlatformItemBuilder(uniqueId, material, clientBoundMaterial);
+                ItemDefinition.Builder itemBuilder = createPlatformItemBuilder(uniqueId, material, clientBoundMaterial);
 
                 // 模型配置区域，如果这里被配置了，那么用户可以配置custom-model-data或item-model
                 ConfigValue modelValue = section.getValue(MODEL);
@@ -653,7 +653,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 }
 
                 // 构建自定义物品
-                CustomItem customItem = itemBuilder
+                ItemDefinition itemDefinition = itemBuilder
                         .isVanillaItem(isVanillaItem)
                         .behaviors(behaviors)
                         .settings(settings)
@@ -661,8 +661,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                         .build();
 
 
-                AbstractItemManager.this.customItemsById.put(id, customItem);
-                AbstractItemManager.this.customItemsByPath.put(id.value(), customItem);
+                AbstractItemManager.this.customItemsById.put(id, itemDefinition);
+                AbstractItemManager.this.customItemsByPath.put(id.value(), itemDefinition);
 
                 // 如果有类别，则添加
                 if (section.containsKey("category")) {

@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
@@ -24,7 +24,7 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
     public final boolean checkCenter;
     public final int maxHeight;
 
-    private SturdyBaseBlockBehavior(CustomBlock block,
+    private SturdyBaseBlockBehavior(BlockDefinition block,
                                     int delay,
                                     Direction direction,
                                     boolean stackable,
@@ -71,7 +71,7 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
 
         // 检查依靠的方块是否也是相同方块.
         boolean isSameCustomBlock = BlockStateUtils.getOptionalCustomBlockState(blockState)
-                .map(immutableBlockState -> immutableBlockState.owner().value() == super.customBlock)
+                .map(immutableBlockState -> immutableBlockState.owner().value() == super.blockDefinition)
                 .orElse(false);
 
         // 如果依靠的方块既不能提供基础支撑，也不是相同方块，则无法存活.
@@ -88,7 +88,7 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
             blockState = BlockGetterProxy.INSTANCE.getBlockState(world, targetPos);
 
             boolean isCurrentSame = BlockStateUtils.getOptionalCustomBlockState(blockState)
-                    .map(immutableBlockState -> immutableBlockState.owner().value() == super.customBlock)
+                    .map(immutableBlockState -> immutableBlockState.owner().value() == super.blockDefinition)
                     .orElse(false);
 
             // 如果方向找到了非同类的方块, 则存活.
@@ -106,7 +106,7 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
         private static final String[] MAX_HEIGHT = new String[] {"max_height", "max-height"};
 
         @Override
-        public SturdyBaseBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public SturdyBaseBlockBehavior create(BlockDefinition block, ConfigSection section) {
             List<String> supportTypes = section.getStringList(SUPPORT_TYPES, List.of("full"));
             return new SturdyBaseBlockBehavior(
                     block,

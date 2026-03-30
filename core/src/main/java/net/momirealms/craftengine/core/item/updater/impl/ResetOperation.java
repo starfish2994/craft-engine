@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.updater.impl;
 
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.updater.ItemUpdater;
@@ -17,11 +17,11 @@ import java.util.List;
 // todo 完善 custom data 保留机制
 public final class ResetOperation implements ItemUpdater {
     public static final ItemUpdaterFactory<ResetOperation> FACTORY = new Factory();
-    private final LazyReference<CustomItem> item;
+    private final LazyReference<ItemDefinition> item;
     private final List<Key> componentsToKeep;
     private final List<String[]> tagsToKeep;
 
-    public ResetOperation(LazyReference<CustomItem> item, List<Key> componentsToKeep, List<String[]> tagsToKeep) {
+    public ResetOperation(LazyReference<ItemDefinition> item, List<Key> componentsToKeep, List<String[]> tagsToKeep) {
         this.componentsToKeep = componentsToKeep;
         this.tagsToKeep = tagsToKeep;
         this.item = item;

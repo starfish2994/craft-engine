@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -16,7 +16,7 @@ public final class StrippableBlockBehavior extends BukkitBlockBehavior {
     public final LazyReference<BlockStateWrapper> lazyState;
     public final List<String> excludedProperties;
 
-    private StrippableBlockBehavior(CustomBlock block,
+    private StrippableBlockBehavior(BlockDefinition block,
                                     String stripped,
                                     List<String> excludedProperties) {
         super(block);
@@ -40,7 +40,7 @@ public final class StrippableBlockBehavior extends BukkitBlockBehavior {
         private static final String[] EXCLUDED_PROPERTIES = new String[] {"excluded_properties", "excluded-properties"};
 
         @Override
-        public StrippableBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public StrippableBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new StrippableBlockBehavior(
                     block,
                     section.getNonNullString("stripped"),

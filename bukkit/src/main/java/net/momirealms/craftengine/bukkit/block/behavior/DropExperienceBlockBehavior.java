@@ -6,7 +6,7 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockSettings;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.item.Item;
@@ -34,10 +34,10 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
     public final NumberProvider amount;
     public final Predicate<Context> condition;
 
-    private DropExperienceBlockBehavior(CustomBlock customBlock,
+    private DropExperienceBlockBehavior(BlockDefinition blockDefinition,
                                         NumberProvider amount,
                                         Predicate<Context> condition) {
-        super(customBlock);
+        super(blockDefinition);
         this.amount = amount;
         this.condition = condition;
     }
@@ -91,7 +91,7 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
         private static final String[] CONDITIONS = new String[] {"conditions", "condition"};
 
         @Override
-        public DropExperienceBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public DropExperienceBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new DropExperienceBlockBehavior(
                     block,
                     section.getNumber(AMOUNT, ConfigConstants.CONSTANT_ZERO),

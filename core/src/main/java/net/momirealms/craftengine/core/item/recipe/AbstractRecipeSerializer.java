@@ -103,12 +103,12 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
         });
         boolean hasCustomItem = false;
         for (UniqueKey holder : itemIds) {
-            Optional<CustomItem> optionalCustomItem = itemManager.getCustomItem(holder.key());
+            Optional<ItemDefinition> optionalCustomItem = itemManager.getCustomItem(holder.key());
             UniqueKey vanillaItem = holder;
             if (optionalCustomItem.isPresent()) {
-                CustomItem customItem = optionalCustomItem.get();
-                if (!customItem.isVanillaItem()) {
-                    vanillaItem = UniqueKey.create(customItem.material());
+                ItemDefinition itemDefinition = optionalCustomItem.get();
+                if (!itemDefinition.isVanillaItem()) {
+                    vanillaItem = UniqueKey.create(itemDefinition.material());
                     hasCustomItem = true;
                 }
             }
@@ -158,14 +158,14 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
         }
         boolean hasCustomItem = false;
         for (UniqueKey holder : itemIds) {
-            Optional<CustomItem> optionalCustomItem = itemManager.getCustomItem(holder.key());
+            Optional<ItemDefinition> optionalCustomItem = itemManager.getCustomItem(holder.key());
             UniqueKey vanillaItem;
             if (optionalCustomItem.isPresent()) {
-                CustomItem customItem = optionalCustomItem.get();
-                if (customItem.isVanillaItem()) {
+                ItemDefinition itemDefinition = optionalCustomItem.get();
+                if (itemDefinition.isVanillaItem()) {
                     vanillaItem = holder;
                 } else {
-                    vanillaItem = UniqueKey.create(customItem.material());
+                    vanillaItem = UniqueKey.create(itemDefinition.material());
                     hasCustomItem = true;
                 }
             } else {

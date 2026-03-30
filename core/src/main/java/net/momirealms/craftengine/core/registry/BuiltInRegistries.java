@@ -2,7 +2,7 @@ package net.momirealms.craftengine.core.registry;
 
 import net.momirealms.craftengine.core.block.BlockSettingsModifier;
 import net.momirealms.craftengine.core.block.BlockSettingsModifierType;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorType;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
@@ -82,7 +82,7 @@ import net.momirealms.craftengine.core.util.ResourceKey;
 import java.util.function.Supplier;
 
 public final class BuiltInRegistries {
-    public static final Registry<CustomBlock> BLOCK = new BlockRegistry<>(Registries.BLOCK, 512);
+    public static final Registry<BlockDefinition> BLOCK = new BlockRegistry<>(Registries.BLOCK, 512);
     public static final Registry<BlockBehaviorType<? extends BlockBehavior>> BLOCK_BEHAVIOR_TYPE = createConstantBoundRegistry(Registries.BLOCK_BEHAVIOR_TYPE, 64);
     public static final Registry<ItemProcessorType<? extends ItemProcessor>> ITEM_PROCESSOR_TYPE = createConstantBoundRegistry(Registries.ITEM_PROCESSOR_TYPE, 64);
     public static final Registry<ItemBehaviorType<? extends ItemBehavior>> ITEM_BEHAVIOR_TYPE = createConstantBoundRegistry(Registries.ITEM_BEHAVIOR_TYPE, 64);

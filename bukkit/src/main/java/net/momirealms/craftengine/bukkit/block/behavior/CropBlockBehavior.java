@@ -6,7 +6,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -50,7 +50,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
     public final boolean isBoneMealTarget;
     public final NumberProvider boneMealBonus;
 
-    private CropBlockBehavior(CustomBlock block, Property<Integer> ageProperty, float growSpeed, int minGrowLight, boolean isBoneMealTarget, NumberProvider boneMealBonus) {
+    private CropBlockBehavior(BlockDefinition block, Property<Integer> ageProperty, float growSpeed, int minGrowLight, boolean isBoneMealTarget, NumberProvider boneMealBonus) {
         super(block);
         this.ageProperty = (IntegerProperty) ageProperty;
         this.growSpeed = growSpeed;
@@ -200,7 +200,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
         private static final String[] AGE_BONUS = new String[]{"bone_meal_age_bonus", "bone-meal-age-bonus"};
 
         @Override
-        public CropBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public CropBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new CropBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),

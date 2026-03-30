@@ -75,8 +75,8 @@ repositories {
 ```
 ```kotlin
 dependencies {
-    compileOnly("net.momirealms:craft-engine-core:26.3")
-    compileOnly("net.momirealms:craft-engine-bukkit:26.3")
-    compileOnly("net.momirealms:craft-engine-adventure:26.3") // import this if you want to use the adventure library shaded by CraftEngine
+    compileOnly("net.momirealms:craft-engine-core:26.4")
+    compileOnly("net.momirealms:craft-engine-bukkit:26.4")
+    compileOnly("net.momirealms:craft-engine-adventure:26.4") // import this if you want to use the adventure library shaded by CraftEngine
 }
 ```

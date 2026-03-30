@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.block.behavior;
 
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
@@ -8,10 +8,10 @@ import org.jetbrains.annotations.Nullable;
 
 public interface BlockBehaviorFactory<T extends BlockBehavior> {
 
-    T create(CustomBlock block, ConfigSection section);
+    T create(BlockDefinition block, ConfigSection section);
 
     @SuppressWarnings("unchecked")
-    static <A extends Comparable<A>> Property<A> getProperty(String path, CustomBlock block, String name, Class<A> valueClass) {
+    static <A extends Comparable<A>> Property<A> getProperty(String path, BlockDefinition block, String name, Class<A> valueClass) {
         Property<?> property = block.getProperty(name);
         if (property == null) {
             throw new KnownResourceException("resource.block.behavior.missing_property", path, name);
@@ -24,7 +24,7 @@ public interface BlockBehaviorFactory<T extends BlockBehavior> {
 
     @Nullable
     @SuppressWarnings("unchecked")
-    static <A extends Comparable<A>> Property<A> getOptionalProperty(CustomBlock block, String name, Class<A> valueClass) {
+    static <A extends Comparable<A>> Property<A> getOptionalProperty(BlockDefinition block, String name, Class<A> valueClass) {
         Property<?> property = block.getProperty(name);
         if (property == null) {
             return null;

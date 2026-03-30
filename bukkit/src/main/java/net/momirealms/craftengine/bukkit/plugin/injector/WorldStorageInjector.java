@@ -5,7 +5,7 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.LightUtils;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.DelegatingBlockState;
-import net.momirealms.craftengine.core.block.EmptyBlock;
+import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
@@ -154,7 +154,7 @@ public final class WorldStorageInjector {
         } else {
             // 如果是原版方块
             // 那么应该清空自定义块
-            ImmutableBlockState previous = section.setBlockState(x, y, z, EmptyBlock.STATE);
+            ImmutableBlockState previous = section.setBlockState(x, y, z, EmptyBlockDefinition.STATE);
             // 处理  自定义块 -> 原版块
             if (previous != null && !previous.isEmpty()) {
                 CEChunk chunk = holder.chunk();

@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.entity.furniture.behavior;
 
-import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.ApiStatus;
 public abstract class FurnitureBehaviors {
     protected FurnitureBehaviors() {}
 
-    public static FurnitureBehaviorTemplate fromConfig(CustomFurniture furniture, ConfigSection section) {
+    public static FurnitureBehaviorTemplate fromConfig(FurnitureDefinition furniture, ConfigSection section) {
         String type = section.getNonNullString("type");
         Key key = Key.ce(type);
         FurnitureBehaviorType<?> furnitureBehaviorType = BuiltInRegistries.FURNITURE_BEHAVIOR_TYPE.getValue(key);

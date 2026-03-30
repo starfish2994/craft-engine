@@ -7,9 +7,9 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
-import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
-import net.momirealms.craftengine.core.entity.furniture.behavior.Controller;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
@@ -56,7 +56,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
     @Nullable
     private final SoundData takeSound;
 
-    private DisplayItemFurnitureBehaviorTemplate(CustomFurniture furniture,
+    private DisplayItemFurnitureBehaviorTemplate(FurnitureDefinition furniture,
                                                  @NotNull Map<String, VariantRule> variantRules,
                                                  @Nullable SoundData putSound,
                                                  @Nullable SoundData takeSound
@@ -68,12 +68,12 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
     }
 
     @Override
-    public Controller createController(Furniture furniture) {
+    public FurnitureController createController(Furniture furniture) {
         return new DisplayItemFurnitureController(furniture, this);
     }
 
     // 行为处理器
-    public static final class DisplayItemFurnitureController extends Controller {
+    public static final class DisplayItemFurnitureController extends FurnitureController {
         private final DisplayItemFurnitureBehaviorTemplate behavior;
         DisplayItemElement displayItemElement;
         Set<FurnitureHitBox> trackedHitboxes;
@@ -288,7 +288,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
         private static final String[] ITEM_POSITION = new String[] {"item_position", "item-position"};
 
         @Override
-        public DisplayItemFurnitureBehaviorTemplate create(CustomFurniture furniture, ConfigSection section) {
+        public DisplayItemFurnitureBehaviorTemplate create(FurnitureDefinition furniture, ConfigSection section) {
             // 如果没有配置变体展示规则
             ConfigSection variantsSection = section.getSection("variants");
             if (variantsSection == null) {

@@ -79,9 +79,9 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
 
         // 先尝试恢复client-bound-material
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isPresent()) {
-            BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+            BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
             if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
                 forceReturn = true;
@@ -163,7 +163,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // todo 处理book
 
         // 不是自定义物品或修改过的原版物品
-        Optional<CustomItem> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) {
             if (!Config.interceptItem()) {
                 return forceReturn ? Optional.of(wrapped) : Optional.empty();
@@ -171,7 +171,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
         }
 
-        BukkitCustomItem customItem = (BukkitCustomItem) optionalCustomItem.get();
+        BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
         // 提前复制，这和物品类型相关
         Item original = wrapped;
         // 应用 client-bound-material前提是服务端侧物品类型和客户端侧的不同

@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.world.chunk;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.momirealms.craftengine.core.block.EmptyBlock;
+import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
@@ -600,7 +600,7 @@ public class CEChunk {
         for (int i = 0; i < this.sections.length; ++i) {
             if (this.sections[i] == null) {
                 this.sections[i] = new CESection(this.world.worldHeight().getSectionYFromSectionIndex(i),
-                        new PalettedContainer<>(null, EmptyBlock.STATE, PalettedContainer.PaletteProvider.CUSTOM_BLOCK_STATE));
+                        new PalettedContainer<>(null, EmptyBlockDefinition.STATE, PalettedContainer.PaletteProvider.CUSTOM_BLOCK_STATE));
             }
         }
     }
@@ -631,7 +631,7 @@ public class CEChunk {
         int index = sectionIndex(SectionPos.blockToSectionCoord(y));
         CESection section = this.sections[index];
         if (section == null) {
-            return EmptyBlock.STATE;
+            return EmptyBlockDefinition.STATE;
         }
         return section.getBlockState((y & 15) << 8 | (z & 15) << 4 | x & 15);
     }

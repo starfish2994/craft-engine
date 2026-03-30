@@ -23,9 +23,9 @@ import java.util.stream.Stream;
 public final class BlockStateVariantProvider {
     private final ImmutableSortedMap<String, Property<?>> properties;
     private final ImmutableList<ImmutableBlockState> states;
-    private final Holder<CustomBlock> owner;
+    private final Holder<BlockDefinition> owner;
 
-    public BlockStateVariantProvider(Holder.Reference<CustomBlock> owner, Factory<Holder.Reference<CustomBlock>, ImmutableBlockState> factory, Map<String, Property<?>> propertiesMap) {
+    public BlockStateVariantProvider(Holder.Reference<BlockDefinition> owner, Factory<Holder.Reference<BlockDefinition>, ImmutableBlockState> factory, Map<String, Property<?>> propertiesMap) {
         this.owner = owner;
         this.properties = ImmutableSortedMap.copyOf(propertiesMap);
 
@@ -99,7 +99,7 @@ public final class BlockStateVariantProvider {
         return this.states;
     }
 
-    public Holder<CustomBlock> owner() {
+    public Holder<BlockDefinition> owner() {
         return this.owner;
     }
 

@@ -46,7 +46,7 @@ public interface ItemManager extends Manageable, ModelGenerator {
 
     Item fromByteArray(byte[] bytes);
 
-    Map<Key, CustomItem> loadedItems();
+    Map<Key, ItemDefinition> loadedItems();
 
     @Deprecated(forRemoval = true)
     default Collection<Key> items() {
@@ -55,7 +55,7 @@ public interface ItemManager extends Manageable, ModelGenerator {
 
     Optional<Equipment> getEquipment(Key key);
 
-    Optional<CustomItem> getCustomItem(Key key);
+    Optional<ItemDefinition> getCustomItem(Key key);
 
     Optional<List<ItemBehavior>> getItemBehavior(Key key);
 
@@ -66,14 +66,14 @@ public interface ItemManager extends Manageable, ModelGenerator {
     NetworkItemHandler networkItemHandler();
 
     default Optional<? extends BuildableItem> getBuildableItem(Key key) {
-        Optional<CustomItem> item = getCustomItem(key);
+        Optional<ItemDefinition> item = getCustomItem(key);
         if (item.isPresent()) {
             return item;
         }
         return getVanillaItem(key);
     }
 
-    Optional<CustomItem> getCustomItemByPathOnly(String path);
+    Optional<ItemDefinition> getCustomItemByPathOnly(String path);
 
     default List<UniqueKey> itemIdsByTag(Key tag) {
         List<UniqueKey> items = new ArrayList<>();

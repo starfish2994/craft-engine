@@ -7,7 +7,7 @@ import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.PlayerUtils;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -76,8 +76,8 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                     Collection<Player> players = selector.values();
                     NamespacedKey namespacedKey = context.get("id");
                     Key key = Key.of(namespacedKey.namespace(), namespacedKey.value());
-                    CustomItem customItem = plugin().itemManager().getCustomItem(key).orElse(null);
-                    if (customItem == null || (!VersionHelper.isOrAbove1_21_2() && customItem.material().equals(ItemKeys.TOTEM_OF_UNDYING))) {
+                    ItemDefinition itemDefinition = plugin().itemManager().getCustomItem(key).orElse(null);
+                    if (itemDefinition == null || (!VersionHelper.isOrAbove1_21_2() && itemDefinition.material().equals(ItemKeys.TOTEM_OF_UNDYING))) {
                         handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.toString()));
                         return;
                     }
@@ -94,7 +94,7 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                     for (Player player : players) {
                         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                         if (serverPlayer == null) continue;
-                        Item item = customItem.buildItem(serverPlayer);
+                        Item item = itemDefinition.buildItem(serverPlayer);
                         if (VersionHelper.isOrAbove1_21_2()) {
                             item.setJavaComponent(DataComponentTypes.DEATH_PROTECTION, Map.of());
                         }

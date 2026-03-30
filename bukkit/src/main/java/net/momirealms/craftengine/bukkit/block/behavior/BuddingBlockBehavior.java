@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
-import net.momirealms.craftengine.core.block.CustomBlock;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.BooleanProperty;
@@ -37,10 +37,10 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
     public final float growthChance;
     public final List<Key> blocks;
 
-    private BuddingBlockBehavior(CustomBlock customBlock,
+    private BuddingBlockBehavior(BlockDefinition blockDefinition,
                                  float growthChance,
                                  List<Key> blocks) {
-        super(customBlock);
+        super(blockDefinition);
         this.growthChance = growthChance;
         this.blocks = List.copyOf(blocks);
     }
@@ -54,7 +54,7 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
         Object blockState = BlockGetterProxy.INSTANCE.getBlockState(args[1], blockPos);
         if (canClusterGrowAtState(blockState)) {
             Key blockId = blocks.getFirst();
-            CustomBlock firstBlock = BukkitBlockManager.instance().blockById(blockId).orElse(null);
+            BlockDefinition firstBlock = BukkitBlockManager.instance().blockById(blockId).orElse(null);
             placeWithPropertyBlock(firstBlock, blockId, direction, nmsDirection, args[1], blockPos, blockState);
         } else {
             Key blockId = BlockStateUtils.getOptionalCustomBlockState(blockState)
@@ -63,16 +63,16 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
             int blockIdIndex = blocks.indexOf(blockId);
             if (blockIdIndex < 0 || blockIdIndex == blocks.size() - 1) return;
             Key nextBlockId = blocks.get(blockIdIndex + 1);
-            CustomBlock nextBlock = BukkitBlockManager.instance().blockById(nextBlockId).orElse(null);
+            BlockDefinition nextBlock = BukkitBlockManager.instance().blockById(nextBlockId).orElse(null);
             placeWithPropertyBlock(nextBlock, nextBlockId, direction, nmsDirection, args[1], blockPos, blockState);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void placeWithPropertyBlock(CustomBlock customBlock, Key blockId, Direction direction, Object nmsDirection, Object level, Object blockPos, Object blockState) {
-        if (customBlock != null) {
-            ImmutableBlockState newState = customBlock.defaultState();
-            Property<?> facing = customBlock.getProperty("facing");
+    private void placeWithPropertyBlock(BlockDefinition blockDefinition, Key blockId, Direction direction, Object nmsDirection, Object level, Object blockPos, Object blockState) {
+        if (blockDefinition != null) {
+            ImmutableBlockState newState = blockDefinition.defaultState();
+            Property<?> facing = blockDefinition.getProperty("facing");
             if (facing != null) {
                 if (facing.valueClass() == Direction.class) {
                     newState = newState.with((Property<Direction>) facing, direction);
@@ -81,7 +81,7 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
                     newState = newState.with((Property<HorizontalDirection>) facing, direction.toHorizontalDirection());
                 }
             }
-            BooleanProperty waterlogged = (BooleanProperty) customBlock.getProperty("waterlogged");
+            BooleanProperty waterlogged = (BooleanProperty) blockDefinition.getProperty("waterlogged");
             if (waterlogged != null) {
                 newState = newState.with(waterlogged, FluidStateProxy.INSTANCE.getType(BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getFluidState(blockState)) == FluidsProxy.WATER);
             }
@@ -106,7 +106,7 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
         private static final String[] GROWTH_CHANCE = new String[] {"growth_chance", "growth-chance"};
 
         @Override
-        public BuddingBlockBehavior create(CustomBlock block, ConfigSection section) {
+        public BuddingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new BuddingBlockBehavior(
                     block,
                     section.getFloat(GROWTH_CHANCE, 0.2f),

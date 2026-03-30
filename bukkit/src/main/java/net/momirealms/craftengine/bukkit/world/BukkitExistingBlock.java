@@ -104,7 +104,7 @@ public final class BukkitExistingBlock implements ExistingBlock {
     }
 
     @Override
-    public CustomBlock customBlock() {
+    public BlockDefinition customBlock() {
         ImmutableBlockState state = CraftEngineBlocks.getCustomBlockState(this.block);
         if (state != null) {
             return state.owner().value();
