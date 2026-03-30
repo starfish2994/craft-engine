@@ -166,6 +166,18 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.hasPlugin("floodgate")) {
             this.hasFloodgate = true;
         }
+        // 对安装了 FreedomChat 的用户告警
+        if (Bukkit.getPluginManager().getPlugin("FreedomChat") != null) {
+            this.plugin.logger().severe("");
+            if (Locale.getDefault() == Locale.SIMPLIFIED_CHINESE) {
+                this.plugin.logger().severe("CraftEngine 与 FreedomChat 不兼容，请立即卸载 FreedomChat");
+                this.plugin.logger().severe("作为替代方案，请在 config.yml 中启用 disable-chat-report 选项");
+            } else {
+                this.plugin.logger().severe("CraftEngine is incompatible with FreedomChat. Please uninstall FreedomChat immediately.");
+                this.plugin.logger().severe("As an alternative, enable disable-chat-report in config.yml.");
+            }
+            this.plugin.logger().severe("");
+        }
     }
 
     @Override

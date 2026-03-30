@@ -108,7 +108,7 @@ public final class PlayerUtils {
             } else if (VersionHelper.isOrAbove1_20_3()) {
                 droppedItem = ServerPlayerProxy.INSTANCE.drop$1(serverPlayer, item.getMinecraftItem(), false, false, true);
             } else {
-                droppedItem = PlayerProxy.INSTANCE.drop$0(serverPlayer, item.getMinecraftItem(), false, false, true);
+                droppedItem = PlayerProxy.INSTANCE.drop(serverPlayer, item.getMinecraftItem(), false, false, true);
             }
             if (droppedItem != null) {
                 ItemEntityProxy.INSTANCE.setNoPickUpDelay(droppedItem);

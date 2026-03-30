@@ -142,7 +142,7 @@ public final class ItemEventListener implements Listener {
             Direction direction = DirectionUtils.toDirection(event.getBlockFace());
             BlockPos pos = LocationUtils.toBlockPos(block.getLocation());
             Vec3d vec3d = new Vec3d(interactionPoint.getX(), interactionPoint.getY(), interactionPoint.getZ());
-            hitResult = new BlockHitResult(vec3d, direction, pos, false); // todo 需要检测玩家是否在方块内
+            hitResult = new BlockHitResult(vec3d, direction, pos, false); // todo 需要检测玩家是否在方块内，特指脚手架
         }
 
         // 处理自定义方块

@@ -266,7 +266,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
                     furnitureId,
                     rules,
                     section.getBoolean(IGNORE_PLACER),
-                    section.getBoolean(IGNORE_ENTITIES)  // todo 更好的 predicate
+                    section.getBoolean(IGNORE_ENTITIES)
             );
         }
     }

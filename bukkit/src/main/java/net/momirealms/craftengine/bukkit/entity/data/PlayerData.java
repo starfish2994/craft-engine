@@ -5,7 +5,6 @@ import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
 
 import java.util.OptionalInt;
 
-// todo: 未测试
 public class PlayerData<T> extends AvatarData<T> {
     public static final PlayerData<Float> PLAYER_ABSORPTION = new PlayerData<>(PlayerData.class, EntityDataValue.Serializers$FLOAT, 0.0f);
     public static final PlayerData<Integer> SCORE = new PlayerData<>(PlayerData.class, EntityDataValue.Serializers$INT, 0);

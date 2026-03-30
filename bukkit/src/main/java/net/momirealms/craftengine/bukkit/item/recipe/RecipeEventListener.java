@@ -22,8 +22,6 @@ import net.momirealms.craftengine.core.item.setting.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.Context;
-import net.momirealms.craftengine.core.plugin.context.ContextHolder;
-import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.*;
@@ -38,6 +36,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.ContainerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.CraftingContainerProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.*;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
@@ -799,32 +798,47 @@ public final class RecipeEventListener implements Listener {
             }
         }
 
-        // 多次合成
-        if (event.isShiftClick()) {
-            // 由插件自己处理多次合成
-            event.setResult(Event.Result.DENY);
+        Object mcPlayer = serverPlayer.serverPlayer();
+        Object craftingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
 
-            Object mcPlayer = serverPlayer.serverPlayer();
-            Object craftingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
-
-            // 如果有视觉结果，先临时替换为真实的
-            if (ceRecipe.hasVisualResult()) {
-                inventory.setResult(ItemStackUtils.getBukkitStack(ceRecipe.assemble(null, ItemBuildContext.of(serverPlayer))));
-            }
-            // 先取一次
-            Object itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(craftingMenu, mcPlayer, 0 /* result slot */);
-            if (ItemStackProxy.INSTANCE.isEmpty(itemMoved)) {
-                // 发现取了个寂寞，根本没地方放，给他复原成视觉结果
-                inventory.setResult(visualResultOrReal);
+        ClickType click = event.getClick();
+        // 需要特殊处理的情况
+        if (click == ClickType.CONTROL_DROP && !ceRecipe.hasVisualResult() && ceRecipe.hasFunctions()) {
+            if (!ItemStackUtils.isEmpty(event.getCursor())) {
                 return;
             }
-            // 有函数的情况下，执行函数
-            if (ceRecipe.hasFunctions()) {
-                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
+
+            // 后续由插件处理
+            event.setResult(Event.Result.DENY);
+
+            Object resultSlot = AbstractContainerMenuProxy.INSTANCE.getSlot(craftingMenu, 0);
+
+            for (;;) {
+                // 这个时候配方已经更新了，如果变化了，那么就不要操作
+                if (!recipeId.equals(getCurrentCraftingRecipeId(inventory))) {
+                    break;
+                }
+
+                Object takenItem = SlotProxy.INSTANCE.safeTake(resultSlot, 1, Integer.MAX_VALUE, mcPlayer);
+                if (ItemStackProxy.INSTANCE.isEmpty(takenItem)) {
+                    break;
+                }
+
+                PlayerProxy.INSTANCE.drop(mcPlayer, takenItem, true);
+
+                // 执行函数
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
                 for (Function<Context> function : ceRecipe.functions()) {
                     function.run(context);
                 }
             }
+            return;
+        }
+
+        // 多次合成
+        if (click.isShiftClick()) {
+            // 由插件自己处理多次合成
+            event.setResult(Event.Result.DENY);
 
             for (;;) {
                 // 这个时候配方已经更新了，如果变化了，那么就不要操作
@@ -839,7 +853,7 @@ public final class RecipeEventListener implements Listener {
                 }
 
                 // 连续获取
-                itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(craftingMenu, mcPlayer, 0 /* result slot */);
+                Object itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(craftingMenu, mcPlayer, 0 /* result slot */);
                 if (ItemStackProxy.INSTANCE.isEmpty(itemMoved)) {
                     // 发现取了个寂寞，根本没地方放，给他复原成视觉结果
                     inventory.setResult(visualResultOrReal);
@@ -856,7 +870,6 @@ public final class RecipeEventListener implements Listener {
         }
         // 单次合成
         else {
-            ClickType click = event.getClick();
             if (click == ClickType.MIDDLE) {
                 if (ItemStackUtils.isEmpty(event.getCursor())) {
                     return;
@@ -883,7 +896,7 @@ public final class RecipeEventListener implements Listener {
             }
             // 有函数的情况下，执行函数
             if (ceRecipe.hasFunctions()) {
-                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
                 for (Function<Context> function : ceRecipe.functions()) {
                     function.run(context);
                 }
@@ -1041,9 +1054,51 @@ public final class RecipeEventListener implements Listener {
 
             ClickType click = event.getClick();
 
-            // todo 未来再说吧
+            Object mcPlayer = serverPlayer.serverPlayer();
+            Object smithingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
+
             if (click == ClickType.CONTROL_DROP) {
+                // 由插件自己处理多次合成
                 event.setResult(Event.Result.DENY);
+
+                Object resultSlot = AbstractContainerMenuProxy.INSTANCE.getSlot(smithingMenu, 3);
+
+                for (;;) {
+                    // 这个时候配方已经更新了，如果变化了，那么就不要操作
+                    if (!(inventory.getRecipe() instanceof SmithingTransformRecipe newTransform) || !recipeId.equals(KeyUtils.namespacedKeyToKey(newTransform.getKey()))) {
+                        break;
+                    }
+
+                    // 双重校验，mc不一定在此更新
+                    if (!ceRecipe.matches(getSmithingInput(inventory))) {
+                        break;
+                    }
+
+                    if (ceRecipe.hasVisualResult()) {
+                        inventory.setResult(ItemStackUtils.getBukkitStack(ceRecipe.assemble(getSmithingInput(inventory), ItemBuildContext.of(serverPlayer))));
+                    }
+
+                    Object takenItem = SlotProxy.INSTANCE.safeTake(resultSlot, 1, Integer.MAX_VALUE, mcPlayer);
+                    if (ItemStackProxy.INSTANCE.isEmpty(takenItem)) {
+                        break;
+                    }
+
+                    // 扣除额外原料
+                    if (ceRecipe.ingredientCountSupport()) {
+                        ceRecipe.takeInput(getSmithingInput(inventory), 1);
+                    }
+
+                    PlayerProxy.INSTANCE.drop(mcPlayer, takenItem, true);
+
+                    // 有函数的情况下，执行函数
+                    if (ceRecipe.hasFunctions()) {
+                        PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
+                        for (Function<Context> function : ceRecipe.functions()) {
+                            function.run(context);
+                        }
+                    }
+                }
+
                 return;
             }
 
@@ -1051,36 +1106,14 @@ public final class RecipeEventListener implements Listener {
                 // 由插件自己处理多次合成
                 event.setResult(Event.Result.DENY);
 
-                Object mcPlayer = serverPlayer.serverPlayer();
-                Object smithingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
-
-                // 如果有视觉结果，先临时替换为真实的
-                if (ceRecipe.hasVisualResult()) {
-                    inventory.setResult(ItemStackUtils.getBukkitStack(ceRecipe.assemble(getSmithingInput(inventory), ItemBuildContext.of(serverPlayer))));
-                }
-                // 先取一次
-                Object itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
-                if (ItemStackProxy.INSTANCE.isEmpty(itemMoved)) {
-                    // 发现取了个寂寞，根本没地方放，给他复原成视觉结果
-                    inventory.setResult(visualResultOrReal);
-                    return;
-                }
-                // 能取走啦
-                // 扣除额外原料
-                if (ceRecipe.ingredientCountSupport()) {
-                    ceRecipe.takeInput(getSmithingInput(inventory), 1);
-                }
-                // 有函数的情况下，执行函数
-                if (ceRecipe.hasFunctions()) {
-                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
-                    for (Function<Context> function : ceRecipe.functions()) {
-                        function.run(context);
-                    }
-                }
-
                 for (;;) {
                     // 这个时候配方已经更新了，如果变化了，那么就不要操作
                     if (!(inventory.getRecipe() instanceof SmithingTransformRecipe newTransform) || !recipeId.equals(KeyUtils.namespacedKeyToKey(newTransform.getKey()))) {
+                        break;
+                    }
+
+                    // 双重校验，mc不一定在此更新
+                    if (!ceRecipe.matches(getSmithingInput(inventory))) {
                         break;
                     }
 
@@ -1091,7 +1124,7 @@ public final class RecipeEventListener implements Listener {
                     }
 
                     // 连续获取
-                    itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
+                    Object itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
                     if (ItemStackProxy.INSTANCE.isEmpty(itemMoved)) {
                         // 发现取了个寂寞，根本没地方放，给他复原成视觉结果
                         inventory.setResult(visualResultOrReal);
@@ -1136,7 +1169,7 @@ public final class RecipeEventListener implements Listener {
                 }
                 // 有函数的情况下，执行函数
                 if (ceRecipe.hasFunctions()) {
-                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder().withParameter(ContextKey.direct("first_time"), new Object()));
+                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
                     for (Function<Context> function : ceRecipe.functions()) {
                         function.run(context);
                     }
@@ -1188,27 +1221,19 @@ public final class RecipeEventListener implements Listener {
                 Object mcPlayer = serverPlayer.serverPlayer();
                 Object smithingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
 
-                // 先取一次
-                Object itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
-                if (ItemStackProxy.INSTANCE.isEmpty(itemMoved)) {
-                    // 发现取了个寂寞，根本没地方放
-                    return;
-                }
-                // 有函数的情况下，执行函数
-                if (ceRecipe.hasFunctions()) {
-                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer);
-                    for (Function<Context> function : ceRecipe.functions()) {
-                        function.run(context);
-                    }
-                }
-
                 for (;;) {
                     // 这个时候配方已经更新了，如果变化了，那么就不要操作
                     if (!(inventory.getRecipe() instanceof SmithingTrimRecipe newTrim) || !recipeId.equals(KeyUtils.namespacedKeyToKey(newTrim.getKey()))) {
                         break;
                     }
+
+                    // 双重校验
+                    if (!ceRecipe.matches(getSmithingInput(inventory))) {
+                        break;
+                    }
+
                     // 连续获取
-                    itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
+                    Object itemMoved = AbstractContainerMenuProxy.INSTANCE.quickMoveStack(smithingMenu, mcPlayer, 3 /* result slot */);
                     if (ItemStackProxy.INSTANCE.isEmpty(itemMoved)) {
                         // 发现取了个寂寞，根本没地方放
                         break;
