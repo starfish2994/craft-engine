@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.block.parser;
 
-import net.momirealms.craftengine.core.block.BlockStateVariantProvider;
 import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.BlockStateVariantProvider;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.util.StringReader;
 import net.momirealms.sparrow.nbt.CompoundTag;

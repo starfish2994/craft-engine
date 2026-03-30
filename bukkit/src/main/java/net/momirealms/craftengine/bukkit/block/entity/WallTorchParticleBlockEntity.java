@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.SimpleContext;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -22,10 +22,9 @@ public class WallTorchParticleBlockEntity extends AbstractAnimateTickBlockEntity
     }
 
     public void animateTick(ImmutableBlockState state, World level, BlockPos pos) {
-        HorizontalDirection direction = state.get(this.behavior.facingProperty);
-        if (direction == null) return;
+        Direction direction = state.get(this.behavior.facingProperty);
         Vec3d center = Vec3d.atCenterOf(pos);
-        HorizontalDirection opposite = direction.opposite();
+        Direction opposite = direction.opposite();
         for (ParticleConfig particle : this.behavior.particles) {
             Vec3d location = new Vec3d(
                     center.x() + particle.x.getDouble(context) * opposite.stepX(),

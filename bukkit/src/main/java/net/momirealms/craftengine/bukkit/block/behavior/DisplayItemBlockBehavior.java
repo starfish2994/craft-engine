@@ -20,7 +20,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
@@ -28,6 +28,7 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -38,14 +39,14 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     public final boolean hasAnalogOutputSignal;
     public final Vector3f relativePosition;
     @Nullable
-    public final Property<HorizontalDirection> directionProperty;
+    public final Property<Direction> directionProperty;
 
     public DisplayItemBlockBehavior(BlockDefinition blockDefinition,
                                     SoundData putSound,
                                     SoundData takeSound,
                                     boolean hasAnalogOutputSignal,
                                     Vector3f relativePosition,
-                                    @Nullable Property<HorizontalDirection> directionProperty
+                                    @Nullable Property<Direction> directionProperty
     ) {
         super(blockDefinition);
         this.putSound = putSound;
@@ -94,12 +95,12 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     }
 
     @Override
-    public @Nullable <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
+    public <T extends BlockEntity> @NotNull BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
         return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.DISPLAY_ITEM);
     }
 
     @Override
-    public @Nullable BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
+    public @NotNull BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
         return new DisplayItemEntity(pos, state, this.relativePosition);
     }
 
@@ -142,7 +143,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                 takeSound = soundSection.getValue("take", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.RANGED_0_9_1));
             }
             // 获取方向
-            Property<HorizontalDirection> facing = BlockBehaviorFactory.getOptionalProperty(block, "facing", HorizontalDirection.class);
+            Property<Direction> facing = BlockBehaviorFactory.getOptionalProperty(block, "facing", Direction.class);
             return new DisplayItemBlockBehavior(
                     block,
                     putSound,

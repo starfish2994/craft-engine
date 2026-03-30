@@ -3,22 +3,22 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.properties.BooleanProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.DirectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
-import net.momirealms.craftengine.proxy.minecraft.resources.IdentifierProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
@@ -47,22 +47,22 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
-        if (RandomUtils.generateRandomFloat(0, 1) >= growthChance) return;
+        if (RandomUtils.generateRandomFloat(0, 1) >= this.growthChance) return;
         Object nmsDirection = DirectionProxy.VALUES[RandomUtils.generateRandomInt(0, 6)];
         Direction direction = DirectionUtils.fromNMSDirection(nmsDirection);
         Object blockPos = BlockPosProxy.INSTANCE.relative(args[2], nmsDirection);
         Object blockState = BlockGetterProxy.INSTANCE.getBlockState(args[1], blockPos);
         if (canClusterGrowAtState(blockState)) {
-            Key blockId = blocks.getFirst();
+            Key blockId = this.blocks.getFirst();
             BlockDefinition firstBlock = BukkitBlockManager.instance().blockById(blockId).orElse(null);
             placeWithPropertyBlock(firstBlock, blockId, direction, nmsDirection, args[1], blockPos, blockState);
         } else {
             Key blockId = BlockStateUtils.getOptionalCustomBlockState(blockState)
                     .map(it -> it.owner().value().id())
                     .orElseGet(() -> BlockStateUtils.getBlockOwnerIdFromState(blockState));
-            int blockIdIndex = blocks.indexOf(blockId);
-            if (blockIdIndex < 0 || blockIdIndex == blocks.size() - 1) return;
-            Key nextBlockId = blocks.get(blockIdIndex + 1);
+            int blockIdIndex = this.blocks.indexOf(blockId);
+            if (blockIdIndex < 0 || blockIdIndex == this.blocks.size() - 1) return;
+            Key nextBlockId = this.blocks.get(blockIdIndex + 1);
             BlockDefinition nextBlock = BukkitBlockManager.instance().blockById(nextBlockId).orElse(null);
             placeWithPropertyBlock(nextBlock, nextBlockId, direction, nmsDirection, args[1], blockPos, blockState);
         }
@@ -72,27 +72,22 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
     private void placeWithPropertyBlock(BlockDefinition blockDefinition, Key blockId, Direction direction, Object nmsDirection, Object level, Object blockPos, Object blockState) {
         if (blockDefinition != null) {
             ImmutableBlockState newState = blockDefinition.defaultState();
-            Property<?> facing = blockDefinition.getProperty("facing");
+            Property<Direction> facing = (Property<Direction>) blockDefinition.getProperty("facing");
             if (facing != null) {
-                if (facing.valueClass() == Direction.class) {
-                    newState = newState.with((Property<Direction>) facing, direction);
-                } else if (facing.valueClass() == HorizontalDirection.class) {
-                    if (!direction.axis().isHorizontal()) return;
-                    newState = newState.with((Property<HorizontalDirection>) facing, direction.toHorizontalDirection());
-                }
+                newState = newState.with(facing, direction);
             }
             BooleanProperty waterlogged = (BooleanProperty) blockDefinition.getProperty("waterlogged");
             if (waterlogged != null) {
                 newState = newState.with(waterlogged, FluidStateProxy.INSTANCE.getType(BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getFluidState(blockState)) == FluidsProxy.WATER);
             }
-            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().literalObject(), 3);
-        } else if (blockId.namespace().equals("minecraft")) {
-            Object block = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.BLOCK, IdentifierProxy.INSTANCE.newInstance("minecraft", blockId.value()));
+            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+        } else {
+            Object block = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.BLOCK, KeyUtils.toIdentifier(blockId));
             if (block == null) return;
             Object newState = BlockProxy.INSTANCE.getDefaultBlockState(block);
             newState = StateHolderProxy.INSTANCE.trySetValue(newState, BlockStatePropertiesProxy.WATERLOGGED, FluidStateProxy.INSTANCE.getType(BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getFluidState(blockState)) == FluidsProxy.WATER);
             newState = StateHolderProxy.INSTANCE.trySetValue(newState, BlockStatePropertiesProxy.FACING, (Comparable<?>) nmsDirection);
-            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState, 3);
+            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState, UpdateFlags.UPDATE_ALL);
         }
     }
 

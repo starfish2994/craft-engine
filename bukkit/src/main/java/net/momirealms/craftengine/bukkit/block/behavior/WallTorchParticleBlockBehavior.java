@@ -11,7 +11,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntityType;
 import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.particle.ParticleConfig;
@@ -20,12 +20,12 @@ public final class WallTorchParticleBlockBehavior extends BukkitBlockBehavior im
     public static final BlockBehaviorFactory<WallTorchParticleBlockBehavior> FACTORY = new Factory();
     public final ParticleConfig[] particles;
     public final int tickInterval;
-    public final Property<HorizontalDirection> facingProperty;
+    public final Property<Direction> facingProperty;
 
     private WallTorchParticleBlockBehavior(BlockDefinition blockDefinition,
                                            ParticleConfig[] particles,
                                            int tickInterval,
-                                           Property<HorizontalDirection> facingProperty) {
+                                           Property<Direction> facingProperty) {
         super(blockDefinition);
         this.particles = particles;
         this.tickInterval = tickInterval;
@@ -58,7 +58,7 @@ public final class WallTorchParticleBlockBehavior extends BukkitBlockBehavior im
                     block,
                     section.getSectionList(PARTICLES, ParticleConfig::fromConfig$blockEntity).toArray(new ParticleConfig[0]),
                     section.getInt(TICK_INTERVAL, 10),
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class)
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class)
             );
         }
     }

@@ -10,8 +10,8 @@ import net.momirealms.craftengine.core.block.behavior.CanBeReplacedBlockBehavior
 import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.SlabType;
-import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;

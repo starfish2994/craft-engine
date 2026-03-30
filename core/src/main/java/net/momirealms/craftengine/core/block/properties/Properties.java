@@ -7,17 +7,18 @@ import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
+
+import java.util.List;
 
 public final class Properties {
     public static final PropertyType<?> BOOLEAN = register(Key.ce("boolean"), BooleanProperty.FACTORY);
     public static final PropertyType<?> INT = register(Key.ce("int"), IntegerProperty.FACTORY);
     public static final PropertyType<?> STRING = register(Key.ce("string"), StringProperty.FACTORY);
     public static final PropertyType<?> AXIS = register(Key.ce("axis"), EnumProperty.factory(Direction.Axis.class));
-    public static final PropertyType<?> HORIZONTAL_DIRECTION = register(Key.ce("horizontal_direction"), EnumProperty.factory(HorizontalDirection.class));
-    public static final PropertyType<?> FOUR_DIRECTION = register(Key.ce("4-direction"), EnumProperty.factory(HorizontalDirection.class));
+    public static final PropertyType<?> HORIZONTAL_DIRECTION = register(Key.ce("horizontal_direction"), EnumProperty.factory(Direction.class, List.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)));
+    public static final PropertyType<?> FOUR_DIRECTION = register(Key.ce("4-direction"), EnumProperty.factory(Direction.class, List.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)));
     public static final PropertyType<?> DIRECTION = register(Key.ce("direction"), EnumProperty.factory(Direction.class));
     public static final PropertyType<?> SIX_DIRECTION = register(Key.ce("6-direction"), EnumProperty.factory(Direction.class));
     public static final PropertyType<?> SINGLE_BLOCK_HALF = register(Key.ce("single_block_half"), EnumProperty.factory(SingleBlockHalf.class));

@@ -10,7 +10,7 @@ import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavio
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
@@ -21,12 +21,12 @@ import java.util.concurrent.Callable;
 
 public final class AttachedStemBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
     public static final BlockBehaviorFactory<AttachedStemBlockBehavior> FACTORY = new Factory();
-    public final Property<HorizontalDirection> facingProperty;
+    public final Property<Direction> facingProperty;
     public final Key fruit;
     public final Key stem;
 
     private AttachedStemBlockBehavior(BlockDefinition blockDefinition,
-                                      Property<HorizontalDirection> facingProperty,
+                                      Property<Direction> facingProperty,
                                       Key fruit,
                                       Key stem) {
         super(blockDefinition);
@@ -44,7 +44,7 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
     @Override
     public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         Object state = args[0];
-        HorizontalDirection direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]).toHorizontalDirection();
+        Direction direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]);
         Object neighborState = args[updateShape$neighborState];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(state);
         if (optionalCustomState.isEmpty() || direction != optionalCustomState.get().get(this.facingProperty)) {
@@ -58,13 +58,8 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
                 if (stemBlock != null) return stemBlock;
             }
         } else {
-            if (this.stem.namespace().equals("minecraft")) {
-                Key neighborBlockId = BlockStateUtils.getBlockOwnerIdFromState(neighborState);
-                if (!neighborBlockId.equals(this.fruit)) {
-                    Object stemBlock = resetStemBlock();
-                    if (stemBlock != null) return stemBlock;
-                }
-            } else {
+            Key neighborBlockId = BlockStateUtils.getBlockOwnerIdFromState(neighborState);
+            if (!neighborBlockId.equals(this.fruit)) {
                 Object stemBlock = resetStemBlock();
                 if (stemBlock != null) return stemBlock;
             }
@@ -89,7 +84,7 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
         public AttachedStemBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new AttachedStemBlockBehavior(
                     block,
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     section.getNonNullIdentifier("fruit"),
                     section.getNonNullIdentifier("stem")
             );

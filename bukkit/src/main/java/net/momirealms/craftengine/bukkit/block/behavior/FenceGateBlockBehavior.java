@@ -8,8 +8,8 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.InteractUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -22,7 +22,6 @@ import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -52,7 +51,7 @@ import java.util.concurrent.Callable;
 @SuppressWarnings("DuplicatedCode")
 public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
     public static final BlockBehaviorFactory<FenceGateBlockBehavior> FACTORY = new Factory();
-    public final Property<HorizontalDirection> facingProperty;
+    public final Property<Direction> facingProperty;
     public final Property<Boolean> inWallProperty;
     public final Property<Boolean> openProperty;
     public final Property<Boolean> poweredProperty;
@@ -62,7 +61,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
     public final SoundData closeSound;
 
     private FenceGateBlockBehavior(BlockDefinition blockDefinition,
-                                   Property<HorizontalDirection> facing,
+                                   Property<Direction> facing,
                                    Property<Boolean> inWall,
                                    Property<Boolean> open,
                                    Property<Boolean> powered,
@@ -102,7 +101,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return blockState;
         ImmutableBlockState customState = optionalCustomState.get();
-        if (customState.get(this.facingProperty).toDirection().clockWise().axis() != direction.axis()) {
+        if (customState.get(this.facingProperty).clockWise().axis() != direction.axis()) {
             return superMethod.call();
         }
         Object neighborState = args[updateShape$neighborState];
@@ -133,7 +132,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
                 || this.isWall(getBlockState(level, clickedPos.relative(Direction.SOUTH))));
         // TODO: 连接原版方块
         return state.owner().value().defaultState()
-                .with(this.facingProperty, horizontalDirection.toHorizontalDirection())
+                .with(this.facingProperty, horizontalDirection)
                 .with(this.openProperty, hasNeighborSignal)
                 .with(this.poweredProperty, hasNeighborSignal)
                 .with(this.inWallProperty, flag);
@@ -148,7 +147,6 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
-    @SuppressWarnings("unchecked")
     private void playerToggle(UseOnContext context, ImmutableBlockState state) {
         Player player = context.getPlayer();
         if (player == null) return;
@@ -244,8 +242,8 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
             ImmutableBlockState blockState = state;
             if (player != null) {
                 Direction direction = player.getDirection();
-                if (state.get(this.facingProperty).toDirection() == direction.opposite()) {
-                    blockState = blockState.with(this.facingProperty, direction.toHorizontalDirection());
+                if (state.get(this.facingProperty) == direction.opposite()) {
+                    blockState = blockState.with(this.facingProperty, direction);
                 }
             }
             newState = blockState.with(this.openProperty, true);
@@ -272,7 +270,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
         }
     }
 
-    public static boolean connectsToDirection(BlockStateWrapper state, HorizontalDirection direction) {
+    public static boolean connectsToDirection(BlockStateWrapper state, Direction direction) {
         FenceGateBlockBehavior fence = BlockStateUtils.getOptionalCustomBlockState(state.literalObject())
                 .map(ImmutableBlockState::behavior)
                 .flatMap(behavior -> behavior.getAs(FenceGateBlockBehavior.class))
@@ -282,10 +280,10 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
         ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state.literalObject()).orElse(null);
         if (customState == null) return false;
         Property<?> facingProperty = customState.owner().value().getProperty("facing");
-        if (facingProperty != null && facingProperty.valueClass() == HorizontalDirection.class) {
-            facing = ((HorizontalDirection) customState.get(facingProperty)).toDirection();
+        if (facingProperty != null && facingProperty.valueClass() == Direction.class) {
+            facing = (Direction) customState.get(facingProperty);
         }
-        return facing != null && facing.axis() == direction.toDirection().clockWise().axis();
+        return facing != null && facing.axis() == direction.clockWise().axis();
     }
 
     private static class Factory implements BlockBehaviorFactory<FenceGateBlockBehavior> {
@@ -303,7 +301,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
             }
             return new FenceGateBlockBehavior(
                     block,
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "in_wall", Boolean.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "open", Boolean.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "powered", Boolean.class),

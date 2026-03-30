@@ -13,7 +13,6 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
@@ -162,7 +161,6 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
                 LevelAccessorProxy.INSTANCE.gameEvent$1(level, arrow, on ? GameEventProxy.BLOCK_ACTIVATE : GameEventProxy.BLOCK_DEACTIVATE, pos);
             }
         }
-
         if (on) {
             LevelUtils.scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
         }
@@ -175,11 +173,11 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
         Object nmsDirection = DirectionUtils.toNMSDirection(opposite);
         if (VersionHelper.isOrAbove1_21_2()) {
             @SuppressWarnings("unchecked")
-            Property<HorizontalDirection> facing = (Property<HorizontalDirection>) state.owner().value().getProperty("facing");
+            Property<Direction> facing = (Property<Direction>) state.owner().value().getProperty("facing");
             Object orientation = null;
             if (facing != null) {
                 orientation = ExperimentalRedstoneUtilsProxy.INSTANCE.initialOrientation(
-                        level, nmsDirection, opposite.axis().isHorizontal() ? DirectionProxy.UP : DirectionUtils.toNMSDirection(state.get(facing).toDirection())
+                        level, nmsDirection, opposite.axis().isHorizontal() ? DirectionProxy.UP : DirectionUtils.toNMSDirection(state.get(facing))
                 );
             }
             LevelProxy.INSTANCE.updateNeighborsAt(level, pos, thisBlock, orientation);

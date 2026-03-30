@@ -11,7 +11,6 @@ import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.SofaShape;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
@@ -24,11 +23,11 @@ import java.util.concurrent.Callable;
 
 public final class SofaBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<SofaBlockBehavior> FACTORY = new Factory();
-    public final Property<HorizontalDirection> facingProperty;
+    public final Property<Direction> facingProperty;
     public final Property<SofaShape> shapeProperty;
 
     private SofaBlockBehavior(BlockDefinition block,
-                              Property<HorizontalDirection> facing,
+                              Property<Direction> facing,
                               Property<SofaShape> shape) {
         super(block);
         this.facingProperty = facing;
@@ -39,7 +38,7 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         BlockPos clickedPos = context.getClickedPos();
         ImmutableBlockState blockState = state.owner().value().defaultState()
-                .with(this.facingProperty, context.getHorizontalDirection().toHorizontalDirection());
+                .with(this.facingProperty, context.getHorizontalDirection());
         if (super.waterloggedProperty != null) {
             Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().serverWorld(), LocationUtils.toBlockPos(clickedPos));
             blockState = blockState.with(this.waterloggedProperty, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
@@ -66,7 +65,7 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
     }
 
     private SofaShape getSofaShape(ImmutableBlockState state, Object level, BlockPos pos) {
-        Direction direction = state.get(this.facingProperty).toDirection();
+        Direction direction = state.get(this.facingProperty);
         Object relativeBlockState = BlockGetterProxy.INSTANCE.getBlockState(level, LocationUtils.toBlockPos(pos.relative(direction.opposite())));
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(relativeBlockState);
         if (optionalCustomState.isPresent()) {
@@ -74,8 +73,8 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
             Optional<SofaBlockBehavior> optionalStairsBlockBehavior = customState.behavior().getAs(SofaBlockBehavior.class);
             if (optionalStairsBlockBehavior.isPresent()) {
                 SofaBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
-                Direction direction1 = customState.get(stairsBlockBehavior.facingProperty).toDirection();
-                if (direction1.axis() != state.get(this.facingProperty).toDirection().axis() && canTakeShape(state, level, pos, direction1)) {
+                Direction direction1 = customState.get(stairsBlockBehavior.facingProperty);
+                if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1)) {
                     if (direction1 == direction.counterClockWise()) {
                         return SofaShape.INNER_LEFT;
                     }
@@ -107,7 +106,7 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
         public SofaBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SofaBlockBehavior(
                     block,
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "shape", SofaShape.class)
             );
         }

@@ -2,8 +2,8 @@ package net.momirealms.craftengine.bukkit.item;
 
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.processor.ArgumentsProcessor;

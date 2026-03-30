@@ -1,21 +1,26 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.LevelUtils;
-import net.momirealms.craftengine.bukkit.util.LocationUtils;
+import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
+import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.parser.BlockStateParser;
+import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
+import org.bukkit.Bukkit;
 
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavior {
@@ -80,4 +85,48 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
     }
 
     protected abstract boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws Exception;
+
+    protected static TagsAndState readTagsAndState(ConfigSection section, String prefix) {
+        List<Object> mcTags = section.getList(new String[] {prefix + "_block_tags", prefix + "-block-tags"}, v -> BlockTags.getOrCreate(v.getAsIdentifier()));
+        Set<Object> blockStates = new HashSet<>();
+        List<Key> customBlocks = new ArrayList<>();
+        List<String> customStates = new ArrayList<>();
+        for (String blockState : section.getStringList(new String[] {prefix + "_blocks", prefix + "-blocks"})) {
+            int index = blockState.indexOf('[');
+            Key blockType = index != -1 ? Key.of(blockState.substring(0, index)) : Key.of(blockState);
+            Object block = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.BLOCK, KeyUtils.toIdentifier(blockType));
+            if (block != BlocksProxy.AIR) {
+                if (index == -1) {
+                    blockStates.addAll(BlockStateUtils.getPossibleBlockStates(blockType));
+                } else {
+                    blockStates.add(BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData(blockState)));
+                }
+            } else {
+                // custom maybe
+                if (index == -1) {
+                    customBlocks.add(Key.of(blockState));
+                } else {
+                    customStates.add(blockState);
+                }
+            }
+        }
+        return new TagsAndState(mcTags, LazyReference.lazyReference(() -> {
+            for (Key customBlock : customBlocks) {
+                BukkitBlockManager.instance().blockById(customBlock).ifPresent(block -> {
+                    for (ImmutableBlockState state : block.variantProvider().states()) {
+                        blockStates.add(state.customBlockState().literalObject());
+                    }
+                });
+            }
+            for (String customState : customStates) {
+                Optional.ofNullable(BlockStateParser.deserialize(customState)).ifPresent(blockState -> {
+                    blockStates.add(blockState.customBlockState().literalObject());
+                });
+            }
+            return blockStates;
+        }));
+    }
+
+    public record TagsAndState(List<Object> tags, LazyReference<Set<Object>> blockStates) {
+    }
 }

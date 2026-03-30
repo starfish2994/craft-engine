@@ -70,9 +70,9 @@ public final class DynamicPlayerRenderer implements DynamicBlockEntityRenderer {
         BedBlockBehavior behavior = blockState.behavior().getAs(BedBlockBehavior.class).orElse(null);
         if (behavior != null) {
             this.yRot = switch (blockState.get(behavior.facingProperty)) {
+                case DOWN, UP, WEST -> 0.0F;
                 case NORTH -> 270;
                 case SOUTH -> 90;
-                case WEST -> 0;
                 case EAST -> 180;
             };
             this.offset = QuaternionUtils.toQuaternionf(0, Math.toRadians(180 - this.yRot), 0).conjugate().transform(new Vector3f(sleepOffset));

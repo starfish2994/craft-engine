@@ -3,8 +3,8 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
@@ -16,7 +16,6 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -73,10 +72,10 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
         return false;
     }
 
-    public boolean connectsTo(BlockStateWrapper state, boolean isSideSolid, HorizontalDirection direction) {
+    public boolean connectsTo(BlockStateWrapper state, boolean isSideSolid, Direction direction) {
         boolean isSameFence = this.isSameFence(state);
         boolean flag = FenceGateBlockProxy.CLASS.isInstance(BlockStateUtils.getBlockOwner(state.literalObject()))
-                ? FenceGateBlockProxy.INSTANCE.connectsToDirection(state.literalObject(), DirectionUtils.toNMSDirection(direction.toDirection()))
+                ? FenceGateBlockProxy.INSTANCE.connectsToDirection(state.literalObject(), DirectionUtils.toNMSDirection(direction))
                 : FenceGateBlockBehavior.connectsToDirection(state, direction);
         return !isExceptionForConnection(state) && isSideSolid || isSameFence || flag;
     }
@@ -136,10 +135,10 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
             state = state.with(waterlogged, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
         }
         return state
-                .with(this.northProperty, this.connectsTo(blockState, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos), DirectionProxy.SOUTH, SupportTypeProxy.FULL), HorizontalDirection.SOUTH))
-                .with(this.eastProperty, this.connectsTo(blockState1, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState1.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos1), DirectionProxy.WEST, SupportTypeProxy.FULL), HorizontalDirection.WEST))
-                .with(this.southProperty, this.connectsTo(blockState2, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState2.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos2), DirectionProxy.NORTH, SupportTypeProxy.FULL), HorizontalDirection.NORTH))
-                .with(this.westProperty, this.connectsTo(blockState3, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState3.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos3), DirectionProxy.EAST, SupportTypeProxy.FULL), HorizontalDirection.EAST));
+                .with(this.northProperty, this.connectsTo(blockState, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos), DirectionProxy.SOUTH, SupportTypeProxy.FULL), Direction.SOUTH))
+                .with(this.eastProperty, this.connectsTo(blockState1, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState1.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos1), DirectionProxy.WEST, SupportTypeProxy.FULL), Direction.WEST))
+                .with(this.southProperty, this.connectsTo(blockState2, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState2.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos2), DirectionProxy.NORTH, SupportTypeProxy.FULL), Direction.NORTH))
+                .with(this.westProperty, this.connectsTo(blockState3, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState3.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos3), DirectionProxy.EAST, SupportTypeProxy.FULL), Direction.EAST));
     }
 
     @Override
@@ -160,7 +159,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
                 BooleanProperty booleanProperty = (BooleanProperty) state.owner().value().getProperty(direction.name().toLowerCase(Locale.ROOT));
                 if (booleanProperty != null) {
                     BlockStateWrapper wrapper = BlockStateUtils.toBlockStateWrapper(args[updateShape$neighborState]);
-                    return state.with(booleanProperty, this.connectsTo(wrapper, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(wrapper.literalObject(), args[updateShape$level], args[5], DirectionUtils.toNMSDirection(direction.opposite()), SupportTypeProxy.FULL), direction.opposite().toHorizontalDirection())).customBlockState().literalObject();
+                    return state.with(booleanProperty, this.connectsTo(wrapper, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(wrapper.literalObject(), args[updateShape$level], args[5], DirectionUtils.toNMSDirection(direction.opposite()), SupportTypeProxy.FULL), direction.opposite())).customBlockState().literalObject();
                 }
             }
         }

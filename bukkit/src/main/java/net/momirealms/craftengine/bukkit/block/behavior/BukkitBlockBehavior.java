@@ -4,12 +4,15 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.MirrorUtils;
 import net.momirealms.craftengine.bukkit.util.RotationUtils;
-import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.util.Mirror;
+import net.momirealms.craftengine.core.util.Rotation;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
@@ -45,17 +48,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
             };
         });
         HARD_CODED_PROPERTY_DATA.put("facing", (behavior, property) -> {
-            if (property.valueClass() == HorizontalDirection.class) {
-                @SuppressWarnings("unchecked")
-                Property<HorizontalDirection> directionProperty = (Property<HorizontalDirection>) property;
-                behavior.rotateFunction = (thisBlock, blockState, rotation) ->
-                        blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty).toDirection()).toHorizontalDirection())
-                                .customBlockState().literalObject();
-                behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
-                    Rotation rotation = mirror.getRotation(blockState.get(directionProperty).toDirection());
-                    return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
-                };
-            } else if (property.valueClass() == Direction.class) {
+            if (property.valueClass() == Direction.class) {
                 @SuppressWarnings("unchecked")
                 Property<Direction> directionProperty = (Property<Direction>) property;
                 behavior.rotateFunction = (thisBlock, blockState, rotation) ->
@@ -68,14 +61,14 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
             }
         });
         HARD_CODED_PROPERTY_DATA.put("facing_clockwise", (behavior, property) -> {
-            if (property.valueClass() == HorizontalDirection.class) {
+            if (property.valueClass() == Direction.class) {
                 @SuppressWarnings("unchecked")
-                Property<HorizontalDirection> directionProperty = (Property<HorizontalDirection>) property;
+                Property<Direction> directionProperty = (Property<Direction>) property;
                 behavior.rotateFunction = (thisBlock, blockState, rotation) ->
-                        blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty).toDirection()).toHorizontalDirection())
+                        blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty)))
                                 .customBlockState().literalObject();
                 behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
-                    Rotation rotation = mirror.getRotation(blockState.get(directionProperty).toDirection());
+                    Rotation rotation = mirror.getRotation(blockState.get(directionProperty));
                     return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
                 };
             }

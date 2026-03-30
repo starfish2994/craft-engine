@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.core.item.updater.impl;
 
-import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.updater.ItemUpdater;
 import net.momirealms.craftengine.core.item.updater.ItemUpdaterFactory;
 import net.momirealms.craftengine.core.plugin.CraftEngine;

@@ -23,7 +23,6 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
@@ -59,7 +58,7 @@ import static net.momirealms.craftengine.core.block.UpdateFlags.*;
 public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior implements IsPathFindableBlockBehavior {
     public static final BlockBehaviorFactory<DoorBlockBehavior> FACTORY = new Factory();
     public final Property<DoubleBlockHalf> halfProperty;
-    public final Property<HorizontalDirection> facingProperty;
+    public final Property<Direction> facingProperty;
     public final Property<DoorHinge> hingeProperty;
     public final Property<Boolean> poweredProperty;
     public final Property<Boolean> openProperty;
@@ -70,7 +69,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
 
     private DoorBlockBehavior(BlockDefinition block,
                               Property<DoubleBlockHalf> halfProperty,
-                              Property<HorizontalDirection> facingProperty,
+                              Property<Direction> facingProperty,
                               Property<DoorHinge> hingeProperty,
                               Property<Boolean> poweredProperty,
                               Property<Boolean> openProperty,
@@ -204,7 +203,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
         if (pos.y() < world.worldHeight().getMaxBuildHeight() - 1 && world.getBlock(pos.above()).canBeReplaced(context)) {
             boolean hasSignal = SignalGetterProxy.INSTANCE.hasNeighborSignal(level, LocationUtils.toBlockPos(pos)) || SignalGetterProxy.INSTANCE.hasNeighborSignal(level, LocationUtils.toBlockPos(pos.above()));
             return state.with(this.poweredProperty, hasSignal)
-                    .with(this.facingProperty, context.getHorizontalDirection().toHorizontalDirection())
+                    .with(this.facingProperty, context.getHorizontalDirection())
                     .with(this.openProperty, hasSignal)
                     .with(this.halfProperty, DoubleBlockHalf.LOWER)
                     .with(this.hingeProperty, getHinge(context));
@@ -343,7 +342,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws Exception {
+    public boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(state);
         if (optionalCustomState.isEmpty()) return false;
         int x = Vec3iProxy.INSTANCE.getX(blockPos);
@@ -378,7 +377,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
             return new DoorBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "half", DoubleBlockHalf.class),
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "hinge", DoorHinge.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "powered", Boolean.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "open", Boolean.class),

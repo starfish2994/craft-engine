@@ -24,7 +24,7 @@ import net.momirealms.craftengine.core.entity.seat.SeatConfig;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
@@ -46,13 +46,13 @@ import static net.momirealms.craftengine.core.block.UpdateFlags.*;
 
 public final class BedBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
     public static final BlockBehaviorFactory<BedBlockBehavior> FACTORY = new Factory();
-    public final Property<HorizontalDirection> facingProperty;
+    public final Property<Direction> facingProperty;
     public final Property<BedPart> partProperty;
     public final SeatConfig seatConfig;
     public final Vector3f sleepOffset;
 
     private BedBlockBehavior(BlockDefinition blockDefinition,
-                             Property<HorizontalDirection> facingProperty,
+                             Property<Direction> facingProperty,
                              Property<BedPart> partProperty,
                              SeatConfig seatConfig,
                              Vector3f sleepOffset) {
@@ -73,7 +73,7 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
         if (behavior == null) {
             return superMethod.call();
         }
-        HorizontalDirection direction = state.get(behavior.facingProperty);
+        Direction direction = state.get(behavior.facingProperty);
         BedPart bedPart = state.get(behavior.partProperty);
         direction = bedPart == BedPart.FOOT ? direction : direction.opposite();
         if (DirectionUtils.toNMSDirection(direction) != args[updateShape$direction]) {
@@ -130,7 +130,7 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
         if (bedPart == BedPart.HEAD) {
             return;
         }
-        HorizontalDirection direction = state.get(behavior.facingProperty);
+        Direction direction = state.get(behavior.facingProperty);
         pos = BlockPosProxy.INSTANCE.offset(pos, direction.stepX(), 0, direction.stepZ());
         Object blockState = BlockGetterProxy.INSTANCE.getBlockState(level, pos);
         ImmutableBlockState headState = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
@@ -164,7 +164,7 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
         if (behavior == null) {
             return;
         }
-        HorizontalDirection direction = state.get(behavior.facingProperty);
+        Direction direction = state.get(behavior.facingProperty);
         LevelWriterProxy.INSTANCE.setBlock(
                 level,
                 BlockPosProxy.INSTANCE.offset(pos, direction.stepX(), 0, direction.stepZ()),
@@ -186,7 +186,7 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
             return false;
         }
         BedPart bedPart = state.get(behavior.partProperty);
-        HorizontalDirection direction = state.get(behavior.facingProperty);
+        Direction direction = state.get(behavior.facingProperty);
         if (bedPart == BedPart.FOOT) {
             direction = direction.opposite();
         }
@@ -205,14 +205,14 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
             return null;
         }
         BedPart bedPart = state.get(behavior.partProperty);
-        HorizontalDirection direction = state.get(behavior.facingProperty);
+        Direction direction = state.get(behavior.facingProperty);
         if (bedPart == BedPart.FOOT) {
             direction = direction.opposite();
         }
         if (!world.getBlock(pos.offset(direction.stepX(), 0, direction.stepZ())).canBeReplaced(context)) {
             return null;
         }
-        return state.with(behavior.facingProperty, context.getHorizontalDirection().toHorizontalDirection())
+        return state.with(behavior.facingProperty, context.getHorizontalDirection())
                 .with(behavior.partProperty, BedPart.FOOT);
     }
 
@@ -252,7 +252,7 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
         if (state.get(behavior.partProperty) == BedPart.HEAD) {
-            HorizontalDirection direction = state.get(behavior.facingProperty).opposite();
+            Direction direction = state.get(behavior.facingProperty).opposite();
             ImmutableBlockState otherState = world.getBlock(pos.x + direction.stepX(), pos.y, pos.z + direction.stepZ()).customBlockState();
             if (otherState == null || otherState.owner() != state.owner()) {
                 return InteractionResult.SUCCESS_AND_CANCEL;
@@ -262,7 +262,7 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
         } else {
-            HorizontalDirection direction = state.get(behavior.facingProperty);
+            Direction direction = state.get(behavior.facingProperty);
             ImmutableBlockState otherState = world.getBlock(pos.x + direction.stepX(), pos.y, pos.z + direction.stepZ()).customBlockState();
             if (otherState == null || otherState.owner() != state.owner()) {
                 return InteractionResult.SUCCESS_AND_CANCEL;
@@ -297,7 +297,7 @@ public final class BedBlockBehavior extends BukkitBlockBehavior implements Entit
             SeatConfig onlySeat = seat.isEmpty() ? new SeatConfig(ConfigConstants.ZERO_VECTOR3, 0, true) : seat.getFirst();
             return new BedBlockBehavior(
                     block,
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "part", BedPart.class), onlySeat,
                     section.getVector3f(SLEEP_OFFSET, ConfigConstants.ZERO_VECTOR3)
             );

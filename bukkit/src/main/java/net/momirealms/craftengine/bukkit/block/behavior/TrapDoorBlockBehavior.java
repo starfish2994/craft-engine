@@ -22,7 +22,6 @@ import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -54,7 +53,7 @@ import java.util.concurrent.Callable;
 public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
     public static final BlockBehaviorFactory<TrapDoorBlockBehavior> FACTORY = new Factory();
     public final Property<SingleBlockHalf> halfProperty;
-    public final Property<HorizontalDirection> facingProperty;
+    public final Property<Direction> facingProperty;
     public final Property<Boolean> poweredProperty;
     public final Property<Boolean> openProperty;
     public final boolean canOpenWithHand;
@@ -64,7 +63,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
 
     private TrapDoorBlockBehavior(BlockDefinition block,
                                   Property<SingleBlockHalf> halfProperty,
-                                  Property<HorizontalDirection> facingProperty,
+                                  Property<Direction> facingProperty,
                                   Property<Boolean> poweredProperty,
                                   Property<Boolean> openProperty,
                                   boolean canOpenWithHand,
@@ -101,10 +100,10 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
         Object clickedPos = LocationUtils.toBlockPos(context.getClickedPos());
         Direction clickedFace = context.getClickedFace();
         if (!context.replacingClickedBlock() && clickedFace.axis().isHorizontal()) {
-            state = state.with(this.facingProperty, clickedFace.toHorizontalDirection())
+            state = state.with(this.facingProperty, clickedFace)
                     .with(this.halfProperty, context.getClickedLocation().y - context.getClickedPos().y() > 0.5 ? SingleBlockHalf.TOP : SingleBlockHalf.BOTTOM);
         } else {
-            state = state.with(this.facingProperty, context.getHorizontalDirection().opposite().toHorizontalDirection())
+            state = state.with(this.facingProperty, context.getHorizontalDirection().opposite())
                     .with(this.halfProperty, clickedFace == Direction.UP ? SingleBlockHalf.BOTTOM : SingleBlockHalf.TOP);
         }
         if (SignalGetterProxy.INSTANCE.hasNeighborSignal(level, clickedPos)) {
@@ -125,7 +124,6 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
-    @SuppressWarnings("unchecked")
     private void playerToggle(UseOnContext context, ImmutableBlockState state) {
         Player player = context.getPlayer();
         if (player == null) return;
@@ -259,7 +257,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
             return new TrapDoorBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "half", SingleBlockHalf.class),
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "powered", Boolean.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "open", Boolean.class),
                     section.getBoolean(CAN_OPEN_WITH_HAND, true),

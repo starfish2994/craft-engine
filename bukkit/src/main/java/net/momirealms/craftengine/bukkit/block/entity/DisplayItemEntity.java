@@ -11,7 +11,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntityType;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -135,9 +135,8 @@ public final class DisplayItemEntity extends BlockEntity {
     // 根据当前状态计算最终渲染DisplayItem的位置
     public WorldPosition calculateDisplayItemPosition() {
         float angleDeg;
-        HorizontalDirection direction = blockState.get(behavior.directionProperty, HorizontalDirection.SOUTH);
+        Direction direction = blockState.get(behavior.directionProperty, Direction.SOUTH);
         switch (direction) {
-            case NORTH-> angleDeg = 0f;
             case EAST -> angleDeg = 90f;
             case SOUTH -> angleDeg = 180f;
             case WEST -> angleDeg = 270f;

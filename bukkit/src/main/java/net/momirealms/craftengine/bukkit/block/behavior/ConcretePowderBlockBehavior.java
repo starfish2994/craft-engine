@@ -8,7 +8,6 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.parser.BlockStateParser;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -51,28 +50,23 @@ public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         Object level = context.getLevel().serverWorld();
         Object blockPos = LocationUtils.toBlockPos(context.getClickedPos());
-        try {
-            Object previousState = BlockGetterProxy.INSTANCE.getBlockState(level, blockPos);
-            if (!shouldSolidify(level, blockPos, previousState)) {
-                return super.updateStateForPlacement(context, state);
+        Object previousState = BlockGetterProxy.INSTANCE.getBlockState(level, blockPos);
+        if (!shouldSolidify(level, blockPos, previousState)) {
+            return super.updateStateForPlacement(context, state);
+        } else {
+            BlockState craftBlockState = (BlockState) CraftBlockStatesProxy.INSTANCE.getBlockState(level, blockPos);
+            craftBlockState.setBlockData(BlockStateUtils.fromBlockData(getDefaultBlockState()));
+            BlockFormEvent event = new BlockFormEvent(craftBlockState.getBlock(), craftBlockState);
+            if (!EventUtils.fireAndCheckCancel(event)) {
+                return this.targetBlock.get();
             } else {
-                BlockState craftBlockState = (BlockState) CraftBlockStatesProxy.INSTANCE.getBlockState(level, blockPos);
-                craftBlockState.setBlockData(BlockStateUtils.fromBlockData(getDefaultBlockState()));
-                BlockFormEvent event = new BlockFormEvent(craftBlockState.getBlock(), craftBlockState);
-                if (!EventUtils.fireAndCheckCancel(event)) {
-                    return this.targetBlock.get();
-                } else {
-                    return super.updateStateForPlacement(context, state);
-                }
+                return super.updateStateForPlacement(context, state);
             }
-        } catch (Exception e) {
-            CraftEngine.instance().logger().warn("Failed to update state for placement " + context.getClickedPos(), e);
         }
-        return super.updateStateForPlacement(context, state);
     }
 
     @Override
-    public void onLand(Object thisBlock, Object[] args) throws Exception {
+    public void onLand(Object thisBlock, Object[] args) {
         Object world = args[0];
         Object blockPos = args[1];
         Object replaceableState = args[3];
@@ -101,7 +95,7 @@ public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
         return args[0];
     }
 
-    private static boolean shouldSolidify(Object level, Object blockPos, Object blockState) throws ReflectiveOperationException {
+    private static boolean shouldSolidify(Object level, Object blockPos, Object blockState) {
         return canSolidify(blockState) || touchesLiquid(level, blockPos);
     }
 

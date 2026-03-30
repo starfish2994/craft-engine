@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.core.registry;
 
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockSettingsModifier;
 import net.momirealms.craftengine.core.block.BlockSettingsModifierType;
-import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorType;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;

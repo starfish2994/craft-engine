@@ -11,7 +11,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.entity.seat.SeatOwner;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.*;
@@ -54,7 +54,7 @@ public sealed abstract class BedBlockEntity extends BlockEntity permits BedBlock
             super.blockEntityRenderer = this.renderer = new DynamicPlayerRenderer(this, super.pos, behavior.sleepOffset);
             this.seat = new BukkitSeat<>(this, behavior.seatConfig);
             this.yRot = switch (blockState.get(behavior.facingProperty)) {
-                case NORTH -> 0;
+                case DOWN, NORTH, UP -> 0.0F;
                 case SOUTH -> 180;
                 case WEST -> 270;
                 case EAST -> 90;
@@ -145,7 +145,7 @@ public sealed abstract class BedBlockEntity extends BlockEntity permits BedBlock
             super(pos, blockState);
             this.controller = LazyReference.lazyReference(() -> {
                 BedBlockBehavior behavior = blockState.behavior().getAs(BedBlockBehavior.class).orElseThrow();
-                HorizontalDirection direction = super.blockState.get(behavior.facingProperty);
+                Direction direction = super.blockState.get(behavior.facingProperty);
                 BlockPos offset = super.pos.offset(direction.stepX(), 0, direction.stepZ());
                 BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(offset);
                 return blockEntity instanceof Controller controller ? controller : null;

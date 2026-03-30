@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.sparrow.nbt.StringTag;
 import net.momirealms.sparrow.nbt.Tag;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -109,14 +110,20 @@ public final class EnumProperty<T extends Enum<T>> extends Property<T> {
     }
 
     public static <T extends Enum<T>> PropertyFactory<T> factory(Class<T> enumClass) {
-        return new Factory<>(enumClass);
+        return new Factory<>(enumClass, null);
+    }
+
+    public static <T extends Enum<T>> PropertyFactory<T> factory(Class<T> enumClass, List<T> values) {
+        return new Factory<>(enumClass, values);
     }
 
     private static class Factory<A extends Enum<A>> implements PropertyFactory<A> {
         private final Class<A> enumClass;
+        private final List<A> defaultValues;
 
-        public Factory(Class<A> enumClass) {
+        public Factory(Class<A> enumClass, @Nullable List<A> defaultValues) {
             this.enumClass = enumClass;
+            this.defaultValues = defaultValues;
         }
 
         @Override
@@ -124,7 +131,11 @@ public final class EnumProperty<T extends Enum<T>> extends Property<T> {
             ConfigValue values = section.getValue("values");
             List<A> enums;
             if (values == null) {
-                enums = Arrays.asList(this.enumClass.getEnumConstants());
+                if (this.defaultValues == null || this.defaultValues.isEmpty()) {
+                    enums = Arrays.asList(this.enumClass.getEnumConstants());
+                } else {
+                    enums = this.defaultValues;
+                }
             } else {
                 enums = values.getAsList(v -> v.getAsEnum(enumClass)).stream().distinct().toList();
             }

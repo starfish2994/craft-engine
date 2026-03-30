@@ -12,7 +12,6 @@ import net.momirealms.craftengine.core.block.properties.type.SingleBlockHalf;
 import net.momirealms.craftengine.core.block.properties.type.StairsShape;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
@@ -26,12 +25,12 @@ import java.util.concurrent.Callable;
 @SuppressWarnings("DuplicatedCode")
 public final class StairsBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<StairsBlockBehavior> FACTORY = new Factory();
-    public final Property<HorizontalDirection> facingProperty;
+    public final Property<Direction> facingProperty;
     public final Property<SingleBlockHalf> halfProperty;
     public final Property<StairsShape> shapeProperty;
 
     private StairsBlockBehavior(BlockDefinition block,
-                                Property<HorizontalDirection> facing,
+                                Property<Direction> facing,
                                 Property<SingleBlockHalf> half,
                                 Property<StairsShape> shape) {
         super(block);
@@ -45,7 +44,7 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
         Direction clickedFace = context.getClickedFace();
         BlockPos clickedPos = context.getClickedPos();
         ImmutableBlockState blockState = state.owner().value().defaultState()
-                .with(this.facingProperty, context.getHorizontalDirection().toHorizontalDirection())
+                .with(this.facingProperty, context.getHorizontalDirection())
                 .with(this.halfProperty, clickedFace != Direction.DOWN && (clickedFace == Direction.UP || !(context.getClickedLocation().y - clickedPos.y() > 0.5)) ? SingleBlockHalf.BOTTOM : SingleBlockHalf.TOP);
         if (super.waterloggedProperty != null) {
             Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().serverWorld(), LocationUtils.toBlockPos(clickedPos));
@@ -73,7 +72,7 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
     }
 
     private StairsShape getStairsShape(ImmutableBlockState state, Object level, BlockPos pos) {
-        Direction direction = state.get(this.facingProperty).toDirection();
+        Direction direction = state.get(this.facingProperty);
         Object relativeBlockState1 = BlockGetterProxy.INSTANCE.getBlockState(level, LocationUtils.toBlockPos(pos.relative(direction)));
         Optional<ImmutableBlockState> optionalCustomState1 = BlockStateUtils.getOptionalCustomBlockState(relativeBlockState1);
         if (optionalCustomState1.isPresent()) {
@@ -82,8 +81,8 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
             if (optionalStairsBlockBehavior.isPresent()) {
                 StairsBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
                 if (state.get(this.halfProperty) == customState1.get(stairsBlockBehavior.halfProperty)) {
-                    Direction direction1 = customState1.get(stairsBlockBehavior.facingProperty).toDirection();
-                    if (direction1.axis() != state.get(this.facingProperty).toDirection().axis() && canTakeShape(state, level, pos, direction1.opposite())) {
+                    Direction direction1 = customState1.get(stairsBlockBehavior.facingProperty);
+                    if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1.opposite())) {
                         if (direction1 == direction.counterClockWise()) {
                             return StairsShape.OUTER_LEFT;
                         }
@@ -100,8 +99,8 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
             if (optionalStairsBlockBehavior.isPresent()) {
                 StairsBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
                 if (state.get(this.halfProperty) == customState2.get(stairsBlockBehavior.halfProperty)) {
-                    Direction direction2 = customState2.get(stairsBlockBehavior.facingProperty).toDirection();
-                    if (direction2.axis() != state.get(this.facingProperty).toDirection().axis() && canTakeShape(state, level, pos, direction2)) {
+                    Direction direction2 = customState2.get(stairsBlockBehavior.facingProperty);
+                    if (direction2.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction2)) {
                         if (direction2 == direction.counterClockWise()) {
                             return StairsShape.INNER_LEFT;
                         }
@@ -134,7 +133,7 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
         public StairsBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new StairsBlockBehavior(
                     block,
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", HorizontalDirection.class),
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "half", SingleBlockHalf.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "shape", StairsShape.class)
             );

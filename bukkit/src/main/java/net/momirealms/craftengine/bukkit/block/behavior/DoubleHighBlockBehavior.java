@@ -43,7 +43,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) {
         Object level = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
         Object blockState = args[0];
@@ -105,7 +105,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws Exception {
+    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
         ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (customState == null || customState.isEmpty()) return false;
         if (customState.get(this.halfProperty) == DoubleBlockHalf.UPPER) {

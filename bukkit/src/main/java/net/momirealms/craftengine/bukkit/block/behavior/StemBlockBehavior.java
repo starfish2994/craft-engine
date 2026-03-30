@@ -13,7 +13,7 @@ import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavio
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
@@ -31,7 +31,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.pathfinder.PathCom
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-// todo 重构，有设计问题
 public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
     public static final BlockBehaviorFactory<StemBlockBehavior> FACTORY = new Factory();
     private static final Object MAY_PLACE_FRUIT = BlockTags.getOrCreate(Key.of("minecraft:dirt"));
@@ -97,10 +96,10 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
             if (fruitState == null || optionalAttachedStem.isEmpty()) return;
             BlockDefinition attachedStem = optionalAttachedStem.get();
             @SuppressWarnings("unchecked")
-            Property<HorizontalDirection> facing = (Property<HorizontalDirection>) attachedStem.getProperty("facing");
+            Property<Direction> facing = (Property<Direction>) attachedStem.getProperty("facing");
             if (facing == null) return;
             LevelWriterProxy.INSTANCE.setBlock(level, blockPos, fruitState, UpdateFlags.UPDATE_ALL);
-            LevelWriterProxy.INSTANCE.setBlock(level, pos, attachedStem.defaultState().with(facing, DirectionUtils.fromNMSDirection(randomDirection).toHorizontalDirection()).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+            LevelWriterProxy.INSTANCE.setBlock(level, pos, attachedStem.defaultState().with(facing, DirectionUtils.fromNMSDirection(randomDirection)).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
         }
     }
 

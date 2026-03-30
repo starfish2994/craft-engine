@@ -13,18 +13,18 @@ import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.seat.SeatConfig;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 
 public final class SeatBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
     public static final BlockBehaviorFactory<SeatBlockBehavior> FACTORY = new Factory();
-    public final Property<HorizontalDirection> directionProperty;
+    public final Property<Direction> directionProperty;
     public final SeatConfig[] seats;
 
     private SeatBlockBehavior(BlockDefinition blockDefinition,
-                              Property<HorizontalDirection> directionProperty,
+                              Property<Direction> directionProperty,
                               SeatConfig[] seats) {
         super(blockDefinition);
         this.seats = seats;
@@ -41,7 +41,7 @@ public final class SeatBlockBehavior extends BukkitBlockBehavior implements Enti
         return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.SEAT);
     }
 
-    public Property<HorizontalDirection> directionProperty() {
+    public Property<Direction> directionProperty() {
         return this.directionProperty;
     }
 
@@ -71,7 +71,7 @@ public final class SeatBlockBehavior extends BukkitBlockBehavior implements Enti
         public SeatBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SeatBlockBehavior(
                     block,
-                    BlockBehaviorFactory.getOptionalProperty(block, "facing", HorizontalDirection.class),
+                    BlockBehaviorFactory.getOptionalProperty(block, "facing", Direction.class),
                     section.getList("seats", SeatConfig::fromConfig).toArray(new SeatConfig[0])
             );
         }

@@ -2,8 +2,8 @@ package net.momirealms.craftengine.bukkit.item.listener;
 
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;

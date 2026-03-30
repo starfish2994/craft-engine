@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.util;
 
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
 import net.momirealms.craftengine.proxy.minecraft.core.DirectionProxy;
 import org.bukkit.block.BlockFace;
 
@@ -35,15 +34,6 @@ public final class DirectionUtils {
         return switch (direction) {
             case UP -> DirectionProxy.UP;
             case DOWN -> DirectionProxy.DOWN;
-            case NORTH -> DirectionProxy.NORTH;
-            case SOUTH -> DirectionProxy.SOUTH;
-            case WEST -> DirectionProxy.WEST;
-            case EAST -> DirectionProxy.EAST;
-        };
-    }
-
-    public static Object toNMSDirection(HorizontalDirection direction) {
-        return switch (direction) {
             case NORTH -> DirectionProxy.NORTH;
             case SOUTH -> DirectionProxy.SOUTH;
             case WEST -> DirectionProxy.WEST;

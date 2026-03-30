@@ -9,7 +9,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.entity.seat.SeatConfig;
 import net.momirealms.craftengine.core.entity.seat.SeatOwner;
-import net.momirealms.craftengine.core.util.HorizontalDirection;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -44,11 +44,11 @@ public class SeatBlockEntity extends BlockEntity implements SeatOwner {
         int yRot = 0;
         Optional<SeatBlockBehavior> behavior = super.blockState.behavior().getAs(SeatBlockBehavior.class);
         if (behavior.isEmpty()) return false;
-        Property<HorizontalDirection> facing = behavior.get().directionProperty();
+        Property<Direction> facing = behavior.get().directionProperty();
         if (facing != null) {
-            HorizontalDirection direction = super.blockState.get(facing);
+            Direction direction = super.blockState.get(facing);
             yRot = switch (direction) {
-                case NORTH -> 0;
+                case DOWN, UP, NORTH -> 0;
                 case SOUTH -> 180;
                 case WEST -> 270;
                 case EAST -> 90;
