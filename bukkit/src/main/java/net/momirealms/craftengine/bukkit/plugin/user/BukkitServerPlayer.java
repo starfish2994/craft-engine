@@ -14,7 +14,7 @@ import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.block.entity.BedBlockEntity;
 import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
-import net.momirealms.craftengine.bukkit.entity.furniture.behavior.SimpleStorageFurnitureBehavior;
+import net.momirealms.craftengine.bukkit.entity.furniture.behavior.SimpleStorageFurnitureBehaviorTemplate;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -766,7 +766,7 @@ public class BukkitServerPlayer extends Player {
             if (!canInteractWithBlock(blockPos, 4d)) {
                 closeInventory();
             }
-        } else if (topHolder instanceof SimpleStorageFurnitureBehavior.ItemStorage itemStorage) {
+        } else if (topHolder instanceof SimpleStorageFurnitureBehaviorTemplate.ItemStorage itemStorage) {
             WorldPosition position = itemStorage.furniture.position();
             if (!canInteractPoint(position.toVec3d(), 4d)) {
                 closeInventory();

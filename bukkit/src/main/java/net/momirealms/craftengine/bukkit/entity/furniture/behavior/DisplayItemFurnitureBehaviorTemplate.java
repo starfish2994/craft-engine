@@ -9,7 +9,8 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
+import net.momirealms.craftengine.core.entity.furniture.behavior.Controller;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -45,8 +46,8 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.function.Consumer;
 
-public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
-    public static final FurnitureBehaviorFactory<DisplayItemFurnitureBehavior> FACTORY = new Factory();
+public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehaviorTemplate {
+    public static final FurnitureBehaviorFactory<DisplayItemFurnitureBehaviorTemplate> FACTORY = new Factory();
     private static final String DISPLAY_ITEM_TAG = "display_item";
     @NotNull
     private final Map<String, VariantRule> variantRules;
@@ -55,10 +56,10 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     @Nullable
     private final SoundData takeSound;
 
-    private DisplayItemFurnitureBehavior(CustomFurniture furniture,
-                                         @NotNull Map<String, VariantRule> variantRules,
-                                         @Nullable SoundData putSound,
-                                         @Nullable SoundData takeSound
+    private DisplayItemFurnitureBehaviorTemplate(CustomFurniture furniture,
+                                                 @NotNull Map<String, VariantRule> variantRules,
+                                                 @Nullable SoundData putSound,
+                                                 @Nullable SoundData takeSound
     ) {
         super(furniture);
         this.variantRules = variantRules;
@@ -67,31 +68,30 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
     }
 
     @Override
-    public Handler createHandler(Furniture furniture) {
-        return new DisplayItemFurnitureHandler(furniture, this);
+    public Controller createController(Furniture furniture) {
+        return new DisplayItemFurnitureController(furniture, this);
     }
 
     // 行为处理器
-    public static final class DisplayItemFurnitureHandler extends Handler {
-        private final DisplayItemFurnitureBehavior behavior;
+    public static final class DisplayItemFurnitureController extends Controller {
+        private final DisplayItemFurnitureBehaviorTemplate behavior;
         DisplayItemElement displayItemElement;
         Set<FurnitureHitBox> trackedHitboxes;
         @NotNull
         Item savedItem;
 
-        public DisplayItemFurnitureHandler(Furniture furniture, DisplayItemFurnitureBehavior behavior) {
+        public DisplayItemFurnitureController(Furniture furniture, DisplayItemFurnitureBehaviorTemplate behavior) {
             super(furniture);
             this.behavior = behavior;
+            this.savedItem = BukkitItemManager.instance().emptyItem();
         }
 
         @Override
         public void onLoad() {
-            CompoundTag displayItem = (CompoundTag) furniture.persistentData.getCustomData(DISPLAY_ITEM_TAG);
+            CompoundTag displayItem = (CompoundTag) this.furniture.persistentData.getCustomData(DISPLAY_ITEM_TAG);
             if (displayItem != null) {
                 int dataVersion = displayItem.getInt(DISPLAY_ITEM_TAG, Config.itemDataFixerUpperFallbackVersion());
                 this.savedItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(displayItem, dataVersion));
-            } else {
-                this.savedItem = BukkitItemManager.instance().emptyItem();
             }
         }
 
@@ -99,8 +99,8 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
             // 如果配置了追踪碰撞箱, 则检查是不是追踪的碰撞箱, 不是则直接PASS不处理;
             // 如果没配置, 则全部碰撞箱都可以.
-            boolean hasSpecialHitBoxes = (trackedHitboxes != null);
-            if (hasSpecialHitBoxes && !trackedHitboxes.contains(hitBox)) {
+            boolean hasSpecialHitBoxes = (this.trackedHitboxes != null);
+            if (hasSpecialHitBoxes && !this.trackedHitboxes.contains(hitBox)) {
                 return InteractionResult.PASS;
             }
             // 检查区域保护权限
@@ -136,9 +136,9 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
         // 破坏家具时, 掉落存储的展示物品.
         @Override
-        public void onDestroy() {
-            if (!ItemUtils.isEmpty(savedItem) && displayItemElement != null) {
-                this.furniture.world().dropItemNaturally(displayItemElement.position, savedItem);
+        public void onDestroy(Player player) {
+            if (!ItemUtils.isEmpty(this.savedItem) && this.displayItemElement != null) {
+                this.furniture.world().dropItemNaturally(this.displayItemElement.position, this.savedItem);
             }
         }
 
@@ -146,8 +146,8 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         private void handlePutDisplayItem(Item inputItem) {
             saveDisplayItem(inputItem);
             this.furniture.refreshElements();
-            if (behavior.putSound != null) {
-                this.furniture.world().playSound(furniture.position(), behavior.putSound.id(), behavior.putSound.volume().get(), behavior.putSound.pitch().get(), SoundSource.MASTER);
+            if (this.behavior.putSound != null) {
+                this.furniture.world().playSound(this.furniture.position(), this.behavior.putSound.id(), this.behavior.putSound.volume().get(), this.behavior.putSound.pitch().get(), SoundSource.MASTER);
             }
         }
 
@@ -156,16 +156,16 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
             saveDisplayItem(null);
             this.furniture.refreshElements();
             if (behavior.takeSound != null) {
-                this.furniture.world().playSound(furniture.position(), behavior.takeSound.id(), behavior.takeSound.volume().get(), behavior.takeSound.pitch().get(), SoundSource.MASTER);
+                this.furniture.world().playSound(this.furniture.position(), this.behavior.takeSound.id(), this.behavior.takeSound.volume().get(), this.behavior.takeSound.pitch().get(), SoundSource.MASTER);
             }
         }
 
         // 根据当前家具变体查找对应的展示物品相对坐标
         @Override
         public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
-            VariantRule variantRule = behavior.variantRules.get(furniture.getCurrentVariant().name());
+            VariantRule variantRule = this.behavior.variantRules.get(furniture.getCurrentVariant().name());
             if (variantRule != null) {
-                this.displayItemElement = new DisplayItemElement(furniture, this, variantRule.itemRelative);
+                this.displayItemElement = new DisplayItemElement(this.furniture, this, variantRule.itemRelative);
                 consumer.accept(this.displayItemElement);
             }
         }
@@ -173,11 +173,11 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         // 根据当前家具变体查找对应的碰撞箱并创建
         @Override
         public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
-            VariantRule variantRule = behavior.variantRules.get(furniture.getCurrentVariant().name());
+            VariantRule variantRule = this.behavior.variantRules.get(furniture.getCurrentVariant().name());
             if (variantRule != null && !variantRule.hitBoxConfigs.isEmpty()) {
                 this.trackedHitboxes = new HashSet<>();
                 for (FurnitureHitBoxConfig<? extends FurnitureHitBox> hitBoxConfig : variantRule.hitBoxConfigs) {
-                    FurnitureHitBox furnitureHitBox = hitBoxConfig.create(furniture);
+                    FurnitureHitBox furnitureHitBox = hitBoxConfig.create(this.furniture);
                     this.trackedHitboxes.add(furnitureHitBox);
                     consumer.accept(furnitureHitBox);
                 }
@@ -198,23 +198,22 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
         @Override
         public @Nullable Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
-            if (ItemUtils.isEmpty(savedItem)) return null;
-            boolean hasSpecialHitBoxes = (trackedHitboxes != null);
+            if (ItemUtils.isEmpty(this.savedItem)) return null;
+            boolean hasSpecialHitBoxes = (this.trackedHitboxes != null);
             if (hasSpecialHitBoxes) {
-                if (trackedHitboxes.contains(hitBox)) {
-                    return savedItem;
+                if (this.trackedHitboxes.contains(hitBox)) {
+                    return this.savedItem;
                 }
                 return null;
             }
             return savedItem;
         }
-
     }
 
     // 展示元素
     public static final class DisplayItemElement implements FurnitureElement {
         public final Furniture furniture;
-        public final DisplayItemFurnitureHandler furnitureHandler;
+        public final DisplayItemFurnitureController furnitureHandler;
         public final WorldPosition position;
         public final int vehicleId;
         public final int passengerId;
@@ -225,7 +224,7 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         public final Object spawnPassengerPacket;
         public final Object ridePacket;
 
-        public DisplayItemElement(Furniture furniture, DisplayItemFurnitureHandler furnitureHandler, Vector3f relative) {
+        public DisplayItemElement(Furniture furniture, DisplayItemFurnitureController furnitureHandler, Vector3f relative) {
             this.furniture = furniture;
             this.furnitureHandler = furnitureHandler;
             WorldPosition furniturePos = furniture.position();
@@ -241,15 +240,15 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
                     passengerId, UUID.randomUUID(), position.x, position.y, position.z,
                     0, 0, EntityTypeProxy.ITEM, 0, Vec3Proxy.ZERO, 0
             );
-            this.ridePacket = PacketUtils.createClientboundSetPassengersPacket(vehicleId, passengerId);
+            this.ridePacket = PacketUtils.createClientboundSetPassengersPacket(this.vehicleId, this.passengerId);
             this.despawnAllPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(),
                     a -> {
-                        a.add(vehicleId);
-                        a.add(passengerId);
+                        a.add(this.vehicleId);
+                        a.add(this.passengerId);
                     }
             ));
-            this.despawnVehiclePacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(vehicleId)));
-            this.despawnPassengerPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(passengerId)));
+            this.despawnVehiclePacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(this.vehicleId)));
+            this.despawnPassengerPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(this.passengerId)));
         }
 
         @Override
@@ -259,7 +258,7 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
         @Override
         public void show(Player player) {
             List<Object> list = new ArrayList<>();
-            ItemEntityData.Item.addEntityData(furnitureHandler.savedItem.getMinecraftItem(), list);
+            ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.getMinecraftItem(), list);
             Object setEntityDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
             player.sendPackets(List.of(
                     this.spawnVehiclePacket,
@@ -276,24 +275,24 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
 
         @Override
         public void refresh(Player player) {
-            List<Object> list = MiscUtils.init(new ArrayList<>(), it -> ItemEntityData.Item.addEntityData(furnitureHandler.savedItem.getMinecraftItem(), it));
+            List<Object> list = MiscUtils.init(new ArrayList<>(), it -> ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.getMinecraftItem(), it));
             Object changeDisplayItemPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
             player.sendPackets(List.of(
-                    despawnPassengerPacket, spawnPassengerPacket, ridePacket, changeDisplayItemPacket
+                    this.despawnPassengerPacket, this.spawnPassengerPacket, this.ridePacket, changeDisplayItemPacket
             ), false);
         }
     }
 
     // 工厂类
-    private static class Factory implements FurnitureBehaviorFactory<DisplayItemFurnitureBehavior> {
+    private static class Factory implements FurnitureBehaviorFactory<DisplayItemFurnitureBehaviorTemplate> {
         private static final String[] ITEM_POSITION = new String[] {"item_position", "item-position"};
 
         @Override
-        public DisplayItemFurnitureBehavior create(CustomFurniture furniture, ConfigSection section) {
+        public DisplayItemFurnitureBehaviorTemplate create(CustomFurniture furniture, ConfigSection section) {
             // 如果没有配置变体展示规则
             ConfigSection variantsSection = section.getSection("variants");
             if (variantsSection == null) {
-                return new DisplayItemFurnitureBehavior(furniture, Map.of(), null, null);
+                return new DisplayItemFurnitureBehaviorTemplate(furniture, Map.of(), null, null);
             }
             // 读取变体展示规则
             HashMap<String, VariantRule> variantRule = new HashMap<>();
@@ -312,7 +311,7 @@ public final class DisplayItemFurnitureBehavior extends FurnitureBehavior {
                 inputSound = soundSection.getValue("put", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.RANGED_0_9_1));
                 takeSound = soundSection.getValue("take", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.RANGED_0_9_1));
             }
-            return new DisplayItemFurnitureBehavior(furniture, variantRule, inputSound, takeSound);
+            return new DisplayItemFurnitureBehaviorTemplate(furniture, variantRule, inputSound, takeSound);
         }
     }
 

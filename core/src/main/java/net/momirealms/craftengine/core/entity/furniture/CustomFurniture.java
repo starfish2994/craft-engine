@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
+import net.momirealms.craftengine.core.entity.furniture.behavior.Controller;
+import net.momirealms.craftengine.core.entity.furniture.behavior.EmptyFurnitureBehaviorTemplate;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -44,20 +46,20 @@ public interface CustomFurniture {
     FurnitureVariant getVariant(String variantName);
 
     @NotNull
-    List<FurnitureBehavior> behaviors();
+    List<FurnitureBehaviorTemplate> behaviors();
 
-    default FurnitureBehavior.Handler createHandler(Furniture furniture) {
-        List<FurnitureBehavior> behaviors = this.behaviors();
+    default Controller createController(Furniture furniture) {
+        List<FurnitureBehaviorTemplate> behaviors = this.behaviors();
         return switch (behaviors.size()) {
-            case 0 -> new FurnitureBehavior.Handler(furniture) {};
-            case 1 -> behaviors.getFirst().createHandler(furniture);
-            case 2 -> new FurnitureBehavior.BiHandler(furniture, behaviors.get(0).createHandler(furniture), behaviors.get(1).createHandler(furniture));
+            case 0 -> new EmptyFurnitureBehaviorTemplate.EmptyFurnitureController(furniture);
+            case 1 -> behaviors.getFirst().createController(furniture);
+            case 2 -> new Controller.BiController(furniture, behaviors.get(0).createController(furniture), behaviors.get(1).createController(furniture));
             default -> {
-                FurnitureBehavior.Handler[] handlers = new FurnitureBehavior.Handler[behaviors.size()];
+                Controller[] controllers = new Controller[behaviors.size()];
                 for (int i = 0; i < behaviors.size(); i++) {
-                    handlers[i] = behaviors.get(i).createHandler(furniture);
+                    controllers[i] = behaviors.get(i).createController(furniture);
                 }
-                yield new FurnitureBehavior.CompositeHandler(furniture, handlers);
+                yield new Controller.CompositeController(furniture, controllers);
             }
         };
     }

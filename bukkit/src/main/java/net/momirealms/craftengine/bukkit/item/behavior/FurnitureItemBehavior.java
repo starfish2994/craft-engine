@@ -214,7 +214,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
             player.swingHand(context.getHand());
         }
         context.getLevel().playBlockSound(finalPlacePosition, customFurniture.settings().sounds().placeSound());
-        bukkitFurniture.handler.onPlace(context);
+        bukkitFurniture.controller.onPlace(context);
         return InteractionResult.SUCCESS;
     }
 

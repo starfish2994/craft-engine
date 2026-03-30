@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntity;
-import net.momirealms.craftengine.bukkit.entity.furniture.behavior.SimpleStorageFurnitureBehavior;
+import net.momirealms.craftengine.bukkit.entity.furniture.behavior.SimpleStorageFurnitureBehaviorTemplate;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
@@ -132,7 +132,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
                 return;
             }
         }
-        if (holder instanceof SimpleStorageFurnitureBehavior.ItemStorage itemStorage) {
+        if (holder instanceof SimpleStorageFurnitureBehaviorTemplate.ItemStorage itemStorage) {
             itemStorage.onClose(BukkitAdaptor.adapt(player));
         }
     }
@@ -149,7 +149,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
                 return;
             }
         }
-        if (holder instanceof SimpleStorageFurnitureBehavior.ItemStorage itemStorage) {
+        if (holder instanceof SimpleStorageFurnitureBehaviorTemplate.ItemStorage itemStorage) {
             itemStorage.onClose(BukkitAdaptor.adapt(player));
         }
     }

@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
 import com.google.common.collect.ImmutableSortedMap;
-import net.momirealms.craftengine.core.entity.furniture.behavior.EmptyFurnitureBehavior;
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
+import net.momirealms.craftengine.core.entity.furniture.behavior.EmptyFurnitureBehaviorTemplate;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -23,7 +23,7 @@ class CustomFurnitureImpl implements CustomFurniture {
     private final Map<EventTrigger, List<Function<Context>>> events;
     @Nullable
     private final LootTable lootTable;
-    private List<FurnitureBehavior> behaviors = List.of(EmptyFurnitureBehavior.INSTANCE);
+    private List<FurnitureBehaviorTemplate> behaviors = List.of(EmptyFurnitureBehaviorTemplate.INSTANCE);
 
     private CustomFurnitureImpl(@NotNull Key id,
                                 @NotNull FurnitureSettings settings,
@@ -37,7 +37,7 @@ class CustomFurnitureImpl implements CustomFurniture {
         this.events = events;
     }
 
-    public void setBehaviors(List<FurnitureBehavior> behaviors) {
+    public void setBehaviors(List<FurnitureBehaviorTemplate> behaviors) {
         this.behaviors = behaviors;
     }
 
@@ -69,7 +69,7 @@ class CustomFurnitureImpl implements CustomFurniture {
     }
 
     @Override
-    public @NotNull List<FurnitureBehavior> behaviors() {
+    public @NotNull List<FurnitureBehaviorTemplate> behaviors() {
         return this.behaviors;
     }
 

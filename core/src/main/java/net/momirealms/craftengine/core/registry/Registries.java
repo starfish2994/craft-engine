@@ -12,7 +12,7 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.block.properties.PropertyType;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureSettingsModifier;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureSettingsModifierType;
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorType;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfigType;
@@ -119,7 +119,7 @@ public final class Registries {
     public static final ResourceKey<Registry<FurnitureElementConfigType<? extends FurnitureElement>>> FURNITURE_ELEMENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_element_type"));
     public static final ResourceKey<Registry<FurnitureTintSourceType<? extends FurnitureTintSource>>> FURNITURE_TINT_SOURCE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_tint_source_type"));
     public static final ResourceKey<Registry<FurnitureHitboxConfigType<? extends FurnitureHitBox>>> FURNITURE_HITBOX_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_hitbox_type"));
-    public static final ResourceKey<Registry<FurnitureBehaviorType<? extends FurnitureBehavior>>> FURNITURE_BEHAVIOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_behavior_type"));
+    public static final ResourceKey<Registry<FurnitureBehaviorType<? extends FurnitureBehaviorTemplate>>> FURNITURE_BEHAVIOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_behavior_type"));
     public static final ResourceKey<Registry<FurnitureSettingsModifierType<? extends FurnitureSettingsModifier>>> FURNITURE_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_settings_type"));
     public static final ResourceKey<Registry<BlockSettingsModifierType<? extends BlockSettingsModifier>>> BLOCK_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block_settings_type"));
     public static final ResourceKey<Registry<ItemSettingsModifierType<? extends ItemSettingsModifier>>> ITEM_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_settings_type"));

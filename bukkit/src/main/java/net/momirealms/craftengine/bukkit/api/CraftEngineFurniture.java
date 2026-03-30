@@ -355,7 +355,7 @@ public final class CraftEngineFurniture {
                               boolean playSound) {
         if (!furniture.isValid()) return;
         Location location = ((BukkitFurniture) furniture).getDropLocation();
-        furniture.destroy();
+        furniture.destroy(player);
         LootTable lootTable = furniture.config.lootTable();
         World world = BukkitAdaptor.adapt(location.getWorld());
         WorldPosition position = new WorldPosition(world, location.getX(), location.getY(), location.getZ());

@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.entity.furniture.behavior;
 
-import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -10,98 +9,81 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
-import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-// 独立家具行为
-@ApiStatus.Experimental
-public abstract class FurnitureBehavior {
-    public final CustomFurniture furniture;
-    protected FurnitureBehavior(CustomFurniture furniture) {
+public abstract class Controller {
+    protected final Furniture furniture;
+
+    public Controller(@NotNull Furniture furniture) {
         this.furniture = furniture;
     }
 
-    public CustomFurniture furniture() {
-        return this.furniture;
+    /**
+     * Creates a ticker that runs on the main server thread.
+     */
+    public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
+        return null;
     }
 
-    public abstract Handler createHandler(Furniture furniture);
-
-    // 独立家具行为处理器.
-    public static abstract class Handler {
-        protected final Furniture furniture;
-
-        public Handler(Furniture furniture) {
-            this.furniture = furniture;
-        }
-
-        /**
-         * Creates a ticker that runs on the main server thread.
-         */
-        public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
-            return null;
-        }
-
-        /**
-         * Creates a ticker that runs asynchronously.
-         */
-        public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
-            return null;
-        }
-
-        public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
-            return InteractionResult.TRY_EMPTY_HAND;
-        }
-
-        public InteractionResult useWithoutItem(InteractEntityContext context) {
-            return InteractionResult.PASS;
-        }
-
-        public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
-        }
-
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
-        }
-
-        /**
-         * Triggered when the furniture is broken.
-         */
-        public void onDestroy() {
-        }
-
-        /**
-         * Triggered when the furniture is first placed in the world.
-         */
-        public void onPlace(UseOnContext context) {
-        }
-
-        /**
-         * Triggered when the chunk containing the furniture is unloaded.
-         */
-        public void onUnload() {
-        }
-
-        /**
-         * Triggered when the chunk containing the furniture is loaded into the world.
-         */
-        public void onLoad() {
-        }
-
-        @Nullable
-        public Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
-            return null;
-        }
+    /**
+     * Creates a ticker that runs asynchronously.
+     */
+    public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
+        return null;
     }
 
-    // 双家具行为处理器
-    public static class BiHandler extends Handler {
-        protected final Handler first;
-        protected final Handler second;
+    public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
+        return InteractionResult.TRY_EMPTY_HAND;
+    }
 
-        public BiHandler(Furniture furniture, Handler first, Handler second) {
+    public InteractionResult useWithoutItem(InteractEntityContext context) {
+        return InteractionResult.PASS;
+    }
+
+    public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
+    }
+
+    public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
+    }
+
+    /**
+     * Triggered when the furniture is broken.
+     */
+    public void onDestroy(@Nullable Player player) {
+    }
+
+    /**
+     * Triggered when the furniture is first placed in the world.
+     */
+    public void onPlace(UseOnContext context) {
+    }
+
+    /**
+     * Triggered when the chunk containing the furniture is unloaded.
+     */
+    public void onUnload() {
+    }
+
+    /**
+     * Triggered when the chunk containing the furniture is loaded into the world.
+     */
+    public void onLoad() {
+    }
+
+    @Nullable
+    public Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
+        return null;
+    }
+
+    public static class BiController extends Controller {
+        protected final Controller first;
+        protected final Controller second;
+
+        public BiController(Furniture furniture, Controller first, Controller second) {
             super(furniture);
             this.first = first;
             this.second = second;
@@ -150,7 +132,10 @@ public abstract class FurnitureBehavior {
         @Override
         public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
             InteractionResult result = this.first.useOnFurniture(hitBox, context);
-            return result == InteractionResult.PASS ? this.second.useOnFurniture(hitBox, context) : result;
+            if (result != InteractionResult.PASS && result != InteractionResult.TRY_EMPTY_HAND) {
+                return result;
+            }
+            return this.second.useOnFurniture(hitBox, context);
         }
 
         @Override
@@ -172,9 +157,9 @@ public abstract class FurnitureBehavior {
         }
 
         @Override
-        public void onDestroy() {
-            this.first.onDestroy();
-            this.second.onDestroy();
+        public void onDestroy(Player player) {
+            this.first.onDestroy(player);
+            this.second.onDestroy(player);
         }
 
         @Override
@@ -203,20 +188,20 @@ public abstract class FurnitureBehavior {
     }
 
     // 复合家具行为处理器
-    public static class CompositeHandler extends Handler {
-        protected final Handler[] handlers;
+    public static class CompositeController extends Controller {
+        protected final Controller[] controllers;
 
-        public CompositeHandler(Furniture furniture, Handler... handlers) {
+        public CompositeController(Furniture furniture, Controller... controllers) {
             super(furniture);
-            this.handlers = handlers;
+            this.controllers = controllers;
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
             ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
-            for (int i = 0; i < handlers.length; i++) {
-                FurnitureTicker<T> syncFurnitureTicker = handlers[i].createFurnitureTicker();
+            for (int i = 0; i < this.controllers.length; i++) {
+                FurnitureTicker<T> syncFurnitureTicker = this.controllers[i].createFurnitureTicker();
                 if (syncFurnitureTicker != null) {
                     furnitureTickers.add(syncFurnitureTicker);
                 }
@@ -236,8 +221,8 @@ public abstract class FurnitureBehavior {
         @SuppressWarnings("unchecked")
         public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
             ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
-            for (int i = 0; i < handlers.length; i++) {
-                FurnitureTicker<T> asyncFurnitureTicker = handlers[i].createAsyncFurnitureTicker();
+            for (int i = 0; i < this.controllers.length; i++) {
+                FurnitureTicker<T> asyncFurnitureTicker = this.controllers[i].createAsyncFurnitureTicker();
                 if (asyncFurnitureTicker != null) {
                     furnitureTickers.add(asyncFurnitureTicker);
                 }
@@ -255,8 +240,8 @@ public abstract class FurnitureBehavior {
 
         @Override
         public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
-            for (int i = 0; i < handlers.length; i++) {
-                InteractionResult result = handlers[i].useOnFurniture(hitBox, context);
+            for (int i = 0; i < this.controllers.length; i++) {
+                InteractionResult result = this.controllers[i].useOnFurniture(hitBox, context);
                 if (result != InteractionResult.PASS && result != InteractionResult.TRY_EMPTY_HAND) {
                     return result;
                 }
@@ -266,8 +251,8 @@ public abstract class FurnitureBehavior {
 
         @Override
         public InteractionResult useWithoutItem(InteractEntityContext context) {
-            for (int i = 0; i < handlers.length; i++) {
-                InteractionResult result = handlers[i].useWithoutItem(context);
+            for (int i = 0; i < this.controllers.length; i++) {
+                InteractionResult result = this.controllers[i].useWithoutItem(context);
                 if (result != InteractionResult.PASS) {
                     return result;
                 }
@@ -277,50 +262,50 @@ public abstract class FurnitureBehavior {
 
         @Override
         public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
-            for (int i = 0; i < handlers.length; i++) {
-                handlers[i].createFurnitureElements(consumer);
+            for (int i = 0; i < this.controllers.length; i++) {
+                this.controllers[i].createFurnitureElements(consumer);
             }
         }
 
         @Override
         public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
-            for (int i = 0; i < handlers.length; i++) {
-                handlers[i].createFurnitureHitboxes(consumer);
+            for (int i = 0; i < this.controllers.length; i++) {
+                this.controllers[i].createFurnitureHitboxes(consumer);
             }
         }
 
         @Override
-        public void onDestroy() {
-            for (int i = 0; i < handlers.length; i++) {
-                handlers[i].onDestroy();
+        public void onDestroy(Player player) {
+            for (int i = 0; i < this.controllers.length; i++) {
+                this.controllers[i].onDestroy(player);
             }
         }
 
         @Override
         public void onPlace(UseOnContext context) {
-            for (int i = 0; i < handlers.length; i++) {
-                handlers[i].onPlace(context);
+            for (int i = 0; i < this.controllers.length; i++) {
+                this.controllers[i].onPlace(context);
             }
         }
 
         @Override
         public void onUnload() {
-            for (int i = 0; i < handlers.length; i++) {
-                handlers[i].onUnload();
+            for (int i = 0; i < this.controllers.length; i++) {
+                this.controllers[i].onUnload();
             }
         }
 
         @Override
         public void onLoad() {
-            for (int i = 0; i < handlers.length; i++) {
-                handlers[i].onLoad();
+            for (int i = 0; i < this.controllers.length; i++) {
+                this.controllers[i].onLoad();
             }
         }
 
         @Override
         public @Nullable Item getItemToPickup(Player player, FurnitureHitBox hitBox) {
-            for (int i = 0; i < handlers.length; i++) {
-                Item itemToPickup = handlers[i].getItemToPickup(player, hitBox);
+            for (int i = 0; i < this.controllers.length; i++) {
+                Item itemToPickup = this.controllers[i].getItemToPickup(player, hitBox);
                 if (itemToPickup != null) {
                     return itemToPickup;
                 }

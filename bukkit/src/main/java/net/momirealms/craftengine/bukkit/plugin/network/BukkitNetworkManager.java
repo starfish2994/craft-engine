@@ -65,7 +65,6 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureHitData;
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -1429,7 +1428,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
 
         private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture, FurnitureHitBox hitbox) throws Throwable {
-            Item item = furniture.handler.getItemToPickup(player, hitbox);
+            Item item = furniture.controller.getItemToPickup(player, hitbox);
             Object itemStack;
             if (item == null) {
                 Key itemId = furniture.config().settings().itemId();
@@ -4108,13 +4107,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
                     // 执行家具行为
                     InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
-                    InteractionResult result = furniture.handler.useOnFurniture(hitBox, interactEntityContext);
+                    InteractionResult result = furniture.controller.useOnFurniture(hitBox, interactEntityContext);
                     if (result.success()) {
                         serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                         return;
                     }
                     if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
-                        result = furniture.handler.useWithoutItem(interactEntityContext);
+                        result = furniture.controller.useWithoutItem(interactEntityContext);
                         if (result.success()) {
                             serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                             return;

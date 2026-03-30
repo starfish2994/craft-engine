@@ -7,8 +7,8 @@ import net.momirealms.craftengine.core.util.Key;
 public final class BukkitFurnitureBehaviors extends FurnitureBehaviors {
     private BukkitFurnitureBehaviors() {}
 
-    public static final FurnitureBehaviorType<SimpleStorageFurnitureBehavior> SIMPLE_STORAGE_FURNITURE = register(Key.ce("simple_storage_furniture"), SimpleStorageFurnitureBehavior.FACTORY);
-    public static final FurnitureBehaviorType<DisplayItemFurnitureBehavior> DISPLAY_ITEM_FURNITURE = register(Key.ce("display_item_furniture"), DisplayItemFurnitureBehavior.FACTORY);
+    public static final FurnitureBehaviorType<SimpleStorageFurnitureBehaviorTemplate> SIMPLE_STORAGE_FURNITURE = register(Key.ce("simple_storage_furniture"), SimpleStorageFurnitureBehaviorTemplate.FACTORY);
+    public static final FurnitureBehaviorType<DisplayItemFurnitureBehaviorTemplate> DISPLAY_ITEM_FURNITURE = register(Key.ce("display_item_furniture"), DisplayItemFurnitureBehaviorTemplate.FACTORY);
 
     public static void init() {
     }

@@ -8,7 +8,8 @@ import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.furniture.CustomFurniture;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
+import net.momirealms.craftengine.core.entity.furniture.behavior.Controller;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -19,7 +20,6 @@ import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.AdventureHelper;
-import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
@@ -36,18 +36,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
-    public static final FurnitureBehaviorFactory<SimpleStorageFurnitureBehavior> FACTORY = new Factory();
+public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehaviorTemplate {
+    public static final FurnitureBehaviorFactory<SimpleStorageFurnitureBehaviorTemplate> FACTORY = new Factory();
     public final String containerTitle;
     public final int rows;
     public final SoundData openSound;
     public final SoundData closeSound;
 
-    private SimpleStorageFurnitureBehavior(CustomFurniture furniture,
-                                           String containerTitle,
-                                           int rows,
-                                           SoundData openSound,
-                                           SoundData closeSound) {
+    private SimpleStorageFurnitureBehaviorTemplate(CustomFurniture furniture,
+                                                   String containerTitle,
+                                                   int rows,
+                                                   SoundData openSound,
+                                                   SoundData closeSound) {
         super(furniture);
         this.containerTitle = containerTitle;
         this.rows = rows;
@@ -56,22 +56,22 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
     }
 
     @Override
-    public Handler createHandler(Furniture furniture) {
-        return new SimpleStorageHandler(furniture, this);
+    public Controller createController(Furniture furniture) {
+        return new SimpleStorageController(furniture, this);
     }
 
-    static final class SimpleStorageHandler extends Handler {
-        public final SimpleStorageFurnitureBehavior behavior;
+    static final class SimpleStorageController extends Controller {
+        public final SimpleStorageFurnitureBehaviorTemplate behavior;
         private ItemStorage storage;
 
-        public SimpleStorageHandler(Furniture furniture, SimpleStorageFurnitureBehavior behavior) {
+        public SimpleStorageController(Furniture furniture, SimpleStorageFurnitureBehaviorTemplate behavior) {
             super(furniture);
             this.behavior = behavior;
         }
 
         @Override
         public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
-            if (storage == null) {
+            if (this.storage == null) {
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
             BlockPos blockPos = context.getClickedPos();
@@ -81,37 +81,37 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
             if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
                 return InteractionResult.FAIL;
             }
-            storage.onOpen(player);
+            this.storage.onOpen(player);
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
 
         @Override
-        public void onDestroy() {
-            if (storage != null) {
-                storage.destroy();
+        public void onDestroy(Player player) {
+            if (this.storage != null) {
+                this.storage.destroy();
             }
         }
 
         @Override
         public void onLoad() {
-            if (storage == null) {
-                storage = new ItemStorage(furniture, this.behavior);
+            if (this.storage == null) {
+                this.storage = new ItemStorage(this.furniture, this.behavior);
             }
-            storage.load();
+            this.storage.load();
         }
 
         @Override
         public void onUnload() {
-            if (storage != null) {
-                storage.unload();
+            if (this.storage != null) {
+                this.storage.unload();
             }
         }
     }
 
-    private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehavior> {
+    private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehaviorTemplate> {
 
         @Override
-        public SimpleStorageFurnitureBehavior create(CustomFurniture furniture, ConfigSection section) {
+        public SimpleStorageFurnitureBehaviorTemplate create(CustomFurniture furniture, ConfigSection section) {
             ConfigSection soundSection = section.getSection("sounds");
             SoundData openSound = null;
             SoundData closeSound = null;
@@ -119,7 +119,7 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
                 openSound = soundSection.getValue("open", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.RANGED_0_9_1));
                 closeSound = soundSection.getValue("close", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.RANGED_0_9_1));
             }
-            return new SimpleStorageFurnitureBehavior(
+            return new SimpleStorageFurnitureBehaviorTemplate(
                     furniture,
                     section.getString("title", "<lang:container.chest>"),
                     section.getInt("rows", 1),
@@ -130,13 +130,12 @@ public final class SimpleStorageFurnitureBehavior extends FurnitureBehavior {
     }
 
     public static final class ItemStorage implements InventoryHolder {
-        private static final CustomDataType<ItemStorage> TYPE = new CustomDataType<>();
         private static final String KEY = "craftengine:simple_storage_furniture";
         public final Furniture furniture;
-        private final SimpleStorageFurnitureBehavior behavior;
+        private final SimpleStorageFurnitureBehaviorTemplate behavior;
         private final Inventory inventory;
 
-        private ItemStorage(Furniture furniture, SimpleStorageFurnitureBehavior behavior) {
+        private ItemStorage(Furniture furniture, SimpleStorageFurnitureBehaviorTemplate behavior) {
             this.furniture = furniture;
             this.behavior = behavior;
             this.inventory = FastNMS.INSTANCE.createSimpleStorageContainer(this, this.behavior.rows * 9, false, false);

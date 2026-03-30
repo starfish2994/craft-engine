@@ -9,7 +9,7 @@ import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
+import net.momirealms.craftengine.core.entity.furniture.behavior.Controller;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -43,8 +43,8 @@ public abstract class Furniture implements Cullable {
     public final Entity metaDataEntity;
     /** Cached entity ID of the metadata entity */
     public final int metaDataEntityId;
-    /** Action handlers */
-    public final FurnitureBehavior.Handler handler;
+    /** Behavior controller */
+    public final Controller controller;
 
     protected CullingData cullingData;
     protected FurnitureSnapshotState snapshot;
@@ -61,7 +61,7 @@ public abstract class Furniture implements Cullable {
         this.persistentData = data;
         this.metaDataEntity = metaDataEntity;
         this.metaDataEntityId = metaDataEntity.entityId();
-        this.handler = config.createHandler(this);
+        this.controller = config.createController(this);
         this.setVariantInternal(config.getVariant(data));
         this.sourceItem = data.item().orElse(null);
     }
@@ -264,7 +264,7 @@ public abstract class Furniture implements Cullable {
             elements.add(element);
             element.collectInteractableEntityId(interactableEntityIds::addLast);
         }
-        this.handler.createFurnitureElements(element -> {
+        this.controller.createFurnitureElements(element -> {
             elements.add(element);
             element.collectInteractableEntityId(interactableEntityIds::addLast);
         });
@@ -280,7 +280,7 @@ public abstract class Furniture implements Cullable {
             FurnitureHitBox hitbox = furnitureHitBoxConfig.create(this);
             hitboxes.add(hitbox);
         }
-        this.handler.createFurnitureHitboxes(hitboxes::add);
+        this.controller.createFurnitureHitboxes(hitboxes::add);
 
         for (FurnitureHitBox hitbox : hitboxes) {
             for (FurnitureHitboxPart part : hitbox.parts()) {
@@ -320,7 +320,10 @@ public abstract class Furniture implements Cullable {
         }
     }
 
-    protected abstract FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements, List<FurnitureHitBox> hitboxes, Int2ObjectMap<FurnitureHitBox> hitboxMap, List<Collider> colliders);
+    protected abstract FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements,
+                                                             List<FurnitureHitBox> hitboxes,
+                                                             Int2ObjectMap<FurnitureHitBox> hitboxMap,
+                                                             List<Collider> colliders);
 
     /**
      * Creates culling data based on hitboxes or pre-defined AABB.
@@ -444,7 +447,11 @@ public abstract class Furniture implements Cullable {
     }
 
     /** Fully removes the furniture from the world and cleans up resources. */
-    public abstract void destroy();
+    public abstract void destroy(Player player);
+
+    public void destroy() {
+        destroy(null);
+    }
 
     /**
      * Gets the configuration of this furniture.

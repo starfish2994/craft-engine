@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
-import net.momirealms.craftengine.core.entity.furniture.behavior.EmptyFurnitureBehavior;
-import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavior;
+import net.momirealms.craftengine.core.entity.furniture.behavior.EmptyFurnitureBehaviorTemplate;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.loot.LootTable;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -49,7 +49,7 @@ public final class EmptyFurniture implements CustomFurniture {
     }
 
     @Override
-    public @NotNull List<FurnitureBehavior> behaviors() {
-        return List.of(EmptyFurnitureBehavior.INSTANCE);
+    public @NotNull List<FurnitureBehaviorTemplate> behaviors() {
+        return List.of(EmptyFurnitureBehaviorTemplate.INSTANCE);
     }
 }
