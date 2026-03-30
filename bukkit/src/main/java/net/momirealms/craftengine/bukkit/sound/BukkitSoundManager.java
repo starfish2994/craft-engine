@@ -138,16 +138,21 @@ public final class BukkitSoundManager extends AbstractSoundManager {
                 Object soundId = KeyUtils.toIdentifier(jukeboxSong.sound());
                 // 检查之前有没有注册过了
                 Object song = RegistryUtils.getRegistryValue(registry, identifier);
+
+                Object soundEvent = SoundEventProxy.INSTANCE.create(soundId, Optional.of(jukeboxSong.range()));
+                Object soundHolder = HolderProxy.INSTANCE.direct(soundEvent);
+
                 // 只有没注册才注册，否则会报错
                 if (song == null) {
-                    Object soundEvent = SoundEventProxy.INSTANCE.create(soundId, Optional.of(jukeboxSong.range()));
-                    Object soundHolder = HolderProxy.INSTANCE.direct(soundEvent);
                     song = JukeboxSongProxy.INSTANCE.newInstance(soundHolder, ComponentUtils.adventureToMinecraft(jukeboxSong.description()), jukeboxSong.lengthInSeconds(), jukeboxSong.comparatorOutput());
                     Object holder = RegistryProxy.INSTANCE.registerForHolder$1(registry, identifier, song);
                     HolderProxy.ReferenceProxy.INSTANCE.bindValue(holder, song);
                     HolderProxy.ReferenceProxy.INSTANCE.setTags(holder, Set.of());
                 } else {
-                    // todo 怼 record 类
+                    JukeboxSongProxy.INSTANCE.setLengthInSeconds(song, jukeboxSong.lengthInSeconds());
+                    JukeboxSongProxy.INSTANCE.setDescription(song, ComponentUtils.adventureToMinecraft(jukeboxSong.description()));
+                    JukeboxSongProxy.INSTANCE.setSoundEvent(song, soundHolder);
+                    JukeboxSongProxy.INSTANCE.setComparatorOutput(song, jukeboxSong.comparatorOutput());
                 }
             }
         } catch (Throwable e) {

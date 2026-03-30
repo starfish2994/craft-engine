@@ -1326,11 +1326,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         @Override
         public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
             if (!Config.interceptPlayerInfo()) return;
-            // todo 是不是有问题？
             List<Object> entries = ClientboundPlayerInfoUpdatePacketProxy.INSTANCE.getEntries(packet);
-            if (entries instanceof MarkedArrayList) {
-                return;
-            }
             EnumSet<? extends Enum<?>> enums = ClientboundPlayerInfoUpdatePacketProxy.INSTANCE.getActions(packet);
             if (!enums.contains(ClientboundPlayerInfoUpdatePacketProxy.ActionProxy.UPDATE_DISPLAY_NAME)) return;
             for (Object entry : entries) {
