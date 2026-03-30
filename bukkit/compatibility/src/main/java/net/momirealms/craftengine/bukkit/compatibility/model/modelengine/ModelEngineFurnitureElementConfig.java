@@ -50,7 +50,7 @@ public final class ModelEngineFurnitureElementConfig implements FurnitureElement
             List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new ModelEngineFurnitureElementConfig(
                     section.getNonEmptyString("model"),
-                    section.getVector3f("position", ConfigConstants.CENTER_VECTOR3),
+                    section.getVector3f("position", ConfigConstants.ZERO_VECTOR3),
                     section.getFloat("yaw"),
                     section.getFloat("pitch"),
                     MiscUtils.allOf(conditions),

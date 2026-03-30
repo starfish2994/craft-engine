@@ -54,7 +54,7 @@ public final class BetterModelFurnitureElementConfig implements FurnitureElement
             List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new BetterModelFurnitureElementConfig(
                     section.getNonEmptyString("model"),
-                    section.getVector3f("position", ConfigConstants.CENTER_VECTOR3),
+                    section.getVector3f("position", ConfigConstants.ZERO_VECTOR3),
                     section.getFloat("yaw"),
                     section.getFloat("pitch"),
                     section.getBoolean(SIGHT_TRACE, true),
