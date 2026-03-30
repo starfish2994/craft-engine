@@ -38,6 +38,8 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
     public final float scale;
     public final FurnitureTintSourceConfig<? extends FurnitureTintSource> tint;
     public final Vector3f position;
+    public final float xRot;
+    public final float yRot;
     public final boolean small;
     public final LegacyChatFormatter glowColor;
     public final Predicate<PlayerContext> predicate;
@@ -46,12 +48,16 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
     private ArmorStandFurnitureElementConfig(Key itemId,
                                              float scale,
                                              Vector3f position,
+                                             float xRot,
+                                             float yRot,
                                              FurnitureTintSourceConfig<? extends FurnitureTintSource> tint,
                                              boolean small,
                                              LegacyChatFormatter glowColor,
                                              Predicate<PlayerContext> predicate,
                                              boolean hasCondition) {
         this.position = position;
+        this.xRot = xRot;
+        this.yRot = yRot;
         this.tint = tint;
         this.small = small;
         this.scale = scale;
@@ -103,6 +109,8 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
                     section.getNonNullIdentifier("item"),
                     section.getFloat("scale", 1f),
                     section.getVector3f("position", ConfigConstants.ZERO_VECTOR3),
+                    section.getFloat("pitch", 0f),
+                    section.getFloat("yaw", 0f),
                     legacyTintSource ?
                             DefaultFurnitureTintSourceConfig.create(List.of(DataComponentKeys.DYED_COLOR, DataComponentKeys.FIREWORK_EXPLOSION)) :
                             section.getValue(TINT_SOURCE, FurnitureTintSources::fromConfig),

@@ -51,7 +51,7 @@ public final class ArmorStandFurnitureElement extends AbstractFurnitureElement {
         Vec3d position = Furniture.getRelativePosition(furniturePos, config.position);
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, this.uuid, position.x, position.y, position.z,
-                furniturePos.xRot, furniturePos.yRot, EntityTypeProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, furniturePos.yRot
+                furniturePos.xRot + config.xRot, furniturePos.yRot + config.yRot, EntityTypeProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, furniturePos.yRot
         );
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(this.entityId));
         if (VersionHelper.isOrAbove1_20_5() && config.scale != 1) {
