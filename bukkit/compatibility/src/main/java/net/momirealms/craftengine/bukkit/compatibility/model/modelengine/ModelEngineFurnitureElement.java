@@ -7,10 +7,10 @@ import com.ticxo.modelengine.api.model.ModeledEntity;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.AbstractFurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
@@ -18,30 +18,28 @@ import java.util.function.Consumer;
 public final class ModelEngineFurnitureElement extends AbstractFurnitureElement {
     public final Furniture furniture;
     public final ModelEngineFurnitureElementConfig config;
+    public final Location location;
     private Dummy<?> dummy;
 
     ModelEngineFurnitureElement(Furniture furniture, ModelEngineFurnitureElementConfig config) {
         super(config.predicate, config.hasCondition);
         this.furniture = furniture;
         this.config = config;
+        WorldPosition furniturePos = furniture.position();
+        Vec3d position = Furniture.getRelativePosition(furniturePos, config.position);
+        this.location = new Location((World) furniturePos.world.platformWorld(), position.x, position.y, position.z, furniturePos.yRot + config.yaw, furniturePos.xRot + config.pitch);
         this.dummy = createDummy();
     }
 
     private Dummy<?> createDummy() {
         ActiveModel activeModel = ModelEngineAPI.createActiveModel(config.model);
-        if (activeModel == null) {
-            return null;
-        } else {
-            Dummy<?> dummy = new Dummy<>();
-            WorldPosition pos = this.furniture.position();
-            Vector3f offset = config.position;
-            Location location = new Location((World) pos.world.platformWorld(), pos.x + offset.x, pos.y + offset.y, pos.z + offset.z, config.yaw, config.pitch);
-            dummy.syncLocation(location);
-            dummy.setDetectingPlayers(false);
-            ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(dummy);
-            modeledEntity.addModel(activeModel, false);
-            return dummy;
-        }
+        if (activeModel == null) return null;
+        Dummy<?> dummy = new Dummy<>();
+        dummy.syncLocation(this.location);
+        dummy.setDetectingPlayers(false);
+        ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(dummy);
+        modeledEntity.addModel(activeModel, false);
+        return dummy;
     }
 
     @Override

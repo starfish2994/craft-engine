@@ -37,7 +37,7 @@ public final class ItemDisplayFurnitureElement extends AbstractFurnitureElement 
         this.entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         WorldPosition furniturePos = furniture.position();
         Vec3d position = Furniture.getRelativePosition(furniturePos, config.position);
-        this.position = new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot, furniturePos.yRot);
+        this.position = new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot + config.xRot, furniturePos.yRot + config.yRot);
         this.despawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(entityId)));
     }
 

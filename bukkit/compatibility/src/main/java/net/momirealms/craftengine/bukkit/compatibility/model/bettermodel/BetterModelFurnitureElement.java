@@ -8,10 +8,10 @@ import kr.toxicity.model.api.tracker.TrackerModifier;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.AbstractFurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
@@ -26,9 +26,9 @@ public final class BetterModelFurnitureElement extends AbstractFurnitureElement 
         super(config.predicate, config.hasCondition);
         this.furniture = furniture;
         this.config = config;
-        WorldPosition pos = this.furniture.position();
-        Vector3f offset = config.position;
-        this.location = new Location((World) pos.world.platformWorld(), pos.x + offset.x, pos.y + offset.y, pos.z + offset.z, config.yaw, config.pitch);
+        WorldPosition furniturePos = furniture.position();
+        Vec3d position = Furniture.getRelativePosition(furniturePos, config.position);
+        this.location = new Location((World) furniturePos.world.platformWorld(), position.x, position.y, position.z, furniturePos.yRot + config.yaw, furniturePos.xRot + config.pitch);
         this.dummyTracker = createDummyTracker();
     }
 
