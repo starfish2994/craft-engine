@@ -32,6 +32,9 @@ public interface MinecraftServerProxy {
     @MethodInvoker(name = "registries")
     Object registries(Object target);
 
+    @MethodInvoker(name = "reloadableRegistries")
+    Object reloadableRegistries(Object target);
+
     @ReflectionProxy(name = "net.minecraft.server.MinecraftServer$ServerResourcePackInfo")
     interface ServerResourcePackInfoProxy {
         ServerResourcePackInfoProxy INSTANCE = ASMProxyFactory.create(ServerResourcePackInfoProxy.class);

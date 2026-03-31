@@ -7,7 +7,10 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.loot.*;
+import net.momirealms.craftengine.core.loot.AbstractLootManager;
+import net.momirealms.craftengine.core.loot.LootTableReference;
+import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.VanillaLoot;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.compatibility.EntityProvider;
 import net.momirealms.craftengine.core.plugin.config.*;
@@ -93,9 +96,11 @@ public final class BukkitLootManager extends AbstractLootManager implements List
                     .withParameter(DirectContextParameters.ENTITY, bukkitEntity)
                     .withParameter(DirectContextParameters.POSITION, position);
             BukkitServerPlayer optionalPlayer = null;
+            float luck = 1.0f;
             if (VersionHelper.isOrAbove1_20_5()) {
                 if (event.getDamageSource().getCausingEntity() instanceof Player player) {
                     optionalPlayer = BukkitAdaptor.adapt(player);
+                    luck = (float) optionalPlayer.luck();
                     builder.withOptionalParameter(DirectContextParameters.PLAYER, optionalPlayer);
                     if (optionalPlayer != null) {
                         Item itemInHand = optionalPlayer.getItemInHand(InteractionHand.MAIN_HAND);
@@ -104,8 +109,9 @@ public final class BukkitLootManager extends AbstractLootManager implements List
                 }
             }
             ContextHolder contextHolder = builder.build();
+            EntityLootContext entityLootContext = new EntityLootContext(world, optionalPlayer, luck, contextHolder, entity, event.getDamageSource());
             for (Lootable lootable : loot.lootables()) {
-                for (Item item : lootable.getRandomItems(contextHolder, world, optionalPlayer)) {
+                for (Item item : lootable.getRandomItems(entityLootContext)) {
                     world.dropItemNaturally(position, item);
                 }
             }
@@ -134,7 +140,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
     public LootTableReference createReference(Key key) {
         LazyReference<Lootable> lazyReference = LazyReference.lazyReference(() -> {
             Optional<Lootable> lootTable = BukkitLootManager.instance().getLootable(key);
-            return lootTable.orElseGet(DatapackLootTable::new);
+            return lootTable.orElseGet(() -> new DatapackLootTable(key));
         });
         return new LootTableReference(lazyReference);
     }

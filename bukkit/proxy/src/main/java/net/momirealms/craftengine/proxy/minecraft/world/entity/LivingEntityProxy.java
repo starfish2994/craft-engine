@@ -38,4 +38,7 @@ public interface LivingEntityProxy extends EntityProxy {
 
     @MethodInvoker(name = "startUsingItem")
     void startUsingItem(Object target, @Type(clazz = InteractionHandProxy.class) Object hand);
+
+    @MethodInvoker(name = "getLastHurtByPlayer")
+    Object getLastHurtByPlayer(Object target);
 }

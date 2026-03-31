@@ -7,6 +7,9 @@ import net.momirealms.sparrow.reflection.proxy.annotation.*;
 public interface ResourceKeyProxy {
     ResourceKeyProxy INSTANCE = ASMProxyFactory.create(ResourceKeyProxy.class);
 
+    @ConstructorInvoker
+    Object newInstance(@Type(clazz = IdentifierProxy.class) Object registryName, @Type(clazz = IdentifierProxy.class) Object location);
+
     @FieldGetter(name = "registryName")
     Object getRegistryName(Object target);
 

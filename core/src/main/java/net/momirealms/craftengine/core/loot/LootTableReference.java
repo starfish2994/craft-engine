@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class LootTableReference implements Lootable {
-
     public final LazyReference<Lootable> delegate;
 
     public LootTableReference(LazyReference<Lootable> delegate) {

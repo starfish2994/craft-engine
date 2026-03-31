@@ -26,4 +26,7 @@ public interface ServerLevelProxy extends LevelProxy {
 
     @MethodInvoker(name = "getChunkSource")
     Object getChunkSource(Object target);
+
+    @MethodInvoker(name = "getServer")
+    Object getServer(Object target);
 }

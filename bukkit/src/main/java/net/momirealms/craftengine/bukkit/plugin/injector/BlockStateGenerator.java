@@ -19,6 +19,7 @@ import net.bytebuddy.implementation.bind.annotation.This;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.loot.DatapackLootTable;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.block.BlockSettings;
@@ -26,6 +27,8 @@ import net.momirealms.craftengine.core.block.DelegatingBlockState;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.loot.LootTableReference;
+import net.momirealms.craftengine.core.loot.Lootable;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Pair;
@@ -41,6 +44,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockS
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.StateDefinitionProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.properties.PropertyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.LootParamsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.parameters.LootContextParamSetsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.parameters.LootContextParamsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
@@ -117,6 +121,18 @@ public final class BlockStateGenerator {
             Object vec3 = LootParamsProxy.BuilderProxy.INSTANCE.getOptionalParameter(builder, LootContextParamsProxy.ORIGIN);
             if (vec3 == null) return List.of();
 
+            // 数据包 LootTable.
+            Lootable lootable = state.owner().value().lootable();
+            if (lootable instanceof LootTableReference lootTableReference /* 不可能是 DatapackLootTable. */) {
+                Lootable underlying = lootTableReference.delegate.get();
+                if (underlying instanceof DatapackLootTable datapackLootTable) {
+                    LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.BLOCK_STATE, state);
+                    Object lootParams = LootParamsProxy.BuilderProxy.INSTANCE.create(builder, LootContextParamSetsProxy.BLOCK);
+                    return datapackLootTable.getRandomItemsByLootParams(lootParams);
+                }
+            }
+
+            // 自定义 LootTable.
             Object tool = LootParamsProxy.BuilderProxy.INSTANCE.getOptionalParameter(builder, LootContextParamsProxy.TOOL);
             Item item = BukkitItemManager.instance().wrap(tool == null ? null : ItemStackUtils.getBukkitStack(tool));
             Object optionalPlayer = LootParamsProxy.BuilderProxy.INSTANCE.getOptionalParameter(builder, LootContextParamsProxy.THIS_ENTITY);

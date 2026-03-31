@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block;
 import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockBreakEvent;
+import net.momirealms.craftengine.bukkit.loot.BlockLootContext;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
@@ -209,8 +210,9 @@ public final class BlockEventListener implements Listener {
                             .withParameter(DirectContextParameters.POSITION, position)
                             .withParameter(DirectContextParameters.PLAYER, serverPlayer)
                             .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand).build();
+                    BlockLootContext blockLootContext = new BlockLootContext(world, serverPlayer, ((float) serverPlayer.luck()), lootContext, BukkitAdaptor.adapt(block), itemInHand, serverPlayer);
                     for (Lootable lootable : it.lootables()) {
-                        for (Item item : lootable.getRandomItems(lootContext, world, serverPlayer)) {
+                        for (Item item : lootable.getRandomItems(blockLootContext)) {
                             world.dropItemNaturally(position, item);
                         }
                     }
@@ -244,11 +246,13 @@ public final class BlockEventListener implements Listener {
                 Location location = block.getLocation();
                 net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(location.getWorld());
                 WorldPosition position = new WorldPosition(world, location.getBlockX() + 0.5, location.getBlockY() + 0.5, location.getBlockZ() + 0.5);
-                ContextHolder.Builder builder = ContextHolder.builder()
+                ContextHolder contextHolder = ContextHolder.builder()
                         .withParameter(DirectContextParameters.POSITION, position)
-                        .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block));
+                        .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
+                        .build();
+                BlockLootContext blockLootContext = new BlockLootContext(world, null, 1.0f, contextHolder, BukkitAdaptor.adapt(block), null, null);
                 for (Lootable lootable : it.lootables()) {
-                    for (Item item : lootable.getRandomItems(builder.build(), world, null)) {
+                    for (Item item : lootable.getRandomItems(blockLootContext)) {
                         world.dropItemNaturally(position, item);
                     }
                 }

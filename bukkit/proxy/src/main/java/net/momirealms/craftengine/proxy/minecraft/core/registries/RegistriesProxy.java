@@ -7,6 +7,7 @@ import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 @ReflectionProxy(name = "net.minecraft.core.registries.Registries")
 public interface RegistriesProxy {
     RegistriesProxy INSTANCE = ASMProxyFactory.create(RegistriesProxy.class);
+    Object ROOT_REGISTRY_NAME = INSTANCE.getRootRegistryName();
     Object BLOCK = INSTANCE.getBlock();
     Object ITEM = INSTANCE.getItem();
     Object ATTRIBUTE = INSTANCE.getAttribute();
@@ -25,6 +26,9 @@ public interface RegistriesProxy {
     Object JUKEBOX_SONG = INSTANCE.getJukeboxSong();
     Object RECIPE = INSTANCE.getRecipe();
     Object LOOT_TABLE = INSTANCE.getLootTable();
+
+    @FieldGetter(name = "ROOT_REGISTRY_NAME", isStatic = true)
+    Object getRootRegistryName();
 
     @FieldGetter(name = "BLOCK", isStatic = true)
     Object getBlock();
