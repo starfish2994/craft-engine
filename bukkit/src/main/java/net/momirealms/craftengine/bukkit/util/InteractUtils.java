@@ -1090,6 +1090,7 @@ public final class InteractUtils {
         Object item = ItemStackProxy.INSTANCE.getItem(context.getItem().getMinecraftItem());
         Object block = BlockItemProxy.INSTANCE.getBlock(item);
         Object stateToPlace = BlockProxy.INSTANCE.getStateForPlacement(block, toNMSBlockPlaceContext(context));
+        if (stateToPlace == null) return false;
         return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(stateToPlace, context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()));
     }
 

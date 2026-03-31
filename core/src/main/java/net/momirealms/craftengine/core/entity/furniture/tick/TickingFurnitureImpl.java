@@ -17,7 +17,7 @@ public class TickingFurnitureImpl<T extends FurnitureController> implements Tick
     @SuppressWarnings("unchecked")
     @Override
     public void tick() {
-        this.ticker.tick((T) this.furniture.controller);
+        this.ticker.tick(this.furniture, (T) this.furniture.controller);
     }
 
     @Override

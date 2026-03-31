@@ -150,14 +150,14 @@ public abstract class FurnitureController {
                 return null;
             }
             if (firstFurnitureTicker == null) {
-                return biController -> secondFurnitureTicker.tick(biController.second);
+                return (f, biController) -> secondFurnitureTicker.tick(f, biController.second);
             }
             if (secondFurnitureTicker == null) {
-                return biController -> firstFurnitureTicker.tick(biController.first);
+                return (f, biController) -> firstFurnitureTicker.tick(f, biController.first);
             }
-            return biController -> {
-                firstFurnitureTicker.tick(biController.first);
-                secondFurnitureTicker.tick(biController.second);
+            return (f, biController) -> {
+                firstFurnitureTicker.tick(f, biController.first);
+                secondFurnitureTicker.tick(f, biController.second);
             };
         }
 
@@ -253,8 +253,8 @@ public abstract class FurnitureController {
         private <T extends FurnitureController> FurnitureTicker<T> createCombinedTicker(
                 java.util.function.Function<FurnitureController, FurnitureTicker<FurnitureController>> tickerExtractor) {
 
-            List<FurnitureTicker<FurnitureController>> furnitureTickers = new ArrayList<>();
-            List<FurnitureController> controllers = new ArrayList<>();
+            List<FurnitureTicker<FurnitureController>> furnitureTickers = new ArrayList<>(4);
+            List<FurnitureController> controllers = new ArrayList<>(4);
 
             for (FurnitureController controller : this.controllers) {
                 FurnitureTicker<FurnitureController> ticker = tickerExtractor.apply(controller);
@@ -267,22 +267,18 @@ public abstract class FurnitureController {
             if (furnitureTickers.isEmpty()) return null;
 
             if (furnitureTickers.size() == 1) {
-                return createTickerHelper(tickSingle(controllers.getFirst(), furnitureTickers.getFirst()));
+                FurnitureController firstController = controllers.getFirst();
+                FurnitureTicker<FurnitureController> firstTicker = furnitureTickers.getFirst();
+                return (f, c) -> firstTicker.tick(f, firstController);
             }
 
             FurnitureTicker<FurnitureController>[] tickersArray = furnitureTickers.toArray(new FurnitureTicker[0]);
             FurnitureController[] controllersArray = controllers.toArray(new FurnitureController[0]);
 
-            return controller -> {
+            return (f, controller) -> {
                 for (int i = 0; i < controllersArray.length; i++) {
-                    tickersArray[i].tick(controllersArray[i]);
+                    tickersArray[i].tick(f, controllersArray[i]);
                 }
-            };
-        }
-
-        private static FurnitureTicker<CompositeController> tickSingle(FurnitureController controller, FurnitureTicker<FurnitureController> ticker) {
-            return (c) -> {
-                ticker.tick(controller);
             };
         }
 
