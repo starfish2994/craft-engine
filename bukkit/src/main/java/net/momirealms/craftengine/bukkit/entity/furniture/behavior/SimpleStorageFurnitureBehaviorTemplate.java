@@ -2,11 +2,13 @@ package net.momirealms.craftengine.bukkit.entity.furniture.behavior;
 
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.FurnitureInventoryHolder;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
@@ -33,6 +35,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -40,19 +43,25 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
     public static final FurnitureBehaviorFactory<SimpleStorageFurnitureBehaviorTemplate> FACTORY = new Factory();
     public final String containerTitle;
     public final int rows;
+    @Nullable
     public final SoundData openSound;
+    @Nullable
     public final SoundData closeSound;
+    @Nullable
+    public final String customDataKey;
 
     private SimpleStorageFurnitureBehaviorTemplate(FurnitureDefinition furniture,
                                                    String containerTitle,
                                                    int rows,
-                                                   SoundData openSound,
-                                                   SoundData closeSound) {
+                                                   @Nullable SoundData openSound,
+                                                   @Nullable SoundData closeSound,
+                                                   @Nullable String customDataKey) {
         super(furniture);
         this.containerTitle = containerTitle;
         this.rows = rows;
         this.openSound = openSound;
         this.closeSound = closeSound;
+        this.customDataKey = customDataKey;
     }
 
     @Override
@@ -61,6 +70,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
     }
 
     private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehaviorTemplate> {
+        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
 
         @SuppressWarnings("DuplicatedCode")
         @Override
@@ -77,13 +87,14 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
                     section.getString("title", "<lang:container.chest>"),
                     section.getInt("rows", 1),
                     openSound,
-                    closeSound
+                    closeSound,
+                    section.getString(DATA_KEY)
             );
         }
     }
 
     public static final class SimpleStorageFurnitureController extends FurnitureController implements FurnitureInventoryHolder {
-        private static final String KEY = "craftengine:simple_storage_furniture";
+        private static final String DEFAULT_DATA_KEY = "craftengine:simple_storage_contents";
         public final Furniture furniture;
         private final SimpleStorageFurnitureBehaviorTemplate template;
         private final Inventory inventory;
@@ -114,33 +125,34 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
         }
 
         @Override
-        public void onLoad() {
+        public void loadCustomData(CompoundTag customData) {
             this.inventory.close();
-            CompoundTag data = this.furniture.persistentData.getCustomData(KEY) instanceof CompoundTag tag ? tag : new CompoundTag();
+            CompoundTag data = Optional.ofNullable(customData.getCompound(DEFAULT_DATA_KEY)).orElseGet(CompoundTag::new);
             int dataVersion = data.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
             ListTag items = Optional.ofNullable(data.getList("items")).orElseGet(ListTag::new);
             this.inventory.setStorageContents(ItemStackUtils.parseBukkitItems(items, this.template.rows * 9, dataVersion));
         }
 
         @Override
-        public void onUnload() {
+        public void saveCustomData(CompoundTag customData) {
             this.inventory.close();
-            CompoundTag data = this.furniture.persistentData.getCustomData(KEY) instanceof CompoundTag tag ? tag : new CompoundTag();
+            CompoundTag data = new CompoundTag();
             data.put("items", ItemStackUtils.saveBukkitItemsAsListTag(this.inventory.getStorageContents()));
             data.putInt("data_version", VersionHelper.WORLD_VERSION);
-            this.furniture.persistentData.addCustomData(KEY, data);
+            customData.put(DEFAULT_DATA_KEY, data);
         }
 
         @Override
         public void onDestroy(Player player) {
             this.inventory.close();
-            this.furniture.persistentData.removeCustomData(KEY);
+            Location dropLocation = ((BukkitFurniture) this.furniture).getDropLocation();
             for (ItemStack stack : this.inventory.getContents()) {
                 if (stack != null) {
-                    this.furniture.world().dropItemNaturally(this.furniture.position(), BukkitAdaptor.adapt(stack));
+                    this.furniture.world().dropItemNaturally(LocationUtils.toWorldPosition(dropLocation), BukkitAdaptor.adapt(stack));
                 }
             }
             this.inventory.clear();
+            this.furniture.setUnsaved();
         }
 
         @Override
@@ -169,6 +181,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
                     this.furniture.world().playSound(this.furniture.position(), sound.id(), sound.volume().get(), sound.pitch().get(), SoundSource.MASTER);
                 }
             }
+            this.furniture.setUnsaved();
         }
 
         @Override

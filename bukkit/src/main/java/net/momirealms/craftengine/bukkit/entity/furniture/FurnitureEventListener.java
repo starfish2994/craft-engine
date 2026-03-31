@@ -6,34 +6,33 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureHitEvent;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BukkitItemUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDebugStickState;
+import net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.EnumUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSystemChatPacketProxy;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.event.world.EntitiesLoadEvent;
-import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.event.world.WorldUnloadEvent;
+import org.bukkit.event.world.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
+@SuppressWarnings("DuplicatedCode")
 public final class FurnitureEventListener implements Listener {
     private final BukkitFurnitureManager manager;
     private final BukkitWorldManager worldManager;
@@ -49,7 +48,8 @@ public final class FurnitureEventListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntitiesLoadEarly(EntitiesLoadEvent event) {
         List<Entity> entities = event.getEntities();
-        for (Entity entity : entities) {
+        for (int i = 0, size = entities.size(); i < size; i++) {
+            Entity entity = entities.get(i);
             if (entity instanceof ItemDisplay itemDisplay) {
                 this.manager.handleMetaEntityDuringChunkLoad(itemDisplay);
             } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
@@ -66,11 +66,24 @@ public final class FurnitureEventListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onWorldLoad(WorldLoadEvent event) {
         List<Entity> entities = event.getWorld().getEntities();
-        for (Entity entity : entities) {
+        for (int i = 0, size = entities.size(); i < size; i++) {
+            Entity entity = entities.get(i);
             if (entity instanceof ItemDisplay itemDisplay) {
                 this.manager.handleMetaEntityDuringChunkLoad(itemDisplay);
             } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
                 this.manager.handleCollisionEntityDuringChunkLoad(entity);
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    public void onWorldSave(WorldSaveEvent event) {
+        List<ItemDisplay> entities = (List<ItemDisplay>) event.getWorld().getEntitiesByClass(ItemDisplay.class);
+        for (int i = 0, size = entities.size(); i < size; i++) {
+            ItemDisplay entity = entities.get(i);
+            BukkitFurniture furniture = this.manager.loadedFurnitureByMetaEntityId(entity.getEntityId());
+            if (furniture != null) {
+                furniture.saveIfDirty();
             }
         }
     }

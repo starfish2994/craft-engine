@@ -22,6 +22,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.Clientbo
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.AABBProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
@@ -259,6 +260,16 @@ public final class BukkitFurniture extends Furniture {
 
     @Override
     public void saveIfDirty() {
+        if (super.isUnsaved()) {
+            CompoundTag dataToSave = new CompoundTag();
+            this.controller.saveCustomData(dataToSave);
+            if (dataToSave.isEmpty()) {
+                this.persistentData.removeTag(FurniturePersistentData.CUSTOM_DATA);
+            } else {
+                this.persistentData.addTag(FurniturePersistentData.CUSTOM_DATA, dataToSave);
+            }
+            super.unsaved = false;
+        }
         if (super.persistentData.isUnsaved()) {
             try {
                 bukkitEntity().getPersistentDataContainer().set(BukkitFurnitureManager.FURNITURE_EXTRA_DATA_KEY, PersistentDataType.BYTE_ARRAY, super.persistentData.toBytes());

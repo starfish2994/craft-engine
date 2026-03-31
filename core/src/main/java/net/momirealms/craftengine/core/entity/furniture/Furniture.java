@@ -56,6 +56,7 @@ public abstract class Furniture implements Cullable {
     /** IDs of entities specifically acting as physics colliders */
     protected int[] colliderEntityIds;
     private boolean hasExternalModel;
+    protected volatile boolean unsaved;
 
     protected Furniture(Entity metaDataEntity, FurniturePersistentData data, FurnitureDefinition config) {
         this.config = config;
@@ -540,4 +541,12 @@ public abstract class Furniture implements Cullable {
      * Save the custom data if it's dirty
      */
     public abstract void saveIfDirty();
+
+    public void setUnsaved() {
+        this.unsaved = true;
+    }
+
+    public boolean isUnsaved() {
+        return this.unsaved;
+    }
 }

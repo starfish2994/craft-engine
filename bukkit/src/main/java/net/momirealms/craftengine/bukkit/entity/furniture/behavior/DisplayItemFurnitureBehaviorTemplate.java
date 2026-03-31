@@ -48,20 +48,23 @@ import java.util.function.Consumer;
 
 public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehaviorTemplate {
     public static final FurnitureBehaviorFactory<DisplayItemFurnitureBehaviorTemplate> FACTORY = new Factory();
-    private static final String DISPLAY_ITEM_TAG = "display_item";
     @NotNull
-    private final Map<String, VariantRule> variantRules;
+    public final Map<String, VariantRule> variantRules;
     @Nullable
-    private final SoundData putSound;
+    public final SoundData putSound;
     @Nullable
-    private final SoundData takeSound;
+    public final SoundData takeSound;
+    @Nullable
+    public final String customDataKey;
 
     private DisplayItemFurnitureBehaviorTemplate(FurnitureDefinition furniture,
                                                  @NotNull Map<String, VariantRule> variantRules,
                                                  @Nullable SoundData putSound,
-                                                 @Nullable SoundData takeSound
+                                                 @Nullable SoundData takeSound,
+                                                 @Nullable String customDataKey
     ) {
         super(furniture);
+        this.customDataKey = customDataKey;
         this.variantRules = variantRules;
         this.putSound = putSound;
         this.takeSound = takeSound;
@@ -74,6 +77,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
 
     // 行为处理器
     public static final class DisplayItemFurnitureController extends FurnitureController {
+        private static final String DEFAULT_DATA_KEY = "craftengine:display_item";
         private final DisplayItemFurnitureBehaviorTemplate behavior;
         DisplayItemElement displayItemElement;
         Set<FurnitureHitBox> trackedHitboxes;
@@ -87,11 +91,21 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
         }
 
         @Override
-        public void onLoad() {
-            CompoundTag displayItem = (CompoundTag) this.furniture.persistentData.getCustomData(DISPLAY_ITEM_TAG);
+        public void loadCustomData(CompoundTag data) {
+            CompoundTag displayItem = data.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
             if (displayItem != null) {
-                int dataVersion = displayItem.getInt(DISPLAY_ITEM_TAG, Config.itemDataFixerUpperFallbackVersion());
+                int dataVersion = displayItem.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
                 this.savedItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(displayItem, dataVersion));
+            }
+        }
+
+        @Override
+        public void saveCustomData(CompoundTag data) {
+            if (!this.savedItem.isEmpty()) {
+                Tag itemStackAsTag = ItemStackUtils.saveMinecraftItemStackAsTag(this.savedItem.getMinecraftItem());
+                if (itemStackAsTag != null) {
+                    data.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), itemStackAsTag);
+                }
             }
         }
 
@@ -187,13 +201,11 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
         // 设置存储的物品
         private void saveDisplayItem(@Nullable Item item) {
             if (item != null) {
-                Tag itemStackAsTag = ItemStackUtils.saveMinecraftItemStackAsTag(item.getMinecraftItem());
-                this.furniture.persistentData.addCustomData(DISPLAY_ITEM_TAG, itemStackAsTag);
                 this.savedItem = item;
             } else {
-                this.furniture.persistentData.removeCustomData(DISPLAY_ITEM_TAG);
                 this.savedItem = BukkitItemManager.instance().emptyItem();
             }
+            this.furniture.setUnsaved();
         }
 
         @Override
@@ -286,23 +298,10 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
     // 工厂类
     private static class Factory implements FurnitureBehaviorFactory<DisplayItemFurnitureBehaviorTemplate> {
         private static final String[] ITEM_POSITION = new String[] {"item_position", "item-position"};
+        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
 
         @Override
         public DisplayItemFurnitureBehaviorTemplate create(FurnitureDefinition furniture, ConfigSection section) {
-            // 如果没有配置变体展示规则
-            ConfigSection variantsSection = section.getSection("variants");
-            if (variantsSection == null) {
-                return new DisplayItemFurnitureBehaviorTemplate(furniture, Map.of(), null, null);
-            }
-            // 读取变体展示规则
-            HashMap<String, VariantRule> variantRule = new HashMap<>();
-            for (String variantName : variantsSection.keySet()) {
-                ConfigSection variantSection = variantsSection.getSection(variantName);
-                Vector3f itemRelative = variantSection.getVector3f(ITEM_POSITION, ConfigConstants.ZERO_VECTOR3);
-                List<? extends FurnitureHitBoxConfig<? extends FurnitureHitBox>> hitboxes =
-                        variantSection.getList("hitboxes", v -> FurnitureHitBoxConfigs.fromConfig(v.getAsSection()));
-                variantRule.put(variantName, new VariantRule(itemRelative, hitboxes));
-            }
             // 读取放入取出音效
             ConfigSection soundSection = section.getSection("sounds");
             SoundData inputSound = null;
@@ -311,7 +310,23 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
                 inputSound = soundSection.getValue("put", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.RANGED_0_9_1));
                 takeSound = soundSection.getValue("take", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_0_5, SoundData.SoundValue.RANGED_0_9_1));
             }
-            return new DisplayItemFurnitureBehaviorTemplate(furniture, variantRule, inputSound, takeSound);
+            // 如果没有配置变体展示规则
+            ConfigSection variantsSection = section.getSection("variants");
+            Map<String, VariantRule> variantRule;
+            if (variantsSection == null) {
+                variantRule = Map.of();
+            } else {
+                // 读取变体展示规则
+                variantRule = new HashMap<>();
+                for (String variantName : variantsSection.keySet()) {
+                    ConfigSection variantSection = variantsSection.getSection(variantName);
+                    Vector3f itemRelative = variantSection.getVector3f(ITEM_POSITION, ConfigConstants.ZERO_VECTOR3);
+                    List<? extends FurnitureHitBoxConfig<? extends FurnitureHitBox>> hitboxes =
+                            variantSection.getList("hitboxes", v -> FurnitureHitBoxConfigs.fromConfig(v.getAsSection()));
+                    variantRule.put(variantName, new VariantRule(itemRelative, hitboxes));
+                }
+            }
+            return new DisplayItemFurnitureBehaviorTemplate(furniture, variantRule, inputSound, takeSound, section.getString(DATA_KEY));
         }
     }
 

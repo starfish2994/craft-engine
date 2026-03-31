@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +44,12 @@ public abstract class FurnitureController {
     @SuppressWarnings("unchecked")
     public static <C extends FurnitureController, T extends FurnitureController> FurnitureTicker<C> createTickerHelper(FurnitureTicker<? super T> ticker) {
         return (FurnitureTicker<C>) ticker;
+    }
+
+    public void loadCustomData(CompoundTag data) {
+    }
+
+    public void saveCustomData(CompoundTag data) {
     }
 
     /**
@@ -213,6 +220,18 @@ public abstract class FurnitureController {
         }
 
         @Override
+        public void loadCustomData(CompoundTag data) {
+            this.first.loadCustomData(data);
+            this.second.loadCustomData(data);
+        }
+
+        @Override
+        public void saveCustomData(CompoundTag data) {
+            this.first.saveCustomData(data);
+            this.second.saveCustomData(data);
+        }
+
+        @Override
         public void onVariantChange() {
             this.first.onVariantChange();
             this.second.onVariantChange();
@@ -343,6 +362,20 @@ public abstract class FurnitureController {
         public void onLoad() {
             for (FurnitureController controller : this.controllers) {
                 controller.onLoad();
+            }
+        }
+
+        @Override
+        public void loadCustomData(CompoundTag data) {
+            for (FurnitureController controller : this.controllers) {
+                controller.loadCustomData(data);
+            }
+        }
+
+        @Override
+        public void saveCustomData(CompoundTag data) {
+            for (FurnitureController controller : this.controllers) {
+                controller.saveCustomData(data);
             }
         }
 

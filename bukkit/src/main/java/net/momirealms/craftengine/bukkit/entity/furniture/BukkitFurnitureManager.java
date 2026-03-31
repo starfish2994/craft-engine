@@ -31,6 +31,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.EntityLookupProxy;
 import net.momirealms.craftengine.proxy.paper.world.ChunkEntitySlicesProxy;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.HandlerList;
@@ -267,6 +268,8 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
         // 创建新的家具
         BukkitFurniture furnitureInstance = createFurnitureInstance(entity, furnitureDefinition);
+        CompoundTag data = (CompoundTag) Optional.ofNullable(furnitureInstance.persistentData.getTag(FurniturePersistentData.CUSTOM_DATA)).orElseGet(CompoundTag::new);
+        furnitureInstance.controller.loadCustomData(data);
         furnitureInstance.controller.onLoad();
     }
 

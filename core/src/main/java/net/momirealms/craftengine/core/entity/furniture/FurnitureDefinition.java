@@ -57,7 +57,7 @@ public interface FurnitureDefinition {
             if (optionalAnchorType.isPresent()) {
                 variantName = optionalAnchorType.get().name().toLowerCase(Locale.ROOT);
                 accessor.setVariant(variantName);
-                accessor.removeCustomData(FurniturePersistentData.ANCHOR_TYPE);
+                accessor.removeTag(FurniturePersistentData.ANCHOR_TYPE);
             }
         }
         if (variantName == null) {

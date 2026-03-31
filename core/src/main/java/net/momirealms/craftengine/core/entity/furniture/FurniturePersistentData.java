@@ -10,6 +10,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -17,6 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public final class FurniturePersistentData {
     public static final String ITEM = "item";
     public static final String VARIANT = "variant";
+    public static final String CUSTOM_DATA = "data";
     @ApiStatus.Obsolete
     public static final String ANCHOR_TYPE = "anchor_type";
 
@@ -55,18 +57,24 @@ public final class FurniturePersistentData {
         return this.data;
     }
 
-    public void addCustomData(String key, Tag value) {
+    public void addTag(String key, Tag value) {
+        if (value == null) {
+            this.removeTag(key);
+            return;
+        }
         try {
             this.writeLock.lock();
-            this.data.put(key, value);
-            this.unsaved = true;
+            Tag previous = this.data.put(key, value);
+            if (!Objects.equals(value, previous)) {
+                this.unsaved = true;
+            }
         } finally {
             this.writeLock.unlock();
         }
     }
 
     @Nullable
-    public Tag getCustomData(String key) {
+    public Tag getTag(String key) {
         try {
             this.readLock.lock();
             return this.data.get(key);
@@ -75,11 +83,22 @@ public final class FurniturePersistentData {
         }
     }
 
-    public void removeCustomData(String key) {
+    public boolean hasTag(String key) {
+        try {
+            this.readLock.lock();
+            return this.data.containsKey(key);
+        } finally {
+            this.readLock.unlock();
+        }
+    }
+
+    public void removeTag(String key) {
         try {
             this.writeLock.lock();
-            this.data.remove(key);
-            this.unsaved = true;
+            if (this.data.containsKey(key)) {
+                this.data.remove(key);
+                this.unsaved = true;
+            }
         } finally {
             this.writeLock.unlock();
         }
@@ -103,16 +122,10 @@ public final class FurniturePersistentData {
     }
 
     public void setItem(Item item) {
-        try {
-            this.writeLock.lock();
-            if (item == null) {
-                this.data.remove(ITEM);
-            } else {
-                this.data.putByteArray(ITEM, item.toByteArray());
-            }
-            this.unsaved = true;
-        } finally {
-            this.writeLock.unlock();
+        if (item == null) {
+            this.removeTag(ITEM);
+        } else {
+            this.addTag(ITEM, NBT.createByteArray(item.toByteArray()));
         }
     }
 
@@ -126,13 +139,7 @@ public final class FurniturePersistentData {
     }
 
     public void setVariant(String variant) {
-        try {
-            this.writeLock.lock();
-            this.data.putString(VARIANT, variant);
-            this.unsaved = true;
-        } finally {
-            this.writeLock.unlock();
-        }
+        this.addTag(VARIANT, NBT.createString(variant));
     }
 
     @ApiStatus.Obsolete
