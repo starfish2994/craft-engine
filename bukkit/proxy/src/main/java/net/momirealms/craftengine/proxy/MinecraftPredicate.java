@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class MinecraftPredicate implements Predicate<String> {
-    // [修改点 1] 正则表达式：增加了 "!" 作为捕获组，并在非操作符匹配中排除了 "!"
     private static final Pattern TOKEN_PATTERN = Pattern.compile("\\s*(\\(|\\)|&&|\\|\\||!|[^\\s()&|!]+)\\s*");
     private final Context context;
 

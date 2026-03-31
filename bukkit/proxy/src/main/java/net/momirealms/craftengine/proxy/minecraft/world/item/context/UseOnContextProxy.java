@@ -9,7 +9,6 @@ import net.momirealms.sparrow.reflection.proxy.annotation.ConstructorInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
-import org.bukkit.entity.Player;
 
 @ReflectionProxy(name = "net.minecraft.world.item.context.UseOnContext")
 public interface UseOnContextProxy {

@@ -73,7 +73,7 @@ public abstract class FurnitureController {
     }
 
     /**
-     * Triggered when the chunk containing the furniture is loaded into the world.
+     * Triggered when the furniture is loaded into the world during chunk load.
      */
     public void onLoad() {
     }
@@ -189,6 +189,12 @@ public abstract class FurnitureController {
         public void onLoad() {
             this.first.onLoad();
             this.second.onLoad();
+        }
+
+        @Override
+        public void onVariantChange() {
+            this.first.onVariantChange();
+            this.second.onVariantChange();
         }
 
         @Override
@@ -310,6 +316,13 @@ public abstract class FurnitureController {
         public void onLoad() {
             for (FurnitureController controller : this.controllers) {
                 controller.onLoad();
+            }
+        }
+
+        @Override
+        public void onVariantChange() {
+            for (FurnitureController controller : this.controllers) {
+                controller.onVariantChange();
             }
         }
 

@@ -4,7 +4,6 @@ import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
