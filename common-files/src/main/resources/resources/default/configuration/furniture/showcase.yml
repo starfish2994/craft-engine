@@ -1,7 +1,7 @@
 items:
   default:showcase:
     data:
-      item_name: <!i><lang:furniture.default.showcase>
+      item_name: <!i><lang:item.default.showcase>
     model: minecraft:item/custom/showcase
     behavior:
       type: furniture_item

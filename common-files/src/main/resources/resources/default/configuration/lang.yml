@@ -60,6 +60,7 @@ lang#items:
     item.default.globe: Globe
     item.default.drill: Drill
     item.default.togglable_light_block: Togglable Light Block
+    item.default.showcase: Showcase
   zh_cn:
     item.default.chinese_lantern: 灯笼
     item.default.fairy_flower: 仙灵花
@@ -119,6 +120,7 @@ lang#items:
     item.default.globe: 地球仪
     item.default.drill: 钻头
     item.default.togglable_light_block: 可调节光源方块
+    item.default.showcase: 物品展示柜
   fr_fr:
     item.default.chinese_lantern: Lanterne Chinoise
     item.default.fairy_flower: Fleur Fée
@@ -178,6 +180,7 @@ lang#items:
     item.default.globe: Globe
     item.default.drill: La perceuse
     item.default.togglable_light_block: Bloc de lumière réglable
+    item.default.showcase: Vitrine
 # Providing translations for blocks is particularly effective for plugins that retrieve server-side block translation keys.
 lang#blocks:
   en_us:
@@ -216,6 +219,7 @@ lang#blocks:
     block_name:default:hami_melon_stem: Hami Melon Stem
     block_name:default:attached_hami_melon_stem: Hami Melon Stem
     block_name:default:magma_plant: Magma Plant
+    block_name:default:togglable_light_block: Togglable Light Block
   zh_cn:
     block_name:default:chinese_lantern: 灯笼
     block_name:default:netherite_anvil: 下界合金砧
@@ -252,6 +256,7 @@ lang#blocks:
     block_name:default:hami_melon_stem: 哈密瓜茎
     block_name:default:attached_hami_melon_stem: 哈密瓜茎
     block_name:default:magma_plant: 岩浆植物
+    block_name:default:togglable_light_block: 可调节光源方块
   fr_fr:
     block_name:default:chinese_lantern: Lanterne Chinoise
     block_name:default:netherite_anvil: Enclume en Netherite
@@ -288,6 +293,7 @@ lang#blocks:
     block_name:default:hami_melon_stem: Tige de Melon de Hami
     block_name:default:attached_hami_melon_stem: Tige de Melon de Hami
     block_name:default:magma_plant: Plante de Magma
+    block_name:default:togglable_light_block: Bloc de lumière réglable
 # Translations for furniture are typically designed for the API.
 # If you are using a plugin that supports displaying furniture names, you will most likely need to configure the translations for the furniture.
 lang#furniture:
@@ -303,3 +309,9 @@ lang#furniture:
     furniture.default.globe: 地球仪
     furniture.default.wooden_chair: 木椅
     furniture.default.showcase: 物品展示柜
+  fr_fr:
+    furniture.default.bench: Banc
+    furniture.default.flower_basket: Panier de fleurs
+    furniture.default.globe: Globe
+    furniture.default.wooden_chair: Chaise en bois
+    furniture.default.showcase: Vitrine
