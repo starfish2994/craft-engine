@@ -28,6 +28,19 @@ public abstract class FurnitureController {
     }
 
     @SuppressWarnings("unchecked")
+    public <C extends FurnitureController> void find(@NotNull Class<C> controllerClass, @NotNull Consumer<C> consumer) {
+        if (controllerClass.isInstance(this)) {
+            consumer.accept((C) this);
+        }
+    }
+
+    public <C extends FurnitureController> List<C> find(@NotNull Class<C> controllerClass) {
+        List<C> result = new ArrayList<>(4);
+        find(controllerClass, result::add);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
     public static <C extends FurnitureController, T extends FurnitureController> FurnitureTicker<C> createTickerHelper(FurnitureTicker<? super T> ticker) {
         return (FurnitureTicker<C>) ticker;
     }
@@ -210,6 +223,12 @@ public abstract class FurnitureController {
             Item firstItemToPickup = this.first.getItemToPickup(player, hitBox);
             return firstItemToPickup != null ? firstItemToPickup : this.second.getItemToPickup(player, hitBox);
         }
+
+        @Override
+        public <C extends FurnitureController> void find(@NotNull Class<C> controllerClass, @NotNull Consumer<C> consumer) {
+            this.first.find(controllerClass, consumer);
+            this.second.find(controllerClass, consumer);
+        }
     }
 
     private static final class CompositeController extends FurnitureController {
@@ -347,6 +366,13 @@ public abstract class FurnitureController {
                 }
             }
             return null;
+        }
+
+        @Override
+        public <C extends FurnitureController> void find(@NotNull Class<C> controllerClass, @NotNull Consumer<C> consumer) {
+            for (FurnitureController controller : this.controllers) {
+                controller.find(controllerClass, consumer);
+            }
         }
     }
 }
