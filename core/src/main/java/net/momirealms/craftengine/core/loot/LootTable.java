@@ -19,10 +19,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public final class LootTable {
+public final class LootTable implements Lootable {
     private final List<LootPool> pools;
     private final List<LootFunction> functions;
     private final BiFunction<Item, LootContext, Item> compositeFunction;
@@ -49,20 +50,24 @@ public final class LootTable {
         return new LootTable(lootPools, section.getList("functions", LootFunctions::fromConfig));
     }
 
+    @Override
     public List<Item> getRandomItems(ContextHolder parameters, World world) {
         return this.getRandomItems(parameters, world, null);
     }
 
+    @Override
     public List<Item> getRandomItems(ContextHolder parameters, World world, @Nullable Player player) {
         return this.getRandomItems(new LootContext(world, player, player == null ? 1f : (float) player.luck(), parameters));
     }
 
-    private List<Item> getRandomItems(LootContext context) {
+    @Override
+    public List<Item> getRandomItems(LootContext context) {
         ArrayList<Item> list = new ArrayList<>();
         this.getRandomItems(context, list::add);
         return list;
     }
 
+    @Override
     public void getRandomItems(LootContext context, Consumer<Item> lootConsumer) {
         this.getRandomItemsRaw(context, createFunctionApplier(createStackSplitter(lootConsumer), context));
     }

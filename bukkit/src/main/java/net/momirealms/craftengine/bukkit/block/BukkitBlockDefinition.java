@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateVariantProvider;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.loot.Lootable;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -27,9 +27,9 @@ public final class BukkitBlockDefinition extends AbstractBlockDefinition {
             @NotNull Holder.Reference<BlockDefinition> holder,
             @NotNull BlockStateVariantProvider variantProvider,
             @NotNull Map<EventTrigger, List<Function<Context>>> events,
-            @Nullable LootTable lootTable
+            @Nullable Lootable lootable
     ) {
-        super(holder, variantProvider, events, lootTable);
+        super(holder, variantProvider, events, lootable);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture;
 
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
-import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.loot.Lootable;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
@@ -28,7 +28,7 @@ public interface FurnitureDefinition {
     }
 
     @Nullable
-    LootTable lootTable();
+    Lootable lootable();
 
     Map<String, FurnitureVariant> variants();
 
@@ -83,7 +83,7 @@ public interface FurnitureDefinition {
 
         Builder settings(FurnitureSettings settings);
 
-        Builder lootTable(LootTable lootTable);
+        Builder lootable(Lootable lootable);
 
         Builder events(Map<EventTrigger, List<Function<Context>>> events);
 

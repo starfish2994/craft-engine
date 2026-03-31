@@ -12,7 +12,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
-import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.loot.Lootable;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -196,7 +196,7 @@ public final class BlockEventListener implements Listener {
         } else {
             // override vanilla block loots
             if (!event.isCancelled() && player.getGameMode() != GameMode.CREATIVE) {
-                this.plugin.vanillaLootManager().getBlockLoot(stateId).ifPresent(it -> {
+                this.plugin.lootManager().getBlockLoot(stateId).ifPresent(it -> {
                     if (!event.isDropItems()) {
                         return;
                     }
@@ -209,8 +209,8 @@ public final class BlockEventListener implements Listener {
                             .withParameter(DirectContextParameters.POSITION, position)
                             .withParameter(DirectContextParameters.PLAYER, serverPlayer)
                             .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand).build();
-                    for (LootTable lootTable : it.lootTables()) {
-                        for (Item item : lootTable.getRandomItems(lootContext, world, serverPlayer)) {
+                    for (Lootable lootable : it.lootables()) {
+                        for (Item item : lootable.getRandomItems(lootContext, world, serverPlayer)) {
                             world.dropItemNaturally(position, item);
                         }
                     }
@@ -236,7 +236,7 @@ public final class BlockEventListener implements Listener {
         Object blockState = BlockGetterProxy.INSTANCE.getBlockState(CraftWorldProxy.INSTANCE.getWorld(block.getWorld()), LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ()));
         if (BlockStateUtils.isVanillaBlock(blockState)) {
             // override vanilla block loots
-            this.plugin.vanillaLootManager().getBlockLoot(BlockStateUtils.blockStateToId(blockState)).ifPresent(it -> {
+            this.plugin.lootManager().getBlockLoot(BlockStateUtils.blockStateToId(blockState)).ifPresent(it -> {
                 if (it.override()) {
                     event.getDrops().clear();
                     event.setExpToDrop(0);
@@ -247,8 +247,8 @@ public final class BlockEventListener implements Listener {
                 ContextHolder.Builder builder = ContextHolder.builder()
                         .withParameter(DirectContextParameters.POSITION, position)
                         .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block));
-                for (LootTable lootTable : it.lootTables()) {
-                    for (Item item : lootTable.getRandomItems(builder.build(), world, null)) {
+                for (Lootable lootable : it.lootables()) {
+                    for (Item item : lootable.getRandomItems(builder.build(), world, null)) {
                         world.dropItemNaturally(position, item);
                     }
                 }

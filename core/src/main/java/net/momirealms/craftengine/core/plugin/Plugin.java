@@ -92,7 +92,7 @@ public interface Plugin {
 
     SoundManager soundManager();
 
-    LootManager vanillaLootManager();
+    LootManager lootManager();
 
     CompatibilityManager compatibilityManager();
 

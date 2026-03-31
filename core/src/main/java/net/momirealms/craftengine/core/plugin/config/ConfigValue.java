@@ -2,6 +2,8 @@ package net.momirealms.craftengine.core.plugin.config;
 
 import net.momirealms.craftengine.core.block.AbstractBlockManager;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.loot.Lootable;
 import net.momirealms.craftengine.core.pack.Identifier;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
@@ -689,5 +691,13 @@ public record ConfigValue(String path, @NotNull Object value) {
 
     public NumberProvider getAsNumber() {
         return NumberProviders.fromConfig(this);
+    }
+
+    public Lootable getAsLootable() {
+        if (this.is(Map.class)) {
+            return LootTable.fromConfig(this.getAsSection());
+        } else {
+            return CraftEngine.instance().lootManager().createReference(this.getAsIdentifier());
+        }
     }
 }

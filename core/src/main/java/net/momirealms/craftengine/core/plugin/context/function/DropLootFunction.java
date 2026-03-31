@@ -2,9 +2,10 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.loot.Lootable;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
@@ -19,20 +20,20 @@ public final class DropLootFunction<CTX extends Context> extends AbstractConditi
     private final NumberProvider x;
     private final NumberProvider y;
     private final NumberProvider z;
-    private final LootTable lootTable;
+    private final Lootable lootable;
     private final boolean toInv;
 
     private DropLootFunction(List<Condition<CTX>> predicates,
                              NumberProvider x,
                              NumberProvider y,
                              NumberProvider z,
-                             LootTable lootTable,
+                             Lootable lootable,
                              boolean toInv) {
         super(predicates);
         this.x = x;
         this.y = y;
         this.z = z;
-        this.lootTable = lootTable;
+        this.lootable = lootable;
         this.toInv = toInv;
     }
 
@@ -43,7 +44,7 @@ public final class DropLootFunction<CTX extends Context> extends AbstractConditi
             World world = optionalWorldPosition.get().world();
             WorldPosition position = new WorldPosition(world, x.getDouble(ctx), y.getDouble(ctx), z.getDouble(ctx));
             Player player = ctx.getOptionalParameter(DirectContextParameters.PLAYER).orElse(null);
-            List<? extends Item> items = lootTable.getRandomItems(ctx.contexts(), world, player);
+            List<? extends Item> items = lootable.getRandomItems(ctx.contexts(), world, player);
             if (this.toInv && player != null) {
                 for (Item item : items) {
                     player.giveItem(item, true);
@@ -75,7 +76,7 @@ public final class DropLootFunction<CTX extends Context> extends AbstractConditi
                     section.getNumber("x", ConfigConstants.POSITION_X),
                     section.getNumber("y", ConfigConstants.POSITION_Y),
                     section.getNumber("z", ConfigConstants.POSITION_Z),
-                    LootTable.fromConfig(section.getNonNullSection(LOOT)),
+                    section.getValue(LOOT, ConfigValue::getAsLootable),
                     section.getBoolean(TO_INVENTORY)
             );
         }
