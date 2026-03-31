@@ -2,6 +2,7 @@ package net.momirealms.craftengine.proxy.minecraft.world.item;
 
 import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.context.UseOnContextProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.ClipContextProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
@@ -32,4 +33,7 @@ public interface ItemProxy {
 
     @MethodInvoker(name = "use")
     Object use(Object target, @Type(clazz = LevelProxy.class) Object level, @Type(clazz = PlayerProxy.class) Object player, @Type(clazz = InteractionHandProxy.class) Object hand);
+
+    @MethodInvoker(name = "useOn")
+    Object useOn(Object target, @Type(clazz = UseOnContextProxy.class) Object context);
 }

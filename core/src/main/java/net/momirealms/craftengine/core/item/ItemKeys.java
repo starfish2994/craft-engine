@@ -45,6 +45,7 @@ public final class ItemKeys {
     public static final Key GLOWSTONE = Key.of("minecraft:glowstone");
     public static final Key SADDLE = Key.of("minecraft:saddle");
     public static final Key FIREWORK_STAR = Key.of("minecraft:firework_star");
+    public static final Key FIREWORK_ROCKET = Key.of("minecraft:firework_rocket");
     public static final Key ENDER_EYE = Key.of("minecraft:ender_eye");
     public static final Key END_CRYSTAL = Key.of("minecraft:end_crystal");
     public static final Key COD = Key.of("minecraft:cod");

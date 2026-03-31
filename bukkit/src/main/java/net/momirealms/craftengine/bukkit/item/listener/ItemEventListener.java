@@ -17,10 +17,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
-import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemBuildContext;
-import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.ItemSettings;
+import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.setting.FoodData;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
@@ -51,6 +48,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.EnchantmentMen
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.context.UseOnContextProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.BlockHitResultProxy;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -379,12 +377,28 @@ public final class ItemEventListener implements Listener {
                     && InteractUtils.isInteractable(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject()), hitResult, itemInHand)) {
                 // 首先得允许使用手中物品，副手逻辑也可能到这里
                 if (event.useItemInHand() != Event.Result.DENY) {
-                    Object result = ItemProxy.INSTANCE.use(ItemStackProxy.INSTANCE.getItem(itemInHand.getMinecraftItem()), serverPlayer.world().serverWorld(), serverPlayer.serverPlayer(), hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND);
+                    event.setUseItemInHand(Event.Result.DENY);
+                    Object nmsHitResult = InteractUtils.toNMSHitResult(hitResult);
+                    Object result = ItemProxy.INSTANCE.useOn(ItemStackProxy.INSTANCE.getItem(itemInHand.getMinecraftItem()), UseOnContextProxy.INSTANCE.newInstance(
+                            serverPlayer.serverPlayer(),
+                            hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND,
+                            nmsHitResult
+                    ));
+                    if (result != InteractionResultProxy.INSTANCE.getPass()) {
+                        serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
+                        return;
+                    }
+                    result = ItemProxy.INSTANCE.use(
+                            ItemStackProxy.INSTANCE.getItem(itemInHand.getMinecraftItem()),
+                            serverPlayer.world().serverWorld(),
+                            serverPlayer.serverPlayer(),
+                            hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND
+                    );
                     if (result == InteractionResultProxy.INSTANCE.getFail() || result == InteractionResultProxy.INSTANCE.getPass()) {
                         if (hand == InteractionHand.MAIN_HAND) { // 仅筛选主手逻辑
                             serverPlayer.simulatePacket(ServerboundUseItemOnPacketProxy.INSTANCE.newInstance(
                                     InteractionHandProxy.OFF_HAND,
-                                    InteractUtils.toNMSHitResult(hitResult),
+                                    nmsHitResult,
                                     0
                             ));
                         }
