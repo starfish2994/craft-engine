@@ -77,9 +77,10 @@ public final class PlaySoundFunction<CTX extends Context> extends AbstractCondit
         public PlaySoundFunction<CTX> create(ConfigSection section) {
             return new PlaySoundFunction<>(
                     getPredicates(section),
-                    getPlayerSelector(section), section.getNumber("x", ConfigConstants.POSITION_X),
-                    section.getNumber("y", ConfigConstants.POSITION_X),
-                    section.getNumber("z", ConfigConstants.POSITION_X),
+                    getPlayerSelector(section),
+                    section.getNumber("x", ConfigConstants.POSITION_X),
+                    section.getNumber("y", ConfigConstants.POSITION_Y),
+                    section.getNumber("z", ConfigConstants.POSITION_Z),
                     section.getNumber("volume", ConfigConstants.CONSTANT_ONE),
                     section.getNumber("pitch", ConfigConstants.CONSTANT_ONE),
                     section.getEnum("source", SoundSource.class, SoundSource.MASTER),

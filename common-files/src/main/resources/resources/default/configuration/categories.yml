@@ -113,3 +113,4 @@ categories:
       - default:globe
       - default:drill
       - default:showcase
+      - default:togglable_light_block

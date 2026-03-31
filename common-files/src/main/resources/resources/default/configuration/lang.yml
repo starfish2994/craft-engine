@@ -59,6 +59,7 @@ lang#items:
     item.default.magma_fruit: Magma Fruit
     item.default.globe: Globe
     item.default.drill: Drill
+    item.default.togglable_light_block: Togglable Light Block
   zh_cn:
     item.default.chinese_lantern: 灯笼
     item.default.fairy_flower: 仙灵花
@@ -117,6 +118,7 @@ lang#items:
     item.default.magma_fruit: 岩浆果实
     item.default.globe: 地球仪
     item.default.drill: 钻头
+    item.default.togglable_light_block: 可调节光源方块
   fr_fr:
     item.default.chinese_lantern: Lanterne Chinoise
     item.default.fairy_flower: Fleur Fée
@@ -175,6 +177,7 @@ lang#items:
     item.default.magma_fruit: Fruit de Magma
     item.default.globe: Globe
     item.default.drill: La perceuse
+    item.default.togglable_light_block: Bloc de lumière réglable
 # Providing translations for blocks is particularly effective for plugins that retrieve server-side block translation keys.
 lang#blocks:
   en_us:
