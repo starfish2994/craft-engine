@@ -995,7 +995,6 @@ public final class InteractUtils {
     }
 
     // 这个方法用于解决玩家使用仙人掌放在基于仙人掌的方块上，物品暂时消失的类似问题，但是无法彻底解决
-    // todo 需要通过创建代理Level来实现getBlockState的方法拦截，从而实现模拟客户端测的方块状态更新，这个过程可能也需要创建代理Chunk和代理Section
     public static boolean canPlaceVisualBlock(Player player, BlockData state, BlockHitResult hit, @Nullable Item item) {
         if (item == null) return false;
         Key blockType = BlockStateUtils.getBlockOwnerIdFromData(state);
@@ -1094,7 +1093,7 @@ public final class InteractUtils {
         return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(stateToPlace, context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()));
     }
 
-    private static Object toNMSHitResult(BlockHitResult result) {
+    public static Object toNMSHitResult(BlockHitResult result) {
         return BlockHitResultProxy.INSTANCE.newInstance(
                 LocationUtils.toVec(result.location()),
                 DirectionUtils.toNMSDirection(result.direction()),
@@ -1103,7 +1102,7 @@ public final class InteractUtils {
         );
     }
 
-    private static Object toNMSBlockPlaceContext(BlockPlaceContext context) {
+    public static Object toNMSBlockPlaceContext(BlockPlaceContext context) {
         return BlockPlaceContextProxy.INSTANCE.newInstance(
                 context.getLevel().serverWorld(),
                 Optional.ofNullable(context.getPlayer()).map(net.momirealms.craftengine.core.entity.player.Player::serverPlayer).orElse(null),

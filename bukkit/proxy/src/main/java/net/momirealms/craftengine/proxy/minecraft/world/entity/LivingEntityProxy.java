@@ -1,8 +1,10 @@
 package net.momirealms.craftengine.proxy.minecraft.world.entity;
 
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
@@ -34,4 +36,7 @@ public interface LivingEntityProxy extends EntityProxy {
 
     @MethodInvoker(name = "broadcastBreakEvent", activeIf = "max_version=1.20.6")
     void broadcastBreakEvent(Object target, @Type(clazz = EquipmentSlotProxy.class) Object slot);
+
+    @MethodInvoker(name = "startUsingItem")
+    void startUsingItem(Object target, @Type(clazz = InteractionHandProxy.class) Object hand);
 }

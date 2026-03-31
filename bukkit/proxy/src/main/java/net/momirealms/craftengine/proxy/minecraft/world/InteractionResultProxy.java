@@ -17,6 +17,15 @@ public interface InteractionResultProxy {
     @FieldGetter(name = "SUCCESS", isStatic = true)
     Object getSuccess();
 
+    @FieldGetter(name = "CONSUME", isStatic = true)
+    Object getConsume();
+
+    @FieldGetter(name = "FAIL", isStatic = true)
+    Object getFail();
+
+    @FieldGetter(name = "PASS", isStatic = true)
+    Object getPass();
+
     @MethodInvoker(name = "consumesAction")
     boolean consumesAction(Object target);
 }

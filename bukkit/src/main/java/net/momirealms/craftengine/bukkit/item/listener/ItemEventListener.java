@@ -39,12 +39,19 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundContainerSetDataPacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ServerboundUseItemOnPacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.InteractionResultProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.DataSlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.EnchantmentMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.phys.BlockHitResultProxy;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -54,6 +61,7 @@ import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -124,7 +132,7 @@ public final class ItemEventListener implements Listener {
         InteractionHand hand = event.getHand() == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
         // 如果本tick内主手已被处理，则不处理副手
         // 这是因为客户端可能会同时发主副手交互包，但实际上只能处理其中一个
-        if (serverPlayer.lastSuccessfulInteractionTick() == serverPlayer.gameTicks()) {
+        if (serverPlayer.hasInteractionInThisTick()) {
             event.setCancelled(true);
             return;
         }
@@ -185,7 +193,7 @@ public final class ItemEventListener implements Listener {
             }
 
             // 事件里已经有交互了
-            if (serverPlayer.lastSuccessfulInteractionTick() == serverPlayer.gameTicks()) {
+            if (serverPlayer.hasInteractionInThisTick()) {
                 return;
             }
 
@@ -223,7 +231,7 @@ public final class ItemEventListener implements Listener {
             if (Config.enableSoundSystem() && hitResult != null) {
                 Key blockOwner = BlockStateUtils.getBlockOwnerIdFromState(blockState);
                 if (this.plugin.blockManager().isInteractSoundMissing(blockOwner)) {
-                    boolean hasItem = player.getInventory().getItemInMainHand().getType() != Material.AIR || player.getInventory().getItemInOffHand().getType() != Material.AIR;
+                    boolean hasItem = !serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() || !serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty();
                     boolean flag = player.isSneaking() && hasItem;
                     if (!flag) {
                         if (blockData instanceof Openable openable) {
@@ -251,42 +259,47 @@ public final class ItemEventListener implements Listener {
         }
 
         boolean hasItem = !itemInHand.isEmpty();
-        Optional<ItemDefinition> optionalCustomItem = hasItem ? itemInHand.getCustomItem() : Optional.empty();
-        boolean hasCustomItem = optionalCustomItem.isPresent();
+        Optional<ItemDefinition> optionalItemDefinition = hasItem ? itemInHand.getCustomItem() : Optional.empty();
+        boolean isCustomItem = optionalItemDefinition.isPresent() && !optionalItemDefinition.get().isVanillaItem();
 
         // interact block with items
         if (hasItem && action == Action.RIGHT_CLICK_BLOCK) {
             // some plugins would trigger this event without interaction point
             if (interactionPoint == null) {
-                if (hasCustomItem) {
+                if (isCustomItem) {
                     event.setCancelled(true);
                 }
                 return;
             }
 
-            // handle block item
+            // 如果手中物品在原版是可以放出方块的物品
+            boolean canPlaceBlock = false;
             if (itemInHand.isBlockItem()) {
-                // vanilla item
-                if (!hasCustomItem) {
-                    // interact a custom block
-                    if (immutableBlockState != null) {
-                        // client won't have sounds if the clientside block is interactable
-                        // so we should check and resend sounds on BlockPlaceEvent
-                        BlockData craftBlockData = BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject());
-                        if (InteractUtils.isInteractable(player, craftBlockData, hitResult, itemInHand)) {
-                            if (!serverPlayer.isSecondaryUseActive()) {
-                                serverPlayer.setResendSound();
-                            }
-                        } else {
-                            if (BlockStateUtils.isReplaceable(immutableBlockState.customBlockState().literalObject()) && !BlockStateUtils.isReplaceable(immutableBlockState.visualBlockState().literalObject())) {
-                                serverPlayer.setResendSwing();
+                // 它也确实是原版物品
+                if (!isCustomItem) {
+                    // 它目前可以被放置出来
+                    if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(serverPlayer, hand, itemInHand, hitResult)))) {
+                        // 如果交互目标是一个自定义方块
+                        if (immutableBlockState != null) {
+                            // 如果客户端觉得它可交互，那么就不会意淫出声音
+                            BlockData craftBlockData = BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject());
+                            if (InteractUtils.isInteractable(player, craftBlockData, hitResult, itemInHand)) {
+                                if (!serverPlayer.isSecondaryUseActive()) {
+                                    serverPlayer.setResendSound();
+                                }
+                            } else {
+                                // 如果服务端侧可替换，但是客户端觉得不行，就要重新挥手
+                                if (BlockStateUtils.isReplaceable(immutableBlockState.customBlockState().literalObject()) && !BlockStateUtils.isReplaceable(immutableBlockState.visualBlockState().literalObject())) {
+                                    serverPlayer.setResendSwing();
+                                }
                             }
                         }
+                        canPlaceBlock = true;
                     }
                 }
-                // custom item
+                // 是自定义物品，尝试禁用掉原版放置逻辑（前提是能放）
                 else {
-                    if (optionalCustomItem.get().settings().disableVanillaBehavior()) {
+                    if (optionalItemDefinition.get().settings().disableVanillaBehavior()) {
                         // 不能在BlockPlaceEvent里检测，是因为种农作物不触发相关事件
                         // 允许尝试放置方块
                         if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
@@ -299,7 +312,7 @@ public final class ItemEventListener implements Listener {
             }
 
             // 事件里已经有交互了
-            if (serverPlayer.lastSuccessfulInteractionTick() == serverPlayer.gameTicks()) {
+            if (serverPlayer.hasInteractionInThisTick()) {
                 return;
             }
 
@@ -333,7 +346,7 @@ public final class ItemEventListener implements Listener {
             }
 
             // 执行物品右键事件
-            if (hasCustomItem) {
+            if (isCustomItem) {
                 // 要求服务端侧这个方块不可交互，或玩家处于潜行状态
                 if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
                     Cancellable dummy = Cancellable.dummy();
@@ -345,7 +358,7 @@ public final class ItemEventListener implements Listener {
                             .withParameter(DirectContextParameters.HAND, hand)
                             .withParameter(DirectContextParameters.EVENT, dummy)
                     );
-                    ItemDefinition itemDefinition = optionalCustomItem.get();
+                    ItemDefinition itemDefinition = optionalItemDefinition.get();
                     itemDefinition.execute(context, EventTrigger.RIGHT_CLICK);
                     if (dummy.isCancelled()) {
                         event.setCancelled(true);
@@ -353,10 +366,46 @@ public final class ItemEventListener implements Listener {
                     }
                 }
             }
+
+            // 事件里完成交互
+            if (serverPlayer.hasInteractionInThisTick()) {
+                return;
+            }
+
+            // 客户端觉得方块自定义可交互，可实际上未交互。这时候客户端只会发一个主手交互包
+            if (immutableBlockState != null  // 必须是自定义方块才能触发
+                    && !serverPlayer.isSecondaryUseActive()  // 没有shift
+                    && !canPlaceBlock  // 物品不可放置
+                    && InteractUtils.isInteractable(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject()), hitResult, itemInHand)) {
+                // 首先得允许使用手中物品，副手逻辑也可能到这里
+                if (event.useItemInHand() != Event.Result.DENY) {
+                    Object result = ItemProxy.INSTANCE.use(ItemStackProxy.INSTANCE.getItem(itemInHand.getMinecraftItem()), serverPlayer.world().serverWorld(), serverPlayer.serverPlayer(), hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND);
+                    if (result == InteractionResultProxy.INSTANCE.getFail() || result == InteractionResultProxy.INSTANCE.getPass()) {
+                        if (hand == InteractionHand.MAIN_HAND) { // 仅筛选主手逻辑
+                            serverPlayer.simulatePacket(ServerboundUseItemOnPacketProxy.INSTANCE.newInstance(
+                                    InteractionHandProxy.OFF_HAND,
+                                    InteractUtils.toNMSHitResult(hitResult),
+                                    0
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+
+        // 主手没物品，但是副手有物品，客户端觉得此方块可交互，漏副手包
+        if (!hasItem && hand == InteractionHand.MAIN_HAND && hitResult != null && immutableBlockState != null) {
+            if (!serverPlayer.isSecondaryUseActive() && InteractUtils.isInteractable(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject()), hitResult, itemInHand)) {
+                serverPlayer.simulatePacket(ServerboundUseItemOnPacketProxy.INSTANCE.newInstance(
+                        InteractionHandProxy.OFF_HAND,
+                        InteractUtils.toNMSHitResult(hitResult),
+                        0
+                ));
+            }
         }
 
         // 执行物品左键事件
-        if (hasCustomItem && action == Action.LEFT_CLICK_BLOCK) {
+        if (isCustomItem && action == Action.LEFT_CLICK_BLOCK) {
             Cancellable dummy = Cancellable.dummy();
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                     .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
@@ -365,7 +414,7 @@ public final class ItemEventListener implements Listener {
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
                     .withParameter(DirectContextParameters.HAND, hand)
             );
-            ItemDefinition itemDefinition = optionalCustomItem.get();
+            ItemDefinition itemDefinition = optionalItemDefinition.get();
             itemDefinition.execute(context, EventTrigger.LEFT_CLICK);
             if (dummy.isCancelled()) {
                 event.setCancelled(true);
@@ -408,7 +457,7 @@ public final class ItemEventListener implements Listener {
         }
 
         // 事件里已经有交互了
-        if (serverPlayer.lastSuccessfulInteractionTick() == serverPlayer.gameTicks()) {
+        if (serverPlayer.hasInteractionInThisTick()) {
             return;
         }
 

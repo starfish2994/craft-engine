@@ -104,6 +104,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract int gameTicks();
 
+    public abstract boolean hasInteractionInThisTick();
+
     public abstract void swingHand(InteractionHand hand);
 
     public abstract boolean hasPermission(String permission);

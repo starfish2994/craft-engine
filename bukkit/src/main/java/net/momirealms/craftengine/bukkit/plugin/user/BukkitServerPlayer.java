@@ -15,7 +15,6 @@ import net.momirealms.craftengine.bukkit.block.entity.BedBlockEntity;
 import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.FurnitureInventoryHolder;
-import net.momirealms.craftengine.bukkit.entity.furniture.behavior.SimpleStorageFurnitureBehaviorTemplate;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -404,6 +403,11 @@ public class BukkitServerPlayer extends Player {
     @Override
     public int gameTicks() {
         return this.gameTicks;
+    }
+
+    @Override
+    public boolean hasInteractionInThisTick() {
+        return this.gameTicks == this.lastSuccessfulInteraction;
     }
 
     @Override
