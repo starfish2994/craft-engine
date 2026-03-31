@@ -11,6 +11,7 @@ public interface ItemsProxy {
     Object WATER_BUCKET = INSTANCE.getWaterBucket();
     Object BARRIER = INSTANCE.getBarrier();
     Object DEBUG_STICK = INSTANCE.getDebugStick();
+    Object WRITABLE_BOOK = INSTANCE.getWritableBook();
 
     @FieldGetter(name = "AIR", isStatic = true)
     Object getAir();
@@ -23,4 +24,7 @@ public interface ItemsProxy {
 
     @FieldGetter(name = "DEBUG_STICK", isStatic = true)
     Object getDebugStick();
+
+    @FieldGetter(name = "WRITABLE_BOOK", isStatic = true)
+    Object getWritableBook();
 }

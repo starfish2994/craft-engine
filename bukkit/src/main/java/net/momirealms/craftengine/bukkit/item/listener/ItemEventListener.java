@@ -36,6 +36,7 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundContainerSetDataPacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundOpenBookPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ServerboundUseItemOnPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.InteractionResultProxy;
@@ -48,6 +49,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.EnchantmentMen
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.context.UseOnContextProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.BlockHitResultProxy;
 import org.bukkit.GameMode;
@@ -379,17 +381,17 @@ public final class ItemEventListener implements Listener {
                 if (event.useItemInHand() != Event.Result.DENY) {
                     event.setUseItemInHand(Event.Result.DENY);
                     Object nmsHitResult = InteractUtils.toNMSHitResult(hitResult);
-                    Object result = ItemProxy.INSTANCE.useOn(ItemStackProxy.INSTANCE.getItem(itemInHand.getMinecraftItem()), UseOnContextProxy.INSTANCE.newInstance(
+                    Object item = ItemStackProxy.INSTANCE.getItem(itemInHand.getMinecraftItem());
+                    Object result = ItemProxy.INSTANCE.useOn(item, UseOnContextProxy.INSTANCE.newInstance(
                             serverPlayer.serverPlayer(),
                             hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND,
                             nmsHitResult
                     ));
                     if (result != InteractionResultProxy.INSTANCE.getPass()) {
-                        serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                         return;
                     }
                     result = ItemProxy.INSTANCE.use(
-                            ItemStackProxy.INSTANCE.getItem(itemInHand.getMinecraftItem()),
+                            item,
                             serverPlayer.world().serverWorld(),
                             serverPlayer.serverPlayer(),
                             hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND
