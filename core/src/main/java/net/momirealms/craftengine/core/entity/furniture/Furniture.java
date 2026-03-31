@@ -34,6 +34,7 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public abstract class Furniture implements Cullable {
     public final FurnitureDefinition config;
@@ -307,14 +308,16 @@ public abstract class Furniture implements Cullable {
         this.cullingData = createCullingData(variant.cullingData());
 
         // 外部模型
-        Optional<ExternalModel> externalModel = variant.externalModel();
-        if (externalModel.isPresent()) {
-            this.hasExternalModel = true;
-            try {
-                externalModel.get().bindModel((AbstractEntity) this.metaDataEntity);
-            } catch (Throwable e) {
-                CraftEngine.instance().logger().warn("Failed to load external model for furniture " + id(), e);
-            }
+        Supplier<ExternalModel> externalModel = variant.externalModel();
+        if (externalModel != null) {
+            Optional.ofNullable(externalModel.get()).ifPresent(model -> {
+                this.hasExternalModel = true;
+                try {
+                    model.bindModel((AbstractEntity) this.metaDataEntity);
+                } catch (Throwable e) {
+                    CraftEngine.instance().logger().warn("Failed to load external model for furniture " + id(), e);
+                }
+            });
         } else {
             this.hasExternalModel = false;
         }

@@ -22,6 +22,7 @@ import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.TickersList;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.incendo.cloud.suggestion.Suggestion;
@@ -33,6 +34,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Supplier;
 
 public abstract class AbstractFurnitureManager implements FurnitureManager {
     protected final Map<Key, FurnitureDefinition> byId = new ConcurrentHashMap<>();
@@ -232,7 +234,9 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
                 // 外部模型
                 String blueprint = variantSection.getString(BLUEPRINT);
-                Optional<ExternalModel> externalModel = Optional.ofNullable(blueprint).map(it -> AbstractFurnitureManager.this.plugin.compatibilityManager().createModel(it));
+                Supplier<ExternalModel> externalModel = Optional.ofNullable(blueprint)
+                        .map(it -> (Supplier<ExternalModel>) () -> AbstractFurnitureManager.this.plugin.compatibilityManager().createModel(it))
+                        .orElse(null);
 
                 // 元素与碰撞箱
                 List<FurnitureElementConfig<? extends FurnitureElement>> elements = variantSection.getList("elements", v -> FurnitureElementConfigs.fromConfig(v.getAsSection()));
@@ -244,27 +248,11 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                     hitboxes = List.of(defaultHitBox());
                 }
 
-                // 虚假光源
-                List<FurnitureLight> lights = variantSection.getList("lights", v -> {
-                   if (v.is(String.class)) {
-                       ConfigValue[] configValues = v.splitValues(" ", 2);
-                       if (configValues.length == 2) {
-                           return new FurnitureLight(configValues[0].getAsVector3f(), configValues[1].getAsInt());
-                       } else {
-                           return new FurnitureLight(configValues[0].getAsVector3f(), 15);
-                       }
-                   } else {
-                       ConfigSection lightSection=  v.getAsSection();
-                       return new FurnitureLight(lightSection.getNonNullVector3f("pos"), lightSection.getInt("level", 15));
-                   }
-                });
-
                 variants.put(variant, new FurnitureVariant(
                         variant,
                         parseCullingData(section.getValue(ENTITY_CULLING)),
                         elements,
                         hitboxes,
-                        lights,
                         externalModel,
                         lootSpawnOffset
                 ));
