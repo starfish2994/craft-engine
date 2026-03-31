@@ -110,12 +110,11 @@ public final class FallingBlockBehavior extends BukkitBlockBehavior {
         Object fallingBlock = args[4];
         Object level = args[0];
         Object pos = args[1];
-        BukkitEntity entity = BukkitAdaptor.adapt(EntityProxy.INSTANCE.getBukkitEntity(fallingBlock));
         Object blockState = args[2];
         int stateId = BlockStateUtils.blockStateToId(blockState);
         ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockState(stateId);
         if (immutableBlockState == null || immutableBlockState.isEmpty()) return;
-        if (!entity.getEntityData(BaseEntityData.Silent)) {
+        if (!EntityProxy.INSTANCE.isSilent(fallingBlock)) {
             net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(level));
             if (this.landSound != null) {
                 world.playBlockSound(Vec3d.atCenterOf(LocationUtils.fromBlockPos(pos)), this.landSound);

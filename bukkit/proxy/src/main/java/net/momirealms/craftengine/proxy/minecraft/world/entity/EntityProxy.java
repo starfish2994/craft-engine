@@ -143,4 +143,7 @@ public interface EntityProxy {
 
     @MethodInvoker(name = "getEyeY")
     double getEyeY(Object target);
+
+    @MethodInvoker(name = "isSilent")
+    boolean isSilent(Object target);
 }
