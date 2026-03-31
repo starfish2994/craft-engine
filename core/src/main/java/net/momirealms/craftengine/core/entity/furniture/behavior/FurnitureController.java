@@ -23,17 +23,26 @@ public abstract class FurnitureController {
         this.furniture = furniture;
     }
 
+    public Furniture furniture() {
+        return this.furniture;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <C extends FurnitureController, T extends FurnitureController> FurnitureTicker<C> createTickerHelper(FurnitureTicker<? super T> ticker) {
+        return (FurnitureTicker<C>) ticker;
+    }
+
     /**
      * Creates a ticker that runs on the main server thread.
      */
-    public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
+    public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
         return null;
     }
 
     /**
      * Creates a ticker that runs asynchronously.
      */
-    public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
+    public <T extends FurnitureController> FurnitureTicker<T> createAsyncFurnitureTicker() {
         return null;
     }
 
@@ -110,33 +119,32 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
-            FurnitureTicker<Furniture> firstFurnitureTicker = this.first.createFurnitureTicker();
-            FurnitureTicker<Furniture> secondFurnitureTicker = this.second.createFurnitureTicker();
-            return gettFurnitureTicker(firstFurnitureTicker, secondFurnitureTicker);
+        public <C extends FurnitureController> FurnitureTicker<C> createFurnitureTicker() {
+            FurnitureTicker<FurnitureController> firstFurnitureTicker = this.first.createFurnitureTicker();
+            FurnitureTicker<FurnitureController> secondFurnitureTicker = this.second.createFurnitureTicker();
+            return createTickerHelper(gettFurnitureTicker(firstFurnitureTicker, secondFurnitureTicker));
         }
 
         @Override
-        public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
-            FurnitureTicker<Furniture> firstFurnitureTicker = this.first.createAsyncFurnitureTicker();
-            FurnitureTicker<Furniture> secondFurnitureTicker = this.second.createAsyncFurnitureTicker();
-            return gettFurnitureTicker(firstFurnitureTicker, secondFurnitureTicker);
+        public <C extends FurnitureController> FurnitureTicker<C> createAsyncFurnitureTicker() {
+            FurnitureTicker<FurnitureController> firstFurnitureTicker = this.first.createAsyncFurnitureTicker();
+            FurnitureTicker<FurnitureController> secondFurnitureTicker = this.second.createAsyncFurnitureTicker();
+            return createTickerHelper(gettFurnitureTicker(firstFurnitureTicker, secondFurnitureTicker));
         }
 
-        @SuppressWarnings("unchecked")
-        private static <T extends Furniture> FurnitureTicker<T> gettFurnitureTicker(FurnitureTicker<Furniture> firstFurnitureTicker, FurnitureTicker<Furniture> secondFurnitureTicker) {
+        private static FurnitureTicker<BiController> gettFurnitureTicker(FurnitureTicker<FurnitureController> firstFurnitureTicker, FurnitureTicker<FurnitureController> secondFurnitureTicker) {
             if (firstFurnitureTicker == null && secondFurnitureTicker == null) {
                 return null;
             }
             if (firstFurnitureTicker == null) {
-                return (FurnitureTicker<T>) secondFurnitureTicker;
+                return biController -> secondFurnitureTicker.tick(biController.second);
             }
             if (secondFurnitureTicker == null) {
-                return (FurnitureTicker<T>) firstFurnitureTicker;
+                return biController -> firstFurnitureTicker.tick(biController.first);
             }
-            return furniture -> {
-                firstFurnitureTicker.tick(furniture);
-                secondFurnitureTicker.tick(furniture);
+            return biController -> {
+                firstFurnitureTicker.tick(biController.first);
+                secondFurnitureTicker.tick(biController.second);
             };
         }
 
@@ -204,7 +212,6 @@ public abstract class FurnitureController {
         }
     }
 
-    // 复合家具行为处理器
     private static final class CompositeController extends FurnitureController {
         private final FurnitureController[] controllers;
 
@@ -214,44 +221,49 @@ public abstract class FurnitureController {
         }
 
         @Override
+        public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
+            return createCombinedTicker(FurnitureController::createFurnitureTicker);
+        }
+
+        @Override
+        public <T extends FurnitureController> FurnitureTicker<T> createAsyncFurnitureTicker() {
+            return createCombinedTicker(FurnitureController::createAsyncFurnitureTicker);
+        }
+
         @SuppressWarnings("unchecked")
-        public <T extends Furniture> FurnitureTicker<T> createFurnitureTicker() {
-            ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
+        private <T extends FurnitureController> FurnitureTicker<T> createCombinedTicker(
+                java.util.function.Function<FurnitureController, FurnitureTicker<FurnitureController>> tickerExtractor) {
+
+            List<FurnitureTicker<FurnitureController>> furnitureTickers = new ArrayList<>();
+            List<FurnitureController> controllers = new ArrayList<>();
+
             for (FurnitureController controller : this.controllers) {
-                FurnitureTicker<T> syncFurnitureTicker = controller.createFurnitureTicker();
-                if (syncFurnitureTicker != null) {
-                    furnitureTickers.add(syncFurnitureTicker);
+                FurnitureTicker<FurnitureController> ticker = tickerExtractor.apply(controller);
+                if (ticker != null) {
+                    furnitureTickers.add(ticker);
+                    controllers.add(controller);
                 }
             }
+
             if (furnitureTickers.isEmpty()) return null;
-            if (furnitureTickers.size() == 1) return furnitureTickers.getFirst();
-            // 新建一个包含所有tick任务的tick任务.
-            FurnitureTicker<T>[] tickers = furnitureTickers.toArray(new FurnitureTicker[0]);
-            return furniture -> {
-                for (FurnitureTicker<T> ticker : tickers) {
-                    ticker.tick(furniture);
+
+            if (furnitureTickers.size() == 1) {
+                return createTickerHelper(tickSingle(controllers.getFirst(), furnitureTickers.getFirst()));
+            }
+
+            FurnitureTicker<FurnitureController>[] tickersArray = furnitureTickers.toArray(new FurnitureTicker[0]);
+            FurnitureController[] controllersArray = controllers.toArray(new FurnitureController[0]);
+
+            return controller -> {
+                for (int i = 0; i < controllersArray.length; i++) {
+                    tickersArray[i].tick(controllersArray[i]);
                 }
             };
         }
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T extends Furniture> FurnitureTicker<T> createAsyncFurnitureTicker() {
-            ArrayList<FurnitureTicker<T>> furnitureTickers = new ArrayList<>();
-            for (FurnitureController controller : this.controllers) {
-                FurnitureTicker<T> asyncFurnitureTicker = controller.createAsyncFurnitureTicker();
-                if (asyncFurnitureTicker != null) {
-                    furnitureTickers.add(asyncFurnitureTicker);
-                }
-            }
-            if (furnitureTickers.isEmpty()) return null;
-            if (furnitureTickers.size() == 1) return furnitureTickers.getFirst();
-            // 新建一个包含所有tick任务的tick任务.
-            FurnitureTicker<T>[] tickers = furnitureTickers.toArray(new FurnitureTicker[0]);
-            return furniture -> {
-                for (FurnitureTicker<T> ticker : tickers) {
-                    ticker.tick(furniture);
-                }
+        private static FurnitureTicker<CompositeController> tickSingle(FurnitureController controller, FurnitureTicker<FurnitureController> ticker) {
+            return (c) -> {
+                ticker.tick(controller);
             };
         }
 

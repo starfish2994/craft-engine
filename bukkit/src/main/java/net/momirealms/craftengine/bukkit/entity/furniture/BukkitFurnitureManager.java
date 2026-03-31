@@ -10,6 +10,7 @@ import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.util.WorldUtils;
 import net.momirealms.craftengine.core.entity.furniture.*;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
@@ -380,9 +381,9 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             this.byColliderEntityId.put(collisionEntity.entityId(), furniture);
         }
         if (!this.syncTickers.containsKey(entityId)) {
-            FurnitureTicker<BukkitFurniture> ticker = furniture.controller.createFurnitureTicker();
+            FurnitureTicker<FurnitureController> ticker = furniture.controller.createFurnitureTicker();
             if (ticker != null) {
-                TickingFurnitureImpl<BukkitFurniture> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
+                TickingFurnitureImpl<FurnitureController> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.syncTickers.put(entityId, tickingFurniture);
                 if (VersionHelper.isFolia()) {
                     furniture.bukkitEntity().getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> {
@@ -396,9 +397,9 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             }
         }
         if (!this.asyncTickers.containsKey(entityId)) {
-            FurnitureTicker<BukkitFurniture> ticker = furniture.controller.createAsyncFurnitureTicker();
+            FurnitureTicker<FurnitureController> ticker = furniture.controller.createAsyncFurnitureTicker();
             if (ticker != null) {
-                TickingFurnitureImpl<BukkitFurniture> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
+                TickingFurnitureImpl<FurnitureController> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.asyncTickers.put(entityId, tickingFurniture);
                 this.addAsyncFurnitureTicker(tickingFurniture);
             }
