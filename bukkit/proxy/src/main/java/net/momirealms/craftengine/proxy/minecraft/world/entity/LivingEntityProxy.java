@@ -6,6 +6,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
+import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
@@ -14,6 +15,14 @@ import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 public interface LivingEntityProxy extends EntityProxy {
     LivingEntityProxy INSTANCE = ASMProxyFactory.create(LivingEntityProxy.class);
     Class<?> CLASS = SparrowClass.find("net.minecraft.world.entity.LivingEntity");
+
+    @FieldGetter(name = "lastDamageSource")
+    Object getLastDamageSource(Object target);
+
+    // 1_21_R4 / 1.21.5 之前, 返回对象为 Player
+    // 1_21_R4 / 1.21.5 之后, 返回对象为 EntityReference<Player>
+    @FieldGetter(name = "lastHurtByPlayer")
+    Object getLastHurtByPlayer$field(Object target);
 
     @MethodInvoker(name = "getLocalBoundsForPose")
     Object getLocalBoundsForPose(Object target, @Type(clazz = PoseProxy.class) Object pos);
@@ -39,6 +48,6 @@ public interface LivingEntityProxy extends EntityProxy {
     @MethodInvoker(name = "startUsingItem")
     void startUsingItem(Object target, @Type(clazz = InteractionHandProxy.class) Object hand);
 
-    @MethodInvoker(name = "getLastHurtByPlayer")
+    @MethodInvoker(name = "getLastHurtByPlayer", activeIf = "min_version=1.21.3")
     Object getLastHurtByPlayer(Object target);
 }
