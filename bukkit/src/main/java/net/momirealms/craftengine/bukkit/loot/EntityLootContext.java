@@ -6,28 +6,25 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.World;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.damage.CraftDamageSourceProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.LootParamsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.parameters.LootContextParamsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.bukkit.Location;
-import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class EntityLootContext extends BukkitLootContext {
     public final Entity deathEntity;
-    public final DamageSource damageSource;
 
     public EntityLootContext(
             @NotNull World world, @Nullable Player player, float luck, @NotNull ContextHolder contexts,
-            @NotNull Entity deathEntity, @NotNull DamageSource damageSource
+            @NotNull Entity deathEntity
     ) {
         super(world, player, luck, contexts);
         this.deathEntity = deathEntity;
-        this.damageSource = damageSource;
     }
 
     @Override
@@ -35,18 +32,19 @@ public class EntityLootContext extends BukkitLootContext {
         Object lootParamsBuilder = LootParamsProxy.BuilderProxy.INSTANCE.newInstance(this.world().serverWorld());
         Location pos = deathEntity.getLocation();
         Object serverEntity = BukkitAdaptor.adapt(this.deathEntity).serverEntity();
+        Object lastDamageSource = LivingEntityProxy.INSTANCE.getLastDamageSource(this.deathEntity);
         // 必须参数
         LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.THIS_ENTITY, serverEntity);
         LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.ORIGIN, Vec3Proxy.INSTANCE.newInstance(pos.x(), pos.y(), pos.z()));
-        LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.DAMAGE_SOURCE, CraftDamageSourceProxy.INSTANCE.getHandle(this.damageSource));
+        LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.DAMAGE_SOURCE, lastDamageSource);
         // 可选参数
         if (LivingEntityProxy.CLASS.isInstance(serverEntity)) {
             Object lastHurtByPlayer = LivingEntityProxy.INSTANCE.getLastHurtByPlayer(serverEntity);
             LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, lastHurtByPlayer);
         }
         if (VersionHelper.isOrAbove1_21_9()) {
-            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.INSTANCE.getAttackingEntity(), damageSource.getCausingEntity());
-            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.INSTANCE.getDirectAttackingEntity(), damageSource.getDirectEntity());
+            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.INSTANCE.getAttackingEntity(), DamageSourceProxy.INSTANCE.getCausingEntity(lastDamageSource));
+            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.INSTANCE.getDirectAttackingEntity(), DamageSourceProxy.INSTANCE.getDirectEntity(lastDamageSource));
         }
         // 额外参数
         this.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(data -> {

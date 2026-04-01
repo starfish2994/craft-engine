@@ -109,7 +109,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
                 }
             }
             ContextHolder contextHolder = builder.build();
-            EntityLootContext entityLootContext = new EntityLootContext(world, optionalPlayer, luck, contextHolder, entity, event.getDamageSource());
+            EntityLootContext entityLootContext = new EntityLootContext(world, optionalPlayer, luck, contextHolder, entity);
             for (Lootable lootable : loot.lootables()) {
                 for (Item item : lootable.getRandomItems(entityLootContext)) {
                     world.dropItemNaturally(position, item);
