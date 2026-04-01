@@ -24,7 +24,6 @@ public interface RegistriesProxy {
     Object TRIM_MATERIAL = INSTANCE.getTrimMaterial();
     Object JUKEBOX_SONG = INSTANCE.getJukeboxSong();
     Object RECIPE = INSTANCE.getRecipe();
-    Object LOOT_TABLE = INSTANCE.getLootTable();
 
     @FieldGetter(name = "ROOT_REGISTRY_NAME", isStatic = true, activeIf = "min_version=1.20.4")
     Object getRootRegistryName();
@@ -84,7 +83,7 @@ public interface RegistriesProxy {
         return null;
     }
 
-    @FieldGetter(name = "LOOT_TABLE", isStatic = true, activeIf = "min_version=1.21")
+    @FieldGetter(name = "LOOT_TABLE", isStatic = true, activeIf = "min_version=1.20.5")
     default Object getLootTable() {
         return null;
     }

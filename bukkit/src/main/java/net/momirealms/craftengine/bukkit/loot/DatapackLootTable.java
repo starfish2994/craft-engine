@@ -16,6 +16,7 @@ import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.MinecraftServerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.ReloadableServerRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.context.ContextKeySetProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.LootDataResolverProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.LootParamsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.LootTableProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.parameters.LootContextParamSetsProxy;
@@ -32,14 +33,27 @@ public class DatapackLootTable implements Lootable {
 
     public DatapackLootTable(Key identifier) {
         this.minecraftLootTable = LazyReference.lazyReference(() -> {
-            Object registryKey = ResourceKeyProxy.INSTANCE.create(
-                    RegistriesProxy.LOOT_TABLE,
-                    IdentifierProxy.INSTANCE.newInstance(identifier.namespace(), identifier.value())
-            );
             Object minecraftServer = MinecraftServerProxy.INSTANCE.getServer();
-            Object reloadableRegistriesHolder = MinecraftServerProxy.INSTANCE.reloadableRegistries(minecraftServer);
-            // 非空, 至少会返回一个 LootTable.EMPTY .
-            return ReloadableServerRegistriesProxy.HolderProxy.INSTANCE.getLootTable(reloadableRegistriesHolder, registryKey);
+            // 1.20.5 +
+            if (VersionHelper.isOrAbove1_20_5()) {
+                Object registryKey = ResourceKeyProxy.INSTANCE.create(
+                        RegistriesProxy.INSTANCE.getLootTable(),
+                        IdentifierProxy.INSTANCE.newInstance(identifier.namespace(), identifier.value())
+                );
+                // 非空, 至少会返回一个 LootTable.EMPTY.
+                Object reloadableRegistriesHolder = MinecraftServerProxy.INSTANCE.reloadableRegistries(minecraftServer);
+                return ReloadableServerRegistriesProxy.HolderProxy.INSTANCE.getLootTable(reloadableRegistriesHolder, registryKey);
+            }
+            // 1.20 +
+            else if (VersionHelper.isOrAbove1_20()) {
+                Object lootDataManager = MinecraftServerProxy.INSTANCE.getLootData(minecraftServer);
+                // 非空, 至少会返回一个 LootTable.EMPTY.
+                return LootDataResolverProxy.INSTANCE.getLootTable(
+                        lootDataManager,
+                        IdentifierProxy.INSTANCE.newInstance(identifier.namespace(), identifier.value())
+                );
+            }
+            return LootTableProxy.EMPTY;
         });
     }
 
