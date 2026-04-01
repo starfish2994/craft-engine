@@ -127,7 +127,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
         @Override
         public void loadCustomData(CompoundTag customData) {
             this.inventory.close();
-            CompoundTag data = Optional.ofNullable(customData.getCompound(DEFAULT_DATA_KEY)).orElseGet(CompoundTag::new);
+            CompoundTag data = Optional.ofNullable(customData.getCompound(Optional.ofNullable(this.template.customDataKey).orElse(DEFAULT_DATA_KEY))).orElseGet(CompoundTag::new);
             int dataVersion = data.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
             ListTag items = Optional.ofNullable(data.getList("items")).orElseGet(ListTag::new);
             this.inventory.setStorageContents(ItemStackUtils.parseBukkitItems(items, this.template.rows * 9, dataVersion));
@@ -139,7 +139,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
             CompoundTag data = new CompoundTag();
             data.put("items", ItemStackUtils.saveBukkitItemsAsListTag(this.inventory.getStorageContents()));
             data.putInt("data_version", VersionHelper.WORLD_VERSION);
-            customData.put(DEFAULT_DATA_KEY, data);
+            customData.put(Optional.ofNullable(this.template.customDataKey).orElse(DEFAULT_DATA_KEY), data);
         }
 
         @Override
