@@ -5,11 +5,12 @@ import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 
-@ReflectionProxy(name = {"net.minecraft.util.context.ContextKeySet"})
+// 1_21_R2+ 从 LootContextParamSet 改名 ContextKeySet.
+@ReflectionProxy(name = {"net.minecraft.util.context.ContextKeySet", "net.minecraft.util.context.LootContextParamSet"})
 public interface ContextKeySetProxy {
     ContextKeySetProxy INSTANCE = ASMProxyFactory.create(ContextKeySetProxy.class);
 
-    @ReflectionProxy(name = {"net.minecraft.util.context.ContextKeySet$Builder"})
+    @ReflectionProxy(name = {"net.minecraft.util.context.ContextKeySet$Builder", "net.minecraft.util.context.LootContextParamSet$Builder"})
     interface BuilderProxy {
         BuilderProxy INSTANCE = ASMProxyFactory.create(BuilderProxy.class);
 
