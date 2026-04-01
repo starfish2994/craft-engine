@@ -103,7 +103,7 @@ public final class ItemEventListener implements Listener {
 
         Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
         PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
-                .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
+                .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand)
                 .withParameter(DirectContextParameters.HAND, hand)
                 .withParameter(DirectContextParameters.EVENT, cancellable)
                 .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(entity))
@@ -181,7 +181,7 @@ public final class ItemEventListener implements Listener {
                     .withParameter(DirectContextParameters.HAND, hand)
                     .withParameter(DirectContextParameters.EVENT, dummy)
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
-                    .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand)
+                    .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand)
             );
             if (action.isRightClick()) blockDefinition.execute(context, EventTrigger.RIGHT_CLICK);
             else blockDefinition.execute(context, EventTrigger.LEFT_CLICK);
@@ -197,7 +197,7 @@ public final class ItemEventListener implements Listener {
 
             if (hitResult != null) {
                 UseOnContext useOnContext = new UseOnContext(serverPlayer, hand, itemInHand, hitResult);
-                boolean hasItem = player.getInventory().getItemInMainHand().getType() != Material.AIR || player.getInventory().getItemInOffHand().getType() != Material.AIR;
+                boolean hasItem = !serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() || !serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty();
                 boolean flag = player.isSneaking() && hasItem;
                 if (!flag) {
                     if (immutableBlockState.behavior() instanceof BlockBehavior behavior) {
@@ -351,7 +351,7 @@ public final class ItemEventListener implements Listener {
                     PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                             .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                             .withOptionalParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, immutableBlockState)
-                            .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
+                            .withParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
                             .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
                             .withParameter(DirectContextParameters.HAND, hand)
                             .withParameter(DirectContextParameters.EVENT, dummy)
@@ -424,7 +424,7 @@ public final class ItemEventListener implements Listener {
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                     .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                     .withOptionalParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, immutableBlockState)
-                    .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
+                    .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand)
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
                     .withParameter(DirectContextParameters.HAND, hand)
             );
@@ -456,13 +456,13 @@ public final class ItemEventListener implements Listener {
 
         Item itemInHand = serverPlayer.getItemInHand(hand);
         // should never be null
-        if (ItemUtils.isEmpty(itemInHand)) return;
+        if (itemInHand.isEmpty()) return;
 
         Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
         if (optionalCustomItem.isPresent()) {
             PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
                     .withParameter(DirectContextParameters.HAND, hand)
-                    .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
+                    .withParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(player.getLocation()))
             );
             ItemDefinition itemDefinition = optionalCustomItem.get();

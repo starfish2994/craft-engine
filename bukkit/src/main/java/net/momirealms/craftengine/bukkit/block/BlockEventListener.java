@@ -140,7 +140,7 @@ public final class BlockEventListener implements Listener {
                             .withParameter(DirectContextParameters.POSITION, position)
                             .withParameter(DirectContextParameters.PLAYER, serverPlayer)
                             .withParameter(DirectContextParameters.EVENT, cancellable)
-                            .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
+                            .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand)
                         ), EventTrigger.BREAK
                 );
                 if (cancellable.isCancelled()) {
@@ -181,7 +181,7 @@ public final class BlockEventListener implements Listener {
                             .withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, state)
                             .withParameter(DirectContextParameters.EVENT, cancellable)
                             .withParameter(DirectContextParameters.POSITION, position)
-                            .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand)
+                            .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand)
                     );
                     state.owner().value().execute(context, EventTrigger.BREAK);
                     if (cancellable.isCancelled()) {

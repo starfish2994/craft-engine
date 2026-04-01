@@ -20,7 +20,7 @@ public final class HasItemCondition<CTX extends Context> implements Condition<CT
         Optional<Item> item = ctx.getOptionalParameter(DirectContextParameters.ITEM_IN_HAND);
         if (item.isEmpty()) return false;
         Item itemInHand = item.get();
-        return !ItemUtils.isEmpty(itemInHand);
+        return !itemInHand.isEmpty();
     }
 
     public static <CTX extends Context> ConditionFactory<CTX, HasItemCondition<CTX>> factory() {

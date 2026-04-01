@@ -35,7 +35,6 @@ public final class RemoveFurnitureFunction<CTX extends Context> extends Abstract
         ctx.getOptionalParameter(DirectContextParameters.FURNITURE).ifPresent(furniture -> removeFurniture(ctx, furniture, dropLoot, playSound));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static void removeFurniture(Context ctx, Furniture furniture, boolean dropLoot, boolean playSound) {
         if (!furniture.isValid()) return;
         WorldPosition position = furniture.position();
