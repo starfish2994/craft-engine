@@ -4523,7 +4523,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 int specialPrice = byteBuf.readInt();
                 float priceMultiplier = byteBuf.readFloat();
                 int demand = byteBuf.readInt();
-                return new MerchantOffer(cost1, cost2, manager.wrap(result), outOfStock, uses, maxUses, xp, specialPrice, priceMultiplier, demand);
+                return new MerchantOffer(cost1, cost2, result, outOfStock, uses, maxUses, xp, specialPrice, priceMultiplier, demand);
             });
 
             MutableBoolean changed = new MutableBoolean(false);
