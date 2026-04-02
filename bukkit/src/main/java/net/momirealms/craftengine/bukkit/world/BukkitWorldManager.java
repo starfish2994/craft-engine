@@ -669,9 +669,8 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                                 ImmutableBlockState customState = palettedContainer.get(index);
                                 if (customState != EmptyBlockDefinition.STATE && customState.customBlockState() != null) {
                                     int x = index & 0xF;
-                                    int temp = (index >> 4) & 0xFF;
-                                    int y = (temp >> 4) & 0xF;
-                                    int z = temp & 0xF;
+                                    int z = (index >> 4) & 0xF;
+                                    int y = (index >> 8) & 0xF;
                                     Object newState = customState.customBlockState().literalObject();
                                     Object previous = LevelChunkSectionProxy.INSTANCE.setBlockState(section, x, y, z, newState, false);
                                     if (newState != previous && LightUtils.hasDifferentLightProperties(newState, previous)) {
@@ -681,6 +680,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                                         BlockPos blockPos = new BlockPos(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z);
                                         if (!ceChunk.hasConstantBlockEntityRenderer(blockPos)) {
                                             ceChunk.addConstantBlockEntityRenderer(blockPos, customState);
+                                            ceChunk.setUnsaved(true);
                                         }
                                     }
                                 }
