@@ -26,8 +26,8 @@ public final class FoliaCEChunk extends CEChunk {
         super(world, chunkPos);
     }
 
-    public FoliaCEChunk(CEWorld world, ChunkPos chunkPos, CESection[] sections, @Nullable ListTag blockEntitiesTag) {
-        super(world, chunkPos, sections, blockEntitiesTag);
+    public FoliaCEChunk(CEWorld world, ChunkPos chunkPos, CESection[] sections, @Nullable ListTag blockEntitiesTag, @Nullable ListTag blockEntityRenders) {
+        super(world, chunkPos, sections, blockEntitiesTag, blockEntityRenders);
     }
 
     // folia 将同步和异步的tick的任务合二为一

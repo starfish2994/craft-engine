@@ -12,6 +12,7 @@ import net.momirealms.craftengine.bukkit.world.gen.CraftEngineFeatures;
 import net.momirealms.craftengine.bukkit.world.gen.InjectedChunkGenerator;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.pack.Pack;
@@ -27,6 +28,7 @@ import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftChunkProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.SectionPosProxy;
@@ -658,24 +660,27 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                         boolean isEmptyBefore = LevelChunkSectionProxy.INSTANCE.hasOnlyAir(section);
                         int sectionY = ceSection.sectionY;
                         // 有自定义方块
-                        PalettedContainer<ImmutableBlockState> palettedContainer = ceSection.statesContainer();
+                        PalettedContainer<ImmutableBlockState> palettedContainer = ceSection.statesContainer;
                         if (!palettedContainer.isEmpty()) {
                             if (isEmptyBefore) {
                                 LightEventListenerProxy.INSTANCE.updateSectionStatus(lightEngine, SectionPosProxy.INSTANCE.newInstance(chunkX, sectionY, chunkZ), false);
                             }
-                            for (int x = 0; x < 16; x++) {
-                                for (int z = 0; z < 16; z++) {
-                                    for (int y = 0; y < 16; y++) {
-                                        ImmutableBlockState customState = palettedContainer.get(x, y, z);
-                                        if (!customState.isEmpty() && customState.customBlockState() != null) {
-                                            Object newState = customState.customBlockState().literalObject();
-                                            Object previous = LevelChunkSectionProxy.INSTANCE.setBlockState(section, x, y, z, newState, false);
-                                            if (newState != previous && LightUtils.hasDifferentLightProperties(newState, previous)) {
-                                                ThreadedLevelLightEngineProxy.INSTANCE.checkBlock(lightEngine, LocationUtils.toBlockPos(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z));
-                                            }
-                                            if (customState.hasConstantBlockEntityRenderer()) {
-                                                ceChunk.addConstantBlockEntityRenderer(new BlockPos(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z), customState);
-                                            }
+                            for (int index = 0; index < 4096; index++) {
+                                ImmutableBlockState customState = palettedContainer.get(index);
+                                if (customState != EmptyBlockDefinition.STATE && customState.customBlockState() != null) {
+                                    int x = index & 0xF;
+                                    int temp = (index >> 4) & 0xFF;
+                                    int y = (temp >> 4) & 0xF;
+                                    int z = temp & 0xF;
+                                    Object newState = customState.customBlockState().literalObject();
+                                    Object previous = LevelChunkSectionProxy.INSTANCE.setBlockState(section, x, y, z, newState, false);
+                                    if (newState != previous && LightUtils.hasDifferentLightProperties(newState, previous)) {
+                                        ThreadedLevelLightEngineProxy.INSTANCE.checkBlock(lightEngine, BlockPosProxy.INSTANCE.newInstance(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z));
+                                    }
+                                    if (customState.hasConstantBlockEntityRenderer()) {
+                                        BlockPos blockPos = new BlockPos(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z);
+                                        if (!ceChunk.hasConstantBlockEntityRenderer(blockPos)) {
+                                            ceChunk.addConstantBlockEntityRenderer(blockPos, customState);
                                         }
                                     }
                                 }

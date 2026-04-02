@@ -45,7 +45,7 @@ public final class CESection {
 
     @ApiStatus.Internal
     public PalettedContainer<ImmutableBlockState> statesContainer() {
-        return statesContainer;
+        return this.statesContainer;
     }
 
     public int sectionY() {

@@ -31,6 +31,10 @@ public final class DefaultChunkSerializer {
         if (!blockEntities.isEmpty()) {
             chunkNbt.put("block_entities", blockEntities);
         }
+        ListTag blockEntityRenders = DefaultBlockEntityRendererSerializer.serialize(chunk.constantBlockEntityRendererPositions());
+        if (!blockEntityRenders.isEmpty()) {
+            chunkNbt.put("block_entity_renderers", blockEntityRenders);
+        }
         return chunkNbt;
     }
 
@@ -49,6 +53,7 @@ public final class DefaultChunkSerializer {
             }
         }
         ListTag blockEntities = chunkNbt.getList("block_entities");
-        return new CEChunk(world, pos, sectionArray, blockEntities);
+        ListTag blockEntityRenders = chunkNbt.getList("block_entity_renderers");
+        return new CEChunk(world, pos, sectionArray, blockEntities, blockEntityRenders);
     }
 }

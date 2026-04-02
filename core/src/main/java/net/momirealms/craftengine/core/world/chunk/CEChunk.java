@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.world.chunk;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
@@ -17,6 +18,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.world.*;
+import net.momirealms.craftengine.core.world.chunk.serialization.DefaultBlockEntityRendererSerializer;
 import net.momirealms.craftengine.core.world.chunk.serialization.DefaultBlockEntitySerializer;
 import net.momirealms.sparrow.nbt.ListTag;
 import org.jetbrains.annotations.NotNull;
@@ -55,14 +57,13 @@ public class CEChunk {
         this.fillEmptySection();
     }
 
-    public CEChunk(CEWorld world, ChunkPos chunkPos, CESection[] sections, @Nullable ListTag blockEntitiesTag) {
+    public CEChunk(CEWorld world, ChunkPos chunkPos, CESection[] sections, @Nullable ListTag blockEntitiesTag, @Nullable ListTag blockEntityRenders) {
         this.world = world;
         this.chunkPos = chunkPos;
         this.worldHeightAccessor = world.worldHeight();
         this.dynamicBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         this.tickingSyncBlockEntitiesByPos = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         this.tickingAsyncBlockEntitiesByPos = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
-        this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         int sectionCount = this.worldHeightAccessor.getSectionsCount();
         this.sections = new CESection[sectionCount];
         if (sections != null) {
@@ -77,11 +78,22 @@ public class CEChunk {
         if (blockEntitiesTag != null) {
             this.blockEntities = new Object2ObjectOpenHashMap<>(Math.max(blockEntitiesTag.size(), DEFAULT_MAP_SIZE), 0.5f);
             List<BlockEntity> blockEntities = DefaultBlockEntitySerializer.deserialize(this, blockEntitiesTag);
-            for (BlockEntity blockEntity : blockEntities) {
+            for (int i = 0, size = blockEntities.size(); i < size; i++) {
+                BlockEntity blockEntity = blockEntities.get(i);
                 this.setBlockEntity(blockEntity);
             }
         } else {
             this.blockEntities = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
+        }
+        if (blockEntityRenders != null) {
+            this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(Math.max(blockEntityRenders.size(), DEFAULT_MAP_SIZE), 0.5f);
+            List<BlockPos> blockEntityRendererPoses = DefaultBlockEntityRendererSerializer.deserialize(this.chunkPos, blockEntityRenders);
+            for (int i = 0, size = blockEntityRendererPoses.size(); i < size; i++) {
+                BlockPos pos = blockEntityRendererPoses.get(i);
+                this.addConstantBlockEntityRenderer(pos);
+            }
+        } else {
+            this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         }
     }
 
@@ -119,6 +131,10 @@ public class CEChunk {
         } finally {
             this.renderLock.readLock().unlock();
         }
+    }
+
+    public boolean hasConstantBlockEntityRenderer(BlockPos pos) {
+        return this.constantBlockEntityRenderers.containsKey(pos);
     }
 
     public ConstantBlockEntityRenderer addConstantBlockEntityRenderer(BlockPos pos) {
@@ -672,5 +688,14 @@ public class CEChunk {
         this.world.removeLoadedChunk(this);
         this.loaded = false;
         this.isEntitiesLoaded = false;
+    }
+
+    public List<BlockPos> constantBlockEntityRendererPositions() {
+        try {
+            this.renderLock.readLock().lock();
+            return new ObjectArrayList<>(this.constantBlockEntityRenderers.keySet());
+        } finally {
+            this.renderLock.readLock().unlock();
+        }
     }
 }
