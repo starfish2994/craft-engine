@@ -3,12 +3,12 @@ package net.momirealms.craftengine.bukkit.entity.furniture.behavior;
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
-import net.momirealms.craftengine.bukkit.entity.furniture.FurnitureInventoryHolder;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
+import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
@@ -34,7 +34,6 @@ import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -93,7 +92,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
         }
     }
 
-    public static final class SimpleStorageFurnitureController extends FurnitureController implements FurnitureInventoryHolder {
+    public static final class SimpleStorageFurnitureController extends FurnitureController {
         private static final String DEFAULT_DATA_KEY = "craftengine:simple_storage_contents";
         public final Furniture furniture;
         private final SimpleStorageFurnitureBehaviorTemplate template;
@@ -103,7 +102,9 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
             super(furniture);
             this.furniture = furniture;
             this.template = template;
-            this.inventory = FastNMS.INSTANCE.createSimpleStorageContainer(this, this.template.rows * 9, false, false);
+            WorldlyContainerHolder holder = new WorldlyContainerHolder(this::onPlayerClose, this.furniture::position);
+            this.inventory = FastNMS.INSTANCE.createSimpleStorageContainer(holder, this.template.rows * 9, false, false);
+            holder.setInventory(this.inventory);
         }
 
         @Override
@@ -155,7 +156,6 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
             this.furniture.setUnsaved();
         }
 
-        @Override
         public void onOpen(Player player) {
             if (!player.isSpectatorMode()) {
                 for (HumanEntity viewer : this.inventory.getViewers()) {
@@ -169,8 +169,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
             new BukkitInventory(this.inventory).open(player, AdventureHelper.miniMessage().deserialize(this.template.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
         }
 
-        @Override
-        public void onClose(Player player) {
+        public void onPlayerClose(Player player) {
             if (!player.isSpectatorMode()) {
                 for (HumanEntity viewer : this.inventory.getViewers()) {
                     if (viewer.getGameMode() == GameMode.SPECTATOR || viewer == player.platformPlayer()) continue;
@@ -182,11 +181,6 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
                 }
             }
             this.furniture.setUnsaved();
-        }
-
-        @Override
-        public @NotNull Inventory getInventory() {
-            return this.inventory;
         }
     }
 }

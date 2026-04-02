@@ -485,10 +485,10 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         ChunkPos pos = new ChunkPos(chunk.getX(), chunk.getZ());
         CEChunk ceChunk = world.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
         if (ceChunk != null) {
-            if (ceChunk.dirty()) {
+            if (ceChunk.isUnsaved()) {
                 try {
                     world.worldDataStorage().writeChunkAt(pos, ceChunk);
-                    ceChunk.setDirty(false);
+                    ceChunk.setUnsaved(false);
                 } catch (IOException e) {
                     this.plugin.logger().warn("Failed to write chunk tag at " + chunk.getX() + " " + chunk.getZ(), e);
                 }
@@ -672,6 +672,9 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                                             Object previous = LevelChunkSectionProxy.INSTANCE.setBlockState(section, x, y, z, newState, false);
                                             if (newState != previous && LightUtils.hasDifferentLightProperties(newState, previous)) {
                                                 ThreadedLevelLightEngineProxy.INSTANCE.checkBlock(lightEngine, LocationUtils.toBlockPos(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z));
+                                            }
+                                            if (customState.hasConstantBlockEntityRenderer()) {
+                                                ceChunk.addConstantBlockEntityRenderer(new BlockPos(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z), customState);
                                             }
                                         }
                                     }

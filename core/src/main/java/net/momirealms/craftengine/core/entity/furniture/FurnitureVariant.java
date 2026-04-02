@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public record FurnitureVariant(@NotNull String name,

@@ -1,19 +1,14 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
-import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
-import net.momirealms.craftengine.bukkit.block.entity.WallTorchParticleBlockEntity;
+import net.momirealms.craftengine.bukkit.block.entity.WallTorchParticleBlockEntityController;
 import net.momirealms.craftengine.core.block.BlockDefinition;
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.BlockEntityType;
-import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.particle.ParticleConfig;
 
 public final class WallTorchParticleBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
@@ -33,19 +28,8 @@ public final class WallTorchParticleBlockBehavior extends BukkitBlockBehavior im
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
-        return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.WALL_TORCH_PARTICLE);
-    }
-
-    @Override
-    public BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
-        return new WallTorchParticleBlockEntity(pos, state);
-    }
-
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> createAsyncBlockEntityTicker(CEWorld level, ImmutableBlockState state, BlockEntityType<T> blockEntityType) {
-        if (this.particles.length == 0) return null;
-        return EntityBlockBehavior.createTickerHelper(WallTorchParticleBlockEntity::tick);
+    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
+        return new WallTorchParticleBlockEntityController(blockEntity, this);
     }
 
     private static class Factory implements BlockBehaviorFactory<WallTorchParticleBlockBehavior> {

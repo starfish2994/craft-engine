@@ -22,7 +22,6 @@ import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.TickersList;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.incendo.cloud.suggestion.Suggestion;

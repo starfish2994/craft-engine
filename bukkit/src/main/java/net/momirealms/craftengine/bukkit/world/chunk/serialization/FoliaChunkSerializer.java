@@ -28,7 +28,6 @@ public final class FoliaChunkSerializer {
             }
         }
         ListTag blockEntities = chunkNbt.getList("block_entities");
-        ListTag blockEntityRenders = chunkNbt.getList("block_entity_renderers");
-        return new FoliaCEChunk(world, pos, sectionArray, blockEntities, blockEntityRenders, null);
+        return new FoliaCEChunk(world, pos, sectionArray, blockEntities);
     }
 }

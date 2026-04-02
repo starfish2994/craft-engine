@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public abstract class FurnitureController {
     protected final Furniture furniture;
@@ -29,16 +30,26 @@ public abstract class FurnitureController {
     }
 
     @SuppressWarnings("unchecked")
-    public <C extends FurnitureController> void find(@NotNull Class<C> controllerClass, @NotNull Consumer<C> consumer) {
+    public <C extends FurnitureController> void let(@NotNull Class<C> controllerClass, int index, @NotNull Consumer<C> consumer) {
         if (controllerClass.isInstance(this)) {
             consumer.accept((C) this);
         }
     }
 
-    public <C extends FurnitureController> List<C> find(@NotNull Class<C> controllerClass) {
-        List<C> result = new ArrayList<>(4);
-        find(controllerClass, result::add);
-        return result;
+    @SuppressWarnings("unchecked")
+    public <C extends FurnitureController, V> V let(Class<C> clazz, int index, Function<C, V> function) {
+        if (clazz.isInstance(this)) {
+            return function.apply((C) this);
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C extends FurnitureController> C get(Class<C> clazz, int index) {
+        if (clazz.isInstance(this)) {
+            return (C) this;
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -77,10 +88,10 @@ public abstract class FurnitureController {
     public void onVariantChange() {
     }
 
-    public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
+    public void gatherElements(Consumer<FurnitureElement> consumer) {
     }
 
-    public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
+    public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
     }
 
     /**
@@ -153,15 +164,9 @@ public abstract class FurnitureController {
         }
 
         private static FurnitureTicker<BiController> gettFurnitureTicker(FurnitureTicker<FurnitureController> firstFurnitureTicker, FurnitureTicker<FurnitureController> secondFurnitureTicker) {
-            if (firstFurnitureTicker == null && secondFurnitureTicker == null) {
-                return null;
-            }
-            if (firstFurnitureTicker == null) {
-                return (f, biController) -> secondFurnitureTicker.tick(f, biController.second);
-            }
-            if (secondFurnitureTicker == null) {
-                return (f, biController) -> firstFurnitureTicker.tick(f, biController.first);
-            }
+            if (firstFurnitureTicker == null && secondFurnitureTicker == null) return null;
+            if (firstFurnitureTicker == null) return (f, biController) -> secondFurnitureTicker.tick(f, biController.second);
+            if (secondFurnitureTicker == null) return (f, biController) -> firstFurnitureTicker.tick(f, biController.first);
             return (f, biController) -> {
                 firstFurnitureTicker.tick(f, biController.first);
                 secondFurnitureTicker.tick(f, biController.second);
@@ -184,15 +189,15 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
-            this.first.createFurnitureElements(consumer);
-            this.second.createFurnitureElements(consumer);
+        public void gatherElements(Consumer<FurnitureElement> consumer) {
+            this.first.gatherElements(consumer);
+            this.second.gatherElements(consumer);
         }
 
         @Override
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
-            this.first.createFurnitureHitboxes(consumer);
-            this.second.createFurnitureHitboxes(consumer);
+        public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
+            this.first.gatherHitboxes(consumer);
+            this.second.gatherHitboxes(consumer);
         }
 
         @Override
@@ -244,9 +249,23 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public <C extends FurnitureController> void find(@NotNull Class<C> controllerClass, @NotNull Consumer<C> consumer) {
-            this.first.find(controllerClass, consumer);
-            this.second.find(controllerClass, consumer);
+        public <C extends FurnitureController> void let(@NotNull Class<C> clazz, int index, @NotNull Consumer<C> consumer) {
+            if (index == 0) this.first.let(clazz, index, consumer);
+            else if (index == 1) this.second.let(clazz, index, consumer);
+        }
+
+        @Override
+        public <C extends FurnitureController, V> V let(Class<C> clazz, int index, Function<C, V> function) {
+            if (index == 0) return this.first.let(clazz, index, function);
+            else if (index == 1) return this.second.let(clazz, index, function);
+            return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <C extends FurnitureController> C get(Class<C> clazz, int index) {
+            if (index == 0) return clazz.isInstance(this.first) ? (C) this.first : null;
+            if (index == 1) return clazz.isInstance(this.second) ? (C) this.second : null;
+            return null;
         }
     }
 
@@ -324,16 +343,16 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
+        public void gatherElements(Consumer<FurnitureElement> consumer) {
             for (FurnitureController controller : this.controllers) {
-                controller.createFurnitureElements(consumer);
+                controller.gatherElements(consumer);
             }
         }
 
         @Override
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
+        public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
             for (FurnitureController controller : this.controllers) {
-                controller.createFurnitureHitboxes(consumer);
+                controller.gatherHitboxes(consumer);
             }
         }
 
@@ -397,11 +416,38 @@ public abstract class FurnitureController {
             return null;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public <C extends FurnitureController> void find(@NotNull Class<C> controllerClass, @NotNull Consumer<C> consumer) {
-            for (FurnitureController controller : this.controllers) {
-                controller.find(controllerClass, consumer);
+        public <C extends FurnitureController> void let(@NotNull Class<C> clazz, int index, @NotNull Consumer<C> consumer) {
+            if (index >= 0 && index < this.controllers.length) {
+                FurnitureController controller = this.controllers[index];
+                if (clazz.isInstance(controller)) {
+                    consumer.accept((C) controller);
+                }
             }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <C extends FurnitureController, V> V let(Class<C> clazz, int index, Function<C, V> function) {
+            if (index >= 0 && index < this.controllers.length) {
+                FurnitureController controller = this.controllers[index];
+                if (clazz.isInstance(controller)) {
+                    return function.apply((C) controller);
+                }
+            }
+            return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <C extends FurnitureController> C get(Class<C> clazz, int index) {
+            if (index >= 0 && index < this.controllers.length) {
+                FurnitureController controller = this.controllers[index];
+                if (clazz.isInstance(controller)) {
+                    return (C) controller;
+                }
+            }
+            return null;
         }
     }
 }

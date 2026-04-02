@@ -2,6 +2,9 @@ package net.momirealms.craftengine.bukkit.block.entity;
 
 import net.momirealms.craftengine.bukkit.block.behavior.SimpleParticleBlockBehavior;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
+import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.SimpleContext;
@@ -11,18 +14,24 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.particle.ParticleConfig;
 
-public class SimpleParticleBlockEntity extends AbstractAnimateTickBlockEntity {
+public final class SimpleParticleBlockEntityController extends BlockEntityController {
     private final SimpleParticleBlockBehavior behavior;
     private final Context context = SimpleContext.of(ContextHolder.empty());
+    private int tickCount;
 
-    public SimpleParticleBlockEntity(BlockPos pos, ImmutableBlockState blockState) {
-        super(BukkitBlockEntityTypes.SIMPLE_PARTICLE, pos, blockState);
-        this.behavior = blockState.behavior().getAs(SimpleParticleBlockBehavior.class).orElseThrow();
+    public SimpleParticleBlockEntityController(BlockEntity blockEntity, SimpleParticleBlockBehavior behavior) {
+        super(blockEntity);
+        this.behavior = behavior;
     }
 
-    public void animateTick(ImmutableBlockState state, World level, BlockPos pos) {
+    @Override
+    public <C extends BlockEntityController> BlockEntityTicker<C> createAsyncBlockEntityTicker(CEWorld world, ImmutableBlockState blockState) {
+        return createTickerHelper(SimpleParticleBlockEntityController::tick);
+    }
+
+    public void animateTick(World level, BlockPos pos) {
         for (ParticleConfig particle : this.behavior.particles) {
-            Vec3d location = new Vec3d(super.pos.x() + particle.x.getDouble(context), super.pos.y() + particle.y.getDouble(context), super.pos.z() + particle.z.getDouble(context));
+            Vec3d location = new Vec3d(pos.x() + particle.x.getDouble(this.context), pos.y() + particle.y.getDouble(this.context), pos.z() + particle.z.getDouble(this.context));
             level.spawnParticle(
                     location,
                     particle.particleType,
@@ -32,14 +41,14 @@ public class SimpleParticleBlockEntity extends AbstractAnimateTickBlockEntity {
                     particle.zOffset.getDouble(context),
                     particle.speed.getDouble(context),
                     particle.particleData,
-                    context
+                    this.context
             );
         }
     }
 
-    public static void tick(CEWorld ceWorld, BlockPos blockPos, ImmutableBlockState state, SimpleParticleBlockEntity particle) {
+    public static void tick(CEWorld ceWorld, BlockPos blockPos, ImmutableBlockState state, SimpleParticleBlockEntityController particle) {
         particle.tickCount++;
         if (particle.tickCount % particle.behavior.tickInterval != 0) return;
-        particle.animateTick(state, ceWorld.world(), blockPos);
+        particle.animateTick(ceWorld.world(), blockPos);
     }
 }

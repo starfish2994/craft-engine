@@ -55,7 +55,7 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
         if (!super.canPlace(context, state)) {
             return false;
         }
-        MultiHighBlockBehavior behavior = state.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+        MultiHighBlockBehavior behavior = state.behavior().getFirst(MultiHighBlockBehavior.class);
         if (behavior == null) {
             return false;
         }
@@ -91,7 +91,7 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
 
     @Override
     protected boolean placeBlock(Location location, ImmutableBlockState blockState, List<BlockState> revertState) {
-        MultiHighBlockBehavior behavior = blockState.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+        MultiHighBlockBehavior behavior = blockState.behavior().getFirst(MultiHighBlockBehavior.class);
         if (behavior == null) {
             return false;
         }

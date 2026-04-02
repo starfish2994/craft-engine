@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.block.entity.renderer.element;
+package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
@@ -84,7 +84,7 @@ public final class ArmorStandBlockEntityElement implements BlockEntityElement {
     }
 
     @Override
-    public void transform(Player player) {
+    public void update(Player player) {
         if (this.cachedUpdatePosPacket != null) {
             player.sendPackets(List.of(
                     this.cachedUpdatePosPacket,

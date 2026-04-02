@@ -111,12 +111,12 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
                 return BlocksProxy.AIR$defaultState;
             }
             ImmutableBlockState neighborState = optionalNeighborState.get();
-            Optional<DoorBlockBehavior> anotherDoorBehavior = neighborState.behavior().getAs(DoorBlockBehavior.class);
-            if (anotherDoorBehavior.isEmpty()) {
+            DoorBlockBehavior anotherDoorBehavior = neighborState.behavior().getFirst(DoorBlockBehavior.class);
+            if (anotherDoorBehavior == null) {
                 return BlocksProxy.AIR$defaultState;
             }
-            if (neighborState.get(anotherDoorBehavior.get().halfProperty) != half) {
-                return neighborState.with(anotherDoorBehavior.get().halfProperty, half).customBlockState().literalObject();
+            if (neighborState.get(anotherDoorBehavior.halfProperty) != half) {
+                return neighborState.with(anotherDoorBehavior.halfProperty, half).customBlockState().literalObject();
             }
             return BlocksProxy.AIR$defaultState;
         } else {
@@ -154,8 +154,8 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
             Object blockState = BlockGetterProxy.INSTANCE.getBlockState(level, blockPos);
             ImmutableBlockState belowState = BukkitBlockManager.instance().getImmutableBlockState(BlockStateUtils.blockStateToId(blockState));
             if (belowState == null || belowState.isEmpty()) return;
-            Optional<DoorBlockBehavior> belowDoorBehavior = belowState.behavior().getAs(DoorBlockBehavior.class);
-            if (belowDoorBehavior.isEmpty() || belowState.get(this.halfProperty) != DoubleBlockHalf.LOWER) return;
+            DoorBlockBehavior belowDoorBehavior = belowState.behavior().getFirst(DoorBlockBehavior.class);
+            if (belowDoorBehavior == null || belowState.get(belowDoorBehavior.halfProperty) != DoubleBlockHalf.LOWER) return;
             LevelWriterProxy.INSTANCE.setBlock(level, blockPos, BlocksProxy.AIR$defaultState, UPDATE_NEIGHBORS | UPDATE_CLIENTS | UPDATE_SUPPRESS_DROPS);
             LevelUtils.levelEvent(level, player, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, belowState.customBlockState().registryId());
         }
@@ -258,8 +258,8 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
             BlockData blockData = BlockStateUtils.fromBlockData(blockState);
             return blockData instanceof Door door && door.getHalf() == Bisected.Half.BOTTOM;
         } else {
-            Optional<DoorBlockBehavior> optional = optionalCustomState.get().behavior().getAs(DoorBlockBehavior.class);
-            return optional.isPresent() && optionalCustomState.get().get(optional.get().halfProperty) == DoubleBlockHalf.LOWER;
+            DoorBlockBehavior doorBlockBehavior = optionalCustomState.get().behavior().getFirst(DoorBlockBehavior.class);
+            return doorBlockBehavior != null && optionalCustomState.get().get(doorBlockBehavior.halfProperty) == DoubleBlockHalf.LOWER;
         }
     }
 

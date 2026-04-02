@@ -2,6 +2,9 @@ package net.momirealms.craftengine.bukkit.block.entity;
 
 import net.momirealms.craftengine.bukkit.block.behavior.WallTorchParticleBlockBehavior;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
+import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.SimpleContext;
@@ -12,13 +15,19 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.particle.ParticleConfig;
 
-public class WallTorchParticleBlockEntity extends AbstractAnimateTickBlockEntity {
+public final class WallTorchParticleBlockEntityController extends BlockEntityController {
     private final WallTorchParticleBlockBehavior behavior;
     private final Context context = SimpleContext.of(ContextHolder.empty());
+    private int tickCount;
 
-    public WallTorchParticleBlockEntity(BlockPos pos, ImmutableBlockState blockState) {
-        super(BukkitBlockEntityTypes.WALL_TORCH_PARTICLE, pos, blockState);
-        this.behavior = blockState.behavior().getAs(WallTorchParticleBlockBehavior.class).orElseThrow();
+    public WallTorchParticleBlockEntityController(BlockEntity blockEntity, WallTorchParticleBlockBehavior behavior) {
+        super(blockEntity);
+        this.behavior = behavior;
+    }
+
+    @Override
+    public <C extends BlockEntityController> BlockEntityTicker<C> createAsyncBlockEntityTicker(CEWorld world, ImmutableBlockState blockState) {
+        return createTickerHelper(WallTorchParticleBlockEntityController::tick);
     }
 
     public void animateTick(ImmutableBlockState state, World level, BlockPos pos) {
@@ -45,7 +54,7 @@ public class WallTorchParticleBlockEntity extends AbstractAnimateTickBlockEntity
         }
     }
 
-    public static void tick(CEWorld ceWorld, BlockPos blockPos, ImmutableBlockState state, WallTorchParticleBlockEntity particle) {
+    public static void tick(CEWorld ceWorld, BlockPos blockPos, ImmutableBlockState state, WallTorchParticleBlockEntityController particle) {
         particle.tickCount++;
         if (particle.tickCount % particle.behavior.tickInterval != 0) return;
         particle.animateTick(state, ceWorld.world(), blockPos);

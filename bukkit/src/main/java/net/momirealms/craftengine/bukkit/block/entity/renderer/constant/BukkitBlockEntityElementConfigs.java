@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.block.entity.renderer.element;
+package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigType;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigs;

@@ -33,7 +33,7 @@ public abstract class AbstractFurnitureHitBox implements FurnitureHitBox {
     }
 
     @Override
-    public void saveEntityData(CompoundTag data) {
+    public void saveSeatEntityData(CompoundTag data) {
         data.putString("type", "furniture");
         // 用于通过座椅找到原始家具
         data.putInt("entity_id", this.furniture.entityId());

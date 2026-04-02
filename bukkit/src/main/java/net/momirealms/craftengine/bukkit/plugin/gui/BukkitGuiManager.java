@@ -3,12 +3,10 @@ package net.momirealms.craftengine.bukkit.plugin.gui;
 import io.papermc.paper.event.player.PlayerPurchaseEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
-import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntity;
-import net.momirealms.craftengine.bukkit.entity.furniture.FurnitureInventoryHolder;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.plugin.gui.*;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -126,12 +124,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
         if (!InventoryUtils.isCustomContainer(inventory)) return;
         if (!(event.getPlayer() instanceof Player player)) return;
         InventoryHolder holder = inventory.getHolder(false);
-        if (holder instanceof BlockEntityHolder blockEntityHolder) {
-            if (blockEntityHolder.blockEntity() instanceof SimpleStorageBlockEntity simpleStorageBlockEntity) {
-                simpleStorageBlockEntity.onPlayerClose(BukkitAdaptor.adapt(player));
-                return;
-            }
-        } else if (holder instanceof FurnitureInventoryHolder furnitureInventoryHolder) {
+        if (holder instanceof WorldlyContainerHolder furnitureInventoryHolder) {
             furnitureInventoryHolder.onClose(BukkitAdaptor.adapt(player));
         }
     }
@@ -142,13 +135,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
         org.bukkit.inventory.Inventory inventory = player.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
         InventoryHolder holder = inventory.getHolder(false);
-        if (holder instanceof BlockEntityHolder blockEntityHolder) {
-            if (blockEntityHolder.blockEntity() instanceof SimpleStorageBlockEntity simpleStorageBlockEntity) {
-                simpleStorageBlockEntity.onPlayerClose(BukkitAdaptor.adapt(player));
-                return;
-            }
-        }
-        if (holder instanceof FurnitureInventoryHolder furnitureInventoryHolder) {
+        if (holder instanceof WorldlyContainerHolder furnitureInventoryHolder) {
             furnitureInventoryHolder.onClose(BukkitAdaptor.adapt(player));
         }
     }

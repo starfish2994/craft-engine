@@ -3,17 +3,19 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.*;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.WorldAccessor;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 public final class UnsafeCompositeBlockBehavior extends BlockBehavior
         implements FallOnBlockBehavior, PlaceLiquidBlockBehavior, IsPathFindableBlockBehavior, CanBeReplacedBlockBehavior {
@@ -24,9 +26,42 @@ public final class UnsafeCompositeBlockBehavior extends BlockBehavior
         this.behaviors = behaviors.toArray(new BlockBehavior[0]);
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getFirst(Class<T> tClass) {
+        for (BlockBehavior behavior : this.behaviors) {
+            if (tClass.isInstance(behavior)) {
+                return (T) behavior;
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> void let(Class<T> tClass, Consumer<T> consumer) {
+        for (BlockBehavior behavior : this.behaviors) {
+            if (tClass.isInstance(behavior)) {
+                consumer.accept((T) behavior);
+            }
+        }
+    }
+
+    @Override
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
+        int index = 0;
+        List<BlockEntityController> controllers = new ArrayList<>(this.behaviors.length);
+        for (BlockBehavior behavior : this.behaviors) {
+            if (behavior instanceof EntityBlockBehavior entityBlockBehavior) {
+                controllers.add(entityBlockBehavior.createController(blockEntity, index++));
+            }
+        }
+        return BlockEntityController.createFromList(blockEntity, controllers);
+    }
+
     @Override
     public boolean canPlaceLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
-        for (BlockBehavior behavior : behaviors) {
+        for (BlockBehavior behavior : this.behaviors) {
             if (behavior instanceof PlaceLiquidBlockBehavior) {
                 return behavior.canPlaceLiquid(thisBlock, args, superMethod);
             }
@@ -42,33 +77,6 @@ public final class UnsafeCompositeBlockBehavior extends BlockBehavior
             }
         }
         return super.placeLiquid(thisBlock, args, superMethod);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> Optional<T> getAs(Class<T> tClass) {
-        for (BlockBehavior behavior : this.behaviors) {
-            if (tClass.isInstance(behavior)) {
-                return Optional.of((T) behavior);
-            }
-        }
-        return Optional.empty();
-    }
-
-    @Nullable
-    @Override
-    public EntityBlockBehavior getEntityBehavior() {
-        EntityBlockBehavior target = null;
-        for (BlockBehavior behavior : this.behaviors) {
-            if (behavior instanceof EntityBlockBehavior entityBehavior) {
-                if (target == null) {
-                    target = entityBehavior;
-                } else {
-                    throw new IllegalArgumentException("Multiple entity block behaviors are not allowed");
-                }
-            }
-        }
-        return target;
     }
 
     @Override
@@ -169,7 +177,7 @@ public final class UnsafeCompositeBlockBehavior extends BlockBehavior
     }
 
     @Override
-    public void performBoneMeal(Object thisBlock, Object[] args) throws Exception {
+    public void performBoneMeal(Object thisBlock, Object[] args) {
         for (BlockBehavior behavior : this.behaviors) {
             behavior.performBoneMeal(thisBlock, args);
         }
@@ -214,7 +222,7 @@ public final class UnsafeCompositeBlockBehavior extends BlockBehavior
     }
 
     @Override
-    public boolean isBoneMealSuccess(Object thisBlock, Object[] args) throws Exception {
+    public boolean isBoneMealSuccess(Object thisBlock, Object[] args) {
         for (BlockBehavior behavior : this.behaviors) {
             if (behavior.isBoneMealSuccess(thisBlock, args)) {
                 return true;
@@ -250,7 +258,7 @@ public final class UnsafeCompositeBlockBehavior extends BlockBehavior
     }
 
     @Override
-    public void onExplosionHit(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void onExplosionHit(Object thisBlock, Object[] args, Callable<Object> superMethod) {
         for (BlockBehavior behavior : this.behaviors) {
             behavior.onExplosionHit(thisBlock, args, superMethod);
         }

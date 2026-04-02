@@ -1,17 +1,12 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
-import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
-import net.momirealms.craftengine.bukkit.block.entity.SimpleParticleBlockEntity;
+import net.momirealms.craftengine.bukkit.block.entity.SimpleParticleBlockEntityController;
 import net.momirealms.craftengine.core.block.BlockDefinition;
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.BlockEntityType;
-import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.particle.ParticleConfig;
 
 public final class SimpleParticleBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
@@ -28,19 +23,8 @@ public final class SimpleParticleBlockBehavior extends BukkitBlockBehavior imple
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
-        return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.SIMPLE_PARTICLE);
-    }
-
-    @Override
-    public BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
-        return new SimpleParticleBlockEntity(pos, state);
-    }
-
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> createAsyncBlockEntityTicker(CEWorld level, ImmutableBlockState state, BlockEntityType<T> blockEntityType) {
-        if (this.particles.length == 0) return null;
-        return EntityBlockBehavior.createTickerHelper(SimpleParticleBlockEntity::tick);
+    public BlockEntityController createController(BlockEntity entity, int controllerId) {
+        return new SimpleParticleBlockEntityController(entity, this);
     }
 
     private static class Factory implements BlockBehaviorFactory<SimpleParticleBlockBehavior> {

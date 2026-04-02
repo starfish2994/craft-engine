@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.block.entity.renderer.element;
+package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;

@@ -176,7 +176,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
 
         // 根据当前家具变体查找对应的展示物品相对坐标
         @Override
-        public void createFurnitureElements(Consumer<FurnitureElement> consumer) {
+        public void gatherElements(Consumer<FurnitureElement> consumer) {
             VariantRule variantRule = this.behavior.variantRules.get(furniture.getCurrentVariant().name());
             if (variantRule != null) {
                 this.displayItemElement = new DisplayItemElement(this.furniture, this, variantRule.itemRelative);
@@ -186,7 +186,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
 
         // 根据当前家具变体查找对应的碰撞箱并创建
         @Override
-        public void createFurnitureHitboxes(Consumer<FurnitureHitBox> consumer) {
+        public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
             VariantRule variantRule = this.behavior.variantRules.get(furniture.getCurrentVariant().name());
             if (variantRule != null && !variantRule.hitBoxConfigs.isEmpty()) {
                 this.trackedHitboxes = new HashSet<>();

@@ -34,7 +34,6 @@ import net.momirealms.craftengine.bukkit.api.event.FurnitureBreakEvent;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureHitEvent;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.bukkit.block.entity.BedBlockEntity;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
@@ -602,12 +601,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         if (serverPlayer != null) {
             this.resetUserArray();
             this.saveCooldown(player, serverPlayer.cooldown());
-            // 床方块实体特殊处理
-            BedBlockEntity bed = serverPlayer.bedBlockEntity();
-            serverPlayer.setBedBlockEntity(null);
-            if (bed != null) {
-                bed.setOccupier(null);
-            }
         }
     }
 

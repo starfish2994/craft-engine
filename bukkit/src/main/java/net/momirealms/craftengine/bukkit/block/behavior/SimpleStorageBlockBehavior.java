@@ -1,8 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
-import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
-import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntity;
+import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -13,7 +12,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.BlockEntityType;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -46,6 +45,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
     public final boolean canTakeItem;
     @Nullable
     public final Property<Boolean> openProperty;
+    private int controllerId;
 
     private SimpleStorageBlockBehavior(BlockDefinition blockDefinition,
                                        String containerTitle,
@@ -82,11 +82,11 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
         BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(blockPos);
-        if (!(blockEntity instanceof SimpleStorageBlockEntity entity) || entity.inventory() == null) {
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        }
-        entity.onPlayerOpen(player);
-        new BukkitInventory(entity.inventory()).open(player, AdventureHelper.miniMessage().deserialize(this.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
+        if (blockEntity == null) return InteractionResult.FAIL;
+        blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
+            c.onPlayerOpen(player);
+            new BukkitInventory(c.inventory()).open(player, AdventureHelper.miniMessage().deserialize(this.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
+        });
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
@@ -106,19 +106,16 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
         CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
-        if (blockEntity instanceof SimpleStorageBlockEntity entity) {
-            entity.checkOpeners(world, blockPos, args[0]);
-        }
+        if (blockEntity == null) return;
+        blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
+            c.checkOpeners(world, blockPos, args[0]);
+        });
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
-        return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.SIMPLE_STORAGE);
-    }
-
-    @Override
-    public BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
-        return new SimpleStorageBlockEntity(pos, state);
+    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
+        this.controllerId = controllerId;
+        return new SimpleStorageBlockEntityController(blockEntity, this);
     }
 
     @Override
@@ -130,8 +127,9 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
         CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
-        if (blockEntity instanceof SimpleStorageBlockEntity entity) {
-            Inventory inventory = entity.inventory();
+        if (blockEntity == null) return 0;
+        return blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
+            Inventory inventory = c.inventory();
             if (inventory != null) {
                 float signal = 0.0F;
                 for (int i = 0; i < inventory.getSize(); i++) {
@@ -143,8 +141,8 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
                 signal /= (float) inventory.getSize();
                 return MiscUtils.lerpDiscrete(signal, 0, 15);
             }
-        }
-        return 0;
+            return 0;
+        });
     }
 
     @Override
@@ -157,10 +155,10 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         CEWorld ceWorld = BukkitWorldManager.instance().getWorld(LevelProxy.INSTANCE.getWorld(args[1]));
         BlockPos blockPos = LocationUtils.fromBlockPos(args[2]);
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(blockPos);
-        if (blockEntity instanceof SimpleStorageBlockEntity entity) {
-            return CraftInventoryProxy.INSTANCE.getInventory(entity.inventory());
-        }
-        return null;
+        if (blockEntity == null) return null;
+        return blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
+            return CraftInventoryProxy.INSTANCE.getInventory(c.inventory());
+        });
     }
 
     private static class Factory implements BlockBehaviorFactory<SimpleStorageBlockBehavior> {

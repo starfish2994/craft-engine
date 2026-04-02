@@ -1,8 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
-import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
-import net.momirealms.craftengine.bukkit.block.entity.DisplayItemEntity;
+import net.momirealms.craftengine.bukkit.block.entity.DisplayItemBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
@@ -11,7 +10,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.BlockEntityType;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -28,7 +27,6 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -40,6 +38,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     public final Vector3f relativePosition;
     @Nullable
     public final Property<Direction> directionProperty;
+    private int controllerId;
 
     public DisplayItemBlockBehavior(BlockDefinition blockDefinition,
                                     SoundData putSound,
@@ -57,51 +56,47 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     }
 
     @Override
+    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
+        this.controllerId = controllerId;
+        return new DisplayItemBlockEntityController(blockEntity, this);
+    }
+
+    @Override
     public InteractionResult useOnBlock(UseOnContext context, ImmutableBlockState state) {
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
         World world = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        Location location = new Location((org.bukkit.World) context.getWorld().platformWorld(), pos.x, pos.y, pos.z);
-        if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        }
         BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
-        if (!(blockEntity instanceof DisplayItemEntity displayItemEntity && displayItemEntity.isValid())) {
+        if (blockEntity == null) {
             return InteractionResult.PASS;
         }
-
+        Location location = new Location((org.bukkit.World) context.getWorld().platformWorld(), pos.x, pos.y, pos.z);
+        if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
+            return InteractionResult.FAIL;
+        }
         InteractionHand hand = context.getHand();
         Item itemInHand = player.getItemInHand(hand);
-        // 放入物品
-        if (!ItemUtils.isEmpty(itemInHand) && ItemUtils.isEmpty(displayItemEntity.displayItem())) {
-            Item inputItem = itemInHand.copyWithCount(1);
-            if (!player.canInstabuild()) {
-                itemInHand.shrink(1);
+        return blockEntity.controller.let(DisplayItemBlockEntityController.class, this.controllerId, c -> {
+            // 放入物品
+            if (!ItemUtils.isEmpty(itemInHand) && ItemUtils.isEmpty(c.displayItem())) {
+                Item inputItem = itemInHand.copyWithCount(1);
+                if (!player.canInstabuild()) {
+                    itemInHand.shrink(1);
+                }
+                c.putDisplayItem(inputItem, player);
+                player.swingHand(hand);
+                return InteractionResult.SUCCESS_AND_CANCEL;
             }
-            displayItemEntity.putDisplayItem(inputItem, player);
-            player.swingHand(hand);
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        }
-        // 取出物品
-        else if (ItemUtils.isEmpty(itemInHand) && !ItemUtils.isEmpty(displayItemEntity.displayItem())) {
-            Item takedItem = displayItemEntity.takeDisplayItem(player);
-            player.setItemInHand(hand, takedItem);
-            player.swingHand(hand);
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        }
-
-        return InteractionResult.TRY_EMPTY_HAND;
-    }
-
-    @Override
-    public <T extends BlockEntity> @NotNull BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
-        return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.DISPLAY_ITEM);
-    }
-
-    @Override
-    public @NotNull BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
-        return new DisplayItemEntity(pos, state, this.relativePosition);
+            // 取出物品
+            else if (ItemUtils.isEmpty(itemInHand) && !ItemUtils.isEmpty(c.displayItem())) {
+                Item takedItem = c.takeDisplayItem(player);
+                player.setItemInHand(hand, takedItem);
+                player.swingHand(hand);
+                return InteractionResult.SUCCESS_AND_CANCEL;
+            }
+            return InteractionResult.TRY_EMPTY_HAND;
+        });
     }
 
     // 比较器红石信号.
@@ -114,12 +109,15 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         org.bukkit.World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
         CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
-        if (blockEntity instanceof DisplayItemEntity entity) {
-            if (!ItemUtils.isEmpty(entity.displayItem())) {
+        if (blockEntity == null) {
+            return 0;
+        }
+        return blockEntity.controller.let(DisplayItemBlockEntityController.class, this.controllerId, c -> {
+            if (!ItemUtils.isEmpty(c.displayItem())) {
                 return 15;
             }
-        }
-        return 0;
+            return 0;
+        });
     }
 
     @Override

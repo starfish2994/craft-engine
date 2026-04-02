@@ -109,7 +109,7 @@ public final class FaceAttachedHorizontalDirectionalBlockBehavior extends Bukkit
     @Nullable
     public static Direction getConnectedDirection(ImmutableBlockState state) {
         if (state == null) return null;
-        FaceAttachedHorizontalDirectionalBlockBehavior behavior = state.behavior().getAs(FaceAttachedHorizontalDirectionalBlockBehavior.class).orElse(null);
+        FaceAttachedHorizontalDirectionalBlockBehavior behavior = state.behavior().getFirst(FaceAttachedHorizontalDirectionalBlockBehavior.class);
         if (behavior == null) return null;
         return switch (state.get(behavior.anchorTypeProperty)) {
             case CEILING -> Direction.DOWN;

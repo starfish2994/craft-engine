@@ -76,36 +76,30 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
         Object relativeBlockState1 = BlockGetterProxy.INSTANCE.getBlockState(level, LocationUtils.toBlockPos(pos.relative(direction)));
         Optional<ImmutableBlockState> optionalCustomState1 = BlockStateUtils.getOptionalCustomBlockState(relativeBlockState1);
         if (optionalCustomState1.isPresent()) {
-            ImmutableBlockState customState1 = optionalCustomState1.get();
-            Optional<StairsBlockBehavior> optionalStairsBlockBehavior = customState1.behavior().getAs(StairsBlockBehavior.class);
-            if (optionalStairsBlockBehavior.isPresent()) {
-                StairsBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
-                if (state.get(this.halfProperty) == customState1.get(stairsBlockBehavior.halfProperty)) {
-                    Direction direction1 = customState1.get(stairsBlockBehavior.facingProperty);
-                    if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1.opposite())) {
-                        if (direction1 == direction.counterClockWise()) {
-                            return StairsShape.OUTER_LEFT;
-                        }
-                        return StairsShape.OUTER_RIGHT;
+            ImmutableBlockState anotherCustomState = optionalCustomState1.get();
+            StairsBlockBehavior stairsBlockBehavior = anotherCustomState.behavior().getFirst(StairsBlockBehavior.class);
+            if (state.get(this.halfProperty) == anotherCustomState.get(stairsBlockBehavior.halfProperty)) {
+                Direction direction1 = anotherCustomState.get(stairsBlockBehavior.facingProperty);
+                if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1.opposite())) {
+                    if (direction1 == direction.counterClockWise()) {
+                        return StairsShape.OUTER_LEFT;
                     }
+                    return StairsShape.OUTER_RIGHT;
                 }
             }
         }
         Object relativeBlockState2 = BlockGetterProxy.INSTANCE.getBlockState(level, LocationUtils.toBlockPos(pos.relative(direction.opposite())));
         Optional<ImmutableBlockState> optionalCustomState2 = BlockStateUtils.getOptionalCustomBlockState(relativeBlockState2);
         if (optionalCustomState2.isPresent()) {
-            ImmutableBlockState customState2 = optionalCustomState2.get();
-            Optional<StairsBlockBehavior> optionalStairsBlockBehavior = customState2.behavior().getAs(StairsBlockBehavior.class);
-            if (optionalStairsBlockBehavior.isPresent()) {
-                StairsBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
-                if (state.get(this.halfProperty) == customState2.get(stairsBlockBehavior.halfProperty)) {
-                    Direction direction2 = customState2.get(stairsBlockBehavior.facingProperty);
-                    if (direction2.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction2)) {
-                        if (direction2 == direction.counterClockWise()) {
-                            return StairsShape.INNER_LEFT;
-                        }
-                        return StairsShape.INNER_RIGHT;
+            ImmutableBlockState anotherCustomState = optionalCustomState2.get();
+            StairsBlockBehavior stairsBlockBehavior = anotherCustomState.behavior().getFirst(StairsBlockBehavior.class);
+            if (state.get(this.halfProperty) == anotherCustomState.get(stairsBlockBehavior.halfProperty)) {
+                Direction direction2 = anotherCustomState.get(stairsBlockBehavior.facingProperty);
+                if (direction2.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction2)) {
+                    if (direction2 == direction.counterClockWise()) {
+                        return StairsShape.INNER_LEFT;
                     }
+                    return StairsShape.INNER_RIGHT;
                 }
             }
         }
@@ -119,11 +113,10 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
             return true;
         }
         ImmutableBlockState anotherState = optionalAnotherState.get();
-        Optional<StairsBlockBehavior> optionalBehavior = anotherState.behavior().getAs(StairsBlockBehavior.class);
-        if (optionalBehavior.isEmpty()) {
+        StairsBlockBehavior anotherBehavior = anotherState.behavior().getFirst(StairsBlockBehavior.class);
+        if (anotherBehavior == null) {
             return true;
         }
-        StairsBlockBehavior anotherBehavior = optionalBehavior.get();
         return anotherState.get(anotherBehavior.facingProperty) != state.get(this.facingProperty) || anotherState.get(anotherBehavior.halfProperty) != state.get(this.halfProperty);
     }
 

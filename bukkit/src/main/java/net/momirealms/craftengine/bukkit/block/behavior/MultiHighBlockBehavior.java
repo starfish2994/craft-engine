@@ -28,7 +28,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockB
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
-import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import static net.momirealms.craftengine.core.block.UpdateFlags.*;
@@ -50,7 +49,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
         if (customState == null || customState.isEmpty()) {
             return BlocksProxy.AIR$defaultState;
         }
-        MultiHighBlockBehavior behavior = customState.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+        MultiHighBlockBehavior behavior = customState.behavior().getFirst(MultiHighBlockBehavior.class);
         if (behavior == null) {
             return BlocksProxy.AIR$defaultState;
         }
@@ -67,7 +66,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
                 playBreakEffect(customState, blockPos, level);
                 return BlocksProxy.AIR$defaultState;
             }
-            MultiHighBlockBehavior aboveBehavior = state.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+            MultiHighBlockBehavior aboveBehavior = state.behavior().getFirst(MultiHighBlockBehavior.class);
             if (aboveBehavior == null || aboveBehavior.property != property) {
                 playBreakEffect(customState, blockPos, level);
                 return BlocksProxy.AIR$defaultState;
@@ -85,7 +84,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
                 playBreakEffect(customState, blockPos, level);
                 return BlocksProxy.AIR$defaultState;
             }
-            MultiHighBlockBehavior belowBehavior = state.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+            MultiHighBlockBehavior belowBehavior = state.behavior().getFirst(MultiHighBlockBehavior.class);
             if (belowBehavior == null || belowBehavior.property != property) {
                 playBreakEffect(customState, blockPos, level);
                 return BlocksProxy.AIR$defaultState;
@@ -126,7 +125,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void preventDropFromBasePart(Object level, Object pos, ImmutableBlockState state, Object player) {
-        MultiHighBlockBehavior behavior = state.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+        MultiHighBlockBehavior behavior = state.behavior().getFirst(MultiHighBlockBehavior.class);
         if (behavior == null) {
             return;
         }
@@ -141,11 +140,11 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
         if (baseState == null || baseState.isEmpty()) {
             return;
         }
-        Optional<MultiHighBlockBehavior> baseBehavior = baseState.behavior().getAs(MultiHighBlockBehavior.class);
-        if (baseBehavior.isEmpty()) {
+        MultiHighBlockBehavior baseBehavior = baseState.behavior().getFirst(MultiHighBlockBehavior.class);
+        if (baseBehavior == null) {
             return;
         }
-        IntegerProperty baseProperty = baseBehavior.get().property;
+        IntegerProperty baseProperty = baseBehavior.property;
         if (baseState.get(baseProperty) != baseProperty.min) {
             return;
         }
@@ -165,7 +164,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
         if (customState == null || customState.isEmpty()) {
             return false;
         }
-        MultiHighBlockBehavior behavior = customState.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+        MultiHighBlockBehavior behavior = customState.behavior().getFirst(MultiHighBlockBehavior.class);
         if (behavior == null) {
             return false;
         }
@@ -193,7 +192,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
         if (state == null) {
             return;
         }
-        MultiHighBlockBehavior behavior = state.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+        MultiHighBlockBehavior behavior = state.behavior().getFirst(MultiHighBlockBehavior.class);
         if (behavior == null) {
             return;
         }
@@ -210,7 +209,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     public boolean canPlaceMultiState(WorldAccessor accessor, BlockPos pos, ImmutableBlockState state) {
-        MultiHighBlockBehavior behavior = state.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+        MultiHighBlockBehavior behavior = state.behavior().getFirst(MultiHighBlockBehavior.class);
         if (behavior == null) {
             return false;
         }
@@ -230,7 +229,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         World world  = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        MultiHighBlockBehavior behavior = state.behavior().getAs(MultiHighBlockBehavior.class).orElse(null);
+        MultiHighBlockBehavior behavior = state.behavior().getFirst(MultiHighBlockBehavior.class);
         if (behavior == null) {
             return null;
         }

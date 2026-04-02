@@ -54,7 +54,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
         if (DirectionProxy.INSTANCE.getAxis(direction) == AxisProxy.Y && half == DoubleBlockHalf.LOWER == (direction == DirectionProxy.UP)) {
             ImmutableBlockState neighborState = BlockStateUtils.getOptionalCustomBlockState(args[updateShape$neighborState]).orElse(null);
             if (neighborState == null || neighborState.isEmpty()) return BlocksProxy.AIR$defaultState;
-            DoubleHighBlockBehavior anotherDoorBehavior = neighborState.behavior().getAs(DoubleHighBlockBehavior.class).orElse(null);
+            DoubleHighBlockBehavior anotherDoorBehavior = neighborState.behavior().getFirst(DoubleHighBlockBehavior.class);
             if (anotherDoorBehavior == null) return BlocksProxy.AIR$defaultState;
             if (neighborState.get(anotherDoorBehavior.halfProperty) != half) {
                 return neighborState.with(anotherDoorBehavior.halfProperty, half).customBlockState().literalObject();
@@ -98,8 +98,8 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
         Object blockState = BlockGetterProxy.INSTANCE.getBlockState(level, blockPos);
         ImmutableBlockState belowState = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
         if (belowState == null || belowState.isEmpty()) return;
-        Optional<DoubleHighBlockBehavior> belowDoubleHighBlockBehavior = belowState.behavior().getAs(DoubleHighBlockBehavior.class);
-        if (belowDoubleHighBlockBehavior.isEmpty() || belowState.get(this.halfProperty) != DoubleBlockHalf.LOWER) return;
+        DoubleHighBlockBehavior belowDoubleHighBlockBehavior = belowState.behavior().getFirst(DoubleHighBlockBehavior.class);
+        if (belowDoubleHighBlockBehavior == null || belowState.get(belowDoubleHighBlockBehavior.halfProperty) != DoubleBlockHalf.LOWER) return;
         LevelWriterProxy.INSTANCE.setBlock(level, blockPos, BlocksProxy.AIR$defaultState, UPDATE_NEIGHBORS | UPDATE_CLIENTS | UPDATE_SUPPRESS_DROPS);
         LevelUtils.levelEvent(level, player, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, belowState.customBlockState().registryId());
     }

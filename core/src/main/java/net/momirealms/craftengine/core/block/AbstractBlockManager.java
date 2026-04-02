@@ -716,14 +716,15 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                     }
 
                     // 获取方块实体行为
-                    EntityBlockBehavior entityBlockBehavior = blockBehavior.getEntityBehavior();
-                    boolean isEntityBlock = entityBlockBehavior != null;
+                    List<EntityBlockBehavior> entityBehaviors = new ArrayList<>();
+                    blockBehavior.let(EntityBlockBehavior.class, entityBehaviors::add);
+                    boolean isEntityBlock = !entityBehaviors.isEmpty();
 
                     // 绑定行为
                     for (ImmutableBlockState state : states) {
 
                         if (isEntityBlock) {
-                            state.setBlockEntityType(entityBlockBehavior.blockEntityType(state));
+                            state.setHasBlockEntity();
                         }
 
                         state.setBehavior(blockBehavior);

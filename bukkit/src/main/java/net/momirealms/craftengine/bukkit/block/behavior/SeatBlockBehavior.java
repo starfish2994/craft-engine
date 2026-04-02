@@ -1,14 +1,13 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
-import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
-import net.momirealms.craftengine.bukkit.block.entity.SeatBlockEntity;
+import net.momirealms.craftengine.bukkit.block.entity.SeatBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.BlockEntityType;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.seat.SeatConfig;
@@ -22,6 +21,7 @@ public final class SeatBlockBehavior extends BukkitBlockBehavior implements Enti
     public static final BlockBehaviorFactory<SeatBlockBehavior> FACTORY = new Factory();
     public final Property<Direction> directionProperty;
     public final SeatConfig[] seats;
+    private int controllerId;
 
     private SeatBlockBehavior(BlockDefinition blockDefinition,
                               Property<Direction> directionProperty,
@@ -32,17 +32,9 @@ public final class SeatBlockBehavior extends BukkitBlockBehavior implements Enti
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
-        return new SeatBlockEntity(pos, state, this.seats);
-    }
-
-    @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
-        return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.SEAT);
-    }
-
-    public Property<Direction> directionProperty() {
-        return this.directionProperty;
+    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
+        this.controllerId = controllerId;
+        return new SeatBlockEntityController(blockEntity, this);
     }
 
     @Override
@@ -54,15 +46,15 @@ public final class SeatBlockBehavior extends BukkitBlockBehavior implements Enti
         BlockPos pos = context.getClickedPos();
         CEWorld world = context.getLevel().storageWorld();
         BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(pos);
-        if (!(blockEntity instanceof SeatBlockEntity seatBlockEntity)) {
-            return InteractionResult.PASS;
-        }
-        player.swingHand(context.getHand());
-        if (seatBlockEntity.spawnSeat(player)) {
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        } else {
-            return InteractionResult.PASS;
-        }
+        if (blockEntity == null) return InteractionResult.PASS;
+        return blockEntity.controller.let(SeatBlockEntityController.class, this.controllerId, c -> {
+            if (c.spawnSeat(player)) {
+                player.swingHand(context.getHand());
+                return InteractionResult.SUCCESS_AND_CANCEL;
+            } else {
+                return InteractionResult.PASS;
+            }
+        });
     }
 
     private static class Factory implements BlockBehaviorFactory<SeatBlockBehavior> {

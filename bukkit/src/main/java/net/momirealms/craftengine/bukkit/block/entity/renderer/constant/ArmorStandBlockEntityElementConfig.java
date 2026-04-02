@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.block.entity.renderer.element;
+package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import com.google.common.base.Objects;
 import net.momirealms.craftengine.bukkit.entity.data.ArmorStandData;

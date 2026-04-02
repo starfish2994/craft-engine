@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.bukkit.world;
 
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.entity.tick.*;
 import net.momirealms.craftengine.core.util.TickersList;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -26,44 +26,38 @@ public final class FoliaCEChunk extends CEChunk {
         super(world, chunkPos);
     }
 
-    public FoliaCEChunk(CEWorld world, ChunkPos chunkPos, CESection[] sections, @Nullable ListTag blockEntitiesTag, @Nullable ListTag blockEntityRenders, @Nullable ListTag entities) {
-        super(world, chunkPos, sections, blockEntitiesTag, blockEntityRenders, entities);
+    public FoliaCEChunk(CEWorld world, ChunkPos chunkPos, CESection[] sections, @Nullable ListTag blockEntitiesTag) {
+        super(world, chunkPos, sections, blockEntitiesTag);
     }
 
     // folia 将同步和异步的tick的任务合二为一
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends BlockEntity> void replaceOrCreateTickingBlockEntity(T blockEntity) {
+    public void replaceOrCreateTickingBlockEntity(BlockEntity blockEntity) {
         ImmutableBlockState blockState = blockEntity.blockState();
-        EntityBlockBehavior blockBehavior = blockState.behavior().getEntityBehavior();
-        if (blockBehavior == null) {
-            this.removeBlockEntityTicker(blockEntity.pos());
+        BlockEntityController controller = blockEntity.controller;
+        BlockEntityTicker<BlockEntityController> syncTicker = controller.createBlockEntityTicker(this.world, blockState);
+        BlockEntityTicker<BlockEntityController> asyncTicker = controller.createAsyncBlockEntityTicker(this.world, blockState);
+        if (syncTicker != null || asyncTicker != null) {
+            super.tickingSyncBlockEntitiesByPos.compute(blockEntity.pos(), ((pos, previousTicker) -> {
+                TickingBlockEntity newTicker;
+                if (syncTicker != null && asyncTicker != null) {
+                    newTicker = new CombinedTickingBlockEntity<>(this, blockEntity, syncTicker, asyncTicker);
+                } else {
+                    newTicker = new DefaultTickingBlockEntity<>(this, blockEntity, Objects.requireNonNullElse(syncTicker, asyncTicker));
+                }
+                if (previousTicker != null) {
+                    previousTicker.setTicker(newTicker);
+                    return previousTicker;
+                } else {
+                    ReplaceableTickingBlockEntity replaceableTicker = new ReplaceableTickingBlockEntity(newTicker);
+                    this.addBlockEntityTicker(replaceableTicker);
+                    return replaceableTicker;
+                }
+            }));
+            FoliaCEWorld foliaWorld = (FoliaCEWorld) this.world;
+            foliaWorld.replaceOrCreateTickingChunk(this);
         } else {
-            BlockEntityTicker<T> syncTicker = (BlockEntityTicker<T>) blockBehavior.createBlockEntityTicker(this.world, blockState, blockEntity.type());
-            BlockEntityTicker<T> asyncTicker = (BlockEntityTicker<T>) blockBehavior.createAsyncBlockEntityTicker(this.world, blockState, blockEntity.type());
-
-            if (syncTicker != null || asyncTicker != null) {
-                super.tickingSyncBlockEntitiesByPos.compute(blockEntity.pos(), ((pos, previousTicker) -> {
-                    TickingBlockEntity newTicker;
-                    if (syncTicker != null && asyncTicker != null) {
-                        newTicker = new CombinedTickingBlockEntity<>(this, blockEntity, syncTicker, asyncTicker);
-                    } else {
-                        newTicker = new DefaultTickingBlockEntity<>(this, blockEntity, Objects.requireNonNullElse(syncTicker, asyncTicker));
-                    }
-                    if (previousTicker != null) {
-                        previousTicker.setTicker(newTicker);
-                        return previousTicker;
-                    } else {
-                        ReplaceableTickingBlockEntity replaceableTicker = new ReplaceableTickingBlockEntity(newTicker);
-                        this.addBlockEntityTicker(replaceableTicker);
-                        return replaceableTicker;
-                    }
-                }));
-                FoliaCEWorld foliaWorld = (FoliaCEWorld) this.world;
-                foliaWorld.replaceOrCreateTickingChunk(this);
-            } else {
-                this.removeSyncBlockEntityTicker(blockEntity.pos());
-            }
+            this.removeSyncBlockEntityTicker(blockEntity.pos());
         }
     }
 

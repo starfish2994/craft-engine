@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.block.entity.renderer.element;
+package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
@@ -50,7 +50,7 @@ public final class TextDisplayBlockEntityElement implements BlockEntityElement {
     }
 
     @Override
-    public void transform(Player player) {
+    public void update(Player player) {
         if (this.cachedUpdatePosPacket != null) {
             player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player))), false);
         } else {

@@ -65,16 +65,12 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
         Object neighborState = args[updateShape$neighborState];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        if (optionalCustomState.isPresent()) {
-            Optional<LeavesBlockBehavior> optionalBehavior = optionalCustomState.get().behavior().getAs(LeavesBlockBehavior.class);
-            if (optionalBehavior.isPresent()) {
-                LeavesBlockBehavior behavior = optionalBehavior.get();
-                int distance = behavior.getDistanceAt(neighborState) + 1;
-                if (distance != 1 || behavior.getDistance(optionalCustomState.get()) != distance) {
-                    LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 1);
-                }
+        optionalCustomState.ifPresent(state -> state.behavior().let(LeavesBlockBehavior.class, itsBehavior -> {
+            int distance = itsBehavior.getDistanceAt(neighborState) + 1;
+            if (distance != 1 || itsBehavior.getDistance(state) != distance) {
+                LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 1);
             }
-        }
+        }));
         return blockState;
     }
 
@@ -84,21 +80,16 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
         Object level = args[1];
         Object blockPos = args[2];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        if (optionalCustomState.isPresent()) {
-            ImmutableBlockState customState = optionalCustomState.get();
-            Optional<LeavesBlockBehavior> optionalBehavior = customState.behavior().getAs(LeavesBlockBehavior.class);
-            if (optionalBehavior.isPresent()) {
-                LeavesBlockBehavior behavior = optionalBehavior.get();
-                ImmutableBlockState newState = behavior.updateDistance(customState, level, blockPos);
-                if (newState != customState) {
-                    if (blockState == newState.customBlockState().literalObject()) {
-                        BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.updateNeighbourShapes(blockState, level, blockPos, UpdateFlags.UPDATE_ALL, 512);
-                    } else {
-                        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
-                    }
+        optionalCustomState.ifPresent(customState -> customState.behavior().let(LeavesBlockBehavior.class, itsBehavior -> {
+            ImmutableBlockState newState = itsBehavior.updateDistance(customState, level, blockPos);
+            if (newState != customState) {
+                if (blockState == newState.customBlockState().literalObject()) {
+                    BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.updateNeighbourShapes(blockState, level, blockPos, UpdateFlags.UPDATE_ALL, 512);
+                } else {
+                    LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
                 }
             }
-        }
+        }));
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -109,10 +100,8 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
         Object blockPos = args[2];
         BlockStateUtils.getOptionalCustomBlockState(blockState).ifPresent(customState -> {
             // 可能是另一种树叶
-            Optional<LeavesBlockBehavior> optionalBehavior = customState.behavior().getAs(LeavesBlockBehavior.class);
-            if (optionalBehavior.isPresent()) {
-                LeavesBlockBehavior behavior = optionalBehavior.get();
-                if (behavior.isDecaying(customState)) {
+            customState.behavior().let(LeavesBlockBehavior.class, itsBehavior -> {
+                if (itsBehavior.isDecaying(customState)) {
                     World bukkitWorld = LevelProxy.INSTANCE.getWorld(level);
                     BlockPos pos = LocationUtils.fromBlockPos(blockPos);
                     // call bukkit event
@@ -124,7 +113,7 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
                     LevelProxy.INSTANCE.removeBlock(level, blockPos, false);
                     BlockProxy.INSTANCE.dropResources(blockState, level, blockPos);
                 }
-            }
+            });
         });
     }
 
@@ -132,7 +121,7 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
         return !isPersistent(blockState) && getDistance(blockState) == this.maxDistance;
     }
 
-    private ImmutableBlockState updateDistance(ImmutableBlockState state, Object world, Object blockPos) throws ReflectiveOperationException {
+    private ImmutableBlockState updateDistance(ImmutableBlockState state, Object world, Object blockPos) {
         int i = this.maxDistance;
         Object mutablePos = MutableBlockPosProxy.INSTANCE.newInstance();
         int j = Direction.values().length;
@@ -158,8 +147,9 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
             return StateHolderProxy.INSTANCE.getValue(blockState, LeavesBlockProxy.DISTANCE);
         } else {
             ImmutableBlockState anotherBlockState = optionalCustomState.get();
-            Optional<LeavesBlockBehavior> optionalAnotherBehavior = anotherBlockState.behavior().getAs(LeavesBlockBehavior.class);
-            return optionalAnotherBehavior.map(leavesBlockBehavior -> leavesBlockBehavior.getDistance(anotherBlockState)).orElse(this.maxDistance);
+            LeavesBlockBehavior leavesBlockBehavior = anotherBlockState.behavior().getFirst(LeavesBlockBehavior.class);
+            if (leavesBlockBehavior == null) return this.maxDistance;
+            return leavesBlockBehavior.getDistance(anotherBlockState);
         }
     }
 

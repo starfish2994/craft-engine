@@ -4,5 +4,5 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 
 public interface SeatOwner {
 
-    void saveEntityData(CompoundTag data);
+    void saveSeatEntityData(CompoundTag data);
 }

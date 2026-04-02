@@ -2,6 +2,8 @@ package net.momirealms.craftengine.core.block.behavior;
 
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
@@ -15,10 +17,10 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldAccessor;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 public abstract class BlockBehavior {
     protected final BlockDefinition blockDefinition;
@@ -32,17 +34,23 @@ public abstract class BlockBehavior {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getAs(Class<T> tClass) {
+    public <T> void let(Class<T> tClass, Consumer<T> consumer) {
         if (tClass.isInstance(this)) {
-            return Optional.of((T) this);
+            consumer.accept((T) this);
         }
-        return Optional.empty();
     }
 
-    @Nullable
-    public EntityBlockBehavior getEntityBehavior() {
-        if (this instanceof EntityBlockBehavior behavior) {
-            return behavior;
+    @SuppressWarnings("unchecked")
+    public <T> T getFirst(Class<T> tClass) {
+        if (tClass.isInstance(this)) {
+            return (T) this;
+        }
+        return null;
+    }
+
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
+        if (this instanceof EntityBlockBehavior entityBlockBehavior) {
+            return entityBlockBehavior.createController(blockEntity, 0);
         }
         return null;
     }
@@ -125,16 +133,16 @@ public abstract class BlockBehavior {
     }
 
     // Level level, RandomSource random, BlockPos pos, BlockState state
-    public boolean isBoneMealSuccess(Object thisBlock, Object[] args) throws Exception {
+    public boolean isBoneMealSuccess(Object thisBlock, Object[] args) {
         return false;
     }
 
     // ServerLevel level, RandomSource random, BlockPos pos, BlockState state
-    public void performBoneMeal(Object thisBlock, Object[] args) throws Exception {
+    public void performBoneMeal(Object thisBlock, Object[] args) {
     }
 
     // 1.21+ BlockState state, ServerLevel level, BlockPos pos, Explosion explosion, BiConsumer<ItemStack, BlockPos> dropConsumer
-    public void onExplosionHit(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void onExplosionHit(Object thisBlock, Object[] args, Callable<Object> superMethod) {
     }
 
     // LevelAccessor level, BlockPos pos, BlockState state, FluidState fluidState

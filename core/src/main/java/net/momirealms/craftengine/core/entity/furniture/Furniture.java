@@ -266,7 +266,7 @@ public abstract class Furniture implements Cullable {
             elements.add(element);
             element.collectInteractableEntityId(interactableEntityIds::addLast);
         }
-        this.controller.createFurnitureElements(element -> {
+        this.controller.gatherElements(element -> {
             elements.add(element);
             element.collectInteractableEntityId(interactableEntityIds::addLast);
         });
@@ -282,7 +282,7 @@ public abstract class Furniture implements Cullable {
             FurnitureHitBox hitbox = furnitureHitBoxConfig.create(this);
             hitboxes.add(hitbox);
         }
-        this.controller.createFurnitureHitboxes(hitboxes::add);
+        this.controller.gatherHitboxes(hitboxes::add);
 
         for (FurnitureHitBox hitbox : hitboxes) {
             for (FurnitureHitboxPart part : hitbox.parts()) {

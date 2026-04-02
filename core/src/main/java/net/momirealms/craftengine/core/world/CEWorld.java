@@ -75,9 +75,9 @@ public abstract class CEWorld {
         try {
             for (ConcurrentLong2ReferenceChainedHashTable.TableEntry<CEChunk> entry : this.loadedChunkMap.entrySet()) {
                 CEChunk chunk = entry.getValue();
-                if (chunk.dirty()) {
+                if (chunk.isUnsaved()) {
                     this.worldDataStorage.writeChunkAt(new ChunkPos(entry.getKey()), chunk);
-                    chunk.setDirty(false);
+                    chunk.setUnsaved(false);
                 }
             }
         } catch (IOException e) {
@@ -252,7 +252,7 @@ public abstract class CEWorld {
     public void blockEntityChanged(BlockPos pos) {
         CEChunk chunk = this.getChunkAtIfLoaded(pos.x >> 4, pos.z >> 4);
         if (chunk != null) {
-            chunk.setDirty(true);
+            chunk.setUnsaved(true);
         }
     }
 }

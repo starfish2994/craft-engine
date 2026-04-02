@@ -1,9 +1,9 @@
-package net.momirealms.craftengine.bukkit.block.entity.renderer;
+package net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic;
 
 import com.google.common.cache.Cache;
 import it.unimi.dsi.fastutil.ints.IntList;
-import net.momirealms.craftengine.bukkit.block.entity.ItemFrameBlockEntity;
-import net.momirealms.craftengine.core.block.entity.render.DynamicBlockEntityRenderer;
+import net.momirealms.craftengine.bukkit.block.entity.ItemFrameBlockEntityController;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Direction;
@@ -24,17 +24,17 @@ import org.joml.Vector3f;
 
 import java.util.UUID;
 
-public final class DynamicItemFrameRenderer implements DynamicBlockEntityRenderer {
-    public final ItemFrameBlockEntity blockEntity;
+public final class DynamicItemFrameBlockEntityElement implements BlockEntityElement {
+    public final ItemFrameBlockEntityController controller;
     public final Object cachedSpawnPacket;
     public final Object cachedDespawnPacket;
     public final int entityId;
 
-    public DynamicItemFrameRenderer(ItemFrameBlockEntity blockEntity, BlockPos pos) {
+    public DynamicItemFrameBlockEntityElement(ItemFrameBlockEntityController controller, BlockPos pos) {
         this.entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
-        this.blockEntity = blockEntity;
-        Vector3f position = this.blockEntity.behavior.position;
-        Direction direction = blockEntity.blockState().get(blockEntity.behavior.directionProperty);
+        this.controller = controller;
+        Vector3f position = controller.behavior.position;
+        Direction direction = controller.blockEntity().blockState().get(controller.behavior.directionProperty);
         Vec3i axisZ = direction.vector();
         Vec3i axisX = direction.axis().isVertical() ? Direction.EAST.vector() : direction.clockWise().vector();
         double worldX, worldY, worldZ;
@@ -49,7 +49,7 @@ public final class DynamicItemFrameRenderer implements DynamicBlockEntityRendere
         }
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, UUID.randomUUID(), worldX, worldY, worldZ, 0, 0,
-                this.blockEntity.behavior.glow ? EntityTypeProxy.GLOW_ITEM_FRAME : EntityTypeProxy.ITEM_FRAME,
+                controller.behavior.glow ? EntityTypeProxy.GLOW_ITEM_FRAME : EntityTypeProxy.ITEM_FRAME,
                 direction.ordinal(), Vec3Proxy.ZERO, 0
         );
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));
@@ -68,19 +68,19 @@ public final class DynamicItemFrameRenderer implements DynamicBlockEntityRendere
 
     @Override
     public void update(Player player) {
-        player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.blockEntity.cacheMetadata()), false);
-        if (this.blockEntity.behavior.renderMapItem) {
+        player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.controller.cacheMetadata()), false);
+        if (this.controller.behavior.renderMapItem) {
             updateMapItem(player);
         }
     }
 
     private void updateMapItem(Player player) {
         if (player.isFakePlayer()) return;
-        Object mapId = this.blockEntity.mapId();
+        Object mapId = this.controller.mapId();
         if (mapId == null) return;
-        CEWorld world = this.blockEntity.world;
+        CEWorld world = this.controller.blockEntity().world;
         if (world == null) return;
-        Object savedData = this.blockEntity.mapItemSavedData();
+        Object savedData = this.controller.mapItemSavedData();
         if (savedData == null) {
             if (VersionHelper.isOrAbove1_20_5()) {
                 savedData = MapItemProxy.INSTANCE.getSavedData$0(mapId, world.world.serverWorld());
@@ -88,7 +88,7 @@ public final class DynamicItemFrameRenderer implements DynamicBlockEntityRendere
                 savedData = MapItemProxy.INSTANCE.getSavedData$1((Integer) mapId, world.world.serverWorld());
             }
             if (savedData == null) return;
-            this.blockEntity.setMapItemSavedData(savedData);
+            this.controller.setMapItemSavedData(savedData);
         }
         try {
             Cache<Object, Boolean> receivedMapData = player.receivedMapData();

@@ -45,7 +45,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
     public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return args[0];
-        DirectionalAttachedBlockBehavior behavior = state.behavior().getAs(DirectionalAttachedBlockBehavior.class).orElse(null);
+        DirectionalAttachedBlockBehavior behavior = state.behavior().getFirst(DirectionalAttachedBlockBehavior.class);
         if (behavior == null) return state;
         Direction direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]).opposite();
         boolean flag = direction == state.get(behavior.facingProperty);
@@ -56,7 +56,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
     public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return false;
-        DirectionalAttachedBlockBehavior behavior = state.behavior().getAs(DirectionalAttachedBlockBehavior.class).orElse(null);
+        DirectionalAttachedBlockBehavior behavior = state.behavior().getFirst(DirectionalAttachedBlockBehavior.class);
         if (behavior == null) return false;
         Direction direction = state.get(behavior.facingProperty);
         BlockPos blockPos = LocationUtils.fromBlockPos(args[2]).relative(direction.opposite());
@@ -80,7 +80,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
 
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        DirectionalAttachedBlockBehavior behavior = state.behavior().getAs(DirectionalAttachedBlockBehavior.class).orElse(null);
+        DirectionalAttachedBlockBehavior behavior = state.behavior().getFirst(DirectionalAttachedBlockBehavior.class);
         if (behavior == null) return null;
         World level = context.getLevel();
         BlockPos clickedPos = context.getClickedPos();

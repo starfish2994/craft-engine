@@ -100,7 +100,7 @@ public final class BukkitSeat<O extends SeatOwner> implements Seat<O> {
         Location location = this.calculateSeatLocation(sourceLocation);
 
         CompoundTag extraData = new CompoundTag();
-        this.owner.saveEntityData(extraData);
+        this.owner.saveSeatEntityData(extraData);
         byte[] data;
         try {
             data = NBT.toBytes(extraData);

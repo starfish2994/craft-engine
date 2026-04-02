@@ -271,19 +271,13 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
     }
 
     public static boolean connectsToDirection(BlockStateWrapper state, Direction direction) {
-        FenceGateBlockBehavior fence = BlockStateUtils.getOptionalCustomBlockState(state.literalObject())
-                .map(ImmutableBlockState::behavior)
-                .flatMap(behavior -> behavior.getAs(FenceGateBlockBehavior.class))
-                .orElse(null);
+        Optional<ImmutableBlockState> optionalCustomBlockState = BlockStateUtils.getOptionalCustomBlockState(state.literalObject());
+        if (optionalCustomBlockState.isEmpty()) return false;
+        ImmutableBlockState customState = optionalCustomBlockState.get();
+        FenceGateBlockBehavior fence = customState.behavior().getFirst(FenceGateBlockBehavior.class);
         if (fence == null) return false;
-        Direction facing = null;
-        ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state.literalObject()).orElse(null);
-        if (customState == null) return false;
-        Property<?> facingProperty = customState.owner().value().getProperty("facing");
-        if (facingProperty != null && facingProperty.valueClass() == Direction.class) {
-            facing = (Direction) customState.get(facingProperty);
-        }
-        return facing != null && facing.axis() == direction.clockWise().axis();
+        Direction facing = customState.get(fence.facingProperty);
+        return facing.axis() == direction.clockWise().axis();
     }
 
     private static class Factory implements BlockBehaviorFactory<FenceGateBlockBehavior> {

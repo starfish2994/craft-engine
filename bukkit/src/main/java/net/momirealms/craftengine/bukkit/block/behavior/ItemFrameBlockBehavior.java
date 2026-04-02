@@ -2,8 +2,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.block.entity.BukkitBlockEntityTypes;
-import net.momirealms.craftengine.bukkit.block.entity.ItemFrameBlockEntity;
+import net.momirealms.craftengine.bukkit.block.entity.ItemFrameBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
@@ -14,7 +13,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
-import net.momirealms.craftengine.core.block.entity.BlockEntityType;
+import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -45,6 +44,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     public final SoundData takeSound;
     public final SoundData rotateSound;
     public final Property<Direction> directionProperty;
+    private int controllerId;
 
     private ItemFrameBlockBehavior(BlockDefinition blockDefinition,
                                    Vector3f position,
@@ -67,13 +67,9 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityType<T> blockEntityType(ImmutableBlockState state) {
-        return EntityBlockBehavior.blockEntityTypeHelper(BukkitBlockEntityTypes.ITEM_FRAME);
-    }
-
-    @Override
-    public BlockEntity createBlockEntity(BlockPos pos, ImmutableBlockState state) {
-        return new ItemFrameBlockEntity(pos, state);
+    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
+        this.controllerId = controllerId;
+        return new ItemFrameBlockEntityController(blockEntity, this);
     }
 
     @Override
@@ -86,7 +82,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
         return getSignal(args[0], args[1], args[2], args[3]);
     }
 
-    private static int getSignal(Object blockState, Object blockAccess, Object pos, Object side) {
+    private int getSignal(Object blockState, Object blockAccess, Object pos, Object side) {
         if (!LevelProxy.CLASS.isInstance(blockAccess)) {
             return 0;
         }
@@ -94,22 +90,20 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
         if (state == null) {
             return 0;
         }
-        ItemFrameBlockBehavior blockBehavior = state.behavior().getAs(ItemFrameBlockBehavior.class).orElse(null);
-        if (blockBehavior == null) {
-            return 0;
-        }
-        if (state.get(blockBehavior.directionProperty) != DirectionUtils.fromNMSDirection(side)) {
+        if (state.get(this.directionProperty) != DirectionUtils.fromNMSDirection(side)) {
             return 0;
         }
         BukkitWorld world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(blockAccess));
         BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(LocationUtils.fromBlockPos(pos));
-        if (!(blockEntity instanceof ItemFrameBlockEntity itemFrame && itemFrame.isValid())) {
+        if (blockEntity == null) {
             return 0;
         }
-        if (ItemUtils.isEmpty(itemFrame.item())) {
-            return 0;
-        }
-        return itemFrame.rotation() + 1;
+        return blockEntity.controller.let(ItemFrameBlockEntityController.class, this.controllerId, c -> {
+            if (ItemUtils.isEmpty(c.item())) {
+                return 0;
+            }
+            return c.rotation() + 1;
+        });
     }
 
     @Override
@@ -124,47 +118,50 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
         World world = context.getLevel();
         BlockPos pos = context.getClickedPos();
         BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
-        if (!(blockEntity instanceof ItemFrameBlockEntity itemFrame && itemFrame.isValid())) {
+        if (blockEntity == null) {
             return InteractionResult.PASS;
         }
         Location location = new Location((org.bukkit.World) world.platformWorld(), pos.x, pos.y, pos.z);
         if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
-        // 方块实体内部有物品的时候在shift时旋转
-        if (player.isSecondaryUseActive() && !ItemUtils.isEmpty(itemFrame.item())) {
-            itemFrame.rotation(itemFrame.rotation() + 1);
-            playSound(world, pos, this.rotateSound);
-            player.swingHand(context.getHand());
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        }
-        // 当主手为空的时候右键取下
-        if (context.getHand() == InteractionHand.MAIN_HAND && ItemUtils.isEmpty(context.getItem())) {
-            Item item = itemFrame.item();
-            if (ItemUtils.isEmpty(item)) { // 空的不管
+        return blockEntity.controller.let(ItemFrameBlockEntityController.class, this.controllerId, itemFrame -> {
+            // 方块实体内部有物品的时候在shift时旋转
+            if (player.isSecondaryUseActive() && !ItemUtils.isEmpty(itemFrame.item())) {
+                itemFrame.rotation(itemFrame.rotation() + 1);
+                playSound(world, pos, this.rotateSound);
+                player.swingHand(context.getHand());
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
-            itemFrame.updateItem(null); // 先取出来
-            if (!player.canInstabuild()) {
-                player.setItemInHand(InteractionHand.MAIN_HAND, item); // 然后给玩家
+            // 当主手为空的时候右键取下
+            if (context.getHand() == InteractionHand.MAIN_HAND && ItemUtils.isEmpty(context.getItem())) {
+                Item item = itemFrame.item();
+                if (ItemUtils.isEmpty(item)) { // 空的不管
+                    return InteractionResult.SUCCESS_AND_CANCEL;
+                }
+                itemFrame.updateItem(null); // 先取出来
+                if (!player.canInstabuild()) {
+                    player.setItemInHand(InteractionHand.MAIN_HAND, item); // 然后给玩家
+                }
+                playSound(world, pos, this.takeSound);
+                player.swingHand(context.getHand());
+                return InteractionResult.SUCCESS_AND_CANCEL;
             }
-            playSound(world, pos, this.takeSound);
-            player.swingHand(context.getHand());
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        }
-        // 当方块实体内部没有物品切换手上物品不为空则放入
-        if (ItemUtils.isEmpty(itemFrame.item()) && !ItemUtils.isEmpty(context.getItem())) {
-            Item item = context.getItem();
-            Item copied = item.copyWithCount(1);
-            if (!player.canInstabuild()) {
-                item.shrink(1); // 先扣物品
+            // 当方块实体内部没有物品切换手上物品不为空则放入
+            if (ItemUtils.isEmpty(itemFrame.item()) && !ItemUtils.isEmpty(context.getItem())) {
+                Item item = context.getItem();
+                Item copied = item.copyWithCount(1);
+                if (!player.canInstabuild()) {
+                    item.shrink(1); // 先扣物品
+                }
+                itemFrame.updateItem(copied); // 然后放进去
+                playSound(world, pos, this.putSound);
+                player.swingHand(context.getHand());
+                return InteractionResult.SUCCESS_AND_CANCEL;
             }
-            itemFrame.updateItem(copied); // 然后放进去
-            playSound(world, pos, this.putSound);
-            player.swingHand(context.getHand());
+
             return InteractionResult.SUCCESS_AND_CANCEL;
-        }
-        return InteractionResult.SUCCESS_AND_CANCEL;
+        });
     }
 
     private static void playSound(World world, BlockPos pos, SoundData soundData) {

@@ -253,6 +253,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void addTrackedEntity(int entityId, Cullable cullable);
 
+    public abstract void removeTrackedBlockEntities(BlockPos pos);
+
     public abstract void clearTrackedBlockEntities();
 
     public abstract int clearOrCountMatchingInventoryItems(Predicate<Item> predicate, int count);

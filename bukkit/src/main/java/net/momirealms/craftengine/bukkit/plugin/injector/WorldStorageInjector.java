@@ -22,7 +22,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.LevelChunkSe
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.PalettedContainerProxy;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public final class WorldStorageInjector {
@@ -91,7 +90,7 @@ public final class WorldStorageInjector {
             if (previousImmutableBlockState == newImmutableBlockState) return;
             // 处理  自定义块到自定义块或原版块到自定义块
             CEChunk chunk = holder.chunk();
-            chunk.setDirty(true);
+            chunk.setUnsaved(true);
 
             ConstantBlockEntityRenderer previousRenderer = null;
             // 如果两个方块没有相同的主人 且 旧方块有方块实体
@@ -118,15 +117,10 @@ public final class WorldStorageInjector {
             if (newImmutableBlockState.hasBlockEntity()) {
                 BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                 BlockEntity blockEntity = chunk.getBlockEntity(pos, false);
-                if (blockEntity != null && !blockEntity.isValidBlockState(newImmutableBlockState)) {
-                    chunk.removeBlockEntity(pos);
-                    blockEntity = null;
-                }
                 if (blockEntity == null) {
-                    blockEntity = Objects.requireNonNull(newImmutableBlockState.behavior().getEntityBehavior()).createBlockEntity(pos, newImmutableBlockState);
-                    if (blockEntity != null) {
-                        chunk.addBlockEntity(blockEntity);
-                    }
+                    // 如果新状态有方块实体
+                    blockEntity = new BlockEntity(pos, newImmutableBlockState);
+                    chunk.addBlockEntity(blockEntity);
                 } else {
                     blockEntity.setBlockState(newImmutableBlockState);
                     // 方块类型未变，仅更新状态，选择性更新ticker
@@ -158,7 +152,7 @@ public final class WorldStorageInjector {
             // 处理  自定义块 -> 原版块
             if (previous != null && !previous.isEmpty()) {
                 CEChunk chunk = holder.chunk();
-                chunk.setDirty(true);
+                chunk.setUnsaved(true);
                 if (previous.hasBlockEntity()) {
                     BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                     BlockEntity blockEntity = chunk.getBlockEntity(pos, false);

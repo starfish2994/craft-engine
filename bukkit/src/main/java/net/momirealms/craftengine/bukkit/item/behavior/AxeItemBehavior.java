@@ -64,21 +64,21 @@ public final class AxeItemBehavior extends ItemBehavior {
         if (optionalCustomState.isEmpty()) return InteractionResult.PASS;
 
         ImmutableBlockState customState = optionalCustomState.get();
-        Optional<StrippableBlockBehavior> behaviorOptional = customState.behavior().getAs(StrippableBlockBehavior.class);
-        if (behaviorOptional.isEmpty()) return InteractionResult.PASS;
+        StrippableBlockBehavior strippableBlockBehavior = customState.behavior().getFirst(StrippableBlockBehavior.class);
+        if (strippableBlockBehavior == null) return InteractionResult.PASS;
         Item offHandItem = player != null ? player.getItemInHand(InteractionHand.OFF_HAND) : null;
         // is using a shield
         if (context.getHand() == InteractionHand.MAIN_HAND && !ItemUtils.isEmpty(offHandItem) && canBlockAttack(offHandItem) && !player.isSecondaryUseActive()) {
             return InteractionResult.PASS;
         }
 
-        BlockStateWrapper newState = behaviorOptional.get().strippedState();
+        BlockStateWrapper newState = strippableBlockBehavior.strippedState();
         if (newState == null) {
-            CraftEngine.instance().logger().warn("stripped block " + behaviorOptional.get().stripped + " does not exist");
+            CraftEngine.instance().logger().warn("stripped block " + strippableBlockBehavior.stripped + " does not exist");
             return InteractionResult.FAIL;
         }
 
-        newState = newState.withProperties(behaviorOptional.get().filter(customState.propertiesNbt()));
+        newState = newState.withProperties(strippableBlockBehavior.filter(customState.propertiesNbt()));
         BukkitExistingBlock clicked = (BukkitExistingBlock) context.getLevel().getBlock(context.getClickedPos());
         org.bukkit.entity.Player bukkitPlayer = null;
         if (player != null) {

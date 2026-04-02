@@ -70,16 +70,13 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(relativeBlockState);
         if (optionalCustomState.isPresent()) {
             ImmutableBlockState customState = optionalCustomState.get();
-            Optional<SofaBlockBehavior> optionalStairsBlockBehavior = customState.behavior().getAs(SofaBlockBehavior.class);
-            if (optionalStairsBlockBehavior.isPresent()) {
-                SofaBlockBehavior stairsBlockBehavior = optionalStairsBlockBehavior.get();
-                Direction direction1 = customState.get(stairsBlockBehavior.facingProperty);
-                if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1)) {
-                    if (direction1 == direction.counterClockWise()) {
-                        return SofaShape.INNER_LEFT;
-                    }
-                    return SofaShape.INNER_RIGHT;
+            SofaBlockBehavior sofaBlockBehavior = customState.behavior().getFirst(SofaBlockBehavior.class);
+            Direction direction1 = customState.get(sofaBlockBehavior.facingProperty);
+            if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1)) {
+                if (direction1 == direction.counterClockWise()) {
+                    return SofaShape.INNER_LEFT;
                 }
+                return SofaShape.INNER_RIGHT;
             }
         }
         return SofaShape.STRAIGHT;
@@ -92,11 +89,10 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
             return true;
         }
         ImmutableBlockState anotherState = optionalAnotherState.get();
-        Optional<SofaBlockBehavior> optionalBehavior = anotherState.behavior().getAs(SofaBlockBehavior.class);
-        if (optionalBehavior.isEmpty()) {
+        SofaBlockBehavior anotherBehavior = anotherState.behavior().getFirst(SofaBlockBehavior.class);
+        if (anotherBehavior == null) {
             return true;
         }
-        SofaBlockBehavior anotherBehavior = optionalBehavior.get();
         return anotherState.get(anotherBehavior.facingProperty) != state.get(this.facingProperty);
     }
 

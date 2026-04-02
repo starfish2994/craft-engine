@@ -11,19 +11,16 @@ import io.netty.channel.ChannelHandler;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
-import net.momirealms.craftengine.bukkit.block.entity.BedBlockEntity;
-import net.momirealms.craftengine.bukkit.block.entity.BlockEntityHolder;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
-import net.momirealms.craftengine.bukkit.entity.furniture.FurnitureInventoryHolder;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.CraftEngineGUIHolder;
 import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
@@ -216,8 +213,6 @@ public class BukkitServerPlayer extends Player {
             .concurrencyLevel(4)
             .build();
     private final Set<UniqueKey> obtainedItems = new HashSet<>();
-    // 玩家正在使用的床方块实体
-    private BedBlockEntity bedBlockEntity;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -765,15 +760,9 @@ public class BukkitServerPlayer extends Player {
         InventoryHolder topHolder = top.getHolder();
         if (topHolder instanceof CraftEngineGUIHolder holder) {
             holder.gui().onTimer();
-        } else if (topHolder instanceof BlockEntityHolder holder) {
-            BlockEntity blockEntity = holder.blockEntity();
-            BlockPos blockPos = blockEntity.pos();
-            if (!canInteractWithBlock(blockPos, 4d)) {
-                closeInventory();
-            }
-        } else if (topHolder instanceof FurnitureInventoryHolder itemStorage) {
-            WorldPosition position = itemStorage.furniture().position();
-            if (!canInteractPoint(position.toVec3d(), 4d)) {
+        } if (topHolder instanceof WorldlyContainerHolder itemStorage) {
+            WorldPosition pos = itemStorage.pos();
+            if (!canInteractPoint(pos.toVec3d(), 4d)) {
                 closeInventory();
             }
         }
@@ -1624,6 +1613,14 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
+    public void removeTrackedBlockEntities(BlockPos pos) {
+        CullableHolder remove = this.trackedBlockEntityRenderers.remove(pos);
+        if (remove != null && remove.isShown) {
+            remove.cullable.hide(this);
+        }
+    }
+
+    @Override
     public void clearTrackedBlockEntities() {
         this.trackedBlockEntityRenderers.clear();
     }
@@ -1733,17 +1730,5 @@ public class BukkitServerPlayer extends Player {
 
     public Set<UniqueKey> obtainedItems() {
         return this.obtainedItems;
-    }
-
-    @Nullable
-    public BedBlockEntity bedBlockEntity() {
-        return bedBlockEntity;
-    }
-
-    public void setBedBlockEntity(@Nullable BedBlockEntity bedBlockEntity) {
-        if (this.bedBlockEntity != null) {
-            this.bedBlockEntity.setOccupier(null);
-        }
-        this.bedBlockEntity = bedBlockEntity;
     }
 }

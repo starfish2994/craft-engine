@@ -53,7 +53,7 @@ public final class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
         }
-        ToggleableLampBlockBehavior behavior = state.behavior().getAs(ToggleableLampBlockBehavior.class).orElse(null);
+        ToggleableLampBlockBehavior behavior = state.behavior().getFirst(ToggleableLampBlockBehavior.class);
         if (behavior == null) return InteractionResult.PASS;
         LevelWriterProxy.INSTANCE.setBlock(
                 world.serverWorld(),

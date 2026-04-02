@@ -1,11 +1,11 @@
-package net.momirealms.craftengine.bukkit.block.entity.renderer;
+package net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.momirealms.craftengine.bukkit.block.entity.DisplayItemEntity;
+import net.momirealms.craftengine.bukkit.block.entity.DisplayItemBlockEntityController;
 import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
-import net.momirealms.craftengine.core.block.entity.render.DynamicBlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer {
-    public final DisplayItemEntity blockEntity;
-    private WorldPosition displayItemPosition;
-    @NotNull private Object lastUpdateMinecraftItem; // 最后一次发送更新掉落物品
+public final class DynamicItemBlockEntityElement implements BlockEntityElement {
+    public final DisplayItemBlockEntityController controller;
+    @NotNull
+    private Object lastUpdateMinecraftItem; // 最后一次发送更新掉落物品
     private boolean positionDirty; // 坐标脏位
     public final int vehicleId;
     public final int passengerId;
@@ -34,18 +34,21 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
     public final Object despawnVehiclePacket;
     public final Object despawnPassengerPacket;
     public final Object despawnAllPacket;
-    @NotNull private Object spawnVehiclePacket;
-    @NotNull private Object spawnPassengerPacket;
-    @NotNull private Object changeDisplayItemPacket;
-    @NotNull private Object updatePosPacket;
+    @NotNull
+    private Object spawnVehiclePacket;
+    @NotNull
+    private Object spawnPassengerPacket;
+    @NotNull
+    private Object changeDisplayItemPacket;
+    @NotNull
+    private Object updatePosPacket;
 
-    public DynamicDropItemRenderer(@NotNull DisplayItemEntity blockEntity, @NotNull WorldPosition displayItemPosition) {
-        this.blockEntity = blockEntity;
-        this.displayItemPosition = displayItemPosition;
+    public DynamicItemBlockEntityElement(@NotNull DisplayItemBlockEntityController controller, @NotNull WorldPosition displayItemPosition) {
+        this.controller = controller;
         this.vehicleId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         this.passengerId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         // 包缓存
-        this.ridePacket = PacketUtils.createClientboundSetPassengersPacket(vehicleId, passengerId);
+        this.ridePacket = PacketUtils.createClientboundSetPassengersPacket(this.vehicleId, this.passengerId);
         this.despawnVehiclePacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(vehicleId)));
         this.despawnPassengerPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(passengerId)));
         this.despawnAllPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(),
@@ -54,7 +57,7 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
                     a.add(passengerId);
                 }
         ));
-        this.refreshChangeDisplayItemPacket(blockEntity.displayItem().getMinecraftItem());
+        this.refreshChangeDisplayItemPacket(controller.displayItem().getMinecraftItem());
         this.refreshSpawnVehicleAndPassengerPacket(displayItemPosition, false);
     }
 
@@ -69,7 +72,6 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
     // 更新展示物品的位置, 这里的 lastUpdateDisplayItemPosition 由 DisplayItemEntity#setBlockState 刷新.
     public void refreshSpawnVehicleAndPassengerPacket(WorldPosition displayItemPosition, boolean dirtyFlag) {
         this.positionDirty = dirtyFlag;
-        this.displayItemPosition = displayItemPosition;
         this.spawnVehiclePacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 vehicleId, vehicleUUID, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
                 0, 0, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
@@ -78,7 +80,7 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
                 passengerId, passengeUUID, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
                 0, 0, EntityTypeProxy.ITEM, 0, Vec3Proxy.ZERO, 0
         );
-        this.updatePosPacket = EntityUtils.createUpdatePosPacket(vehicleId, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
+        this.updatePosPacket = EntityUtils.createUpdatePosPacket(this.vehicleId, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
                 0.0f, 0.0f, true
         );
     }
@@ -89,12 +91,16 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
 
     @Override
     public void show(Player player) {
-        player.sendPackets(List.of(
-                this.spawnVehiclePacket,
-                this.spawnPassengerPacket,
-                this.ridePacket,
-                this.changeDisplayItemPacket
-        ), false);
+        if (this.controller.displayItem().isEmpty()) {
+            player.sendPacket(this.spawnVehiclePacket, false);
+        } else {
+            player.sendPackets(List.of(
+                    this.spawnVehiclePacket,
+                    this.spawnPassengerPacket,
+                    this.ridePacket,
+                    this.changeDisplayItemPacket
+            ), false);
+        }
     }
 
     @Override
@@ -105,17 +111,21 @@ public final class DynamicDropItemRenderer implements DynamicBlockEntityRenderer
     @Override
     public void update(Player player) {
         // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
-        Object minecraftItem = blockEntity.displayItem().getMinecraftItem();
-        if (lastUpdateMinecraftItem != minecraftItem) {
+        Object minecraftItem = this.controller.displayItem().getMinecraftItem();
+        if (this.lastUpdateMinecraftItem != minecraftItem) {
             this.refreshChangeDisplayItemPacket(minecraftItem);
         }
         // 如果缓存的显示位置和最新的不一样, 额外发送一个同步位置包.
         if (this.positionDirty) {
-            player.sendPacket(updatePosPacket, false);
+            player.sendPacket(this.updatePosPacket, false);
         }
-        // 重发物品刷新包.
-        player.sendPackets(List.of(
-                despawnPassengerPacket, spawnPassengerPacket, ridePacket, changeDisplayItemPacket
-        ), false);
+        // 重发物品刷新包
+        if (this.controller.displayItem().isEmpty()) {
+            player.sendPacket(this.despawnPassengerPacket, false);
+        } else {
+            player.sendPackets(List.of(
+                    this.despawnPassengerPacket, this.spawnPassengerPacket, this.ridePacket, this.changeDisplayItemPacket
+            ), false);
+        }
     }
 }

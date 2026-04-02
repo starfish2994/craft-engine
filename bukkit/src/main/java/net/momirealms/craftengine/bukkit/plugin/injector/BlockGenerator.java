@@ -294,8 +294,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockShape> holder = ((DelegatingBlock) thisObj).shapeDelegate();
             try {
                 return holder.value().getCollisionShape(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run getCollisionShape", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run getCollisionShape", t);
                 return superMethod.call();
             }
         }
@@ -309,8 +309,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockShape> holder = ((DelegatingBlock) thisObj).shapeDelegate();
             try {
                 return holder.value().getSupportShape(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run getSupportShape", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run getSupportShape", t);
                 return superMethod.call();
             }
         }
@@ -324,8 +324,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().isPathFindable(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run isPathFindable", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run isPathFindable", t);
                 return superMethod.call();
             }
         }
@@ -339,8 +339,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().mirror(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run mirror", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run mirror", t);
                 return superMethod.call();
             }
         }
@@ -354,8 +354,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().rotate(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run rotate", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run rotate", t);
                 return superMethod.call();
             }
         }
@@ -369,8 +369,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().randomTick(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run randomTick", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run randomTick", t);
             }
         }
     }
@@ -383,8 +383,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().tick(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run tick", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run tick", t);
             }
         }
     }
@@ -397,8 +397,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().onPlace(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run onPlace", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run onPlace", t);
             }
         }
     }
@@ -411,8 +411,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().onLand(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run onLand", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run onLand", t);
             }
         }
     }
@@ -425,8 +425,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().onBrokenAfterFall(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run onBrokenAfterFall", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run onBrokenAfterFall", t);
             }
         }
     }
@@ -439,8 +439,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().canSurvive(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run canSurvive", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run canSurvive", t);
                 return true;
             }
         }
@@ -454,8 +454,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().isBoneMealSuccess(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run isBoneMealSuccess", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run isBoneMealSuccess", t);
                 return true;
             }
         }
@@ -469,8 +469,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().isValidBoneMealTarget(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run isValidBoneMealTarget", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run isValidBoneMealTarget", t);
                 return true;
             }
         }
@@ -484,8 +484,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().getContainer(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run getContainer", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run getContainer", t);
                 return null;
             }
         }
@@ -499,7 +499,7 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().hasAnalogOutputSignal(thisObj, args);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 CraftEngine.instance().logger().severe("Failed to run hasAnalogOutputSignal", e);
                 return false;
             }
@@ -514,8 +514,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().getAnalogOutputSignal(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run getAnalogOutputSignal", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run getAnalogOutputSignal", t);
                 return 0;
             }
         }
@@ -529,8 +529,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().performBoneMeal(thisObj, args);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run performBoneMeal", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run performBoneMeal", t);
             }
         }
     }
@@ -543,8 +543,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().neighborChanged(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run neighborChanged", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run neighborChanged", t);
             }
         }
     }
@@ -558,8 +558,8 @@ public final class BlockGenerator {
             try {
                 holder.value().onExplosionHit(thisObj, args, () -> null);
                 superMethod.call();
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run onExplosionHit", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run onExplosionHit", t);
             }
         }
     }
@@ -568,12 +568,12 @@ public final class BlockGenerator {
         public static final PickUpBlockInterceptor INSTANCE = new PickUpBlockInterceptor();
 
         @RuntimeType
-        public Object intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
+        public Object intercept(@This Object thisObj, @AllArguments Object[] args) {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().pickupBlock(thisObj, args, () -> ItemStackProxy.EMPTY);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run pickupBlock", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run pickupBlock", t);
                 return ItemStackProxy.EMPTY;
             }
         }
@@ -583,12 +583,12 @@ public final class BlockGenerator {
         public static final PlaceLiquidInterceptor INSTANCE = new PlaceLiquidInterceptor();
 
         @RuntimeType
-        public boolean intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) throws Exception {
+        public boolean intercept(@This Object thisObj, @AllArguments Object[] args, @SuperCall Callable<Object> superMethod) {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().placeLiquid(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run placeLiquid", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run placeLiquid", t);
                 return false;
             }
         }
@@ -602,8 +602,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().canPlaceLiquid(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run canPlaceLiquid", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run canPlaceLiquid", t);
                 return false;
             }
         }
@@ -617,8 +617,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().getDirectSignal(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run getDirectSignal", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run getDirectSignal", t);
                 return 0;
             }
         }
@@ -632,8 +632,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().getSignal(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run getSignal", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run getSignal", t);
                 return 0;
             }
         }
@@ -647,8 +647,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().isSignalSource(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run isSignalSource", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run isSignalSource", t);
                 return false;
             }
         }
@@ -662,8 +662,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().affectNeighborsAfterRemoval(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run affectNeighborsAfterRemoval", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run affectNeighborsAfterRemoval", t);
             }
         }
     }
@@ -676,8 +676,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().entityInside(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run entityInside", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run entityInside", t);
             }
         }
     }
@@ -690,8 +690,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 return holder.value().playerWillDestroy(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run playerWillDestroy", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run playerWillDestroy", t);
                 return superMethod.call();
             }
         }
@@ -705,8 +705,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().spawnAfterBreak(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run spawnAfterBreak", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run spawnAfterBreak", t);
             }
         }
     }
@@ -719,8 +719,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().stepOn(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run stepOn", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run stepOn", t);
             }
         }
     }
@@ -737,8 +737,8 @@ public final class BlockGenerator {
                 } else {
                     superMethod.call();
                 }
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run fallOn", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run fallOn", t);
             }
         }
     }
@@ -755,8 +755,8 @@ public final class BlockGenerator {
                 } else {
                     superMethod.call();
                 }
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run updateEntityMovementAfterFallOn", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run updateEntityMovementAfterFallOn", t);
             }
         }
     }
@@ -769,8 +769,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().onProjectileHit(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run onProjectileHit", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run onProjectileHit", t);
             }
         }
     }
@@ -783,8 +783,8 @@ public final class BlockGenerator {
             ObjectHolder<BlockBehavior> holder = ((DelegatingBlock) thisObj).behaviorDelegate();
             try {
                 holder.value().placeMultiState(thisObj, args, superMethod);
-            } catch (Exception e) {
-                CraftEngine.instance().logger().severe("Failed to run setPlaceBy", e);
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().severe("Failed to run setPlaceBy", t);
             }
         }
     }
