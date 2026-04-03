@@ -132,6 +132,45 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
         });
     }
 
+    @Override
+    public boolean onStartMining(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
+        World world = player.world();
+        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
+        if (blockEntity == null) return true;
+        // 有保护, 不交互, 开始挖掘.
+        Location location = new Location((org.bukkit.World) world.platformWorld(), pos.x, pos.y, pos.z);
+        if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
+            return true;
+        }
+        return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
+            Item storedItem = controller.storedItem();
+            if (storedItem.isEmpty() || controller.storageCount() <= 0) return true;
+
+            boolean handEmpty = ItemUtils.isEmpty(tool);
+            boolean takeGroup = player.isSneaking();
+
+            // 判断是否可以取出物品
+            if (!handEmpty) {
+                boolean isHandFull = tool.count() == tool.maxStackSize();
+                boolean notSimilar = !tool.isSimilar(storedItem);
+                if (isHandFull || notSimilar) return true;
+            }
+
+            // 计算可取出数量
+            int takeAmount = 1;
+            if (takeGroup) {
+                int available = ItemUtils.isEmpty(tool) ? storedItem.maxStackSize() : storedItem.maxStackSize() - tool.count();
+                takeAmount = Math.min(available, controller.storageCount());
+            }
+
+            // 取出物品
+            Item takenItem = controller.takeStorageItem(takeAmount);
+            player.setItemInHand(hand, takenItem);
+            player.swingHand(hand);
+            return false;
+        });
+    }
+
     // 比较器红石信号.
     @Override
     public int getAnalogOutputSignal(Object thisBlock, Object[] args) {
