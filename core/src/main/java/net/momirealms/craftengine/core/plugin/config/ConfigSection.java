@@ -190,7 +190,7 @@ public final class ConfigSection {
     public ConfigValue getNonNullValue(String key, String argType) {
         Object value = this.value.get(key);
         if (value == null) {
-            throw new KnownResourceException(ConfigConstants.MISSING_ARGUMENT, key, TranslationManager.instance().plainTranslation(argType));
+            throw new KnownResourceException(ConfigConstants.MISSING_ARGUMENT, assemblePath(key), key, TranslationManager.instance().plainTranslation(argType));
         }
         return new ConfigValue(assemblePath(key), value);
     }
