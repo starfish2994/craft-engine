@@ -48,6 +48,6 @@ public interface LivingEntityProxy extends EntityProxy {
     @MethodInvoker(name = "startUsingItem")
     void startUsingItem(Object target, @Type(clazz = InteractionHandProxy.class) Object hand);
 
-    @MethodInvoker(name = "getLastHurtByPlayer", activeIf = "min_version=1.21.3")
+    @MethodInvoker(name = "getLastHurtByPlayer", activeIf = "min_version=1.21.5")
     Object getLastHurtByPlayer(Object target);
 }
