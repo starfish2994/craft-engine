@@ -484,6 +484,12 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
 
     @SuppressWarnings({"unchecked"})
     @Override
+    public AbstractItem<W> copy() {
+        return withSameFactory((W) this.item.copy());
+    }
+
+    @SuppressWarnings({"unchecked"})
+    @Override
     public AbstractItem<W> copyWithCount(int count) {
         return withSameFactory((W) this.item.copyWithCount(count));
     }
@@ -523,6 +529,12 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     @Override
     public byte[] toByteArray() {
         return this.factory.toByteArray(this.item);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public boolean isSimilar(Item another) {
+        return this.factory.isSimilar(this.item, (W) ((AbstractItem) another).item);
     }
 
     @Override

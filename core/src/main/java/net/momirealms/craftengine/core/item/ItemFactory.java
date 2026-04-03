@@ -220,4 +220,6 @@ public abstract class ItemFactory<W extends ItemWrapper> {
     protected abstract Optional<Map<String, String>> blockState(W item);
 
     protected abstract void blockState(W item, Map<String, String> state);
+
+    protected abstract boolean isSimilar(W item1,  W item2);
 }

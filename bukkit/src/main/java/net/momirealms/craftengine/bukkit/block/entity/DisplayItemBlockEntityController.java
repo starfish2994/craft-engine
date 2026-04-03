@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.entity;
 
 import net.momirealms.craftengine.bukkit.block.behavior.DisplayItemBlockBehavior;
-import net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic.DynamicItemBlockEntityElement;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic.DynamicDisplayItemBlockEntityElement;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 
 public final class DisplayItemBlockEntityController extends BlockEntityController {
     private final DisplayItemBlockBehavior behavior;
-    private final DynamicItemBlockEntityElement element;
+    private final DynamicDisplayItemBlockEntityElement element;
     @NotNull
     private Item displayItem;
     private WorldPosition displayItemPosition;
@@ -36,7 +36,7 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
         this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
         this.displayItem = BukkitItemManager.instance().emptyItem();
         this.displayItemPosition = this.calculateDisplayItemPosition(blockEntity.blockState);
-        this.element = new DynamicItemBlockEntityElement(this, this.displayItemPosition);
+        this.element = new DynamicDisplayItemBlockEntityElement(this, this.displayItemPosition);
     }
 
     @Override
@@ -82,7 +82,8 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     @Override
     public void preBlockStateChange(ImmutableBlockState newState) {
         this.displayItemPosition = this.calculateDisplayItemPosition(newState);
-        this.element.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition, true);
+        this.element.positionDirty(true);
+        this.element.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition);
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {

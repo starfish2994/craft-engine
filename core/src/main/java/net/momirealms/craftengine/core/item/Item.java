@@ -210,6 +210,8 @@ public interface Item {
 
     Item maxStackSize(int amount);
 
+    Item copy();
+
     Item copyWithCount(int count);
 
     boolean hasItemTag(Key itemTag);
@@ -237,6 +239,8 @@ public interface Item {
     }
 
     byte[] toByteArray();
+
+    boolean isSimilar(Item another);
 
     default Item applyDyedColors(List<Color> colors) {
         int totalRed = 0;

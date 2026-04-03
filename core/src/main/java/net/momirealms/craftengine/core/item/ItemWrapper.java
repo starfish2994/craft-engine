@@ -13,6 +13,8 @@ public interface ItemWrapper {
 
     void count(int amount);
 
+    ItemWrapper copy();
+
     ItemWrapper copyWithCount(int count);
 
     void shrink(int amount);
