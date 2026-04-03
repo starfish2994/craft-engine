@@ -45,12 +45,12 @@ public class EntityLootContext extends BukkitLootContext {
             LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, lastHurtByPlayer);
         }
         if (VersionHelper.isOrAbove1_21_9()) {
-            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.INSTANCE.getAttackingEntity(), DamageSourceProxy.INSTANCE.getCausingEntity(lastDamageSource));
-            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.INSTANCE.getDirectAttackingEntity(), DamageSourceProxy.INSTANCE.getDirectEntity(lastDamageSource));
+            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.INSTANCE.getAttackingEntity(), lastDamageSource != null ? DamageSourceProxy.INSTANCE.getCausingEntity(lastDamageSource) : null);
+            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.INSTANCE.getDirectAttackingEntity(), lastDamageSource != null ? DamageSourceProxy.INSTANCE.getDirectEntity(lastDamageSource) : null);
         }
         // 额外参数
         this.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(data -> {
-            LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, player.serverPlayer());
+            LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, data.serverPlayer());
         });
         this.getOptionalParameter(DirectContextParameters.ITEM_IN_HAND).ifPresent(data -> {
             LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.TOOL, data.getMinecraftItem());
