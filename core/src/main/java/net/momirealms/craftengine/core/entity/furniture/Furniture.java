@@ -22,6 +22,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.QuaternionUtils;
+import net.momirealms.craftengine.core.world.Position;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -345,7 +346,7 @@ public abstract class Furniture implements Cullable {
             for (FurnitureHitBoxConfig<?> hitBoxConfig : this.currentVariant.hitBoxConfigs()) {
                 hitBoxConfig.prepareBoundingBox(position, aabbs::add, true);
             }
-            return new CullingData(getMaxAABB(aabbs), parent.maxDistance, parent.aabbExpansion, parent.rayTracing);
+            return new CullingData(getMaxAABB(this.position(), aabbs), parent.maxDistance, parent.aabbExpansion, parent.rayTracing);
         } else {
             Vector3f[] vertices = new Vector3f[] {
                     // 底面两个对角点
@@ -373,13 +374,13 @@ public abstract class Furniture implements Cullable {
     /**
      * Calculates an enclosing AABB that contains all provided AABBs.
      */
-    private static @NotNull AABB getMaxAABB(List<AABB> aabbs) {
-        double minX = 0;
-        double minY = 0;
-        double minZ = 0;
-        double maxX = 0;
-        double maxY = 0;
-        double maxZ = 0;
+    private static @NotNull AABB getMaxAABB(WorldPosition pos, List<AABB> aabbs) {
+        double minX = pos.x;
+        double minY = pos.y;
+        double minZ = pos.z;
+        double maxX = pos.x;
+        double maxY = pos.y;
+        double maxZ = pos.z;
         for (int i = 0; i < aabbs.size(); i++) {
             AABB aabb = aabbs.get(i);
             if (i == 0) {
