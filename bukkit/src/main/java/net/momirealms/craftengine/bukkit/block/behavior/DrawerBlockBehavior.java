@@ -45,6 +45,8 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
     @Nullable
     public final Property<Direction> directionProperty;
     private int controllerId;
+    @Nullable
+    public final String customDataKey;
 
     public DrawerBlockBehavior(BlockDefinition blockDefinition,
                                SoundData putSound,
@@ -55,7 +57,7 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
                                Vector3f itemScale,
                                Vector3f textScale,
                                int maxStorageCount,
-                               @Nullable Property<Direction> directionProperty
+                               @Nullable Property<Direction> directionProperty, @Nullable String customDataKey
     ) {
         super(blockDefinition);
         this.putSound = putSound;
@@ -67,6 +69,7 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
         this.textScale = textScale;
         this.maxStorageCount = maxStorageCount;
         this.directionProperty = directionProperty;
+        this.customDataKey = customDataKey;
     }
 
     @Override
@@ -157,6 +160,7 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
 
     private static class Factory implements BlockBehaviorFactory<DrawerBlockBehavior> {
         private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
+        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
 
         @Override
         public DrawerBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -186,7 +190,8 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
                     itemScale,
                     textScale,
                     maxStorageCount,
-                    facing
+                    facing,
+                    section.getString(DATA_KEY)
             );
         }
     }

@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.ConcurrentUUID2ReferenceChainedHashTable;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -22,10 +23,12 @@ import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class DrawerBlockEntityController extends BlockEntityController {
+    private static final String DEFAULT_DATA_KEY = "craftengine:drawer";
     public final DrawerBlockBehavior behavior;
     public final DynamicDrawerBlockEntityElement element;
     @NotNull
@@ -145,16 +148,24 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     // 读取方块内存储的物品
     @Override
     public void loadCustomData(CompoundTag tag) {
-        Tag itemTag = tag.get("drawer_storage_item");
-        Tag amountTag = tag.get("drawer_storage_amount");
-        this.count = amountTag instanceof IntTag intTag ? intTag.getAsInt() : 0;
+        CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
+        // 空数据
+        if (dataTag == null) {
+            this.storedItem = BukkitItemManager.instance().emptyItem();
+            this.count = 0;
+            return;
+        }
+        // 读取数据
+        int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+        Tag itemTag = dataTag.get("drawer_storage_item");
+        this.count = dataTag.getInt("drawer_storage_amount", 0);
+        // 非法数据
         if (itemTag == null || this.count <= 0) {
             this.storedItem = BukkitItemManager.instance().emptyItem();
             this.count = 0;
             return;
         }
-        // 如果里面有物品, 同时刷新Render的包缓存.
-        int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+        // 记录并刷新
         this.storedItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
         this.storedItem.count(this.count);
         this.element.refreshChangeDisplayItemPacket(this.storedItem);
@@ -164,8 +175,12 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     @Override
     public void saveCustomData(CompoundTag tag) {
         if (!ItemUtils.isEmpty(this.storedItem) && this.count > 0) {
-            tag.put("drawer_storage_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.getMinecraftItem()));
-            tag.put("drawer_storage_amount", new IntTag(this.count));
+            CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
+                dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+                dataTag.put("drawer_storage_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.getMinecraftItem()));
+                dataTag.put("drawer_storage_amount", new IntTag(this.count));
+            });
+            tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
         }
     }
 

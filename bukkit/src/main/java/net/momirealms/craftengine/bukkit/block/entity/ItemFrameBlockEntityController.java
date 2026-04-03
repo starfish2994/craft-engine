@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -27,9 +28,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class ItemFrameBlockEntityController extends BlockEntityController {
+    private static final String DEFAULT_DATA_KEY = "craftengine:item_frame";
     public final ItemFrameBlockBehavior behavior;
     private final DynamicItemFrameBlockEntityElement element;
     private int rotation = 0;
@@ -56,23 +59,42 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
 
     @Override
     public void saveCustomData(CompoundTag tag) {
-        tag.putInt("rotation", this.rotation);
-        tag.putInt("data_version", VersionHelper.WORLD_VERSION);
-        if (ItemStackProxy.INSTANCE.isEmpty(this.itemStack)) return;
-        Tag itemTag = ItemStackUtils.saveMinecraftItemStackAsTag(this.itemStack);
-        if (itemTag == null) return;
-        tag.put("item", itemTag);
+        CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
+            dataTag.putInt("rotation", this.rotation);
+            dataTag.putInt("data_version", VersionHelper.WORLD_VERSION);
+            if (!ItemStackProxy.INSTANCE.isEmpty(this.itemStack)) {
+                Tag itemTag = ItemStackUtils.saveMinecraftItemStackAsTag(this.itemStack);
+                if (itemTag != null) {
+                    dataTag.put("item", itemTag);
+                }
+            }
+        });
+        tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
     }
 
     @Override
     public void loadCustomData(CompoundTag tag) {
-        this.rotation = tag.getInt("rotation");
-        int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
-        Tag itemTag = tag.get("item");
-        if (itemTag == null) return;
-        Object itemStack = ItemStackUtils.parseMinecraftItem(itemTag, dataVersion);
-        if (itemStack == null) return;
-        this.itemStack = itemStack;
+        // 读取旧的
+        Tag oldItemTag = tag.get("item");
+        if (oldItemTag != null) {
+            this.rotation = tag.getInt("rotation");
+            int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+            Object itemStack = ItemStackUtils.parseMinecraftItem(oldItemTag, dataVersion);
+            if (itemStack == null) return;
+            this.itemStack = itemStack;
+        }
+        // 读取新的
+        else {
+            CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
+            if (dataTag == null) return;
+            this.rotation = dataTag.getInt("rotation");
+            int dataVersion = dataTag.getInt("data_version", VersionHelper.WORLD_VERSION);
+            Tag itemTag = dataTag.get("item");
+            if (itemTag == null) return;
+            Object itemStack = ItemStackUtils.parseMinecraftItem(itemTag, dataVersion);
+            if (itemStack == null) return;
+            this.itemStack = itemStack;
+        }
         this.updateMetadata();
     }
 

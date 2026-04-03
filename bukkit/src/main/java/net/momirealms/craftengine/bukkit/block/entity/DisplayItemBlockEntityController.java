@@ -13,16 +13,21 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.IntTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class DisplayItemBlockEntityController extends BlockEntityController {
+    private static final String DEFAULT_DATA_KEY = "craftengine:display_item";
     private final DisplayItemBlockBehavior behavior;
     private final DynamicDisplayItemBlockEntityElement element;
     @NotNull
@@ -96,13 +101,21 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     // 读取方块内存储的物品
     @Override
     public void loadCustomData(CompoundTag tag) {
-        Tag itemTag = tag.get("display_item");
+        CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
+        // 空数据
+        if (dataTag == null) {
+            this.displayItem = BukkitItemManager.instance().emptyItem();
+            return;
+        }
+        // 读取数据
+        int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+        Tag itemTag = dataTag.get("display_item");
+        // 非法数据
         if (itemTag == null) {
             this.displayItem = BukkitItemManager.instance().emptyItem();
             return;
         }
-        // 如果里面有物品, 同时刷新Render的包缓存.
-        int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+        // 记录并刷新
         this.displayItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
         this.element.refreshChangeDisplayItemPacket(this.displayItem.getMinecraftItem());
     }
@@ -110,7 +123,11 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     @Override
     public void saveCustomData(CompoundTag tag) {
         if (!ItemUtils.isEmpty(displayItem)) {
-            tag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.getMinecraftItem()));
+            CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
+                dataTag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.getMinecraftItem()));
+                dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+            });
+            tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
         }
     }
 
