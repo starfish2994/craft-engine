@@ -264,20 +264,23 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
         }
 
         @Override
-        public void collectInteractableEntityId(Consumer<Integer> collector) {
+        public void gatherInteractableEntityId(Consumer<Integer> collector) {
         }
 
         @Override
         public void show(Player player) {
-            List<Object> list = new ArrayList<>();
-            ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.getMinecraftItem(), list);
-            Object setEntityDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
-            player.sendPackets(List.of(
-                    this.spawnVehiclePacket,
-                    this.spawnPassengerPacket,
-                    this.ridePacket,
-                    setEntityDataPacket
-            ), false);
+            // 没有物品就不展示
+            if (!furnitureHandler.savedItem.isEmpty()) {
+                List<Object> list = new ArrayList<>();
+                ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.getMinecraftItem(), list);
+                Object setEntityDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
+                player.sendPackets(List.of(
+                        this.spawnVehiclePacket,
+                        this.spawnPassengerPacket,
+                        this.ridePacket,
+                        setEntityDataPacket
+                ), false);
+            }
         }
 
         @Override
@@ -287,11 +290,19 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
 
         @Override
         public void refresh(Player player) {
-            List<Object> list = MiscUtils.init(new ArrayList<>(), it -> ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.getMinecraftItem(), it));
-            Object changeDisplayItemPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
-            player.sendPackets(List.of(
-                    this.despawnPassengerPacket, this.spawnPassengerPacket, this.ridePacket, changeDisplayItemPacket
-            ), false);
+            // 没有物品就不展示
+            if (furnitureHandler.savedItem.isEmpty()) {
+                this.hide(player);
+            } else {
+                List<Object> list = MiscUtils.init(new ArrayList<>(), it -> {
+                    ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.getMinecraftItem(), it);
+                    ItemEntityData.NoGravity.addEntityData(true, it);
+                });
+                Object changeDisplayItemPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
+                player.sendPackets(List.of(
+                        this.despawnPassengerPacket, this.spawnVehiclePacket, this.spawnPassengerPacket, this.ridePacket, changeDisplayItemPacket
+                ), false);
+            }
         }
     }
 

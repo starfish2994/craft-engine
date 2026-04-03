@@ -66,6 +66,6 @@ public final class TextDisplayFurnitureElement extends AbstractFurnitureElement 
     }
 
     @Override
-    public void collectInteractableEntityId(Consumer<Integer> collector) {
+    public void gatherInteractableEntityId(Consumer<Integer> collector) {
     }
 }

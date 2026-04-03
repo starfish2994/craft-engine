@@ -62,7 +62,7 @@ public abstract class BlockEntityController {
     public void onRemove() {
     }
 
-    public void onBlockStateChange(ImmutableBlockState state) {
+    public void preBlockStateChange(ImmutableBlockState newState) {
     }
 
     public <C extends BlockEntityController> BlockEntityTicker<C> createBlockEntityTicker(CEWorld world, ImmutableBlockState blockState) {
@@ -134,9 +134,9 @@ public abstract class BlockEntityController {
         }
 
         @Override
-        public void onBlockStateChange(ImmutableBlockState state) {
-            this.first.onBlockStateChange(state);
-            this.second.onBlockStateChange(state);
+        public void preBlockStateChange(ImmutableBlockState newState) {
+            this.first.preBlockStateChange(newState);
+            this.second.preBlockStateChange(newState);
         }
 
         @Override
@@ -253,9 +253,9 @@ public abstract class BlockEntityController {
         }
 
         @Override
-        public void onBlockStateChange(ImmutableBlockState state) {
+        public void preBlockStateChange(ImmutableBlockState newState) {
             for (BlockEntityController controller : this.controllers) {
-                controller.onBlockStateChange(state);
+                controller.preBlockStateChange(newState);
             }
         }
 

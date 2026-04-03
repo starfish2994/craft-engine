@@ -84,13 +84,13 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                 if (!player.canInstabuild()) {
                     itemInHand.shrink(1);
                 }
-                c.putDisplayItem(inputItem, player);
+                c.putDisplayItem(inputItem);
                 player.swingHand(hand);
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
             // 取出物品
             else if (ItemUtils.isEmpty(itemInHand) && !ItemUtils.isEmpty(c.displayItem())) {
-                Item takedItem = c.takeDisplayItem(player);
+                Item takedItem = c.takeDisplayItem();
                 player.setItemInHand(hand, takedItem);
                 player.swingHand(hand);
                 return InteractionResult.SUCCESS_AND_CANCEL;

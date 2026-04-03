@@ -98,7 +98,7 @@ public final class ArmorStandFurnitureElement extends AbstractFurnitureElement {
     }
 
     @Override
-    public void collectInteractableEntityId(Consumer<Integer> collector) {
+    public void gatherInteractableEntityId(Consumer<Integer> collector) {
         collector.accept(this.entityId);
     }
 }

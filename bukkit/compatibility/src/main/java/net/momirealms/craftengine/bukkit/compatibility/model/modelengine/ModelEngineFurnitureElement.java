@@ -83,7 +83,7 @@ public final class ModelEngineFurnitureElement extends AbstractFurnitureElement 
     }
 
     @Override
-    public void collectInteractableEntityId(Consumer<Integer> collector) {
+    public void gatherInteractableEntityId(Consumer<Integer> collector) {
         if (this.dummy != null) {
             collector.accept(this.dummy.getEntityId());
         }
