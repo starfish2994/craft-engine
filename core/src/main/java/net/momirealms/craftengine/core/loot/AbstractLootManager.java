@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractLootManager implements LootManager {
-    private final LootParser lootParser;
+    protected final LootParser lootParser;
     protected final Map<Integer, VanillaLoot> blockLoots = new ConcurrentHashMap<>();
     // TODO 实现一个基于entity data的生物战利品系统
     protected final Map<Key, VanillaLoot> entityLoots = new ConcurrentHashMap<>();
@@ -43,11 +43,6 @@ public abstract class AbstractLootManager implements LootManager {
     @Override
     public Optional<Loot> getLootable(Key key) {
         return Optional.ofNullable(this.lootTables.get(key));
-    }
-
-    @Override
-    public ConfigParser lootTableParser() {
-        return this.lootParser;
     }
 
     private final class LootParser extends IdSectionConfigParser {

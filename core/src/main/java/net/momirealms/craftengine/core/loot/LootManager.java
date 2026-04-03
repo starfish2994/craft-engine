@@ -8,9 +8,7 @@ import java.util.Optional;
 
 public interface LootManager extends Manageable {
 
-    ConfigParser vanillaParser();
-
-    ConfigParser lootTableParser();
+    ConfigParser[] parsers();
 
     Optional<VanillaLoot> getBlockLoot(int blockState);
 

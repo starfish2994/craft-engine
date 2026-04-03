@@ -8,8 +8,8 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.AbstractLootManager;
-import net.momirealms.craftengine.core.loot.LootTableReference;
 import net.momirealms.craftengine.core.loot.Loot;
+import net.momirealms.craftengine.core.loot.LootTableReference;
 import net.momirealms.craftengine.core.loot.VanillaLoot;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.compatibility.EntityProvider;
@@ -132,8 +132,8 @@ public final class BukkitLootManager extends AbstractLootManager implements List
     }
 
     @Override
-    public ConfigParser vanillaParser() {
-        return this.vanillaLootParser;
+    public ConfigParser[] parsers() {
+        return new ConfigParser[] {this.vanillaLootParser, super.lootParser};
     }
 
     @Override

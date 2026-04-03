@@ -512,9 +512,7 @@ public abstract class CraftEngine implements Plugin {
         // register sound parser
         this.packManager.registerConfigSectionParsers(this.soundManager.parsers());
         // register loot parser
-        this.packManager.registerConfigSectionParser(this.lootManager.lootTableParser());
-        // register vanilla loot parser
-        this.packManager.registerConfigSectionParser(this.lootManager.vanillaParser());
+        this.packManager.registerConfigSectionParsers(this.lootManager.parsers());
         // register skip-optimization parser
         this.packManager.registerConfigSectionParser(this.packManager.parser());
         // register feature parser
