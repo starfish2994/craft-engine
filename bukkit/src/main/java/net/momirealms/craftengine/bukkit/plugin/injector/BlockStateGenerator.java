@@ -52,7 +52,11 @@ import net.momirealms.sparrow.reflection.constructor.SConstructor3;
 import net.momirealms.sparrow.reflection.constructor.matcher.ConstructorMatcher;
 
 import java.time.Duration;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class BlockStateGenerator {
     private static SConstructor3 constructor$CraftEngineBlockState;
@@ -187,18 +191,36 @@ public final class BlockStateGenerator {
             if (cePropertyClass == mcPropertyClass) {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 return Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
-                        k -> PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues())));
+                        k -> {
+                            if (VersionHelper.isOrAbove1_21_2()) {
+                                return PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues());
+                            } else {
+                                Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                                List<?> possibleCEValues = ceProperty.possibleValues();
+                                if (possibleMCValues.size() != possibleCEValues.size()) return false;
+                                Set<String> possibleMCValueSet = possibleMCValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                Set<String> possibleCEValueSet = possibleCEValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                return possibleMCValueSet.equals(possibleCEValueSet);
+                            }
+                        }));
             } else if (mcPropertyClass.isEnum() && cePropertyClass.isEnum()) {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 return Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
                         k -> {
-                            List<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                            Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
                             List<?> possibleCEValues = ceProperty.possibleValues();
                             if (possibleMCValues.size() != possibleCEValues.size()) return false;
-                            for (int i = 0; i < possibleMCValues.size(); i++) {
-                                if (!possibleMCValues.get(i).toString().equals(possibleCEValues.get(i).toString())) {
-                                    return false;
+                            if (VersionHelper.isOrAbove1_21_2()) {
+                                List<?> possibleMCValueList = (List<?>) possibleMCValues;
+                                for (int i = 0; i < possibleMCValues.size(); i++) {
+                                    if (!possibleMCValueList.get(i).toString().equals(possibleCEValues.get(i).toString())) {
+                                        return false;
+                                    }
                                 }
+                            } else {
+                                Set<String> possibleMCValueSet = possibleMCValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                Set<String> possibleCEValueSet = possibleCEValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                return possibleMCValueSet.equals(possibleCEValueSet);
                             }
                             return true;
                         }));
@@ -225,20 +247,38 @@ public final class BlockStateGenerator {
             if (cePropertyClass == mcPropertyClass) {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
-                        k -> PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues())))) {
+                        k -> {
+                            if (VersionHelper.isOrAbove1_21_2()) {
+                                return PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues());
+                            } else {
+                                Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                                List<?> possibleCEValues = ceProperty.possibleValues();
+                                if (possibleMCValues.size() != possibleCEValues.size()) return false;
+                                Set<String> possibleMCValueSet = possibleMCValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                Set<String> possibleCEValueSet = possibleCEValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                return possibleMCValueSet.equals(possibleCEValueSet);
+                            }
+                        }))) {
                     return state.get(ceProperty);
                 }
             } else if (mcPropertyClass.isEnum() && cePropertyClass.isEnum()) {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
                         k -> {
-                            List<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                            Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
                             List<?> possibleCEValues = ceProperty.possibleValues();
                             if (possibleMCValues.size() != possibleCEValues.size()) return false;
-                            for (int i = 0; i < possibleMCValues.size(); i++) {
-                                if (!possibleMCValues.get(i).toString().equals(possibleCEValues.get(i).toString())) {
-                                    return false;
+                            if (VersionHelper.isOrAbove1_21_2()) {
+                                List<?> possibleMCValueList = (List<?>) possibleMCValues;
+                                for (int i = 0; i < possibleMCValues.size(); i++) {
+                                    if (!possibleMCValueList.get(i).toString().equals(possibleCEValues.get(i).toString())) {
+                                        return false;
+                                    }
                                 }
+                            } else {
+                                Set<String> possibleMCValueSet = possibleMCValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                Set<String> possibleCEValueSet = possibleCEValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                return possibleMCValueSet.equals(possibleCEValueSet);
                             }
                             return true;
                         }))) {
@@ -270,20 +310,38 @@ public final class BlockStateGenerator {
             if (cePropertyClass == mcPropertyClass) {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
-                        k -> PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues())))) {
+                        k -> {
+                            if (VersionHelper.isOrAbove1_21_2()) {
+                                return PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues());
+                            } else {
+                                Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                                List<?> possibleCEValues = ceProperty.possibleValues();
+                                if (possibleMCValues.size() != possibleCEValues.size()) return false;
+                                Set<String> possibleMCValueSet = possibleMCValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                Set<String> possibleCEValueSet = possibleCEValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                return possibleMCValueSet.equals(possibleCEValueSet);
+                            }
+                        }))) {
                     valueToSet = mcValue;
                 }
             } else if (mcPropertyClass.isEnum() && cePropertyClass.isEnum()) {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
                         k -> {
-                            List<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
+                            Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
                             List<?> possibleCEValues = ceProperty.possibleValues();
                             if (possibleMCValues.size() != possibleCEValues.size()) return false;
-                            for (int i = 0; i < possibleMCValues.size(); i++) {
-                                if (!possibleMCValues.get(i).toString().equals(possibleCEValues.get(i).toString())) {
-                                    return false;
+                            if (VersionHelper.isOrAbove1_21_2()) {
+                                List<?> possibleMCValueList = (List<?>) possibleMCValues;
+                                for (int i = 0; i < possibleMCValues.size(); i++) {
+                                    if (!possibleMCValueList.get(i).toString().equals(possibleCEValues.get(i).toString())) {
+                                        return false;
+                                    }
                                 }
+                            } else {
+                                Set<String> possibleMCValueSet = possibleMCValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                Set<String> possibleCEValueSet = possibleCEValues.stream().map(String::valueOf).collect(Collectors.toSet());
+                                return possibleMCValueSet.equals(possibleCEValueSet);
                             }
                             return true;
                         }))) {
