@@ -264,7 +264,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
         }
 
         @Override
-        public void collectInteractableEntityId(Consumer<Integer> collector) {
+        public void gatherInteractableEntityId(Consumer<Integer> collector) {
         }
 
         @Override

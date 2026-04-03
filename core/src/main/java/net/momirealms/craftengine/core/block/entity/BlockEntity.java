@@ -55,7 +55,7 @@ public final class BlockEntity {
     public void setBlockState(ImmutableBlockState blockState) {
         boolean changed = this.blockState != blockState;
         if (changed) {
-            this.controller.onBlockStateChange(blockState);
+            this.controller.preBlockStateChange(blockState);
         }
         this.blockState = blockState;
     }

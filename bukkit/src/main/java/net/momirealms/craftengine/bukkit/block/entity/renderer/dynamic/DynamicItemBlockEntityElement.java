@@ -7,6 +7,7 @@ import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
@@ -91,9 +92,7 @@ public final class DynamicItemBlockEntityElement implements BlockEntityElement {
 
     @Override
     public void show(Player player) {
-        if (this.controller.displayItem().isEmpty()) {
-            player.sendPacket(this.spawnVehiclePacket, false);
-        } else {
+        if (!this.controller.displayItem().isEmpty()) {
             player.sendPackets(List.of(
                     this.spawnVehiclePacket,
                     this.spawnPassengerPacket,
@@ -111,7 +110,8 @@ public final class DynamicItemBlockEntityElement implements BlockEntityElement {
     @Override
     public void update(Player player) {
         // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
-        Object minecraftItem = this.controller.displayItem().getMinecraftItem();
+        Item displayItem = this.controller.displayItem();
+        Object minecraftItem = displayItem.getMinecraftItem();
         if (this.lastUpdateMinecraftItem != minecraftItem) {
             this.refreshChangeDisplayItemPacket(minecraftItem);
         }
@@ -120,12 +120,22 @@ public final class DynamicItemBlockEntityElement implements BlockEntityElement {
             player.sendPacket(this.updatePosPacket, false);
         }
         // 重发物品刷新包
-        if (this.controller.displayItem().isEmpty()) {
-            player.sendPacket(this.despawnPassengerPacket, false);
+        if (displayItem.isEmpty()) {
+            this.hide(player);
         } else {
             player.sendPackets(List.of(
-                    this.despawnPassengerPacket, this.spawnPassengerPacket, this.ridePacket, this.changeDisplayItemPacket
+                    this.despawnPassengerPacket, this.spawnVehiclePacket, this.spawnPassengerPacket, this.ridePacket, this.changeDisplayItemPacket
             ), false);
         }
+    }
+
+    // 展示最新的展示物品
+    public void showDisplayItem(Player player) {
+        player.sendPackets(List.of(
+                this.spawnVehiclePacket,
+                this.spawnPassengerPacket,
+                this.ridePacket,
+                this.changeDisplayItemPacket
+        ), false);
     }
 }

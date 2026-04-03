@@ -35,7 +35,7 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
         this.behavior = behavior;
         this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
         this.displayItem = BukkitItemManager.instance().emptyItem();
-        this.displayItemPosition = this.calculateDisplayItemPosition();
+        this.displayItemPosition = this.calculateDisplayItemPosition(blockEntity.blockState);
         this.element = new DynamicItemBlockEntityElement(this, this.displayItemPosition);
     }
 
@@ -55,32 +55,33 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     }
 
     // 放入方块内的展示物品
-    public void putDisplayItem(Item inputItem, Player player) {
+    public void putDisplayItem(Item inputItem /* Not Empty */) {
         this.displayItem = inputItem;
+        this.element.refreshChangeDisplayItemPacket(inputItem.getMinecraftItem());
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
-                this.element.update(trackedPlayer);
+                this.element.showDisplayItem(trackedPlayer);
             }
         }
     }
 
     // 取走方块内的展示物品
-    public Item takeDisplayItem(Player player) {
+    public Item takeDisplayItem() {
         Item temp = this.displayItem;
         this.displayItem = BukkitItemManager.instance().emptyItem();
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
-                this.element.update(trackedPlayer);
+                this.element.hide(trackedPlayer);
             }
         }
         return temp;
     }
 
     @Override
-    public void onBlockStateChange(ImmutableBlockState blockState) {
-        this.displayItemPosition = this.calculateDisplayItemPosition();
+    public void preBlockStateChange(ImmutableBlockState newState) {
+        this.displayItemPosition = this.calculateDisplayItemPosition(newState);
         this.element.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition, true);
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
@@ -120,9 +121,9 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
         this.displayItem = BukkitItemManager.instance().emptyItem();;
     }
 
-    public WorldPosition calculateDisplayItemPosition() {
+    public WorldPosition calculateDisplayItemPosition(ImmutableBlockState blockState) {
         float angleDeg;
-        Direction direction = super.blockEntity.blockState.get(behavior.directionProperty, Direction.SOUTH);
+        Direction direction = blockState.get(behavior.directionProperty, Direction.SOUTH);
         switch (direction) {
             case EAST -> angleDeg = 90f;
             case SOUTH -> angleDeg = 180f;

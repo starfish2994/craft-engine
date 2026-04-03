@@ -264,11 +264,11 @@ public abstract class Furniture implements Cullable {
         for (FurnitureElementConfig<?> elementConfig : elementConfigs) {
             FurnitureElement element = elementConfig.create(this);
             elements.add(element);
-            element.collectInteractableEntityId(interactableEntityIds::addLast);
+            element.gatherInteractableEntityId(interactableEntityIds::addLast);
         }
         this.controller.gatherElements(element -> {
             elements.add(element);
-            element.collectInteractableEntityId(interactableEntityIds::addLast);
+            element.gatherInteractableEntityId(interactableEntityIds::addLast);
         });
 
         // 初始化碰撞箱
