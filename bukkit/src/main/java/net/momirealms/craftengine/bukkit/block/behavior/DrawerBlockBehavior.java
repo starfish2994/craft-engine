@@ -199,16 +199,21 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
 
     private static class Factory implements BlockBehaviorFactory<DrawerBlockBehavior> {
         private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
+        private static final String[] ITEM_POSITION = new String[] {"item_position", "item-position"};
+        private static final String[] TEXT_POSITION = new String[] {"text_position", "text-position"};
+        private static final String[] ITEM_SCALE = new String[] {"item_scale", "item-scale"};
+        private static final String[] TEXT_SCALE = new String[] {"text_scale", "text-scale"};
+        private static final String[] MAX_STORAGE_COUNT = new String[] {"max_storage_count", "max-storage-count"};
         private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
 
         @Override
         public DrawerBlockBehavior create(BlockDefinition block, ConfigSection section) {
             // 读取展示物品和文本相对位置和尺寸
-            Vector3f itemPosition = section.getVector3f("item_position", ConfigConstants.CENTER_VECTOR3);
-            Vector3f textPosition = section.getVector3f("text_position", ConfigConstants.CENTER_VECTOR3);
-            Vector3f itemScale = section.getVector3f("item_scale", ConfigConstants.CENTER_VECTOR3);
-            Vector3f textScale = section.getVector3f("text_scale", ConfigConstants.CENTER_VECTOR3);
-            int maxStorageCount = section.getInt("max_storage_count", 64);
+            Vector3f itemPosition = section.getVector3f(ITEM_POSITION, ConfigConstants.CENTER_VECTOR3);
+            Vector3f textPosition = section.getVector3f(TEXT_POSITION, ConfigConstants.CENTER_VECTOR3);
+            Vector3f itemScale = section.getVector3f(ITEM_SCALE, ConfigConstants.CENTER_VECTOR3);
+            Vector3f textScale = section.getVector3f(TEXT_SCALE, ConfigConstants.CENTER_VECTOR3);
+            int maxStorageCount = section.getInt(MAX_STORAGE_COUNT, 64);
             // 读取放入取出音效
             ConfigSection soundSection = section.getSection("sounds");
             SoundData putSound = null;
