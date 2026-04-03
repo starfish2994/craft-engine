@@ -39,7 +39,7 @@ public final class MergeFontResolution implements Resolution {
             j3.add("providers", ja3);
             GsonHelper.writeJsonFile(j3, existing.path());
         } catch (Exception e) {
-            CraftEngine.instance().logger().severe("Failed to merge font when resolving file conflicts", e);
+            CraftEngine.instance().logger().error("Failed to merge font when resolving file conflicts", e);
         }
     }
 

@@ -183,10 +183,10 @@ public final class Dependencies {
     };
 
     public static final Dependency SNAKE_YAML = new Dependency(
-            "snake-yaml",
-            "org{}yaml",
-            "snakeyaml",
-            List.of(Relocation.of("snakeyaml", "org{}yaml{}snakeyaml"))
+            "snakeyaml-engine",
+            "org{}snakeyaml",
+            "snakeyaml-engine",
+            List.of(Relocation.of("snakeyaml", "org{}snakeyaml"))
     );
 
     public static final Dependency OPTION = new Dependency(

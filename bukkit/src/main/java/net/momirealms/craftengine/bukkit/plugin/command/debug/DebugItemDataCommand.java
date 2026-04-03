@@ -69,7 +69,7 @@ public final class DebugItemDataCommand extends BukkitCommandFeature<CommandSend
     private static Map<String, Object> toMap(Item item) {
         if (VersionHelper.COMPONENT_RELEASE) {
             return (Map<String, Object>) ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.JAVA, item.getMinecraftItem())
-                    .resultOrPartial(error -> CraftEngine.instance().logger().severe("Error while saving item: " + error))
+                    .resultOrPartial(error -> CraftEngine.instance().logger().error("Error while saving item: " + error))
                     .orElse(null);
         } else {
             Object nmsTag = ItemStackProxy.INSTANCE.save(item.getMinecraftItem(), CompoundTagProxy.INSTANCE.newInstance());

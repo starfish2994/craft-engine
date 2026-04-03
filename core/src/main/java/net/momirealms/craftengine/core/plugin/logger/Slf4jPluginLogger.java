@@ -25,12 +25,12 @@ public final class Slf4jPluginLogger implements PluginLogger {
     }
 
     @Override
-    public void severe(String s) {
+    public void error(String s) {
         this.logger.error(s);
     }
 
     @Override
-    public void severe(String s, Throwable t) {
+    public void error(String s, Throwable t) {
         this.logger.error(s, t);
     }
 }

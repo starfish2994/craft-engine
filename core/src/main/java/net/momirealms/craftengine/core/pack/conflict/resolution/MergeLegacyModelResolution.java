@@ -55,7 +55,7 @@ public final class MergeLegacyModelResolution implements Resolution {
             j2.add("overrides", newOverrides);
             GsonHelper.writeJsonFile(j2, existing.path());
         } catch (IOException e) {
-            CraftEngine.instance().logger().severe("Failed to merge json when resolving file conflicts", e);
+            CraftEngine.instance().logger().error("Failed to merge json when resolving file conflicts", e);
         }
     }
 

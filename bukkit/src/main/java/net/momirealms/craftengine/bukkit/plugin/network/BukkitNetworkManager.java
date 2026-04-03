@@ -921,7 +921,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     super.write(context, packet, channelPromise);
                 }
             } catch (Throwable e) {
-                plugin.logger().severe("An error occurred when reading packets. Packet class: " + packet.getClass(), e);
+                plugin.logger().error("An error occurred when reading packets. Packet class: " + packet.getClass(), e);
                 super.write(context, packet, channelPromise);
             }
         }
@@ -4594,7 +4594,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                         Object nmsStack;
                         if (VersionHelper.isOrAbove1_20_5()) {
                             nmsStack = ItemStackProxy.INSTANCE.getCodec().parse(RegistryOps.SPARROW_NBT, itemCompoundTag)
-                                    .resultOrPartial((error) -> CraftEngine.instance().logger().severe("Tried to parse invalid item: '" + error + "'")).orElse(null);
+                                    .resultOrPartial((error) -> CraftEngine.instance().logger().error("Tried to parse invalid item: '" + error + "'")).orElse(null);
                         } else {
                             Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, itemTag);
                             nmsStack = ItemStackProxy.INSTANCE.of(nmsTag);
@@ -4615,7 +4615,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                         CompoundTag newItemCompoundTag;
                         if (VersionHelper.isOrAbove1_20_5()) {
                             newItemCompoundTag = (CompoundTag) ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, pair.right().getMinecraftItem())
-                                    .resultOrPartial((error) -> CraftEngine.instance().logger().severe("Tried to encode invalid item: '" + error + "'")).orElse(null);
+                                    .resultOrPartial((error) -> CraftEngine.instance().logger().error("Tried to encode invalid item: '" + error + "'")).orElse(null);
                         } else {
                             Object nmsTag = ItemStackProxy.INSTANCE.save(pair.right().getMinecraftItem(), CompoundTagProxy.INSTANCE.newInstance());
                             newItemCompoundTag = (CompoundTag) RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, nmsTag);

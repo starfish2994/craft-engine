@@ -54,7 +54,7 @@ public final class EntityCullingThread {
                     Debugger.ENTITY_CULLING.debug(() -> value);
                 }
             } catch (Throwable t) {
-                CraftEngine.instance().logger().severe("Failed to run entity culling tick", t);
+                CraftEngine.instance().logger().error("Failed to run entity culling tick", t);
             } finally {
                 this.isRunning.set(false);
             }

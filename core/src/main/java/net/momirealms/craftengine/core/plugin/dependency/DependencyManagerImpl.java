@@ -250,7 +250,7 @@ public class DependencyManagerImpl implements DependencyManager {
         }
 
         if (firstEx != null) {
-            plugin.logger().severe(firstEx.getMessage(), firstEx);
+            plugin.logger().error(firstEx.getMessage(), firstEx);
         }
     }
 }

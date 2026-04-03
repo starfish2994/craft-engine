@@ -6,7 +6,6 @@ import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
 import java.util.Collection;
-import java.util.List;
 
 @ReflectionProxy(name = "net.minecraft.world.level.block.state.properties.Property")
 public interface PropertyProxy {

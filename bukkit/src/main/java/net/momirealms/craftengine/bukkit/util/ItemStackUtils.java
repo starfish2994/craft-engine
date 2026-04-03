@@ -83,7 +83,7 @@ public final class ItemStackUtils {
     public static Tag saveMinecraftItemStackAsTag(Object nmsStack) {
         if (VersionHelper.COMPONENT_RELEASE) {
             return ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, nmsStack)
-                    .resultOrPartial(error -> CraftEngine.instance().logger().severe("Error while saving item: " + error))
+                    .resultOrPartial(error -> CraftEngine.instance().logger().error("Error while saving item: " + error))
                     .orElse(null);
         } else {
             Object nmsTag = ItemStackProxy.INSTANCE.save(nmsStack, CompoundTagProxy.INSTANCE.newInstance());
@@ -107,7 +107,7 @@ public final class ItemStackUtils {
         final Tag finalItemTag = itemTag;
         if (VersionHelper.COMPONENT_RELEASE) {
             return ItemStackProxy.INSTANCE.getCodec().parse(RegistryOps.SPARROW_NBT, finalItemTag)
-                    .resultOrPartial(error -> CraftEngine.instance().logger().severe("Tried to load invalid item: '" + finalItemTag + "'. " + error))
+                    .resultOrPartial(error -> CraftEngine.instance().logger().error("Tried to load invalid item: '" + finalItemTag + "'. " + error))
                     .orElse(null);
         } else {
             Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, finalItemTag);

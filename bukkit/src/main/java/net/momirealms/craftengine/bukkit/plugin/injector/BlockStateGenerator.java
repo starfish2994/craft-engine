@@ -28,8 +28,8 @@ import net.momirealms.craftengine.core.block.DelegatingBlockState;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.loot.LootTableReference;
 import net.momirealms.craftengine.core.loot.Loot;
+import net.momirealms.craftengine.core.loot.LootTableReference;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Pair;
@@ -54,7 +54,6 @@ import net.momirealms.sparrow.reflection.constructor.matcher.ConstructorMatcher;
 
 import java.time.Duration;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

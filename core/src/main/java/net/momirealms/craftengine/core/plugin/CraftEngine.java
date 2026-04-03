@@ -361,7 +361,7 @@ public abstract class CraftEngine implements Plugin {
                     this.reloadPlugin(Runnable::run, Runnable::run, true);
                     this.worldManager.delayedInit();
                 } catch (Exception e) {
-                    this.logger.severe("Failed to reload plugin on delayed enable stage", e);
+                    this.logger.error("Failed to reload plugin on delayed enable stage", e);
                 }
             }
 

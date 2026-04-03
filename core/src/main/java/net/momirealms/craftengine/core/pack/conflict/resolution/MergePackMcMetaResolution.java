@@ -30,14 +30,14 @@ public final class MergePackMcMetaResolution implements Resolution {
         try {
             mcmeta1 = GsonHelper.readJsonFile(file1).getAsJsonObject();
         } catch (Exception e) {
-            CraftEngine.instance().logger().severe("Failed to parse mcmeta from " + file1);
+            CraftEngine.instance().logger().error("Failed to parse mcmeta from " + file1);
             return;
         }
         JsonObject mcmeta2;
         try {
             mcmeta2 = GsonHelper.readJsonFile(file2).getAsJsonObject();
         } catch (Exception e) {
-            CraftEngine.instance().logger().severe("Failed to parse mcmeta from " + file2);
+            CraftEngine.instance().logger().error("Failed to parse mcmeta from " + file2);
             return;
         }
         JsonObject merged = new JsonObject();
@@ -277,7 +277,7 @@ public final class MergePackMcMetaResolution implements Resolution {
         try {
             merge(existing.path(), conflict.path());
         } catch (Exception e) {
-            CraftEngine.instance().logger().severe("Failed to merge pack.mcmeta when resolving file conflicts for '" + existing.path()  + "' and '" + conflict.path() + "'", e);
+            CraftEngine.instance().logger().error("Failed to merge pack.mcmeta when resolving file conflicts for '" + existing.path()  + "' and '" + conflict.path() + "'", e);
         }
     }
 

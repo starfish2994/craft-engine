@@ -18,7 +18,7 @@ open class RelocationExtension {
             relocate("com.github.benmanes.caffeine", "$libs.caffeine")
             relocate("com.ezylang.evalex", "$libs.evalex")
             relocate("net.bytebuddy", "$libs.bytebuddy")
-            relocate("org.yaml.snakeyaml", "$libs.snakeyaml")
+            relocate("org.snakeyaml", "$libs.snakeyaml")
             relocate("org.ahocorasick", "$libs.ahocorasick")
             relocate("net.jpountz", "$libs.jpountz")
             relocate("software.amazon.awssdk", "$libs.awssdk")

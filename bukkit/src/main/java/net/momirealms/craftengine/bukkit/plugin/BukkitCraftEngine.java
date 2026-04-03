@@ -209,27 +209,27 @@ public final class BukkitCraftEngine extends CraftEngine {
     @Override
     public void onPluginEnable() {
         if (this.successfullyEnabled) {
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe("Please do not restart plugins at runtime.");
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe(" ");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error("Please do not restart plugins at runtime.");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error(" ");
             Bukkit.getPluginManager().disablePlugin(this.javaPlugin);
             return;
         }
         this.initASMProxies(); // 仅 dev 模式下生效
         this.successfullyEnabled = true;
         if (!this.successfullyLoaded) {
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe("Failed to enable CraftEngine. Please check the log on loading stage.");
-            logger().severe("To reduce the loss caused by plugin not loaded, now shutting down the server");
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe(" ");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error("Failed to enable CraftEngine. Please check the log on loading stage.");
+            logger().error("To reduce the loss caused by plugin not loaded, now shutting down the server");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error(" ");
             Bukkit.getServer().shutdown();
             return;
         }
@@ -240,7 +240,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         try {
             super.compatibilityManager().onEnable();
         } catch (Throwable t) {
-            this.logger.severe("Failed to enable compatibility manager", t);
+            this.logger.error("Failed to enable compatibility manager", t);
         }
         super.onPluginEnable();
     }
@@ -250,13 +250,13 @@ public final class BukkitCraftEngine extends CraftEngine {
         super.onPluginDisable();
         if (this.tickTask != null) this.tickTask.cancel();
         if (!Bukkit.getServer().isStopping()) {
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe("Please do not disable plugins at runtime.");
-            logger().severe(" ");
-            logger().severe(" ");
-            logger().severe(" ");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error("Please do not disable plugins at runtime.");
+            logger().error(" ");
+            logger().error(" ");
+            logger().error(" ");
             Bukkit.getServer().shutdown();
         }
     }

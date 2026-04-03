@@ -42,6 +42,8 @@ import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingPyramid;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
+import net.momirealms.craftengine.core.plugin.config.yaml.DoubleSensitiveSchema;
+import net.momirealms.craftengine.core.plugin.config.yaml.StringKeyConstructor;
 import net.momirealms.craftengine.core.plugin.locale.ClientLangData;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
@@ -51,10 +53,10 @@ import net.momirealms.craftengine.core.sound.SoundEvent;
 import net.momirealms.craftengine.core.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.parser.ParserException;
-import org.yaml.snakeyaml.scanner.ScannerException;
+import org.snakeyaml.engine.v2.api.Load;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import org.snakeyaml.engine.v2.exceptions.ParserException;
+import org.snakeyaml.engine.v2.exceptions.ScannerException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -395,7 +397,7 @@ public abstract class AbstractPackManager implements PackManager {
                 this.saveDefaultConfigs();
             }
         } catch (IOException e) {
-            this.plugin.logger().severe("Error saving default configs", e);
+            this.plugin.logger().error("Error saving default configs", e);
         }
         try {
             try (DirectoryStream<Path> paths = Files.newDirectoryStream(resourcesFolder)) {
@@ -419,16 +421,24 @@ public abstract class AbstractPackManager implements PackManager {
                     List<String> subPacks = new ArrayList<>(4);
                     Path metaFile = path.resolve("pack.yml");
                     if (Files.exists(metaFile) && Files.isRegularFile(metaFile)) {
-                        Yaml yaml = new Yaml(new StringKeyConstructor(path, new LoaderOptions()));
+                        LoadSettings settings = LoadSettings.builder()
+                                .setLabel(metaFile.toAbsolutePath().toString())
+                                .build();
+
+                        StringKeyConstructor constructor = new StringKeyConstructor(settings, path);
+                        Load load = new Load(settings, constructor);
                         try (InputStream is = Files.newInputStream(metaFile)) {
-                            Map<String, Object> data = yaml.load(is);
-                            if (data != null) {
-                                ConfigSection section = ConfigSection.ofRoot(data);
+                            Object rawData = load.loadFromInputStream(is);
+                            if (rawData instanceof Map<?, ?> data) {
+                                @SuppressWarnings("unchecked")
+                                ConfigSection section = ConfigSection.ofRoot((Map<String, Object>) data);
+
                                 enable = section.getBoolean("enable", true);
                                 namespace = section.getString("namespace", namespace);
                                 description = section.getString("description");
                                 version = section.getString("version");
                                 author = section.getString("author");
+
                                 ConfigSection subpackSection = section.getSection("subpacks");
                                 if (subpackSection != null) {
                                     for (String subpackId : subpackSection.keySet()) {
@@ -440,6 +450,8 @@ public abstract class AbstractPackManager implements PackManager {
                             }
                         } catch (IOException e) {
                             this.plugin.logger().warn("Failed to load " + metaFile, e);
+                        } catch (Exception e) {
+                            this.plugin.logger().error("YAML syntax error in " + metaFile, e);
                         }
                     }
                     Pack pack = new Pack(path, new PackMeta(author, description, version, namespace), enable, subPacks.toArray(new String[0]));
@@ -448,7 +460,7 @@ public abstract class AbstractPackManager implements PackManager {
                 }
             }
         } catch (IOException e) {
-            this.plugin.logger().severe("Error loading packs", e);
+            this.plugin.logger().error("Error loading packs", e);
         }
     }
 
@@ -470,6 +482,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void updateCachedConfigFiles() {
         Map<Path, CachedConfigFile> previousFiles = this.cachedConfigFiles;
@@ -493,34 +506,42 @@ public abstract class AbstractPackManager implements PackManager {
                                 if (cachedFile != null && cachedFile.lastModified() == lastModifiedTime && cachedFile.size() == size) {
                                     AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
                                 } else {
-                                    Yaml yaml = new Yaml(new StringKeyConstructor(path, new LoaderOptions()));
+                                    LoadSettings loadSettings = LoadSettings.builder()
+                                            .setSchema(DoubleSensitiveSchema.INSTANCE)
+                                            .setLabel(path.toAbsolutePath().toString())
+                                            .build();
                                     Map<String, Object> data;
                                     try {
                                         String content = Files.readString(path);
                                         try {
-                                            data = yaml.load(content);
+                                            data = (Map<String, Object>) new Load(loadSettings, new StringKeyConstructor(loadSettings, path))
+                                                    .loadFromString(content);
                                         } catch (ScannerException e1) {
-                                            if (e1.getMessage() != null && e1.getMessage().contains("TAB") && e1.getMessage().contains("indentation")) {
+                                            String msg = e1.getMessage();
+                                            if (msg != null && msg.contains("TAB") && msg.contains("indentation")) {
                                                 try {
                                                     content = content.replace("\t", "    ");
-                                                    data = yaml.load(content);
+                                                    data = (Map<String, Object>) new Load(loadSettings, new StringKeyConstructor(loadSettings, path))
+                                                            .loadFromString(content);
                                                     Files.writeString(path, content);
                                                 } catch (ScannerException e2) {
-                                                    AbstractPackManager.this.plugin.logger().severe("Error found while reading config file: " + path, e1);
+                                                    AbstractPackManager.this.plugin.logger().error("Error found while reading config file (after TAB fix): " + path, e2);
                                                     return FileVisitResult.CONTINUE;
                                                 }
                                             } else {
-                                                AbstractPackManager.this.plugin.logger().severe("Error found while reading config file: " + path, e1);
+                                                AbstractPackManager.this.plugin.logger().error("Error found while reading config file: " + path, e1);
                                                 return FileVisitResult.CONTINUE;
                                             }
                                         }
                                     } catch (IOException e) {
-                                        AbstractPackManager.this.plugin.logger().severe("Error while reading config file: " + path, e);
+                                        AbstractPackManager.this.plugin.logger().error("Error while reading config file: " + path, e);
                                         return FileVisitResult.CONTINUE;
                                     } catch (ParserException e) {
-                                        AbstractPackManager.this.plugin.logger().severe("Invalid YAML file found: " + path + ".\n" + e.getMessage() + "\nIt is recommended to use Visual Studio Code as your YAML editor to fix problems more quickly.");
+                                        AbstractPackManager.this.plugin.logger().error("Invalid YAML file found: " + path + ".\n" + e.getMessage() +
+                                                "\nIt is recommended to use Visual Studio Code as your YAML editor to fix problems more quickly.");
                                         return FileVisitResult.CONTINUE;
                                     }
+
                                     if (data == null) {
                                         return FileVisitResult.CONTINUE;
                                     }
@@ -543,10 +564,10 @@ public abstract class AbstractPackManager implements PackManager {
                                         cachedFile = new CachedConfigFile(data, pack, lastModifiedTime, size);
                                         AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
                                     } catch (IOException e) {
-                                        AbstractPackManager.this.plugin.logger().severe("Error while reading config file: " + path, e);
+                                        AbstractPackManager.this.plugin.logger().error("Error while reading config file: " + path, e);
                                         return FileVisitResult.CONTINUE;
                                     } catch (JsonParseException e) {
-                                        AbstractPackManager.this.plugin.logger().severe("Invalid JSON file found: " + path + ".\n" + e.getMessage() + "\nIt is recommended to use Visual Studio Code as your JSON editor to fix problems more quickly.");
+                                        AbstractPackManager.this.plugin.logger().error("Invalid JSON file found: " + path + ".\n" + e.getMessage() + "\nIt is recommended to use Visual Studio Code as your JSON editor to fix problems more quickly.");
                                         return FileVisitResult.CONTINUE;
                                     } catch (LocalizedException e) {
                                         e.setArgument(0, path.toString());
@@ -562,7 +583,7 @@ public abstract class AbstractPackManager implements PackManager {
                         }
                     });
                 } catch (IOException e) {
-                    this.plugin.logger().severe("Error while reading config files under " + configurationFolderPath, e);
+                    this.plugin.logger().error("Error while reading config files under " + configurationFolderPath, e);
                 }
             }
         }
@@ -613,7 +634,7 @@ public abstract class AbstractPackManager implements PackManager {
                 if (issue instanceof KnownResourceException) {
                     this.plugin.logger().warn(TranslationManager.instance().plainTranslation("resource.errors_detail", String.valueOf(i+1), issue.node(), issue.getLocalizedMessage()));
                 } else if (issue instanceof UnknownResourceException) {
-                    this.plugin.logger().severe(TranslationManager.instance().plainTranslation("resource.errors_detail", String.valueOf(i+1), issue.node(), TranslationManager.instance().plainTranslation("resource.unknown_error")), issue.getCause());
+                    this.plugin.logger().error(TranslationManager.instance().plainTranslation("resource.errors_detail", String.valueOf(i+1), issue.node(), TranslationManager.instance().plainTranslation("resource.unknown_error")), issue.getCause());
                 }
             }
         }
@@ -654,7 +675,7 @@ public abstract class AbstractPackManager implements PackManager {
             Path generatedPackPath = fs.getPath("resource_pack");
             List<Pair<String, List<Path>>> duplicated = this.updateCachedAssets(cacheData, fs);
             if (!duplicated.isEmpty()) {
-                this.plugin.logger().severe(TranslationManager.instance().plainTranslation("resource_pack.duplicated_files"));
+                this.plugin.logger().error(TranslationManager.instance().plainTranslation("resource_pack.duplicated_files"));
                 int x = 1;
                 for (Pair<String, List<Path>> path : duplicated) {
                     this.plugin.logger().warn("[ " + (x++) + " ] " + path.left());
@@ -730,13 +751,13 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     ZipUtils.compress(generatedPackPath, newPath);
                 } catch (IOException e) {
-                    this.plugin.logger().severe("Error creating unprotected resource pack", e);
+                    this.plugin.logger().error("Error creating unprotected resource pack", e);
                 }
             }
             try {
                 this.zipGenerator.accept(generatedPackPath, finalPath);
             } catch (Exception e) {
-                this.plugin.logger().severe("Error creating resource pack", e);
+                this.plugin.logger().error("Error creating resource pack", e);
             }
             long time5 = System.currentTimeMillis();
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_finished", String.valueOf(time5 - time4)));
@@ -745,7 +766,7 @@ public abstract class AbstractPackManager implements PackManager {
                 uploadResourcePack();
             }
         } catch (IOException e) {
-            this.plugin.logger().severe("Error generating resource pack", e);
+            this.plugin.logger().error("Error generating resource pack", e);
         }
     }
 
@@ -2293,14 +2314,14 @@ public abstract class AbstractPackManager implements PackManager {
             Files.createDirectories(jsonPath.getParent());
             Files.createDirectories(pngPath.getParent());
         } catch (IOException e) {
-            this.plugin.logger().severe("Error creating directories", e);
+            this.plugin.logger().error("Error creating directories", e);
             return;
         }
         try {
             GsonHelper.writeJsonFile(particleJson, jsonPath);
             Files.write(pngPath, EMPTY_1X1_IMAGE);
         } catch (IOException e) {
-            this.plugin.logger().severe("Error writing particles file", e);
+            this.plugin.logger().error("Error writing particles file", e);
         }
     }
 
@@ -2444,7 +2465,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(atlasPath.getParent());
             } catch (IOException e) {
-                this.plugin.logger().severe("Error creating " + atlasPath.toAbsolutePath(), e);
+                this.plugin.logger().error("Error creating " + atlasPath.toAbsolutePath(), e);
                 return;
             }
             // 写入atlas文件
@@ -2453,7 +2474,7 @@ public abstract class AbstractPackManager implements PackManager {
                 // 优先写入旧版
                 GsonHelper.get().toJson(selected, writer);
             } catch (IOException e) {
-                this.plugin.logger().severe("Error writing " + atlasPath.toAbsolutePath(), e);
+                this.plugin.logger().error("Error writing " + atlasPath.toAbsolutePath(), e);
             }
             // 既要又要，那么需要overlay
             if (needLegacyCompatibility && needModernCompatibility) {
@@ -2469,7 +2490,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     Files.createDirectories(overlayAtlasPath.getParent());
                 } catch (IOException e) {
-                    this.plugin.logger().severe("Error creating " + overlayAtlasPath.toAbsolutePath(), e);
+                    this.plugin.logger().error("Error creating " + overlayAtlasPath.toAbsolutePath(), e);
                     return;
                 }
                 // 写入atlas文件
@@ -2477,7 +2498,7 @@ public abstract class AbstractPackManager implements PackManager {
                     GsonHelper.get().toJson(modernTrimAtlasJson, writer);
                     callback.accept(revision);
                 } catch (IOException e) {
-                    this.plugin.logger().severe("Error writing " + overlayAtlasPath.toAbsolutePath(), e);
+                    this.plugin.logger().error("Error writing " + overlayAtlasPath.toAbsolutePath(), e);
                 }
             }
         }
@@ -2486,7 +2507,7 @@ public abstract class AbstractPackManager implements PackManager {
     private void processComponentBasedEquipment(ComponentBasedEquipment componentBasedEquipment, Path generatedPackPath) {
         Key assetId = componentBasedEquipment.assetId();
         if (assetId == null) {
-            this.plugin.logger().severe("Asset id is null for equipment " + componentBasedEquipment);
+            this.plugin.logger().error("Asset id is null for equipment " + componentBasedEquipment);
             return;
         }
 
@@ -2512,7 +2533,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.createDirectories(correctPath.getParent());
                         Files.move(badPath, correctPath);
                     } catch (IOException e) {
-                        plugin.logger().severe("Error creating " + correctPath.toAbsolutePath());
+                        plugin.logger().error("Error creating " + correctPath.toAbsolutePath());
                         return;
                     }
                 }
@@ -2543,13 +2564,13 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(equipmentPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + equipmentPath.toAbsolutePath());
+                plugin.logger().error("Error creating " + equipmentPath.toAbsolutePath());
                 return;
             }
             try {
                 GsonHelper.writeJsonFile(equipmentJson, equipmentPath);
             } catch (IOException e) {
-                this.plugin.logger().severe("Error writing equipment file", e);
+                this.plugin.logger().error("Error writing equipment file", e);
             }
         }
         if (Config.packMaxVersion().isAtOrAbove(MinecraftVersion.V1_21_2) && Config.packMinVersion().isBelow(MinecraftVersion.V1_21_4)) {
@@ -2577,13 +2598,13 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(equipmentPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + equipmentPath.toAbsolutePath());
+                plugin.logger().error("Error creating " + equipmentPath.toAbsolutePath());
                 return;
             }
             try {
                 GsonHelper.writeJsonFile(equipmentJson, equipmentPath);
             } catch (IOException e) {
-                this.plugin.logger().severe("Error writing equipment file", e);
+                this.plugin.logger().error("Error writing equipment file", e);
             }
         }
     }
@@ -2622,7 +2643,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.createDirectories(legacyTarget.getParent());
                         Files.copy(texture, legacyTarget, StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        plugin.logger().severe("Error writing armor texture file from " + texture + " to " + legacyTarget, e);
+                        plugin.logger().error("Error writing armor texture file from " + texture + " to " + legacyTarget, e);
                     }
                 } else {
                     shouldPreserve = true;
@@ -2642,7 +2663,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.createDirectories(modernTarget.getParent());
                         Files.copy(texture, modernTarget, StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        plugin.logger().severe("Error writing armor texture file from " + texture + " to " + modernTarget, e);
+                        plugin.logger().error("Error writing armor texture file from " + texture + " to " + modernTarget, e);
                     }
                 } else {
                     shouldPreserve = true;
@@ -2652,7 +2673,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     Files.delete(texture);
                 } catch (IOException e) {
-                    this.plugin.logger().severe("Error deleting armor texture file from " + texture, e);
+                    this.plugin.logger().error("Error deleting armor texture file from " + texture, e);
                 }
             }
         }
@@ -2681,7 +2702,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.createDirectories(legacyTarget.getParent());
                         Files.copy(texture, legacyTarget, StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        this.plugin.logger().severe("Error writing armor texture file from " + texture + " to " + legacyTarget, e);
+                        this.plugin.logger().error("Error writing armor texture file from " + texture + " to " + legacyTarget, e);
                     }
                 } else {
                     shouldPreserve = true;
@@ -2701,7 +2722,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.createDirectories(modernTarget.getParent());
                         Files.copy(texture, modernTarget, StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        this.plugin.logger().severe("Error writing armor texture file from " + texture + " to " + modernTarget, e);
+                        this.plugin.logger().error("Error writing armor texture file from " + texture + " to " + modernTarget, e);
                     }
                 } else {
                     shouldPreserve = true;
@@ -2711,7 +2732,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     Files.delete(texture);
                 } catch (IOException e) {
-                    this.plugin.logger().severe("Error deleting armor texture file from " + texture, e);
+                    this.plugin.logger().error("Error deleting armor texture file from " + texture, e);
                 }
             }
         }
@@ -2737,13 +2758,13 @@ public abstract class AbstractPackManager implements PackManager {
             Files.createDirectories(modelPath.getParent());
             Files.writeString(modelPath, "{\"textures\":{\"particle\":\"block/empty\"},\"elements\":[{\"from\":[0,0,0],\"to\":[0,0,0],\"color\":0,\"faces\":{\"north\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"east\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"south\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"west\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"up\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"},\"down\":{\"uv\":[0,0,0,0],\"texture\":\"#particle\"}}}]}");
         } catch (IOException e) {
-            this.plugin.logger().severe("Error writing empty block model", e);
+            this.plugin.logger().error("Error writing empty block model", e);
         }
         try {
             Files.createDirectories(texturePath.getParent());
             Files.write(texturePath, EMPTY_16X16_IMAGE);
         } catch (IOException e) {
-            this.plugin.logger().severe("Error writing empty block texture", e);
+            this.plugin.logger().error("Error writing empty block texture", e);
         }
     }
 
@@ -2770,13 +2791,13 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(langPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + langPath.toAbsolutePath());
+                plugin.logger().error("Error creating " + langPath.toAbsolutePath());
                 return;
             }
             try {
                 GsonHelper.writeJsonFile(json, langPath);
             } catch (IOException e) {
-                this.plugin.logger().severe("Error writing language file", e);
+                this.plugin.logger().error("Error writing language file", e);
             }
         }
     }
@@ -2805,7 +2826,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(soundPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + soundPath.toAbsolutePath());
+                plugin.logger().error("Error creating " + soundPath.toAbsolutePath());
                 return;
             }
             try (BufferedWriter writer = Files.newBufferedWriter(soundPath)) {
@@ -2869,7 +2890,7 @@ public abstract class AbstractPackManager implements PackManager {
         try {
             Files.createDirectories(soundPath.getParent());
         } catch (IOException e) {
-            plugin.logger().severe("Error creating " + soundPath.toAbsolutePath());
+            plugin.logger().error("Error creating " + soundPath.toAbsolutePath());
             return;
         }
         try (BufferedWriter writer = Files.newBufferedWriter(soundPath)) {
@@ -2893,7 +2914,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(modelPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + modelPath.toAbsolutePath(), e);
+                plugin.logger().error("Error creating " + modelPath.toAbsolutePath(), e);
                 continue;
             }
             try (BufferedWriter writer = Files.newBufferedWriter(modelPath)) {
@@ -2947,7 +2968,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(overridedBlockPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + overridedBlockPath.toAbsolutePath(), e);
+                plugin.logger().error("Error creating " + overridedBlockPath.toAbsolutePath(), e);
                 continue;
             }
             try (BufferedWriter writer = Files.newBufferedWriter(overridedBlockPath)) {
@@ -2972,7 +2993,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(overridedBlockPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + overridedBlockPath.toAbsolutePath(), e);
+                plugin.logger().error("Error creating " + overridedBlockPath.toAbsolutePath(), e);
                 continue;
             }
             try (BufferedWriter writer = Files.newBufferedWriter(overridedBlockPath)) {
@@ -3055,7 +3076,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(itemPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + itemPath.toAbsolutePath(), e);
+                plugin.logger().error("Error creating " + itemPath.toAbsolutePath(), e);
                 continue;
             }
             try (BufferedWriter writer = Files.newBufferedWriter(itemPath)) {
@@ -3082,7 +3103,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(itemPath.getParent());
             } catch (IOException e) {
-                this.plugin.logger().severe("Error creating " + itemPath.toAbsolutePath(), e);
+                this.plugin.logger().error("Error creating " + itemPath.toAbsolutePath(), e);
                 continue;
             }
             ModernItemModel modernItemModel = entry.getValue();
@@ -3105,7 +3126,7 @@ public abstract class AbstractPackManager implements PackManager {
                         try {
                             Files.createDirectories(overlayItemPath.getParent());
                         } catch (IOException e) {
-                            this.plugin.logger().severe("Error creating " + overlayItemPath.toAbsolutePath(), e);
+                            this.plugin.logger().error("Error creating " + overlayItemPath.toAbsolutePath(), e);
                             continue;
                         }
                         try (BufferedWriter writer = Files.newBufferedWriter(overlayItemPath)) {
@@ -3173,7 +3194,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(overridedItemPath.getParent());
             } catch (IOException e) {
-                this.plugin.logger().severe("Error creating " + overridedItemPath.toAbsolutePath(), e);
+                this.plugin.logger().error("Error creating " + overridedItemPath.toAbsolutePath(), e);
                 continue;
             }
 
@@ -3196,7 +3217,7 @@ public abstract class AbstractPackManager implements PackManager {
                         try {
                             Files.createDirectories(overlayItemPath.getParent());
                         } catch (IOException e) {
-                            this.plugin.logger().severe("Error creating " + overlayItemPath.toAbsolutePath(), e);
+                            this.plugin.logger().error("Error creating " + overlayItemPath.toAbsolutePath(), e);
                             continue;
                         }
                         try (BufferedWriter writer = Files.newBufferedWriter(overlayItemPath)) {
@@ -3256,7 +3277,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(overridedItemPath.getParent());
             } catch (IOException e) {
-                plugin.logger().severe("Error creating " + overridedItemPath.toAbsolutePath(), e);
+                plugin.logger().error("Error creating " + overridedItemPath.toAbsolutePath(), e);
                 continue;
             }
             try (BufferedWriter writer = Files.newBufferedWriter(overridedItemPath)) {
@@ -3290,7 +3311,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     Files.createDirectories(fontPath.getParent());
                 } catch (IOException e) {
-                    this.plugin.logger().severe("Error creating " + fontPath.toAbsolutePath(), e);
+                    this.plugin.logger().error("Error creating " + fontPath.toAbsolutePath(), e);
                 }
             }
 
@@ -3309,7 +3330,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.writeString(fontPath, CharacterUtils.replaceDoubleBackslashU(fontJson.toString()));
             } catch (IOException e) {
-                this.plugin.logger().severe("Error writing font to " + fontPath.toAbsolutePath(), e);
+                this.plugin.logger().error("Error writing font to " + fontPath.toAbsolutePath(), e);
             }
         }
 

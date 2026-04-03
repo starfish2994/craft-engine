@@ -24,7 +24,7 @@ public record MergeJsonResolution(boolean deeply) implements Resolution {
             }
             GsonHelper.writeJsonFile(j3, existing.path());
         } catch (IOException e) {
-            CraftEngine.instance().logger().severe("Failed to merge json when resolving file conflicts", e);
+            CraftEngine.instance().logger().error("Failed to merge json when resolving file conflicts", e);
         }
     }
 

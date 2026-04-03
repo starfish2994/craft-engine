@@ -7,7 +7,6 @@ import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class DefaultBlockEntityRendererSerializer {

@@ -273,7 +273,7 @@ public final class Config {
                 return true;
             }
         } catch (IOException e) {
-            this.plugin.logger().severe("Failed to update config.yml", e);
+            this.plugin.logger().error("Failed to update config.yml", e);
         }
         return false;
     }
@@ -1403,7 +1403,7 @@ public final class Config {
         try (InputStream inputStream = new FileInputStream(resolveConfig(filePath).toFile())) {
             return YamlDocument.create(inputStream, this.plugin.resourceStream(filePath), generalSettings, loaderSettings, dumperSettings, updaterSettings);
         } catch (IOException e) {
-            this.plugin.logger().severe("Failed to load config " + filePath, e);
+            this.plugin.logger().error("Failed to load config " + filePath, e);
             return null;
         }
     }
@@ -1412,7 +1412,7 @@ public final class Config {
         try (InputStream inputStream = Files.newInputStream(file)) {
             return YamlDocument.create(inputStream);
         } catch (IOException e) {
-            this.plugin.logger().severe("Failed to load config " + file, e);
+            this.plugin.logger().error("Failed to load config " + file, e);
             return null;
         }
     }

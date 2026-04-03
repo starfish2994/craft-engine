@@ -554,8 +554,6 @@ chunk-system:
   # Synchronizes custom block data edited via CraftEngine Fabric mod with server
   # Resolves desynchronization between local edits and server-side state
   sync-custom-blocks-on-chunk-load: false
-  # Enabling this fixes corrupted entity renderers on chunk load, but expect some performance overhead.
-  fix-corrupted-block-entity-renderers: false
   # Invalid block remediation on chunk load
   process-invalid-blocks:
     enable: false

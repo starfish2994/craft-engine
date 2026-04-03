@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.plugin.PluginProperties;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
+import net.momirealms.craftengine.core.plugin.config.yaml.TranslationConfigConstructor;
 import net.momirealms.craftengine.core.plugin.text.minimessage.ImageTag;
 import net.momirealms.craftengine.core.plugin.text.minimessage.IndexedArgumentTag;
 import net.momirealms.craftengine.core.plugin.text.minimessage.ShiftTag;
@@ -20,10 +21,12 @@ import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.representer.Representer;
+import org.snakeyaml.engine.v2.api.Dump;
+import org.snakeyaml.engine.v2.api.DumpSettings;
+import org.snakeyaml.engine.v2.api.Load;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +41,6 @@ import java.util.function.Function;
 
 public final class TranslationManagerImpl implements TranslationManager {
     private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
-    private static final Yaml TRANSLATION_YAML = new Yaml(new TranslationConfigConstructor(new LoaderOptions()));
     static TranslationManager instance;
     private final Plugin plugin;
     private final Set<Locale> installed = ConcurrentHashMap.newKeySet();
@@ -65,9 +67,18 @@ public final class TranslationManagerImpl implements TranslationManager {
         this.langParser = new LangParser();
         this.translationParser = new TranslationParser();
         try (InputStream is = plugin.resourceStream("translations/en.yml")) {
-            this.translationFallback.putAll(TRANSLATION_YAML.load(is));
+            LoadSettings settings = LoadSettings.builder().setLabel("translations/en.yml").build();
+            TranslationConfigConstructor constructor = new TranslationConfigConstructor(settings);
+            Load load = new Load(settings, constructor);
+            @SuppressWarnings("unchecked")
+            Map<String, String> data = (Map<String, String>) load.loadFromInputStream(is);
+            if (data != null) {
+                this.translationFallback.putAll(data);
+            }
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to load default translation file", e);
+        } catch (Exception e) {
+            CraftEngine.instance().logger().error("YAML syntax error in default translation file", e);
         }
     }
 
@@ -230,8 +241,12 @@ public final class TranslationManagerImpl implements TranslationManager {
                         if (cachedFile != null && cachedFile.lastModified() == lastModifiedTime && cachedFile.size() == size) {
                             TranslationManagerImpl.this.cachedTranslations.put(locale, cachedFile);
                         } else {
-                            try (InputStreamReader inputStream = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
-                                Map<String, String> data = TRANSLATION_YAML.load(inputStream);
+                            try (InputStream inputStream = Files.newInputStream(path)) {
+                                LoadSettings settings = LoadSettings.builder().setLabel(path.toAbsolutePath().toString()).build();
+                                TranslationConfigConstructor constructor = new TranslationConfigConstructor(settings);
+                                Load load = new Load(settings, constructor);
+                                @SuppressWarnings("unchecked")
+                                Map<String, String> data = (Map<String, String>) load.loadFromInputStream(inputStream);
                                 if (data == null) return FileVisitResult.CONTINUE;
                                 String langVersion = data.getOrDefault("lang-version", "");
                                 if (!langVersion.equals(TranslationManagerImpl.this.langVersion) && TranslationManagerImpl.this.supportedLanguages.contains(localeName)) {
@@ -240,7 +255,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                                 cachedFile = new CachedTranslation(data, lastModifiedTime, size);
                                 TranslationManagerImpl.this.cachedTranslations.put(locale, cachedFile);
                             } catch (IOException e) {
-                                TranslationManagerImpl.this.plugin.logger().severe("Error while reading translation file: " + path, e);
+                                TranslationManagerImpl.this.plugin.logger().error("Error while reading translation file: " + path, e);
                                 return FileVisitResult.CONTINUE;
                             }
                         }
@@ -261,24 +276,45 @@ public final class TranslationManagerImpl implements TranslationManager {
     }
 
     private Map<String, String> updateLangFile(Map<String, String> previous, Path translationFile) throws IOException {
-        DumperOptions options = new DumperOptions();
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        options.setPrettyFlow(true);
-        options.setIndent(2);
-        options.setSplitLines(false);
-        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
-        Yaml yaml = new Yaml(new StringKeyConstructor(translationFile, new LoaderOptions()), new Representer(options), options);
+        String fileName = translationFile.getFileName().toString();
+
+        LoadSettings loadSettings = LoadSettings.builder()
+                .setLabel(fileName)
+                .build();
+
+        DumpSettings dumpSettings = DumpSettings.builder()
+                .setDefaultFlowStyle(FlowStyle.BLOCK)
+                .setIndent(2)
+                .setIndicatorIndent(2)
+                .setSplitLines(false)
+                .setDefaultScalarStyle(ScalarStyle.PLAIN)
+                .build();
+
         LinkedHashMap<String, String> newFileContents = new LinkedHashMap<>();
-        try (InputStream is = this.plugin.resourceStream("translations/" + translationFile.getFileName())) {
-            Map<String, String> newMap = yaml.load(is);
+
+        try (InputStream is = this.plugin.resourceStream("translations/" + fileName)) {
+            TranslationConfigConstructor constructor = new TranslationConfigConstructor(loadSettings);
+            Load load = new Load(loadSettings, constructor);
+
+            @SuppressWarnings("unchecked")
+            Map<String, String> newMap = (Map<String, String>) load.loadFromInputStream(is);
+
             previous.remove("lang-version");
             newFileContents.put("lang-version", this.langVersion);
             newFileContents.putAll(this.translationFallback);
-            newFileContents.putAll(newMap);
+            if (newMap != null) {
+                newFileContents.putAll(newMap);
+            }
             newFileContents.putAll(previous);
-            String yamlString = yaml.dump(newFileContents);
+
+            Dump dump = new Dump(dumpSettings);
+            String yamlString = dump.dumpToString(newFileContents);
+
             Files.writeString(translationFile, yamlString);
+
             return newFileContents;
+        } catch (Exception e) {
+            throw new IOException("Error processing YAML for " + fileName, e);
         }
     }
 

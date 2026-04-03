@@ -20,7 +20,7 @@ fun DependencyHandlerScope.common(project: org.gradle.api.Project) {
     add("compileOnly", "com.google.code.gson:gson:${v("gson_version")}")
     add("compileOnly", "it.unimi.dsi:fastutil:${v("fastutil_version")}")
     add("compileOnly", "org.joml:joml:${v("joml_version")}")
-    add("compileOnly", "org.yaml:snakeyaml:${v("snake_yaml_version")}")
+    add("compileOnly", "org.snakeyaml:snakeyaml-engine:${v("snake_yaml_version")}")
     add("compileOnly", "org.slf4j:slf4j-api:${v("slf4j_version")}")
     add("compileOnly", "org.apache.logging.log4j:log4j-core:${v("log4j_version")}")
     add("compileOnly", "com.github.ben-manes.caffeine:caffeine:${v("caffeine_version")}")

@@ -411,7 +411,7 @@ public final class SelfHostHttpServer {
                 this.resourcePackBytes = null;
             }
         } catch (IOException e) {
-            CraftEngine.instance().logger().severe("Failed to load resource pack", e);
+            CraftEngine.instance().logger().error("Failed to load resource pack", e);
         }
     }
 
@@ -428,7 +428,7 @@ public final class SelfHostHttpServer {
             this.packHash = hexString.toString();
             this.packUUID = UUID.nameUUIDFromBytes(this.packHash.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException e) {
-            CraftEngine.instance().logger().severe("SHA-1 algorithm not available", e);
+            CraftEngine.instance().logger().error("SHA-1 algorithm not available", e);
         }
     }
 }

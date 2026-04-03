@@ -168,15 +168,15 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         }
         // 对安装了 FreedomChat 的用户告警
         if (Bukkit.getPluginManager().getPlugin("FreedomChat") != null) {
-            this.plugin.logger().severe("");
+            this.plugin.logger().error("");
             if (Locale.getDefault() == Locale.SIMPLIFIED_CHINESE) {
-                this.plugin.logger().severe("CraftEngine 与 FreedomChat 不兼容，请立即卸载 FreedomChat");
-                this.plugin.logger().severe("作为替代方案，请在 config.yml 中启用 disable-chat-report 选项");
+                this.plugin.logger().error("CraftEngine 与 FreedomChat 不兼容，请立即卸载 FreedomChat");
+                this.plugin.logger().error("作为替代方案，请在 config.yml 中启用 disable-chat-report 选项");
             } else {
-                this.plugin.logger().severe("CraftEngine is incompatible with FreedomChat. Please uninstall FreedomChat immediately.");
-                this.plugin.logger().severe("As an alternative, enable disable-chat-report in config.yml.");
+                this.plugin.logger().error("CraftEngine is incompatible with FreedomChat. Please uninstall FreedomChat immediately.");
+                this.plugin.logger().error("As an alternative, enable disable-chat-report in config.yml.");
             }
-            this.plugin.logger().severe("");
+            this.plugin.logger().error("");
         }
     }
 
@@ -312,15 +312,15 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         String version = VersionHelper.isPaper() ? fastAsyncWorldEdit.getPluginMeta().getVersion() : fastAsyncWorldEdit.getDescription().getVersion();
         if (!WorldEditBlockRegister.checkFAWECompatible(version)) {
             if (VersionHelper.isOrAbove1_20_3()) {
-                this.plugin.logger().severe("");
+                this.plugin.logger().error("");
                 if (Locale.getDefault() == Locale.SIMPLIFIED_CHINESE) {
-                    this.plugin.logger().severe("[兼容性] 插件需要更新 FastAsyncWorldEdit 到 2.13.0 或更高版本，以获得更好的兼容性。(当前版本: " + version + ")");
-                    this.plugin.logger().severe("[兼容性] 请前往 https://ci.athion.net/job/FastAsyncWorldEdit/ 下载最新版本");
+                    this.plugin.logger().error("[兼容性] 插件需要更新 FastAsyncWorldEdit 到 2.13.0 或更高版本，以获得更好的兼容性。(当前版本: " + version + ")");
+                    this.plugin.logger().error("[兼容性] 请前往 https://ci.athion.net/job/FastAsyncWorldEdit/ 下载最新版本");
                 } else {
-                    this.plugin.logger().severe("[Compatibility] Update FastAsyncWorldEdit to v2.13.0+ for better compatibility (Current: " + version + ")");
-                    this.plugin.logger().severe("[Compatibility] Download latest version: https://ci.athion.net/job/FastAsyncWorldEdit/");
+                    this.plugin.logger().error("[Compatibility] Update FastAsyncWorldEdit to v2.13.0+ for better compatibility (Current: " + version + ")");
+                    this.plugin.logger().error("[Compatibility] Download latest version: https://ci.athion.net/job/FastAsyncWorldEdit/");
                 }
-                this.plugin.logger().severe("");
+                this.plugin.logger().error("");
             }
         }
         WorldEditBlockRegister.init(true);

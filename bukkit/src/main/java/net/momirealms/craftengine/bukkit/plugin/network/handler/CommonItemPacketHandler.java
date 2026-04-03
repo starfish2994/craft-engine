@@ -40,7 +40,7 @@ public final class CommonItemPacketHandler implements EntityPacketHandler {
                 long time = System.currentTimeMillis();
                 if (time - lastWarningTime > 5000) {
                     BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
-                    CraftEngine.instance().logger().severe("An issue was detected while applying item-related entity data for '" + serverPlayer.name() +
+                    CraftEngine.instance().logger().error("An issue was detected while applying item-related entity data for '" + serverPlayer.name() +
                             "'. Please execute the command '/ce debug entity-id " + serverPlayer.world().name() + " " + id + "' and provide a screenshot for further investigation. Class: " + nmsItemStack.getClass() + ". Object: " + GsonHelper.get().toJson(nmsItemStack));
                     lastWarningTime = time;
                 }

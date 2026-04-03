@@ -114,14 +114,14 @@ public final class DebugOptimizeFurnitureStructureCommand extends BukkitCommandF
                                 NBTUtils.writeCompressed(structureTag, os);
                             } catch (IOException e) {
                                 sender.sendMessage(Component.text("Internal error", NamedTextColor.RED));
-                                plugin().logger().severe("Cannot write structure NBT file", e);
+                                plugin().logger().error("Cannot write structure NBT file", e);
                                 return;
                             }
                             sender.sendMessage(Component.text(count + " entities modified", NamedTextColor.WHITE));
                         }
                     } catch (IOException e) {
                         sender.sendMessage(Component.text("Internal error", NamedTextColor.RED));
-                        plugin().logger().severe("Cannot read structure NBT file", e);
+                        plugin().logger().error("Cannot read structure NBT file", e);
                     }
                 });
     }
