@@ -554,7 +554,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 // 解析战利品表 （可异常）
                 Loot loot = null;
                 try {
-                    loot = section.getValue("loot", ConfigValue::getAsLootable);
+                    loot = section.getValue("loot", ConfigValue::getAsLoot);
                 } catch (KnownResourceException e) {
                     error(e, path);
                 }

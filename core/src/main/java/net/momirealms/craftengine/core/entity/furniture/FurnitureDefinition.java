@@ -28,7 +28,7 @@ public interface FurnitureDefinition {
     }
 
     @Nullable
-    Loot lootable();
+    Loot loot();
 
     Map<String, FurnitureVariant> variants();
 
@@ -83,7 +83,7 @@ public interface FurnitureDefinition {
 
         Builder settings(FurnitureSettings settings);
 
-        Builder lootable(Loot loot);
+        Builder loot(Loot loot);
 
         Builder events(Map<EventTrigger, List<Function<Context>>> events);
 

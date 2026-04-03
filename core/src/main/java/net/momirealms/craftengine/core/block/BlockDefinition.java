@@ -18,7 +18,7 @@ public interface BlockDefinition {
     Key id();
 
     @Nullable
-    Loot lootable();
+    Loot loot();
 
     @NotNull
     default String translationKey() {

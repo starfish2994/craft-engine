@@ -22,7 +22,7 @@ public final class VanillaLoot {
         return type;
     }
 
-    public List<Loot> lootables() {
+    public List<Loot> loots() {
         return lootTables;
     }
 

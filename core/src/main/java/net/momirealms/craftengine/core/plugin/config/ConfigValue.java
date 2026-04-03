@@ -693,7 +693,7 @@ public record ConfigValue(String path, @NotNull Object value) {
         return NumberProviders.fromConfig(this);
     }
 
-    public Loot getAsLootable() {
+    public Loot getAsLoot() {
         if (this.is(Map.class)) {
             return LootTable.fromConfig(this.getAsSection());
         } else {

@@ -121,18 +121,6 @@ public final class BlockStateGenerator {
             Object vec3 = LootParamsProxy.BuilderProxy.INSTANCE.getOptionalParameter(builder, LootContextParamsProxy.ORIGIN);
             if (vec3 == null) return List.of();
 
-            // 数据包 LootTable.
-            Loot loot = state.owner().value().lootable();
-            if (loot instanceof LootTableReference lootTableReference /* 不可能是 DatapackLootTable. */) {
-                Loot underlying = lootTableReference.delegate.get();
-                if (underlying instanceof DatapackLootTable datapackLootTable) {
-                    LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.BLOCK_STATE, state);
-                    Object lootParams = LootParamsProxy.BuilderProxy.INSTANCE.create(builder, LootContextParamSetsProxy.BLOCK);
-                    return datapackLootTable.getRandomItemsByLootParams(lootParams);
-                }
-            }
-
-            // 自定义 LootTable.
             Object tool = LootParamsProxy.BuilderProxy.INSTANCE.getOptionalParameter(builder, LootContextParamsProxy.TOOL);
             Item item = BukkitItemManager.instance().wrap(tool == null ? null : ItemStackUtils.getBukkitStack(tool));
             Object optionalPlayer = LootParamsProxy.BuilderProxy.INSTANCE.getOptionalParameter(builder, LootContextParamsProxy.THIS_ENTITY);
@@ -150,6 +138,18 @@ public final class BlockStateGenerator {
                 }
             }
 
+            // 数据包 LootTable.
+            Loot loot = state.owner().value().loot();
+            if (loot instanceof LootTableReference lootTableReference /* 不可能是 DatapackLootTable. */) {
+                Loot underlying = lootTableReference.delegate.get();
+                if (underlying instanceof DatapackLootTable datapackLootTable) {
+                    LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.BLOCK_STATE, state);
+                    Object lootParams = LootParamsProxy.BuilderProxy.INSTANCE.create(builder, LootContextParamSetsProxy.BLOCK);
+                    return datapackLootTable.getRandomItemsByLootParams(lootParams);
+                }
+            }
+
+            // 自定义 LootTable.
             Object serverLevel = LootParamsProxy.BuilderProxy.INSTANCE.getLevel(builder);
             World world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(serverLevel));
             ContextHolder.Builder lootBuilder = new ContextHolder.Builder()

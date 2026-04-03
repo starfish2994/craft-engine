@@ -84,8 +84,8 @@ public final class BukkitLootManager extends AbstractLootManager implements List
         Entity entity = event.getEntity();
         BukkitEntity bukkitEntity = BukkitAdaptor.adapt(entity);
         Key key = getEntityId(bukkitEntity);
-        Optional.ofNullable(this.entityLoots.get(key)).ifPresent(loot -> {
-            if (loot.override()) {
+        Optional.ofNullable(this.entityLoots.get(key)).ifPresent(vanillaLoot -> {
+            if (vanillaLoot.override()) {
                 event.getDrops().clear();
                 event.setDroppedExp(0);
             }
@@ -110,8 +110,8 @@ public final class BukkitLootManager extends AbstractLootManager implements List
             }
             ContextHolder contextHolder = builder.build();
             EntityLootContext entityLootContext = new EntityLootContext(world, optionalPlayer, luck, contextHolder, entity);
-            for (Loot lootable : loot.lootables()) {
-                for (Item item : lootable.getRandomItems(entityLootContext)) {
+            for (Loot loot : vanillaLoot.loots()) {
+                for (Item item : loot.getRandomItems(entityLootContext)) {
                     world.dropItemNaturally(position, item);
                 }
             }
@@ -139,7 +139,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
     @Override
     public LootTableReference createReference(Key key) {
         LazyReference<Loot> lazyReference = LazyReference.lazyReference(() -> {
-            Optional<Loot> lootTable = BukkitLootManager.instance().getLootable(key);
+            Optional<Loot> lootTable = BukkitLootManager.instance().getLoot(key);
             return lootTable.orElseGet(() -> new DatapackLootTable(key));
         });
         return new LootTableReference(lazyReference);
@@ -191,7 +191,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
             }
             boolean override = section.getBoolean("override");
             List<String> targets = MiscUtils.getAsStringList(section.getOrDefault("target", List.of()));
-            Loot loot = section.getValue(LOOT_SECTION, ConfigValue::getAsLootable);
+            Loot loot = section.getValue(LOOT_SECTION, ConfigValue::getAsLoot);
             switch (typeEnum) {
                 case BLOCK -> {
                     for (String target : targets) {

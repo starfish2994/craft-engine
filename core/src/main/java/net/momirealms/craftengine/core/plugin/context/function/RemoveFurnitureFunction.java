@@ -40,7 +40,7 @@ public final class RemoveFurnitureFunction<CTX extends Context> extends Abstract
         WorldPosition position = furniture.position();
         World world = position.world();
         furniture.destroy();
-        Loot loot = furniture.config.lootable();
+        Loot loot = furniture.config.loot();
         if (dropLoot && loot != null) {
             ContextHolder.Builder builder = ContextHolder.builder()
                     .withParameter(DirectContextParameters.POSITION, position)

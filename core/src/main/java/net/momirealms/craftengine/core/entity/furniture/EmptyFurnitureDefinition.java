@@ -34,7 +34,7 @@ public final class EmptyFurnitureDefinition implements FurnitureDefinition {
 
     @Nullable
     @Override
-    public LootTable lootable() {
+    public LootTable loot() {
         return null;
     }
 

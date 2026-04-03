@@ -41,7 +41,7 @@ public abstract class AbstractLootManager implements LootManager {
     }
 
     @Override
-    public Optional<Loot> getLootable(Key key) {
+    public Optional<Loot> getLoot(Key key) {
         return Optional.ofNullable(this.lootTables.get(key));
     }
 
@@ -76,7 +76,7 @@ public abstract class AbstractLootManager implements LootManager {
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
-            Loot loot = section.toValue().getAsLootable();
+            Loot loot = section.toValue().getAsLoot();
             lootTables.put(id, loot);
             this.count++;
         }

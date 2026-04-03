@@ -150,7 +150,7 @@ public final class ImmutableBlockState {
     public List<Item> getDrops(@NotNull ContextHolder.Builder builder, @NotNull World world, @Nullable Player player) {
         BlockDefinition block = this.owner.value();
         if (block == null) return List.of();
-        Loot lootTable = block.lootable();
+        Loot lootTable = block.loot();
         if (lootTable == null) return List.of();
         return lootTable.getRandomItems(builder.withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, this).build(), world, player);
     }

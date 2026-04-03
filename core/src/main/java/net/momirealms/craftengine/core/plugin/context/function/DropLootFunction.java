@@ -76,7 +76,7 @@ public final class DropLootFunction<CTX extends Context> extends AbstractConditi
                     section.getNumber("x", ConfigConstants.POSITION_X),
                     section.getNumber("y", ConfigConstants.POSITION_Y),
                     section.getNumber("z", ConfigConstants.POSITION_Z),
-                    section.getValue(LOOT, ConfigValue::getAsLootable),
+                    section.getValue(LOOT, ConfigValue::getAsLoot),
                     section.getBoolean(TO_INVENTORY)
             );
         }

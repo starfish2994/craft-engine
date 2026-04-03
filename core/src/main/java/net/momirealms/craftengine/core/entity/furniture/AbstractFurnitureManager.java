@@ -268,7 +268,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
             // 解析战利品表 （可异常）
             Loot loot = null;
             try {
-                loot = section.getValue(LOOT, ConfigValue::getAsLootable);
+                loot = section.getValue(LOOT, ConfigValue::getAsLoot);
             } catch (KnownResourceException e) {
                 error(e, path);
             }
@@ -278,7 +278,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                     .settings(settings)
                     .variants(variants)
                     .events(events)
-                    .lootable(loot)
+                    .loot(loot)
                     .build();
 
             // 家具行为

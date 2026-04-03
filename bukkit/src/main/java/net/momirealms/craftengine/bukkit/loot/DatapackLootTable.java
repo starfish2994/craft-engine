@@ -45,7 +45,7 @@ public class DatapackLootTable implements Loot {
                 return ReloadableServerRegistriesProxy.HolderProxy.INSTANCE.getLootTable(reloadableRegistriesHolder, registryKey);
             }
             // 1.20 +
-            else if (VersionHelper.isOrAbove1_20()) {
+            else {
                 Object lootDataManager = MinecraftServerProxy.INSTANCE.getLootData(minecraftServer);
                 // 非空, 至少会返回一个 LootTable.EMPTY.
                 return LootDataResolverProxy.INSTANCE.getLootTable(
@@ -53,7 +53,6 @@ public class DatapackLootTable implements Loot {
                         IdentifierProxy.INSTANCE.newInstance(identifier.namespace(), identifier.value())
                 );
             }
-            return LootTableProxy.EMPTY;
         });
     }
 
@@ -87,8 +86,7 @@ public class DatapackLootTable implements Loot {
         }
     }
 
-    // List<ItemStack /* NMS */>
-    public List<Object> getRandomItemsByLootParams(Object lootParams) {
+    public List</*Minecraft ItemStack*/ Object> getRandomItemsByLootParams(Object lootParams) {
         Object lootTable = minecraftLootTable.get();
         return LootTableProxy.INSTANCE.getRandomItems(lootTable, lootParams);
     }
@@ -105,17 +103,17 @@ public class DatapackLootTable implements Loot {
             ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.TOOL);
             ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.EXPLOSION_RADIUS);
 
-            if (!VersionHelper.isOrAbove1_21()) {
-                ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getKillerEntity());
-                ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getDirectKillerEntity());
-                ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getLootMod());
-            }
-
             if (VersionHelper.isOrAbove1_21()) {
                 ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getAttackingEntity());
                 ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getDirectAttackingEntity());
                 ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getEnchantmentLevel());
                 ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getEnchantmentActive());
+            }
+            // 仅 1.21 版本以下.
+            else {
+                ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getKillerEntity());
+                ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getDirectKillerEntity());
+                ContextKeySetProxy.BuilderProxy.INSTANCE.optional(builder, LootContextParamsProxy.INSTANCE.getLootMod());
             }
 
             if (VersionHelper.isOrAbove1_21_9()) {

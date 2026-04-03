@@ -67,7 +67,7 @@ public abstract class AbstractBlockDefinition implements BlockDefinition {
     }
 
     @Override
-    public @Nullable Loot lootable() {
+    public @Nullable Loot loot() {
         return this.loot;
     }
 

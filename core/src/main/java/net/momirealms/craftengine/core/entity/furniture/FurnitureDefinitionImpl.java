@@ -59,7 +59,7 @@ class FurnitureDefinitionImpl implements FurnitureDefinition {
     }
 
     @Override
-    public @Nullable Loot lootable() {
+    public @Nullable Loot loot() {
         return this.loot;
     }
 
@@ -110,7 +110,7 @@ class FurnitureDefinitionImpl implements FurnitureDefinition {
         }
 
         @Override
-        public Builder lootable(Loot loot) {
+        public Builder loot(Loot loot) {
             this.loot = loot;
             return this;
         }

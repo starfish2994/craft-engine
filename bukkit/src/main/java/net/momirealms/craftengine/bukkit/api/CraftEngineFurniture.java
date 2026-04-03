@@ -356,7 +356,7 @@ public final class CraftEngineFurniture {
         if (!furniture.isValid()) return;
         Location location = ((BukkitFurniture) furniture).getDropLocation();
         furniture.destroy(player);
-        Loot loot = furniture.config.lootable();
+        Loot loot = furniture.config.loot();
         World world = BukkitAdaptor.adapt(location.getWorld());
         WorldPosition position = new WorldPosition(world, location.getX(), location.getY(), location.getZ());
         if (dropLoot && loot != null) {
