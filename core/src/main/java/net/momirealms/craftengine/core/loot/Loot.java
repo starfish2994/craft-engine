@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public interface Lootable {
+public interface Loot {
 
     List<Item> getRandomItems(LootContext context);
 

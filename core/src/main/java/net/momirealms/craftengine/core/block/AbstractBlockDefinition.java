@@ -2,7 +2,7 @@ package net.momirealms.craftengine.core.block;
 
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -26,18 +26,18 @@ public abstract class AbstractBlockDefinition implements BlockDefinition {
     protected final ImmutableBlockState defaultState;
     protected final Map<EventTrigger, List<Function<Context>>> events;
     @Nullable
-    protected final Lootable lootable;
+    protected final Loot loot;
     protected BlockBehavior behavior;
 
     protected AbstractBlockDefinition(
             @NotNull Holder.Reference<BlockDefinition> holder,
             @NotNull BlockStateVariantProvider variantProvider,
             @NotNull Map<EventTrigger, List<Function<Context>>> events,
-            @Nullable Lootable lootable
+            @Nullable Loot loot
     ) {
         this.id = holder.key().location();
         this.holder = holder;
-        this.lootable = lootable;
+        this.loot = loot;
         this.events = events;
         this.variantProvider = variantProvider;
         this.defaultState = this.variantProvider.getDefaultState();
@@ -67,8 +67,8 @@ public abstract class AbstractBlockDefinition implements BlockDefinition {
     }
 
     @Override
-    public @Nullable Lootable lootable() {
-        return this.lootable;
+    public @Nullable Loot lootable() {
+        return this.loot;
     }
 
     @Override

@@ -10,10 +10,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class LootTableReference implements Lootable {
-    public final LazyReference<Lootable> delegate;
+public class LootTableReference implements Loot {
+    public final LazyReference<Loot> delegate;
 
-    public LootTableReference(LazyReference<Lootable> delegate) {
+    public LootTableReference(LazyReference<Loot> delegate) {
         this.delegate = delegate;
     }
 

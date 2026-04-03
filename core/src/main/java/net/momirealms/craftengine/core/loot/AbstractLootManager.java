@@ -18,7 +18,7 @@ public abstract class AbstractLootManager implements LootManager {
     protected final Map<Integer, VanillaLoot> blockLoots = new ConcurrentHashMap<>();
     // TODO 实现一个基于entity data的生物战利品系统
     protected final Map<Key, VanillaLoot> entityLoots = new ConcurrentHashMap<>();
-    protected final Map<Key, Lootable> lootTables = new ConcurrentHashMap<>();
+    protected final Map<Key, Loot> lootTables = new ConcurrentHashMap<>();
 
     public AbstractLootManager() {
         this.lootParser = new LootParser();
@@ -41,7 +41,7 @@ public abstract class AbstractLootManager implements LootManager {
     }
 
     @Override
-    public Optional<Lootable> getLootable(Key key) {
+    public Optional<Loot> getLootable(Key key) {
         return Optional.ofNullable(this.lootTables.get(key));
     }
 
@@ -81,8 +81,8 @@ public abstract class AbstractLootManager implements LootManager {
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
-            Lootable lootable = section.toValue().getAsLootable();
-            lootTables.put(id, lootable);
+            Loot loot = section.toValue().getAsLootable();
+            lootTables.put(id, loot);
             this.count++;
         }
     }

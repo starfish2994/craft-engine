@@ -8,7 +8,7 @@ import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.registry.Holder;
@@ -150,7 +150,7 @@ public final class ImmutableBlockState {
     public List<Item> getDrops(@NotNull ContextHolder.Builder builder, @NotNull World world, @Nullable Player player) {
         BlockDefinition block = this.owner.value();
         if (block == null) return List.of();
-        Lootable lootTable = block.lootable();
+        Loot lootTable = block.lootable();
         if (lootTable == null) return List.of();
         return lootTable.getRandomItems(builder.withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, this).build(), world, player);
     }

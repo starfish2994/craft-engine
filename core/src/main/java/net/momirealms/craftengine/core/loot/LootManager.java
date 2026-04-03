@@ -16,7 +16,7 @@ public interface LootManager extends Manageable {
 
     Optional<VanillaLoot> getEntityLoot(Key entity);
 
-    Optional<Lootable> getLootable(Key key);
+    Optional<Loot> getLootable(Key key);
 
     LootTableReference createReference(Key key);
 }

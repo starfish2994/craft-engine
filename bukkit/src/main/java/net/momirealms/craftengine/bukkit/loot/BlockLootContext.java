@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.loot;
 
-import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
@@ -17,10 +16,10 @@ import org.jetbrains.annotations.Nullable;
 public class BlockLootContext extends BukkitLootContext {
     public final ExistingBlock existingBlock;
     public final Item itemInHand;
-    public final Entity sourceEntity;
+    public final Object sourceEntity;
 
     public BlockLootContext(@NotNull World world, @Nullable Player player, float luck, @NotNull ContextHolder contexts,
-                            @NotNull ExistingBlock existingBlock, @Nullable Item itemInHand, @Nullable Entity sourceEntity
+                            @NotNull ExistingBlock existingBlock, @Nullable Item itemInHand, @Nullable Object sourceEntity
     ) {
         super(world, player, luck, contexts);
         this.existingBlock = existingBlock;

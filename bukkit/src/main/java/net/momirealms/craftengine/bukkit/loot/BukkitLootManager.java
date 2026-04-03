@@ -9,7 +9,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.AbstractLootManager;
 import net.momirealms.craftengine.core.loot.LootTableReference;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.loot.VanillaLoot;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.compatibility.EntityProvider;
@@ -110,7 +110,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
             }
             ContextHolder contextHolder = builder.build();
             EntityLootContext entityLootContext = new EntityLootContext(world, optionalPlayer, luck, contextHolder, entity);
-            for (Lootable lootable : loot.lootables()) {
+            for (Loot lootable : loot.lootables()) {
                 for (Item item : lootable.getRandomItems(entityLootContext)) {
                     world.dropItemNaturally(position, item);
                 }
@@ -138,8 +138,8 @@ public final class BukkitLootManager extends AbstractLootManager implements List
 
     @Override
     public LootTableReference createReference(Key key) {
-        LazyReference<Lootable> lazyReference = LazyReference.lazyReference(() -> {
-            Optional<Lootable> lootTable = BukkitLootManager.instance().getLootable(key);
+        LazyReference<Loot> lazyReference = LazyReference.lazyReference(() -> {
+            Optional<Loot> lootTable = BukkitLootManager.instance().getLootable(key);
             return lootTable.orElseGet(() -> new DatapackLootTable(key));
         });
         return new LootTableReference(lazyReference);
@@ -191,7 +191,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
             }
             boolean override = section.getBoolean("override");
             List<String> targets = MiscUtils.getAsStringList(section.getOrDefault("target", List.of()));
-            Lootable lootable = section.getValue(LOOT_SECTION, ConfigValue::getAsLootable);
+            Loot loot = section.getValue(LOOT_SECTION, ConfigValue::getAsLootable);
             switch (typeEnum) {
                 case BLOCK -> {
                     for (String target : targets) {
@@ -201,7 +201,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
                                 throw new LocalizedResourceConfigException("warning.config.loot.block.invalid_target", target);
                             }
                             VanillaLoot vanillaLoot = blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
-                            vanillaLoot.addLootTable(lootable);
+                            vanillaLoot.addLootTable(loot);
                         } else {
                             for (Object blockState : BlockStateUtils.getPossibleBlockStates(Key.of(target))) {
                                 if (blockState == BlocksProxy.AIR$defaultState) {
@@ -209,7 +209,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
                                 }
                                 VanillaLoot vanillaLoot = blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
                                 if (override) vanillaLoot.override(true);
-                                vanillaLoot.addLootTable(lootable);
+                                vanillaLoot.addLootTable(loot);
                             }
                         }
                     }
@@ -218,7 +218,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
                     for (String target : targets) {
                         Key key = Key.of(target);
                         VanillaLoot vanillaLoot = entityLoots.computeIfAbsent(key, k -> new VanillaLoot(VanillaLoot.Type.ENTITY));
-                        vanillaLoot.addLootTable(lootable);
+                        vanillaLoot.addLootTable(loot);
                         if (override) vanillaLoot.override(true);
                     }
                 }

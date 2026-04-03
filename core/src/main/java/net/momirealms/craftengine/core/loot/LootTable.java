@@ -19,11 +19,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public final class LootTable implements Lootable {
+public final class LootTable implements Loot {
     private final List<LootPool> pools;
     private final List<LootFunction> functions;
     private final BiFunction<Item, LootContext, Item> compositeFunction;

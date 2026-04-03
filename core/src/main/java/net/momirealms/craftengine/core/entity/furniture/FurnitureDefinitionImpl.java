@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.entity.furniture;
 import com.google.common.collect.ImmutableSortedMap;
 import net.momirealms.craftengine.core.entity.furniture.behavior.EmptyFurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
@@ -22,18 +22,18 @@ class FurnitureDefinitionImpl implements FurnitureDefinition {
     private final Map<String, FurnitureVariant> variants;
     private final Map<EventTrigger, List<Function<Context>>> events;
     @Nullable
-    private final Lootable lootable;
+    private final Loot loot;
     private List<FurnitureBehaviorTemplate> behaviors = List.of(EmptyFurnitureBehaviorTemplate.INSTANCE);
 
     private FurnitureDefinitionImpl(@NotNull Key id,
                                     @NotNull FurnitureSettings settings,
                                     @NotNull Map<String, FurnitureVariant> variants,
                                     @NotNull Map<EventTrigger, List<Function<Context>>> events,
-                                    @Nullable Lootable lootable) {
+                                    @Nullable Loot loot) {
         this.id = id;
         this.settings = settings;
         this.variants = ImmutableSortedMap.copyOf(variants);
-        this.lootable = lootable;
+        this.loot = loot;
         this.events = events;
     }
 
@@ -59,8 +59,8 @@ class FurnitureDefinitionImpl implements FurnitureDefinition {
     }
 
     @Override
-    public @Nullable Lootable lootable() {
-        return this.lootable;
+    public @Nullable Loot lootable() {
+        return this.loot;
     }
 
     @Override
@@ -84,11 +84,11 @@ class FurnitureDefinitionImpl implements FurnitureDefinition {
         private Map<String, FurnitureVariant> variants;
         private FurnitureSettings settings;
         private Map<EventTrigger, List<Function<Context>>> events;
-        private Lootable lootable;
+        private Loot loot;
 
         @Override
         public FurnitureDefinition build() {
-            return new FurnitureDefinitionImpl(this.id, this.settings, this.variants, this.events, this.lootable);
+            return new FurnitureDefinitionImpl(this.id, this.settings, this.variants, this.events, this.loot);
         }
 
         @Override
@@ -110,8 +110,8 @@ class FurnitureDefinitionImpl implements FurnitureDefinition {
         }
 
         @Override
-        public Builder lootable(Lootable lootable) {
-            this.lootable = lootable;
+        public Builder lootable(Loot loot) {
+            this.loot = loot;
             return this;
         }
 

@@ -28,7 +28,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootTableReference;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Pair;
@@ -122,9 +122,9 @@ public final class BlockStateGenerator {
             if (vec3 == null) return List.of();
 
             // 数据包 LootTable.
-            Lootable lootable = state.owner().value().lootable();
-            if (lootable instanceof LootTableReference lootTableReference /* 不可能是 DatapackLootTable. */) {
-                Lootable underlying = lootTableReference.delegate.get();
+            Loot loot = state.owner().value().lootable();
+            if (loot instanceof LootTableReference lootTableReference /* 不可能是 DatapackLootTable. */) {
+                Loot underlying = lootTableReference.delegate.get();
                 if (underlying instanceof DatapackLootTable datapackLootTable) {
                     LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.BLOCK_STATE, state);
                     Object lootParams = LootParamsProxy.BuilderProxy.INSTANCE.create(builder, LootContextParamSetsProxy.BLOCK);

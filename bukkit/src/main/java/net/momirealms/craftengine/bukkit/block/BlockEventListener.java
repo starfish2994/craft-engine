@@ -13,7 +13,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -210,9 +210,9 @@ public final class BlockEventListener implements Listener {
                             .withParameter(DirectContextParameters.POSITION, position)
                             .withParameter(DirectContextParameters.PLAYER, serverPlayer)
                             .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand).build();
-                    BlockLootContext blockLootContext = new BlockLootContext(world, serverPlayer, ((float) serverPlayer.luck()), lootContext, BukkitAdaptor.adapt(block), itemInHand, serverPlayer);
-                    for (Lootable lootable : it.lootables()) {
-                        for (Item item : lootable.getRandomItems(blockLootContext)) {
+                    BlockLootContext blockLootContext = new BlockLootContext(world, serverPlayer, ((float) serverPlayer.luck()), lootContext, BukkitAdaptor.adapt(block), itemInHand, serverPlayer.serverPlayer());
+                    for (Loot loot : it.lootables()) {
+                        for (Item item : loot.getRandomItems(blockLootContext)) {
                             world.dropItemNaturally(position, item);
                         }
                     }
@@ -251,8 +251,8 @@ public final class BlockEventListener implements Listener {
                         .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
                         .build();
                 BlockLootContext blockLootContext = new BlockLootContext(world, null, 1.0f, contextHolder, BukkitAdaptor.adapt(block), null, null);
-                for (Lootable lootable : it.lootables()) {
-                    for (Item item : lootable.getRandomItems(blockLootContext)) {
+                for (Loot loot : it.lootables()) {
+                    for (Item item : loot.getRandomItems(blockLootContext)) {
                         world.dropItemNaturally(position, item);
                     }
                 }

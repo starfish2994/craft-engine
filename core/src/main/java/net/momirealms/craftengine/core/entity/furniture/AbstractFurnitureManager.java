@@ -10,7 +10,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfigs;
 import net.momirealms.craftengine.core.entity.furniture.tick.TickingFurniture;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
@@ -266,9 +266,9 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
             }
 
             // 解析战利品表 （可异常）
-            Lootable lootable = null;
+            Loot loot = null;
             try {
-                lootable = section.getValue(LOOT, ConfigValue::getAsLootable);
+                loot = section.getValue(LOOT, ConfigValue::getAsLootable);
             } catch (KnownResourceException e) {
                 error(e, path);
             }
@@ -278,7 +278,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                     .settings(settings)
                     .variants(variants)
                     .events(events)
-                    .lootable(lootable)
+                    .lootable(loot)
                     .build();
 
             // 家具行为

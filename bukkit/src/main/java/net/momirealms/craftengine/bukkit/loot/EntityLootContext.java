@@ -41,7 +41,7 @@ public class EntityLootContext extends BukkitLootContext {
         if (LivingEntityProxy.CLASS.isInstance(serverEntity)) {
             Object lastHurtByPlayer = VersionHelper.isOrAbove1_21_3() ?
                     LivingEntityProxy.INSTANCE.getLastHurtByPlayer(serverEntity) :
-                    LivingEntityProxy.INSTANCE.getLastHurtByPlayer$field(serverEntity);
+                    LivingEntityProxy.INSTANCE.getLastHurtByPlayerField(serverEntity);
             LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, lastHurtByPlayer);
         }
         if (VersionHelper.isOrAbove1_21_9()) {

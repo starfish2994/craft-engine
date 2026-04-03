@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.block;
 
 import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.util.Key;
@@ -18,7 +18,7 @@ public interface BlockDefinition {
     Key id();
 
     @Nullable
-    Lootable lootable();
+    Loot lootable();
 
     @NotNull
     default String translationKey() {

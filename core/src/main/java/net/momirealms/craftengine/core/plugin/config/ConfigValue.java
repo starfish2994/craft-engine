@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.plugin.config;
 import net.momirealms.craftengine.core.block.AbstractBlockManager;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.loot.LootTable;
-import net.momirealms.craftengine.core.loot.Lootable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.pack.Identifier;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
@@ -693,7 +693,7 @@ public record ConfigValue(String path, @NotNull Object value) {
         return NumberProviders.fromConfig(this);
     }
 
-    public Lootable getAsLootable() {
+    public Loot getAsLootable() {
         if (this.is(Map.class)) {
             return LootTable.fromConfig(this.getAsSection());
         } else {

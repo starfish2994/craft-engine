@@ -22,7 +22,7 @@ public interface LivingEntityProxy extends EntityProxy {
     // 1_21_R4 / 1.21.5 之前, 返回对象为 Player
     // 1_21_R4 / 1.21.5 之后, 返回对象为 EntityReference<Player>
     @FieldGetter(name = "lastHurtByPlayer")
-    Object getLastHurtByPlayer$field(Object target);
+    Object getLastHurtByPlayerField(Object target);
 
     @MethodInvoker(name = "getLocalBoundsForPose")
     Object getLocalBoundsForPose(Object target, @Type(clazz = PoseProxy.class) Object pos);
