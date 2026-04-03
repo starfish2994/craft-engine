@@ -16,7 +16,7 @@ import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Properties;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
-import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.allocator.BlockStateCandidate;
 import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
@@ -261,7 +261,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected abstract BlockDefinition createCustomBlock(@NotNull Holder.Reference<BlockDefinition> holder,
                                                          @NotNull BlockStateVariantProvider variantProvider,
                                                          @NotNull Map<EventTrigger, List<Function<Context>>> events,
-                                                         @Nullable LootTable lootTable);
+                                                         @Nullable Loot loot);
 
     private final class BlockStateMappingParser extends SectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"block-state-mappings", "block-state-mapping", "block_state_mappings", "block_state_mapping"};
@@ -552,15 +552,15 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 }
 
                 // 解析战利品表 （可异常）
-                LootTable lootTable = null;
+                Loot loot = null;
                 try {
-                    lootTable = section.getValue("loot", v -> LootTable.fromConfig(v.getAsSection()));
+                    loot = section.getValue("loot", ConfigValue::getAsLoot);
                 } catch (KnownResourceException e) {
                     error(e, path);
                 }
 
                 // 创建自定义方块
-                AbstractBlockDefinition customBlock = (AbstractBlockDefinition) createCustomBlock(holder, variantProvider, events, lootTable);
+                AbstractBlockDefinition customBlock = (AbstractBlockDefinition) createCustomBlock(holder, variantProvider, events, loot);
 
                 // 读取外观设置
                 Map<String, ConfigSection> appearanceConfigs;

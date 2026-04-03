@@ -10,7 +10,7 @@ import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Key;
@@ -356,10 +356,10 @@ public final class CraftEngineFurniture {
         if (!furniture.isValid()) return;
         Location location = ((BukkitFurniture) furniture).getDropLocation();
         furniture.destroy(player);
-        LootTable lootTable = furniture.config.lootTable();
+        Loot loot = furniture.config.loot();
         World world = BukkitAdaptor.adapt(location.getWorld());
         WorldPosition position = new WorldPosition(world, location.getX(), location.getY(), location.getZ());
-        if (dropLoot && lootTable != null) {
+        if (dropLoot && loot != null) {
             ContextHolder.Builder builder = ContextHolder.builder()
                     .withParameter(DirectContextParameters.POSITION, position)
                     .withParameter(DirectContextParameters.FURNITURE, furniture)
@@ -369,7 +369,7 @@ public final class CraftEngineFurniture {
                 builder.withParameter(DirectContextParameters.PLAYER, player)
                         .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand);
             }
-            List<Item> items = lootTable.getRandomItems(builder.build(), world, player);
+            List<Item> items = loot.getRandomItems(builder.build(), world, player);
             for (Item item : items) {
                 world.dropItemNaturally(position, item);
             }

@@ -511,8 +511,8 @@ public abstract class CraftEngine implements Plugin {
         this.packManager.registerConfigSectionParsers(this.translationManager.parsers());
         // register sound parser
         this.packManager.registerConfigSectionParsers(this.soundManager.parsers());
-        // register vanilla loot parser
-        this.packManager.registerConfigSectionParser(this.lootManager.parser());
+        // register loot parser
+        this.packManager.registerConfigSectionParsers(this.lootManager.parsers());
         // register skip-optimization parser
         this.packManager.registerConfigSectionParser(this.packManager.parser());
         // register feature parser
@@ -677,7 +677,7 @@ public abstract class CraftEngine implements Plugin {
     }
 
     @Override
-    public LootManager vanillaLootManager() {
+    public LootManager lootManager() {
         return this.lootManager;
     }
 

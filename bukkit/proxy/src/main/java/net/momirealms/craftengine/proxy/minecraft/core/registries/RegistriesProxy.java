@@ -25,6 +25,9 @@ public interface RegistriesProxy {
     Object JUKEBOX_SONG = INSTANCE.getJukeboxSong();
     Object RECIPE = INSTANCE.getRecipe();
 
+    @FieldGetter(name = "ROOT_REGISTRY_NAME", isStatic = true, activeIf = "min_version=1.20.4")
+    Object getRootRegistryName();
+
     @FieldGetter(name = "BLOCK", isStatic = true)
     Object getBlock();
 
@@ -77,6 +80,11 @@ public interface RegistriesProxy {
 
     @FieldGetter(name = "RECIPE", isStatic = true, activeIf = "min_version=1.21")
     default Object getRecipe() {
+        return null;
+    }
+
+    @FieldGetter(name = "LOOT_TABLE", isStatic = true, activeIf = "min_version=1.20.5")
+    default Object getLootTable() {
         return null;
     }
 }

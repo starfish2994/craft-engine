@@ -4,7 +4,7 @@ import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.loot.LootTable;
+import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -40,8 +40,8 @@ public final class RemoveFurnitureFunction<CTX extends Context> extends Abstract
         WorldPosition position = furniture.position();
         World world = position.world();
         furniture.destroy();
-        LootTable lootTable = furniture.config.lootTable();
-        if (dropLoot && lootTable != null) {
+        Loot loot = furniture.config.loot();
+        if (dropLoot && loot != null) {
             ContextHolder.Builder builder = ContextHolder.builder()
                     .withParameter(DirectContextParameters.POSITION, position)
                     .withParameter(DirectContextParameters.FURNITURE, furniture)
@@ -53,7 +53,7 @@ public final class RemoveFurnitureFunction<CTX extends Context> extends Abstract
                 builder.withParameter(DirectContextParameters.PLAYER, player)
                         .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand);
             }
-            List<Item> items = lootTable.getRandomItems(builder.build(), world, player);
+            List<Item> items = loot.getRandomItems(builder.build(), world, player);
             for (Item item : items) {
                 world.dropItemNaturally(position, item);
             }

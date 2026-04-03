@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class LootContext extends PlayerOptionalContext {
+public class LootContext extends PlayerOptionalContext {
     private final World world;
     private final float luck;
 
