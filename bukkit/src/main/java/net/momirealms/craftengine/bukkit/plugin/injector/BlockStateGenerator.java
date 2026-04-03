@@ -14,6 +14,7 @@ import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
+import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.This;
 import net.bytebuddy.matcher.ElementMatchers;
@@ -118,10 +119,9 @@ public final class BlockStateGenerator {
         public static final GetDropsInterceptor INSTANCE = new GetDropsInterceptor();
 
         @RuntimeType
-        public Object intercept(@This Object thisObj, @AllArguments Object[] args) {
+        public Object intercept(@This Object thisObj, @Argument(value = 0) Object builder) {
             ImmutableBlockState state = ((DelegatingBlockState) thisObj).blockState();
             if (state == null) return List.of();
-            Object builder = args[0];
             Object vec3 = LootParamsProxy.BuilderProxy.INSTANCE.getOptionalParameter(builder, LootContextParamsProxy.ORIGIN);
             if (vec3 == null) return List.of();
 
@@ -178,11 +178,10 @@ public final class BlockStateGenerator {
 
         @SuppressWarnings("DuplicatedCode")
         @RuntimeType
-        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
+        public boolean intercept(@This Object thisObj, @Argument(value = 0) Object mcProperty) {
             DelegatingBlockState customState = (DelegatingBlockState) thisObj;
             ImmutableBlockState state = customState.blockState();
             if (state == null) return false;
-            Object mcProperty = args[0];
             String name = PropertyProxy.INSTANCE.getName(mcProperty);
             Property<?> ceProperty = state.owner().value().getProperty(name);
             if (ceProperty == null) return false;
@@ -234,11 +233,10 @@ public final class BlockStateGenerator {
 
         @SuppressWarnings({"unchecked", "DuplicatedCode", "rawtypes"})
         @RuntimeType
-        public Object intercept(@This Object thisObj, @AllArguments Object[] args) {
+        public Object intercept(@This Object thisObj, @Argument(value = 0) Object mcProperty) {
             DelegatingBlockState customState = (DelegatingBlockState) thisObj;
             ImmutableBlockState state = customState.blockState();
             if (state == null) return null;
-            Object mcProperty = args[0];
             String name = PropertyProxy.INSTANCE.getName(mcProperty);
             Property<?> ceProperty = state.owner().value().getProperty(name);
             if (ceProperty == null) return null;
@@ -295,12 +293,10 @@ public final class BlockStateGenerator {
 
         @SuppressWarnings({"unchecked", "DuplicatedCode", "rawtypes"})
         @RuntimeType
-        public Object intercept(@This Object thisObj, @AllArguments Object[] args) {
+        public Object intercept(@This Object thisObj, @Argument(value = 0) Object mcProperty, @Argument(value = 1) Object mcValue) {
             DelegatingBlockState customState = (DelegatingBlockState) thisObj;
             ImmutableBlockState state = customState.blockState();
             if (state == null) return thisObj;
-            Object mcProperty = args[0];
-            Object mcValue = args[1];
             String name = PropertyProxy.INSTANCE.getName(mcProperty);
             Property<?> ceProperty = state.owner().value().getProperty(name);
             if (ceProperty == null) return thisObj;
@@ -363,11 +359,11 @@ public final class BlockStateGenerator {
         public static final IsBlockInterceptor INSTANCE = new IsBlockInterceptor();
 
         @RuntimeType
-        public boolean intercept(@This Object thisObj, @AllArguments Object[] args) {
+        public boolean intercept(@This Object thisObj, @Argument(value = 0) Object block) {
             DelegatingBlockState customState = (DelegatingBlockState) thisObj;
             Object thisBlock = customState.blockOwner();
             if (thisBlock == null) return false;
-            if (BlockProxy.INSTANCE.getDefaultBlockState(args[0]) instanceof DelegatingBlockState holder) {
+            if (BlockProxy.INSTANCE.getDefaultBlockState(block) instanceof DelegatingBlockState holder) {
                 Object holderBlock = holder.blockOwner();
                 if (holderBlock == null) return false;
                 return thisBlock == holderBlock;

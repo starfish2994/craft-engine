@@ -71,12 +71,14 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
         if (optionalCustomState.isPresent()) {
             ImmutableBlockState customState = optionalCustomState.get();
             SofaBlockBehavior sofaBlockBehavior = customState.behavior().getFirst(SofaBlockBehavior.class);
-            Direction direction1 = customState.get(sofaBlockBehavior.facingProperty);
-            if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1)) {
-                if (direction1 == direction.counterClockWise()) {
-                    return SofaShape.INNER_LEFT;
+            if (sofaBlockBehavior != null) {
+                Direction direction1 = customState.get(sofaBlockBehavior.facingProperty);
+                if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1)) {
+                    if (direction1 == direction.counterClockWise()) {
+                        return SofaShape.INNER_LEFT;
+                    }
+                    return SofaShape.INNER_RIGHT;
                 }
-                return SofaShape.INNER_RIGHT;
             }
         }
         return SofaShape.STRAIGHT;
