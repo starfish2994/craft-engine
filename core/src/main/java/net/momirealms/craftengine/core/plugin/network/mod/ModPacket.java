@@ -16,7 +16,9 @@ public interface ModPacket {
 
     default String permission(PacketFlow flow) {
         Key location = type().location();
-        return "ce.mod." + flow.id + "." + location.namespace + "." + location.value;
+        return "ce.mod." + flow.id + "."
+                + (Key.CRAFTENGINE_NAMESPACE.equals(location.namespace) ? "" : location.namespace + ".")
+                + location.value;
     }
 
     default void handle(NetWorkUser user) {
