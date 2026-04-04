@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -92,6 +93,15 @@ public abstract class FurnitureController {
     }
 
     public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
+    }
+
+    public void onPlayerTrack(Player player) {
+    }
+
+    public void onPlayerUntrack(Player player) {
+    }
+
+    public void onPlayerHit(Player player, Cancellable event) {
     }
 
     /**
@@ -198,6 +208,24 @@ public abstract class FurnitureController {
         public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
             this.first.gatherHitboxes(consumer);
             this.second.gatherHitboxes(consumer);
+        }
+
+        @Override
+        public void onPlayerTrack(Player player) {
+            this.first.onPlayerTrack(player);
+            this.second.onPlayerTrack(player);
+        }
+
+        @Override
+        public void onPlayerUntrack(Player player) {
+            this.first.onPlayerUntrack(player);
+            this.second.onPlayerUntrack(player);
+        }
+
+        @Override
+        public void onPlayerHit(Player player, Cancellable event) {
+            this.first.onPlayerHit(player, event);
+            this.second.onPlayerHit(player, event);
         }
 
         @Override
@@ -353,6 +381,27 @@ public abstract class FurnitureController {
         public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
             for (FurnitureController controller : this.controllers) {
                 controller.gatherHitboxes(consumer);
+            }
+        }
+
+        @Override
+        public void onPlayerTrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlayerTrack(player);
+            }
+        }
+
+        @Override
+        public void onPlayerUntrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlayerUntrack(player);
+            }
+        }
+
+        @Override
+        public void onPlayerHit(Player player, Cancellable event) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlayerHit(player, event);
             }
         }
 

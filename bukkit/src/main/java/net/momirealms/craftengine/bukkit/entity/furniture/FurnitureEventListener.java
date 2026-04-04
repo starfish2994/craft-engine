@@ -2,6 +2,8 @@ package net.momirealms.craftengine.bukkit.entity.furniture;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import io.papermc.paper.event.player.PlayerTrackEntityEvent;
+import io.papermc.paper.event.player.PlayerUntrackEntityEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureHitEvent;
@@ -13,6 +15,7 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDebugStickState;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.util.EnumUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.CEWorld;
@@ -136,17 +139,23 @@ public final class FurnitureEventListener implements Listener {
 
     @SuppressWarnings("DuplicatedCode")
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onFurniturePreBreak(FurnitureHitEvent event) {
+    public void onFurnitureHitWithDebugStick(FurnitureHitEvent event) {
         Player bukkitPlayer = event.getPlayer();
         BukkitServerPlayer player = BukkitAdaptor.adapt(bukkitPlayer);
         if (player == null) return;
+
+        // 触发家具点击
+        BukkitFurniture furniture = event.furniture();
+        furniture.controller.onPlayerHit(player, Cancellable.of(event::isCancelled, event::setCancelled));
+        if (event.isCancelled()) return;
+
+        // 调试棒操作
         Item itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
         if (!BukkitItemUtils.isDebugStick(itemInHand)) return;
         if (!(player.canInstabuild() && player.hasPermission("minecraft.debugstick")) && !player.hasPermission("minecraft.debugstick.always")) {
             return;
         }
         event.setCancelled(true);
-        BukkitFurniture furniture = event.furniture();
         Object storedData = itemInHand.getJavaTag("craftengine:debug_stick_state");
         if (storedData == null) storedData = new HashMap<>();
         if (storedData instanceof Map<?,?> map) {
@@ -198,4 +207,10 @@ public final class FurnitureEventListener implements Listener {
             });
         }
     }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onTrackFurniture(PlayerTrackEntityEvent event) {}
+
+    @EventHandler(ignoreCancelled = true)
+    public void onUntrackFurniture(PlayerUntrackEntityEvent event) {}
 }
