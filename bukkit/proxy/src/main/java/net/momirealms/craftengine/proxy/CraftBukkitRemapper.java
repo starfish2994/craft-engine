@@ -23,26 +23,28 @@ public final class CraftBukkitRemapper implements Remapper {
         String cbPkgVersion = "";
         boolean needRemap = true;
         if (SparrowClass.existsNoRemap("net.neoforged.art.internal.RenamerImpl")) {
-            cbPkgVersion = "";
             needRemap = false;
         } else {
             Class<?> minecraftClass = SparrowClass.find("net.minecraft.obfuscate.DontObfuscate", "net.minecraft.server.Main");
-            int major;
-            int minor;
+            int major = 0;
+            int minor = 0;
             try (InputStream inputStream = minecraftClass.getResourceAsStream("/version.json")) {
                 if (inputStream == null) {
                     throw new IOException("Failed to load version.json");
                 }
                 JsonObject json = new Gson().fromJson(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
-                String versionString = json.getAsJsonPrimitive("id").getAsString()
-                        .split("-", 2)[0]
-                        .split("_", 2)[0];
-                String[] split = versionString.split("\\.");
-                if ("26".equals(split[0])) needRemap = false;
-                major = Integer.parseInt(split[1]);
-                minor = split.length == 3 ? Integer.parseInt(split[2]) : 0;
+                if (json.get("world_version").getAsInt() >= 4764) {
+                    needRemap = false;
+                } else {
+                    String versionString = json.getAsJsonPrimitive("id").getAsString()
+                            .split("-", 2)[0]
+                            .split("_", 2)[0];
+                    String[] split = versionString.split("\\.");
+                    major = Integer.parseInt(split[1]);
+                    minor = split.length == 3 ? Integer.parseInt(split[2]) : 0;
+                }
             } catch (Exception e) {
-                throw new RuntimeException("Failed to init WithCraftBukkitClassNameRemapper", e);
+                throw new RuntimeException("Failed to init CraftBukkitRemapper", e);
             }
             if (needRemap) {
                 String name;
