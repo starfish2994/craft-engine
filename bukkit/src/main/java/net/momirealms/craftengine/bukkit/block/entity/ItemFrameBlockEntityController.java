@@ -62,12 +62,10 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
         CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
             dataTag.putInt("rotation", this.rotation);
             dataTag.putInt("data_version", VersionHelper.WORLD_VERSION);
-            if (!ItemStackProxy.INSTANCE.isEmpty(this.itemStack)) {
-                Tag itemTag = ItemStackUtils.saveMinecraftItemStackAsTag(this.itemStack);
-                if (itemTag != null) {
-                    dataTag.put("item", itemTag);
-                }
-            }
+            if (ItemStackProxy.INSTANCE.isEmpty(this.itemStack)) return;
+            Tag itemTag = ItemStackUtils.saveMinecraftItemStackAsTag(this.itemStack);
+            if (itemTag == null) return;
+            dataTag.put("item", itemTag);
         });
         tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
     }
