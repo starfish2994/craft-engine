@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.world.chunk.serialization.FoliaChunkSer
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
+import net.momirealms.craftengine.core.world.chunk.serialization.DefaultChunkSerializer;
 import net.momirealms.craftengine.core.world.chunk.storage.DefaultRegionFileStorage;
 import net.momirealms.craftengine.core.world.chunk.storage.RegionFile;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -23,40 +24,30 @@ public final class FoliaRegionFileStorage extends DefaultRegionFileStorage {
 
     @Override
     public CEChunk readNewChunkAt(CEWorld world, ChunkPos pos) throws IOException {
-        RegionFile regionFile = this.getRegionFile(pos, false, true);
-        try {
-            if (regionFile.doesChunkExist(pos)) {
+        RegionFile regionFile = this.getRegionFile(pos, false);
+        synchronized (regionFile) {
+            if (regionFile.hasChunk(pos)) {
                 regionFile.clear(pos);
             }
             return new FoliaCEChunk(world, pos);
-        } finally {
-            regionFile.fileLock.unlock();
         }
     }
 
     @Override
     public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos) throws IOException {
-        RegionFile regionFile = this.getRegionFile(pos, false, true);
-        try {
-            DataInputStream dataInputStream = regionFile.getChunkDataInputStream(pos);
-            CompoundTag tag;
-            try {
+        RegionFile regionFile = this.getRegionFile(pos, true);
+        if (regionFile == null) {
+            return new FoliaCEChunk(world, pos);
+        }
+
+        synchronized (regionFile) {
+            try (DataInputStream dataInputStream = regionFile.getChunkDataInputStream(pos)) {
                 if (dataInputStream == null) {
                     return new FoliaCEChunk(world, pos);
                 }
-                tag = NBT.readCompound(dataInputStream, false);
-            } catch (Throwable t1) {
-                try {
-                    dataInputStream.close();
-                } catch (Throwable t2) {
-                    t1.addSuppressed(t2);
-                }
-                throw t1;
+                CompoundTag tag = NBT.readCompound(dataInputStream, false);
+                return DefaultChunkSerializer.deserialize(world, pos, tag);
             }
-            dataInputStream.close();
-            return FoliaChunkSerializer.deserialize(world, pos, tag);
-        } finally {
-            regionFile.fileLock.unlock();
         }
     }
 }
