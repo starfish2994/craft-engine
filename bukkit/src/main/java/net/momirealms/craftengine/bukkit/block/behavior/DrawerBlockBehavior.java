@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.World;
@@ -186,7 +187,8 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
         }
         return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, c -> {
             if (!ItemUtils.isEmpty(c.storedItem())) {
-                return 15;
+                float i = (float) c.storageCount() / this.maxStorageCount;
+                return MiscUtils.lerpDiscrete(i, 0, 15);
             }
             return 0;
         });
