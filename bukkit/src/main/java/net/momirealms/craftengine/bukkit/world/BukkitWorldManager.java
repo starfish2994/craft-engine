@@ -714,7 +714,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection rawSection) {
-            ConfigSection section = ConfigSection.ofSamePath(rawSection, processFeatureSection(rawSection.values()));
+            ConfigSection section = rawSection.withSamePath(processFeatureSection(rawSection.values()));
             Object feature;
             JsonElement json = GsonHelper.get().toJsonTree(section.values());
             if (VersionHelper.isOrAbove1_20_5()) {
@@ -800,7 +800,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection rawSection) {
-            ConfigSection section = ConfigSection.ofSamePath(rawSection, processFeatureSection(rawSection.values()));
+            ConfigSection section = rawSection.withSamePath(processFeatureSection(rawSection.values()));
 
             // 自定义筛选条件
             Predicate<Key> biomeFilter = parseFilter(section.getStringList(BIOME).stream(), Key::of);

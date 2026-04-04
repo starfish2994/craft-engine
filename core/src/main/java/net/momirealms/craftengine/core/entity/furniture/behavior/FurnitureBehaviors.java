@@ -15,7 +15,7 @@ public abstract class FurnitureBehaviors {
     protected FurnitureBehaviors() {}
 
     public static FurnitureBehaviorTemplate fromConfig(FurnitureDefinition furniture, ConfigSection section) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         Key key = Key.ce(type);
         FurnitureBehaviorType<?> furnitureBehaviorType = BuiltInRegistries.FURNITURE_BEHAVIOR_TYPE.getValue(key);
         if (furnitureBehaviorType == null) {

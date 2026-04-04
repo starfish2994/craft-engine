@@ -20,8 +20,11 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public record ConfigValue(String path, @NotNull Object value) {
+public final class ConfigValue {
     private static final Map<Class<?>, Function<ConfigValue, ?>> SERIALIZERS = new HashMap<>();
+    private final String path;
+    private final Object value;
+
     static {
         registerSerializer(ConfigSection.class, ConfigValue::getAsSection);
         registerSerializer(Integer.class, ConfigValue::getAsInt);
@@ -49,12 +52,21 @@ public record ConfigValue(String path, @NotNull Object value) {
         SERIALIZERS.put(clazz, serializer);
     }
 
-    public static ConfigValue of(String path, Object value) {
-        return new ConfigValue(path, value);
+    ConfigValue(String path, Object value) {
+        this.path = path;
+        this.value = value;
+    }
+
+    public String path() {
+        return path;
     }
 
     public Object value() {
         return this.value;
+    }
+
+    public static ConfigValue of(String path, Object value) {
+        return new ConfigValue(path, value);
     }
 
     public boolean is(Class<?> type) {

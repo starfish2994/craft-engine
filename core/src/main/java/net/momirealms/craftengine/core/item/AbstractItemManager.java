@@ -467,9 +467,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             UniqueKey uniqueId = UniqueKey.create(id);
             // 判断是不是原版物品
             boolean isVanillaItem = isVanillaItem(id);
-
             // 读取服务端侧材质
-            Key material = isVanillaItem ? id : section.getIdentifier("material", Config.defaultMaterial());
+            Key material = isVanillaItem ? id : section.getValue("material", ConfigValue::getAsIdentifier, Config.defaultMaterial());
             // 读取客户端侧材质
             ConfigValue clientBoundMaterialValue = section.getValue(CLIENT_BOUND_MATERIAL);
             Key clientBoundMaterial = VersionHelper.PREMIUM && clientBoundMaterialValue != null ? clientBoundMaterialValue.getAsIdentifier() : material;

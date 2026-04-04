@@ -69,7 +69,7 @@ public final class ModelGeneration implements Supplier<JsonObject> {
                         if (value.charAt(0) == '#') {
                             texturesOverride.put(key, value);
                         } else {
-                            texturesOverride.put(key, configValue.getAsIdentifier().asMinimalString());
+                            texturesOverride.put(key, configValue.getAsAssetPath().asMinimalString());
                         }
                     }
                     return texturesOverride;

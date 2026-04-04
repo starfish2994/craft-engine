@@ -62,7 +62,7 @@ public final class ProfileProcessor implements SimpleNetworkItemProcessor {
                     return new ProfileProcessor(null, base64Data, null);
                 }
                 if (VersionHelper.isOrAbove1_20_5()) {
-                    Key texture = section.getIdentifier("texture");
+                    Key texture = section.getAssetPath("texture");
                     if (texture != null) {
                         return new ProfileProcessor(null, null, texture);
                     }

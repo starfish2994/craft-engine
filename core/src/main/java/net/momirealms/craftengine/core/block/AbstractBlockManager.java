@@ -812,7 +812,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             } else if (modelOrModels.is(Map.class)) {
                 variants = List.of(this.parseAppearanceModelSectionAsJson(modelOrModels.getAsSection()));
             } else {
-                variants = List.of(MiscUtils.init(new JsonObject(), j -> j.addProperty("model", modelOrModels.getAsIdentifier().asMinimalString())));
+                variants = List.of(MiscUtils.init(new JsonObject(), j -> j.addProperty("model", modelOrModels.getAsAssetPath().asMinimalString())));
             }
             return variants.isEmpty() ? null : minimizeVariant(variants);
         }

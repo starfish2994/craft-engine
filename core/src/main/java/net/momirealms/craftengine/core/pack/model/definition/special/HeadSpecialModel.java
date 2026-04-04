@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.pack.model.definition.special;
 
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 
 public final class HeadSpecialModel implements SpecialModel {
@@ -54,7 +55,7 @@ public final class HeadSpecialModel implements SpecialModel {
         public HeadSpecialModel create(ConfigSection section) {
             return new HeadSpecialModel(
                     section.getNonNullString("kind"),
-                    section.getValue("texture", v -> v.getAsIdentifier().asMinimalString()),
+                    section.getValue("texture", v -> v.getAsAssetPath().asMinimalString()),
                     section.getFloat("animation")
             );
         }

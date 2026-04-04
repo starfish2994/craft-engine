@@ -94,7 +94,7 @@ public final class CustomFurnitureHitboxConfig extends AbstractFurnitureHitBoxCo
         @Override
         public CustomFurnitureHitboxConfig create(ConfigSection section) {
             ConfigValue typeValue = section.getNonNullValue(ENTITY_TYPE, ConfigConstants.ARGUMENT_IDENTIFIER);
-            Object nmsEntityType = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ENTITY_TYPE, KeyUtils.toIdentifier(typeValue.getAsIdentifier(Key.MINECRAFT_NAMESPACE)));
+            Object nmsEntityType = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ENTITY_TYPE, KeyUtils.toIdentifier(typeValue.getAsIdentifier()));
             if (nmsEntityType == null) {
                 throw new KnownResourceException("resource.furniture.hitbox.custom.invalid_entity_type", typeValue.path(), typeValue.getAsString());
             }
