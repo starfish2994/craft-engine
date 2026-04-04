@@ -23,6 +23,7 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
@@ -90,6 +91,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                 }
                 c.putDisplayItem(inputItem);
                 player.swingHand(hand);
+                if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
             // 取出物品
@@ -97,6 +99,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                 Item takedItem = c.takeDisplayItem();
                 player.setItemInHand(hand, takedItem);
                 player.swingHand(hand);
+                if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
             return InteractionResult.TRY_EMPTY_HAND;

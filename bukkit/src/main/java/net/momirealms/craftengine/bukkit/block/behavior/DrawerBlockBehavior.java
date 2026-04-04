@@ -24,6 +24,7 @@ import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
@@ -113,6 +114,7 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
                 }
                 controller.lastClickMap.remove(playerId);
                 player.swingHand(hand);
+                if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
 
@@ -126,6 +128,7 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
                 // 更新点击时间, 等待可能的二次点击
                 controller.lastClickMap.put(playerId, now);
                 player.swingHand(hand);
+                if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
 
@@ -168,6 +171,7 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
             Item takenItem = controller.takeStorageItem(takeAmount);
             player.setItemInHand(hand, takenItem);
             player.swingHand(hand);
+            if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
             return false;
         });
     }
