@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Properties;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.allocator.BlockStateCandidate;
@@ -32,6 +33,8 @@ import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
+import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockStatePacket;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -95,6 +98,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     // 自动分配
     protected final IdAllocator internalIdAllocator;
     protected final VisualBlockStateAllocator visualBlockStateAllocator;
+    // 缓存的VisualBlockStatePacket
+    private VisualBlockStatePacket cachedVisualBlockStatePacket;
 
     protected AbstractBlockManager(CraftEngine plugin, int vanillaBlockStateCount, int customBlockCount) {
         super(plugin);
@@ -154,6 +159,16 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.updateTags();
         this.processSounds();
         this.clearCache();
+        this.cachedVisualBlockStatePacket = VisualBlockStatePacket.create();
+        for (Player player : CraftEngine.instance().networkManager().onlineUsers()) {
+            if (!player.clientModEnabled()) continue;
+            ModPackets.sendPacket(player, this.cachedVisualBlockStatePacket);
+        }
+    }
+
+    @Override
+    public VisualBlockStatePacket cachedVisualBlockStatePacket() {
+        return this.cachedVisualBlockStatePacket;
     }
 
     @Override
@@ -253,8 +268,6 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected abstract Key getBlockOwnerId(int id);
 
     protected abstract void setVanillaBlockTags(Key id, List<String> tags);
-
-    protected abstract int vanillaBlockStateCount();
 
     protected abstract void processSounds();
 

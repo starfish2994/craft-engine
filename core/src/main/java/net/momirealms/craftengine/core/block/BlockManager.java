@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockStatePacket;
 import net.momirealms.craftengine.core.util.Key;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +50,12 @@ public interface BlockManager extends Manageable, ModelGenerator {
 
     @Nullable
     BlockStateWrapper createVanillaBlockState(String blockState);
+
+    int vanillaBlockStateCount();
+
+    int currentBlockRegistrySize();
+
+    VisualBlockStatePacket cachedVisualBlockStatePacket();
 
     static Key createCustomBlockKey(int id) {
         return Key.of("craftengine", "custom_" + id);
