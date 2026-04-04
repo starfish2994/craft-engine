@@ -13,7 +13,9 @@ import net.momirealms.craftengine.bukkit.util.BukkitItemUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDebugStickState;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
+import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.util.EnumUtils;
@@ -146,8 +148,11 @@ public final class FurnitureEventListener implements Listener {
 
         // 触发家具点击
         BukkitFurniture furniture = event.furniture();
-        furniture.controller.onPlayerHit(player, Cancellable.of(event::isCancelled, event::setCancelled));
-        if (event.isCancelled()) return;
+        InteractionResult result = furniture.controller.onPlayerHit(player, event.hitBox());
+        if (InteractionResult.SUCCESS_AND_CANCEL.equals(result)) {
+            event.setCancelled(true);
+            return;
+        }
 
         // 调试棒操作
         Item itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
@@ -208,9 +213,23 @@ public final class FurnitureEventListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onTrackFurniture(PlayerTrackEntityEvent event) {}
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onTrackFurniture(PlayerTrackEntityEvent event) {
+        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
+            int entityId = furnitureEntity.getEntityId();
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
+            if (furniture == null) return;
+            furniture.controller.onPlayerTrack(BukkitAdaptor.adapt(event.getPlayer()));
+        }
+    }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onUntrackFurniture(PlayerUntrackEntityEvent event) {}
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onUntrackFurniture(PlayerUntrackEntityEvent event) {
+        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
+            int entityId = furnitureEntity.getEntityId();
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
+            if (furniture == null) return;
+            furniture.controller.onPlayerUntrack(BukkitAdaptor.adapt(event.getPlayer()));
+        }
+    }
 }

@@ -101,7 +101,8 @@ public abstract class FurnitureController {
     public void onPlayerUntrack(Player player) {
     }
 
-    public void onPlayerHit(Player player, Cancellable event) {
+    public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
+        return InteractionResult.PASS;
     }
 
     /**
@@ -223,9 +224,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onPlayerHit(Player player, Cancellable event) {
-            this.first.onPlayerHit(player, event);
-            this.second.onPlayerHit(player, event);
+        public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
+            InteractionResult result = this.first.onPlayerHit(player, hitBox);
+            return result == InteractionResult.PASS ? this.second.onPlayerHit(player, hitBox) : result;
         }
 
         @Override
@@ -399,10 +400,14 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onPlayerHit(Player player, Cancellable event) {
+        public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
             for (FurnitureController controller : this.controllers) {
-                controller.onPlayerHit(player, event);
+                InteractionResult result = controller.onPlayerHit(player, hitBox);
+                if (InteractionResult.PASS != result) {
+                    return result;
+                }
             }
+            return InteractionResult.PASS;
         }
 
         @Override

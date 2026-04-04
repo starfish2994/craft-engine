@@ -3963,7 +3963,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                             .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
                             .withParameter(DirectContextParameters.ITEM_IN_HAND, serverPlayer.getItemInHand(InteractionHand.MAIN_HAND))
                             .withParameter(DirectContextParameters.POSITION, furniture.position());
-                    FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, contextBuilder);
+                    FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, hitBox, contextBuilder);
                     if (EventUtils.fireAndCheckCancel(hitEvent))
                         return;
 
