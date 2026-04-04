@@ -11,7 +11,6 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.util.ConcurrentUUID2ReferenceChainedHashTable;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -24,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -38,7 +38,8 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     private WorldPosition textPosition;
     private float entityYRot;
     private final Vector3f blockCenter;
-    public final ConcurrentUUID2ReferenceChainedHashTable<Long> lastClickMap = new ConcurrentUUID2ReferenceChainedHashTable<>();
+    private UUID lastClickPlayer;
+    private Long lastClickTime;
 
     public DrawerBlockEntityController(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
         super(blockEntity);
@@ -230,5 +231,21 @@ public final class DrawerBlockEntityController extends BlockEntityController {
             case WEST -> 270f;
             default ->  0f;
         };
+    }
+
+    public UUID lastClickPlayer() {
+        return lastClickPlayer;
+    }
+
+    public void lastClickPlayer(UUID lastClickPlayer) {
+        this.lastClickPlayer = lastClickPlayer;
+    }
+
+    public Long lastClickTime() {
+        return lastClickTime;
+    }
+
+    public void lastClickTime(Long lastClickTime) {
+        this.lastClickTime = lastClickTime;
     }
 }
