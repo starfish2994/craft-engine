@@ -137,18 +137,18 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
     }
 
     @Override
-    public boolean onStartMining(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
+    public void onMiningStart(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
         World world = player.world();
         BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
-        if (blockEntity == null) return true;
+        if (blockEntity == null) return;
         // 有保护, 不交互, 开始挖掘.
         Location location = new Location((org.bukkit.World) world.platformWorld(), pos.x, pos.y, pos.z);
         if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
-            return true;
+            return;
         }
-        return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
+        blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
             Item storedItem = controller.storedItem();
-            if (storedItem.isEmpty() || controller.storageCount() <= 0) return true;
+            if (storedItem.isEmpty() || controller.storageCount() <= 0) return;
 
             boolean handEmpty = ItemUtils.isEmpty(tool);
             boolean takeGroup = player.isSneaking();
@@ -157,7 +157,7 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
             if (!handEmpty) {
                 boolean isHandFull = tool.count() == tool.maxStackSize();
                 boolean notSimilar = !tool.isSimilar(storedItem);
-                if (isHandFull || notSimilar) return true;
+                if (isHandFull || notSimilar) return;
             }
 
             // 计算可取出数量
@@ -172,7 +172,6 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
             player.setItemInHand(hand, takenItem);
             player.swingHand(hand);
             if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
-            return false;
         });
     }
 

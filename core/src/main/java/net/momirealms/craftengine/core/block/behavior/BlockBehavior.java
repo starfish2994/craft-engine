@@ -251,13 +251,12 @@ public abstract class BlockBehavior {
         return InteractionResult.PASS;
     }
 
-    public boolean onStartMining(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
-        return true;
+    public void onMiningStart(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
     }
 
-    public void onMining(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
+    public void onMiningTick(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
     }
 
-    public void onMiningGiveUp(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
+    public void onMiningAbort(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
     }
 }
