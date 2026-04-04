@@ -38,6 +38,11 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
     }
 
     @Override
+    public ItemWrapper copy() {
+        return new ComponentItemWrapper(ItemStackProxy.INSTANCE.copy(this.itemStack));
+    }
+
+    @Override
     public ItemWrapper copyWithCount(int count) {
         return new ComponentItemWrapper(ItemStackProxy.INSTANCE.copyWithCount(this.itemStack, count));
     }

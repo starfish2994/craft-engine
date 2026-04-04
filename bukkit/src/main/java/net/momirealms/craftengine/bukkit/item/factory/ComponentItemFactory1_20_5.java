@@ -660,4 +660,9 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     protected void blockState(ComponentItemWrapper item, Map<String, String> state) {
         item.setJavaComponent(DataComponentTypes.BLOCK_STATE, state);
     }
+
+    @Override
+    protected boolean isSimilar(ComponentItemWrapper item1, ComponentItemWrapper item2) {
+        return ItemStackProxy.INSTANCE.isSameItemSameComponents(item1.getMinecraftItem(), item2.getMinecraftItem());
+    }
 }

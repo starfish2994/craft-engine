@@ -30,6 +30,7 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.concurrent.Callable;
@@ -45,6 +46,8 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     public final SoundData rotateSound;
     public final Property<Direction> directionProperty;
     private int controllerId;
+    @Nullable
+    public final String customDataKey;
 
     private ItemFrameBlockBehavior(BlockDefinition blockDefinition,
                                    Vector3f position,
@@ -54,7 +57,9 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                                    SoundData putSound,
                                    SoundData takeSound,
                                    SoundData rotateSound,
-                                   Property<Direction> directionProperty) {
+                                   Property<Direction> directionProperty,
+                                   @Nullable String customDataKey
+    ) {
         super(blockDefinition);
         this.position = position;
         this.glow = glow;
@@ -64,6 +69,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
         this.takeSound = takeSound;
         this.rotateSound = rotateSound;
         this.directionProperty = directionProperty;
+        this.customDataKey = customDataKey;
     }
 
     @Override
@@ -172,6 +178,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
 
     private static class Factory implements BlockBehaviorFactory<ItemFrameBlockBehavior> {
         private static final String[] RENDER_MAP_ITEM = new String[]{"render_map_item", "render-map-item"};
+        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
 
         @Override
         public ItemFrameBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -193,7 +200,8 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                     putSound,
                     takeSound,
                     rotateSound,
-                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class)
+                    BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
+                    section.getString(DATA_KEY)
             );
         }
     }

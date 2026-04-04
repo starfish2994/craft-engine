@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
@@ -248,5 +249,14 @@ public abstract class BlockBehavior {
 
     public InteractionResult useWithoutItem(UseOnContext context, ImmutableBlockState state) {
         return InteractionResult.PASS;
+    }
+
+    public void onMiningStart(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
+    }
+
+    public void onMiningTick(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
+    }
+
+    public void onMiningAbort(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
     }
 }

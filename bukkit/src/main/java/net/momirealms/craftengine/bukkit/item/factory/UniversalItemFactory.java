@@ -422,4 +422,9 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
         }
         item.setTag(listTag, "AttributeModifiers");
     }
+
+    @Override
+    protected boolean isSimilar(LegacyItemWrapper item1, LegacyItemWrapper item2) {
+        return ItemStackProxy.INSTANCE.isSameItemSameTags(item1.getMinecraftItem(), item2.getMinecraftItem());
+    }
 }

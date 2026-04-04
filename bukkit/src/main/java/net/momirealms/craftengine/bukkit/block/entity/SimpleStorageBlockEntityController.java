@@ -19,6 +19,7 @@ import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.sound.SoundData;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class SimpleStorageBlockEntityController extends BlockEntityController {
+    private static final String DEFAULT_DATA_KEY = "craftengine:simple_storage";
     private final SimpleStorageBlockBehavior behavior;
     private final Inventory inventory;
     private double maxInteractionDistance;
@@ -61,15 +63,30 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
     public void saveCustomData(CompoundTag tag) {
         // 保存前先把所有打开此容器的玩家界面关闭
         this.inventory.close();
-        tag.put("items", ItemStackUtils.saveBukkitItemsAsListTag(this.inventory.getStorageContents()));
-        tag.putInt("data_version", VersionHelper.WORLD_VERSION);
+        CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
+            dataTag.put("items", ItemStackUtils.saveBukkitItemsAsListTag(this.inventory.getStorageContents()));
+            dataTag.putInt("data_version", VersionHelper.WORLD_VERSION);
+        });
+        tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
     }
 
     @Override
     public void loadCustomData(CompoundTag tag) {
-        ListTag itemsTag = Optional.ofNullable(tag.getList("items")).orElseGet(ListTag::new);
-        int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
-        this.inventory.setStorageContents(ItemStackUtils.parseBukkitItems(itemsTag, this.behavior.rows * 9, dataVersion));
+        // 读取旧的
+        ListTag oldItemsTag = tag.getList("items");
+        if (oldItemsTag != null) {
+            ListTag itemsTag = Optional.ofNullable(tag.getList("items")).orElseGet(ListTag::new);
+            int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+            this.inventory.setStorageContents(ItemStackUtils.parseBukkitItems(itemsTag, this.behavior.rows * 9, dataVersion));
+        }
+        // 读取新的
+        else {
+            CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
+            if (dataTag == null) return;
+            int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+            ListTag itemsTag = Optional.ofNullable(dataTag.getList("items")).orElseGet(ListTag::new);
+            this.inventory.setStorageContents(ItemStackUtils.parseBukkitItems(itemsTag, this.behavior.rows * 9, dataVersion));
+        }
     }
 
     public Inventory inventory() {
