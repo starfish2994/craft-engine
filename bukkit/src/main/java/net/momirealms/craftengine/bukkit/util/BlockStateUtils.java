@@ -14,6 +14,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.StateDefinitionProxy;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,22 @@ import java.util.Optional;
 
 public final class BlockStateUtils {
     private BlockStateUtils() {}
+
+    public static final Object[] LIGHT_BLOCK_STATES = new Object[16];
+    public static final Object[] WATERLOGGED_LIGHT_BLOCK_STATES = new Object[16];
+    public static final int AIR_BLOCK_STATES_ID;
+    public static final int WATER_BLOCK_STATES_ID;
+
+    static {
+        LIGHT_BLOCK_STATES[0] = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData("minecraft:air"));
+        WATERLOGGED_LIGHT_BLOCK_STATES[0] = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData("minecraft:water"));
+        for (int i = 1; i < 16; i++) {
+            LIGHT_BLOCK_STATES[i] = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData("minecraft:light[level=" + i + "]"));
+            WATERLOGGED_LIGHT_BLOCK_STATES[i] = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData("minecraft:light[level=" + i + ",waterlogged=true]"));
+        }
+        AIR_BLOCK_STATES_ID = BlockStateUtils.blockStateToId(LIGHT_BLOCK_STATES[0]);
+        WATER_BLOCK_STATES_ID = BlockStateUtils.blockStateToId(WATERLOGGED_LIGHT_BLOCK_STATES[0]);
+    }
 
     public static boolean isTag(BlockData blockData, Key tag) {
         return isTag(blockDataToBlockState(blockData), tag);
