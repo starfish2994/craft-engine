@@ -49,10 +49,7 @@ import net.momirealms.craftengine.bukkit.plugin.network.handler.*;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
-import net.momirealms.craftengine.bukkit.plugin.network.payload.DiscardedPayload;
-import net.momirealms.craftengine.bukkit.plugin.network.payload.Payload;
-import net.momirealms.craftengine.bukkit.plugin.network.payload.PayloadHelper;
-import net.momirealms.craftengine.bukkit.plugin.network.payload.UnknownPayload;
+import net.momirealms.craftengine.bukkit.plugin.network.mod.*;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.plugin.user.FakeBukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
@@ -93,6 +90,8 @@ import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListenerHolder;
 import net.momirealms.craftengine.core.plugin.network.listener.NMSPacketListener;
+import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
+import net.momirealms.craftengine.core.plugin.network.mod.Payload;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
@@ -275,7 +274,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         this.packetIds = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
         // register packet handlers
         this.registerPacketListeners();
-        PayloadHelper.init();
+        BukkitModPackets.init();
         // set up packet senders
         this.packetConsumer = VersionHelper.isOrAbove1_21_6()
                 ? (target, packet, sendListener) -> ConnectionProxy.INSTANCE.send$0(target, packet, (ChannelFutureListener) sendListener)
@@ -1233,13 +1232,10 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (!player.canInteractPoint(new Vec3d(pos.x, pos.y, pos.z), 4)) {
                 return;
             }
-            BukkitNetworkManager.this.plugin.scheduler().sync().run(() -> {
-                try {
-                    handlePlayerActionPacketOnMainThread(player, world, pos, packet);
-                } catch (Exception e) {
-                    CraftEngine.instance().logger().warn("Failed to handle ServerboundPlayerActionPacket", e);
-                }
-            }, world, pos.x >> 4, pos.z >> 4);
+            BukkitNetworkManager.this.plugin.scheduler().sync().run(
+                    () -> handlePlayerActionPacketOnMainThread(player, world, pos, packet),
+                    world, pos.x >> 4, pos.z >> 4
+            );
         }
 
         private static void handlePlayerActionPacketOnMainThread(BukkitServerPlayer player, World world, BlockPos pos, Object packet) {
@@ -1350,16 +1346,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (!player.canInteractPoint(new Vec3d(x, y, z), 4)) {
                 return;
             }
-            BukkitNetworkManager.this.plugin.scheduler().sync().run(() -> {
-                try {
-                    handlePickItemFromBlockPacketOnMainThread((BukkitServerPlayer) user, pos);
-                } catch (Throwable e) {
-                    CraftEngine.instance().logger().warn("Failed to handle ServerboundPickItemFromBlockPacket on region thread", e);
-                }
-            }, player.platformPlayer().getWorld(), x >> 4, z >> 4);
+            BukkitNetworkManager.this.plugin.scheduler().sync().run(
+                    () -> handlePickItemFromBlockPacketOnMainThread((BukkitServerPlayer) user, pos),
+                    player.platformPlayer().getWorld(), x >> 4, z >> 4
+            );
         }
 
-        private static void handlePickItemFromBlockPacketOnMainThread(BukkitServerPlayer player, Object pos) throws Throwable {
+        private static void handlePickItemFromBlockPacketOnMainThread(BukkitServerPlayer player, Object pos) {
             Object serverLevel = player.world().serverWorld();
             Object blockState = BlockGetterProxy.INSTANCE.getBlockState(serverLevel, pos);
             Optional<ImmutableBlockState> optionalState = BlockStateUtils.getOptionalCustomBlockState(blockState);
@@ -1395,16 +1388,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (!player.canInteractPoint(LocationUtils.toVec3d(location), 16)) {
                 return;
             }
-            BukkitNetworkManager.this.plugin.scheduler().sync().run(() -> {
-                try {
-                    handlePickItemFromEntityOnMainThread((BukkitServerPlayer) user, furniture, furniture.hitboxByEntityId(entityId));
-                } catch (Throwable e) {
-                    CraftEngine.instance().logger().warn("Failed to handle ServerboundPickItemFromEntityPacket on region thread", e);
-                }
-            }, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+            BukkitNetworkManager.this.plugin.scheduler().sync().run(
+                    () -> handlePickItemFromEntityOnMainThread((BukkitServerPlayer) user, furniture, furniture.hitboxByEntityId(entityId)),
+                    location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4
+            );
         }
 
-        private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture, FurnitureHitBox hitbox) throws Throwable {
+        private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture, FurnitureHitBox hitbox) {
             Item item = furniture.controller.getItemToPickup(player, hitbox);
             Object itemStack;
             if (item == null) {
@@ -1454,19 +1444,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (!user.isOnline()) return;
             BukkitServerPlayer player = (BukkitServerPlayer) user;
             if (VersionHelper.isFolia()) {
-                player.platformPlayer().getScheduler().run(BukkitCraftEngine.instance().javaPlugin(), (t) -> {
-                    try {
-                        handleSetCreativeSlotPacketOnMainThread(player, packet);
-                    } catch (Throwable e) {
-                        CraftEngine.instance().logger().warn("Failed to handle ServerboundSetCreativeModeSlotPacket on region thread", e);
-                    }
-                }, () -> {});
+                player.platformPlayer().getScheduler().run(
+                        BukkitCraftEngine.instance().javaPlugin(),
+                        t -> handleSetCreativeSlotPacketOnMainThread(player, packet),
+                        () -> {}
+                );
             } else {
-                try {
-                    handleSetCreativeSlotPacketOnMainThread(player, packet);
-                } catch (Throwable e) {
-                    CraftEngine.instance().logger().warn("Failed to handle ServerboundSetCreativeModeSlotPacket on main thread", e);
-                }
+                handleSetCreativeSlotPacketOnMainThread(player, packet);
             }
         }
 
@@ -1793,7 +1777,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             } else {
                 return;
             }
-            PayloadHelper.handleReceiver(clientPayload, user);
+            ModPackets.handlePayload(user, clientPayload);
         }
     }
 
@@ -4213,7 +4197,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (VersionHelper.isOrAbove1_20_2()) return;
             FriendlyByteBuf byteBuf = event.getBuffer();
             Key key = byteBuf.readKey();
-            PayloadHelper.handleReceiver(new UnknownPayload(key, byteBuf.readBytes(byteBuf.readableBytes())), user);
+            ModPackets.handlePayload(user, new UnknownPayload(key, byteBuf.readBytes(byteBuf.readableBytes())));
         }
     }
 
