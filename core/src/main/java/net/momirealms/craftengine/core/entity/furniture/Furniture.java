@@ -252,6 +252,7 @@ public abstract class Furniture implements Cullable {
      * This sets up elements, hitboxes, seats, and culling data.
      */
     protected void setVariantInternal(FurnitureVariant variant) {
+        FurnitureVariant previousVariant = this.currentVariant;
         this.currentVariant = variant;
         Int2ObjectMap<FurnitureHitBox> hitboxMap = new Int2ObjectOpenHashMap<>();
 
@@ -324,7 +325,9 @@ public abstract class Furniture implements Cullable {
         }
 
         // 触发变体变化
-        this.controller.onVariantChange();
+        if (previousVariant != null) {
+            this.controller.onVariantChange(previousVariant);
+        }
     }
 
     protected abstract FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements,

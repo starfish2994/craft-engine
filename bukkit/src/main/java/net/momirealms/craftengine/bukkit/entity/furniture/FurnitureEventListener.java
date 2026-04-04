@@ -13,11 +13,9 @@ import net.momirealms.craftengine.bukkit.util.BukkitItemUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDebugStickState;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.util.EnumUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.CEWorld;
@@ -229,7 +227,9 @@ public final class FurnitureEventListener implements Listener {
             int entityId = furnitureEntity.getEntityId();
             BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
             if (furniture == null) return;
-            furniture.controller.onPlayerUntrack(BukkitAdaptor.adapt(event.getPlayer()));
+            BukkitServerPlayer bukkitServerPlayer = BukkitAdaptor.adapt(event.getPlayer());
+            if (bukkitServerPlayer == null) return;
+            furniture.controller.onPlayerUntrack(bukkitServerPlayer);
         }
     }
 }

@@ -279,6 +279,12 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract Cache<Object, Boolean> receivedMapData();
 
+    public abstract int addLightData(BlockPos pos, int lightPower);
+
+    public abstract int removeLightData(BlockPos pos, int lightPower);
+
+    public abstract int getLightPower(BlockPos pos);
+
     @Override
     public boolean isValid() {
         return this.isOnline();

@@ -2495,6 +2495,17 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 return;
             }
             int state = user.clientModEnabled() ? modBlockStateMapper[before] : blockStateMapper[before];
+            // 家具光照复原 todo 兼容光源方块
+            if (state == BlockStateUtils.AIR_BLOCK_STATES_ID) {
+                int lightPower = ((BukkitServerPlayer) user).getLightPower(pos);
+                if (lightPower == 0) return;
+                state = BlockStateUtils.blockStateToId(BlockStateUtils.LIGHT_BLOCK_STATES[lightPower]);
+            } else if (state == BlockStateUtils.WATER_BLOCK_STATES_ID) {
+                int lightPower = ((BukkitServerPlayer) user).getLightPower(pos);
+                if (lightPower == 0) return;
+                state = BlockStateUtils.blockStateToId(BlockStateUtils.WATERLOGGED_LIGHT_BLOCK_STATES[lightPower]);
+            }
+            // 不一样则重新写入
             if (state == before) {
                 return;
             }
@@ -4142,7 +4153,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                                     ServerGamePacketListenerImplProxy.INSTANCE.handleUseItemOn(ServerPlayerProxy.INSTANCE.getConnection(nmsPlayer), useItemPacket);
                                 } finally {
                                     ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, previousBlockState, UpdateFlags.UPDATE_INVISIBLE);
-                                    serverPlayer.sendPacket(ClientboundBlockUpdatePacketProxy.INSTANCE.newInstance(serverLevel, blockPos), false);
+                                    serverPlayer.sendPacket(ClientboundBlockUpdatePacketProxy.INSTANCE.newInstance$1(serverLevel, blockPos), false);
                                 }
                             }
                         }

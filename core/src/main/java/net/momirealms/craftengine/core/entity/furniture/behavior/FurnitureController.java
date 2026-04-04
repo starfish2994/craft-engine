@@ -1,13 +1,13 @@
 package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -86,7 +86,7 @@ public abstract class FurnitureController {
         return InteractionResult.PASS;
     }
 
-    public void onVariantChange() {
+    public void onVariantChange(FurnitureVariant previousVariant) {
     }
 
     public void gatherElements(Consumer<FurnitureElement> consumer) {
@@ -266,9 +266,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onVariantChange() {
-            this.first.onVariantChange();
-            this.second.onVariantChange();
+        public void onVariantChange(FurnitureVariant previousVariant) {
+            this.first.onVariantChange(previousVariant);
+            this.second.onVariantChange(previousVariant);
         }
 
         @Override
@@ -453,9 +453,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onVariantChange() {
+        public void onVariantChange(FurnitureVariant previousVariant) {
             for (FurnitureController controller : this.controllers) {
-                controller.onVariantChange();
+                controller.onVariantChange(previousVariant);
             }
         }
 
