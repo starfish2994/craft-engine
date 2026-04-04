@@ -110,7 +110,6 @@ public final class BuiltInRegistries {
     public static final Registry<PostProcessorType<? extends PostProcessor>> RECIPE_POST_PROCESSOR_TYPE = createConstantBoundRegistry(Registries.RECIPE_POST_PROCESSOR_TYPE, 16);
     public static final Registry<ItemUpdaterType<? extends ItemUpdater>> ITEM_UPDATER_TYPE = createConstantBoundRegistry(Registries.ITEM_UPDATER_TYPE, 16);
     public static final Registry<NetworkCodec<FriendlyByteBuf, ? extends ModPacket>> MOD_PACKET = createConstantBoundRegistry(Registries.MOD_PACKET, 16);
-    public static final Registry<BlockEntityType<? extends BlockEntity>> BLOCK_ENTITY_TYPE = createConstantBoundRegistry(Registries.BLOCK_ENTITY_TYPE, 64);
     public static final Registry<BlockEntityElementConfigType<? extends BlockEntityElement>> BLOCK_ENTITY_ELEMENT_TYPE = createConstantBoundRegistry(Registries.BLOCK_ENTITY_ELEMENT_TYPE, 16);
     public static final Registry<CraftRemainderType<? extends CraftRemainder>> CRAFT_REMAINDER_TYPE = createConstantBoundRegistry(Registries.CRAFT_REMAINDER_TYPE, 16);
     public static final Registry<FurnitureElementConfigType<? extends FurnitureElement>> FURNITURE_ELEMENT_TYPE = createConstantBoundRegistry(Registries.FURNITURE_ELEMENT_TYPE, 16);

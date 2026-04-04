@@ -113,7 +113,6 @@ public final class Registries {
     public static final ResourceKey<Registry<PostProcessorType<? extends PostProcessor>>> RECIPE_POST_PROCESSOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("recipe_post_processor_type"));
     public static final ResourceKey<Registry<ItemUpdaterType<? extends ItemUpdater>>> ITEM_UPDATER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_updater_type"));
     public static final ResourceKey<Registry<NetworkCodec<FriendlyByteBuf, ? extends ModPacket>>> MOD_PACKET = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("mod_packet_type"));
-    public static final ResourceKey<Registry<BlockEntityType<? extends BlockEntity>>> BLOCK_ENTITY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block_entity_type"));
     public static final ResourceKey<Registry<BlockEntityElementConfigType<? extends BlockEntityElement>>> BLOCK_ENTITY_ELEMENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block_entity_element_type"));
     public static final ResourceKey<Registry<CraftRemainderType<? extends CraftRemainder>>> CRAFT_REMAINDER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("craft_remainder_type"));
     public static final ResourceKey<Registry<FurnitureElementConfigType<? extends FurnitureElement>>> FURNITURE_ELEMENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_element_type"));
