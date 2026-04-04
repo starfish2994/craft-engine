@@ -49,11 +49,6 @@ public final class Config {
     private boolean metrics;
     private Locale forcedLocale;
 
-    private boolean client_communication$enable;
-    private boolean client_communication$permission$enable;
-    private Map<Key, String> client_communication$permission$clientbound;
-    private Map<Key, String> client_communication$permission$serverbound;
-
     private boolean misc$filterConfigurationPhaseDisconnect;
     private boolean misc$delayConfigurationLoad;
     private boolean misc$multi_threaded_configuration_load;
@@ -209,6 +204,8 @@ public final class Config {
     private boolean network$intercept_packets$player_chat;
     private boolean network$disable_item_operations;
     private boolean network$disable_chat_report;
+    private boolean network$mod_channel$enable;
+    private boolean network$mod_channel$requires_permission;
 
     private boolean item$client_bound_model;
     private boolean item$non_italic_tag;
@@ -644,6 +641,8 @@ public final class Config {
         this.network$intercept_packets$item = config.getBoolean("network.intercept-packets.item", true);
         this.network$intercept_packets$advancement = config.getBoolean("network.intercept-packets.advancement", true);
         this.network$intercept_packets$player_chat = config.getBoolean("network.intercept-packets.player-chat", true);
+        this.network$mod_channel$enable = config.getBoolean("network.mod-channel.enable", true);
+        this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
 
         // emoji
         this.emoji$contexts$chat = config.getBoolean("emoji.contexts.chat", true);
@@ -666,32 +665,6 @@ public final class Config {
         // bedrock support
         this.bedrock_edition_support$enable = config.getBoolean("bedrock-edition-support.enable", true);
         this.bedrock_edition_support$player_prefix = config.getString("bedrock-edition-support.player-prefix", "!");
-
-        // client communication
-        this.client_communication$enable = config.getBoolean("client-communication.enable", true);
-        this.client_communication$permission$enable = config.getBoolean("client-communication.permission.enable", false);
-        {
-            Section section = config.getSection("client-communication.permission.clientbound");
-            Map<Key, String> map = new Object2ObjectOpenHashMap<>();
-            if (section != null) {
-                for (Map.Entry<String, Object> entry : section.getStringRouteMappedValues(false).entrySet()) {
-                    Key key = Key.ce(StringUtils.normalizeSettingsType(entry.getKey()));
-                    map.put(key, String.valueOf(entry.getValue()));
-                }
-            }
-            this.client_communication$permission$clientbound = map;
-        }
-        {
-            Section section = config.getSection("client-communication.permission.serverbound");
-            Map<Key, String> map = new Object2ObjectOpenHashMap<>();
-            if (section != null) {
-                for (Map.Entry<String, Object> entry : section.getStringRouteMappedValues(false).entrySet()) {
-                    Key key = Key.ce(StringUtils.normalizeSettingsType(entry.getKey()));
-                    map.put(key, String.valueOf(entry.getValue()));
-                }
-            }
-            this.client_communication$permission$serverbound = map;
-        }
 
         this.firstTime = false;
     }
@@ -720,22 +693,6 @@ public final class Config {
 
     public static boolean injectPacketEvents() {
         return instance.misc$inject_packet_vents;
-    }
-
-    public static boolean clientCommunication() {
-        return instance.client_communication$enable;
-    }
-
-    public static boolean clientCommunicationPermission() {
-        return instance.client_communication$permission$enable;
-    }
-
-    public static String clientCommunicationPermissionClientbound(Key key) {
-        return instance.client_communication$permission$clientbound.get(key);
-    }
-
-    public static String clientCommunicationPermissionServerbound(Key key) {
-        return instance.client_communication$permission$serverbound.get(key);
     }
 
     public static boolean debugCommon() {
@@ -1117,6 +1074,14 @@ public final class Config {
 
     public static boolean disableChatReport() {
         return instance.network$disable_chat_report;
+    }
+
+    public static boolean enableModChannel() {
+        return instance.network$mod_channel$enable;
+    }
+
+    public static boolean modChannelRequiresPermission() {
+        return instance.network$mod_channel$requires_permission;
     }
 
     public static boolean disableItemOperations() {

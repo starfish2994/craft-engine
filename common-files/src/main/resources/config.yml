@@ -439,6 +439,9 @@ network:
     item: true
     advancement: true   # Toast
     player-chat: true
+  mod-channel:
+    enable: true
+    requires-permission: true
 
 recipe:
   # Master switch for custom recipes
@@ -590,21 +593,6 @@ client-optimization:
       # Number of visibility changes replenished per tick
       # Controls how quickly the bucket refills
       restore-per-tick: 25
-
-client-communication:
-  # Enable client mod communication
-  enable: true
-  # Permission checking, requires the LuckPerms plugin
-  # https://luckperms.net/download
-  permission:
-    enable: false
-    clientbound:
-      cancel-block-update: ce.mod.clientbound.cancel_block_update
-      visual-block-state: ce.mod.clientbound.visual_block_state
-    serverbound:
-      cancel-block-update: ce.mod.serverbound.cancel_block_update
-      client-block-state-size: ce.mod.serverbound.client_block_state_size
-      client-custom-block: ce.mod.serverbound.client_custom_block
 
 misc:
   # Suppresses connection logs during server configuration phase

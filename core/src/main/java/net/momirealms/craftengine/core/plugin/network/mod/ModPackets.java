@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.plugin.network.PacketFlow;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -24,16 +25,16 @@ public class ModPackets {
     }
 
     public static void sendPacket(NetWorkUser user, ModPacket packet) {
-        if (!Config.clientCommunication()) return;
+        if (!Config.enableModChannel()) return;
         @SuppressWarnings("unchecked")
         NetworkCodec<FriendlyByteBuf, ModPacket> codec = (NetworkCodec<FriendlyByteBuf, ModPacket>) BuiltInRegistries.MOD_PACKET.getValue(packet.type());
         if (codec == null) {
             CraftEngine.instance().logger().warn("Unknown data type class: " + packet.getClass().getName());
             return;
         }
-        if (Config.clientCommunicationPermission()) {
+        if (Config.modChannelRequiresPermission()) {
             Key key = BuiltInRegistries.MOD_PACKET.getKey(codec);
-            String permission = Config.clientCommunicationPermissionClientbound(key);
+            String permission = packet.permission(PacketFlow.CLIENTBOUND);
             if (permission != null && !CraftEngine.instance().compatibilityManager().hasPermission(user, permission)) {
                 Debugger.COMMON.debug(() -> "Player " + user.name() + " does not have permission to receive " + key);
                 return;
@@ -46,7 +47,7 @@ public class ModPackets {
     }
 
     public static void handlePayload(NetWorkUser user, Payload payload) {
-        if (!Config.clientCommunication()) return;
+        if (!Config.enableModChannel()) return;
         try {
             if (payload.channel().equals(ModChannelKeys.CRAFTENGINE_CHANNEL)) {
                 handleCraftEnginePayload(user, payload);
@@ -70,15 +71,15 @@ public class ModPackets {
             Debugger.COMMON.debug(() -> "Unknown data type received: " + type);
             return;
         }
-        if (Config.clientCommunicationPermission()) {
+        ModPacket networkData = codec.decode(buf);
+        if (Config.modChannelRequiresPermission()) {
             Key key = BuiltInRegistries.MOD_PACKET.getKey(codec);
-            String permission = Config.clientCommunicationPermissionServerbound(key);
+            String permission = networkData.permission(PacketFlow.SERVERBOUND);
             if (permission != null && !CraftEngine.instance().compatibilityManager().hasPermission(user, permission)) {
                 Debugger.COMMON.debug(() -> "Player " + user.name() + " does not have permission to send " + key);
                 return;
             }
         }
-        ModPacket networkData = codec.decode(buf);
         networkData.handle(user);
     }
 }
