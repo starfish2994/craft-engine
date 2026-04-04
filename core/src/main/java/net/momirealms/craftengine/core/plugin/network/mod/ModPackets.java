@@ -33,10 +33,9 @@ public class ModPackets {
             return;
         }
         if (Config.modChannelRequiresPermission()) {
-            Key key = BuiltInRegistries.MOD_PACKET.getKey(codec);
             String permission = packet.permission(PacketFlow.CLIENTBOUND);
             if (permission != null && !CraftEngine.instance().compatibilityManager().hasPermission(user, permission)) {
-                Debugger.COMMON.debug(() -> "Player " + user.name() + " does not have permission to receive " + key);
+                Debugger.COMMON.debug(() -> "Player " + user.name() + " does not have " + permission + " permission to receive " + packet.type().location());
                 return;
             }
         }
@@ -73,10 +72,9 @@ public class ModPackets {
         }
         ModPacket networkData = codec.decode(buf);
         if (Config.modChannelRequiresPermission()) {
-            Key key = BuiltInRegistries.MOD_PACKET.getKey(codec);
             String permission = networkData.permission(PacketFlow.SERVERBOUND);
             if (permission != null && !CraftEngine.instance().compatibilityManager().hasPermission(user, permission)) {
-                Debugger.COMMON.debug(() -> "Player " + user.name() + " does not have permission to send " + key);
+                Debugger.COMMON.debug(() -> "Player " + user.name() + " does not have " + permission + " permission to send " + networkData.type().location());
                 return;
             }
         }
