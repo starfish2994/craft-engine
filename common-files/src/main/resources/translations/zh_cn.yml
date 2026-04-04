@@ -245,6 +245,7 @@ resource.item.custom_model_data_exhausted: 材料“<arg:0>”的自定义模型
 resource.item.custom_model_data_conflict: 自定义模型数据“<arg:0>”已被物品“<arg:1>”占用
 resource.item.missing_model_id: 缺少“custom_model_data”或“item_model”，导致自定义模型无法正常工作
 resource.item.occupied_vanilla_item_model: 物品模型“<arg:0>”已被原版物品占用
+resource.item.invalid_material: 无效的物品类型 '<arg:0>'
 resource.model.generation.conflict: 无法为“<arg:0>”生成模型，因为有两个或多个配置试图使用相同的路径生成不同的json模型
 resource.recipe.smithing_transform.post_processor.unknown_type: 未知的锻造配方后处理器类型“<arg:0>”
 resource.recipe.ingredient.invalid_tag: 物品标签“<arg:0>”不包含任何物品

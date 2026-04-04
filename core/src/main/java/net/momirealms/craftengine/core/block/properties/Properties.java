@@ -42,7 +42,7 @@ public final class Properties {
     @SuppressWarnings("unchecked")
     public static <T extends Comparable<T>> Property<T> fromConfig(String name, ConfigSection section) {
         String type = section.getNonEmptyString("type");
-        Key key = Key.withDefaultNamespace(type, Key.CRAFTENGINE_NAMESPACE);
+        Key key = Key.ce(type);
         PropertyType<T> propertyType = (PropertyType<T>) BuiltInRegistries.PROPERTY_TYPE.getValue(key);
         if (propertyType == null) {
             throw new KnownResourceException("resource.block.state.property.unknown_type", section.assemblePath("type"), key.asString());

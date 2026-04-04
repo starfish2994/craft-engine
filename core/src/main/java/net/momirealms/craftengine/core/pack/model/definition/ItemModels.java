@@ -34,7 +34,8 @@ public final class ItemModels {
     }
 
     public static ItemModel fromConfig(ConfigSection section) {
-        Key type = section.getIdentifier("type", DEFAULT_MODEL_TYPE);
+        String typeName = section.getString("type", "minecraft:model");
+        Key type = Key.of(typeName);
         ItemModelType<? extends ItemModel> itemModelType = BuiltInRegistries.ITEM_MODEL_TYPE.getValue(type);
         if (itemModelType == null) {
             throw new KnownResourceException("resource.item.model_definition.unknown_type", section.assemblePath("type"), type.asString());

@@ -23,7 +23,8 @@ public final class Equipments {
 
     @SuppressWarnings("unchecked")
     public static <E extends Equipment> E fromConfig(Key id, ConfigSection section) {
-        Key key = Key.ce(section.getNonNullString("type"));
+        String typeName = section.getNonEmptyString("type");
+        Key key = Key.ce(typeName);
         EquipmentType<E> equipmentType = (EquipmentType<E>) BuiltInRegistries.EQUIPMENT_TYPE.getValue(key);
         if (equipmentType == null) {
             throw new KnownResourceException("resource.equipment.unknown_type", section.assemblePath("type"), key.asString());

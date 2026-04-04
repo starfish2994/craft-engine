@@ -22,7 +22,7 @@ public final class Formulas {
     }
 
     public static Formula fromConfig(ConfigSection section) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         Key key = Key.ce(type);
         FormulaType<? extends Formula> formulaType = BuiltInRegistries.FORMULA_TYPE.getValue(key);
         if (formulaType == null) {

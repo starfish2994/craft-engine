@@ -15,7 +15,7 @@ public final class PostProcessors {
 
     public static PostProcessor fromConfig(ConfigSection section) {
         String type = section.getNonEmptyString("type");
-        Key key = Key.withDefaultNamespace(type, Key.CRAFTENGINE_NAMESPACE);
+        Key key = Key.ce(type);
         PostProcessorType<? extends PostProcessor> processorType = BuiltInRegistries.RECIPE_POST_PROCESSOR_TYPE.getValue(key);
         if (processorType == null) {
             throw new KnownResourceException("resource.recipe.post_processor.unknown_type", section.assemblePath("type"), key.asString());

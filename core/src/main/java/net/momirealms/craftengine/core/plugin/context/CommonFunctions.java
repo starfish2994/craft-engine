@@ -78,7 +78,7 @@ public final class CommonFunctions {
     }
 
     public static Function<Context> fromConfig(ConfigSection section) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         Key key = Key.ce(type);
         CommonFunctionType<? extends Function<Context>> functionType = BuiltInRegistries.COMMON_FUNCTION_TYPE.getValue(key);
         if (functionType == null) {

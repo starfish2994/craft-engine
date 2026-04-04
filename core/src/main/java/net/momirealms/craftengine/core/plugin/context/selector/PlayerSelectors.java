@@ -27,7 +27,7 @@ public final class PlayerSelectors {
 
     @SuppressWarnings("unchecked")
     public static <CTX extends Context> PlayerSelector<CTX> fromConfig(ConfigSection section, Function<ConfigSection, Condition<CTX>> conditionFactory) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         Key key = Key.ce(type);
         PlayerSelectorType<CTX> selectorType = (PlayerSelectorType<CTX>) BuiltInRegistries.PLAYER_SELECTOR_TYPE.getValue(key);
         if (selectorType == null) {

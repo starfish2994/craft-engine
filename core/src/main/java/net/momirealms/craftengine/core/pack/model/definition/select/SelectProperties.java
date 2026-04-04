@@ -31,7 +31,8 @@ public final class SelectProperties {
     }
 
     public static SelectProperty fromConfig(ConfigSection section) {
-        Key type = section.getNonNullIdentifier("property");
+        String typeName = section.getNonEmptyString("property");
+        Key type = Key.minecraft(typeName);
         SelectPropertyType<? extends SelectProperty> selectPropertyType = BuiltInRegistries.SELECT_PROPERTY_TYPE.getValue(type);
         if (selectPropertyType == null) {
             throw new KnownResourceException("resource.item.model_definition.select.unknown_type", section.assemblePath("property"), type.asString());

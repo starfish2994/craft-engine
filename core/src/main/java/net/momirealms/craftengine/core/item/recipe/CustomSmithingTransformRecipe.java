@@ -273,8 +273,8 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         }
 
         public static ItemDataProcessor fromConfig(ConfigSection section) {
-            String type = section.getNonNullString("type");
-            Key key = Key.withDefaultNamespace(type, Key.CRAFTENGINE_NAMESPACE);
+            String type = section.getNonEmptyString("type");
+            Key key = Key.ce(type);
             ItemDataProcessor.Type<? extends CustomSmithingTransformRecipe.ItemDataProcessor> processorType = BuiltInRegistries.SMITHING_RESULT_PROCESSOR_TYPE.getValue(key);
             if (processorType == null) {
                 throw new KnownResourceException("resource.recipe.smithing_transform.post_processor.unknown_type", section.assemblePath("type"), key.asString());

@@ -288,7 +288,7 @@ public abstract class AbstractPackManager implements PackManager {
             this.resourcePackHost = NoneHost.INSTANCE;
             return;
         }
-        ConfigValue configValue = new ConfigValue("resource-pack.delivery.hosting", hostingObj);
+        ConfigValue configValue = ConfigValue.of("resource-pack.delivery.hosting", hostingObj);
         try {
             List<ResourcePackHost> hosts = configValue.getAsList(v -> ResourcePackHosts.fromConfig(v.getAsSection()));
             if (hosts.isEmpty()) {

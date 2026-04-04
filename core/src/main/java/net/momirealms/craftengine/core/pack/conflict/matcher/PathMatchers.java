@@ -35,12 +35,12 @@ public final class PathMatchers {
     }
 
     public static Condition<PathContext> fromConfig(ConfigSection section) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         boolean reverted = type.charAt(0) == '!';
         if (reverted) {
             type = type.substring(1);
         }
-        Key key = Key.withDefaultNamespace(type, Key.CRAFTENGINE_NAMESPACE);
+        Key key = Key.ce(type);
         PathMatcherType<? extends Condition<PathContext>> matcherType = BuiltInRegistries.PATH_MATCHER_TYPE.getValue(key);
         if (matcherType == null) {
             throw new KnownResourceException("condition.unknown_type", section.assemblePath("type"), key.asString());

@@ -34,7 +34,8 @@ public final class ConditionProperties {
     }
 
     public static ConditionProperty fromConfig(ConfigSection section) {
-        Key type = section.getNonNullIdentifier("property");
+        String typeName = section.getNonEmptyString("property");
+        Key type = Key.minecraft(typeName);
         ConditionPropertyType<? extends ConditionProperty> propertyType = BuiltInRegistries.CONDITION_PROPERTY_TYPE.getValue(type);
         if (propertyType == null) {
             throw new KnownResourceException("resource.item.model_definition.condition.unknown_type", section.assemblePath("property"), type.asString());

@@ -26,6 +26,7 @@ import net.momirealms.craftengine.core.item.recipe.IngredientUnlockable;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.plugin.compatibility.ItemSource;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
@@ -365,10 +366,10 @@ public final class BukkitItemManager extends AbstractItemManager {
         Object item = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(materialId));
         Object clientBoundItem = materialId == clientBoundMaterialId ? item : RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(clientBoundMaterialId));
         if (item == ItemsProxy.AIR) {
-            throw new LocalizedResourceConfigException("warning.config.item.invalid_material", materialId.toString());
+            throw new KnownResourceException("resource.item.invalid_material", materialId.toString());
         }
         if (clientBoundItem == ItemsProxy.AIR) {
-            throw new LocalizedResourceConfigException("warning.config.item.invalid_material", clientBoundMaterialId.toString());
+            throw new KnownResourceException("resource.item.invalid_material", clientBoundMaterialId.toString());
         }
         return BukkitItemDefinition.builder(item, clientBoundItem)
                 .id(id)

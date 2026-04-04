@@ -28,7 +28,7 @@ public final class CraftRemainders {
     }
 
     public static CraftRemainder fromConfig(ConfigSection section) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         Key key = Key.ce(type);
         CraftRemainderType<?> craftRemainderType = BuiltInRegistries.CRAFT_REMAINDER_TYPE.getValue(key);
         if (craftRemainderType == null) {

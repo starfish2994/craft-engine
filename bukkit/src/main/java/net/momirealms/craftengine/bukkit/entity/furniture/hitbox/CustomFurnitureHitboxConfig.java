@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.collision.AABB;
@@ -93,7 +94,7 @@ public final class CustomFurnitureHitboxConfig extends AbstractFurnitureHitBoxCo
         @Override
         public CustomFurnitureHitboxConfig create(ConfigSection section) {
             ConfigValue typeValue = section.getNonNullValue(ENTITY_TYPE, ConfigConstants.ARGUMENT_IDENTIFIER);
-            Object nmsEntityType = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ENTITY_TYPE, KeyUtils.toIdentifier(typeValue.getAsIdentifier()));
+            Object nmsEntityType = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ENTITY_TYPE, KeyUtils.toIdentifier(typeValue.getAsIdentifier(Key.MINECRAFT_NAMESPACE)));
             if (nmsEntityType == null) {
                 throw new KnownResourceException("resource.furniture.hitbox.custom.invalid_entity_type", typeValue.path(), typeValue.getAsString());
             }

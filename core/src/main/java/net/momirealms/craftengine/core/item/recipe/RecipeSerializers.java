@@ -36,15 +36,15 @@ public final class RecipeSerializers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T, R extends Recipe> void register(Key key, RecipeSerializer<R> serializer) {
+    public static <R extends Recipe> void register(Key key, RecipeSerializer<R> serializer) {
         WritableRegistry<RecipeSerializer<R>> registry = (WritableRegistry) BuiltInRegistries.RECIPE_SERIALIZER;
         registry.register(ResourceKey.create(Registries.RECIPE_SERIALIZER.location(), key), serializer);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T, R extends Recipe> Recipe fromConfig(Key id, ConfigSection section) {
+    public static <R extends Recipe> Recipe fromConfig(Key id, ConfigSection section) {
         String type = section.getNonEmptyString("type");
-        Key key = Key.of(type);
+        Key key = Key.minecraft(type);
         RecipeSerializer<R> factory = (RecipeSerializer<R>) BuiltInRegistries.RECIPE_SERIALIZER.getValue(key);
         if (factory == null) {
             throw new KnownResourceException("resource.recipe.unknown_type", section.assemblePath("type"), key.asString());

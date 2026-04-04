@@ -59,7 +59,7 @@ public final class LootFunctions {
     }
 
     public static LootFunction fromConfig(ConfigSection section) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         Key key = Key.ce(type);
         LootFunctionType<? extends LootFunction> functionType = BuiltInRegistries.LOOT_FUNCTION_TYPE.getValue(key);
         if (functionType == null) {

@@ -7,8 +7,8 @@ import java.util.function.UnaryOperator;
 public final class Key {
     public static final String CRAFTENGINE_NAMESPACE = "craftengine";
     public static final String MINECRAFT_NAMESPACE = "minecraft";
-    private final String namespace;
-    private final String value;
+    public final String namespace;
+    public final String value;
 
     public Key(String namespace, String value) {
         this.namespace = namespace;
@@ -42,6 +42,10 @@ public final class Key {
     }
 
     public static Key of(String namespacedId) {
+        return of(decompose(namespacedId, MINECRAFT_NAMESPACE));
+    }
+
+    public static Key minecraft(String namespacedId) {
         return of(decompose(namespacedId, MINECRAFT_NAMESPACE));
     }
 

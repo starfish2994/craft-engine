@@ -54,7 +54,7 @@ public final class CommonConditions {
 
     @SuppressWarnings("unchecked")
     public static <CTX extends Context> Condition<CTX> fromConfig(ConfigSection section) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         boolean inverted = type.charAt(0) == '!';
         if (inverted) {
             type = type.substring(1);

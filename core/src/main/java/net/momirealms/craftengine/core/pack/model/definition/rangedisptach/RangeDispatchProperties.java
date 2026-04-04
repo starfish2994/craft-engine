@@ -31,7 +31,8 @@ public final class RangeDispatchProperties {
     }
 
     public static RangeDispatchProperty fromConfig(ConfigSection section) {
-        Key type = section.getNonNullIdentifier("property");
+        String typeName = section.getNonEmptyString("property");
+        Key type = Key.minecraft(typeName);
         RangeDispatchPropertyType<? extends RangeDispatchProperty> propertyType = BuiltInRegistries.RANGE_DISPATCH_PROPERTY_TYPE.getValue(type);
         if (propertyType == null) {
             throw new KnownResourceException("resource.item.model_definition.range_dispatch.unknown_type", section.assemblePath("property"), type.asString());
@@ -40,7 +41,7 @@ public final class RangeDispatchProperties {
     }
 
     public static RangeDispatchProperty fromJson(JsonObject json) {
-        Key key = Key.of(json.get("property").getAsString());
+        Key key = Key.minecraft(json.get("property").getAsString());
         RangeDispatchPropertyType<? extends RangeDispatchProperty> propertyType = BuiltInRegistries.RANGE_DISPATCH_PROPERTY_TYPE.getValue(key);
         if (propertyType == null) {
             throw new IllegalArgumentException("Invalid range dispatch property type: " + key);

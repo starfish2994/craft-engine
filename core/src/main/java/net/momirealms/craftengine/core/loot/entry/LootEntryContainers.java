@@ -31,7 +31,7 @@ public final class LootEntryContainers {
     }
 
     public static LootEntryContainer fromConfig(ConfigSection section) {
-        String type = section.getNonNullString("type");
+        String type = section.getNonEmptyString("type");
         Key key = Key.ce(type);
         LootEntryContainerType<? extends LootEntryContainer> containerType = BuiltInRegistries.LOOT_ENTRY_CONTAINER_TYPE.getValue(key);
         if (containerType == null) {
