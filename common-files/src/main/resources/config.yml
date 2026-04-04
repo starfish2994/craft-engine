@@ -439,6 +439,9 @@ network:
     item: true
     advancement: true   # Toast
     player-chat: true
+  mod-channel:
+    enable: true
+    requires-permission: true
 
 recipe:
   # Master switch for custom recipes

@@ -115,4 +115,6 @@ public interface NetWorkUser {
     void setDecoderState(ConnectionState decoderState);
 
     void setEncoderState(ConnectionState encoderState);
+
+    void resendChunks();
 }

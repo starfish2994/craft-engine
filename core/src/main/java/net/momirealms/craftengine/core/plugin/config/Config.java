@@ -11,6 +11,7 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import dev.dejvokep.boostedyaml.utils.format.NodeRole;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
@@ -203,6 +204,8 @@ public final class Config {
     private boolean network$intercept_packets$player_chat;
     private boolean network$disable_item_operations;
     private boolean network$disable_chat_report;
+    private boolean network$mod_channel$enable;
+    private boolean network$mod_channel$requires_permission;
 
     private boolean item$client_bound_model;
     private boolean item$non_italic_tag;
@@ -638,6 +641,8 @@ public final class Config {
         this.network$intercept_packets$item = config.getBoolean("network.intercept-packets.item", true);
         this.network$intercept_packets$advancement = config.getBoolean("network.intercept-packets.advancement", true);
         this.network$intercept_packets$player_chat = config.getBoolean("network.intercept-packets.player-chat", true);
+        this.network$mod_channel$enable = config.getBoolean("network.mod-channel.enable", true);
+        this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
 
         // emoji
         this.emoji$contexts$chat = config.getBoolean("emoji.contexts.chat", true);
@@ -1069,6 +1074,14 @@ public final class Config {
 
     public static boolean disableChatReport() {
         return instance.network$disable_chat_report;
+    }
+
+    public static boolean enableModChannel() {
+        return instance.network$mod_channel$enable;
+    }
+
+    public static boolean modChannelRequiresPermission() {
+        return instance.network$mod_channel$requires_permission;
     }
 
     public static boolean disableItemOperations() {

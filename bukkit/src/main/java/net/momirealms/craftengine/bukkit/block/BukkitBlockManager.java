@@ -8,8 +8,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
 import net.momirealms.craftengine.bukkit.plugin.injector.MaterialInjector;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
-import net.momirealms.craftengine.bukkit.plugin.network.payload.PayloadHelper;
-import net.momirealms.craftengine.bukkit.plugin.network.payload.protocol.VisualBlockStatePacket;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockStatePacket;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
@@ -25,6 +24,7 @@ import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
+import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.sound.SoundSet;
 import net.momirealms.craftengine.core.util.Key;
@@ -84,8 +84,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private Set<Object> missingHitSounds = Set.of();
     private Set<Object> missingStepSounds = Set.of();
     private Set<Key> missingInteractSoundBlocks = Set.of();
-    // 缓存的VisualBlockStatePacket
-    private VisualBlockStatePacket cachedVisualBlockStatePacket;
 
     public BukkitBlockManager(BukkitCraftEngine plugin) {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
@@ -148,11 +146,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void delayedLoad() {
         this.registerBlockStatePacketListener();
         super.delayedLoad();
-        this.cachedVisualBlockStatePacket = VisualBlockStatePacket.create();
-        for (BukkitServerPlayer player : BukkitNetworkManager.instance().onlineUsers()) {
-            if (!player.clientModEnabled()) continue;
-            PayloadHelper.sendData(player, this.cachedVisualBlockStatePacket);
-        }
     }
 
     @Override
@@ -299,8 +292,8 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             }
 
             if (VersionHelper.isOrAbove1_21_2()) {
-                int blockLight = settings.blockLight() != -1 ? settings.blockLight() : BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getLightBlock$0(nmsVisualState);
-                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setLightBlock(nmsState, blockLight);
+                int blockLight = settings.blockLight() != -1 ? settings.blockLight() : BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getLightDampening$0(nmsVisualState);
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setLightDampening(nmsState, blockLight);
                 boolean propagatesSkylightDown = settings.propagatesSkylightDown() == Tristate.UNDEFINED ? BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPropagatesSkylightDown(nmsVisualState) : settings.propagatesSkylightDown().asBoolean();
                 BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setPropagatesSkylightDown(nmsState, propagatesSkylightDown);
             } else {
@@ -402,10 +395,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     public List<TagUtils.TagEntry> cachedUpdateTags() {
         return this.cachedUpdateTags;
-    }
-
-    public VisualBlockStatePacket cachedVisualBlockStatePacket() {
-        return this.cachedVisualBlockStatePacket;
     }
 
     private void markVanillaNoteBlocks() {
@@ -517,6 +506,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public int vanillaBlockStateCount() {
         return this.vanillaBlockStateCount;
+    }
+
+    @Override
+    public int currentBlockRegistrySize() {
+        return RegistryUtils.currentBlockRegistrySize();
     }
 
     @SuppressWarnings("DuplicatedCode")
