@@ -251,7 +251,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     private void logHook(String plugin) {
-        this.plugin.logger().info(TranslationManager.instance().plainTranslation("info.compatibility", plugin));
+        this.plugin.logger().info(TranslationManager.instance().plainTranslation("plugin.compatibility", plugin));
     }
 
     @Override
