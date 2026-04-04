@@ -274,7 +274,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         this.packetIds = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
         // register packet handlers
         this.registerPacketListeners();
-        BukkitModPackets.init();
         // set up packet senders
         this.packetConsumer = VersionHelper.isOrAbove1_21_6()
                 ? (target, packet, sendListener) -> ConnectionProxy.INSTANCE.send$0(target, packet, (ChannelFutureListener) sendListener)

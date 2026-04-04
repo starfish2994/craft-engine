@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
 import net.momirealms.craftengine.bukkit.plugin.injector.MaterialInjector;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
-import net.momirealms.craftengine.bukkit.plugin.network.mod.protocol.VisualBlockStatePacket;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockStatePacket;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
@@ -84,8 +84,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private Set<Object> missingHitSounds = Set.of();
     private Set<Object> missingStepSounds = Set.of();
     private Set<Key> missingInteractSoundBlocks = Set.of();
-    // 缓存的VisualBlockStatePacket
-    private VisualBlockStatePacket cachedVisualBlockStatePacket;
 
     public BukkitBlockManager(BukkitCraftEngine plugin) {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
@@ -148,11 +146,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void delayedLoad() {
         this.registerBlockStatePacketListener();
         super.delayedLoad();
-        this.cachedVisualBlockStatePacket = VisualBlockStatePacket.create();
-        for (BukkitServerPlayer player : BukkitNetworkManager.instance().onlineUsers()) {
-            if (!player.clientModEnabled()) continue;
-            ModPackets.sendPacket(player, this.cachedVisualBlockStatePacket);
-        }
     }
 
     @Override
@@ -404,10 +397,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         return this.cachedUpdateTags;
     }
 
-    public VisualBlockStatePacket cachedVisualBlockStatePacket() {
-        return this.cachedVisualBlockStatePacket;
-    }
-
     private void markVanillaNoteBlocks() {
         Object block = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.BLOCK, KeyUtils.toIdentifier(BlockKeys.NOTE_BLOCK));
         Object stateDefinition = BlockProxy.INSTANCE.getStateDefinition(block);
@@ -517,6 +506,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public int vanillaBlockStateCount() {
         return this.vanillaBlockStateCount;
+    }
+
+    @Override
+    public int currentBlockRegistrySize() {
+        return RegistryUtils.currentBlockRegistrySize();
     }
 
     @SuppressWarnings("DuplicatedCode")

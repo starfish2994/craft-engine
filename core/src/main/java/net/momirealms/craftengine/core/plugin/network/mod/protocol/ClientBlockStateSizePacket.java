@@ -1,29 +1,29 @@
-package net.momirealms.craftengine.bukkit.plugin.network.mod.protocol;
+package net.momirealms.craftengine.core.plugin.network.mod.protocol;
 
 import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
-import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
+import net.momirealms.craftengine.core.util.IntIdentityList;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
-public record CancelBlockUpdatePacket(boolean enabled) implements ModPacket {
+public record ClientBlockStateSizePacket(int blockStateSize) implements ModPacket {
     public static final ResourceKey<NetworkCodec<FriendlyByteBuf, ? extends ModPacket>> TYPE = ResourceKey.create(
-            BuiltInRegistries.MOD_PACKET.key().location(), Key.of("craftengine", "cancel_block_update")
+            BuiltInRegistries.MOD_PACKET.key().location(), Key.of("craftengine", "client_block_state_size")
     );
-    public static final NetworkCodec<FriendlyByteBuf, CancelBlockUpdatePacket> CODEC = ModPacket.codec(
-            CancelBlockUpdatePacket::encode,
-            CancelBlockUpdatePacket::new
+    public static final NetworkCodec<FriendlyByteBuf, ClientBlockStateSizePacket> CODEC = ModPacket.codec(
+            ClientBlockStateSizePacket::encode,
+            ClientBlockStateSizePacket::new
     );
 
-    private CancelBlockUpdatePacket(FriendlyByteBuf buf) {
-        this(buf.readBoolean());
+    private ClientBlockStateSizePacket(FriendlyByteBuf buf) {
+        this(buf.readInt());
     }
 
     private void encode(FriendlyByteBuf buf) {
-        buf.writeBoolean(this.enabled);
+        buf.writeInt(this.blockStateSize);
     }
 
     @Override
@@ -33,7 +33,6 @@ public record CancelBlockUpdatePacket(boolean enabled) implements ModPacket {
 
     @Override
     public void handle(NetWorkUser user) {
-        if (!this.enabled) return;
-        ModPackets.sendPacket(user, this);
+        user.setClientBlockList(new IntIdentityList(this.blockStateSize));
     }
 }

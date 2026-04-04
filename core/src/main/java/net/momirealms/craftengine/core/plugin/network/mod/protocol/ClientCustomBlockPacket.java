@@ -1,12 +1,8 @@
-package net.momirealms.craftengine.bukkit.plugin.network.mod.protocol;
+package net.momirealms.craftengine.core.plugin.network.mod.protocol;
 
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslationArgument;
-import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -14,14 +10,6 @@ import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.*;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
-import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndTintGetterProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkSourceProxy;
-import net.momirealms.craftengine.proxy.paper.chunk.system.entity.RegionizedPlayerChunkLoaderProxy;
-import org.bukkit.entity.Player;
 
 public record ClientCustomBlockPacket(int vanillaSize, int currentSize) implements ModPacket {
     public static final ResourceKey<NetworkCodec<FriendlyByteBuf, ? extends ModPacket>> TYPE = ResourceKey.create(
@@ -49,7 +37,7 @@ public record ClientCustomBlockPacket(int vanillaSize, int currentSize) implemen
     @Override
     public void handle(NetWorkUser user) {
         if (user.clientModEnabled()) return; // 防止滥用
-        int vanillaBlockRegistrySize = BlockStateUtils.vanillaBlockStateCount();
+        int vanillaBlockRegistrySize = CraftEngine.instance().blockManager().vanillaBlockStateCount();
         if (this.vanillaSize != vanillaBlockRegistrySize) {
             user.kick(Component.translatable(
                     "disconnect.craftengine.vanilla_block_registry_mismatch",
@@ -58,7 +46,7 @@ public record ClientCustomBlockPacket(int vanillaSize, int currentSize) implemen
             ));
             return;
         }
-        int serverBlockRegistrySize = RegistryUtils.currentBlockRegistrySize();
+        int serverBlockRegistrySize = CraftEngine.instance().blockManager().currentBlockRegistrySize();
         if (this.currentSize < serverBlockRegistrySize) {
             user.kick(Component.translatable(
                     "disconnect.craftengine.current_block_registry_mismatch",
@@ -69,27 +57,10 @@ public record ClientCustomBlockPacket(int vanillaSize, int currentSize) implemen
         }
         user.setClientModState(true);
         user.setClientBlockList(new IntIdentityList(this.currentSize));
-        ModPackets.sendPacket(user, BukkitBlockManager.instance().cachedVisualBlockStatePacket());
+        ModPackets.sendPacket(user, CraftEngine.instance().blockManager().cachedVisualBlockStatePacket());
         if (!VersionHelper.isOrAbove1_20_2()) {
             // 因为旧版本没有配置阶段需要重新发送区块
-            CraftEngine.instance().scheduler().executeSync(() -> {
-                Object chunkLoader = ServerPlayerProxy.INSTANCE.getChunkLoader(user.serverPlayer());
-                LongOpenHashSet sentChunks = RegionizedPlayerChunkLoaderProxy.PlayerChunkLoaderDataProxy.INSTANCE.getSentChunks(chunkLoader);
-                if (sentChunks.isEmpty()) {
-                    return;
-                }
-                sentChunks = sentChunks.clone();
-                Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(((Player) user.platformPlayer()).getWorld());
-                Object lightEngine = BlockAndTintGetterProxy.INSTANCE.getLightEngine(serverLevel);
-                Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(serverLevel);
-                for (long chunkPos : sentChunks) {
-                    int chunkX = (int) chunkPos;
-                    int chunkZ = (int) (chunkPos >> 32);
-                    Object levelChunk = ChunkSourceProxy.INSTANCE.getChunk(chunkSource, chunkX, chunkZ, false);
-                    Object packet = ClientboundLevelChunkWithLightPacketProxy.INSTANCE.newInstance(levelChunk, lightEngine, null, null);
-                    user.sendPacket(packet, true);
-                }
-            });
+            CraftEngine.instance().scheduler().executeSync(user::resendChunks);
         }
     }
 }

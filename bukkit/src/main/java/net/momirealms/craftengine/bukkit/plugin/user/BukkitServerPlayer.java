@@ -8,6 +8,7 @@ import com.mojang.authlib.properties.PropertyMap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
@@ -59,6 +60,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.ClientboundLoginDisconnectPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.syncher.SynchedEntityDataProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.MinecraftServerProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerGameModeProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
@@ -75,8 +77,11 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.player.AbilitiesP
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.InventoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.InventoryMenuProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndTintGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkSourceProxy;
+import net.momirealms.craftengine.proxy.paper.chunk.system.entity.RegionizedPlayerChunkLoaderProxy;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -590,6 +595,26 @@ public class BukkitServerPlayer extends Player {
 
     public void setEncoderState(ConnectionState encoderState) {
         this.encoderState = encoderState;
+    }
+
+    @Override
+    public void resendChunks() {
+        Object chunkLoader = ServerPlayerProxy.INSTANCE.getChunkLoader(serverPlayer());
+        LongOpenHashSet sentChunks = RegionizedPlayerChunkLoaderProxy.PlayerChunkLoaderDataProxy.INSTANCE.getSentChunks(chunkLoader);
+        if (sentChunks.isEmpty()) {
+            return;
+        }
+        sentChunks = sentChunks.clone();
+        Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(platformPlayer().getWorld());
+        Object lightEngine = BlockAndTintGetterProxy.INSTANCE.getLightEngine(serverLevel);
+        Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(serverLevel);
+        for (long chunkPos : sentChunks) {
+            int chunkX = (int) chunkPos;
+            int chunkZ = (int) (chunkPos >> 32);
+            Object levelChunk = ChunkSourceProxy.INSTANCE.getChunk(chunkSource, chunkX, chunkZ, false);
+            Object packet = ClientboundLevelChunkWithLightPacketProxy.INSTANCE.newInstance(levelChunk, lightEngine, null, null);
+            sendPacket(packet, true);
+        }
     }
 
     @Override

@@ -1,9 +1,8 @@
-package net.momirealms.craftengine.bukkit.plugin.network.mod.protocol;
+package net.momirealms.craftengine.core.plugin.network.mod.protocol;
 
 import io.netty.handler.codec.DecoderException;
-import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
@@ -97,11 +96,11 @@ public record VisualBlockStatePacket(int[] data) implements ModPacket {
     }
 
     public static VisualBlockStatePacket create() {
-        int vanillaBlockStateCount = BlockStateUtils.vanillaBlockStateCount();
+        int vanillaBlockStateCount = CraftEngine.instance().blockManager().vanillaBlockStateCount();
         int serverSideBlockCount = Config.serverSideBlocks();
         int[] mappings = new int[serverSideBlockCount];
         for (int i = 0; i < serverSideBlockCount; i++) {
-            ImmutableBlockState state = BukkitBlockManager.instance().getImmutableBlockStateUnsafe(i + vanillaBlockStateCount);
+            ImmutableBlockState state = CraftEngine.instance().blockManager().getImmutableBlockStateUnsafe(i + vanillaBlockStateCount);
             if (state.isEmpty()) continue;
             mappings[state.customBlockState().registryId() - vanillaBlockStateCount] = state.visualBlockState().registryId();
         }
