@@ -12,7 +12,6 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.*;
 import org.ahocorasick.trie.Token;
 import org.ahocorasick.trie.Trie;
@@ -611,7 +610,7 @@ public abstract class AbstractFontManager implements FontManager {
                     if (tempColumns == -1) {
                         tempColumns = codepoints.length;
                     } else if (tempColumns != codepoints.length) {
-                        throw new LocalizedResourceConfigException("resource.image.invalid_chars_grid", section.assemblePath("chars"), String.valueOf(codepoints.length), String.valueOf(tempColumns));
+                        throw new KnownResourceException("resource.image.invalid_chars_grid", section.assemblePath("chars"), String.valueOf(codepoints.length), String.valueOf(tempColumns));
                     }
                 }
                 columns = tempColumns;

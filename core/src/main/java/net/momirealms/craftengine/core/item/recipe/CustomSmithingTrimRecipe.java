@@ -164,9 +164,9 @@ public final class CustomSmithingTrimRecipe extends AbstractRecipe
         public CustomSmithingTrimRecipe readJson(Key id, JsonObject json) {
             return new CustomSmithingTrimRecipe(id,
                     VANILLA_RECIPE_HELPER.showNotification(json),
-                    Objects.requireNonNull(toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("template")))),
-                    Objects.requireNonNull(toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("base")))),
-                    Objects.requireNonNull(toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition")))),
+                    Objects.requireNonNull(parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("template")))),
+                    Objects.requireNonNull(parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("base")))),
+                    Objects.requireNonNull(parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition")))),
                     VersionHelper.isOrAbove1_21_5() ? Key.of(json.get("pattern").getAsString()) : null,
                     null,
                     null

@@ -148,6 +148,7 @@ resource_pack.compression_started: 正在压缩资源包…（如果启用了混
 resource_pack.compression_finished: 资源包压缩完成，耗时<arg:0>毫秒
 resource_pack.duplicated_files: 发现重复文件。请通过config.yml文件中的“resource-pack.duplicated-files-handler”部分进行处理
 resource_pack.malformatted_json: Json文件“<arg:0>”的格式不正确
+resource_pack.conflict_resolution.unknown_type: 未知的文件冲突解决方案类型“<arg:0>”
 resource.argument.type.section: 配置部分
 resource.argument.type.boolean: 布尔值
 resource.argument.type.int: 整数
@@ -255,4 +256,3 @@ resource.recipe.shaped.invalid_pattern: 无效的合成图案“<arg:0>”
 resource.recipe.shaped.invalid_symbol: 无效的合成图案符号“<arg:0>”
 resource.recipe.post_processor.unknown_type: 未知的配方结果后处理器类型“<arg:0>”
 resource.recipe.unknown_type: 未知的配方类型“<arg:0>”
-resource_pack.conflict_resolution.unknown_type: 未知的文件冲突解决方案类型“<arg:0>”

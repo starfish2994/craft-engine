@@ -15,8 +15,8 @@ public final class ExpressionTemplateArgument implements TemplateArgument {
     private final ArgumentString expression;
     private final ValueType valueType;
 
-    private ExpressionTemplateArgument(String expression, ValueType valueType) {
-        this.expression = ArgumentString.preParse(expression);
+    private ExpressionTemplateArgument(String node, String expression, ValueType valueType) {
+        this.expression = ArgumentString.preParse(node, expression);
         this.valueType = valueType;
     }
 
@@ -57,6 +57,7 @@ public final class ExpressionTemplateArgument implements TemplateArgument {
         @Override
         public ExpressionTemplateArgument create(ConfigSection section) {
             return new ExpressionTemplateArgument(
+                    section.assemblePath("expression"),
                     section.getNonEmptyString("expression"),
                     section.getEnum(VALUE_TYPE, ValueType.class, ValueType.DOUBLE)
             );

@@ -10,7 +10,6 @@ import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.UniqueKey;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -59,6 +58,8 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
 
     protected Ingredient parseIngredient(ConfigValue value) {
         int count = 1;
+
+        // 如果是 map 就说明用了count，或是未来的predicate
         ConfigValue itemsValue;
         if (value.is(Map.class)) {
             ConfigSection section = value.getAsSection();
@@ -117,25 +118,24 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
         return Ingredient.of(elements, itemIds, minecraftItemIds, hasCustomItem, count);
     }
 
+    // 解析原版数据包的物品为ingredient
     @Nullable
-    protected Ingredient toIngredient(List<String> items) {
-        return toIngredient(items, 1);
-    }
-
-    @Nullable
-    protected Ingredient toIngredient(List<String> items, int count) {
+    protected Ingredient parseVanillaIngredient(List<String> items) {
         Set<UniqueKey> itemIds = new HashSet<>();
         Set<UniqueKey> minecraftItemIds = new HashSet<>();
         ItemManager itemManager = CraftEngine.instance().itemManager();
         List<IngredientElement> elements = new ArrayList<>();
+
         for (String item : items) {
             if (item.charAt(0) == '#') {
                 Key tag = Key.of(item.substring(1));
                 elements.add(new IngredientElement.Tag(tag));
                 List<UniqueKey> uniqueKeys = itemManager.itemIdsByTag(tag);
+
                 if (uniqueKeys.isEmpty()) {
-                    throw new LocalizedResourceConfigException("warning.config.recipe.invalid_ingredient", item);
+                    throw new IllegalArgumentException("Unknown or empty item tag: " + tag);
                 }
+
                 itemIds.addAll(uniqueKeys);
                 for (UniqueKey uniqueKey : uniqueKeys) {
                     List<UniqueKey> ingredientSubstitutes = itemManager.getIngredientSubstitutes(uniqueKey.key());
@@ -146,9 +146,11 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
             } else {
                 Key itemId = Key.of(item);
                 elements.add(new IngredientElement.Item(itemId));
+
                 if (itemManager.getBuildableItem(itemId).isEmpty()) {
-                    throw new LocalizedResourceConfigException("warning.config.recipe.invalid_ingredient", item);
+                    throw new IllegalArgumentException("Unknown item identifier: " + itemId);
                 }
+
                 itemIds.add(UniqueKey.create(itemId));
                 List<UniqueKey> ingredientSubstitutes = itemManager.getIngredientSubstitutes(itemId);
                 if (!ingredientSubstitutes.isEmpty()) {
@@ -156,10 +158,12 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
                 }
             }
         }
+
         boolean hasCustomItem = false;
         for (UniqueKey holder : itemIds) {
             Optional<ItemDefinition> optionalCustomItem = itemManager.getCustomItem(holder.key());
             UniqueKey vanillaItem;
+
             if (optionalCustomItem.isPresent()) {
                 ItemDefinition itemDefinition = optionalCustomItem.get();
                 if (itemDefinition.isVanillaItem()) {
@@ -172,17 +176,20 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
                 if (itemManager.isVanillaItem(holder.key())) {
                     vanillaItem = holder;
                 } else {
-                    throw new LocalizedResourceConfigException("warning.config.recipe.invalid_ingredient", holder.key().asString());
+                    throw new IllegalStateException("Invalid item reference (neither custom nor vanilla): " + holder.key());
                 }
             }
+
             if (vanillaItem == UniqueKey.AIR) {
-                throw new LocalizedResourceConfigException("warning.config.recipe.invalid_ingredient", holder.key().asString());
+                throw new IllegalArgumentException("Ingredient cannot be air!");
             }
+
             minecraftItemIds.add(vanillaItem);
         }
+
         if (itemIds.isEmpty()) {
             return null;
         }
-        return Ingredient.of(elements, itemIds, minecraftItemIds, hasCustomItem, count);
+        return Ingredient.of(elements, itemIds, minecraftItemIds, hasCustomItem, 1);
     }
 }

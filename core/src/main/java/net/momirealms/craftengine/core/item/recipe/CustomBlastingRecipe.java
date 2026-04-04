@@ -60,7 +60,7 @@ public final class CustomBlastingRecipe extends CustomCookingRecipe {
             return new CustomBlastingRecipe(id,
                     true,
                     parseResult(VANILLA_RECIPE_HELPER.cookingResult(json.get("result"))), VANILLA_RECIPE_HELPER.readGroup(json), VANILLA_RECIPE_HELPER.cookingCategory(json),
-                    toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("ingredient"))),
+                    parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("ingredient"))),
                     VANILLA_RECIPE_HELPER.cookingTime(json),
                     VANILLA_RECIPE_HELPER.cookingExperience(json),
                     null

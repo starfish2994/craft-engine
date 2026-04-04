@@ -245,9 +245,9 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
             return new CustomSmithingTransformRecipe(
                     id,
                     true,
-                    toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("template"))),
-                    Objects.requireNonNull(toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("base")))),
-                    toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition"))),
+                    parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("template"))),
+                    Objects.requireNonNull(parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("base")))),
+                    parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition"))),
                     parseResult(VANILLA_RECIPE_HELPER.smithingResult(json.getAsJsonObject("result"))),
                     null,
                     null,

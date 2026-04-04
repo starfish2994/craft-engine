@@ -7,7 +7,6 @@ import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.IdValueConfigParser;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +63,7 @@ public final class GlobalVariableManager implements Manageable {
         }
 
         @Override
-        public void parseValue(Pack pack, Path filePath, Key id, ConfigValue value) throws LocalizedException {
+        public void parseValue(Pack pack, Path filePath, Key id, ConfigValue value) {
             GlobalVariableManager.this.globalVariables.put(id.value(), value.getAsString());
         }
 

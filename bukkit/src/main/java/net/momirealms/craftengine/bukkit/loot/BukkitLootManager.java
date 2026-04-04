@@ -18,7 +18,6 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
@@ -100,9 +99,9 @@ public final class BukkitLootManager extends AbstractLootManager implements List
             if (VersionHelper.isOrAbove1_20_5()) {
                 if (event.getDamageSource().getCausingEntity() instanceof Player player) {
                     optionalPlayer = BukkitAdaptor.adapt(player);
-                    luck = (float) optionalPlayer.luck();
                     builder.withOptionalParameter(DirectContextParameters.PLAYER, optionalPlayer);
                     if (optionalPlayer != null) {
+                        luck = (float) optionalPlayer.luck();
                         Item itemInHand = optionalPlayer.getItemInHand(InteractionHand.MAIN_HAND);
                         builder.withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand);
                     }
@@ -182,32 +181,26 @@ public final class BukkitLootManager extends AbstractLootManager implements List
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
-            String type = section.getNonEmptyString("type");
-            VanillaLoot.Type typeEnum;
-            try {
-                typeEnum = VanillaLoot.Type.valueOf(type.toUpperCase(Locale.ENGLISH));
-            } catch (IllegalArgumentException e) {
-                throw new LocalizedResourceConfigException("warning.config.loot.invalid_type", type, EnumUtils.toString(VanillaLoot.Type.values()));
-            }
+            VanillaLoot.Type typeEnum = section.getNonNullEnum("type", VanillaLoot.Type.class);
             boolean override = section.getBoolean("override");
-            List<String> targets = MiscUtils.getAsStringList(section.getOrDefault("target", List.of()));
             Loot loot = section.getValue(LOOT_SECTION, ConfigValue::getAsLoot);
             switch (typeEnum) {
                 case BLOCK -> {
+                    List<String> targets = section.getStringList("target");
                     for (String target : targets) {
                         if (target.endsWith("]") && target.contains("[")) {
                             java.lang.Object blockState = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData(target));
                             if (blockState == BlocksProxy.AIR$defaultState) {
-                                throw new LocalizedResourceConfigException("warning.config.loot.block.invalid_target", target);
+                                throw new KnownResourceException("resource.vanilla_loot.block.invalid_target", target);
                             }
-                            VanillaLoot vanillaLoot = blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
+                            VanillaLoot vanillaLoot = BukkitLootManager.this.blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
                             vanillaLoot.addLootTable(loot);
                         } else {
                             for (Object blockState : BlockStateUtils.getPossibleBlockStates(Key.of(target))) {
                                 if (blockState == BlocksProxy.AIR$defaultState) {
-                                    throw new LocalizedResourceConfigException("warning.config.loot.block.invalid_target", target);
+                                    throw new KnownResourceException("resource.vanilla_loot.block.invalid_target", target);
                                 }
-                                VanillaLoot vanillaLoot = blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
+                                VanillaLoot vanillaLoot = BukkitLootManager.this.blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
                                 if (override) vanillaLoot.override(true);
                                 vanillaLoot.addLootTable(loot);
                             }
@@ -215,9 +208,9 @@ public final class BukkitLootManager extends AbstractLootManager implements List
                     }
                 }
                 case ENTITY -> {
-                    for (String target : targets) {
-                        Key key = Key.of(target);
-                        VanillaLoot vanillaLoot = entityLoots.computeIfAbsent(key, k -> new VanillaLoot(VanillaLoot.Type.ENTITY));
+                    List<Key> entityTypes = section.getList("target", ConfigValue::getAsIdentifier);
+                    for (Key key : entityTypes) {
+                        VanillaLoot vanillaLoot = BukkitLootManager.this.entityLoots.computeIfAbsent(key, k -> new VanillaLoot(VanillaLoot.Type.ENTITY));
                         vanillaLoot.addLootTable(loot);
                         if (override) vanillaLoot.override(true);
                     }

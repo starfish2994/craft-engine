@@ -45,7 +45,6 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.config.yaml.DoubleSensitiveSchema;
 import net.momirealms.craftengine.core.plugin.config.yaml.StringKeyConstructor;
 import net.momirealms.craftengine.core.plugin.locale.ClientLangData;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedException;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.sound.AbstractSoundManager;
@@ -568,10 +567,6 @@ public abstract class AbstractPackManager implements PackManager {
                                         return FileVisitResult.CONTINUE;
                                     } catch (JsonParseException e) {
                                         AbstractPackManager.this.plugin.logger().error("Invalid JSON file found: " + path + ".\n" + e.getMessage() + "\nIt is recommended to use Visual Studio Code as your JSON editor to fix problems more quickly.");
-                                        return FileVisitResult.CONTINUE;
-                                    } catch (LocalizedException e) {
-                                        e.setArgument(0, path.toString());
-                                        TranslationManager.instance().log(e.node(), e.arguments());
                                         return FileVisitResult.CONTINUE;
                                     }
                                 }
@@ -3515,7 +3510,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
 
         @Override
-        protected void parseSection(Pack pack, Path path, ConfigSection section) throws LocalizedException {
+        protected void parseSection(Pack pack, Path path, ConfigSection section) {
             if (!Config.optimizeResourcePack()) return;
             List<String> textures = MiscUtils.getAsStringList(section.get("texture"));
             if (!textures.isEmpty()) {

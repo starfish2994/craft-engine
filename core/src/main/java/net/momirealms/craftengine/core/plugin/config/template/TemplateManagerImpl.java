@@ -59,7 +59,7 @@ public final class TemplateManagerImpl implements TemplateManager {
 
         @Override
         public void parseValue(Pack pack, Path filePath, Key id, ConfigValue value) {
-            TemplateManagerImpl.this.templates.put(id, preprocessUnknownValue(value.value()));
+            TemplateManagerImpl.this.templates.put(id, preprocessUnknownValue(value.path(), value.value()));
         }
 
         @Override
@@ -76,32 +76,32 @@ public final class TemplateManagerImpl implements TemplateManager {
 
     @Override
     public Object applyTemplates(Key id, Object input, String node) {
-        Object preprocessedInput = preprocessUnknownValue(input);
+        Object preprocessedInput = preprocessUnknownValue(node, input);
         return processUnknownValue(node, preprocessedInput, Map.of(
                 "__NAMESPACE__", PlainStringTemplateArgument.plain(id.namespace()),
                 "__ID__", PlainStringTemplateArgument.plain(id.value())
         ));
     }
 
-    public Object preprocessUnknownValue(Object value) {
+    public Object preprocessUnknownValue(String node, Object value) {
         switch (value) {
             case Map<?, ?> map -> {
                 Map<String, Object> in = MiscUtils.castToMap(map);
-                Map<ArgumentString, Object> out = new LinkedHashMap<>((int) (map.size() * 1.5));
+                Map<ArgumentString, Object> out = new LinkedHashMap<>(MiscUtils.ceil(map.size() * 1.5));
                 for (Map.Entry<String, Object> entry : in.entrySet()) {
-                    out.put(ArgumentString.preParse(entry.getKey()), preprocessUnknownValue(entry.getValue()));
+                    out.put(ArgumentString.preParse(node, entry.getKey()), preprocessUnknownValue(node + "." + entry.getKey(), entry.getValue()));
                 }
                 return out;
             }
             case List<?> list -> {
                 List<Object> objList = new ObjectArrayList<>(list.size());
                 for (int i = 0, size = list.size(); i < size; i++) {
-                    objList.add(preprocessUnknownValue(list.get(i)));
+                    objList.add(preprocessUnknownValue(node + "[" + i + "]", list.get(i)));
                 }
                 return objList;
             }
             case String string -> {
-                return ArgumentString.preParse(string);
+                return ArgumentString.preParse(node, string);
             }
             case null, default -> {
                 return value;

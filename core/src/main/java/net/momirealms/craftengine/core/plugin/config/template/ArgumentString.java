@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.plugin.config.template;
 
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArgument;
-import net.momirealms.craftengine.core.plugin.locale.LocalizedResourceConfigException;
 import net.momirealms.craftengine.core.util.TagParser;
 
 import java.util.ArrayList;
@@ -58,7 +57,7 @@ public interface ArgumentString {
         private final Object defaultValue;
         private final boolean hasDefaultValue;
 
-        public Placeholder(String placeholderContent) {
+        public Placeholder(String node, String placeholderContent) {
             this.rawText = "${" + placeholderContent + "}";
             int separatorIndex = placeholderContent.indexOf(":-");
             if (separatorIndex == -1) {
@@ -68,19 +67,18 @@ public interface ArgumentString {
             } else {
                 this.placeholder = placeholderContent.substring(0, separatorIndex);
                 String defaultValueString = placeholderContent.substring(separatorIndex + 2);
-                Object parsed = TagParser.parseObjectFully(defaultValueString); // just let it throw
                 try {
-                    this.defaultValue = ((TemplateManagerImpl) TemplateManager.INSTANCE).preprocessUnknownValue(parsed);
-                } catch (LocalizedResourceConfigException e) {
-                    e.appendTailArgument(this.placeholder);
-                    throw e;
+                    Object parsed = TagParser.parseObjectFully(defaultValueString);
+                    this.defaultValue = ((TemplateManagerImpl) TemplateManager.INSTANCE).preprocessUnknownValue(node, parsed);
+                    this.hasDefaultValue = true;
+                } catch (Throwable e) {
+                    throw new KnownResourceException("resource.argument.parser.snbt", node, defaultValueString, e.getMessage());
                 }
-                this.hasDefaultValue = true;
             }
         }
 
-        public static Placeholder placeholder(String placeholder) {
-            return new Placeholder(placeholder);
+        public static Placeholder placeholder(String node, String placeholder) {
+            return new Placeholder(node, placeholder);
         }
 
         @Override
@@ -262,7 +260,7 @@ public interface ArgumentString {
         }
     }
 
-    static ArgumentString preParse(String input) {
+    static ArgumentString preParse(String node, String input) {
         if (input == null || input.isEmpty()) {
             return Literal.literal("");
         }
@@ -311,7 +309,7 @@ public interface ArgumentString {
                     } else if (innerChar == '}') {
                         depth--;
                         if (depth == 0) { // 找到匹配的闭合括号
-                            arguments.add(Placeholder.placeholder(keyBuilder.toString()));
+                            arguments.add(Placeholder.placeholder(node, keyBuilder.toString()));
                             i = j + 1;
                             foundMatch = true;
                             break;

@@ -75,7 +75,7 @@ public final class CustomStoneCuttingRecipe extends AbstractGroupedRecipe {
             return new CustomStoneCuttingRecipe(id,
                     true,
                     parseResult(VANILLA_RECIPE_HELPER.stoneCuttingResult(json)), group,
-                    toIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("ingredient")))
+                    parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("ingredient")))
             );
         }
     }
