@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 public final class ImmutableBlockState {
     private final Holder.Reference<BlockDefinition> owner;
+    private final BlockStateVariantProvider variantProvider;
     private final Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap;
     private Map<Property<?>, ImmutableBlockState[]> withMap;
 
@@ -44,9 +45,11 @@ public final class ImmutableBlockState {
 
     ImmutableBlockState(
             Holder.Reference<BlockDefinition> owner,
+            BlockStateVariantProvider variantProvider,
             Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap
     ) {
         this.owner = owner;
+        this.variantProvider = variantProvider;
         this.propertyMap = new Reference2ObjectArrayMap<>(propertyMap);
     }
 
@@ -218,7 +221,7 @@ public final class ImmutableBlockState {
 
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> Property<T> getProperty(String name) {
-        return (Property<T>) this.owner.value().getProperty(name);
+        return (Property<T>) this.variantProvider.getProperty(name);
     }
 
     public <T extends Comparable<T>> T get(Property<T> property, T fallback) {

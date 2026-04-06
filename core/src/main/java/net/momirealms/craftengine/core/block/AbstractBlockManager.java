@@ -477,8 +477,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             // 先绑定无效方块，防止因为后续报错导致未绑定
             holder.bindValue(new InactiveBlockDefinition(holder));
             // 根据properties生成variant provider
-            BlockStateVariantProvider variantProvider = new BlockStateVariantProvider(holder, (owner, propertyMap) -> {
-                ImmutableBlockState blockState = new ImmutableBlockState(owner, propertyMap);
+            BlockStateVariantProvider variantProvider = new BlockStateVariantProvider(holder, (owner, provider, propertyMap) -> {
+                ImmutableBlockState blockState = new ImmutableBlockState(owner, provider, propertyMap);
                 blockState.setSettings(settings);
                 return blockState;
             }, properties);

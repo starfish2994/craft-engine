@@ -18,7 +18,7 @@ public final class InactiveBlockDefinition extends AbstractBlockDefinition {
     @Override
     public ImmutableBlockState getBlockState(CompoundTag nbt) {
         return this.cachedData.computeIfAbsent(nbt, k -> {
-            ImmutableBlockState state = new ImmutableBlockState(super.holder, new Reference2ObjectArrayMap<>());
+            ImmutableBlockState state = new ImmutableBlockState(super.holder, super.variantProvider, new Reference2ObjectArrayMap<>());
             state.setBehavior(EmptyBlockBehavior.INSTANCE);
             state.setNbtToSave(state.toNbtToSave(nbt));
             return state;
