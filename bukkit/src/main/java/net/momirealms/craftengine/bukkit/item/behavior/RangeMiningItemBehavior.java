@@ -37,7 +37,7 @@ public final class RangeMiningItemBehavior extends ItemBehavior {
         if (serverPlayer.isRangeMining()) return;
 
         BlockStateWrapper blockState = world.getBlockState(pos);
-        float destroyProgress = player.getDestroyProgress(blockState.literalObject(), pos);
+        float destroyProgress = player.getDestroyProgress(blockState.minecraftState(), pos);
 
         // 获取水平朝向 (North, South, East, West)
         Direction facing = player.getDirection();
@@ -64,7 +64,7 @@ public final class RangeMiningItemBehavior extends ItemBehavior {
                 BlockStateWrapper targetBlockState = world.getBlockState(targetPos);
 
                 if (targetBlockState != null && !targetBlockState.isAir()) {
-                    float targetProgress = player.getDestroyProgress(targetBlockState.literalObject(), targetPos);
+                    float targetProgress = player.getDestroyProgress(targetBlockState.minecraftState(), targetPos);
                     // 只有当目标方块比原方块更“脆”或硬度相当时才挖掘
                     if (targetProgress >= destroyProgress) {
                         player.breakBlock(targetX, targetY, targetZ);

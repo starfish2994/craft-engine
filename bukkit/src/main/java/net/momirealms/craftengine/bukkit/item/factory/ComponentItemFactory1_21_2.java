@@ -58,7 +58,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
         if (VersionHelper.isOrAbove26_1()) {
             useRemainder = UseRemainderProxy.INSTANCE.newInstance$1(ItemStackUtils.toItemStackTemplate(data));
         } else {
-            useRemainder = UseRemainderProxy.INSTANCE.newInstance$0(data.getMinecraftItem());
+            useRemainder = UseRemainderProxy.INSTANCE.newInstance$0(data.minecraftItem());
         }
         item.setExactComponent(DataComponentTypes.USE_REMAINDER, useRemainder);
     }

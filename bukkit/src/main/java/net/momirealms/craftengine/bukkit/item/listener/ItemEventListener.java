@@ -167,7 +167,7 @@ public final class ItemEventListener implements Listener {
 
             // fix client side issues
             if (action.isRightClick() && hitResult != null &&
-                    InteractUtils.canPlaceVisualBlock(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject()), hitResult, itemInHand)) {
+                    InteractUtils.canPlaceVisualBlock(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().minecraftState()), hitResult, itemInHand)) {
                 player.updateInventory();
             }
 
@@ -279,14 +279,14 @@ public final class ItemEventListener implements Listener {
                         // 如果交互目标是一个自定义方块
                         if (immutableBlockState != null) {
                             // 如果客户端觉得它可交互，那么就不会意淫出声音
-                            BlockData craftBlockData = BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject());
+                            BlockData craftBlockData = BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().minecraftState());
                             if (InteractUtils.isInteractable(player, craftBlockData, hitResult, itemInHand)) {
                                 if (!serverPlayer.isSecondaryUseActive()) {
                                     serverPlayer.setResendSound();
                                 }
                             } else {
                                 // 如果服务端侧可替换，但是客户端觉得不行，就要重新挥手
-                                if (BlockStateUtils.isReplaceable(immutableBlockState.customBlockState().literalObject()) && !BlockStateUtils.isReplaceable(immutableBlockState.visualBlockState().literalObject())) {
+                                if (BlockStateUtils.isReplaceable(immutableBlockState.customBlockState().minecraftState()) && !BlockStateUtils.isReplaceable(immutableBlockState.visualBlockState().minecraftState())) {
                                     serverPlayer.setResendSwing();
                                 }
                             }
@@ -373,12 +373,12 @@ public final class ItemEventListener implements Listener {
             if (immutableBlockState != null  // 必须是自定义方块才能触发
                     && !serverPlayer.isSecondaryUseActive()  // 没有shift
                     && !canPlaceBlock  // 物品不可放置
-                    && InteractUtils.isInteractable(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject()), hitResult, itemInHand)) {
+                    && InteractUtils.isInteractable(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().minecraftState()), hitResult, itemInHand)) {
                 // 首先得允许使用手中物品，副手逻辑也可能到这里
                 if (event.useItemInHand() != Event.Result.DENY) {
                     event.setUseItemInHand(Event.Result.DENY);
                     Object nmsHitResult = InteractUtils.toNMSHitResult(hitResult);
-                    Object item = ItemStackProxy.INSTANCE.getItem(itemInHand.getMinecraftItem());
+                    Object item = ItemStackProxy.INSTANCE.getItem(itemInHand.minecraftItem());
                     Object result = ItemProxy.INSTANCE.useOn(item, UseOnContextProxy.INSTANCE.newInstance(
                             serverPlayer.serverPlayer(),
                             hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND,
@@ -389,7 +389,7 @@ public final class ItemEventListener implements Listener {
                     }
                     result = ItemProxy.INSTANCE.use(
                             item,
-                            serverPlayer.world().serverWorld(),
+                            serverPlayer.world().minecraftWorld(),
                             serverPlayer.serverPlayer(),
                             hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND
                     );
@@ -408,7 +408,7 @@ public final class ItemEventListener implements Listener {
 
         // 主手没物品，但是副手有物品，客户端觉得此方块可交互，漏副手包
         if (!hasItem && hand == InteractionHand.MAIN_HAND && hitResult != null && immutableBlockState != null) {
-            if (!serverPlayer.isSecondaryUseActive() && InteractUtils.isInteractable(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject()), hitResult, itemInHand)) {
+            if (!serverPlayer.isSecondaryUseActive() && InteractUtils.isInteractable(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().minecraftState()), hitResult, itemInHand)) {
                 serverPlayer.simulatePacket(ServerboundUseItemOnPacketProxy.INSTANCE.newInstance(
                         InteractionHandProxy.OFF_HAND,
                         InteractUtils.toNMSHitResult(hitResult),
@@ -631,7 +631,7 @@ public final class ItemEventListener implements Listener {
         Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isEmpty()) return;
         BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
-        if (customItem.clientItem() == ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem())) return;
+        if (customItem.clientItem() == ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem())) return;
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return;
         this.plugin.scheduler().sync().runDelayed(() -> {
@@ -666,7 +666,7 @@ public final class ItemEventListener implements Listener {
         Item wrapped = this.itemManager.wrap(itemStack);
         ItemUpdateResult result = this.itemManager.updateItem(wrapped, () -> ItemBuildContext.of(serverPlayer));
         if (result.updated()) {
-            itemDrop.setItemStack(ItemStackUtils.getBukkitStack(result.finalItem().getMinecraftItem()));
+            itemDrop.setItemStack(ItemStackUtils.getBukkitStack(result.finalItem().minecraftItem()));
         }
     }
 
@@ -687,7 +687,7 @@ public final class ItemEventListener implements Listener {
         if (Config.triggerUpdatePickUp() && itemDefinition.updater().isPresent()) {
             ItemUpdateResult result = this.itemManager.updateItem(wrapped, () -> ItemBuildContext.of(serverPlayer));
             if (result.updated()) {
-                itemDrop.setItemStack(ItemStackUtils.getBukkitStack(result.finalItem().getMinecraftItem()));
+                itemDrop.setItemStack(ItemStackUtils.getBukkitStack(result.finalItem().minecraftItem()));
             }
         }
         Cancellable dummy = Cancellable.dummy();
@@ -719,7 +719,7 @@ public final class ItemEventListener implements Listener {
             if (!result.updated() || !result.replaced()) {
                 return;
             }
-            event.setCurrentItem(ItemStackUtils.getBukkitStack(result.finalItem().getMinecraftItem()));
+            event.setCurrentItem(ItemStackUtils.getBukkitStack(result.finalItem().minecraftItem()));
         }
     }
 

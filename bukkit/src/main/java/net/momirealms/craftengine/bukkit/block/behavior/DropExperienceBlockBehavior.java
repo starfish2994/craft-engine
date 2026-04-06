@@ -58,7 +58,7 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
                 }
                 boolean cannotBreak = !settings.isCorrectTool(item.id())
                         && (!settings.respectToolComponent()
-                        || !ItemStackProxy.INSTANCE.isCorrectToolForDrops(args[3], state.customBlockState().literalObject()));
+                        || !ItemStackProxy.INSTANCE.isCorrectToolForDrops(args[3], state.customBlockState().minecraftState()));
                 if (cannotBreak) {
                     return;
                 }

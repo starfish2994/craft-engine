@@ -75,7 +75,7 @@ public final class ArmorStandFurnitureElement extends AbstractFurnitureElement {
     public void showInternal(Player player) {
         player.sendPackets(List.of(this.cachedSpawnPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player))), false);
         player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).getMinecraftItem())
+                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
         )), false);
         if (this.cachedScalePacket != null) {
             player.sendPacket(this.cachedScalePacket, false);
@@ -93,7 +93,7 @@ public final class ArmorStandFurnitureElement extends AbstractFurnitureElement {
     @Override
     public void refresh(Player player) {
         player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).getMinecraftItem())
+                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
         )), false);
     }
 

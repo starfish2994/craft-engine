@@ -34,13 +34,13 @@ public final class HangableBlockBehavior extends BukkitBlockBehavior implements 
 
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        Object world = context.getLevel().serverWorld();
+        Object world = context.getLevel().minecraftWorld();
         Object blockPos = LocationUtils.toBlockPos(context.getClickedPos());
         Object fluidType = FluidStateProxy.INSTANCE.getType(BlockGetterProxy.INSTANCE.getFluidState(world, blockPos));
         for (Direction direction : context.getNearestLookingDirections()) {
             if (direction.axis() != Direction.Axis.Y) continue;
             ImmutableBlockState blockState = state.with(this.hangingProperty, direction == Direction.UP);
-            if (!BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(blockState.customBlockState().literalObject(), world, blockPos)) continue;
+            if (!BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(blockState.customBlockState().minecraftState(), world, blockPos)) continue;
             return super.waterloggedProperty != null ? blockState.with(super.waterloggedProperty, fluidType == FluidsProxy.WATER) : blockState;
         }
         return state;

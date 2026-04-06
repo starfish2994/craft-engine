@@ -147,7 +147,7 @@ public final class CraftEngineBlocks {
         boolean success;
         Object worldServer = CraftWorldProxy.INSTANCE.getWorld(location.getWorld());
         Object blockPos = BlockPosProxy.INSTANCE.newInstance(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        Object blockState = block.customBlockState().literalObject();
+        Object blockState = block.customBlockState().minecraftState();
         Object oldBlockState = BlockGetterProxy.INSTANCE.getBlockState(worldServer, blockPos);
         success = LevelWriterProxy.INSTANCE.setBlock(worldServer, blockPos, blockState, flags);
         if (success) {
@@ -217,9 +217,9 @@ public final class CraftEngineBlocks {
             }
         }
         if (sendLevelEvent) {
-            LevelAccessorProxy.INSTANCE.levelEvent(world.serverWorld(), WorldEvents.BLOCK_BREAK_EFFECT, LocationUtils.toBlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), state.customBlockState().registryId());
+            LevelAccessorProxy.INSTANCE.levelEvent(world.minecraftWorld(), WorldEvents.BLOCK_BREAK_EFFECT, LocationUtils.toBlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), state.customBlockState().registryId());
         }
-        LevelProxy.INSTANCE.removeBlock(world.serverWorld(), LocationUtils.toBlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), movedByPiston);
+        LevelProxy.INSTANCE.removeBlock(world.minecraftWorld(), LocationUtils.toBlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), movedByPiston);
         return true;
     }
 
@@ -287,7 +287,7 @@ public final class CraftEngineBlocks {
      */
     @NotNull
     public static BlockData getBukkitBlockData(@NotNull ImmutableBlockState blockState) {
-        return BlockStateUtils.fromBlockData(blockState.customBlockState().literalObject());
+        return BlockStateUtils.fromBlockData(blockState.customBlockState().minecraftState());
     }
 
     /**

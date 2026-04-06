@@ -96,7 +96,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
 
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        Object level = context.getLevel().serverWorld();
+        Object level = context.getLevel().minecraftWorld();
         Object clickedPos = LocationUtils.toBlockPos(context.getClickedPos());
         Direction clickedFace = context.getClickedFace();
         if (!context.replacingClickedBlock() && clickedFace.axis().isHorizontal()) {
@@ -134,7 +134,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
             return;
         }
         this.toggle(state, world, pos, player);
-        if (!InteractUtils.isInteractable((org.bukkit.entity.Player) player.platformPlayer(), BlockStateUtils.fromBlockData(state.visualBlockState().literalObject()), context.getHitResult(), (Item) context.getItem())) {
+        if (!InteractUtils.isInteractable((org.bukkit.entity.Player) player.platformPlayer(), BlockStateUtils.fromBlockData(state.visualBlockState().minecraftState()), context.getHitResult(), (Item) context.getItem())) {
             player.swingHand(context.getHand());
         }
     }
@@ -211,7 +211,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
             this.playSound(LocationUtils.fromBlockPos(blockPos), world, hasSignal);
         }
 
-        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, customState.with(this.poweredProperty, hasSignal).customBlockState().literalObject(), UpdateFlags.UPDATE_CLIENTS);
+        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, customState.with(this.poweredProperty, hasSignal).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
         if (this.waterloggedProperty != null && customState.get(this.waterloggedProperty)) {
             LevelUtils.scheduleFluidTick(level, blockPos, FluidsProxy.WATER, 5);
         }
@@ -219,7 +219,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
 
     private void toggle(ImmutableBlockState state, World world, BlockPos pos, @Nullable Player player) {
         ImmutableBlockState newState = state.cycle(this.openProperty);
-        LevelWriterProxy.INSTANCE.setBlock(world.serverWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+        LevelWriterProxy.INSTANCE.setBlock(world.minecraftWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         boolean open = newState.get(this.openProperty);
         ((org.bukkit.World) world.platformWorld()).sendGameEvent(
                 player != null ? (org.bukkit.entity.Player) player.platformPlayer() : null,

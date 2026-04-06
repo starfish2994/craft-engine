@@ -47,10 +47,10 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
                 .with(this.facingProperty, context.getHorizontalDirection())
                 .with(this.halfProperty, clickedFace != Direction.DOWN && (clickedFace == Direction.UP || !(context.getClickedLocation().y - clickedPos.y() > 0.5)) ? SingleBlockHalf.BOTTOM : SingleBlockHalf.TOP);
         if (super.waterloggedProperty != null) {
-            Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().serverWorld(), LocationUtils.toBlockPos(clickedPos));
+            Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(clickedPos));
             blockState = blockState.with(this.waterloggedProperty, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
         }
-        return blockState.with(this.shapeProperty, getStairsShape(blockState, context.getLevel().serverWorld(), clickedPos));
+        return blockState.with(this.shapeProperty, getStairsShape(blockState, context.getLevel().minecraftWorld(), clickedPos));
     }
 
     @Override
@@ -67,7 +67,7 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
         Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2() ? args[4] : args[1]);
         StairsShape stairsShape = getStairsShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
-                ? customState.with(this.shapeProperty, stairsShape).customBlockState().literalObject()
+                ? customState.with(this.shapeProperty, stairsShape).customBlockState().minecraftState()
                 : superMethod.call();
     }
 

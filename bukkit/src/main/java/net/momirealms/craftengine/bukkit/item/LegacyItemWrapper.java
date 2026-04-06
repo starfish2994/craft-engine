@@ -124,6 +124,11 @@ public final class LegacyItemWrapper extends BukkitItemWrapper {
     }
 
     @Override
+    public ItemWrapper copy() {
+        return new LegacyItemWrapper(ItemStackProxy.INSTANCE.copy(this.itemStack));
+    }
+
+    @Override
     public ItemWrapper copyWithCount(int count) {
         return new LegacyItemWrapper(ItemStackProxy.INSTANCE.copyWithCount(this.itemStack, count));
     }

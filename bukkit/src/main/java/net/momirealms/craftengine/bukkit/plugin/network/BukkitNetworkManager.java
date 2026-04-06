@@ -49,7 +49,8 @@ import net.momirealms.craftengine.bukkit.plugin.network.handler.*;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
-import net.momirealms.craftengine.bukkit.plugin.network.mod.*;
+import net.momirealms.craftengine.bukkit.plugin.network.mod.DiscardedPayload;
+import net.momirealms.craftengine.bukkit.plugin.network.mod.UnknownPayload;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.plugin.user.FakeBukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
@@ -1264,7 +1265,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 if (player.isAdventureMode()) {
                     if (Config.simplifyAdventureBreakCheck()) {
                         ImmutableBlockState state = BukkitBlockManager.instance().getImmutableBlockStateUnsafe(stateId);
-                        if (!player.canBreak(pos, state.visualBlockState().literalObject())) {
+                        if (!player.canBreak(pos, state.visualBlockState().minecraftState())) {
                             player.preventMiningBlock();
                             return;
                         }
@@ -1352,7 +1353,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
 
         private static void handlePickItemFromBlockPacketOnMainThread(BukkitServerPlayer player, Object pos) {
-            Object serverLevel = player.world().serverWorld();
+            Object serverLevel = player.world().minecraftWorld();
             Object blockState = BlockGetterProxy.INSTANCE.getBlockState(serverLevel, pos);
             Optional<ImmutableBlockState> optionalState = BlockStateUtils.getOptionalCustomBlockState(blockState);
             if (optionalState.isEmpty()) return;
@@ -1364,9 +1365,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 if (itemId == null) return;
                 BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
                 if (wrappedItem == null) return;
-                itemStack = wrappedItem.getMinecraftItem();
+                itemStack = wrappedItem.minecraftItem();
             } else {
-                itemStack = item.getMinecraftItem();
+                itemStack = item.minecraftItem();
             }
             tryPickItem(player.platformPlayer(), itemStack, pos, null);
         }
@@ -1401,9 +1402,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 if (itemId == null) return;
                 BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
                 if (wrappedItem == null) return;
-                itemStack = wrappedItem.getMinecraftItem();
+                itemStack = wrappedItem.minecraftItem();
             } else {
-                itemStack = item.getMinecraftItem();
+                itemStack = item.minecraftItem();
             }
             tryPickItem(player.platformPlayer(), itemStack, null, CraftEntityProxy.INSTANCE.getEntity(furniture.bukkitEntity()));
         }
@@ -1478,7 +1479,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             Key itemId = state.settings().itemId();
             // no item available
             if (itemId == null) return;
-            Object vanillaBlock = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getBlock(state.visualBlockState().literalObject());
+            Object vanillaBlock = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getBlock(state.visualBlockState().minecraftState());
             Object vanillaBlockItem = BlockProxy.INSTANCE.asItem(vanillaBlock);
             if (vanillaBlockItem == null) return;
             Key addItemId = KeyUtils.namespacedKeyToKey(item.getType().getKey());
@@ -2803,7 +2804,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         net.kyori.adventure.key.Key id = KeyUtils.toAdventureKey(clientBoundItem.vanillaId());
         int count = clientBoundItem.count();
         if (VersionHelper.COMPONENT_RELEASE) {
-            DataResult<Tag> tagDataResult = ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, clientBoundItem.getMinecraftItem());
+            DataResult<Tag> tagDataResult = ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, clientBoundItem.minecraftItem());
             Optional<Tag> result = tagDataResult.result();
             if (result.isEmpty()) {
                 return showItem;
@@ -2820,7 +2821,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 return HoverEvent.ShowItem.showItem(id, count);
             }
         } else {
-            Object tag = ItemStackProxy.INSTANCE.getTag(clientBoundItem.getMinecraftItem());
+            Object tag = ItemStackProxy.INSTANCE.getTag(clientBoundItem.minecraftItem());
             if (tag != null) {
                 return HoverEvent.ShowItem.showItem(id, count, BinaryTagHolder.binaryTagHolder(tag.toString()));
             } else {
@@ -4525,9 +4526,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 buf.writeVarInt(event.packetID());
                 buf.writeContainerId(containerId);
                 buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
-                    StreamEncoderProxy.INSTANCE.encode(ItemCostProxy.STREAM_CODEC, friendlyBuf, itemStackToItemCost(offer.cost1().getMinecraftItem(), offer.cost1().count()));
+                    StreamEncoderProxy.INSTANCE.encode(ItemCostProxy.STREAM_CODEC, friendlyBuf, itemStackToItemCost(offer.cost1().minecraftItem(), offer.cost1().count()));
                     PacketUtils.writeItem(friendlyBuf, offer.result());
-                    StreamEncoderProxy.INSTANCE.encode(ItemCostProxy.OPTIONAL_STREAM_CODEC, friendlyBuf, offer.cost2().map(it -> itemStackToItemCost(it.getMinecraftItem(), it.count())));
+                    StreamEncoderProxy.INSTANCE.encode(ItemCostProxy.OPTIONAL_STREAM_CODEC, friendlyBuf, offer.cost2().map(it -> itemStackToItemCost(it.minecraftItem(), it.count())));
                     byteBuf.writeBoolean(offer.outOfStock());
                     byteBuf.writeInt(offer.uses());
                     byteBuf.writeInt(offer.maxUses());
@@ -4597,10 +4598,10 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     for (Pair<Byte, Item> pair : items) {
                         CompoundTag newItemCompoundTag;
                         if (VersionHelper.isOrAbove1_20_5()) {
-                            newItemCompoundTag = (CompoundTag) ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, pair.right().getMinecraftItem())
+                            newItemCompoundTag = (CompoundTag) ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, pair.right().minecraftItem())
                                     .resultOrPartial((error) -> CraftEngine.instance().logger().error("Tried to encode invalid item: '" + error + "'")).orElse(null);
                         } else {
-                            Object nmsTag = ItemStackProxy.INSTANCE.save(pair.right().getMinecraftItem(), CompoundTagProxy.INSTANCE.newInstance());
+                            Object nmsTag = ItemStackProxy.INSTANCE.save(pair.right().minecraftItem(), CompoundTagProxy.INSTANCE.newInstance());
                             newItemCompoundTag = (CompoundTag) RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, nmsTag);
                         }
                         if (newItemCompoundTag != null) {

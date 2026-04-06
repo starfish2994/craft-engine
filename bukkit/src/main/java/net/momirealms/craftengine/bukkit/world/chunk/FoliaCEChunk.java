@@ -1,5 +1,6 @@
-package net.momirealms.craftengine.bukkit.world;
+package net.momirealms.craftengine.bukkit.world.chunk;
 
+import net.momirealms.craftengine.bukkit.world.FoliaCEWorld;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
@@ -8,7 +9,6 @@ import net.momirealms.craftengine.core.util.TickersList;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
-import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.CESection;
 import net.momirealms.sparrow.nbt.ListTag;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public final class FoliaCEChunk extends CEChunk {
+public final class FoliaCEChunk extends BukkitCEChunk {
     private final TickersList<TickingBlockEntity> tickingBlockEntities = VersionHelper.isFolia() ? new TickersList<>() : null;
     private final List<TickingBlockEntity> pendingTickingBlockEntities = VersionHelper.isFolia() ? new ArrayList<>() : null;
     private volatile boolean isTickingBlockEntities = false;

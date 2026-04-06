@@ -49,7 +49,7 @@ public final class FlintAndSteelItemBehavior extends ItemBehavior {
         Direction direction = context.getHorizontalDirection();
 
         // 最基础的判断能不能着火，不能着火都是扯蛋
-        if (!BaseFireBlockProxy.INSTANCE.canBePlacedAt(context.getLevel().serverWorld(), LocationUtils.toBlockPos(firePos), DirectionUtils.toNMSDirection(direction))) {
+        if (!BaseFireBlockProxy.INSTANCE.canBePlacedAt(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(firePos), DirectionUtils.toNMSDirection(direction))) {
             return InteractionResult.PASS;
         }
 
@@ -59,7 +59,7 @@ public final class FlintAndSteelItemBehavior extends ItemBehavior {
         boolean isClickedBlockBurnable;
         isClickedBlockBurnable = BlockStateUtils.isBurnable(clickedBlockState)
                 || (context.getClickedFace() == Direction.UP
-                && BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(clickedBlockState, context.getLevel().serverWorld(), LocationUtils.toBlockPos(clickedPos), DirectionProxy.UP, SupportTypeProxy.FULL));
+                && BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(clickedBlockState, context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(clickedPos), DirectionProxy.UP, SupportTypeProxy.FULL));
 
         // 点击对象直接可燃，则忽略
         if (isClickedBlockBurnable) {
@@ -70,10 +70,10 @@ public final class FlintAndSteelItemBehavior extends ItemBehavior {
                 // 点击对象为自定义方块
                 ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockStateUnsafe(stateId);
                 // 原版外观也可燃
-                if (BlockStateUtils.isBurnable(immutableBlockState.visualBlockState().literalObject())) {
+                if (BlockStateUtils.isBurnable(immutableBlockState.visualBlockState().minecraftState())) {
                     return InteractionResult.PASS;
                 }
-                BlockData vanillaBlockState = BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().literalObject());
+                BlockData vanillaBlockState = BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().minecraftState());
                 // 点击的是方块上面，则只需要判断shift和可交互
                 if (direction == Direction.UP) {
                     // 客户端层面必须可交互
@@ -93,7 +93,7 @@ public final class FlintAndSteelItemBehavior extends ItemBehavior {
                     Block belowBlock = belowFireBlock.block();
                     belowCanBurn = BlockStateUtils.isBurnable(BlockStateUtils.blockDataToBlockState(belowBlock.getBlockData())) ||
                             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(
-                                    BlockStateUtils.blockDataToBlockState(belowFireBlock.block().getBlockData()), context.getLevel().serverWorld(), LocationUtils.toBlockPos(belowFirePos), DirectionProxy.UP, SupportTypeProxy.FULL);
+                                    BlockStateUtils.blockDataToBlockState(belowFireBlock.block().getBlockData()), context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(belowFirePos), DirectionProxy.UP, SupportTypeProxy.FULL);
 
                     // 客户端觉得这玩意可交互，就会忽略声音
                     if (InteractUtils.isInteractable((Player) player.platformPlayer(), vanillaBlockState, context.getHitResult(), (Item) context.getItem())) {
@@ -131,7 +131,7 @@ public final class FlintAndSteelItemBehavior extends ItemBehavior {
                         return InteractionResult.PASS;
                     }
                     if (dir == Direction.DOWN && BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(
-                            nearbyBlockState, context.getLevel().serverWorld(), LocationUtils.toBlockPos(relPos), DirectionProxy.UP,SupportTypeProxy.FULL)) {
+                            nearbyBlockState, context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(relPos), DirectionProxy.UP,SupportTypeProxy.FULL)) {
                         return InteractionResult.PASS;
                     }
                 }

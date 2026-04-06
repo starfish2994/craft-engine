@@ -1,12 +1,13 @@
 package net.momirealms.craftengine.bukkit.world;
 
 import com.google.gson.JsonElement;
-import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.WorldStorageInjector;
 import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.bukkit.world.chunk.BukkitCEChunk;
+import net.momirealms.craftengine.bukkit.world.chunk.BukkitChunkAccess;
 import net.momirealms.craftengine.bukkit.world.gen.ConditionalFeature;
 import net.momirealms.craftengine.bukkit.world.gen.CraftEngineFeatures;
 import net.momirealms.craftengine.bukkit.world.gen.InjectedChunkGenerator;
@@ -383,7 +384,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private void injectWorld(CEWorld world) {
-        Object serverLevel = world.world.serverWorld();
+        Object serverLevel = world.world.minecraftWorld();
         Object serverChunkCache = ServerLevelProxy.INSTANCE.getChunkSource(serverLevel);
         Object chunkMap = ServerChunkCacheProxy.INSTANCE.getChunkMap(serverChunkCache);
         if (VersionHelper.isOrAbove1_21_2()) {
@@ -477,7 +478,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     @Override
     public <T> BukkitWorld wrap(T world) {
         if (world instanceof World w) {
-            return BukkitAdaptor.adapt(w);
+            return new BukkitWorld(w);
         } else {
             throw new IllegalArgumentException(world.getClass() + " is not a Bukkit World");
         }
@@ -495,16 +496,28 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     this.plugin.logger().warn("Failed to write chunk tag at " + chunk.getX() + " " + chunk.getZ(), e);
                 }
             }
+
             boolean unsaved = false;
-            CESection[] ceSections = ceChunk.sections();
-            Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
-            Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
-            Object levelChunk;
-            if (VersionHelper.isOrAbove1_21()) {
-                levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunk.getX(), chunk.getZ());
-            } else {
-                levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
+
+            Object levelChunk = null;
+            if (ceChunk instanceof BukkitCEChunk bukkitCEChunk) {
+                net.momirealms.craftengine.core.world.chunk.Chunk chunkAccess = bukkitCEChunk.chunkAccess();
+                if (chunkAccess != null) {
+                    levelChunk = chunkAccess.minecraftChunk();
+                    bukkitCEChunk.setChunkAccess(null);
+                }
             }
+            if (levelChunk == null) {
+                Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
+                Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
+                if (VersionHelper.isOrAbove1_21()) {
+                    levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunk.getX(), chunk.getZ());
+                } else {
+                    levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
+                }
+            }
+
+            CESection[] ceSections = ceChunk.sections();
             Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
             synchronized (sections) {
                 for (int i = 0; i < ceSections.length; i++) {
@@ -520,7 +533,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                                         if (!customState.isEmpty()) {
                                             BlockStateWrapper wrapper = customState.restoreBlockState();
                                             if (wrapper != null) {
-                                                LevelChunkSectionProxy.INSTANCE.setBlockState(section, x, y, z, wrapper.literalObject(), false);
+                                                LevelChunkSectionProxy.INSTANCE.setBlockState(section, x, y, z, wrapper.minecraftState(), false);
                                                 unsaved = true;
                                             }
                                         }
@@ -531,6 +544,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     }
                 }
             }
+
             if (unsaved /*&& !ChunkAccessProxy.INSTANCE.isUnsaved(levelChunk)*/) {
                 if (VersionHelper.isOrAbove1_21_2()) {
                     LevelChunkProxy.INSTANCE.markUnsaved(levelChunk);
@@ -538,6 +552,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     ChunkAccessProxy.INSTANCE.setUnsaved(levelChunk, true);
                 }
             }
+
             ceChunk.unload();
             ceChunk.deactivateAllBlockEntities();
         }
@@ -566,43 +581,44 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     private void handleChunkLoad(CEWorld ceWorld, Chunk chunk, boolean isNew) {
         int chunkX = chunk.getX();
         int chunkZ = chunk.getZ();
+
+        Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
+        Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
+        Object levelChunk;
+        if (VersionHelper.isOrAbove1_21()) {
+            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunkX, chunkZ);
+        } else {
+            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
+        }
+        BukkitChunkAccess bukkitChunkAccess = new BukkitChunkAccess(levelChunk);
+
         ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
         CEChunk chunkAtIfLoaded = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);
         if (chunkAtIfLoaded != null) {
+            chunkAtIfLoaded.setChunkAccess(bukkitChunkAccess);
             if (isNew) {
                 chunkAtIfLoaded.activateAllBlockEntities();
             }
+            if (Config.recipeInjectBlockEntities()) {
+                injectBlockEntities(levelChunk);
+            }
             return;
         }
+
         CEChunk ceChunk;
         try {
-            ceChunk = ceWorld.worldDataStorage().readChunkAt(ceWorld, chunkPos);
+            ceChunk = ceWorld.worldDataStorage().readChunkAt(ceWorld, chunkPos, bukkitChunkAccess);
+            ceChunk.setChunkAccess(bukkitChunkAccess);
             CESection[] ceSections = ceChunk.sections();
-            Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
-            Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
             Object lightEngine = ChunkSourceProxy.INSTANCE.getLightEngine(chunkSource);
-            Object levelChunk;
-            if (VersionHelper.isOrAbove1_21()) {
-                levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunk.getX(), chunk.getZ());
-            } else {
-                levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
-            }
             Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
             // 注入 ChunkAccess 的 BlockEntities 字段.
             if (Config.recipeInjectBlockEntities()) {
-                Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
-                if (!(blockEntities instanceof MapListener<?,?>)) {
-                    // <BlockPos, BlockEntity>
-                    MapListener<Object, Object> mapListener = new MapListener<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
-                    ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
-                    // 修改当前区块存在的
-                    for (Object blockEntity : blockEntities.values()) {
-                        BukkitRecipeManager.injectFurnaceBlockEntity(blockEntity);
-                    }
-                }
+                injectBlockEntities(levelChunk);
             }
             synchronized (sections) {
                 for (int i = 0; i < ceSections.length; i++) {
@@ -671,7 +687,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                                     int x = index & 0xF;
                                     int z = (index >> 4) & 0xF;
                                     int y = (index >> 8) & 0xF;
-                                    Object newState = customState.customBlockState().literalObject();
+                                    Object newState = customState.customBlockState().minecraftState();
                                     Object previous = LevelChunkSectionProxy.INSTANCE.setBlockState(section, x, y, z, newState, false);
                                     if (newState != previous && LightUtils.hasDifferentLightProperties(newState, previous)) {
                                         ThreadedLevelLightEngineProxy.INSTANCE.checkBlock(lightEngine, BlockPosProxy.INSTANCE.newInstance(chunkX * 16 + x, sectionY * 16 + y, chunkZ * 16 + z));
@@ -692,12 +708,25 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                             (injected) -> sections[finalI] = injected);
                 }
             }
+
+            ceChunk.load();
+            ceChunk.activateAllBlockEntities();
         } catch (IOException e) {
             this.plugin.logger().warn("Failed to read chunk tag at " + chunk.getX() + " " + chunk.getZ(), e);
-            return;
         }
-        ceChunk.load();
-        ceChunk.activateAllBlockEntities();
+    }
+
+    private static void injectBlockEntities(Object levelChunk) {
+        Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
+        if (!(blockEntities instanceof MapListener<?,?>)) {
+            // <BlockPos, BlockEntity>
+            MapListener<Object, Object> mapListener = new MapListener<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
+            ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
+            // 修改当前区块存在的
+            for (Object blockEntity : blockEntities.values()) {
+                BukkitRecipeManager.injectFurnaceBlockEntity(blockEntity);
+            }
+        }
     }
 
     private final class ConfiguredFeatureParser extends IdSectionConfigParser {
@@ -930,7 +959,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                         }
                     }
                 }
-                result.put("Name", BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().literalObject()).asString());
+                result.put("Name", BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().minecraftState()).asString());
             }
         }
         // 处理 block predicate 等功能
@@ -941,7 +970,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 if (customBlock.isPresent()) {
                     BlockDefinition block = customBlock.get();
                     ImmutableBlockState blockState = block.defaultState();
-                    result.put("blocks", BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().literalObject()).asString());
+                    result.put("blocks", BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().minecraftState()).asString());
                 }
             } else if (rawBlocks instanceof List<?> list) {
                 // list 的情况下，不能使用 tag
@@ -952,7 +981,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                         if (customBlock.isPresent()) {
                             BlockDefinition block = customBlock.get();
                             ImmutableBlockState blockState = block.defaultState();
-                            newBlockList.add(BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().literalObject()).asString());
+                            newBlockList.add(BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().minecraftState()).asString());
                         } else {
                             newBlockList.add(blockName);
                         }

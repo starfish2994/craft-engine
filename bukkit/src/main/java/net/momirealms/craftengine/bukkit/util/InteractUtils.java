@@ -1087,11 +1087,11 @@ public final class InteractUtils {
     }
 
     public static boolean canPlaceBlock(BlockPlaceContext context) {
-        Object item = ItemStackProxy.INSTANCE.getItem(context.getItem().getMinecraftItem());
+        Object item = ItemStackProxy.INSTANCE.getItem(context.getItem().minecraftItem());
         Object block = BlockItemProxy.INSTANCE.getBlock(item);
         Object stateToPlace = BlockProxy.INSTANCE.getStateForPlacement(block, toNMSBlockPlaceContext(context));
         if (stateToPlace == null) return false;
-        return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(stateToPlace, context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()));
+        return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(stateToPlace, context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(context.getClickedPos()));
     }
 
     public static Object toNMSHitResult(BlockHitResult result) {
@@ -1105,10 +1105,10 @@ public final class InteractUtils {
 
     public static Object toNMSBlockPlaceContext(BlockPlaceContext context) {
         return BlockPlaceContextProxy.INSTANCE.newInstance(
-                context.getLevel().serverWorld(),
+                context.getLevel().minecraftWorld(),
                 Optional.ofNullable(context.getPlayer()).map(net.momirealms.craftengine.core.entity.player.Player::serverPlayer).orElse(null),
                 context.getHand() == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND,
-                context.getItem().getMinecraftItem(),
+                context.getItem().minecraftItem(),
                 toNMSHitResult(context.getHitResult())
         );
     }

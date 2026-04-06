@@ -37,7 +37,7 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior {
         super(blockDefinition);
         this.requiredLight = requiredLight;
         this.snowyProperty = snowyProperty;
-        this.baseBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(baseBlock)).literalObject());
+        this.baseBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(baseBlock)).minecraftState());
     }
 
     @Override
@@ -74,7 +74,7 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior {
                 );
                 newState = newState.with(this.snowyProperty, hasSnow);
             }
-            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         }
     }
 

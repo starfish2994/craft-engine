@@ -46,6 +46,8 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
     @Nullable
     public final Property<Boolean> openProperty;
     private int controllerId;
+    @Nullable
+    public final String customDataKey;
 
     private SimpleStorageBlockBehavior(BlockDefinition blockDefinition,
                                        String containerTitle,
@@ -55,7 +57,9 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
                                        boolean hasAnalogOutputSignal,
                                        boolean canPlaceItem,
                                        boolean canTakeItem,
-                                       @Nullable Property<Boolean> openProperty) {
+                                       @Nullable Property<Boolean> openProperty,
+                                       @Nullable String customDataKey
+    ) {
         super(blockDefinition);
         this.containerTitle = containerTitle;
         this.rows = rows;
@@ -65,6 +69,13 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         this.canPlaceItem = canPlaceItem;
         this.canTakeItem = canTakeItem;
         this.openProperty = openProperty;
+        this.customDataKey = customDataKey;
+    }
+
+    @Override
+    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
+        this.controllerId = controllerId;
+        return new SimpleStorageBlockEntityController(blockEntity, this);
     }
 
     @Override
@@ -110,12 +121,6 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
             c.checkOpeners(world, blockPos, args[0]);
         });
-    }
-
-    @Override
-    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
-        this.controllerId = controllerId;
-        return new SimpleStorageBlockEntityController(blockEntity, this);
     }
 
     @Override
@@ -165,6 +170,8 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
         private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
         private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
+        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+
 
         @Override
         public SimpleStorageBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -184,7 +191,8 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
                     section.getBoolean(HAS_SIGNAL, true),
                     section.getBoolean(ALLOW_INPUT, true),
                     section.getBoolean(ALLOW_OUTPUT, true),
-                    BlockBehaviorFactory.getOptionalProperty(block, "open", Boolean.class)
+                    BlockBehaviorFactory.getOptionalProperty(block, "open", Boolean.class),
+                    section.getString(DATA_KEY)
             );
         }
     }

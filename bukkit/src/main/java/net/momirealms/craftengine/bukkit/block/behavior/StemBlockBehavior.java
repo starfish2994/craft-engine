@@ -73,7 +73,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
         if (customState == null || customState.isEmpty()) return;
         int age = customState.get(ageProperty);
         if (age < ageProperty.max) {
-            LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(ageProperty, age + 1).customBlockState().literalObject(), 2);
+            LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(ageProperty, age + 1).customBlockState().minecraftState(), 2);
             return;
         }
         Object randomDirection = DirectionProxy.VALUES[RandomUtils.generateRandomInt(2, 6)];
@@ -85,7 +85,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
             Optional<BlockDefinition> optionalFruit = BukkitBlockManager.instance().blockById(this.fruit);
             Object fruitState = null;
             if (optionalFruit.isPresent()) {
-                fruitState = optionalFruit.get().defaultState().customBlockState().literalObject();
+                fruitState = optionalFruit.get().defaultState().customBlockState().minecraftState();
             } else if (fruit.namespace().equals("minecraft")) {
                 fruitState = BlockProxy.INSTANCE.getDefaultBlockState(RegistryUtils.getRegistryValue(
                         BuiltInRegistriesProxy.BLOCK,
@@ -99,7 +99,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
             Property<Direction> facing = (Property<Direction>) attachedStem.getProperty("facing");
             if (facing == null) return;
             LevelWriterProxy.INSTANCE.setBlock(level, blockPos, fruitState, UpdateFlags.UPDATE_ALL);
-            LevelWriterProxy.INSTANCE.setBlock(level, pos, attachedStem.defaultState().with(facing, DirectionUtils.fromNMSDirection(randomDirection)).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+            LevelWriterProxy.INSTANCE.setBlock(level, pos, attachedStem.defaultState().with(facing, DirectionUtils.fromNMSDirection(randomDirection)).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         }
     }
 
@@ -120,7 +120,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[3]).orElse(null);
         if (state == null || state.isEmpty()) return;
         int min = Math.min(7, state.get(ageProperty) + RandomUtils.generateRandomInt(Math.min(ageProperty.min + 2, ageProperty.max), Math.min(ageProperty.max - 2, ageProperty.max)));
-        Object blockState = state.with(ageProperty, min).customBlockState().literalObject();
+        Object blockState = state.with(ageProperty, min).customBlockState().minecraftState();
         LevelWriterProxy.INSTANCE.setBlock(args[0], args[2], blockState, 2);
         if (min >= ageProperty.max) {
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.randomTick(blockState, args[0], args[2], LevelProxy.INSTANCE.getRandom(args[0]));

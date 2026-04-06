@@ -16,6 +16,6 @@ public final class BukkitItem extends AbstractItem<BukkitItemWrapper> {
     }
 
     public ItemStack getBukkitItem() {
-        return super.item.getBukkitItem();
+        return super.item.platformItem();
     }
 }

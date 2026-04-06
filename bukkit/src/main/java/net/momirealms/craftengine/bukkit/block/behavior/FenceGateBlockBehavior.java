@@ -116,12 +116,12 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
         }
         if (relativeStateIsWall) {
         }
-        return customState.with(this.inWallProperty, flag).customBlockState().literalObject();
+        return customState.with(this.inWallProperty, flag).customBlockState().minecraftState();
     }
 
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        Object level = context.getLevel().serverWorld();
+        Object level = context.getLevel().minecraftWorld();
         BlockPos clickedPos = context.getClickedPos();
         boolean hasNeighborSignal = SignalGetterProxy.INSTANCE.hasNeighborSignal(level, LocationUtils.toBlockPos(clickedPos));
         Direction horizontalDirection = context.getHorizontalDirection();
@@ -156,7 +156,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
             return;
         }
         this.toggle(state, context.getLevel(), pos, player);
-        if (!InteractUtils.isInteractable((org.bukkit.entity.Player) player.platformPlayer(), BlockStateUtils.fromBlockData(state.visualBlockState().literalObject()), context.getHitResult(), (Item) context.getItem())) {
+        if (!InteractUtils.isInteractable((org.bukkit.entity.Player) player.platformPlayer(), BlockStateUtils.fromBlockData(state.visualBlockState().minecraftState()), context.getHitResult(), (Item) context.getItem())) {
             player.swingHand(context.getHand());
         }
     }
@@ -231,7 +231,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
             this.playSound(LocationUtils.fromBlockPos(blockPos), world, hasSignal);
         }
 
-        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, customState.with(this.poweredProperty, hasSignal).customBlockState().literalObject(), UpdateFlags.UPDATE_CLIENTS);
+        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, customState.with(this.poweredProperty, hasSignal).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
     }
 
     private void toggle(ImmutableBlockState state, World world, BlockPos pos, @Nullable Player player) {
@@ -248,7 +248,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
             }
             newState = blockState.with(this.openProperty, true);
         }
-        LevelWriterProxy.INSTANCE.setBlock(world.serverWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+        LevelWriterProxy.INSTANCE.setBlock(world.minecraftWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         boolean open = isOpen(newState);
         ((org.bukkit.World) world.platformWorld()).sendGameEvent(
                 player != null ? (org.bukkit.entity.Player) player.platformPlayer() : null,
@@ -271,7 +271,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
     }
 
     public static boolean connectsToDirection(BlockStateWrapper state, Direction direction) {
-        Optional<ImmutableBlockState> optionalCustomBlockState = BlockStateUtils.getOptionalCustomBlockState(state.literalObject());
+        Optional<ImmutableBlockState> optionalCustomBlockState = BlockStateUtils.getOptionalCustomBlockState(state.minecraftState());
         if (optionalCustomBlockState.isEmpty()) return false;
         ImmutableBlockState customState = optionalCustomBlockState.get();
         FenceGateBlockBehavior fence = customState.behavior().getFirst(FenceGateBlockBehavior.class);

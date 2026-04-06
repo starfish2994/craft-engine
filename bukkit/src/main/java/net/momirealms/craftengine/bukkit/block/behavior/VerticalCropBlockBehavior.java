@@ -68,15 +68,15 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
                     Object nextPos = this.direction ? LocationUtils.above(blockPos) : LocationUtils.below(blockPos);
                     boolean success;
                     if (VersionHelper.isOrAbove1_21_5()) {
-                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
                     } else {
-                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().literalObject());
+                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().minecraftState());
                     }
                     if (success) {
-                        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, currentState.with(this.ageProperty, this.ageProperty.min).customBlockState().literalObject(), UpdateFlags.UPDATE_NONE);
+                        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, currentState.with(this.ageProperty, this.ageProperty.min).customBlockState().minecraftState(), UpdateFlags.UPDATE_NONE);
                     }
                 } else if (RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
-                    LevelWriterProxy.INSTANCE.setBlock(level, blockPos, currentState.with(this.ageProperty, age + 1).customBlockState().literalObject(), UpdateFlags.UPDATE_NONE);
+                    LevelWriterProxy.INSTANCE.setBlock(level, blockPos, currentState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_NONE);
                 }
             }
         }

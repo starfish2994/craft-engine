@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.world;
 
+import net.momirealms.craftengine.bukkit.world.chunk.FoliaCEChunk;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.TickersList;
 import net.momirealms.craftengine.core.world.ChunkPos;

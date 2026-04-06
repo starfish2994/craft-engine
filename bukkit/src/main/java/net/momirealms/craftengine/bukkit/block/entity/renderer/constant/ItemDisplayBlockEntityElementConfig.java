@@ -87,7 +87,7 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
             if (wrappedItem == null) {
                 wrappedItem = java.util.Objects.requireNonNull(BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player));
             }
-            ItemDisplayEntityData.DisplayedItem.addEntityData(wrappedItem.getMinecraftItem(), dataValues);
+            ItemDisplayEntityData.DisplayedItem.addEntityData(wrappedItem.minecraftItem(), dataValues);
             ItemDisplayEntityData.Scale.addEntityData(this.scale, dataValues);
             ItemDisplayEntityData.RotationLeft.addEntityData(this.rotation, dataValues);
             ItemDisplayEntityData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues);

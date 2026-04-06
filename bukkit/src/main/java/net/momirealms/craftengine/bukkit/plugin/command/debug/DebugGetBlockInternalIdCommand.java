@@ -42,7 +42,7 @@ public final class DebugGetBlockInternalIdCommand extends BukkitCommandFeature<C
                     String data = context.get("id");
                     ImmutableBlockState state = BlockStateParser.deserialize(data);
                     if (state == null) return;
-                    String id = BlockStateUtils.getBlockOwnerIdFromState(state.customBlockState().literalObject()).toString();
+                    String id = BlockStateUtils.getBlockOwnerIdFromState(state.customBlockState().minecraftState()).toString();
                     Sender sender = plugin().senderFactory().wrap(context.sender());
                     sender.sendMessage(Component.text(id)
                             .hoverEvent(Component.text("Copy", NamedTextColor.YELLOW))

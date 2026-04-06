@@ -69,7 +69,7 @@ public final class FaceAttachedHorizontalDirectionalBlockBehavior extends Bukkit
                         .with(this.anchorTypeProperty, AnchorType.WALL)
                         .with(this.facingProperty, direction.opposite());
             }
-            if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state.customBlockState().literalObject(), context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()))) {
+            if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state.customBlockState().minecraftState(), context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(context.getClickedPos()))) {
                 return state;
             }
         }

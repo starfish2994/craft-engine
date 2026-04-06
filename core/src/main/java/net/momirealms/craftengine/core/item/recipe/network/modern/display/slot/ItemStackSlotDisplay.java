@@ -35,7 +35,7 @@ public final class ItemStackSlotDisplay implements SlotDisplay {
     @Override
     public String toString() {
         return "ItemStackSlotDisplay{" +
-                "item=" + this.item.getMinecraftItem() +
+                "item=" + this.item.minecraftItem() +
                 '}';
     }
 }

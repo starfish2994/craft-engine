@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public final class DynamicItemBlockEntityElement implements BlockEntityElement {
+public final class DynamicDisplayItemBlockEntityElement implements BlockEntityElement {
     public final DisplayItemBlockEntityController controller;
     @NotNull
     private Object lastUpdateMinecraftItem; // 最后一次发送更新掉落物品
@@ -44,7 +44,7 @@ public final class DynamicItemBlockEntityElement implements BlockEntityElement {
     @NotNull
     private Object updatePosPacket;
 
-    public DynamicItemBlockEntityElement(@NotNull DisplayItemBlockEntityController controller, @NotNull WorldPosition displayItemPosition) {
+    public DynamicDisplayItemBlockEntityElement(@NotNull DisplayItemBlockEntityController controller, @NotNull WorldPosition displayItemPosition) {
         this.controller = controller;
         this.vehicleId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         this.passengerId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
@@ -58,8 +58,8 @@ public final class DynamicItemBlockEntityElement implements BlockEntityElement {
                     a.add(passengerId);
                 }
         ));
-        this.refreshChangeDisplayItemPacket(controller.displayItem().getMinecraftItem());
-        this.refreshSpawnVehicleAndPassengerPacket(displayItemPosition, false);
+        this.refreshChangeDisplayItemPacket(controller.displayItem().minecraftItem());
+        this.refreshSpawnVehicleAndPassengerPacket(displayItemPosition);
     }
 
     // 更新展示的物品
@@ -71,8 +71,7 @@ public final class DynamicItemBlockEntityElement implements BlockEntityElement {
     }
 
     // 更新展示物品的位置, 这里的 lastUpdateDisplayItemPosition 由 DisplayItemEntity#setBlockState 刷新.
-    public void refreshSpawnVehicleAndPassengerPacket(WorldPosition displayItemPosition, boolean dirtyFlag) {
-        this.positionDirty = dirtyFlag;
+    public void refreshSpawnVehicleAndPassengerPacket(WorldPosition displayItemPosition) {
         this.spawnVehiclePacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 vehicleId, vehicleUUID, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
                 0, 0, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
@@ -111,7 +110,7 @@ public final class DynamicItemBlockEntityElement implements BlockEntityElement {
     public void update(Player player) {
         // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
         Item displayItem = this.controller.displayItem();
-        Object minecraftItem = displayItem.getMinecraftItem();
+        Object minecraftItem = displayItem.minecraftItem();
         if (this.lastUpdateMinecraftItem != minecraftItem) {
             this.refreshChangeDisplayItemPacket(minecraftItem);
         }

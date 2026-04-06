@@ -85,7 +85,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected Optional<Key> customId(LegacyItemWrapper item) {
-        Object nmsStack = item.getMinecraftItem();
+        Object nmsStack = item.minecraftItem();
         Object tag = ItemStackProxy.INSTANCE.getTag(nmsStack);
         if (tag == null) return Optional.empty();
         Object stringTag = CompoundTagProxy.INSTANCE.get(tag, IdProcessor.CRAFT_ENGINE_ID);
@@ -95,7 +95,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected void customId(LegacyItemWrapper item, Key id) {
-        Object nmsStack = item.getMinecraftItem();
+        Object nmsStack = item.minecraftItem();
         Object tag = ItemStackProxy.INSTANCE.getOrCreateTag(nmsStack);
         CompoundTagProxy.INSTANCE.putString(tag, IdProcessor.CRAFT_ENGINE_ID, id.asString());
     }
@@ -209,7 +209,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected int maxDamage(LegacyItemWrapper item) {
-        return item.getBukkitItem().getType().getMaxDurability();
+        return item.platformItem().getType().getMaxDurability();
     }
 
     @Override
@@ -245,7 +245,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @SuppressWarnings("deprecation")
     @Override
     protected Optional<Enchantment> getEnchantment(LegacyItemWrapper item, Key key) {
-        int level = item.getBukkitItem().getEnchantmentLevel(Objects.requireNonNull(Registry.ENCHANTMENT.get(new NamespacedKey(key.namespace(), key.value()))));
+        int level = item.platformItem().getEnchantmentLevel(Objects.requireNonNull(Registry.ENCHANTMENT.get(new NamespacedKey(key.namespace(), key.value()))));
         if (level <= 0) return Optional.empty();
         return Optional.of(new Enchantment(key, level));
     }
@@ -294,7 +294,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected int maxStackSize(LegacyItemWrapper item) {
-        return item.getBukkitItem().getType().getMaxStackSize();
+        return item.platformItem().getType().getMaxStackSize();
     }
 
     @Override
@@ -377,17 +377,17 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected LegacyItemWrapper mergeCopy(LegacyItemWrapper item1, LegacyItemWrapper item2) {
-        Object copied = ItemStackProxy.INSTANCE.newInstance(ItemStackProxy.INSTANCE.getItem(item2.getMinecraftItem()), item2.count());
+        Object copied = ItemStackProxy.INSTANCE.newInstance(ItemStackProxy.INSTANCE.getItem(item2.minecraftItem()), item2.count());
         Object copiedTag = ItemStackProxy.INSTANCE.getOrCreateTag(copied);
-        CompoundTagProxy.INSTANCE.merge(copiedTag, ItemStackProxy.INSTANCE.getOrCreateTag(item1.getMinecraftItem()));
-        CompoundTagProxy.INSTANCE.merge(copiedTag, ItemStackProxy.INSTANCE.getOrCreateTag(item2.getMinecraftItem()));
+        CompoundTagProxy.INSTANCE.merge(copiedTag, ItemStackProxy.INSTANCE.getOrCreateTag(item1.minecraftItem()));
+        CompoundTagProxy.INSTANCE.merge(copiedTag, ItemStackProxy.INSTANCE.getOrCreateTag(item2.minecraftItem()));
         return new LegacyItemWrapper(ItemStackUtils.getBukkitStack(copied));
     }
 
     @Override
     protected void merge(LegacyItemWrapper item1, LegacyItemWrapper item2) {
-        Object item1Tag = ItemStackProxy.INSTANCE.getOrCreateTag(item1.getMinecraftItem());
-        Object item2Tag = ItemStackProxy.INSTANCE.getOrCreateTag(item2.getMinecraftItem());
+        Object item1Tag = ItemStackProxy.INSTANCE.getOrCreateTag(item1.minecraftItem());
+        Object item2Tag = ItemStackProxy.INSTANCE.getOrCreateTag(item2.minecraftItem());
         CompoundTagProxy.INSTANCE.merge(item1Tag, item2Tag);
     }
 
@@ -395,7 +395,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     protected LegacyItemWrapper transmuteCopy(LegacyItemWrapper item, Key newItem, int amount) {
         Object copied = ItemStackProxy.INSTANCE.newInstance(RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(newItem)), amount);
         Object copiedTag = ItemStackProxy.INSTANCE.getOrCreateTag(copied);
-        Object thisTag = ItemStackProxy.INSTANCE.getOrCreateTag(item.getMinecraftItem());
+        Object thisTag = ItemStackProxy.INSTANCE.getOrCreateTag(item.minecraftItem());
         CompoundTagProxy.INSTANCE.merge(copiedTag, thisTag);
         return new LegacyItemWrapper(ItemStackUtils.getBukkitStack(copied));
     }
@@ -403,7 +403,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @Override
     protected LegacyItemWrapper unsafeTransmuteCopy(LegacyItemWrapper item, Object newItem, int amount) {
         Object newItemStack = ItemStackProxy.INSTANCE.newInstance(newItem, amount);
-        ItemStackProxy.INSTANCE.setTag(newItemStack, CompoundTagProxy.INSTANCE.copy(ItemStackProxy.INSTANCE.getOrCreateTag(item.getMinecraftItem())));
+        ItemStackProxy.INSTANCE.setTag(newItemStack, CompoundTagProxy.INSTANCE.copy(ItemStackProxy.INSTANCE.getOrCreateTag(item.minecraftItem())));
         return new LegacyItemWrapper(ItemStackUtils.getBukkitStack(newItemStack));
     }
 
@@ -421,5 +421,10 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
             listTag.add(modifierTag);
         }
         item.setTag(listTag, "AttributeModifiers");
+    }
+
+    @Override
+    protected boolean isSimilar(LegacyItemWrapper item1, LegacyItemWrapper item2) {
+        return ItemStackProxy.INSTANCE.isSameItemSameTags(item1.minecraftItem(), item2.minecraftItem());
     }
 }

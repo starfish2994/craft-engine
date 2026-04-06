@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.block;
 
-
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.AbstractBlockStateWrapper;
 import net.momirealms.craftengine.core.util.Key;
@@ -11,10 +10,17 @@ import net.momirealms.craftengine.proxy.minecraft.core.registries.RegistriesProx
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 
+import java.util.Optional;
+
 public abstract class BukkitBlockStateWrapper extends AbstractBlockStateWrapper {
 
     protected BukkitBlockStateWrapper(Object blockState, int registryId) {
         super(blockState, registryId);
+    }
+
+    @Override
+    public Object platformState() {
+        return BlockStateUtils.fromBlockData(super.blockState);
     }
 
     @Override
@@ -50,6 +56,6 @@ public abstract class BukkitBlockStateWrapper extends AbstractBlockStateWrapper 
 
     @Override
     public boolean canSurvive(WorldAccessor world, BlockPos pos) {
-        return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(super.blockState, world.literalObject(), LocationUtils.toBlockPos(pos));
+        return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(super.blockState, Optional.ofNullable(world.generatingWorld()).orElseGet(world::minecraftWorld), LocationUtils.toBlockPos(pos));
     }
 }

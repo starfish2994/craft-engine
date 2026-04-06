@@ -531,6 +531,7 @@ light-system:
 chunk-system:
   # Storage format for chunk data persistence
   # mca: Minecraft Anvil format
+  # pdc: Persistent Data Container provided by Bukkit
   # none: No persistent storage (in-memory only)
   storage-type: mca
   # Caches serialized chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
@@ -545,9 +546,9 @@ chunk-system:
   # Settings for injection
   injection:
     # Requires server restart to take effect
-    # - section: Injects the LevelChunkSection (Use this if you have installed both FastAsyncWorldEdit and Axiom)
-    # - palette: Injects the PalettedContainer
-    target: palette
+    # - section: Injects the LevelChunkSection (Better compatibility with other plugins)
+    # - palette: Injects the PalettedContainer (Performance is a bit better than section, might create slight bugs when using FAWE and Axiom)
+    target: section
   # On chunk unload: Convert custom blocks → vanilla blocks
   # Prevents custom blocks from becoming AIR when plugin is removed
   restore-vanilla-blocks-on-chunk-unload: true

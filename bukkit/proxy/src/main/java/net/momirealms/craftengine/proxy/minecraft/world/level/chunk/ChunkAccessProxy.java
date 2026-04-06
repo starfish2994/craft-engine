@@ -5,6 +5,7 @@ import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
+import org.bukkit.persistence.PersistentDataContainer;
 
 import java.util.Map;
 
@@ -26,4 +27,10 @@ public interface ChunkAccessProxy {
 
     @MethodInvoker(name = "setUnsaved", activeIf = "max_version=1.21.1")
     void setUnsaved(Object target, boolean needsSaving);
+
+    @FieldGetter(name = "chunkPos")
+    Object getChunkPos(Object target);
+
+    @FieldGetter(name = "persistentDataContainer")
+    PersistentDataContainer getPersistentDataContainer(Object target);
 }

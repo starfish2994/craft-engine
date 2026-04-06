@@ -7,9 +7,6 @@ import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
 import net.momirealms.craftengine.bukkit.plugin.injector.MaterialInjector;
-import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockStatePacket;
-import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
@@ -24,7 +21,6 @@ import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
-import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.sound.SoundSet;
 import net.momirealms.craftengine.core.util.Key;
@@ -223,7 +219,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     @Override
     public Key getBlockOwnerId(BlockStateWrapper state) {
-        return BlockStateUtils.getBlockOwnerIdFromState(state.literalObject());
+        return BlockStateUtils.getBlockOwnerIdFromState(state.minecraftState());
     }
 
     @Override
@@ -238,10 +234,10 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
     @Override
     protected void applyPlatformSettings(BlockDefinition block, ImmutableBlockState state) {
-        DelegatingBlockState nmsState = (DelegatingBlockState) state.customBlockState().literalObject();
+        DelegatingBlockState nmsState = (DelegatingBlockState) state.customBlockState().minecraftState();
         nmsState.setBlockState(state);
-        nmsState.setBlockOwner(BlockStateUtils.getBlockOwner(block.defaultState().customBlockState().literalObject()));
-        Object nmsVisualState = state.visualBlockState().literalObject();
+        nmsState.setBlockOwner(BlockStateUtils.getBlockOwner(block.defaultState().customBlockState().minecraftState()));
+        Object nmsVisualState = state.visualBlockState().minecraftState();
 
         BlockSettings settings = state.settings();
         try {
@@ -270,7 +266,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
             DelegatingBlock nmsBlock = (DelegatingBlock) BlockStateUtils.getBlockOwner(nmsState);
             ObjectHolder<BlockShape> shapeHolder = nmsBlock.shapeDelegate();
-            shapeHolder.bindValue(new BukkitBlockShape(nmsVisualState, Optional.ofNullable(state.settings().supportShapeBlockState()).map(it -> Objects.requireNonNull(createVanillaBlockState(it), "Illegal block state: " + it).literalObject()).orElse(null)));
+            shapeHolder.bindValue(new BukkitBlockShape(nmsVisualState, Optional.ofNullable(state.settings().supportShapeBlockState()).map(it -> Objects.requireNonNull(createVanillaBlockState(it), "Illegal block state: " + it).minecraftState()).orElse(null)));
             ObjectHolder<BlockBehavior> behaviorHolder = nmsBlock.behaviorDelegate();
             behaviorHolder.bindValue(state.behavior());
             if (VersionHelper.isOrAbove1_21_2()) {
@@ -405,7 +401,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     }
 
     public boolean canBlockView(BlockStateWrapper wrapper) {
-        Object blockState = wrapper.literalObject();
+        Object blockState = wrapper.minecraftState();
         if (!BlockStateUtils.isOcclude(blockState)) {
             return false;
         }
@@ -518,7 +514,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     protected void processSounds() {
         Set<Object> affectedBlockSoundTypes = new HashSet<>();
         for (BlockStateWrapper vanillaBlockState : super.tempVisualBlockStatesInUse) {
-            affectedBlockSoundTypes.add(BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(vanillaBlockState.literalObject()));
+            affectedBlockSoundTypes.add(BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(vanillaBlockState.minecraftState()));
         }
 
         Set<Object> placeSounds = new HashSet<>();

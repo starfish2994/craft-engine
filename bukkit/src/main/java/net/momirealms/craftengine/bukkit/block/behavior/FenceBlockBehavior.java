@@ -74,14 +74,14 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
 
     public boolean connectsTo(BlockStateWrapper state, boolean isSideSolid, Direction direction) {
         boolean isSameFence = this.isSameFence(state);
-        boolean flag = FenceGateBlockProxy.CLASS.isInstance(BlockStateUtils.getBlockOwner(state.literalObject()))
-                ? FenceGateBlockProxy.INSTANCE.connectsToDirection(state.literalObject(), DirectionUtils.toNMSDirection(direction))
+        boolean flag = FenceGateBlockProxy.CLASS.isInstance(BlockStateUtils.getBlockOwner(state.minecraftState()))
+                ? FenceGateBlockProxy.INSTANCE.connectsToDirection(state.minecraftState(), DirectionUtils.toNMSDirection(direction))
                 : FenceGateBlockBehavior.connectsToDirection(state, direction);
         return !isExceptionForConnection(state) && isSideSolid || isSameFence || flag;
     }
 
     public static boolean isExceptionForConnection(BlockStateWrapper state) {
-        Object blockState = state.literalObject();
+        Object blockState = state.minecraftState();
         return LeavesBlockProxy.CLASS.isInstance(BlockStateUtils.getBlockOwner(blockState))
                 || BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$0(blockState, BlocksProxy.BARRIER)
                 || BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$0(blockState, BlocksProxy.CARVED_PUMPKIN)
@@ -92,10 +92,10 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
     }
 
     private boolean isSameFence(BlockStateWrapper state) {
-        Object blockState = state.literalObject();
+        Object blockState = state.minecraftState();
         return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(blockState, BlockTagsProxy.FENCES)
                 && BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(blockState, this.connectableBlockTag)
-                == BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(this.blockDefinition.defaultState().customBlockState().literalObject(), this.connectableBlockTag);
+                == BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(this.blockDefinition.defaultState().customBlockState().minecraftState(), this.connectableBlockTag);
     }
 
     @Override
@@ -109,7 +109,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
         if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.INTERACT, location)) {
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
-        Object interactionResult = LeadItemProxy.INSTANCE.bindPlayerMobs(player.serverPlayer(), context.getLevel().serverWorld(), LocationUtils.toBlockPos(pos));
+        Object interactionResult = LeadItemProxy.INSTANCE.bindPlayerMobs(player.serverPlayer(), context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(pos));
         if (interactionResult == InteractionResult$SUCCESS_SERVER) {
             player.swingHand(InteractionHand.MAIN_HAND);
             return InteractionResult.SUCCESS;
@@ -121,7 +121,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         World level = context.getLevel();
         BlockPos clickedPos = context.getClickedPos();
-        Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(level.serverWorld(), LocationUtils.toBlockPos(clickedPos));
+        Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(level.minecraftWorld(), LocationUtils.toBlockPos(clickedPos));
         BlockPos blockPos = clickedPos.north();
         BlockPos blockPos1 = clickedPos.east();
         BlockPos blockPos2 = clickedPos.south();
@@ -135,10 +135,10 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
             state = state.with(waterlogged, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
         }
         return state
-                .with(this.northProperty, this.connectsTo(blockState, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos), DirectionProxy.SOUTH, SupportTypeProxy.FULL), Direction.SOUTH))
-                .with(this.eastProperty, this.connectsTo(blockState1, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState1.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos1), DirectionProxy.WEST, SupportTypeProxy.FULL), Direction.WEST))
-                .with(this.southProperty, this.connectsTo(blockState2, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState2.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos2), DirectionProxy.NORTH, SupportTypeProxy.FULL), Direction.NORTH))
-                .with(this.westProperty, this.connectsTo(blockState3, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState3.literalObject(), level.serverWorld(), LocationUtils.toBlockPos(blockPos3), DirectionProxy.EAST, SupportTypeProxy.FULL), Direction.EAST));
+                .with(this.northProperty, this.connectsTo(blockState, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState.minecraftState(), level.minecraftWorld(), LocationUtils.toBlockPos(blockPos), DirectionProxy.SOUTH, SupportTypeProxy.FULL), Direction.SOUTH))
+                .with(this.eastProperty, this.connectsTo(blockState1, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState1.minecraftState(), level.minecraftWorld(), LocationUtils.toBlockPos(blockPos1), DirectionProxy.WEST, SupportTypeProxy.FULL), Direction.WEST))
+                .with(this.southProperty, this.connectsTo(blockState2, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState2.minecraftState(), level.minecraftWorld(), LocationUtils.toBlockPos(blockPos2), DirectionProxy.NORTH, SupportTypeProxy.FULL), Direction.NORTH))
+                .with(this.westProperty, this.connectsTo(blockState3, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(blockState3.minecraftState(), level.minecraftWorld(), LocationUtils.toBlockPos(blockPos3), DirectionProxy.EAST, SupportTypeProxy.FULL), Direction.EAST));
     }
 
     @Override
@@ -159,7 +159,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
                 BooleanProperty booleanProperty = (BooleanProperty) state.owner().value().getProperty(direction.name().toLowerCase(Locale.ROOT));
                 if (booleanProperty != null) {
                     BlockStateWrapper wrapper = BlockStateUtils.toBlockStateWrapper(args[updateShape$neighborState]);
-                    return state.with(booleanProperty, this.connectsTo(wrapper, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(wrapper.literalObject(), args[updateShape$level], args[5], DirectionUtils.toNMSDirection(direction.opposite()), SupportTypeProxy.FULL), direction.opposite())).customBlockState().literalObject();
+                    return state.with(booleanProperty, this.connectsTo(wrapper, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(wrapper.minecraftState(), args[updateShape$level], args[5], DirectionUtils.toNMSDirection(direction.opposite()), SupportTypeProxy.FULL), direction.opposite())).customBlockState().minecraftState();
                 }
             }
         }

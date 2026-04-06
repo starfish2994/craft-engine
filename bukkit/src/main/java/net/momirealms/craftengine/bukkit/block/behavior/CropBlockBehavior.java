@@ -84,7 +84,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
             BlockStateUtils.getOptionalCustomBlockState(state).ifPresent(customState -> {
                 int age = this.getAge(customState);
                 if (age < this.ageProperty.max && RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
-                    LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(this.ageProperty, age + 1).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+                    LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
                 }
             });
         }
@@ -130,14 +130,14 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
         if (isMaxAge(state))
             return InteractionResult.PASS;
         boolean sendSwing = false;
-        Object visualState = state.visualBlockState().literalObject();
+        Object visualState = state.visualBlockState().minecraftState();
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
             if (VersionHelper.isOrAbove1_20_2()) {
-                is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.serverWorld(), LocationUtils.toBlockPos(pos), visualState);
+                is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState);
             } else {
-                is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.serverWorld(), LocationUtils.toBlockPos(pos), visualState, true);
+                is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState, true);
             }
             if (!is) {
                 sendSwing = true;
@@ -158,7 +158,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
         }
         ImmutableBlockState customState = optionalCustomState.get();
         boolean sendParticles = false;
-        Object visualState = customState.visualBlockState().literalObject();
+        Object visualState = customState.visualBlockState().minecraftState();
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
@@ -187,7 +187,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
         if (i > maxAge) {
             i = maxAge;
         }
-        LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(this.ageProperty, i).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+        LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(this.ageProperty, i).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         if (sendParticles) {
             world.spawnParticle(ParticleUtils.HAPPY_VILLAGER, x + 0.5, y + 0.5, z + 0.5, 15, 0.25, 0.25, 0.25);
         }

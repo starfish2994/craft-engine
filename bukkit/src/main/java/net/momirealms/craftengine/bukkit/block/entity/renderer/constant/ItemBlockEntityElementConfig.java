@@ -34,7 +34,7 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
             if (wrappedItem == null) {
                 wrappedItem = Objects.requireNonNull(BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player));
             }
-            ItemEntityData.Item.addEntityData(wrappedItem.getMinecraftItem(), dataValues);
+            ItemEntityData.Item.addEntityData(wrappedItem.minecraftItem(), dataValues);
             ItemEntityData.NoGravity.addEntityData(true, dataValues);
             return dataValues;
         };

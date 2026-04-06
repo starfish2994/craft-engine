@@ -114,13 +114,13 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
             for (Key customBlock : customBlocks) {
                 BukkitBlockManager.instance().blockById(customBlock).ifPresent(block -> {
                     for (ImmutableBlockState state : block.variantProvider().states()) {
-                        blockStates.add(state.customBlockState().literalObject());
+                        blockStates.add(state.customBlockState().minecraftState());
                     }
                 });
             }
             for (String customState : customStates) {
                 Optional.ofNullable(BlockStateParser.deserialize(customState)).ifPresent(blockState -> {
-                    blockStates.add(blockState.customBlockState().literalObject());
+                    blockStates.add(blockState.customBlockState().minecraftState());
                 });
             }
             return blockStates;

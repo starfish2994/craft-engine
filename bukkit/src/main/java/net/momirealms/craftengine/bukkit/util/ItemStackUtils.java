@@ -77,7 +77,7 @@ public final class ItemStackUtils {
     }
 
     public static ItemStack getBukkitStack(Item item) {
-        return getBukkitStack(item.getMinecraftItem());
+        return getBukkitStack(item.minecraftItem());
     }
 
     @Nullable

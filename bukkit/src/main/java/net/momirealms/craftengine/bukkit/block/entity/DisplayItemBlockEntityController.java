@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.entity;
 
 import net.momirealms.craftengine.bukkit.block.behavior.DisplayItemBlockBehavior;
-import net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic.DynamicItemBlockEntityElement;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic.DynamicDisplayItemBlockEntityElement;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -13,18 +13,22 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.IntTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class DisplayItemBlockEntityController extends BlockEntityController {
+    private static final String DEFAULT_DATA_KEY = "craftengine:display_item";
     private final DisplayItemBlockBehavior behavior;
-    private final DynamicItemBlockEntityElement element;
+    private final DynamicDisplayItemBlockEntityElement element;
     @NotNull
     private Item displayItem;
     private WorldPosition displayItemPosition;
@@ -36,7 +40,7 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
         this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
         this.displayItem = BukkitItemManager.instance().emptyItem();
         this.displayItemPosition = this.calculateDisplayItemPosition(blockEntity.blockState);
-        this.element = new DynamicItemBlockEntityElement(this, this.displayItemPosition);
+        this.element = new DynamicDisplayItemBlockEntityElement(this, this.displayItemPosition);
     }
 
     @Override
@@ -57,7 +61,7 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     // 放入方块内的展示物品
     public void putDisplayItem(Item inputItem /* Not Empty */) {
         this.displayItem = inputItem;
-        this.element.refreshChangeDisplayItemPacket(inputItem.getMinecraftItem());
+        this.element.refreshChangeDisplayItemPacket(inputItem.minecraftItem());
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
@@ -82,7 +86,8 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     @Override
     public void preBlockStateChange(ImmutableBlockState newState) {
         this.displayItemPosition = this.calculateDisplayItemPosition(newState);
-        this.element.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition, true);
+        this.element.positionDirty(true);
+        this.element.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition);
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
@@ -95,21 +100,33 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     // 读取方块内存储的物品
     @Override
     public void loadCustomData(CompoundTag tag) {
-        Tag itemTag = tag.get("display_item");
+        CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
+        // 空数据
+        if (dataTag == null) {
+            this.displayItem = BukkitItemManager.instance().emptyItem();
+            return;
+        }
+        // 读取数据
+        int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+        Tag itemTag = dataTag.get("display_item");
+        // 非法数据
         if (itemTag == null) {
             this.displayItem = BukkitItemManager.instance().emptyItem();
             return;
         }
-        // 如果里面有物品, 同时刷新Render的包缓存.
-        int dataVersion = tag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+        // 记录并刷新
         this.displayItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
-        this.element.refreshChangeDisplayItemPacket(this.displayItem.getMinecraftItem());
+        this.element.refreshChangeDisplayItemPacket(this.displayItem.minecraftItem());
     }
 
     @Override
     public void saveCustomData(CompoundTag tag) {
         if (!ItemUtils.isEmpty(displayItem)) {
-            tag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.getMinecraftItem()));
+            CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
+                dataTag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.minecraftItem()));
+                dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+            });
+            tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
         }
     }
 

@@ -72,8 +72,8 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
         if (optionalStemBlock.isPresent()) {
             BlockDefinition stemBlock = optionalStemBlock.get();
             IntegerProperty ageProperty = (IntegerProperty) stemBlock.getProperty("age");
-            if (ageProperty == null) return stemBlock.defaultState().customBlockState().literalObject();
-            return stemBlock.defaultState().with(ageProperty, ageProperty.max).customBlockState().literalObject();
+            if (ageProperty == null) return stemBlock.defaultState().customBlockState().minecraftState();
+            return stemBlock.defaultState().with(ageProperty, ageProperty.max).customBlockState().minecraftState();
         }
         return null;
     }

@@ -126,7 +126,7 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior {
         }
         ImmutableBlockState customState = optionalCustomState.get();
         boolean sendParticles = false;
-        Object visualState = customState.visualBlockState().literalObject();
+        Object visualState = customState.visualBlockState().minecraftState();
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
@@ -175,14 +175,14 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior {
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
         boolean sendSwing = false;
-        Object visualState = state.visualBlockState().literalObject();
+        Object visualState = state.visualBlockState().minecraftState();
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
             if (VersionHelper.isOrAbove1_20_2()) {
-                is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.serverWorld(), LocationUtils.toBlockPos(pos), visualState);
+                is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState);
             } else {
-                is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.serverWorld(), LocationUtils.toBlockPos(pos), visualState, true);
+                is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState, true);
             }
             if (!is) {
                 sendSwing = true;

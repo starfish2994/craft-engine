@@ -57,7 +57,7 @@ public final class ItemFurnitureElementConfig implements FurnitureElementConfig<
         };
         this.metadata = (player, source) -> {
             List<Object> dataValues = new ArrayList<>();
-            ItemEntityData.Item.addEntityData(itemFunction.apply(player, source).getMinecraftItem(), dataValues);
+            ItemEntityData.Item.addEntityData(itemFunction.apply(player, source).minecraftItem(), dataValues);
             ItemEntityData.NoGravity.addEntityData(true, dataValues);
             return dataValues;
         };

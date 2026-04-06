@@ -121,7 +121,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
                 } else {
                     ImmutableBlockState customState = optionalCustomState.get();
                     // custom block
-                    if (!AdventureModeUtils.canPlace(context.getItem(), context.getLevel(), againstPos, Config.simplifyAdventurePlaceCheck() ? customState.visualBlockState().literalObject() : againstBlockState)) {
+                    if (!AdventureModeUtils.canPlace(context.getItem(), context.getLevel(), againstPos, Config.simplifyAdventurePlaceCheck() ? customState.visualBlockState().minecraftState() : againstBlockState)) {
                         return InteractionResult.FAIL;
                     }
                 }
@@ -206,7 +206,7 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
     protected boolean canPlace(BlockPlaceContext context, ImmutableBlockState state) {
         Player cePlayer = context.getPlayer();
         Object player = cePlayer != null ? cePlayer.serverPlayer() : null;
-        Object blockState = state.customBlockState().literalObject();
+        Object blockState = state.customBlockState().minecraftState();
         Object blockPos = LocationUtils.toBlockPos(context.getClickedPos());
         Object voxelShape;
         if (VersionHelper.isOrAbove1_21_6()) {

@@ -83,10 +83,10 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
         optionalCustomState.ifPresent(customState -> customState.behavior().let(LeavesBlockBehavior.class, itsBehavior -> {
             ImmutableBlockState newState = itsBehavior.updateDistance(customState, level, blockPos);
             if (newState != customState) {
-                if (blockState == newState.customBlockState().literalObject()) {
+                if (blockState == newState.customBlockState().minecraftState()) {
                     BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.updateNeighbourShapes(blockState, level, blockPos, UpdateFlags.UPDATE_ALL, 512);
                 } else {
-                    LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+                    LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
                 }
             }
         }));

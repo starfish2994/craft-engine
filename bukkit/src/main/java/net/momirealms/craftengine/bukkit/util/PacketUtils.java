@@ -63,9 +63,9 @@ public final class PacketUtils {
 
     public static void writeItem(ByteBuf buf, Item item) {
         if (VersionHelper.isOrAbove1_20_5()) {
-            StreamEncoderProxy.INSTANCE.encode(ItemStack$OPTIONAL_STREAM_CODEC, ensureNMSFriendlyByteBuf(buf), item.getMinecraftItem());
+            StreamEncoderProxy.INSTANCE.encode(ItemStack$OPTIONAL_STREAM_CODEC, ensureNMSFriendlyByteBuf(buf), item.minecraftItem());
         } else {
-            FriendlyByteBufProxy.INSTANCE.writeItem(ensureNMSFriendlyByteBuf(buf), item.getMinecraftItem());
+            FriendlyByteBufProxy.INSTANCE.writeItem(ensureNMSFriendlyByteBuf(buf), item.minecraftItem());
         }
     }
 
@@ -76,6 +76,6 @@ public final class PacketUtils {
 
     public static void writeUntrustedItem(ByteBuf buf, Item item) {
         if (!VersionHelper.isOrAbove1_20_5()) throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
-        StreamEncoderProxy.INSTANCE.encode(UNTRUSTED_ITEM_CODEC, ensureNMSFriendlyByteBuf(buf), item.getMinecraftItem());
+        StreamEncoderProxy.INSTANCE.encode(UNTRUSTED_ITEM_CODEC, ensureNMSFriendlyByteBuf(buf), item.minecraftItem());
     }
 }

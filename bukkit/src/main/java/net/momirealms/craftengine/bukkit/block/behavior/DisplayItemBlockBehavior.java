@@ -23,6 +23,7 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
@@ -39,13 +40,16 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     @Nullable
     public final Property<Direction> directionProperty;
     private int controllerId;
+    @Nullable
+    public final String customDataKey;
 
     public DisplayItemBlockBehavior(BlockDefinition blockDefinition,
                                     SoundData putSound,
                                     SoundData takeSound,
                                     boolean hasAnalogOutputSignal,
                                     Vector3f relativePosition,
-                                    @Nullable Property<Direction> directionProperty
+                                    @Nullable Property<Direction> directionProperty,
+                                    @Nullable String customDataKey
     ) {
         super(blockDefinition);
         this.putSound = putSound;
@@ -53,6 +57,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         this.hasAnalogOutputSignal = hasAnalogOutputSignal;
         this.relativePosition = relativePosition;
         this.directionProperty = directionProperty;
+        this.customDataKey = customDataKey;
     }
 
     @Override
@@ -86,6 +91,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                 }
                 c.putDisplayItem(inputItem);
                 player.swingHand(hand);
+                if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
             // 取出物品
@@ -93,6 +99,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                 Item takedItem = c.takeDisplayItem();
                 player.setItemInHand(hand, takedItem);
                 player.swingHand(hand);
+                if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
             return InteractionResult.TRY_EMPTY_HAND;
@@ -127,6 +134,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
 
     private static class Factory implements BlockBehaviorFactory<DisplayItemBlockBehavior> {
         private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
+        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
 
         @Override
         public DisplayItemBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -148,7 +156,8 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                     takeSound,
                     section.getBoolean(HAS_SIGNAL, true),
                     position,
-                    facing
+                    facing,
+                    section.getString(DATA_KEY)
             );
         }
     }

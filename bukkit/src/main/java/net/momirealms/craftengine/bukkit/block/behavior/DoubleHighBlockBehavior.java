@@ -57,7 +57,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
             DoubleHighBlockBehavior anotherDoorBehavior = neighborState.behavior().getFirst(DoubleHighBlockBehavior.class);
             if (anotherDoorBehavior == null) return BlocksProxy.AIR$defaultState;
             if (neighborState.get(anotherDoorBehavior.halfProperty) != half) {
-                return neighborState.with(anotherDoorBehavior.halfProperty, half).customBlockState().literalObject();
+                return neighborState.with(anotherDoorBehavior.halfProperty, half).customBlockState().minecraftState();
             }
             return BlocksProxy.AIR$defaultState;
         } else if (half == DoubleBlockHalf.LOWER && direction == DirectionProxy.DOWN && !canSurvive(thisBlock, blockState, level, blockPos)) {
@@ -125,7 +125,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
         Object blockState = args[2];
         Object pos = args[1];
         Optional<ImmutableBlockState> immutableBlockState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        immutableBlockState.ifPresent(state -> LevelWriterProxy.INSTANCE.setBlock(args[0], LocationUtils.above(pos), state.with(this.halfProperty, DoubleBlockHalf.UPPER).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL));
+        immutableBlockState.ifPresent(state -> LevelWriterProxy.INSTANCE.setBlock(args[0], LocationUtils.above(pos), state.with(this.halfProperty, DoubleBlockHalf.UPPER).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL));
     }
 
     @Override

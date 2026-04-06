@@ -39,11 +39,11 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
                 Direction.Axis axis = blockState.get(axisProperty);
                 return switch (rotation) {
                     case COUNTERCLOCKWISE_90, CLOCKWISE_90 -> switch (axis) {
-                        case X -> blockState.with(axisProperty, Direction.Axis.Z).customBlockState().literalObject();
-                        case Z -> blockState.with(axisProperty, Direction.Axis.X).customBlockState().literalObject();
-                        default -> blockState.customBlockState().literalObject();
+                        case X -> blockState.with(axisProperty, Direction.Axis.Z).customBlockState().minecraftState();
+                        case Z -> blockState.with(axisProperty, Direction.Axis.X).customBlockState().minecraftState();
+                        default -> blockState.customBlockState().minecraftState();
                     };
-                    default -> blockState.customBlockState().literalObject();
+                    default -> blockState.customBlockState().minecraftState();
                 };
             };
         });
@@ -53,7 +53,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
                 Property<Direction> directionProperty = (Property<Direction>) property;
                 behavior.rotateFunction = (thisBlock, blockState, rotation) ->
                         blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty)))
-                                .customBlockState().literalObject();
+                                .customBlockState().minecraftState();
                 behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
                     Rotation rotation = mirror.getRotation(blockState.get(directionProperty));
                     return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
@@ -66,7 +66,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
                 Property<Direction> directionProperty = (Property<Direction>) property;
                 behavior.rotateFunction = (thisBlock, blockState, rotation) ->
                         blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty)))
-                                .customBlockState().literalObject();
+                                .customBlockState().minecraftState();
                 behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
                     Rotation rotation = mirror.getRotation(blockState.get(directionProperty));
                     return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
@@ -137,7 +137,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
         if (optionalCustomState.isEmpty()) return ItemStackProxy.EMPTY;
         ImmutableBlockState immutableBlockState = optionalCustomState.get();
         if (immutableBlockState.get(this.waterloggedProperty)) {
-            LevelWriterProxy.INSTANCE.setBlock(world, pos, immutableBlockState.with(this.waterloggedProperty, false).customBlockState().literalObject(), 3);
+            LevelWriterProxy.INSTANCE.setBlock(world, pos, immutableBlockState.with(this.waterloggedProperty, false).customBlockState().minecraftState(), 3);
             return ItemStackProxy.INSTANCE.newInstance(ItemsProxy.WATER_BUCKET, 1);
         }
         return ItemStackProxy.EMPTY;
@@ -152,7 +152,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
         ImmutableBlockState immutableBlockState = optionalCustomState.get();
         Object fluidType = FluidStateProxy.INSTANCE.getType(args[3]);
         if (!immutableBlockState.get(this.waterloggedProperty) && fluidType == FluidsProxy.WATER) {
-            LevelWriterProxy.INSTANCE.setBlock(args[0], args[1], immutableBlockState.with(this.waterloggedProperty, true).customBlockState().literalObject(), 3);
+            LevelWriterProxy.INSTANCE.setBlock(args[0], args[1], immutableBlockState.with(this.waterloggedProperty, true).customBlockState().minecraftState(), 3);
             LevelUtils.scheduleFluidTick(args[0], args[1], fluidType, 5);
             return true;
         }
@@ -181,9 +181,9 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
         BlockStateWrapper vanillaState = optionalCustomState.get().visualBlockState();
         if (vanillaState == null) return false;
         if (VersionHelper.isOrAbove1_20_5()) {
-            return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPathfindable(vanillaState.literalObject(), args[isPathFindable$type]);
+            return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPathfindable(vanillaState.minecraftState(), args[isPathFindable$type]);
         } else {
-            return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPathfindable(vanillaState.literalObject(), args[1], args[2], args[isPathFindable$type]);
+            return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPathfindable(vanillaState.minecraftState(), args[1], args[2], args[isPathFindable$type]);
         }
     }
 }

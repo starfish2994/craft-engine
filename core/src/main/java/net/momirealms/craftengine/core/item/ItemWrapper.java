@@ -7,11 +7,17 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ItemWrapper {
 
-    Object getMinecraftItem();
+    Object minecraftItem();
+
+    default Object platformItem() {
+        return minecraftItem();
+    }
 
     int count();
 
     void count(int amount);
+
+    ItemWrapper copy();
 
     ItemWrapper copyWithCount(int count);
 

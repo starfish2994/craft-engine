@@ -48,7 +48,7 @@ public final class BlockStateUtils {
         if (settings.requireCorrectTool()) {
             if (itemInHand == null || itemInHand.isEmpty()) return false;
             return settings.isCorrectTool(itemInHand.id()) ||
-                    (settings.respectToolComponent() && ItemStackProxy.INSTANCE.isCorrectToolForDrops(itemInHand.getMinecraftItem(), state.customBlockState().literalObject()));
+                    (settings.respectToolComponent() && ItemStackProxy.INSTANCE.isCorrectToolForDrops(itemInHand.minecraftItem(), state.customBlockState().minecraftState()));
         }
         return true;
     }

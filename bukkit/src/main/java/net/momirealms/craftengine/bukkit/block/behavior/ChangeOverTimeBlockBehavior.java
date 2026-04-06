@@ -52,7 +52,7 @@ public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior {
             BlockStateWrapper nextState = this.nextState();
             if (nextState == null) return;
             nextState = nextState.withProperties(filter(state.propertiesNbt()));
-            CraftEventFactoryProxy.INSTANCE.handleBlockFormEvent(args[1], args[2], nextState.literalObject(), UpdateFlags.UPDATE_ALL);
+            CraftEventFactoryProxy.INSTANCE.handleBlockFormEvent(args[1], args[2], nextState.minecraftState(), UpdateFlags.UPDATE_ALL);
         });
     }
 

@@ -68,11 +68,11 @@ public final class DebugItemDataCommand extends BukkitCommandFeature<CommandSend
     @SuppressWarnings("unchecked")
     private static Map<String, Object> toMap(Item item) {
         if (VersionHelper.COMPONENT_RELEASE) {
-            return (Map<String, Object>) ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.JAVA, item.getMinecraftItem())
+            return (Map<String, Object>) ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.JAVA, item.minecraftItem())
                     .resultOrPartial(error -> CraftEngine.instance().logger().error("Error while saving item: " + error))
                     .orElse(null);
         } else {
-            Object nmsTag = ItemStackProxy.INSTANCE.save(item.getMinecraftItem(), CompoundTagProxy.INSTANCE.newInstance());
+            Object nmsTag = ItemStackProxy.INSTANCE.save(item.minecraftItem(), CompoundTagProxy.INSTANCE.newInstance());
             return (Map<String, Object>) RegistryOps.NBT.convertTo(RegistryOps.JAVA, nmsTag);
         }
     }

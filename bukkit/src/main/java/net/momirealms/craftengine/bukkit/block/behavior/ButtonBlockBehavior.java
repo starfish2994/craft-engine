@@ -70,8 +70,8 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
             }
         }
         if (!state.get(this.poweredProperty)) {
-            press(BlockStateUtils.getBlockOwner(state.customBlockState().literalObject()),
-                    state, world.serverWorld(), LocationUtils.toBlockPos(pos),
+            press(BlockStateUtils.getBlockOwner(state.customBlockState().minecraftState()),
+                    state, world.minecraftWorld(), LocationUtils.toBlockPos(pos),
                     player != null ? player.serverPlayer() : null);
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
@@ -152,7 +152,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
         if (blockState == null) return;
         boolean poweredValue = blockState.get(this.poweredProperty);
         if (on != poweredValue) {
-            LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.poweredProperty, on).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+            LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.poweredProperty, on).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
             updateNeighbours(thisBlock, blockState, level, pos);
             playSound(level, pos, on);
             if (VersionHelper.isOrAbove1_20_5()) {
@@ -204,7 +204,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void press(Object thisBlock, ImmutableBlockState state, Object level, Object pos, @Nullable Object player) {
-        LevelWriterProxy.INSTANCE.setBlock(level, pos, state.with(this.poweredProperty, true).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+        LevelWriterProxy.INSTANCE.setBlock(level, pos, state.with(this.poweredProperty, true).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         this.updateNeighbours(thisBlock, state, level, pos);
         LevelUtils.scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
         playSound(level, pos, true);

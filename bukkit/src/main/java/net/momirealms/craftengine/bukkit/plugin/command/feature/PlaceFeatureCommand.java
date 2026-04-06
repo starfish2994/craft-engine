@@ -75,7 +75,7 @@ public final class PlaceFeatureCommand extends BukkitCommandFeature<CommandSende
                     } else {
                         pos = new BlockPos(MiscUtils.floor(player.x()), MiscUtils.floor(player.y()), MiscUtils.floor(player.z()));
                     }
-                    Object level = player.world().serverWorld();
+                    Object level = player.world().minecraftWorld();
                     Object configuredFeature = HolderProxy.INSTANCE.value(feature);
                     int chunkX = pos.x >> 4;
                     int chunkZ = pos.z >> 4;

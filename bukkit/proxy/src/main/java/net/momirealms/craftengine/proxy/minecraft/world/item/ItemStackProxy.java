@@ -124,4 +124,10 @@ public interface ItemStackProxy extends DataComponentHolderProxy, ItemInstancePr
 
     @MethodInvoker(name = "validatedStreamCodec", isStatic = true, activeIf = "min_version=1.20.5")
     Object validatedStreamCodec(@Type(clazz = StreamCodecProxy.class) Object basePacketCodec);
+
+    @MethodInvoker(name = "isSameItemSameTags", isStatic = true, activeIf = "max_version=1.20.4")
+    boolean isSameItemSameTags(@Type(clazz = ItemStackProxy.class) Object stack, @Type(clazz = ItemStackProxy.class) Object otherStack);
+
+    @MethodInvoker(name = "isSameItemSameComponents", isStatic = true, activeIf = "min_version=1.20.5")
+    boolean isSameItemSameComponents(@Type(clazz = ItemStackProxy.class) Object stack, @Type(clazz = ItemStackProxy.class) Object otherStack);
 }

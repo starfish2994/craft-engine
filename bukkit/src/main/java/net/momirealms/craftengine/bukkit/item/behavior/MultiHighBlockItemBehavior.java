@@ -63,7 +63,7 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
         IntegerProperty property = behavior.property;
         Player cePlayer = context.getPlayer();
         Object player = cePlayer != null ? cePlayer.serverPlayer() : null;
-        Object blockState = state.customBlockState().literalObject();
+        Object blockState = state.customBlockState().minecraftState();
         for (int i = property.min + 1; i <= property.max; i++) {
             Object blockPos = LocationUtils.toBlockPos(context.getClickedPos().relative(Direction.UP, i));
             Object voxelShape;

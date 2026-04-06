@@ -58,7 +58,7 @@ public final class StackableBlockBehavior extends BukkitBlockBehavior implements
 
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        Object world = context.getLevel().serverWorld();
+        Object world = context.getLevel().minecraftWorld();
         Object pos = LocationUtils.toBlockPos(context.getClickedPos());
         ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(BlockGetterProxy.INSTANCE.getBlockState(world, pos)).orElse(null);
         if (blockState == null) {
