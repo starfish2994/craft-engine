@@ -155,7 +155,7 @@ public final class ItemStackUtils {
     }
 
     public static Object toItemStackTemplate(Item item) {
-        Object minecraftItem = item.getMinecraftItem();
+        Object minecraftItem = item.minecraftItem();
         return ItemStackTemplateProxy.INSTANCE.newInstance(
                 ItemStackProxy.INSTANCE.typeHolder(minecraftItem),
                 ItemStackProxy.INSTANCE.getCount(minecraftItem),
