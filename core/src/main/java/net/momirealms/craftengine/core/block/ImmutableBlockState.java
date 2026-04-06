@@ -2,8 +2,8 @@ package net.momirealms.craftengine.core.block;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
-import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
+import net.momirealms.craftengine.core.block.entity.render.element.ConstantBlockEntityElement;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -37,7 +37,7 @@ public final class ImmutableBlockState {
     private BlockBehavior behavior;
     private BlockSettings settings;
     @Nullable
-    private BlockEntityElementConfig<? extends BlockEntityElement>[] renderers;
+    private BlockEntityElementConfig<? extends ConstantBlockEntityElement>[] renderers;
     @Nullable
     private CullingData cullingData;
     private boolean hasBlockEntity;
@@ -70,11 +70,11 @@ public final class ImmutableBlockState {
         return this == EmptyBlockDefinition.STATE;
     }
 
-    public BlockEntityElementConfig<? extends BlockEntityElement>[] constantRenderers() {
+    public BlockEntityElementConfig<? extends ConstantBlockEntityElement>[] constantRenderers() {
         return this.renderers;
     }
 
-    public void setConstantRenderers(BlockEntityElementConfig<? extends BlockEntityElement>[] renderers) {
+    public void setConstantRenderers(BlockEntityElementConfig<? extends ConstantBlockEntityElement>[] renderers) {
         this.renderers = renderers;
     }
 

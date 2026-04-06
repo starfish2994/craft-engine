@@ -9,9 +9,9 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
-import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigs;
+import net.momirealms.craftengine.core.block.entity.render.element.ConstantBlockEntityElement;
 import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Properties;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -799,9 +799,9 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         }
 
         @SuppressWarnings("unchecked")
-        private Optional<BlockEntityElementConfig<? extends BlockEntityElement>[]> parseBlockEntityRender(ConfigValue arguments) {
+        private Optional<BlockEntityElementConfig<? extends ConstantBlockEntityElement>[]> parseBlockEntityRender(ConfigValue arguments) {
             if (arguments == null) return Optional.empty();
-            List<BlockEntityElementConfig<BlockEntityElement>> configs = arguments.getAsList(v -> BlockEntityElementConfigs.fromConfig(v.getAsSection()));
+            List<BlockEntityElementConfig<ConstantBlockEntityElement>> configs = arguments.getAsList(v -> BlockEntityElementConfigs.fromConfig(v.getAsSection()));
             if (configs.isEmpty()) return Optional.empty();
             return Optional.of(configs.toArray(new BlockEntityElementConfig[0]));
         }

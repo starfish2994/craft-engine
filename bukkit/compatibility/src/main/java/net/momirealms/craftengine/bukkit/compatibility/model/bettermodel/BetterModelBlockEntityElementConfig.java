@@ -4,27 +4,40 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
 import org.joml.Vector3f;
 
+import java.util.List;
+import java.util.function.Predicate;
+
 public final class BetterModelBlockEntityElementConfig implements BlockEntityElementConfig<BetterModelBlockEntityElement> {
-    private final Vector3f position;
-    private final float yaw;
-    private final float pitch;
-    private final String model;
-    private final boolean sightTrace;
+    public final Vector3f position;
+    public final float yaw;
+    public final float pitch;
+    public final String model;
+    public final boolean sightTrace;
+    public final Predicate<PlayerContext> predicate;
+    public final boolean hasCondition;
 
     public BetterModelBlockEntityElementConfig(String model,
                                                Vector3f position,
                                                float yaw,
                                                float pitch,
-                                               boolean sightTrace) {
+                                               boolean sightTrace,
+                                               Predicate<PlayerContext> predicate,
+                                               boolean hasCondition) {
         this.pitch = pitch;
         this.position = position;
         this.yaw = yaw;
         this.model = model;
         this.sightTrace = sightTrace;
+        this.predicate = predicate;
+        this.hasCondition = hasCondition;
     }
 
     public String model() {
@@ -49,7 +62,7 @@ public final class BetterModelBlockEntityElementConfig implements BlockEntityEle
 
     @Override
     public BetterModelBlockEntityElement create(World world, BlockPos pos) {
-        return new BetterModelBlockEntityElement(world, pos, this);
+        return new BetterModelBlockEntityElement(this, world, pos);
     }
 
     @Override
@@ -63,12 +76,15 @@ public final class BetterModelBlockEntityElementConfig implements BlockEntityEle
         @Override
         public BetterModelBlockEntityElementConfig create(ConfigSection section) {
             String model = section.getNonEmptyString("model");
+            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new BetterModelBlockEntityElementConfig(
                     model,
                     section.getVector3f("position", ConfigConstants.CENTER_VECTOR3),
                     section.getFloat("yaw"),
                     section.getFloat("pitch"),
-                    section.getBoolean(SIGHT_TRACE, true)
+                    section.getBoolean(SIGHT_TRACE, true),
+                    MiscUtils.allOf(conditions),
+                    !conditions.isEmpty()
             );
         }
     }

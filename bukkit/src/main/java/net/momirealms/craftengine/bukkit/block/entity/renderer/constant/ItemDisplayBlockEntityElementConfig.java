@@ -13,8 +13,12 @@ import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -24,6 +28,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class ItemDisplayBlockEntityElementConfig implements BlockEntityElementConfig<ItemDisplayBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ItemDisplayBlockEntityElement> FACTORY = new Factory();
@@ -43,6 +48,8 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
     public final int blockLight;
     public final int skyLight;
     public final float viewRange;
+    public final Predicate<PlayerContext> predicate;
+    public final boolean hasCondition;
 
     public ItemDisplayBlockEntityElementConfig(Key itemId,
                                                Vector3f scale,
@@ -58,7 +65,9 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
                                                @Nullable Color glowColor,
                                                int blockLight,
                                                int skyLight,
-                                               float viewRange) {
+                                               float viewRange,
+                                               Predicate<PlayerContext> predicate,
+                                               boolean hasCondition) {
         this.itemId = itemId;
         this.scale = scale;
         this.position = position;
@@ -74,6 +83,8 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         this.blockLight = blockLight;
         this.skyLight = skyLight;
         this.viewRange = viewRange;
+        this.hasCondition = hasCondition;
+        this.predicate = predicate;
         this.lazyMetadataPacket = player -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
@@ -204,6 +215,7 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         @Override
         public ItemDisplayBlockEntityElementConfig create(ConfigSection section) {
             ConfigSection brightness = section.getSection("brightness");
+            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new ItemDisplayBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
                     section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),
@@ -219,7 +231,9 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
                     section.getValue(GLOW_COLOR, ConfigValue::getAsColor),
                     brightness != null ? brightness.getInt(BLOCK_LIGHT, -1) : -1,
                     brightness != null ? brightness.getInt(SKY_LIGHT, -1) : -1,
-                    section.getFloat(VIEW_RANGE, 1f)
+                    section.getFloat(VIEW_RANGE, 1f),
+                    MiscUtils.allOf(conditions),
+                    !conditions.isEmpty()
             );
         }
     }

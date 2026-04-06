@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class TextDisplayFurnitureElement extends AbstractFurnitureElement {
+public final class TextDisplayFurnitureElement extends AbstractConditionalFurnitureElement {
     public final TextDisplayFurnitureElementConfig config;
     public final Furniture furniture;
     public final WorldPosition position;

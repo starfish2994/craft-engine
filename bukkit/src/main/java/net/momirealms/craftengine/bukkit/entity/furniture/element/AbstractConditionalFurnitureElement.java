@@ -6,17 +6,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
-public abstract class AbstractFurnitureElement implements ConditionalFurnitureElement {
+public abstract class AbstractConditionalFurnitureElement implements ConditionalFurnitureElement {
     protected final Predicate<PlayerContext> predicate;
     protected final boolean hasCondition;
 
-    protected AbstractFurnitureElement(Predicate<PlayerContext> predicate, boolean hasCondition) {
+    protected AbstractConditionalFurnitureElement(Predicate<PlayerContext> predicate, boolean hasCondition) {
         this.predicate = predicate;
         this.hasCondition = hasCondition;
     }
 
     @Override
-    public @NotNull Predicate<PlayerContext> viewCondition() {
+    public @NotNull Predicate<PlayerContext> condition() {
         return this.predicate;
     }
 

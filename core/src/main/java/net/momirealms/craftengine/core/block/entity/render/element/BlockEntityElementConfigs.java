@@ -13,14 +13,14 @@ import java.util.Optional;
 public abstract class BlockEntityElementConfigs {
     protected BlockEntityElementConfigs() {}
 
-    public static <E extends BlockEntityElement> BlockEntityElementConfigType<E> register(Key key, BlockEntityElementConfigFactory<E> factory) {
+    public static <E extends ConstantBlockEntityElement> BlockEntityElementConfigType<E> register(Key key, BlockEntityElementConfigFactory<E> factory) {
         BlockEntityElementConfigType<E> type = new BlockEntityElementConfigType<>(key, factory);
         ((WritableRegistry<BlockEntityElementConfigType<? extends BlockEntityElement>>) BuiltInRegistries.BLOCK_ENTITY_ELEMENT_TYPE)
                 .register(ResourceKey.create(Registries.BLOCK_ENTITY_ELEMENT_TYPE.location(), key), type);
         return type;
     }
 
-    public static <E extends BlockEntityElement> BlockEntityElementConfig<E> fromConfig(ConfigSection section) {
+    public static <E extends ConstantBlockEntityElement> BlockEntityElementConfig<E> fromConfig(ConfigSection section) {
         Key type = getOrGuessType(section);
         @SuppressWarnings("unchecked")
         BlockEntityElementConfigType<E> configType = (BlockEntityElementConfigType<E>) BuiltInRegistries.BLOCK_ENTITY_ELEMENT_TYPE.getValue(type);

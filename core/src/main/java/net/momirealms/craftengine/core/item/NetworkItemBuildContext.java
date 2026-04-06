@@ -35,7 +35,7 @@ public class NetworkItemBuildContext extends ItemBuildContext {
     @NotNull
     public static NetworkItemBuildContext of(@Nullable Player player) {
         if (player == null) return new NetworkItemBuildContext(null, ContextHolder.empty());
-        return new NetworkItemBuildContext(player, new ContextHolder(Map.of(DirectContextParameters.PLAYER, () -> player)));
+        return new NetworkItemBuildContext(player, ContextHolder.mutable(Map.of(DirectContextParameters.PLAYER, () -> player)));
     }
 
     @NotNull

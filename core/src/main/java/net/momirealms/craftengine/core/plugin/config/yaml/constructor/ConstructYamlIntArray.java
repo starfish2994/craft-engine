@@ -33,7 +33,7 @@ public class ConstructYamlIntArray extends ConstructYamlInt implements Construct
                         "found empty value at index " + i, item.getStartMark());
             }
 
-            result[i] = parseInt(value);
+            result[i] = createIntNumber(value).intValue();
         }
 
         return result;

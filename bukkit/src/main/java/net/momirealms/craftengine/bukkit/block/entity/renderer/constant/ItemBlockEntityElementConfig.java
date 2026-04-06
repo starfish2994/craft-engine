@@ -9,7 +9,11 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
 import org.joml.Vector3f;
@@ -18,16 +22,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class ItemBlockEntityElementConfig implements BlockEntityElementConfig<ItemBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ItemBlockEntityElement> FACTORY = new Factory();
     public final Function<Player, List<Object>> lazyMetadataPacket;
     public final Key itemId;
     public final Vector3f position;
+    public final Predicate<PlayerContext> predicate;
+    public final boolean hasCondition;
 
-    public ItemBlockEntityElementConfig(Key itemId, Vector3f position) {
+    public ItemBlockEntityElementConfig(Key itemId,
+                                        Vector3f position,
+                                        Predicate<PlayerContext> predicate,
+                                        boolean hasCondition) {
         this.itemId = itemId;
         this.position = position;
+        this.hasCondition = hasCondition;
+        this.predicate = predicate;
         this.lazyMetadataPacket = player -> {
             List<Object> dataValues = new ArrayList<>();
             Item wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
@@ -83,9 +95,12 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
 
         @Override
         public ItemBlockEntityElementConfig create(ConfigSection section) {
+            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new ItemBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
-                    section.getVector3f("position", ConfigConstants.CENTER_VECTOR3)
+                    section.getVector3f("position", ConfigConstants.CENTER_VECTOR3),
+                    MiscUtils.allOf(conditions),
+                    !conditions.isEmpty()
             );
         }
     }

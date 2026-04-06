@@ -90,7 +90,7 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
     }
 
     @Override
-    public void show(Player player) {
+    public void show(@NotNull Player player) {
         if (!this.controller.displayItem().isEmpty()) {
             player.sendPackets(List.of(
                     this.spawnVehiclePacket,
@@ -102,12 +102,12 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
     }
 
     @Override
-    public void hide(Player player) {
+    public void hide(@NotNull Player player) {
         player.sendPacket(this.despawnAllPacket, false);
     }
 
     @Override
-    public void update(Player player) {
+    public void update(@NotNull Player player) {
         // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
         Item displayItem = this.controller.displayItem();
         Object minecraftItem = displayItem.minecraftItem();

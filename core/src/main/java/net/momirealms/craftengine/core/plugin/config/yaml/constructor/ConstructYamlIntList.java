@@ -34,7 +34,7 @@ public class ConstructYamlIntList extends ConstructYamlInt implements ConstructN
                         "found empty value", node.getStartMark());
             }
 
-            result.add(parseInt(value));
+            result.add(createIntNumber(value).intValue());
         }
         return result;
     }

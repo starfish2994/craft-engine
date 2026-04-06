@@ -4,7 +4,7 @@ import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
-import net.momirealms.craftengine.bukkit.entity.furniture.element.AbstractFurnitureElement;
+import net.momirealms.craftengine.bukkit.entity.furniture.element.AbstractConditionalFurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -15,7 +15,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
 
-public final class ModelEngineFurnitureElement extends AbstractFurnitureElement {
+public final class ModelEngineFurnitureElement extends AbstractConditionalFurnitureElement {
     public final Furniture furniture;
     public final ModelEngineFurnitureElementConfig config;
     public final Location location;

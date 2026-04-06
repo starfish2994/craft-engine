@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
-import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.element.AbstractConstantBlockEntityElement;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
@@ -12,12 +12,13 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.Clientbo
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.UUID;
 
-public final class ItemBlockEntityElement implements BlockEntityElement {
+public final class ItemBlockEntityElement extends AbstractConstantBlockEntityElement {
     public final ItemBlockEntityElementConfig config;
     public final Object cachedSpawnPacket1;
     public final Object cachedSpawnPacket2;
@@ -32,6 +33,7 @@ public final class ItemBlockEntityElement implements BlockEntityElement {
     }
 
     public ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, int entityId1, int entityId2, boolean posChanged) {
+        super(config.predicate, config.hasCondition);
         this.config = config;
         Vector3f position = config.position();
         this.cachedSpawnPacket1 = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
@@ -50,21 +52,26 @@ public final class ItemBlockEntityElement implements BlockEntityElement {
     }
 
     @Override
-    public void hide(Player player) {
+    public void hide(@NotNull Player player) {
         player.sendPacket(this.cachedDespawnPacket, false);
     }
 
     @Override
-    public void show(Player player) {
+    public void showInternal(Player player) {
         player.sendPackets(List.of(this.cachedSpawnPacket1, this.cachedSpawnPacket2, this.cachedRidePacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player))), false);
     }
 
     @Override
-    public void update(Player player) {
+    public void update(@NotNull Player player) {
         if (this.cachedUpdatePosPacket != null) {
             player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player))), false);
         } else {
             player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player)), false);
         }
+    }
+
+    @Override
+    public boolean supportsTransform() {
+        return true;
     }
 }

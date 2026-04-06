@@ -11,8 +11,12 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LegacyChatFormatter;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
 import org.joml.Vector3f;
@@ -20,6 +24,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class ArmorStandBlockEntityElementConfig implements BlockEntityElementConfig<ArmorStandBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ArmorStandBlockEntityElement> FACTORY = new Factory();
@@ -31,6 +36,8 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
     public final float yRot;
     public final boolean small;
     public final LegacyChatFormatter glowColor;
+    public final Predicate<PlayerContext> predicate;
+    public final boolean hasCondition;
 
     public ArmorStandBlockEntityElementConfig(Key itemId,
                                               float scale,
@@ -38,7 +45,9 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
                                               float xRot,
                                               float yRot,
                                               boolean small,
-                                              LegacyChatFormatter glowColor) {
+                                              LegacyChatFormatter glowColor,
+                                              Predicate<PlayerContext> predicate,
+                                              boolean hasCondition) {
         this.itemId = itemId;
         this.glowColor = glowColor;
         this.scale = scale;
@@ -46,6 +55,8 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         this.xRot = xRot;
         this.yRot = yRot;
         this.small = small;
+        this.predicate = predicate;
+        this.hasCondition = hasCondition;
         this.lazyMetadataPacket = player -> {
             List<Object> dataValues = new ArrayList<>(2);
             if (glowColor != null) {
@@ -134,6 +145,7 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
 
         @Override
         public ArmorStandBlockEntityElementConfig create(ConfigSection section) {
+            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new ArmorStandBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
                     section.getFloat("scale", 1f),
@@ -141,7 +153,9 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
                     section.getFloat("pitch", 0f),
                     section.getFloat("yaw", 0f),
                     section.getBoolean("small"),
-                    section.getEnum(GLOW_COLOR, LegacyChatFormatter.class)
+                    section.getEnum(GLOW_COLOR, LegacyChatFormatter.class),
+                    MiscUtils.allOf(conditions),
+                    !conditions.isEmpty()
             );
         }
     }

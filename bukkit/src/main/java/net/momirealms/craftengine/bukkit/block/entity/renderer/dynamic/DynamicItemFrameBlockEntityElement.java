@@ -20,6 +20,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.MapItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.saveddata.maps.MapItemSavedDataProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.UUID;
@@ -56,18 +57,18 @@ public final class DynamicItemFrameBlockEntityElement implements BlockEntityElem
     }
 
     @Override
-    public void show(Player player) {
+    public void show(@NotNull Player player) {
         player.sendPacket(this.cachedSpawnPacket, false);
         update(player);
     }
 
     @Override
-    public void hide(Player player) {
+    public void hide(@NotNull Player player) {
         player.sendPacket(this.cachedDespawnPacket, false);
     }
 
     @Override
-    public void update(Player player) {
+    public void update(@NotNull Player player) {
         player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.controller.cacheMetadata()), false);
         if (this.controller.behavior.renderMapItem) {
             updateMapItem(player);
