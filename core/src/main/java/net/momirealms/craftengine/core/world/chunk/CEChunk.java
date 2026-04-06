@@ -43,6 +43,8 @@ public class CEChunk {
     protected volatile boolean loaded;
     protected volatile boolean activated;
     protected boolean isEntitiesLoaded;
+    @Nullable
+    protected Chunk chunkAccess; // LevelChunk
 
     public CEChunk(CEWorld world, ChunkPos chunkPos) {
         this.world = world;
@@ -95,6 +97,15 @@ public class CEChunk {
         } else {
             this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         }
+    }
+
+    @Nullable
+    public Chunk chunkAccess() {
+        return this.chunkAccess;
+    }
+
+    public void setChunkAccess(@Nullable Chunk chunkAccess) {
+        this.chunkAccess = chunkAccess;
     }
 
     public void spawnBlockEntities(Player player) {

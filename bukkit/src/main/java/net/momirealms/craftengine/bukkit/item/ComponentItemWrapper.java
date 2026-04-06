@@ -34,7 +34,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
     }
 
     public ItemType createItemType() {
-        return new ComponentItemType(ItemStackProxy.INSTANCE.getItem(this.getMinecraftItem()));
+        return new ComponentItemType(ItemStackProxy.INSTANCE.getItem(this.minecraftItem()));
     }
 
     @Override
@@ -48,11 +48,11 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
     }
 
     public void removeComponent(Object type) {
-        ItemStackProxy.INSTANCE.remove(this.getMinecraftItem(), ensureDataComponentType(type));
+        ItemStackProxy.INSTANCE.remove(this.minecraftItem(), ensureDataComponentType(type));
     }
 
     public void resetComponent(Object type) {
-        Object item = ItemStackProxy.INSTANCE.getItem(this.getMinecraftItem());
+        Object item = ItemStackProxy.INSTANCE.getItem(this.minecraftItem());
         Object componentMap = ItemProxy.INSTANCE.components(item);
         Object componentType = ensureDataComponentType(type);
         Object defaultComponent;
@@ -61,7 +61,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
         } else {
             defaultComponent = DataComponentMapProxy.INSTANCE.get(componentMap, componentType);
         }
-        ItemStackProxy.INSTANCE.set(this.getMinecraftItem(), componentType, defaultComponent);
+        ItemStackProxy.INSTANCE.set(this.minecraftItem(), componentType, defaultComponent);
     }
 
     public void setComponent(Object type, final Object value) {
@@ -77,7 +77,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
     }
 
     public Object getExactComponent(Object type) {
-        return ItemStackProxy.INSTANCE.get(getMinecraftItem(), ensureDataComponentType(type));
+        return ItemStackProxy.INSTANCE.get(minecraftItem(), ensureDataComponentType(type));
     }
 
     @SuppressWarnings("unchecked")
@@ -101,7 +101,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
         Object componentType = ensureDataComponentType(type);
         Codec<T> codec = DataComponentTypeProxy.INSTANCE.codec(componentType);
         try {
-            T componentData = ItemStackProxy.INSTANCE.get(getMinecraftItem(), componentType);
+            T componentData = ItemStackProxy.INSTANCE.get(minecraftItem(), componentType);
             if (componentData == null) return Optional.empty();
             DataResult<T> result = codec.encodeStart(ops, componentData);
             return result.result();
@@ -111,14 +111,14 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
     }
 
     public boolean hasComponent(Object type) {
-        return ItemStackProxy.INSTANCE.has(getMinecraftItem(), ensureDataComponentType(type));
+        return ItemStackProxy.INSTANCE.has(minecraftItem(), ensureDataComponentType(type));
     }
 
     public boolean hasNonDefaultComponent(Object type) {
         if (VersionHelper.isOrAbove1_21_4()) {
-            return ItemStackProxy.INSTANCE.hasNonDefault(getMinecraftItem(), ensureDataComponentType(type));
+            return ItemStackProxy.INSTANCE.hasNonDefault(minecraftItem(), ensureDataComponentType(type));
         } else {
-            Object item = ItemStackProxy.INSTANCE.getItem(this.getMinecraftItem());
+            Object item = ItemStackProxy.INSTANCE.getItem(this.minecraftItem());
             Object componentMap = ItemProxy.INSTANCE.components(item);
             Object componentType = ensureDataComponentType(type);
             Object defaultComponent;
@@ -132,7 +132,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
     }
 
     public void setExactComponent(Object type, final Object value) {
-        ItemStackProxy.INSTANCE.set(this.getMinecraftItem(), ensureDataComponentType(type), value);
+        ItemStackProxy.INSTANCE.set(this.minecraftItem(), ensureDataComponentType(type), value);
     }
 
     public void setJavaComponent(Object type, Object value) {
@@ -163,7 +163,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
             if (result.isError()) {
                 throw new IllegalArgumentException(result.toString());
             }
-            result.result().ifPresent(it -> ItemStackProxy.INSTANCE.set(this.getMinecraftItem(), componentType, it));
+            result.result().ifPresent(it -> ItemStackProxy.INSTANCE.set(this.minecraftItem(), componentType, it));
         } catch (Throwable t) {
             throw new RuntimeException("Cannot parse component " + type.toString(), t);
         }

@@ -106,7 +106,7 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
         if (item == null) {
             this.itemStack = ItemStackProxy.EMPTY;
         } else {
-            this.itemStack = item.getMinecraftItem();
+            this.itemStack = item.minecraftItem();
         }
         this.update();
     }
@@ -145,9 +145,9 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
     private void update() {
         super.blockEntity.world.blockEntityChanged(super.blockEntity.pos);
         LevelProxy.INSTANCE.updateNeighbourForOutputSignal(
-                super.blockEntity.world.world.serverWorld(),
+                super.blockEntity.world.world.minecraftWorld(),
                 LocationUtils.toBlockPos(super.blockEntity.pos),
-                BlockStateUtils.getBlockOwner(super.blockEntity.blockState.customBlockState().literalObject())
+                BlockStateUtils.getBlockOwner(super.blockEntity.blockState.customBlockState().minecraftState())
         );
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk == null) return;
@@ -180,9 +180,9 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
                 return;
             }
             if (VersionHelper.isOrAbove1_20_5()) {
-                this.mapItemSavedData = MapItemProxy.INSTANCE.getSavedData$0(this.mapId, super.blockEntity.world.world.serverWorld());
+                this.mapItemSavedData = MapItemProxy.INSTANCE.getSavedData$0(this.mapId, super.blockEntity.world.world.minecraftWorld());
             } else {
-                this.mapItemSavedData = MapItemProxy.INSTANCE.getSavedData$1((Integer) this.mapId, super.blockEntity.world.world.serverWorld());
+                this.mapItemSavedData = MapItemProxy.INSTANCE.getSavedData$1((Integer) this.mapId, super.blockEntity.world.world.minecraftWorld());
             }
         }
     }

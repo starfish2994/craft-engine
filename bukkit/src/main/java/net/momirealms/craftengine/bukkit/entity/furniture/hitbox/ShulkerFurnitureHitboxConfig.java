@@ -218,7 +218,7 @@ public final class ShulkerFurnitureHitboxConfig extends AbstractFurnitureHitBoxC
                                    int entityId,
                                    Consumer<FurnitureHitboxPart> aabb) {
         AABB ceAABB = createAABB(direction, offset, x, y, z);
-        Object level = world.serverWorld();
+        Object level = world.minecraftWorld();
         Object nmsAABB = AABBProxy.INSTANCE.newInstance(ceAABB.minX, ceAABB.minY, ceAABB.minZ, ceAABB.maxX, ceAABB.maxY, ceAABB.maxZ);
         aabb.accept(new FurnitureHitboxPart(entityId, ceAABB, new Vec3d(x, y, z), false));
         return new BukkitCollider(level, nmsAABB, x, y, z, this.canBeHitByProjectile(), true, this.blocksBuilding());

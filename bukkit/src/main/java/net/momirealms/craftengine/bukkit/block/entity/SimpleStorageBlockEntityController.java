@@ -101,7 +101,7 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
             if (!hasNoViewer(this.inventory.getViewers())) return;
             this.maxInteractionDistance = Math.max(player.getCachedInteractionRange(), this.maxInteractionDistance);
             this.setOpen(player);
-            LevelUtils.scheduleBlockTick(super.blockEntity.world.world().serverWorld(), LocationUtils.toBlockPos(super.blockEntity.pos), BlockStateUtils.getBlockOwner(super.blockEntity.blockState.customBlockState().literalObject()), 5);
+            LevelUtils.scheduleBlockTick(super.blockEntity.world.world().minecraftWorld(), LocationUtils.toBlockPos(super.blockEntity.pos), BlockStateUtils.getBlockOwner(super.blockEntity.blockState.customBlockState().minecraftState()), 5);
         }
     }
 

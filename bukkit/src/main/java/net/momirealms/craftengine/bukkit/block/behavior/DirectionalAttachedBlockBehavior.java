@@ -86,7 +86,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
         BlockPos clickedPos = context.getClickedPos();
         for (Direction direction : context.getNearestLookingDirections()) {
             state = state.with(behavior.facingProperty, direction.opposite());
-            if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state.customBlockState().literalObject(), level.serverWorld(), LocationUtils.toBlockPos(clickedPos))) {
+            if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state.customBlockState().minecraftState(), level.minecraftWorld(), LocationUtils.toBlockPos(clickedPos))) {
                 return state;
             }
         }

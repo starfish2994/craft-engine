@@ -58,7 +58,7 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
                     a.add(passengerId);
                 }
         ));
-        this.refreshChangeDisplayItemPacket(controller.displayItem().getMinecraftItem());
+        this.refreshChangeDisplayItemPacket(controller.displayItem().minecraftItem());
         this.refreshSpawnVehicleAndPassengerPacket(displayItemPosition);
     }
 
@@ -110,7 +110,7 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
     public void update(Player player) {
         // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
         Item displayItem = this.controller.displayItem();
-        Object minecraftItem = displayItem.getMinecraftItem();
+        Object minecraftItem = displayItem.minecraftItem();
         if (this.lastUpdateMinecraftItem != minecraftItem) {
             this.refreshChangeDisplayItemPacket(minecraftItem);
         }

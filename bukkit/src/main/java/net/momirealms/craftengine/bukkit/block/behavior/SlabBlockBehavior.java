@@ -72,7 +72,7 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
                 blockState = blockState.with(super.waterloggedProperty, false);
             return blockState.with(this.typeProperty, SlabType.DOUBLE);
         } else {
-            Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().serverWorld(), LocationUtils.toBlockPos(clickedPos));
+            Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(clickedPos));
             if (super.waterloggedProperty != null)
                 state = state.with(super.waterloggedProperty, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
             Direction clickedFace = context.getClickedFace();

@@ -20,7 +20,6 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.IntTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Optional;
@@ -62,7 +61,7 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     // 放入方块内的展示物品
     public void putDisplayItem(Item inputItem /* Not Empty */) {
         this.displayItem = inputItem;
-        this.element.refreshChangeDisplayItemPacket(inputItem.getMinecraftItem());
+        this.element.refreshChangeDisplayItemPacket(inputItem.minecraftItem());
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
@@ -117,14 +116,14 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
         }
         // 记录并刷新
         this.displayItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
-        this.element.refreshChangeDisplayItemPacket(this.displayItem.getMinecraftItem());
+        this.element.refreshChangeDisplayItemPacket(this.displayItem.minecraftItem());
     }
 
     @Override
     public void saveCustomData(CompoundTag tag) {
         if (!ItemUtils.isEmpty(displayItem)) {
             CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
-                dataTag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.getMinecraftItem()));
+                dataTag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.minecraftItem()));
                 dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
             });
             tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);

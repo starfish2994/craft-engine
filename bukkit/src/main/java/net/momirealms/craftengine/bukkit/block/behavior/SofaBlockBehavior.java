@@ -40,10 +40,10 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
         ImmutableBlockState blockState = state.owner().value().defaultState()
                 .with(this.facingProperty, context.getHorizontalDirection());
         if (super.waterloggedProperty != null) {
-            Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().serverWorld(), LocationUtils.toBlockPos(clickedPos));
+            Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(clickedPos));
             blockState = blockState.with(this.waterloggedProperty, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
         }
-        return blockState.with(this.shapeProperty, getSofaShape(blockState, context.getLevel().serverWorld(), clickedPos));
+        return blockState.with(this.shapeProperty, getSofaShape(blockState, context.getLevel().minecraftWorld(), clickedPos));
     }
 
     @Override
@@ -60,7 +60,7 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
         Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2() ? args[4] : args[1]);
         SofaShape sofaShape = getSofaShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
-                ? customState.with(this.shapeProperty, sofaShape).customBlockState().literalObject()
+                ? customState.with(this.shapeProperty, sofaShape).customBlockState().minecraftState()
                 : superMethod.call();
     }
 

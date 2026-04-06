@@ -48,30 +48,30 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
 
     @Override
     protected boolean isEmpty(W item) {
-        return ItemStackProxy.INSTANCE.isEmpty(item.getMinecraftItem());
+        return ItemStackProxy.INSTANCE.isEmpty(item.minecraftItem());
     }
 
     @SuppressWarnings("deprecation")
     @Override
     protected byte[] toByteArray(W item) {
-        return Bukkit.getUnsafe().serializeItem(ItemStackProxy.INSTANCE.getBukkitStack(item.getMinecraftItem()));
+        return Bukkit.getUnsafe().serializeItem(ItemStackProxy.INSTANCE.getBukkitStack(item.minecraftItem()));
     }
 
     @Override
     protected boolean isBlockItem(W item) {
-        return BlockItemProxy.CLASS.isInstance(ItemStackProxy.INSTANCE.getItem(item.getMinecraftItem()));
+        return BlockItemProxy.CLASS.isInstance(ItemStackProxy.INSTANCE.getItem(item.minecraftItem()));
     }
 
     @Override
     protected Key vanillaId(W item) {
-        Object i = ItemStackProxy.INSTANCE.getItem(item.getMinecraftItem());
+        Object i = ItemStackProxy.INSTANCE.getItem(item.minecraftItem());
         if (i == null) return ItemKeys.AIR;
         return KeyUtils.identifierToKey(RegistryProxy.INSTANCE.getKey(BuiltInRegistriesProxy.ITEM, i));
     }
 
     @Override
     protected Key id(W item) {
-        if (ItemStackProxy.INSTANCE.isEmpty(item.getMinecraftItem())) {
+        if (ItemStackProxy.INSTANCE.isEmpty(item.minecraftItem())) {
             return ItemKeys.AIR;
         }
         return customId(item).orElse(vanillaId(item));
@@ -79,9 +79,9 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
 
     @Override
     protected boolean hasItemTag(W item, Key itemTag) {
-        Object literalObject = item.getMinecraftItem();
+        Object minecraftItem = item.minecraftItem();
         Object tag = ItemTags.getOrCreate(itemTag);
-        return ItemStackProxy.INSTANCE.is(literalObject, tag);
+        return ItemStackProxy.INSTANCE.is(minecraftItem, tag);
     }
 
     @Override

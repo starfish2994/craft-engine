@@ -52,7 +52,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
     @Override
     protected void useRemainder(ComponentItemWrapper item, Item data, int count) {
         data.count(count);
-        Object useRemainder = UseRemainderProxy.INSTANCE.newInstance(data.getMinecraftItem());
+        Object useRemainder = UseRemainderProxy.INSTANCE.newInstance(data.minecraftItem());
         item.setExactComponent(DataComponentTypes.USE_REMAINDER, useRemainder);
     }
 

@@ -83,9 +83,9 @@ public final class DynamicItemFrameBlockEntityElement implements BlockEntityElem
         Object savedData = this.controller.mapItemSavedData();
         if (savedData == null) {
             if (VersionHelper.isOrAbove1_20_5()) {
-                savedData = MapItemProxy.INSTANCE.getSavedData$0(mapId, world.world.serverWorld());
+                savedData = MapItemProxy.INSTANCE.getSavedData$0(mapId, world.world.minecraftWorld());
             } else {
-                savedData = MapItemProxy.INSTANCE.getSavedData$1((Integer) mapId, world.world.serverWorld());
+                savedData = MapItemProxy.INSTANCE.getSavedData$1((Integer) mapId, world.world.minecraftWorld());
             }
             if (savedData == null) return;
             this.controller.setMapItemSavedData(savedData);

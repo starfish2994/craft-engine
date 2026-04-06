@@ -3,14 +3,16 @@ package net.momirealms.craftengine.core.world.chunk.storage;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
+import net.momirealms.craftengine.core.world.chunk.Chunk;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
 public final class NoneStorage implements WorldDataStorage {
 
     @Override
-    public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos) {
+    public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) {
         return new CEChunk(world, pos);
     }
 

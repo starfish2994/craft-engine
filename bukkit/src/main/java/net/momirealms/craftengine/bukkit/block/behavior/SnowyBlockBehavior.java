@@ -31,12 +31,12 @@ public final class SnowyBlockBehavior extends BukkitBlockBehavior {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null || state.isEmpty()) return superMethod.call();
         ImmutableBlockState newState = state.with(this.snowyProperty, isSnowySetting(args[updateShape$neighborState]));
-        return newState.customBlockState().literalObject();
+        return newState.customBlockState().minecraftState();
     }
 
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos().above()));
+        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(context.getClickedPos().above()));
         return state.with(this.snowyProperty, isSnowySetting(blockState));
     }
 

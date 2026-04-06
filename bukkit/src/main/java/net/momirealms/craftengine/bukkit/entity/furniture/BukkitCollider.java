@@ -20,7 +20,7 @@ public final class BukkitCollider implements Collider {
 
     public static Collider create(World world, Vec3d position, AABB aabb, boolean canCollide, boolean blocksBuilding, boolean canBeHitByProjectile) {
         Object nmsAABB = AABBProxy.INSTANCE.newInstance(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ);
-        return new BukkitCollider(world.serverWorld(), nmsAABB, position.x, position.y, position.z, canBeHitByProjectile, canCollide, blocksBuilding);
+        return new BukkitCollider(world.minecraftWorld(), nmsAABB, position.x, position.y, position.z, canBeHitByProjectile, canCollide, blocksBuilding);
     }
 
     @Override

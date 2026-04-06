@@ -106,7 +106,7 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
                 ItemDisplayEntityData.SharedFlags.addEntityData((byte) 0x40, dataValues);
                 ItemDisplayEntityData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
             }
-            ItemDisplayEntityData.DisplayedItem.addEntityData(itemFunction.apply(player, source).getMinecraftItem(), dataValues);
+            ItemDisplayEntityData.DisplayedItem.addEntityData(itemFunction.apply(player, source).minecraftItem(), dataValues);
             ItemDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(this.scale, dataValues);
             ItemDisplayEntityData.RotationLeft.addEntityDataIfNotDefaultValue(this.rotation, dataValues);
             ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);

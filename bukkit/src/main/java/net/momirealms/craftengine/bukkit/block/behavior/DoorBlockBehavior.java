@@ -116,7 +116,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
                 return BlocksProxy.AIR$defaultState;
             }
             if (neighborState.get(anotherDoorBehavior.halfProperty) != half) {
-                return neighborState.with(anotherDoorBehavior.halfProperty, half).customBlockState().literalObject();
+                return neighborState.with(anotherDoorBehavior.halfProperty, half).customBlockState().minecraftState();
             }
             return BlocksProxy.AIR$defaultState;
         } else {
@@ -187,7 +187,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
         Object blockState = args[2];
         Object pos = args[1];
         Optional<ImmutableBlockState> immutableBlockState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        immutableBlockState.ifPresent(state -> LevelWriterProxy.INSTANCE.setBlock(args[0], LocationUtils.above(pos), state.with(this.halfProperty, DoubleBlockHalf.UPPER).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL));
+        immutableBlockState.ifPresent(state -> LevelWriterProxy.INSTANCE.setBlock(args[0], LocationUtils.above(pos), state.with(this.halfProperty, DoubleBlockHalf.UPPER).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL));
     }
 
     @Override
@@ -198,7 +198,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         World world  = context.getLevel();
-        Object level = world.serverWorld();
+        Object level = world.minecraftWorld();
         BlockPos pos = context.getClickedPos();
         if (pos.y() < world.worldHeight().getMaxBuildHeight() - 1 && world.getBlock(pos.above()).canBeReplaced(context)) {
             boolean hasSignal = SignalGetterProxy.INSTANCE.hasNeighborSignal(level, LocationUtils.toBlockPos(pos)) || SignalGetterProxy.INSTANCE.hasNeighborSignal(level, LocationUtils.toBlockPos(pos.above()));
@@ -212,7 +212,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     }
 
     private DoorHinge getHinge(BlockPlaceContext context) {
-        Object serverLevel = context.getLevel().serverWorld();
+        Object serverLevel = context.getLevel().minecraftWorld();
         BlockPos clickedPos = context.getClickedPos();
         Direction horizontalDirection = context.getHorizontalDirection();
         BlockPos blockPos = clickedPos.above();
@@ -266,7 +266,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     public void setOpen(@Nullable Player player, Object serverLevel, ImmutableBlockState state, BlockPos pos, boolean isOpen) {
         if (isOpen(state) != isOpen) {
             org.bukkit.World world = LevelProxy.INSTANCE.getWorld(serverLevel);
-            LevelWriterProxy.INSTANCE.setBlock(serverLevel, LocationUtils.toBlockPos(pos), state.with(this.openProperty, isOpen).customBlockState().literalObject(), UPDATE_CLIENTS | UPDATE_IMMEDIATE);
+            LevelWriterProxy.INSTANCE.setBlock(serverLevel, LocationUtils.toBlockPos(pos), state.with(this.openProperty, isOpen).customBlockState().minecraftState(), UPDATE_CLIENTS | UPDATE_IMMEDIATE);
             world.sendGameEvent(player == null ? null : (org.bukkit.entity.Player) player.platformPlayer(), isOpen ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, new Vector(pos.x(), pos.y(), pos.z()));
             SoundData soundData = isOpen ? this.openSound : this.closeSound;
             if (soundData != null) {
@@ -292,7 +292,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
         }
-        setOpen(player, world.serverWorld(), state, pos, !state.get(this.openProperty));
+        setOpen(player, world.minecraftWorld(), state, pos, !state.get(this.openProperty));
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
@@ -337,7 +337,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
                     );
                 }
             }
-            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, customState.with(this.poweredProperty, flag).with(this.openProperty, flag).customBlockState().literalObject(), UpdateFlags.UPDATE_CLIENTS);
+            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, customState.with(this.poweredProperty, flag).with(this.openProperty, flag).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
         }
     }
 

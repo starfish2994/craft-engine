@@ -80,7 +80,7 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
             if (waterlogged != null) {
                 newState = newState.with(waterlogged, FluidStateProxy.INSTANCE.getType(BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getFluidState(blockState)) == FluidsProxy.WATER);
             }
-            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, newState.customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         } else {
             Object block = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.BLOCK, KeyUtils.toIdentifier(blockId));
             if (block == null) return;

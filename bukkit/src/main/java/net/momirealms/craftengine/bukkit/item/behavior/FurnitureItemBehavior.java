@@ -150,7 +150,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
             } else {
                 entityPredicate = EntityProxy.INSTANCE::getBlocksBuilding;
             }
-            if (!CollisionUtils.test(context.getLevel().serverWorld(), aabbs.stream().map(it -> AABBProxy.INSTANCE.newInstance(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList(), entityPredicate)) {
+            if (!CollisionUtils.test(context.getLevel().minecraftWorld(), aabbs.stream().map(it -> AABBProxy.INSTANCE.newInstance(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList(), entityPredicate)) {
                 if (player != null && player.enableFurnitureDebug() && VersionHelper.isPaper()) {
                     player.playSound(Key.of("minecraft:entity.villager.no"));
                     Key flame = Key.of("flame");

@@ -30,7 +30,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        Object level = context.getLevel().serverWorld();
+        Object level = context.getLevel().minecraftWorld();
         state = state.with(this.litProperty, SignalGetterProxy.INSTANCE.hasNeighborSignal(level, LocationUtils.toBlockPos(context.getClickedPos())));
         return state;
     }
@@ -53,7 +53,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
             if (event.getNewCurrent() != 15) {
                 return;
             }
-            LevelWriterProxy.INSTANCE.setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().literalObject(), 2);
+            LevelWriterProxy.INSTANCE.setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().minecraftState(), 2);
         }
     }
 
@@ -79,7 +79,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
                 if (event.getNewCurrent() != 15) {
                     return;
                 }
-                LevelWriterProxy.INSTANCE.setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().literalObject(), 2);
+                LevelWriterProxy.INSTANCE.setBlock(world, blockPos, customState.cycle(this.litProperty).customBlockState().minecraftState(), 2);
             }
         }
     }

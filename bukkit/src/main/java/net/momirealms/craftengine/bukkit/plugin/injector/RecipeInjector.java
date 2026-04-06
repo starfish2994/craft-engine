@@ -192,7 +192,7 @@ public final class RecipeInjector {
             }
             FireworkExplosion explosion = starItem.fireworkExplosion().orElse(FireworkExplosion.DEFAULT);
             starItem.fireworkExplosion(explosion.withFadeColors(colors));
-            return starItem.getMinecraftItem();
+            return starItem.minecraftItem();
         }
     }
 
@@ -250,7 +250,7 @@ public final class RecipeInjector {
         if (VersionHelper.isOrAbove1_20_5()) {
             return item.hasComponent(DataComponentTypes.MAX_DAMAGE) && item.hasComponent(DataComponentTypes.DAMAGE);
         } else {
-            return ItemProxy.INSTANCE.canBeDepleted(ItemStackProxy.INSTANCE.getItem(item.getMinecraftItem()));
+            return ItemProxy.INSTANCE.canBeDepleted(ItemStackProxy.INSTANCE.getItem(item.minecraftItem()));
         }
     }
 
@@ -322,7 +322,7 @@ public final class RecipeInjector {
             if (itemToDye == null || itemToDye.isEmpty() || colors.isEmpty()) {
                 return ItemStackProxy.EMPTY;
             }
-            return itemToDye.applyDyedColors(colors).getMinecraftItem();
+            return itemToDye.applyDyedColors(colors).minecraftItem();
         }
     }
 
@@ -350,7 +350,7 @@ public final class RecipeInjector {
             VersionHelper.isOrAbove1_20_5() ?
                     (item -> item.hasItemTag(ItemTags.DYEABLE)) :
                     (item -> {
-                       Object itemLike = ItemStackProxy.INSTANCE.getItem(item.getMinecraftItem());
+                       Object itemLike = ItemStackProxy.INSTANCE.getItem(item.minecraftItem());
                        return DyeableLeatherItemProxy.CLASS.isInstance(itemLike);
                     });
 
@@ -371,7 +371,7 @@ public final class RecipeInjector {
     @SuppressWarnings("PointlessBitwiseExpression")
     @Nullable
     private static Color getVanillaDyeColor(final Item item) {
-        Object itemStack = item.getMinecraftItem();
+        Object itemStack = item.minecraftItem();
         Object dyeItem = ItemStackProxy.INSTANCE.getItem(itemStack);
         if (!DyeItemProxy.CLASS.isInstance(dyeItem)) return null;
         Object dyeColor = DyeItemProxy.INSTANCE.getDyeColor(dyeItem);
@@ -390,7 +390,7 @@ public final class RecipeInjector {
 
     @Nullable
     private static Color getVanillaFireworkColor(final Item item) {
-        Object itemStack = item.getMinecraftItem();
+        Object itemStack = item.minecraftItem();
         Object dyeItem = ItemStackProxy.INSTANCE.getItem(itemStack);
         if (!DyeItemProxy.CLASS.isInstance(dyeItem)) return null;
         return Color.fromDecimal(DyeColorProxy.INSTANCE.getFireworkColor(DyeItemProxy.INSTANCE.getDyeColor(dyeItem)));
@@ -415,6 +415,6 @@ public final class RecipeInjector {
     }
 
     private static boolean isVanillaDyeItem(Item item) {
-        return DyeItemProxy.CLASS.isInstance(ItemStackProxy.INSTANCE.getItem(item.getMinecraftItem()));
+        return DyeItemProxy.CLASS.isInstance(ItemStackProxy.INSTANCE.getItem(item.minecraftItem()));
     }
 }

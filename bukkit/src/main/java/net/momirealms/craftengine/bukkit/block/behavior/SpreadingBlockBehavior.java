@@ -22,7 +22,7 @@ public final class SpreadingBlockBehavior extends BukkitBlockBehavior {
     private SpreadingBlockBehavior(BlockDefinition blockDefinition,
                                    String targetBlock) {
         super(blockDefinition);
-        this.targetBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(targetBlock)).literalObject());
+        this.targetBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(targetBlock)).minecraftState());
     }
 
     @Override
@@ -31,7 +31,7 @@ public final class SpreadingBlockBehavior extends BukkitBlockBehavior {
         Object pos = args[2];
         Object blockPos = BlockPosProxy.INSTANCE.offset(pos, RandomUtils.generateRandomInt(-1, 2), RandomUtils.generateRandomInt(-3, 2), RandomUtils.generateRandomInt(-1, 2));
         if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$0(BlockGetterProxy.INSTANCE.getBlockState(level, blockPos), BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getBlock(this.targetBlock.get()))) {
-            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, this.block().defaultState().customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+            LevelWriterProxy.INSTANCE.setBlock(level, blockPos, this.block().defaultState().customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         }
     }
 

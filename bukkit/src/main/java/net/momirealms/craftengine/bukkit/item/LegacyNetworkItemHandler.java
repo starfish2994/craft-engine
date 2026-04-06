@@ -104,7 +104,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isPresent()) {
             BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
-            if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem())) {
+            if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
                 forceReturn = true;
             }
@@ -200,7 +200,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
 
         // 应用 client-bound-material
         BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
-        if (customItem.hasClientboundMaterial() && ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem()) != customItem.clientItem()) {
+        if (customItem.hasClientboundMaterial() && ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem()) != customItem.clientItem()) {
             wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
             forceReturn = true;
         }

@@ -123,7 +123,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
             ItemDisplayEntityData.InterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
         }
 
-        Object literalItem = displayedItem.getMinecraftItem();
+        Object literalItem = displayedItem.minecraftItem();
         ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(literalItem, itemDisplayValues);
         ItemDisplayEntityData.DisplayType.addEntityDataIfNotDefaultValue(meta.displayType().id(), itemDisplayValues);
         ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(meta.billboard().id(), itemDisplayValues);

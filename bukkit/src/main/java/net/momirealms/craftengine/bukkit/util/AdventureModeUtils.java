@@ -35,7 +35,7 @@ public final class AdventureModeUtils {
 
     public static boolean canPlace(Item itemStack, World world, BlockPos pos, Object state) {
         Object blockPos = LocationUtils.toBlockPos(pos);
-        Object item = itemStack == null ? ItemStackProxy.EMPTY : itemStack.getMinecraftItem();
+        Object item = itemStack == null ? ItemStackProxy.EMPTY : itemStack.minecraftItem();
         Object blockInWorld = BlockInWorldProxy.INSTANCE.newInstance(CraftWorldProxy.INSTANCE.getWorld((org.bukkit.World) world.platformWorld()), blockPos, false);
         if (state != null) {
             BlockInWorldProxy.INSTANCE.setState(blockInWorld, state);

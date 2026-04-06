@@ -42,13 +42,13 @@ public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
 
     public Object getDefaultBlockState() {
         ImmutableBlockState state = this.targetBlock.get();
-        return state != null ? state.customBlockState().literalObject() : BlocksProxy.STONE$defaultState;
+        return state != null ? state.customBlockState().minecraftState() : BlocksProxy.STONE$defaultState;
     }
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
-        Object level = context.getLevel().serverWorld();
+        Object level = context.getLevel().minecraftWorld();
         Object blockPos = LocationUtils.toBlockPos(context.getClickedPos());
         Object previousState = BlockGetterProxy.INSTANCE.getBlockState(level, blockPos);
         if (!shouldSolidify(level, blockPos, previousState)) {

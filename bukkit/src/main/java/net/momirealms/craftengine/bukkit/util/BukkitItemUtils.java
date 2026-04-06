@@ -8,6 +8,6 @@ public final class BukkitItemUtils {
     private BukkitItemUtils() {}
 
     public static boolean isDebugStick(Item item) {
-        return ItemStackProxy.INSTANCE.getItem(item.getMinecraftItem()) == ItemsProxy.DEBUG_STICK;
+        return ItemStackProxy.INSTANCE.getItem(item.minecraftItem()) == ItemsProxy.DEBUG_STICK;
     }
 }

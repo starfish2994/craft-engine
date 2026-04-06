@@ -852,7 +852,7 @@ public class BukkitServerPlayer extends Player {
                     // 1. 此时客户端觉得自己挖掘速度为0
                     boolean attributeCannotBreak = VersionHelper.isOrAbove1_20_5() && !this.clientSideCanBreak;
                     // 2. 客户端侧的方块就是不能秒破
-                    if (attributeCannotBreak || getDestroyProgress(vanillaBlockState.literalObject(), pos) < 1f) {
+                    if (attributeCannotBreak || getDestroyProgress(vanillaBlockState.minecraftState(), pos) < 1f) {
                         Object levelEventPacket = ClientboundLevelEventPacketProxy.INSTANCE.newInstance(
                                 WorldEvents.BLOCK_BREAK_EFFECT, LocationUtils.toBlockPos(pos), BlockStateUtils.blockStateToId(state), false);
                         sendPacket(levelEventPacket, false);
@@ -1047,7 +1047,7 @@ public class BukkitServerPlayer extends Player {
                     // for simplified adventure break, switch mayBuild temporarily
                     if (isAdventureMode() && Config.simplifyAdventureBreakCheck()) {
                         // check the appearance state
-                        if (canBreak(hitPos, customState.visualBlockState().literalObject())) {
+                        if (canBreak(hitPos, customState.visualBlockState().minecraftState())) {
                             // Error might occur so we use try here
                             Object abilities = PlayerProxy.INSTANCE.getAbilities(serverPlayer);
                             try {
@@ -1704,24 +1704,23 @@ public class BukkitServerPlayer extends Player {
     }
 
     public Location getEyeLocation() {
-        org.bukkit.entity.Player player = platformPlayer();
-        Entity vehicle = player.getVehicle();
+        Object serverPlayer = serverPlayer();
+        Object vehicle = EntityProxy.INSTANCE.getVehicle(serverPlayer);
         if (vehicle != null) {
-            Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, player);
-            return new Location(player.getWorld(), mountPos.x, mountPos.y + player.getEyeHeight(), mountPos.z);
+            Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, serverPlayer);
+            return new Location(platformPlayer().getWorld(), mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(serverPlayer), mountPos.z);
         }
-        return player.getEyeLocation();
+        return platformPlayer().getEyeLocation();
     }
 
     public Vec3d getEyePos() {
-        org.bukkit.entity.Player player = platformPlayer();
-        Entity vehicle = player.getVehicle();
+        Object serverPlayer = serverPlayer();
+        Object vehicle = EntityProxy.INSTANCE.getVehicle(serverPlayer);
         if (vehicle != null) {
-            Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, player);
-            return new Vec3d(mountPos.x, mountPos.y + player.getEyeHeight(), mountPos.z);
+            Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, serverPlayer);
+            return new Vec3d(mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(serverPlayer), mountPos.z);
         } else {
-            Location location = player.getEyeLocation();
-            return new Vec3d(location.getX(), location.getY(), location.getZ());
+            return new Vec3d(EntityProxy.INSTANCE.getXo(serverPlayer), EntityProxy.INSTANCE.getEyeY(serverPlayer), EntityProxy.INSTANCE.getZo(serverPlayer));
         }
     }
 

@@ -73,7 +73,7 @@ public final class ArmorStandBlockEntityElement implements BlockEntityElement {
     public void show(Player player) {
         player.sendPackets(List.of(this.cachedSpawnPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player))), false);
         player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).getMinecraftItem())
+                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
         )), false);
         if (this.cachedDespawnPacket != null) {
             player.sendPacket(this.cachedDespawnPacket, false);
@@ -90,13 +90,13 @@ public final class ArmorStandBlockEntityElement implements BlockEntityElement {
                     this.cachedUpdatePosPacket,
                     ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player)),
                     ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                            Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).getMinecraftItem())
+                            Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
                     ))
             ), false);
         } else {
             player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player)), false);
             player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                    Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).getMinecraftItem())
+                    Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
             )), false);
         }
     }

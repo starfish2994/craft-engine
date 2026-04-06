@@ -134,7 +134,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     private Object setSignalForState(Object state, int strength) {
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(state);
         if (optionalCustomState.isEmpty()) return state;
-        return optionalCustomState.get().with(this.poweredProperty, strength > 0).customBlockState().literalObject();
+        return optionalCustomState.get().with(this.poweredProperty, strength > 0).customBlockState().minecraftState();
     }
 
     private void checkPressed(@Nullable Object entity, Object level, Object pos, Object state, int currentSignal, Object thisBlock) {

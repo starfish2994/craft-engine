@@ -52,7 +52,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected void customId(ComponentItemWrapper item, Key id) {
-        Object nmsStack = item.getMinecraftItem();
+        Object nmsStack = item.minecraftItem();
         Object customData = ItemStackProxy.INSTANCE.get(nmsStack, DataComponentTypes.CUSTOM_DATA);
         Object tag;
         if (customData != null) {
@@ -66,7 +66,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<Key> customId(ComponentItemWrapper item) {
-        Object nmsStack = item.getMinecraftItem();
+        Object nmsStack = item.minecraftItem();
         Object customData = ItemStackProxy.INSTANCE.get(nmsStack, DataComponentTypes.CUSTOM_DATA);
         if (customData == null) return Optional.empty();
         Object tag = CustomDataProxy.INSTANCE.getTag(customData);
@@ -438,7 +438,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     @Override
     protected int maxDamage(ComponentItemWrapper item) {
         Optional<Integer> damage = item.getJavaComponent(DataComponentTypes.MAX_DAMAGE);
-        return damage.orElseGet(() -> (int) item.getBukkitItem().getType().getMaxDurability());
+        return damage.orElseGet(() -> (int) item.platformItem().getType().getMaxDurability());
     }
 
     @Override
@@ -508,7 +508,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     @Override
     protected int maxStackSize(ComponentItemWrapper item) {
         Optional<Integer> stackSize = item.getJavaComponent(DataComponentTypes.MAX_STACK_SIZE);
-        return stackSize.orElseGet(() -> item.getBukkitItem().getType().getMaxStackSize());
+        return stackSize.orElseGet(() -> item.platformItem().getType().getMaxStackSize());
     }
 
     @Override
@@ -601,8 +601,8 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected ComponentItemWrapper mergeCopy(ComponentItemWrapper item1, ComponentItemWrapper item2) {
-        Object itemStack1 = item1.getMinecraftItem();
-        Object itemStack2 = item2.getMinecraftItem();
+        Object itemStack1 = item1.minecraftItem();
+        Object itemStack2 = item2.minecraftItem();
         Object itemStack3 = ItemStackProxy.INSTANCE.transmuteCopy(itemStack1, ItemStackProxy.INSTANCE.getItem(itemStack2), item2.count());
         ItemStackProxy.INSTANCE.applyComponents(itemStack3, ItemStackProxy.INSTANCE.getComponentsPatch(itemStack2));
         return new ComponentItemWrapper(ItemStackUtils.getBukkitStack(itemStack3));
@@ -610,21 +610,21 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected void merge(ComponentItemWrapper item1, ComponentItemWrapper item2) {
-        Object itemStack1 = item1.getMinecraftItem();
-        Object itemStack2 = item2.getMinecraftItem();
+        Object itemStack1 = item1.minecraftItem();
+        Object itemStack2 = item2.minecraftItem();
         ItemStackProxy.INSTANCE.applyComponents(itemStack1, ItemStackProxy.INSTANCE.getComponentsPatch(itemStack2));
     }
 
     @Override
     protected ComponentItemWrapper transmuteCopy(ComponentItemWrapper item, Key newItem, int amount) {
-        Object itemStack1 = item.getMinecraftItem();
+        Object itemStack1 = item.minecraftItem();
         Object itemStack2 = ItemStackProxy.INSTANCE.transmuteCopy(itemStack1, RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(newItem)), amount);
         return new ComponentItemWrapper(ItemStackUtils.getBukkitStack(itemStack2));
     }
 
     @Override
     protected ComponentItemWrapper unsafeTransmuteCopy(ComponentItemWrapper item, Object newItem, int amount) {
-        Object itemStack1 = item.getMinecraftItem();
+        Object itemStack1 = item.minecraftItem();
         Object itemStack2 = ItemStackProxy.INSTANCE.transmuteCopy(itemStack1, newItem, amount);
         return new ComponentItemWrapper(ItemStackUtils.getBukkitStack(itemStack2));
     }
@@ -663,6 +663,6 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected boolean isSimilar(ComponentItemWrapper item1, ComponentItemWrapper item2) {
-        return ItemStackProxy.INSTANCE.isSameItemSameComponents(item1.getMinecraftItem(), item2.getMinecraftItem());
+        return ItemStackProxy.INSTANCE.isSameItemSameComponents(item1.minecraftItem(), item2.minecraftItem());
     }
 }

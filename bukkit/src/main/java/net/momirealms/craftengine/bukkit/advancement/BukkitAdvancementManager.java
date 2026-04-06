@@ -32,7 +32,7 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
         Object displayInfo;
         if (VersionHelper.isOrAbove1_20_3()) {
             displayInfo = DisplayInfoProxy.INSTANCE.newInstance(
-                    icon.getMinecraftItem(),
+                    icon.minecraftItem(),
                     ComponentUtils.adventureToMinecraft(message),  // title
                     ComponentProxy.INSTANCE.empty(), // description
                     Optional.empty(), // background
@@ -43,7 +43,7 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
             );
         } else {
             displayInfo = DisplayInfoProxy.INSTANCE.newInstance$legacy(
-                    icon.getMinecraftItem(),
+                    icon.minecraftItem(),
                     ComponentUtils.adventureToMinecraft(message),  // title
                     ComponentProxy.INSTANCE.empty(), // description
                     null, // background

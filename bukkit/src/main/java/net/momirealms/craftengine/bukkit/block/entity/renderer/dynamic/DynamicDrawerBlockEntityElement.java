@@ -68,7 +68,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
     public void refreshChangeDisplayItemPacket(Item item) {
         this.lastUpdateItem = item; // 更新缓存
         this.changeItemDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.itemId, new ArrayList<>() {{
-            ItemDisplayEntityData.DisplayedItem.addEntityData(item.getMinecraftItem(), this);
+            ItemDisplayEntityData.DisplayedItem.addEntityData(item.minecraftItem(), this);
             ItemDisplayEntityData.Scale.addEntityData(new Vector3f(0.8f, 0.8f, 0.8f), this);
             ItemDisplayEntityData.DisplayType.addEntityData((byte) 6, this);
         }});

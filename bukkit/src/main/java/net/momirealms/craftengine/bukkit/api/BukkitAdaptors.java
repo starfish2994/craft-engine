@@ -25,7 +25,7 @@ public final class BukkitAdaptors {
 
     @NotNull
     public static BukkitWorld adapt(@NotNull final World world) {
-        return new BukkitWorld(world);
+        return BukkitAdaptor.adapt(world);
     }
 
     @NotNull

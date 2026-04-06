@@ -102,7 +102,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
         @Override
         public void saveCustomData(CompoundTag data) {
             if (!this.savedItem.isEmpty()) {
-                Tag itemStackAsTag = ItemStackUtils.saveMinecraftItemStackAsTag(this.savedItem.getMinecraftItem());
+                Tag itemStackAsTag = ItemStackUtils.saveMinecraftItemStackAsTag(this.savedItem.minecraftItem());
                 if (itemStackAsTag != null) {
                     data.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), itemStackAsTag);
                 }
@@ -272,7 +272,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
             // 没有物品就不展示
             if (!furnitureHandler.savedItem.isEmpty()) {
                 List<Object> list = new ArrayList<>();
-                ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.getMinecraftItem(), list);
+                ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.minecraftItem(), list);
                 Object setEntityDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);
                 player.sendPackets(List.of(
                         this.spawnVehiclePacket,
@@ -295,7 +295,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
                 this.hide(player);
             } else {
                 List<Object> list = MiscUtils.init(new ArrayList<>(), it -> {
-                    ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.getMinecraftItem(), it);
+                    ItemEntityData.Item.addEntityData(this.furnitureHandler.savedItem.minecraftItem(), it);
                     ItemEntityData.NoGravity.addEntityData(true, it);
                 });
                 Object changeDisplayItemPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, list);

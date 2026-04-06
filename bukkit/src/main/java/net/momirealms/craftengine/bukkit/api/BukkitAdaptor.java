@@ -7,6 +7,8 @@ import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
+import net.momirealms.craftengine.core.world.CEWorld;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -37,7 +39,9 @@ public final class BukkitAdaptor {
      */
     @NotNull
     public static BukkitWorld adapt(@NotNull final World world) {
-        return new BukkitWorld(world);
+        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(world);
+        if (ceWorld == null) return new BukkitWorld(world);
+        return (BukkitWorld) ceWorld.world;
     }
 
     /**

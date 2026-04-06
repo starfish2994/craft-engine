@@ -67,7 +67,7 @@ public final class BukkitFurniture extends Furniture {
                 hitBoxConfig.prepareBoundingBox(position, aabbs::add, false);
             }
             if (!aabbs.isEmpty()) {
-                if (!CollisionUtils.test(position.world.serverWorld(), aabbs.stream().map(it -> AABBProxy.INSTANCE.newInstance(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList(),
+                if (!CollisionUtils.test(position.world.minecraftWorld(), aabbs.stream().map(it -> AABBProxy.INSTANCE.newInstance(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList(),
                         o -> {
                             for (Collider collider : super.snapshot.colliders()) {
                                 if (o == collider.handle()) {
@@ -119,7 +119,7 @@ public final class BukkitFurniture extends Furniture {
                     hitBoxConfig.prepareBoundingBox(position, aabbs::add, false);
                 }
                 if (!aabbs.isEmpty()) {
-                    if (!CollisionUtils.test(position.world.serverWorld(), aabbs.stream().map(it -> AABBProxy.INSTANCE.newInstance(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList(),
+                    if (!CollisionUtils.test(position.world.minecraftWorld(), aabbs.stream().map(it -> AABBProxy.INSTANCE.newInstance(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList(),
                             o -> {
                                 for (Collider collider : super.snapshot.colliders()) {
                                     if (o == collider.handle()) {

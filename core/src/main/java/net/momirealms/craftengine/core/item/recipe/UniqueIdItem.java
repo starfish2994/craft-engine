@@ -38,6 +38,6 @@ public final class UniqueIdItem {
 
     @Override
     public String toString() {
-        return "UniqueIdItem[" + "uniqueId=" + this.uniqueId + ", item=" + this.rawItem.getMinecraftItem() + ']';
+        return "UniqueIdItem[" + "uniqueId=" + this.uniqueId + ", item=" + this.rawItem.minecraftItem() + ']';
     }
 }

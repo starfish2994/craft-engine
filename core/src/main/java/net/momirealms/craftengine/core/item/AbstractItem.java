@@ -500,8 +500,13 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Object getMinecraftItem() {
-        return this.item.getMinecraftItem();
+    public Object minecraftItem() {
+        return this.item.minecraftItem();
+    }
+
+    @Override
+    public Object platformItem() {
+        return this.item.platformItem();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

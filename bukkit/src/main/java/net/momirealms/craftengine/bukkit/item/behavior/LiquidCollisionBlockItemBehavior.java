@@ -51,13 +51,13 @@ public final class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
     public InteractionResult use(World world, @Nullable Player player, InteractionHand hand) {
         try {
             if (player == null) return InteractionResult.FAIL;
-            Object blockHitResult = ItemProxy.INSTANCE.getPlayerPOVHitResult(world.serverWorld(), player.serverPlayer(), ClipContextProxy.FluidProxy.SOURCE_ONLY);
+            Object blockHitResult = ItemProxy.INSTANCE.getPlayerPOVHitResult(world.minecraftWorld(), player.serverPlayer(), ClipContextProxy.FluidProxy.SOURCE_ONLY);
             Object blockPos = BlockHitResultProxy.INSTANCE.getBlockPos(blockHitResult);
             BlockPos above = new BlockPos(Vec3iProxy.INSTANCE.getX(blockPos), Vec3iProxy.INSTANCE.getY(blockPos) + offsetY, Vec3iProxy.INSTANCE.getZ(blockPos));
             Direction direction = DirectionUtils.fromNMSDirection(BlockHitResultProxy.INSTANCE.getDirection(blockHitResult));
             boolean miss = BlockHitResultProxy.INSTANCE.isMiss(blockHitResult);
             Vec3d hitPos = LocationUtils.fromVec(HitResultProxy.INSTANCE.getLocation(blockHitResult));
-            Object fluidType = FluidStateProxy.INSTANCE.getType(BlockGetterProxy.INSTANCE.getFluidState(world.serverWorld(), blockPos));
+            Object fluidType = FluidStateProxy.INSTANCE.getType(BlockGetterProxy.INSTANCE.getFluidState(world.minecraftWorld(), blockPos));
             if (fluidType != FluidsProxy.WATER && fluidType != FluidsProxy.LAVA) {
                 return InteractionResult.PASS;
             }

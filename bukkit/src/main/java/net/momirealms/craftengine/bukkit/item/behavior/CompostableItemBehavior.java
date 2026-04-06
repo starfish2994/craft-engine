@@ -65,7 +65,7 @@ public final class CompostableItemBehavior extends ItemBehavior {
         context.getLevel().levelEvent(WorldEvents.COMPOSTER_COMPOSTS, context.getClickedPos(), willRaise ? 1 : 0);
         ((World) context.getLevel().platformWorld()).sendGameEvent(player != null ? (Entity) player.platformPlayer() : null, GameEvent.BLOCK_CHANGE, new Vector(block.x() + 0.5, block.y() + 0.5, block.z() + 0.5));
         if (currentLevel + 1 == 7) {
-            LevelUtils.scheduleBlockTick(context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()), blockOwner, 20);
+            LevelUtils.scheduleBlockTick(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(context.getClickedPos()), blockOwner, 20);
         }
         if (player != null) {
             if (!player.canInstabuild()) {

@@ -29,11 +29,11 @@ public class BlockLootContext extends BukkitLootContext {
 
     @Override
     protected Object getMinecraftLootParamsBuilder() {
-        Object lootParamsBuilder = LootParamsProxy.BuilderProxy.INSTANCE.newInstance(this.world().serverWorld());
+        Object lootParamsBuilder = LootParamsProxy.BuilderProxy.INSTANCE.newInstance(this.world().minecraftWorld());
         // 必须参数
-        LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.BLOCK_STATE, existingBlock.blockState().literalObject());
+        LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.BLOCK_STATE, existingBlock.blockState().minecraftState());
         LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.ORIGIN, Vec3Proxy.INSTANCE.newInstance(existingBlock.x(), existingBlock.y(), existingBlock.z()));
-        LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.TOOL, itemInHand == null ? ItemStackProxy.EMPTY : itemInHand.getMinecraftItem());
+        LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.TOOL, itemInHand == null ? ItemStackProxy.EMPTY : itemInHand.minecraftItem());
         // 可选参数
         LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(lootParamsBuilder, LootContextParamsProxy.THIS_ENTITY, sourceEntity);
         this.getOptionalParameter(DirectContextParameters.EXPLOSION_RADIUS).ifPresent(data -> {

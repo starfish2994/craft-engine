@@ -136,7 +136,7 @@ public final class BlockStateGenerator {
             if (optionalPlayer != null && settings.requireCorrectTool()) {
                 if (item.isEmpty()) return List.of();
                 if (!settings.isCorrectTool(item.id()) &&
-                        (!settings.respectToolComponent() || !ItemStackProxy.INSTANCE.isCorrectToolForDrops(tool, state.customBlockState().literalObject()))) {
+                        (!settings.respectToolComponent() || !ItemStackProxy.INSTANCE.isCorrectToolForDrops(tool, state.customBlockState().minecraftState()))) {
                     return List.of();
                 }
             }
@@ -168,7 +168,7 @@ public final class BlockStateGenerator {
             if (radius != null) {
                 lootBuilder.withParameter(DirectContextParameters.EXPLOSION_RADIUS, radius);
             }
-            return state.getDrops(lootBuilder, world, player).stream().map(Item::getMinecraftItem).toList();
+            return state.getDrops(lootBuilder, world, player).stream().map(Item::minecraftItem).toList();
         }
     }
 
@@ -345,7 +345,7 @@ public final class BlockStateGenerator {
             }
             if (valueToSet != null) {
                 try {
-                    return ImmutableBlockState.with(state, ceProperty, valueToSet).customBlockState().literalObject();
+                    return ImmutableBlockState.with(state, ceProperty, valueToSet).customBlockState().minecraftState();
                 } catch (IllegalArgumentException e) {
                     return thisObj;
                 }

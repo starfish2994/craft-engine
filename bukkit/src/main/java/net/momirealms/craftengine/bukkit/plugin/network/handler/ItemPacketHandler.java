@@ -117,7 +117,7 @@ public final class ItemPacketHandler implements EntityPacketHandler {
                     }
                     packedItems.add(BaseEntityData.SharedFlags.createEntityData((byte) 0x40));
                 }
-                Object level = user.clientSideWorld().serverWorld();
+                Object level = user.clientSideWorld().minecraftWorld();
                 Object entityLookup;
                 if (VersionHelper.isOrAbove1_21()) {
                     entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(level);

@@ -46,7 +46,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             for (Object previousItem : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
                 Optional<Item> itemStack = BukkitItemManager.instance().c2s(ItemStackUtils.wrap(previousItem));
                 if (itemStack.isPresent()) {
-                    newItems.add(itemStack.get().getMinecraftItem());
+                    newItems.add(itemStack.get().minecraftItem());
                     changed = true;
                 } else {
                     newItems.add(previousItem);
@@ -66,7 +66,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             for (Object previousItem : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
                 Optional<Item> itemStack = BukkitItemManager.instance().c2s(ItemStackUtils.wrap(previousItem));
                 if (itemStack.isPresent()) {
-                    newItems.add(itemStack.get().getMinecraftItem());
+                    newItems.add(itemStack.get().minecraftItem());
                     changed = true;
                 } else {
                     newItems.add(previousItem);
@@ -82,7 +82,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
         if (optionalCustomItem.isPresent()) {
             BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
-            if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem())) {
+            if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
                 forceReturn = true;
             }
@@ -175,7 +175,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // 提前复制，这和物品类型相关
         Item original = wrapped;
         // 应用 client-bound-material前提是服务端侧物品类型和客户端侧的不同
-        if (customItem.hasClientboundMaterial() && ItemStackProxy.INSTANCE.getItem(wrapped.getMinecraftItem()) != customItem.clientItem()) {
+        if (customItem.hasClientboundMaterial() && ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem()) != customItem.clientItem()) {
             wrapped = wrapped.unsafeTransmuteCopy(customItem.clientItem(), wrapped.count());
             forceReturn = true;
         }

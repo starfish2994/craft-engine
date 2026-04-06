@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
+import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.craftengine.core.world.chunk.serialization.DefaultChunkSerializer;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.NBT;
@@ -29,9 +30,11 @@ public class DefaultRegionFileStorage implements WorldDataStorage {
 
     public final Long2ObjectLinkedOpenHashMap<RegionFile> regionCache = new Long2ObjectLinkedOpenHashMap<>();
     private final LongLinkedOpenHashSet nonExistingRegionFiles = new LongLinkedOpenHashSet();
+    private final ChunkFactory chunkFactory;
 
-    public DefaultRegionFileStorage(Path directory) {
+    public DefaultRegionFileStorage(Path directory, ChunkFactory chunkFactory) {
         this.folder = directory;
+        this.chunkFactory = chunkFactory;
     }
 
     private boolean doesRegionFilePossiblyExist(long position) {
@@ -125,24 +128,24 @@ public class DefaultRegionFileStorage implements WorldDataStorage {
             if (regionFile.hasChunk(pos)) {
                 regionFile.clear(pos);
             }
-            return new CEChunk(world, pos);
+            return this.chunkFactory.create(world, pos);
         }
     }
 
     @Override
-    public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos) throws IOException {
+    public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) throws IOException {
         RegionFile regionFile = this.getRegionFile(pos, true);
         if (regionFile == null) {
-            return new CEChunk(world, pos);
+            return this.chunkFactory.create(world, pos);
         }
 
         synchronized (regionFile) {
             try (DataInputStream dataInputStream = regionFile.getChunkDataInputStream(pos)) {
                 if (dataInputStream == null) {
-                    return new CEChunk(world, pos);
+                    return this.chunkFactory.create(world, pos);
                 }
                 CompoundTag tag = NBT.readCompound(dataInputStream, false);
-                return DefaultChunkSerializer.deserialize(world, pos, tag);
+                return DefaultChunkSerializer.deserialize(this.chunkFactory, world, pos, tag);
             }
         }
     }

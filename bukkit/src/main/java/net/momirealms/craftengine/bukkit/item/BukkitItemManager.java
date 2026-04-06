@@ -398,17 +398,17 @@ public final class BukkitItemManager extends AbstractItemManager {
         Object registryAccess = RegistryUtils.getRegistryAccess();
         Optional<?> optionalMaterial;
         if (VersionHelper.isOrAbove1_20_5()) {
-            optionalMaterial = TrimMaterialsProxy.INSTANCE.getFromIngredient$0(registryAccess, addition.getMinecraftItem());
+            optionalMaterial = TrimMaterialsProxy.INSTANCE.getFromIngredient$0(registryAccess, addition.minecraftItem());
         } else {
-            optionalMaterial = TrimMaterialsProxy.INSTANCE.getFromIngredient$1(registryAccess, addition.getMinecraftItem());
+            optionalMaterial = TrimMaterialsProxy.INSTANCE.getFromIngredient$1(registryAccess, addition.minecraftItem());
         }
         Optional<?> optionalPattern;
         if (VersionHelper.isOrAbove1_21_5()) {
             optionalPattern = RegistryProxy.INSTANCE.get$0(RegistryUtils.lookupOrThrow(RegistriesProxy.TRIM_PATTERN), KeyUtils.toIdentifier(pattern));
         } else if (VersionHelper.isOrAbove1_20_5()) {
-            optionalPattern = TrimPatternsProxy.INSTANCE.getFromTemplate$1(registryAccess, template.getMinecraftItem());
+            optionalPattern = TrimPatternsProxy.INSTANCE.getFromTemplate$1(registryAccess, template.minecraftItem());
         } else {
-            optionalPattern = TrimPatternsProxy.INSTANCE.getFromTemplate$0(registryAccess, template.getMinecraftItem());
+            optionalPattern = TrimPatternsProxy.INSTANCE.getFromTemplate$0(registryAccess, template.minecraftItem());
         }
         if (optionalMaterial.isPresent() && optionalPattern.isPresent()) {
             Object armorTrim = ArmorTrimProxy.INSTANCE.newInstance(optionalMaterial.get(), optionalPattern.get());
@@ -417,9 +417,9 @@ public final class BukkitItemManager extends AbstractItemManager {
                 previousTrim = base.getExactComponent(DataComponentKeys.TRIM);
             } else {
                 if (VersionHelper.isOrAbove1_20_2()) {
-                    previousTrim = ArmorTrimProxy.INSTANCE.getTrim(registryAccess, base.getMinecraftItem(), true);
+                    previousTrim = ArmorTrimProxy.INSTANCE.getTrim(registryAccess, base.minecraftItem(), true);
                 } else {
-                    previousTrim = ArmorTrimProxy.INSTANCE.getTrim(registryAccess, base.getMinecraftItem());
+                    previousTrim = ArmorTrimProxy.INSTANCE.getTrim(registryAccess, base.minecraftItem());
                 }
             }
             if (armorTrim.equals(previousTrim)) {
@@ -429,7 +429,7 @@ public final class BukkitItemManager extends AbstractItemManager {
             if (VersionHelper.isOrAbove1_20_5()) {
                 newItem.setExactComponent(DataComponentKeys.TRIM, armorTrim);
             } else {
-                ArmorTrimProxy.INSTANCE.setTrim(registryAccess, newItem.getMinecraftItem(), armorTrim);
+                ArmorTrimProxy.INSTANCE.setTrim(registryAccess, newItem.minecraftItem(), armorTrim);
             }
             return newItem;
         }

@@ -65,12 +65,12 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         for (UniqueKey holder : ingredient.items()) {
             Optional<? extends BuildableItem> buildableItem = BukkitItemManager.instance().getBuildableItem(holder.key());
             if (buildableItem.isPresent()) {
-                itemStacks.add(buildableItem.get().buildItem(ItemBuildContext.empty(), ingredient.count()).getMinecraftItem());
+                itemStacks.add(buildableItem.get().buildItem(ItemBuildContext.empty(), ingredient.count()).minecraftItem());
             } else {
                 Item barrier = BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, null);
                 assert barrier != null;
                 barrier.customNameJson(AdventureHelper.componentToJson(Component.text(holder.key().asString()).color(NamedTextColor.RED)));
-                itemStacks.add(barrier.getMinecraftItem());
+                itemStacks.add(barrier.minecraftItem());
             }
         }
         return itemStacks;

@@ -84,6 +84,12 @@ public interface EntityProxy {
     @MethodInvoker(name = "getVehicleAttachmentPoint", activeIf = "min_version=1.20.5")
     Object getVehicleAttachmentPoint(Object target, @Type(clazz = EntityProxy.class) Object vehicle);
 
+    @FieldGetter(name = "vehicle")
+    Object getVehicle(Object target);
+
+    @FieldGetter(name = "eyeHeight")
+    float getEyeHeight(Object target);
+
     @MethodInvoker(name = "getPassengersRidingOffset", activeIf = "max_version=1.20.1")
     double getPassengersRidingOffset(Object target);
 

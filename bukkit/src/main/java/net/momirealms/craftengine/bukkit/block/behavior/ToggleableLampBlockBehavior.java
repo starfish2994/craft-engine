@@ -56,9 +56,9 @@ public final class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
         ToggleableLampBlockBehavior behavior = state.behavior().getFirst(ToggleableLampBlockBehavior.class);
         if (behavior == null) return InteractionResult.PASS;
         LevelWriterProxy.INSTANCE.setBlock(
-                world.serverWorld(),
+                world.minecraftWorld(),
                 LocationUtils.toBlockPos(pos),
-                state.cycle(behavior.litProperty).customBlockState().literalObject(),
+                state.cycle(behavior.litProperty).customBlockState().minecraftState(),
                 2
         );
         Optional.ofNullable(player).ifPresent(p -> p.swingHand(context.getHand()));
@@ -100,7 +100,7 @@ public final class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
             if (!isPowered) {
                 blockState = blockState.cycle(this.litProperty);
             }
-            LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.poweredProperty, hasNeighborSignal).customBlockState().literalObject(), 3);
+            LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.poweredProperty, hasNeighborSignal).customBlockState().minecraftState(), 3);
         }
     }
 

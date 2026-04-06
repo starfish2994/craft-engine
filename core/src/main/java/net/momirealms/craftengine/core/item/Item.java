@@ -29,7 +29,11 @@ import java.util.Optional;
  */
 public interface Item {
 
-    Object getMinecraftItem();
+    Object minecraftItem();
+
+    default Object platformItem() {
+        return minecraftItem();
+    }
 
     ItemType type();
 

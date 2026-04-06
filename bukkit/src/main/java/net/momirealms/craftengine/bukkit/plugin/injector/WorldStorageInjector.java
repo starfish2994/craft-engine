@@ -139,10 +139,10 @@ public final class WorldStorageInjector {
             if (Config.enableLightSystem()) {
                 if (previousImmutableBlockState.isEmpty()) {
                     // 原版块到自定义块，只需要判断新块是否和客户端视觉一致
-                    updateLight(holder, newImmutableBlockState.visualBlockState().literalObject(), newState, x, y, z);
+                    updateLight(holder, newImmutableBlockState.visualBlockState().minecraftState(), newState, x, y, z);
                 } else {
                     // 自定义块到自定义块
-                    updateLight$complex(holder, newImmutableBlockState.visualBlockState().literalObject(), newState, previousState, x, y, z);
+                    updateLight$complex(holder, newImmutableBlockState.visualBlockState().minecraftState(), newState, previousState, x, y, z);
                 }
             }
         } else {
@@ -169,7 +169,7 @@ public final class WorldStorageInjector {
                     // 自定义块到原版块，只需要判断旧块是否和客户端一直
                     BlockStateWrapper wrapper = previous.visualBlockState();
                     if (wrapper != null) {
-                        updateLight(holder, wrapper.literalObject(), previousState, x, y, z);
+                        updateLight(holder, wrapper.minecraftState(), previousState, x, y, z);
                     }
                 }
             }

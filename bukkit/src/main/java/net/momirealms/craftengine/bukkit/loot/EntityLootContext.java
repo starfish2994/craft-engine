@@ -29,7 +29,7 @@ public class EntityLootContext extends BukkitLootContext {
 
     @Override
     protected Object getMinecraftLootParamsBuilder() {
-        Object lootParamsBuilder = LootParamsProxy.BuilderProxy.INSTANCE.newInstance(this.world().serverWorld());
+        Object lootParamsBuilder = LootParamsProxy.BuilderProxy.INSTANCE.newInstance(this.world().minecraftWorld());
         Location pos = deathEntity.getLocation();
         Object serverEntity = BukkitAdaptor.adapt(this.deathEntity).serverEntity();
         Object lastDamageSource = LivingEntityProxy.INSTANCE.getLastDamageSource(serverEntity);
@@ -53,7 +53,7 @@ public class EntityLootContext extends BukkitLootContext {
             LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, data.serverPlayer());
         });
         this.getOptionalParameter(DirectContextParameters.ITEM_IN_HAND).ifPresent(data -> {
-            LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.TOOL, data.getMinecraftItem());
+            LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.TOOL, data.minecraftItem());
         });
         LootParamsProxy.BuilderProxy.INSTANCE.withLuck(lootParamsBuilder, this.luck());
         return lootParamsBuilder;

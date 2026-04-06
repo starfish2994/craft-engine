@@ -11,7 +11,6 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import dev.dejvokep.boostedyaml.utils.format.NodeRole;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
@@ -464,7 +463,11 @@ public final class Config {
 
         // chunk
         this.chunk_system$compression_method = config.getInt("chunk-system.compression-method", 4);
-        this.chunk_system$storage_type = config.getString("chunk-system.storage-type", "mca").equalsIgnoreCase("mca") ? StorageType.MCA : StorageType.NONE;
+        try {
+            this.chunk_system$storage_type = StorageType.valueOf(config.getString("chunk-system.storage-type", "mca").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            this.chunk_system$storage_type = StorageType.MCA;
+        }
         this.chunk_system$restore_vanilla_blocks_on_chunk_unload = config.getBoolean("chunk-system.restore-vanilla-blocks-on-chunk-unload", true);
         this.chunk_system$restore_custom_blocks_on_chunk_load = config.getBoolean("chunk-system.restore-custom-blocks-on-chunk-load", true);
         this.chunk_system$sync_custom_blocks_on_chunk_load = config.getBoolean("chunk-system.sync-custom-blocks-on-chunk-load", false);

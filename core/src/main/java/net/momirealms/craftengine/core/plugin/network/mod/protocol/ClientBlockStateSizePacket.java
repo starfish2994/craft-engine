@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.core.plugin.network.mod.protocol;
 
-import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
+import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.IntIdentityList;

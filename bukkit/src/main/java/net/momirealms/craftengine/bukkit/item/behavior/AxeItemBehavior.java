@@ -59,7 +59,7 @@ public final class AxeItemBehavior extends ItemBehavior {
             return InteractionResult.PASS;
         }
 
-        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(context.getLevel().serverWorld(), LocationUtils.toBlockPos(context.getClickedPos()));
+        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(context.getClickedPos()));
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return InteractionResult.PASS;
 
@@ -84,7 +84,7 @@ public final class AxeItemBehavior extends ItemBehavior {
         if (player != null) {
             bukkitPlayer = ((org.bukkit.entity.Player) player.platformPlayer());
             // Call bukkit event
-            EntityChangeBlockEvent event = new EntityChangeBlockEvent(bukkitPlayer, clicked.block(), BlockStateUtils.fromBlockData(newState.literalObject()));
+            EntityChangeBlockEvent event = new EntityChangeBlockEvent(bukkitPlayer, clicked.block(), BlockStateUtils.fromBlockData(newState.minecraftState()));
             if (EventUtils.fireAndCheckCancel(event)) {
                 return InteractionResult.FAIL;
             }
@@ -95,7 +95,7 @@ public final class AxeItemBehavior extends ItemBehavior {
         if (ItemUtils.isEmpty(item)) return InteractionResult.FAIL;
         BlockPos pos = context.getClickedPos();
         context.getLevel().playBlockSound(Vec3d.atCenterOf(pos), AXE_STRIP_SOUND, 1, 1);
-        LevelWriterProxy.INSTANCE.setBlock(context.getLevel().serverWorld(), LocationUtils.toBlockPos(pos), newState.literalObject(), UpdateFlags.UPDATE_ALL_IMMEDIATE);
+        LevelWriterProxy.INSTANCE.setBlock(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(pos), newState.minecraftState(), UpdateFlags.UPDATE_ALL_IMMEDIATE);
         clicked.block().getWorld().sendGameEvent(bukkitPlayer, GameEvent.BLOCK_CHANGE, new Vector(pos.x(), pos.y(), pos.z()));
         Material material = MaterialUtils.getMaterial(item.vanillaId());
         if (bukkitPlayer != null) {
@@ -103,7 +103,7 @@ public final class AxeItemBehavior extends ItemBehavior {
 
             // resend swing if it's not interactable on client side
             if (!InteractUtils.isInteractable(
-                    bukkitPlayer, BlockStateUtils.fromBlockData(customState.visualBlockState().literalObject()),
+                    bukkitPlayer, BlockStateUtils.fromBlockData(customState.visualBlockState().minecraftState()),
                     context.getHitResult(), item
             ) || player.isSecondaryUseActive()) {
                 player.swingHand(context.getHand());

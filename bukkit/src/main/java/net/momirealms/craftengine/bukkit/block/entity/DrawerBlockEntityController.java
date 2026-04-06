@@ -177,7 +177,7 @@ public final class DrawerBlockEntityController extends BlockEntityController {
         if (!ItemUtils.isEmpty(this.storedItem) && this.count > 0) {
             CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
                 dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
-                dataTag.put("drawer_storage_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.getMinecraftItem()));
+                dataTag.put("drawer_storage_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.minecraftItem()));
                 dataTag.put("drawer_storage_amount", new IntTag(this.count));
             });
             tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);

@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
@@ -100,7 +99,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
 
     public static void playBreakEffect(ImmutableBlockState customState, Object blockPos, Object level) {
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
-        net.momirealms.craftengine.core.world.World world = new BukkitWorld(LevelProxy.INSTANCE.getWorld(level));
+        net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(level));
         WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(pos));
         world.playBlockSound(position, customState.settings().sounds().breakSound());
         LevelAccessorProxy.INSTANCE.levelEvent(level, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId());
@@ -198,7 +197,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
         }
         IntegerProperty property = behavior.property;
         for (int i = property.min + 1; i <= property.max; i++) {
-            LevelWriterProxy.INSTANCE.setBlock(args[0], LocationUtils.above(pos, i), state.with(property, i).customBlockState().literalObject(), UpdateFlags.UPDATE_ALL);
+            LevelWriterProxy.INSTANCE.setBlock(args[0], LocationUtils.above(pos, i), state.with(property, i).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         }
     }
 

@@ -7,7 +7,9 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
+import net.momirealms.craftengine.core.world.chunk.Chunk;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -32,12 +34,12 @@ public final class CachedStorage<T extends WorldDataStorage> implements WorldDat
     }
 
     @Override
-    public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos) throws IOException {
+    public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) throws IOException {
         CEChunk chunk = this.chunkCache.getIfPresent(pos);
         if (chunk != null) {
             return chunk;
         }
-        chunk = this.storage.readChunkAt(world, pos);
+        chunk = this.storage.readChunkAt(world, pos, chunkAccess);
         this.chunkCache.put(pos, chunk);
         return chunk;
     }
