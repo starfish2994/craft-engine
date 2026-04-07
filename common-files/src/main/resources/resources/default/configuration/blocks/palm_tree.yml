@@ -137,9 +137,10 @@ items:
         behaviors:
           - type: liquid_flowable_block
           - type: bush_block
+            bottom_blocks:
+              - minecraft:farmland
             bottom_block_tags:
               - minecraft:dirt
-              - minecraft:farmland
               - minecraft:sand
           - type: sapling_block
             feature: default:palm_tree

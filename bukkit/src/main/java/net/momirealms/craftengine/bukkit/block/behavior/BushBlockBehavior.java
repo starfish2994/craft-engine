@@ -42,7 +42,7 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
 
         @Override
         public BushBlockBehavior create(BlockDefinition block, ConfigSection section) {
-            TagsAndState tagsAndState = readTagsAndState(section, "below");
+            TagsAndState tagsAndState = readTagsAndState(section, "bottom");
             return new BushBlockBehavior(
                     block,
                     section.getInt("delay", 0),

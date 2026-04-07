@@ -6,11 +6,13 @@ import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockAttemptPlaceEvent;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockPlaceEvent;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
+import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -100,6 +102,9 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
             return InteractionResult.PASS;
         }
 
+        Item item = context.getItem();
+        blockStateToPlace = updateBlockStateProperties(blockStateToPlace, item);
+
         BlockPos againstPos = context.getAgainstPos();
         World world = (World) context.getLevel().platformWorld();
         Location placeLocation = new Location(world, pos.x(), pos.y(), pos.z());
@@ -181,7 +186,6 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
 
         if (player != null) {
             if (!player.isCreativeMode()) {
-                Item item = context.getItem();
                 item.count(item.count() - 1);
             }
             player.swingHand(context.getHand());
@@ -191,6 +195,23 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
         context.getLevel().playBlockSound(position, blockStateToPlace.settings().sounds().placeSound());
         world.sendGameEvent(bukkitPlayer, GameEvent.BLOCK_PLACE, new Vector(pos.x(), pos.y(), pos.z()));
         return InteractionResult.SUCCESS;
+    }
+
+    protected ImmutableBlockState updateBlockStateProperties(ImmutableBlockState state, Item item) {
+        Optional<Map<String, String>> optionalBlockProperties = item.blockState();
+        if (optionalBlockProperties.isEmpty()) {
+            return state;
+        }
+        for (Map.Entry<String, String> entry : optionalBlockProperties.get().entrySet()) {
+            Property<?> property = state.getProperty(entry.getKey());
+            if (property != null) {
+                Comparable<?> value = property.valueByName(entry.getValue());
+                if (value != null) {
+                    state = ImmutableBlockState.with(state, property, value);
+                }
+            }
+        }
+        return state;
     }
 
     protected ImmutableBlockState getPlacementState(BlockPlaceContext context, BlockDefinition block) {
