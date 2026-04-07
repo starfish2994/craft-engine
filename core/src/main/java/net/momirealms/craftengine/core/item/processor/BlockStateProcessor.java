@@ -65,7 +65,8 @@ public final class BlockStateProcessor implements SimpleNetworkItemProcessor {
                     if (blockState != null) {
                         Map<String, String> properties = new HashMap<>(4);
                         for (String property : blockState.getPropertyNames()) {
-                            properties.put(property, String.valueOf(blockState.getProperty(property)).toLowerCase(Locale.ROOT)); // 可能是 Enum
+                            Object propertyValue = blockState.getProperty(property);
+                            properties.put(property, String.valueOf(propertyValue).toLowerCase(Locale.ROOT)); // 可能是 Enum
                         }
                         return properties;
                     }
