@@ -345,7 +345,9 @@ public class CEChunk {
                             if (previousHolder != null) {
                                 previousHolder.cullable = renderer;
                             } else {
-                                trackedBy.get(i).addTrackedBlockEntity(pos, renderer);
+                                if (Config.enableEntityCulling()) {
+                                    trackedBy.get(i).addTrackedBlockEntity(pos, renderer);
+                                }
                             }
                         }
                     }

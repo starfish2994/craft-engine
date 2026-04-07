@@ -130,7 +130,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
         BlockStateWrapper blockState1 = level.getBlock(blockPos1).blockState();
         BlockStateWrapper blockState2 = level.getBlock(blockPos2).blockState();
         BlockStateWrapper blockState3 = level.getBlock(blockPos3).blockState();
-        BooleanProperty waterlogged = (BooleanProperty) state.owner().value().getProperty("waterlogged");
+        Property<Boolean> waterlogged = state.getProperty("waterlogged");
         if (waterlogged != null) {
             state = state.with(waterlogged, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
         }
@@ -144,23 +144,20 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
     @Override
     public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
         Optional<ImmutableBlockState> optionalState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
-        BooleanProperty waterlogged = (BooleanProperty) optionalState
-                .map(ImmutableBlockState::owner)
-                .map(Holder::value)
-                .map(block -> block.getProperty("waterlogged"))
-                .orElse(null);
+        if (optionalState.isEmpty()) {
+            return superMethod.call();
+        }
+        ImmutableBlockState state = optionalState.get();
+        Property<Boolean> waterlogged = state.getProperty("waterlogged");
         if (waterlogged != null) {
             LevelUtils.scheduleFluidTick(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
         }
-        if (DirectionUtils.fromNMSDirection(args[updateShape$direction]).axis().isHorizontal() && optionalState.isPresent()) {
-            Direction direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]);
-            ImmutableBlockState state = optionalState.get();
-            if (state.owner() != null) {
-                BooleanProperty booleanProperty = (BooleanProperty) state.owner().value().getProperty(direction.name().toLowerCase(Locale.ROOT));
-                if (booleanProperty != null) {
-                    BlockStateWrapper wrapper = BlockStateUtils.toBlockStateWrapper(args[updateShape$neighborState]);
-                    return state.with(booleanProperty, this.connectsTo(wrapper, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(wrapper.minecraftState(), args[updateShape$level], args[5], DirectionUtils.toNMSDirection(direction.opposite()), SupportTypeProxy.FULL), direction.opposite())).customBlockState().minecraftState();
-                }
+        Direction direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]);
+        if (direction.axis().isHorizontal()) {
+            Property<Boolean> directionProperty = state.getProperty(direction.name().toLowerCase(Locale.ROOT));
+            if (directionProperty != null) {
+                BlockStateWrapper wrapper = BlockStateUtils.toBlockStateWrapper(args[updateShape$neighborState]);
+                return state.with(directionProperty, this.connectsTo(wrapper, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(wrapper.minecraftState(), args[updateShape$level], args[5], DirectionUtils.toNMSDirection(direction.opposite()), SupportTypeProxy.FULL), direction.opposite())).customBlockState().minecraftState();
             }
         }
         return superMethod.call();
