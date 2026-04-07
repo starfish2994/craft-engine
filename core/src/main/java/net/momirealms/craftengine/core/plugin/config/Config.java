@@ -153,6 +153,7 @@ public final class Config {
 
     private boolean furniture$hide_base_entity;
     private ColliderType furniture$collision_entity_type;
+    private boolean furniture$enable_glowing_furniture_behavior;
 
     private boolean block$sound_system$enable;
     private boolean block$sound_system$process_cancelled_events$step;
@@ -510,6 +511,7 @@ public final class Config {
         // furniture
         this.furniture$hide_base_entity = config.getBoolean("furniture.hide-base-entity", true);
         this.furniture$collision_entity_type = ColliderType.valueOf(config.getString("furniture.collision-entity-type", "interaction").toUpperCase(Locale.ENGLISH));
+        this.furniture$enable_glowing_furniture_behavior = config.getBoolean("furniture.enable-glowing-furniture-behavior", true);
 
         // equipment
         this. equipment$sacrificed_vanilla_armor$type = config.getString("equipment.sacrificed-vanilla-armor.type", "chainmail").toLowerCase(Locale.ENGLISH);
@@ -1185,6 +1187,10 @@ public final class Config {
 
     public static ColliderType colliderType() {
         return instance.furniture$collision_entity_type;
+    }
+
+    public static boolean enableGlowingFurnitureBehavior() {
+        return instance.furniture$enable_glowing_furniture_behavior;
     }
 
     public static boolean enableChunkCache() {

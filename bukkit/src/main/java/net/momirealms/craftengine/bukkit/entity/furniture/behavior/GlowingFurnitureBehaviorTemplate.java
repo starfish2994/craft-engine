@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.behavior;
 
 import net.momirealms.craftengine.bukkit.util.DiffUtil;
-import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
@@ -9,12 +8,11 @@ import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehavi
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundBlockUpdatePacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockStateProxy;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -22,11 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.momirealms.craftengine.bukkit.util.BlockStateUtils.LIGHT_BLOCK_STATES;
-import static net.momirealms.craftengine.bukkit.util.BlockStateUtils.WATERLOGGED_LIGHT_BLOCK_STATES;
-
 public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTemplate {
     public static final FurnitureBehaviorFactory<GlowingFurnitureBehaviorTemplate> FACTORY = new Factory();
+    public static final Key PAYLOAD_ID = Key.ce("light");
 
     @NotNull
     public final Map<String, List<LightData>> lightDataByVariant;
@@ -84,9 +80,8 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
             }
         }
 
-        // 追踪到时, 展示关联的光源
         @Override
-        public void onPlayerTrack(Player player) {
+        public void onAsyncPlayerTrack(Player player) {
             List<LightData> lightData = this.behavior.lightDataByVariant.get(furniture.getCurrentVariant().name());
             if (lightData == null || lightData.isEmpty()) return;
             for (int i = 0; i < lightData.size(); i++) {
@@ -99,9 +94,8 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
             }
         }
 
-        // 离开时, 移除关联的光源
         @Override
-        public void onPlayerUntrack(Player player) {
+        public void onAsyncPlayerUntrack(Player player) {
             List<LightData> lightData = this.behavior.lightDataByVariant.get(furniture.getCurrentVariant().name());
             if (lightData == null || lightData.isEmpty()) return;
             for (int i = 0; i < lightData.size(); i++) {
@@ -114,16 +108,36 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
             }
         }
 
-        // 更新光照方块
+        // 更新光照方块 TODO 传入多个, 最后转成 SectionBlockUpdate.
         private void updateLightBlock(Player player, BlockPos blockPos, int lightPower) {
-            Object targetBlock = BlockStateProxy.INSTANCE.getBlock(furniture.world().getBlock(blockPos).blockState().literalObject());
-            boolean waterlogged = targetBlock == BlocksProxy.WATER;
-            if (targetBlock == BlocksProxy.AIR || targetBlock == BlocksProxy.LIGHT || waterlogged) {
-                Object pos = LocationUtils.toBlockPos(blockPos);
-                Object blockState = waterlogged ? WATERLOGGED_LIGHT_BLOCK_STATES[lightPower] : LIGHT_BLOCK_STATES[lightPower];
-                Object packet = ClientboundBlockUpdatePacketProxy.INSTANCE.newInstance$0(pos, blockState);
-                player.sendPacket(packet, false);
-            }
+            int x = blockPos.x();
+            int y = blockPos.y();
+            int z = blockPos.z();
+
+            byte[] data = new byte[13];
+
+            // x (int -> 4字节，大端序)
+            data[0] = (byte) (x >> 24);
+            data[1] = (byte) (x >> 16);
+            data[2] = (byte) (x >> 8);
+            data[3] = (byte) x;
+
+            // y (int -> 4字节)
+            data[4] = (byte) (y >> 24);
+            data[5] = (byte) (y >> 16);
+            data[6] = (byte) (y >> 8);
+            data[7] = (byte) y;
+
+            // z (int -> 4字节)
+            data[8] = (byte) (z >> 24);
+            data[9] = (byte) (z >> 16);
+            data[10] = (byte) (z >> 8);
+            data[11] = (byte) z;
+
+            // lightPower (0~15，只占用低4位)
+            data[12] = (byte) (lightPower & 0x0F);
+
+            player.sendCustomPayload(PAYLOAD_ID, data);
         }
     }
 
@@ -131,6 +145,9 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
     private static class Factory implements FurnitureBehaviorFactory<GlowingFurnitureBehaviorTemplate> {
         @Override
         public GlowingFurnitureBehaviorTemplate create(FurnitureDefinition furniture, ConfigSection section) {
+            if (!Config.enableGlowingFurnitureBehavior()) {
+                throw new IllegalStateException("GlowingFurnitureBehavior is not enabled!");
+            }
             // 如果没有配置变体灯光展示规则
             ConfigSection variantsSection = section.getSection("variants");
             Map<String, List<LightData>> lightDataByVariant;

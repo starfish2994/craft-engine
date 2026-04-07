@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.id;
 import net.momirealms.craftengine.bukkit.plugin.network.PacketIds;
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.PacketFlow;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ClientboundCustomPayloadPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ServerboundCustomPayloadPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ServerboundFinishConfigurationPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
@@ -241,5 +242,10 @@ public final class PacketIds1_20 implements PacketIds {
     @Override
     public int serverboundConfigurationAcknowledgedPacket() {
         return PacketIdHelper.byClazz(ClientboundStartConfigurationPacketProxy.CLASS, PacketFlow.SERVERBOUND, ConnectionState.PLAY);
+    }
+
+    @Override
+    public int clientboundCustomPayloadPacket() {
+        return PacketIdHelper.byClazz(ClientboundCustomPayloadPacketProxy.CLASS, PacketFlow.CLIENTBOUND, ConnectionState.PLAY);
     }
 }

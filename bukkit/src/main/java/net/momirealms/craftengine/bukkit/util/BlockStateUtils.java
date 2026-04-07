@@ -28,6 +28,8 @@ public final class BlockStateUtils {
 
     public static final Object[] LIGHT_BLOCK_STATES = new Object[16];
     public static final Object[] WATERLOGGED_LIGHT_BLOCK_STATES = new Object[16];
+    public static final int[] LIGHT_BLOCK_STATES_ID = new int[16];
+    public static final int[] WATERLOGGED_LIGHT_BLOCK_STATES_ID = new int[16];
     public static final int AIR_BLOCK_STATES_ID;
     public static final int WATER_BLOCK_STATES_ID;
 
@@ -36,10 +38,12 @@ public final class BlockStateUtils {
         WATERLOGGED_LIGHT_BLOCK_STATES[0] = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData("minecraft:water"));
         for (int i = 1; i < 16; i++) {
             LIGHT_BLOCK_STATES[i] = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData("minecraft:light[level=" + i + "]"));
+            LIGHT_BLOCK_STATES_ID[i] = BlockStateUtils.blockStateToId(LIGHT_BLOCK_STATES[i]);
             WATERLOGGED_LIGHT_BLOCK_STATES[i] = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData("minecraft:light[level=" + i + ",waterlogged=true]"));
+            WATERLOGGED_LIGHT_BLOCK_STATES_ID[i] = BlockStateUtils.blockStateToId(WATERLOGGED_LIGHT_BLOCK_STATES[i]);
         }
-        AIR_BLOCK_STATES_ID = BlockStateUtils.blockStateToId(LIGHT_BLOCK_STATES[0]);
-        WATER_BLOCK_STATES_ID = BlockStateUtils.blockStateToId(WATERLOGGED_LIGHT_BLOCK_STATES[0]);
+        AIR_BLOCK_STATES_ID = LIGHT_BLOCK_STATES_ID[0];
+        WATER_BLOCK_STATES_ID = WATERLOGGED_LIGHT_BLOCK_STATES_ID[0];
     }
 
     public static boolean isTag(BlockData blockData, Key tag) {

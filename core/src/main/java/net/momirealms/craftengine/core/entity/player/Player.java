@@ -283,6 +283,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract int removeLightData(BlockPos pos, int lightPower);
 
+    public abstract void clearLightData();
+
     public abstract int getLightPower(BlockPos pos);
 
     @Override

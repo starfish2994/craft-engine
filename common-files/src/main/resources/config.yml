@@ -332,6 +332,10 @@ furniture:
   # - boat (better compatibility with some anti-cheat plugin)
   # Requires a restart to apply
   collision-entity-type: interaction
+  # todo 需要修改
+  # 是否开启发光家具支持.
+  # 家具通过发包创建虚假的光源方块, 这会占用更多的内存和资源;
+  enable-glowing-furniture-behavior: true
 
 emoji:
   # Contexts where emoji parsing is enabled

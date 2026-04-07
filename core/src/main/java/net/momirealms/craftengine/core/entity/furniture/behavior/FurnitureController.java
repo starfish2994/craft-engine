@@ -95,6 +95,12 @@ public abstract class FurnitureController {
     public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
     }
 
+    public void onAsyncPlayerTrack(Player player) {
+    }
+
+    public void onAsyncPlayerUntrack(Player player) {
+    }
+
     public void onPlayerTrack(Player player) {
     }
 
@@ -209,6 +215,18 @@ public abstract class FurnitureController {
         public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
             this.first.gatherHitboxes(consumer);
             this.second.gatherHitboxes(consumer);
+        }
+
+        @Override
+        public void onAsyncPlayerTrack(Player player) {
+            this.first.onAsyncPlayerTrack(player);
+            this.second.onAsyncPlayerTrack(player);
+        }
+
+        @Override
+        public void onAsyncPlayerUntrack(Player player) {
+            this.first.onAsyncPlayerUntrack(player);
+            this.second.onAsyncPlayerUntrack(player);
         }
 
         @Override
@@ -382,6 +400,20 @@ public abstract class FurnitureController {
         public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
             for (FurnitureController controller : this.controllers) {
                 controller.gatherHitboxes(consumer);
+            }
+        }
+
+        @Override
+        public void onAsyncPlayerTrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onAsyncPlayerTrack(player);
+            }
+        }
+
+        @Override
+        public void onAsyncPlayerUntrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onAsyncPlayerUntrack(player);
             }
         }
 

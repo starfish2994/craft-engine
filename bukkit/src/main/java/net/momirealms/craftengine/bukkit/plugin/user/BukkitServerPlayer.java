@@ -1802,6 +1802,11 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
+    public void clearLightData() {
+        this.furnitureLightData.clear();
+    }
+
+    @Override
     public int getLightPower(BlockPos pos) {
         ReentrantReadWriteLock.ReadLock readLock = lightLock.readLock();
         try {
