@@ -2,6 +2,8 @@ package net.momirealms.craftengine.bukkit.entity.furniture;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import io.papermc.paper.event.player.PlayerTrackEntityEvent;
+import io.papermc.paper.event.player.PlayerUntrackEntityEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureHitEvent;
@@ -12,6 +14,7 @@ import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDebugStickState;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
+import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.EnumUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -136,17 +139,26 @@ public final class FurnitureEventListener implements Listener {
 
     @SuppressWarnings("DuplicatedCode")
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onFurniturePreBreak(FurnitureHitEvent event) {
+    public void onFurnitureHitWithDebugStick(FurnitureHitEvent event) {
         Player bukkitPlayer = event.getPlayer();
         BukkitServerPlayer player = BukkitAdaptor.adapt(bukkitPlayer);
         if (player == null) return;
+
+        // 触发家具点击
+        BukkitFurniture furniture = event.furniture();
+        InteractionResult result = furniture.controller.onPlayerHit(player, event.hitBox());
+        if (InteractionResult.SUCCESS_AND_CANCEL.equals(result)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        // 调试棒操作
         Item itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
         if (!BukkitItemUtils.isDebugStick(itemInHand)) return;
         if (!(player.canInstabuild() && player.hasPermission("minecraft.debugstick")) && !player.hasPermission("minecraft.debugstick.always")) {
             return;
         }
         event.setCancelled(true);
-        BukkitFurniture furniture = event.furniture();
         Object storedData = itemInHand.getJavaTag("craftengine:debug_stick_state");
         if (storedData == null) storedData = new HashMap<>();
         if (storedData instanceof Map<?,?> map) {
@@ -196,6 +208,28 @@ public final class FurnitureEventListener implements Listener {
                         ComponentUtils.adventureToMinecraft(Component.translatable("item.minecraft.debug_stick.empty").arguments(Component.text(furniture.id().asString()))), true);
                 player.sendPacket(systemChatPacket, false);
             });
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onTrackFurniture(PlayerTrackEntityEvent event) {
+        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
+            int entityId = furnitureEntity.getEntityId();
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
+            if (furniture == null) return;
+            furniture.controller.onPlayerTrack(BukkitAdaptor.adapt(event.getPlayer()));
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onUntrackFurniture(PlayerUntrackEntityEvent event) {
+        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
+            int entityId = furnitureEntity.getEntityId();
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
+            if (furniture == null) return;
+            BukkitServerPlayer bukkitServerPlayer = BukkitAdaptor.adapt(event.getPlayer());
+            if (bukkitServerPlayer == null) return;
+            furniture.controller.onPlayerUntrack(bukkitServerPlayer);
         }
     }
 }

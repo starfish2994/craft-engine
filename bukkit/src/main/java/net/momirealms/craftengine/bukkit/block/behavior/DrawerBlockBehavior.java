@@ -100,9 +100,10 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
             final UUID playerId = player.uuid();
             final long now = System.currentTimeMillis();
             Item storedItem = controller.storedItem();
-            Long lastClickTime = controller.lastClickMap.getOrDefault(playerId, 0L);
+            final UUID lastClickPlayer = controller.lastClickPlayer();
+            final long lastClickTime = controller.lastClickTime() == null ? 0 : controller.lastClickTime();
 
-            boolean isDoubleClick = (now - lastClickTime) <= 500;
+            boolean isDoubleClick = playerId.equals(lastClickPlayer) && (now - lastClickTime) <= 500;
             boolean hasStoredItem = !storedItem.isEmpty();
             boolean handHasItem = !itemInHand.isEmpty();
 
@@ -112,7 +113,8 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
                 if (putAmount > 0) {
                     controller.growStorageCount(putAmount);
                 }
-                controller.lastClickMap.remove(playerId);
+                controller.lastClickPlayer(null);
+                controller.lastClickTime(null);
                 player.swingHand(hand);
                 if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
                 return InteractionResult.SUCCESS_AND_CANCEL;
@@ -126,7 +128,8 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
                 controller.putStorageItem(toInsert);
                 itemInHand.shrink(count);
                 // 更新点击时间, 等待可能的二次点击
-                controller.lastClickMap.put(playerId, now);
+                controller.lastClickTime(now);
+                controller.lastClickPlayer(playerId);
                 player.swingHand(hand);
                 if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
                 return InteractionResult.SUCCESS_AND_CANCEL;

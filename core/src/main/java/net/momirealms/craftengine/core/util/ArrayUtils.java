@@ -87,6 +87,13 @@ public final class ArrayUtils {
         return newArray;
     }
 
+    public static int[] appendIntToArrayHead(int[] array, int element) {
+        int[] newArray = new int[array.length + 1];
+        System.arraycopy(array, 0, newArray, 1, array.length);
+        newArray[0] = element;
+        return newArray;
+    }
+
     public static String[] splitValue(String value) {
         return value.substring(value.indexOf('[') + 1, value.lastIndexOf(']'))
                 .replaceAll("\\s", "")

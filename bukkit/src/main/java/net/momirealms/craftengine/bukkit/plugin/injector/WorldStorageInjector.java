@@ -136,7 +136,7 @@ public final class WorldStorageInjector {
             }
 
             // 如果新方块的光照属性和客户端认为的不同
-            if (Config.enableLightSystem()) {
+            if (Config.enableBlockLightSystem()) {
                 if (previousImmutableBlockState.isEmpty()) {
                     // 原版块到自定义块，只需要判断新块是否和客户端视觉一致
                     updateLight(holder, newImmutableBlockState.visualBlockState().minecraftState(), newState, x, y, z);
@@ -165,7 +165,7 @@ public final class WorldStorageInjector {
                     BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                     chunk.removeConstantBlockEntityRenderer(pos);
                 }
-                if (Config.enableLightSystem()) {
+                if (Config.enableBlockLightSystem()) {
                     // 自定义块到原版块，只需要判断旧块是否和客户端一直
                     BlockStateWrapper wrapper = previous.visualBlockState();
                     if (wrapper != null) {

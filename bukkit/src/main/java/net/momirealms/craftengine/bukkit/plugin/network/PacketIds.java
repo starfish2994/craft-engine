@@ -93,4 +93,6 @@ public interface PacketIds {
     int clientboundStartConfigurationPacket();
 
     int serverboundConfigurationAcknowledgedPacket();
+
+    int clientboundCustomPayloadPacket();
 }

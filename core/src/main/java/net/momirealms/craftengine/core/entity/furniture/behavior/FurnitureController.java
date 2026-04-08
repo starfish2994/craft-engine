@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
@@ -85,13 +86,29 @@ public abstract class FurnitureController {
         return InteractionResult.PASS;
     }
 
-    public void onVariantChange() {
+    public void onVariantChange(FurnitureVariant previousVariant) {
     }
 
     public void gatherElements(Consumer<FurnitureElement> consumer) {
     }
 
     public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
+    }
+
+    public void onAsyncPlayerTrack(Player player) {
+    }
+
+    public void onAsyncPlayerUntrack(Player player) {
+    }
+
+    public void onPlayerTrack(Player player) {
+    }
+
+    public void onPlayerUntrack(Player player) {
+    }
+
+    public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
+        return InteractionResult.PASS;
     }
 
     /**
@@ -201,6 +218,36 @@ public abstract class FurnitureController {
         }
 
         @Override
+        public void onAsyncPlayerTrack(Player player) {
+            this.first.onAsyncPlayerTrack(player);
+            this.second.onAsyncPlayerTrack(player);
+        }
+
+        @Override
+        public void onAsyncPlayerUntrack(Player player) {
+            this.first.onAsyncPlayerUntrack(player);
+            this.second.onAsyncPlayerUntrack(player);
+        }
+
+        @Override
+        public void onPlayerTrack(Player player) {
+            this.first.onPlayerTrack(player);
+            this.second.onPlayerTrack(player);
+        }
+
+        @Override
+        public void onPlayerUntrack(Player player) {
+            this.first.onPlayerUntrack(player);
+            this.second.onPlayerUntrack(player);
+        }
+
+        @Override
+        public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
+            InteractionResult result = this.first.onPlayerHit(player, hitBox);
+            return result == InteractionResult.PASS ? this.second.onPlayerHit(player, hitBox) : result;
+        }
+
+        @Override
         public void onDestroy(Player player) {
             this.first.onDestroy(player);
             this.second.onDestroy(player);
@@ -237,9 +284,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onVariantChange() {
-            this.first.onVariantChange();
-            this.second.onVariantChange();
+        public void onVariantChange(FurnitureVariant previousVariant) {
+            this.first.onVariantChange(previousVariant);
+            this.second.onVariantChange(previousVariant);
         }
 
         @Override
@@ -357,6 +404,45 @@ public abstract class FurnitureController {
         }
 
         @Override
+        public void onAsyncPlayerTrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onAsyncPlayerTrack(player);
+            }
+        }
+
+        @Override
+        public void onAsyncPlayerUntrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onAsyncPlayerUntrack(player);
+            }
+        }
+
+        @Override
+        public void onPlayerTrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlayerTrack(player);
+            }
+        }
+
+        @Override
+        public void onPlayerUntrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlayerUntrack(player);
+            }
+        }
+
+        @Override
+        public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
+            for (FurnitureController controller : this.controllers) {
+                InteractionResult result = controller.onPlayerHit(player, hitBox);
+                if (InteractionResult.PASS != result) {
+                    return result;
+                }
+            }
+            return InteractionResult.PASS;
+        }
+
+        @Override
         public void onDestroy(Player player) {
             for (FurnitureController controller : this.controllers) {
                 controller.onDestroy(player);
@@ -399,9 +485,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onVariantChange() {
+        public void onVariantChange(FurnitureVariant previousVariant) {
             for (FurnitureController controller : this.controllers) {
-                controller.onVariantChange();
+                controller.onVariantChange(previousVariant);
             }
         }
 
