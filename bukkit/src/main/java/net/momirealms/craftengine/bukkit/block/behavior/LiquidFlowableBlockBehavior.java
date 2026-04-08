@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.WorldGenLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
@@ -36,7 +37,9 @@ public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior imple
         if (fluidType == FluidsProxy.LAVA || fluidType == FluidsProxy.FLOWING_LAVA) {
             LevelAccessorProxy.INSTANCE.levelEvent(level, WorldEvents.LAVA_CONVERTS_BLOCK, pos, 0);
         } else {
-            BlockProxy.INSTANCE.dropResources(blockState, level, pos);
+            if (!WorldGenLevelProxy.CLASS.isInstance(level)) {
+                BlockProxy.INSTANCE.dropResources(blockState, level, pos);
+            }
         }
         LevelWriterProxy.INSTANCE.setBlock(level, pos, FluidStateProxy.INSTANCE.createLegacyBlock(fluidState), UpdateFlags.UPDATE_ALL);
         return true;
