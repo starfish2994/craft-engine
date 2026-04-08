@@ -136,9 +136,6 @@ public final class Config {
     private String resource_pack$delivery$proxy$scheme;
     private Component resource_pack$send$prompt;
 
-    private boolean light_system$async_update;
-    private boolean light_system$enable;
-
     private int chunk_system$compression_method;
     private boolean chunk_system$restore_vanilla_blocks_on_chunk_unload;
     private boolean chunk_system$restore_custom_blocks_on_chunk_load;
@@ -153,7 +150,7 @@ public final class Config {
 
     private boolean furniture$hide_base_entity;
     private ColliderType furniture$collision_entity_type;
-    private boolean furniture$enable_glowing_furniture_behavior;
+    private boolean furniture$light_system;
 
     private boolean block$sound_system$enable;
     private boolean block$sound_system$process_cancelled_events$step;
@@ -163,11 +160,12 @@ public final class Config {
     private boolean block$predict_breaking;
     private int block$predict_breaking_interval;
     private double block$extended_interaction_range;
-    private boolean block$chunk_relighter;
     private Key block$deceive_bukkit_material$default;
     private Map<Integer, Key> block$deceive_bukkit_material$overrides;
     private int block$serverside_blocks = -1;
     private boolean block$inject_bukkit_material;
+    private boolean block$light_system$async_update;
+    private boolean block$light_system$enable;
 
     private boolean recipe$enable;
     private boolean recipe$disable_vanilla_recipes$all;
@@ -458,10 +456,6 @@ public final class Config {
             this.resource_pack$duplicated_files_handler = List.of();
         }
 
-        // light
-        this.light_system$async_update = config.getBoolean("light-system.async-update", true);
-        this.light_system$enable = config.getBoolean("light-system.enable", true);
-
         // chunk
         this.chunk_system$compression_method = config.getInt("chunk-system.compression-method", 4);
         try {
@@ -511,7 +505,9 @@ public final class Config {
         // furniture
         this.furniture$hide_base_entity = config.getBoolean("furniture.hide-base-entity", true);
         this.furniture$collision_entity_type = ColliderType.valueOf(config.getString("furniture.collision-entity-type", "interaction").toUpperCase(Locale.ENGLISH));
-        this.furniture$enable_glowing_furniture_behavior = config.getBoolean("furniture.enable-glowing-furniture-behavior", true);
+        if (this.firstTime) {
+            this.furniture$light_system = config.getBoolean("furniture.light-system.enable", true);
+        }
 
         // equipment
         this. equipment$sacrificed_vanilla_armor$type = config.getString("equipment.sacrificed-vanilla-armor.type", "chainmail").toLowerCase(Locale.ENGLISH);
@@ -565,7 +561,8 @@ public final class Config {
         this.block$predict_breaking = config.getBoolean("block.predict-breaking.enable", true);
         this.block$predict_breaking_interval = Math.max(config.getInt("block.predict-breaking.interval", 10), 1);
         this.block$extended_interaction_range = Math.max(config.getDouble("block.predict-breaking.extended-interaction-range", 0.5), 0.0);
-        this.block$chunk_relighter = config.getBoolean("block.chunk-relighter", true);
+        this.block$light_system$async_update = config.getBoolean("block.light-system.async", true);
+        this.block$light_system$enable = config.getBoolean("block.light-system.enable", true);
         if (this.firstTime) {
             this.block$deceive_bukkit_material$default = Key.of(config.getString("block.deceive-bukkit-material.default", "bricks"));
             this.block$deceive_bukkit_material$overrides = new HashMap<>();
@@ -792,8 +789,8 @@ public final class Config {
         return instance.chunk_system$process_invalid_blocks$mapping;
     }
 
-    public static boolean enableLightSystem() {
-        return instance.light_system$enable;
+    public static boolean enableBlockLightSystem() {
+        return instance.block$light_system$enable;
     }
 
     public static MinecraftVersion packMinVersion() {
@@ -1189,8 +1186,8 @@ public final class Config {
         return instance.furniture$collision_entity_type;
     }
 
-    public static boolean enableGlowingFurnitureBehavior() {
-        return instance.furniture$enable_glowing_furniture_behavior;
+    public static boolean enableFurnitureLightSystem() {
+        return instance.furniture$light_system;
     }
 
     public static boolean enableChunkCache() {
@@ -1281,12 +1278,8 @@ public final class Config {
         return instance.item$update_triggers$drop;
     }
 
-    public static boolean enableChunkRelighter() {
-        return instance.block$chunk_relighter;
-    }
-
     public static boolean asyncLightUpdate() {
-        return instance.light_system$async_update;
+        return instance.block$light_system$async_update;
     }
 
     public static Key defaultMaterial() {

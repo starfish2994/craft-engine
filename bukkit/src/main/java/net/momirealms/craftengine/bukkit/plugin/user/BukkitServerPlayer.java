@@ -181,8 +181,8 @@ public class BukkitServerPlayer extends Player {
     // 客户端选择的语言
     private Locale clientLocale;
     // 跟踪到的方块实体渲染器
-    private final Map<BlockPos, CullableHolder> trackedBlockEntityRenderers = new ConcurrentHashMap<>();
-    private final Map<Integer, CullableHolder> trackedEntities = new ConcurrentHashMap<>();
+    private Map<BlockPos, CullableHolder> trackedBlockEntityRenderers;
+    private Map<Integer, CullableHolder> trackedEntities;
     private final EntityCulling culling;
     private Vec3d firstPersonCameraVec3;
     private Vec3d thirdPersonCameraVec3;
@@ -211,16 +211,12 @@ public class BukkitServerPlayer extends Player {
     // 用于辨别是否在范围挖掘
     private boolean isRangeMining;
     // 家具击打记录
-    private final FurnitureHitData furnitureHitData = new FurnitureHitData();
+    private FurnitureHitData furnitureHitData;
     // 缓存的已接收的地图数据，为了防止动态物品展示框渲染器在渲染地图物品的时候重复发送地图数据导致服务器带宽消耗过大
-    private final Cache<Object, Boolean> receivedMapData = CacheBuilder.newBuilder()
-            .weakKeys()
-            .expireAfterAccess(30, TimeUnit.MINUTES)
-            .concurrencyLevel(4)
-            .build();
-    private final Set<UniqueKey> obtainedItems = new HashSet<>();
+    private Cache<Object, Boolean> receivedMapData;
+    private Set<UniqueKey> obtainedItems;
     // 缓存可见的家具光源数据
-    private final Map<BlockPos, int[]> furnitureLightData = new HashMap<>();
+    private Map<BlockPos, int[]> furnitureLightData;
     private final ReentrantReadWriteLock lightLock = new ReentrantReadWriteLock();
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
@@ -245,6 +241,7 @@ public class BukkitServerPlayer extends Player {
         this.isUUIDVerified = true;
         this.name = player.getName();
         this.isNameVerified = true;
+        this.initPlayStageFields();
         byte[] bytes = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(CooldownData.COOLDOWN_KEY), PersistentDataType.BYTE_ARRAY);
         String locale = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(SELECTED_LOCALE_KEY), PersistentDataType.STRING);
         Double scale = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(ENTITY_CULLING_DISTANCE_SCALE), PersistentDataType.DOUBLE);
@@ -253,8 +250,6 @@ public class BukkitServerPlayer extends Player {
         this.enableFurnitureDebug = Optional.ofNullable(player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(ENABLE_FURNITURE_DEBUG), PersistentDataType.BOOLEAN)).orElse(false);
         this.culling.setDistanceScale(Optional.ofNullable(scale).orElse(1.0));
         this.selectedLocale = TranslationManager.parseLocale(locale);
-        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
-        this.entityTypeView = new ConcurrentHashMap<>(256);
         this.eyeLocation = getEyePos();
         try {
             this.cooldownData = CooldownData.fromBytes(bytes);
@@ -268,6 +263,21 @@ public class BukkitServerPlayer extends Player {
                 this.obtainedItems.add(UniqueKey.create(BukkitItemManager.instance().wrap(item).id()));
             }
         }
+    }
+
+    private void initPlayStageFields() {
+        this.furnitureLightData = new HashMap<>(32);
+        this.trackedBlockEntityRenderers = new ConcurrentHashMap<>(64);
+        this.trackedEntities = new ConcurrentHashMap<>(64);
+        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
+        this.entityTypeView = new ConcurrentHashMap<>(256);
+        this.obtainedItems = new HashSet<>(32);
+        this.furnitureHitData = new FurnitureHitData();
+        this.receivedMapData = CacheBuilder.newBuilder()
+                .weakKeys()
+                .expireAfterAccess(30, TimeUnit.MINUTES)
+                .concurrencyLevel(4)
+                .build();
     }
 
     @Override
@@ -1803,7 +1813,13 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void clearLightData() {
-        this.furnitureLightData.clear();
+        ReentrantReadWriteLock.WriteLock writeLock = lightLock.writeLock();
+        try {
+            writeLock.lock();
+            this.furnitureLightData.clear();
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     @Override

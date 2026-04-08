@@ -11,6 +11,7 @@ resource-pack:
   # This option determines the location of the generated resource pack
   # You can use either an absolute path or a relative path here
   path: "./generated/resource_pack.zip"
+
   # The minimum client version supported by CraftEngine is 1.16. If you need to provide support for lower client versions, please modify the resource pack yourself.
   # Allowed values:
   # - 1.20.1, 1.21, 1.21.8, 26.1, etc.
@@ -19,83 +20,30 @@ resource-pack:
   supported-version:
     min: server
     max: latest
+
   # The description of your resource pack
   description: "<gray>CraftEngine ResourcePack</gray>"
-  # Remove 1.21.5+ tinted_leaves particles
-  remove-tinted-leaves-particle: true
   # Define the name of the overlay folders
   overlay-format: "ce_overlay_{version}"
-  # Should those images in minecraft:default font also work in minecraft:uniform
-  override-uniform-font: true
   # Generate assets for CraftEngine fabric mod
   # Note: fabric mod is used for clientside Axiom/WorldEdit mod
   generate-mod-assets: false
-  # Exclude the shaders when generating the resource pack
-  exclude-core-shaders: false
+
   # Merge other packs
   merge-external-folders:
     - "ModelEngine/resource pack"
   merge-external-zip-files:
     - "CustomNameplates/resourcepack.zip"
     - "BetterModel/build.zip"
-  exclude-file-extensions: ["md", "psd", "bbmodel", "db", "ini", "DS_Store", "zip", "gz", "tar", "jar"]
-  # Provide the solution for when a file conflict is encountered
-  # https://xiao-momi.github.io/craft-engine-wiki/reference/file_conflict
-  duplicated-files-handler:
-    - term:
-        type: any_of
-        terms:
-          - type: parent_path_suffix
-            suffix: "minecraft/models/item"
-      resolution:
-        type: merge_legacy_model
-    - term:
-        type: any_of
-        terms:
-          - type: parent_path_suffix
-            suffix: "minecraft/items"
-      resolution:
-        type: merge_json
-        deeply: true
-    - term:
-        type: exact
-        path: "pack.mcmeta"
-      resolution:
-        type: merge_pack_mcmeta
-    - term:
-        type: exact
-        path: "pack.png"
-      resolution:
-        type: retain_matching
-        term:
-          type: contains
-          path: "resources/default/resourcepack"
-    - term:
-        type: filename
-        name: "sounds.json"
-      resolution:
-        type: merge_json
-        deeply: false
-    - term:
-        type: parent_path_suffix
-        suffix: "minecraft/atlases"
-      resolution:
-        type: merge_atlas
-    - term:
-        type: parent_path_suffix
-        suffix: "minecraft/lang"
-      resolution:
-        type: merge_json
-        deeply: false
-    - term:
-        type: any_of
-        terms:
-          - type: exact
-            path: "assets/minecraft/font/default.json"
-          - type: exact
-            path: "assets/minecraft/font/uniform.json"
-      resolution:
-        type: merge_font
+  exclude-file-extensions: [ "md", "psd", "bbmodel", "db", "ini", "DS_Store", "zip", "gz", "tar", "jar" ]
+
+  # Remove 1.21.5+ tinted_leaves particles
+  remove-tinted-leaves-particle: true
+  # Should those images in minecraft:default font also work in minecraft:uniform
+  override-uniform-font: true
+  # Exclude the shaders when generating the resource pack
+  exclude-core-shaders: false
+
   # Validate if there is any error in the resource pack, such as missing textures or models.
   # If your resource pack is compliant with the standard, you can disable validation to improve the resource pack generation speed.
   validation:
@@ -105,6 +53,7 @@ resource-pack:
     fix-atlas: true
     # Fixing model errors in the atlas caused by #missing.
     fix-missing-texture: true
+
   # Optimize your resource pack by reducing its size without any quality loss.
   optimization:
     enable: false
@@ -121,6 +70,7 @@ resource-pack:
     json:
       enable: true
       exclude: []
+
   # [Premium Exclusive]
   # Protect your resource pack from being cracked by others
   protection:
@@ -180,15 +130,19 @@ resource-pack:
       bypass-sounds:
         - "@vanilla_sounds"         # bypass vanilla sounds
       bypass-equipments: []
+
   # This section controls how to send the resource pack to players
   delivery:
+    prompt: "<yellow>To fully experience our server,<newline>please accept our custom resource pack.</yellow>"
+
     # Send the resource pack on joining the server
     send-on-join: true
     kick-if-declined: true
     kick-if-failed-to-apply: false
-    prompt: "<yellow>To fully experience our server,<newline>please accept our custom resource pack.</yellow>"
+
     # Whether a verified player UUID is required to download the resource pack
     strict-player-uuid-validation: true
+
     # Upload the resource pack automatically on generation
     # When disabled, you must manually trigger uploads using the /ce upload command
     auto-upload: true
@@ -196,6 +150,7 @@ resource-pack:
     resend-on-upload: true
     # The file to upload
     file-to-upload: "./generated/resource_pack.zip"
+
     # If you are hosting the resource pack by yourself, replace `localhost` with your server ip otherwise it would only work on your local pc
     # If using BungeeCord or Velocity, consider using a proxy-side plugin to handle resource pack delivery.
     # Read this page for more host types and argument explanations: https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host
@@ -211,6 +166,7 @@ resource-pack:
           max-bandwidth-per-second: 5_000_000
           min-download-speed-per-player: 50_000
           qps-per-ip: 5/60
+
     # HTTP proxy settings for routing resource pack download requests. For most users, this option is unnecessary.
     proxy:
       enable: false
@@ -219,6 +175,64 @@ resource-pack:
       username: ""
       password: ""
       scheme: http
+
+  # Provide the solution for when a file conflict is encountered
+  # https://xiao-momi.github.io/craft-engine-wiki/reference/file_conflict
+  duplicated-files-handler:
+    - term:
+        type: any_of
+        terms:
+          - type: parent_path_suffix
+            suffix: "minecraft/models/item"
+      resolution:
+        type: merge_legacy_model
+    - term:
+        type: any_of
+        terms:
+          - type: parent_path_suffix
+            suffix: "minecraft/items"
+      resolution:
+        type: merge_json
+        deeply: true
+    - term:
+        type: exact
+        path: "pack.mcmeta"
+      resolution:
+        type: merge_pack_mcmeta
+    - term:
+        type: exact
+        path: "pack.png"
+      resolution:
+        type: retain_matching
+        term:
+          type: contains
+          path: "resources/default/resourcepack"
+    - term:
+        type: filename
+        name: "sounds.json"
+      resolution:
+        type: merge_json
+        deeply: false
+    - term:
+        type: parent_path_suffix
+        suffix: "minecraft/atlases"
+      resolution:
+        type: merge_atlas
+    - term:
+        type: parent_path_suffix
+        suffix: "minecraft/lang"
+      resolution:
+        type: merge_json
+        deeply: false
+    - term:
+        type: any_of
+        terms:
+          - type: exact
+            path: "assets/minecraft/font/default.json"
+          - type: exact
+            path: "assets/minecraft/font/uniform.json"
+      resolution:
+        type: merge_font
 
 item:
   # [Premium Exclusive]
@@ -234,6 +248,7 @@ item:
   # You can override this global setting per item using the
   # client-bound-model option.
   client-bound-model: true
+
   # When enabled (recommended), this option adds both custom-model-data and an item-model
   # to optimize client-side rendering if your resource pack supports 1.21.1 or below.
   always-use-item-model: true
@@ -243,11 +258,14 @@ item:
   # Even if your resource pack only supports version 1.21.2+, also generate overrides for older versions.
   # This may be helpful for some Bedrock resource pack converters working based on this.
   always-generate-model-overrides: false
+
   # Since Minecraft renders lore text in italics by default, you can
   # optionally prefix any lore with <!i> to remove the italic formatting.
   non-italic-tag: false
+
   # The default material to use as base item if not specified
   default-material: nether_brick
+
   # Defines the trigger condition for the item updater.
   #
   # Warning: This operation is performance-intensive. Enable only if needed.
@@ -258,11 +276,13 @@ item:
     click-in-inventory: false # this option won't work for players in creative mode
     drop: false
     pick-up: false
+
   # Decide the starting value for automatic custom model data assignment.
   custom-model-data-starting-value:
     default: 10000
     overrides:
       paper: 20000
+
   # Toggle whether to display the names of dropped items by default and configure the display format. This setting can be overridden for individual items.
   default-drop-display:
     enable: false
@@ -286,6 +306,7 @@ block:
   # This decides the amount of real blocks on serverside. You should only consider increasing this value when your server state is insufficient.
   # It is recommended to increase it by 1000 each time. This option requires a restart to apply.
   serverside-blocks: 2000
+
   # Enables the sound system, which prevents the client from hearing some non-custom block sounds and improves the client experience.
   sound-system:
     enable: true
@@ -293,6 +314,7 @@ block:
     process-cancelled-events:
       step: true
       break: true
+
   # Adventure mode requires correct tools to break custom blocks.
   # Vanilla clients cannot recognize custom block IDs (e.g., craftengine:custom_100).
   #
@@ -307,6 +329,7 @@ block:
   simplify-adventure-break-check: false
   # Similar to the option above, but designed for block placement
   simplify-adventure-place-check: false
+
   # Defines the return value of Bukkit Block.getMaterial() for custom blocks
   # If another plugin causes incompatibility due to its reliance on this method, try changing this option to a different vanilla block.
   # A restart is required to apply the changes.
@@ -317,9 +340,16 @@ block:
     #  1000: chest
     #  0~999: bricks
     overrides: {}
+
   # Inject new enum constants into Bukkit Material class.
   # A restart is required to apply the changes.
   inject-bukkit-material: false
+
+  # Required for any block with custom light levels
+  light-system:
+    enable: true
+    # Processes light updates asynchronously to reduce main thread load
+    async: true
 
 furniture:
   # Hide technical entities used for storing furniture metadata.
@@ -327,15 +357,18 @@ furniture:
   # - These are INVISIBLE entities used internally for tracking furniture states
   # - Recommended to keep enabled for better performance
   hide-base-entity: true
+
   # Determines the type of collision entity associated with the hitbox.
   # - interaction (best performance)
   # - boat (better compatibility with some anti-cheat plugin)
   # Requires a restart to apply
   collision-entity-type: interaction
-  # todo 需要修改
-  # 是否开启发光家具支持.
-  # 家具通过发包创建虚假的光源方块, 这会占用更多的内存和资源;
-  enable-glowing-furniture-behavior: true
+
+  # Enabling this will slightly increase memory usage to build a client-side lighting view.
+  # If you are not using any furniture light features, you can turn off this option.
+  # Requires a restart to apply.
+  light-system:
+    enable: true
 
 emoji:
   # Contexts where emoji parsing is enabled
@@ -344,26 +377,29 @@ emoji:
     book: true
     anvil: true
     sign: true
+
   # Prevent lag or oversized packet when processing emoji-heavy content
   max-emojis-per-parse: 16
 
 loot:
+  # Add supported plugins to this list to allow customizing mob drops from certain plugins. For example, MythicMobs.
   entity-sources: []
 
 image:
   # Prevents players from spamming the chat or other systems by sending raw characters.
-  # Bypass permission : craftengine.filter.bypass.[anvil/book/chat/command/sign]
   illegal-characters-filter:
     anvil: true
     book: true
     chat: true
     command: true
     sign: true
+
   # Decide the starting value for automatic codepoint assignment.
   codepoint-starting-value:
     default: 19968
     overrides:
       minecraft:default: 57344  # 57344 ~ 63743 (U+E000 ~ U+F8FF)
+
   # Defines Unicode characters used for <shift:xxx> positioning
   # - Must match the font defined in resource packs
   # - Warning: Do not modify these values unless you fully understand the underlying text rendering mechanics.
@@ -419,11 +455,13 @@ network:
   # Disables the chat reporting.
   # Requires a restart to apply.
   disable-chat-report: false
-  # Only consider modifying the options below if you need to optimize Netty performance.
+
+  # Only consider modifying the options below if you need to optimize Netty performance
   #
   # Disable network operations related to items.
   # ⚠️ This option will disable client-bound-data/material and the functionality of replacing tags in item name and lore.
   disable-item-operations: false
+
   # Allow <image> <shift> <global> tags in third-party plugins via packet manipulation
   # ⚠️ Disable unused handlers to reduce netty thread workload
   intercept-packets:
@@ -443,6 +481,8 @@ network:
     item: true
     advancement: true   # Toast
     player-chat: true
+
+  # Settings related to communication with CraftEngineMod
   mod-channel:
     enable: true
     requires-permission: true
@@ -450,6 +490,7 @@ network:
 recipe:
   # Master switch for custom recipes
   enable: true
+
   # Manage Minecraft's built-in recipe behavior
   disable-vanilla-recipes:
     # ⚠️ WARNING: When true, DISABLES ALL VANILLA RECIPES
@@ -458,13 +499,16 @@ recipe:
     # Selective recipe disabling (safer alternative to 'all: true')
     # Example: ["minecraft:wooden_sword", "minecraft:stone_hoe"]
     list: []
+
   # Add ingredient sources from other plugins. This feature slightly reduces the efficiency of the recipe system.
   # Unless necessary, avoid adding all available item sources.
   # https://xiao-momi.github.io/craft-engine-wiki/configuration/recipe#compatibility-with-other-plugins
   ingredient-sources: []
+
   # Whether to automatically unlock the corresponding recipe when the player obtains its required ingredients.
   # This option can be set individually for each recipe to override the global setting.
   unlock-on-ingredient-obtained: true
+
   # Inject furnace block entities to support custom condition. This option requires a restart to apply.
   inject-block-entities: true
 
@@ -525,12 +569,6 @@ gui:
         title: "<white><shift:-11><image:internal:smithing_transform_recipe>"
       brewing:
         title: "<white><shift:-11><image:internal:brewing_recipe>"
-
-light-system:
-  # Required for any block with custom light levels
-  enable: true
-  # Processes light updates asynchronously to reduce main thread load
-  async-update: true
 
 chunk-system:
   # Storage format for chunk data persistence

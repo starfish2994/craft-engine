@@ -17,13 +17,13 @@ import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
-public class ModPackets {
+public final class ModPackets {
     public static final ModPacketType<CancelBlockUpdatePacket> CANCEL_BLOCK_UPDATE = register(CancelBlockUpdatePacket.TYPE, CancelBlockUpdatePacket.CODEC);
     public static final ModPacketType<ClientBlockStateSizePacket> CLIENT_BLOCK_STATE_SIZE = register(ClientBlockStateSizePacket.TYPE, ClientBlockStateSizePacket.CODEC);
     public static final ModPacketType<VisualBlockStatePacket> VISUAL_BLOCK_STATE = register(VisualBlockStatePacket.TYPE, VisualBlockStatePacket.CODEC);
     public static final ModPacketType<ClientCustomBlockPacket> CLIENT_CUSTOM_BLOCK = register(ClientCustomBlockPacket.TYPE, ClientCustomBlockPacket.CODEC);
 
-    protected ModPackets() {
+    private ModPackets() {
     }
 
     public static void init() {
