@@ -41,7 +41,7 @@ public final class BukkitBlockDefinition extends AbstractBlockDefinition {
                     state.customBlockState().minecraftState(),
                     Optional.ofNullable(context.getPlayer()).map(Player::serverPlayer).orElse(null),
                     context.getItem().minecraftItem()
-            }, () -> null);
+            });
         } catch (Throwable t) {
             CraftEngine.instance().logger().warn("Failed to run setPlacedBy ", t);
         }

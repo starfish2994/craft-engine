@@ -39,7 +39,6 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<PressurePlateBlockBehavior> FACTORY = new Factory();
@@ -65,7 +64,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object state = args[0];
         Object level = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
@@ -83,7 +82,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean canSurvive(Object thisBlock, Object[] args) {
         Object blockPos = LocationUtils.below(args[2]);
         Object level = args[1];
         return BlockProxy.INSTANCE.canSupportRigidBlock(level, blockPos)
@@ -91,7 +90,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void tick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void tick(Object thisBlock, Object[] args) {
         Object state = args[0];
         int signalForState = this.getSignalForState(state);
         if (signalForState > 0) {
@@ -101,7 +100,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
 
     @Override
     @SuppressWarnings("UnstableApiUsage")
-    public void entityInside(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void entityInside(Object thisBlock, Object[] args) {
         Entity entity = EntityProxy.INSTANCE.getBukkitEntity(args[3]);
         Block block = CraftBlockProxy.INSTANCE.at(args[1], args[2]);
         EntityInsideBlockEvent event = new EntityInsideBlockEvent(entity, block);
@@ -187,7 +186,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void affectNeighborsAfterRemoval(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void affectNeighborsAfterRemoval(Object thisBlock, Object[] args) {
         boolean flag;
         if (VersionHelper.isOrAbove1_21_5()) {
             flag = !(boolean) args[3];
@@ -198,9 +197,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
             if (this.getSignalForState(args[0]) > 0) {
                 this.updateNeighbours(args[1], args[2], thisBlock);
             }
-            if (!VersionHelper.isOrAbove1_21_5()) {
-                superMethod.call();
-            }
+            super.affectNeighborsAfterRemoval(args[0], args);
         }
     }
 
@@ -215,7 +212,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public int getSignal(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public int getSignal(Object thisBlock, Object[] args) {
         return this.getSignalForState(args[0]);
     }
 
@@ -225,13 +222,13 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public int getDirectSignal(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public int getDirectSignal(Object thisBlock, Object[] args) {
         Direction direction = DirectionUtils.fromNMSDirection(args[3]);
         return direction == Direction.UP ? this.getSignalForState(args[0]) : 0;
     }
 
     @Override
-    public boolean isSignalSource(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean isSignalSource(Object thisBlock, Object[] args) {
         return true;
     }
 

@@ -6,7 +6,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.properties.BooleanProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -21,9 +21,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockB
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
-import java.util.concurrent.Callable;
-
-public final class HangableBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
+public final class HangableBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock {
     public static final BlockBehaviorFactory<HangableBlockBehavior> FACTORY = new Factory();
     public final Property<Boolean> hangingProperty;
 
@@ -47,7 +45,7 @@ public final class HangableBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean canSurvive(Object thisBlock, Object[] args) {
         Object state = args[0];
         Object world = args[1];
         Object blockPos = args[2];
@@ -61,7 +59,7 @@ public final class HangableBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return BlocksProxy.AIR$defaultState;
         if (super.waterloggedProperty != null && state.get(super.waterloggedProperty)) {
@@ -71,11 +69,11 @@ public final class HangableBlockBehavior extends BukkitBlockBehavior implements 
                 && !BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(args[0], args[updateShape$level], args[updateShape$blockPos])) {
             return BlocksProxy.AIR$defaultState;
         }
-        return superMethod.call();
+        return super.updateShape(thisBlock, args);
     }
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         return false;
     }
 

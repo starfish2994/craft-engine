@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 public final class FaceAttachedHorizontalDirectionalBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<FaceAttachedHorizontalDirectionalBlockBehavior> FACTORY = new Factory();
@@ -47,7 +46,7 @@ public final class FaceAttachedHorizontalDirectionalBlockBehavior extends Bukkit
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean canSurvive(Object thisBlock, Object[] args) {
         Direction direction = getConnectedDirection(BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null));
         if (direction == null) return false;
         direction = direction.opposite();
@@ -77,13 +76,13 @@ public final class FaceAttachedHorizontalDirectionalBlockBehavior extends Bukkit
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Direction direction = getConnectedDirection(BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null));
         if (direction == null) return BlocksProxy.AIR$defaultState;
         if (DirectionUtils.toNMSDirection(direction.opposite()) == args[updateShape$direction] && !BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(args[0], args[updateShape$level], args[updateShape$blockPos])) {
             return BlocksProxy.AIR$defaultState;
         }
-        return superMethod.call();
+        return super.updateShape(thisBlock, args);
     }
 
     private boolean mayPlaceOn(Object state) {

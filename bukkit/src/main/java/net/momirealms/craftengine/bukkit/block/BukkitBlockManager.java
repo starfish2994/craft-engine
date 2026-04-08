@@ -3,7 +3,9 @@ package net.momirealms.craftengine.bukkit.block;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.bukkit.block.behavior.BukkitBlockBehavior;
-import net.momirealms.craftengine.bukkit.block.behavior.UnsafeCompositeBlockBehavior;
+import net.momirealms.craftengine.bukkit.block.behavior.CompositeBlockBehavior;
+import net.momirealms.craftengine.bukkit.block.behavior.DualBlockBehavior;
+import net.momirealms.craftengine.bukkit.block.behavior.EmptyBlockBehavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
@@ -12,7 +14,6 @@ import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviors;
-import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
 import net.momirealms.craftengine.core.block.parser.BlockStateParser;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -88,6 +89,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         this.blockEventListener = new BlockEventListener(plugin, this);
         this.registerServerSideCustomBlocks(Config.serverSideBlocks());
         EmptyBlockDefinition.init();
+        EmptyBlockDefinition.STATE.setBehavior(EmptyBlockBehavior.INSTANCE);
         instance = this;
     }
 
@@ -151,17 +153,29 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     }
 
     @Override
+    public BlockBehavior createFallbackBehavior(BlockDefinition definition) {
+        return new BukkitBlockBehavior(definition);
+    }
+
+    @Override
     public BlockBehavior createBlockBehavior(BlockDefinition blockDefinition, ConfigValue behaviorValue) {
         if (behaviorValue == null) {
             return new BukkitBlockBehavior(blockDefinition);
         } else if (behaviorValue.is(List.class)) {
             List<BlockBehavior> behaviors = behaviorValue.getAsList(v -> BlockBehaviors.fromConfig(blockDefinition, v.getAsSection()));
-            if (behaviors.size() == 1) {
-                return behaviors.getFirst();
-            } else if (behaviors.isEmpty()) {
-                return new BukkitBlockBehavior(blockDefinition);
-            } else {
-                return new UnsafeCompositeBlockBehavior(blockDefinition, behaviors);
+            switch (behaviors.size()) {
+                case 0 -> {
+                    return new BukkitBlockBehavior(blockDefinition);
+                }
+                case 1 -> {
+                    return behaviors.getFirst();
+                }
+                case 2 -> {
+                    return new DualBlockBehavior(blockDefinition, behaviors.get(0), behaviors.get(1));
+                }
+                default -> {
+                    return new CompositeBlockBehavior(blockDefinition, behaviors);
+                }
             }
         } else {
             return BlockBehaviors.fromConfig(blockDefinition, behaviorValue.getAsSection());

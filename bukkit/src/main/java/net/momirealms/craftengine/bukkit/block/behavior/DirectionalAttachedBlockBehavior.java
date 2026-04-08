@@ -20,7 +20,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockB
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<DirectionalAttachedBlockBehavior> FACTORY = new Factory();
@@ -42,7 +41,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return args[0];
         DirectionalAttachedBlockBehavior behavior = state.behavior().getFirst(DirectionalAttachedBlockBehavior.class);
@@ -53,7 +52,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean canSurvive(Object thisBlock, Object[] args) {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return false;
         DirectionalAttachedBlockBehavior behavior = state.behavior().getFirst(DirectionalAttachedBlockBehavior.class);

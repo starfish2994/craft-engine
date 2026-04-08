@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -36,9 +36,8 @@ import org.bukkit.Location;
 
 import java.util.Locale;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
-public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
+public final class FenceBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock {
     public static final BlockBehaviorFactory<FenceBlockBehavior> FACTORY = new Factory();
     public static final Object InteractionResult$SUCCESS_SERVER = VersionHelper.isOrAbove1_21_2() ? InteractionResultProxy.INSTANCE.getSuccessServer() : InteractionResultProxy.INSTANCE.getSuccess();
     private static final Key DEFAULT_CONNECTABLE = Key.of("minecraft:wooden_fences");
@@ -66,7 +65,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
     }
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         return false;
     }
 
@@ -140,10 +139,10 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Optional<ImmutableBlockState> optionalState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
         if (optionalState.isEmpty()) {
-            return superMethod.call();
+            return super.updateShape(thisBlock, args);
         }
         ImmutableBlockState state = optionalState.get();
         Property<Boolean> waterlogged = state.getProperty("waterlogged");
@@ -158,7 +157,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements IsP
                 return state.with(directionProperty, this.connectsTo(wrapper, BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(wrapper.minecraftState(), args[updateShape$level], args[5], DirectionUtils.toNMSDirection(direction.opposite()), SupportTypeProxy.FULL), direction.opposite())).customBlockState().minecraftState();
             }
         }
-        return superMethod.call();
+        return super.updateShape(thisBlock, args);
     }
 
     private static class Factory implements BlockBehaviorFactory<FenceBlockBehavior> {

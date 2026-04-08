@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.FallOnBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.PrioritizedFallOnHandler;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -15,9 +15,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import org.bukkit.entity.Entity;
 
-import java.util.concurrent.Callable;
-
-public final class BouncingBlockBehavior extends BukkitBlockBehavior implements FallOnBlockBehavior {
+public final class BouncingBlockBehavior extends BukkitBlockBehavior implements PrioritizedFallOnHandler {
     public static final BlockBehaviorFactory<BouncingBlockBehavior> FACTORY = new Factory();
     public final double bounceHeight;
     public final boolean syncPlayerPosition;
@@ -34,7 +32,7 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     @Override
-    public void fallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void fallOn(Object thisBlock, Object[] args) {
         if (this.fallDamageMultiplier <= 0.0) return;
         Object entity = args[3];
         Number fallDistance = (Number) args[4];
@@ -52,10 +50,10 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     @Override
-    public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args) {
         Object entity = args[1];
         if (EntityProxy.INSTANCE.getSharedFlag(entity, 1)) {
-            superMethod.call();
+            super.updateEntityMovementAfterFallOn(thisBlock, args);
         } else {
             bounceUp(entity);
         }

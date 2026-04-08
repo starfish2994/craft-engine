@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -31,7 +31,7 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
+public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implements EntityBlock {
     public static final BlockBehaviorFactory<DisplayItemBlockBehavior> FACTORY = new Factory();
     public final SoundData putSound;
     public final SoundData takeSound;
@@ -61,7 +61,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     }
 
     @Override
-    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
         this.controllerId = controllerId;
         return new DisplayItemBlockEntityController(blockEntity, this);
     }

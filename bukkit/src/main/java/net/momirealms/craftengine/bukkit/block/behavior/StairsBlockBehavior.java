@@ -20,7 +20,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStat
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 @SuppressWarnings("DuplicatedCode")
 public final class StairsBlockBehavior extends BukkitBlockBehavior {
@@ -54,7 +53,7 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object level = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
         Object blockState = args[0];
@@ -68,7 +67,7 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
         StairsShape stairsShape = getStairsShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
                 ? customState.with(this.shapeProperty, stairsShape).customBlockState().minecraftState()
-                : superMethod.call();
+                : super.updateShape(thisBlock, args);
     }
 
     private StairsShape getStairsShape(ImmutableBlockState state, Object level, BlockPos pos) {

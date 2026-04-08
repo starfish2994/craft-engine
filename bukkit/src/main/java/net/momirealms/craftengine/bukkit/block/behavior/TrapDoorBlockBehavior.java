@@ -12,7 +12,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.SingleBlockHalf;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -47,10 +47,9 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 @SuppressWarnings("DuplicatedCode")
-public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
+public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock {
     public static final BlockBehaviorFactory<TrapDoorBlockBehavior> FACTORY = new Factory();
     public final Property<SingleBlockHalf> halfProperty;
     public final Property<Direction> facingProperty;
@@ -82,7 +81,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         if (super.waterloggedProperty != null) {
             BlockStateUtils.getOptionalCustomBlockState(blockState).ifPresent(customState -> {
@@ -140,7 +139,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         Object type = VersionHelper.isOrAbove1_20_5() ? args[1] : args[3];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
@@ -154,7 +153,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     @Override
-    public void onExplosionHit(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void preExplosionHit(Object thisBlock, Object[] args) {
         if (this.canOpenByWindCharge && ExplosionProxy.INSTANCE.canTriggerBlocks(args[3])) {
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
             if (optionalCustomState.isEmpty()) return;
@@ -164,7 +163,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    public void neighborChanged(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void neighborChanged(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return;

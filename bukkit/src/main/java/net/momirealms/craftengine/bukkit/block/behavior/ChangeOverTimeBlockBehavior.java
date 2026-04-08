@@ -13,7 +13,6 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.event.CraftEventFacto
 import net.momirealms.sparrow.nbt.CompoundTag;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<ChangeOverTimeBlockBehavior> FACTORY = new Factory();
@@ -45,7 +44,7 @@ public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void randomTick(Object thisBlock, Object[] args) {
         if (RandomUtils.generateRandomFloat(0F, 1F) >= this.changeSpeed) return;
         Object blockState = args[0];
         BlockStateUtils.getOptionalCustomBlockState(blockState).ifPresent(state -> {

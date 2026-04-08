@@ -63,7 +63,6 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureHitData;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureLight;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;

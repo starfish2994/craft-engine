@@ -10,6 +10,7 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.BonemealableBlock;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
@@ -40,7 +41,7 @@ import org.bukkit.block.Block;
 import java.util.Optional;
 
 @SuppressWarnings("DuplicatedCode")
-public final class GrassBlockBehavior extends BukkitBlockBehavior {
+public final class GrassBlockBehavior extends BukkitBlockBehavior implements BonemealableBlock {
     public static final BlockBehaviorFactory<GrassBlockBehavior> FACTORY = new Factory();
     public final Key feature;
 
@@ -54,14 +55,14 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public boolean isValidBoneMealTarget(Object thisBlock, Object[] args) {
+    public boolean isValidBonemealTarget(Object thisBlock, Object[] args) {
         Object above = LocationUtils.above(args[1]);
         Object aboveState = BlockGetterProxy.INSTANCE.getBlockState(args[0], above);
         return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isAir(aboveState);
     }
 
     @Override
-    public boolean isBoneMealSuccess(Object thisBlock, Object[] args) {
+    public boolean isBonemealSuccess(Object thisBlock, Object[] args) {
         if (!VersionHelper.isOrAbove1_20_2()) return true;
         Object level = args[0];
         Object blockPos = args[2];
@@ -132,7 +133,7 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void performBoneMeal(Object thisBlock, Object[] args) {
+    public void performBonemeal(Object thisBlock, Object[] args) {
         Object holder = BukkitWorldManager.instance().placedFeatureById(boneMealFeature());
         if (holder == null) {
             CraftEngine.instance().logger().warn("Placed feature not found: " + boneMealFeature());

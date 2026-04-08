@@ -57,7 +57,7 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws Exception {
+    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
         Object belowPos = LocationUtils.below(blockPos);
         Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
         return mayPlaceOn(belowState, world, belowPos);

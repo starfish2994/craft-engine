@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.block.entity;
 
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -23,7 +24,7 @@ public final class BlockEntity {
     public BlockEntity(BlockPos pos, ImmutableBlockState blockState) {
         this.pos = pos;
         this.blockState = blockState;
-        this.controller = blockState.behavior().createBlockEntityController(this);
+        this.controller = ((EntityBlock) blockState.behavior()).createBlockEntityController(this, 0);
         if (this.controller.hasElement()) {
             List<BlockEntityElement> elements = new ArrayList<>(4);
             this.controller.gatherElements(elements::add);

@@ -26,7 +26,6 @@ import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 
-import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
@@ -43,7 +42,7 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void spawnAfterBreak(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void spawnAfterBreak(Object thisBlock, Object[] args) {
         boolean dropExperience = (boolean) args[4]; // 通常来说是 false
         Item item = BukkitItemManager.instance().wrap(ItemStackUtils.getBukkitStack(args[3]));
         if (!dropExperience) {

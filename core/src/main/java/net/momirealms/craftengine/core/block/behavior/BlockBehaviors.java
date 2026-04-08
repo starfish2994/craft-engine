@@ -10,8 +10,6 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
 public abstract class BlockBehaviors {
-    public static final BlockBehaviorType<EmptyBlockBehavior> EMPTY = register(Key.ce("empty"), (block, args) -> EmptyBlockBehavior.INSTANCE);
-
     protected BlockBehaviors() {
     }
 

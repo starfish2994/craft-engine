@@ -19,7 +19,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStat
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 public final class SofaBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<SofaBlockBehavior> FACTORY = new Factory();
@@ -47,7 +46,7 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object level = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
         Object blockState = args[0];
@@ -61,7 +60,7 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
         SofaShape sofaShape = getSofaShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
                 ? customState.with(this.shapeProperty, sofaShape).customBlockState().minecraftState()
-                : superMethod.call();
+                : super.updateShape(thisBlock, args);
     }
 
     private SofaShape getSofaShape(ImmutableBlockState state, Object level, BlockPos pos) {

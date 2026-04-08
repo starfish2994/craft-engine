@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.util.Key;
 public final class BukkitBlockBehaviors extends BlockBehaviors {
     private BukkitBlockBehaviors() {}
 
+    public static final BlockBehaviorType<EmptyBlockBehavior> EMPTY = register(Key.ce("empty"), (block, args) -> EmptyBlockBehavior.INSTANCE);
     public static final BlockBehaviorType<BushBlockBehavior> BUSH_BLOCK = register(Key.ce("bush_block"), BushBlockBehavior.FACTORY);
     public static final BlockBehaviorType<HangingBlockBehavior> HANGING_BLOCK = register(Key.ce("hanging_block"), HangingBlockBehavior.FACTORY);
     public static final BlockBehaviorType<FallingBlockBehavior> FALLING_BLOCK = register(Key.ce("falling_block"), FallingBlockBehavior.FACTORY);

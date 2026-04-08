@@ -43,7 +43,7 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws Exception {
+    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
         int x = Vec3iProxy.INSTANCE.getX(blockPos) + this.direction.stepX();
         int y = Vec3iProxy.INSTANCE.getY(blockPos) + this.direction.stepY();
         int z = Vec3iProxy.INSTANCE.getZ(blockPos) + this.direction.stepZ();

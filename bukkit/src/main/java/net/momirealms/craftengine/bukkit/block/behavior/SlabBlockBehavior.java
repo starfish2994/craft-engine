@@ -6,8 +6,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.CanBeReplacedBlockBehavior;
-import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.SlabType;
 import net.momirealms.craftengine.core.item.Item;
@@ -27,9 +26,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsPro
 import net.momirealms.craftengine.proxy.minecraft.world.level.pathfinder.PathComputationTypeProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
-public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior, CanBeReplacedBlockBehavior {
+public final class SlabBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock {
     public static final BlockBehaviorFactory<SlabBlockBehavior> FACTORY = new Factory();
     public final Property<SlabType> typeProperty;
 
@@ -39,7 +37,6 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
         this.typeProperty = typeProperty;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean canBeReplaced(BlockPlaceContext context, ImmutableBlockState state) {
         SlabType type = state.get(this.typeProperty);
@@ -81,21 +78,21 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
     }
 
     @Override
-    public boolean placeLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean placeLiquid(Object thisBlock, Object[] args) {
         Object blockState = args[2];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.placeLiquid(thisBlock, args, superMethod)).isPresent();
+        return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.placeLiquid(thisBlock, args)).isPresent();
     }
 
     @Override
-    public boolean canPlaceLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean canPlaceLiquid(Object thisBlock, Object[] args) {
         Object blockState = VersionHelper.isOrAbove1_20_2() ? args[3] : args[2];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.canPlaceLiquid(thisBlock, args, superMethod)).isPresent();
+        return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.canPlaceLiquid(thisBlock, args)).isPresent();
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         if (super.waterloggedProperty == null) return blockState;
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
@@ -107,7 +104,7 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
     }
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         Object type = VersionHelper.isOrAbove1_20_5() ? args[1] : args[3];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);

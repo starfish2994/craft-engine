@@ -27,7 +27,7 @@ public final class HangingBlockBehavior extends BushBlockBehavior {
     }
 
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws ReflectiveOperationException {
+    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
         Object belowPos = LocationUtils.above(blockPos);
         Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
         return mayPlaceOn(belowState, world, belowPos);

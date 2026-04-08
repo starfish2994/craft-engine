@@ -25,9 +25,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.FallingBlock
 import net.momirealms.craftengine.proxy.minecraft.world.level.dimension.DimensionTypeProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
-public final class FallingBlockBehavior extends BukkitBlockBehavior {
+public final class FallingBlockBehavior extends BukkitBlockBehavior implements BukkitFallableBlock {
     public static final BlockBehaviorFactory<FallingBlockBehavior> FACTORY = new Factory();
     public final float hurtAmount;
     public final int maxHurt;
@@ -47,14 +46,14 @@ public final class FallingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void onPlace(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void onPlace(Object thisBlock, Object[] args) {
         Object world = args[1];
         Object blockPos = args[2];
         LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 2);
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object world = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
         LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 2);
@@ -62,7 +61,7 @@ public final class FallingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void tick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void tick(Object thisBlock, Object[] args) {
         Object blockPos = args[2];
         int y = Vec3iProxy.INSTANCE.getY(blockPos);
         Object world = args[1];

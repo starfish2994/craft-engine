@@ -7,8 +7,7 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
-import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
-import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigs;
 import net.momirealms.craftengine.core.block.entity.render.element.ConstantBlockEntityElement;
@@ -254,6 +253,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     }
 
     public abstract void registerBlockStatePacketListener();
+
+    public abstract BlockBehavior createFallbackBehavior(BlockDefinition definition);
 
     public abstract BlockBehavior createBlockBehavior(BlockDefinition blockDefinition, ConfigValue value);
 
@@ -725,13 +726,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                         blockBehavior = createBlockBehavior(customBlock, section.getValue(BEHAVIOR));
                     } catch (KnownResourceException e) {
                         error(e, path);
-                        blockBehavior = new EmptyBlockBehavior(customBlock);
+                        blockBehavior = createFallbackBehavior(customBlock);
                     }
 
                     // 获取方块实体行为
-                    List<EntityBlockBehavior> entityBehaviors = new ArrayList<>();
-                    blockBehavior.let(EntityBlockBehavior.class, entityBehaviors::add);
-                    boolean isEntityBlock = !entityBehaviors.isEmpty();
+                    boolean isEntityBlock = blockBehavior.getFirst(EntityBlock.class) != null;
 
                     // 绑定行为
                     for (ImmutableBlockState state : states) {

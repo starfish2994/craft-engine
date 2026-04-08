@@ -25,7 +25,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStat
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
 public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<SurfaceSpreadingBlockBehavior> FACTORY = new Factory();
@@ -41,7 +40,7 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void randomTick(Object thisBlock, Object[] args) {
         Object state = args[0];
         Object level = args[1];
         Object pos = args[2];

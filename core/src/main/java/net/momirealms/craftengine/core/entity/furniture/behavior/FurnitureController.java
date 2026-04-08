@@ -145,7 +145,7 @@ public abstract class FurnitureController {
         return switch (behaviors.size()) {
             case 0 -> new EmptyFurnitureBehaviorTemplate.EmptyFurnitureController(furniture);
             case 1 -> behaviors.getFirst().createController(furniture);
-            case 2 -> new BiController(furniture, behaviors.getFirst().createController(furniture), behaviors.getLast().createController(furniture));
+            case 2 -> new DualController(furniture, behaviors.getFirst().createController(furniture), behaviors.getLast().createController(furniture));
             default -> {
                 FurnitureController[] controllers = new FurnitureController[behaviors.size()];
                 for (int i = 0; i < behaviors.size(); i++) {
@@ -156,11 +156,11 @@ public abstract class FurnitureController {
         };
     }
 
-    private static final class BiController extends FurnitureController {
+    private static final class DualController extends FurnitureController {
         private final FurnitureController first;
         private final FurnitureController second;
 
-        private BiController(Furniture furniture, FurnitureController first, FurnitureController second) {
+        private DualController(Furniture furniture, FurnitureController first, FurnitureController second) {
             super(furniture);
             this.first = first;
             this.second = second;
@@ -180,13 +180,13 @@ public abstract class FurnitureController {
             return createTickerHelper(gettFurnitureTicker(firstFurnitureTicker, secondFurnitureTicker));
         }
 
-        private static FurnitureTicker<BiController> gettFurnitureTicker(FurnitureTicker<FurnitureController> firstFurnitureTicker, FurnitureTicker<FurnitureController> secondFurnitureTicker) {
+        private static FurnitureTicker<DualController> gettFurnitureTicker(FurnitureTicker<FurnitureController> firstFurnitureTicker, FurnitureTicker<FurnitureController> secondFurnitureTicker) {
             if (firstFurnitureTicker == null && secondFurnitureTicker == null) return null;
-            if (firstFurnitureTicker == null) return (f, biController) -> secondFurnitureTicker.tick(f, biController.second);
-            if (secondFurnitureTicker == null) return (f, biController) -> firstFurnitureTicker.tick(f, biController.first);
-            return (f, biController) -> {
-                firstFurnitureTicker.tick(f, biController.first);
-                secondFurnitureTicker.tick(f, biController.second);
+            if (firstFurnitureTicker == null) return (f, dualController) -> secondFurnitureTicker.tick(f, dualController.second);
+            if (secondFurnitureTicker == null) return (f, dualController) -> firstFurnitureTicker.tick(f, dualController.first);
+            return (f, dualController) -> {
+                firstFurnitureTicker.tick(f, dualController.first);
+                secondFurnitureTicker.tick(f, dualController.second);
             };
         }
 

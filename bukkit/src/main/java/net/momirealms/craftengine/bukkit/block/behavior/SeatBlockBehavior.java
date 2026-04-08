@@ -5,7 +5,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -17,7 +17,7 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 
-public final class SeatBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
+public final class SeatBlockBehavior extends BukkitBlockBehavior implements EntityBlock {
     public static final BlockBehaviorFactory<SeatBlockBehavior> FACTORY = new Factory();
     public final Property<Direction> directionProperty;
     public final SeatConfig[] seats;
@@ -32,7 +32,7 @@ public final class SeatBlockBehavior extends BukkitBlockBehavior implements Enti
     }
 
     @Override
-    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
         this.controllerId = controllerId;
         return new SeatBlockEntityController(blockEntity, this);
     }

@@ -56,6 +56,9 @@ public interface LevelProxy extends LevelAccessorProxy {
     @MethodInvoker(name = "removeBlock")
     boolean removeBlock(Object target, @Type(clazz = BlockPosProxy.class) Object pos, boolean movedByPiston);
 
+    @MethodInvoker(name = "removeBlockEntity")
+    void removeBlockEntity(Object target, @Type(clazz = BlockPosProxy.class) Object pos);
+
     @MethodInvoker(name = "getWorld")
     World getWorld(Object target);
 

@@ -16,7 +16,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.SignalGetterProxy;
 import org.bukkit.event.block.BlockRedstoneEvent;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 @SuppressWarnings("DuplicatedCode")
 public final class LampBlockBehavior extends BukkitBlockBehavior {
@@ -36,7 +35,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void tick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void tick(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return;
@@ -58,7 +57,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void neighborChanged(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void neighborChanged(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return;

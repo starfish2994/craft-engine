@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.BonemealableBlock;
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -39,10 +40,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 @SuppressWarnings("DuplicatedCode")
-public final class CropBlockBehavior extends BukkitBlockBehavior {
+public final class CropBlockBehavior extends BukkitBlockBehavior implements BonemealableBlock {
     public static final BlockBehaviorFactory<CropBlockBehavior> FACTORY = new Factory();
     public final IntegerProperty ageProperty;
     public final float growSpeed;
@@ -76,7 +76,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void randomTick(Object thisBlock, Object[] args) {
         Object state = args[0];
         Object level = args[1];
         Object pos = args[2];
@@ -91,19 +91,19 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean canSurvive(Object thisBlock, Object[] args) {
         Object world = args[1];
         Object pos = args[2];
         return hasSufficientLight(world, pos);
     }
 
     @Override
-    public boolean isBoneMealSuccess(Object thisBlock, Object[] args) {
+    public boolean isBonemealSuccess(Object thisBlock, Object[] args) {
         return true;
     }
 
     @Override
-    public boolean isValidBoneMealTarget(Object thisBlock, Object[] args) {
+    public boolean isValidBonemealTarget(Object thisBlock, Object[] args) {
         if (!this.isBoneMealTarget) return false;
         Object state = args[2];
         Optional<ImmutableBlockState> optionalState = BlockStateUtils.getOptionalCustomBlockState(state);
@@ -111,7 +111,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void performBoneMeal(Object thisBlock, Object[] args) {
+    public void performBonemeal(Object thisBlock, Object[] args) {
         this.performBoneMeal(args[0], args[2], args[3]);
     }
 

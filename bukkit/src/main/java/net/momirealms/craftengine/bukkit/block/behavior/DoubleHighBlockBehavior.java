@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.PlayerWillDestroyBlockBehavior;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.DoubleBlockHalf;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -28,11 +29,10 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 import static net.momirealms.craftengine.core.block.UpdateFlags.*;
 
-public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavior {
+public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavior implements PlayerWillDestroyBlockBehavior {
     public static final BlockBehaviorFactory<DoubleHighBlockBehavior> FACTORY = new Factory();
     public final Property<DoubleBlockHalf> halfProperty;
 
@@ -43,7 +43,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object level = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
         Object blockState = args[0];
@@ -72,24 +72,24 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     @Override
-    public Object playerWillDestroy(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object playerWillDestroy(Object thisBlock, Object[] args) {
         Object level = args[0];
         Object pos = args[1];
         Object state = args[2];
         Object player = args[3];
         ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (blockState == null || blockState.isEmpty()) {
-            return superMethod.call();
+            return state;
         }
         BukkitServerPlayer cePlayer = BukkitAdaptor.adapt(ServerPlayerProxy.INSTANCE.getBukkitEntity(player));
         if (cePlayer == null) {
-            return superMethod.call();
+            return state;
         }
         Item item = cePlayer.getItemInHand(InteractionHand.MAIN_HAND);
         if (cePlayer.canInstabuild() || !BlockStateUtils.isCorrectTool(blockState, item)) {
             preventDropFromBottomPart(level, pos, blockState, player);
         }
-        return superMethod.call();
+        return state;
     }
 
     private void preventDropFromBottomPart(Object level, Object pos, ImmutableBlockState state, Object player) {
@@ -121,7 +121,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     @Override
-    public void placeMultiState(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void placeMultiState(Object thisBlock, Object[] args) {
         Object blockState = args[2];
         Object pos = args[1];
         Optional<ImmutableBlockState> immutableBlockState = BlockStateUtils.getOptionalCustomBlockState(blockState);

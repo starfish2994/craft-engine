@@ -83,16 +83,16 @@ public abstract class BlockEntityController {
         return switch (list.size()) {
             case 0 -> null;
             case 1 -> list.getFirst();
-            case 2 -> new BiController(blockEntity, list.get(0), list.get(1));
+            case 2 -> new DualController(blockEntity, list.get(0), list.get(1));
             default -> new CompositeController(blockEntity, list.toArray(new BlockEntityController[0]));
         };
     }
 
-    private static final class BiController extends BlockEntityController {
+    private static final class DualController extends BlockEntityController {
         private final BlockEntityController first;
         private final BlockEntityController second;
 
-        private BiController(BlockEntity blockEntity, BlockEntityController first, BlockEntityController second) {
+        private DualController(BlockEntity blockEntity, BlockEntityController first, BlockEntityController second) {
             super(blockEntity);
             this.first = first;
             this.second = second;
@@ -123,7 +123,7 @@ public abstract class BlockEntityController {
             return createTickerHelper(getCombinedTicker(t1, t2));
         }
 
-        private BlockEntityTicker<BiController> getCombinedTicker(BlockEntityTicker<BlockEntityController> t1, BlockEntityTicker<BlockEntityController> t2) {
+        private BlockEntityTicker<DualController> getCombinedTicker(BlockEntityTicker<BlockEntityController> t1, BlockEntityTicker<BlockEntityController> t2) {
             if (t1 == null && t2 == null) return null;
             if (t1 == null) return (w, p, s, bi) -> t2.tick(w, p, s, bi.second);
             if (t2 == null) return (w, p, s, bi) -> t1.tick(w, p, s, bi.first);

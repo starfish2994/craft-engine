@@ -13,8 +13,6 @@ import net.momirealms.craftengine.proxy.minecraft.tags.BlockTagsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 
-import java.util.concurrent.Callable;
-
 public final class SnowyBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<SnowyBlockBehavior> FACTORY = new Factory();
     public final Property<Boolean> snowyProperty;
@@ -26,10 +24,10 @@ public final class SnowyBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
-        if (args[updateShape$direction] != DirectionProxy.UP) return superMethod.call();
+    public Object updateShape(Object thisBlock, Object[] args) {
+        if (args[updateShape$direction] != DirectionProxy.UP) return super.updateShape(thisBlock, args);
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
-        if (state == null || state.isEmpty()) return superMethod.call();
+        if (state == null || state.isEmpty()) return super.updateShape(thisBlock, args);
         ImmutableBlockState newState = state.with(this.snowyProperty, isSnowySetting(args[updateShape$neighborState]));
         return newState.customBlockState().minecraftState();
     }
