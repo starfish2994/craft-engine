@@ -25,7 +25,7 @@ public final class ItemVersionProcessor implements ItemProcessor {
         if (VersionHelper.isOrAbove1_20_5()) {
             CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getSparrowNBTComponent(DataComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
             customData.putInt(VERSION_TAG, this.version);
-            item.setNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
+            item.setSparrowNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
         } else {
             item.setTag(this.version, VERSION_TAG);
         }

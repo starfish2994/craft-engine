@@ -45,7 +45,7 @@ public final class DefaultFurnitureTintSource implements FurnitureTintSource {
                 for (Key component : this.components) {
                     Tag componentData = sourceItem.getSparrowNBTComponent(component);
                     if (componentData != null) {
-                        item.setNBTComponent(component, componentData);
+                        item.setSparrowNBTComponent(component, componentData);
                     }
                 }
             } else {

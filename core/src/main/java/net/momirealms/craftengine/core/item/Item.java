@@ -85,7 +85,6 @@ public interface Item {
 
     Optional<Map<String, String>> blockState();
 
-    // todo 考虑部分版本的show in tooltip保留
     Item dyedColor(Color data);
 
     Optional<Color> dyedColor();
@@ -206,7 +205,9 @@ public interface Item {
 
     void setJsonComponent(Object type, JsonElement value);
 
-    void setNBTComponent(Object type, Tag value);
+    void setSparrowNBTComponent(Object type, Tag value);
+
+    void setNBTComponent(Object type, Object value);
 
     void resetComponent(Object type);
 

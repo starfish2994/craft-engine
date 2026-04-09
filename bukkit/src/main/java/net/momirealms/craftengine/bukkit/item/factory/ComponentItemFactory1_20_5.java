@@ -252,8 +252,13 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected void setNBTComponent(ComponentItemWrapper item, Object type, Tag value) {
+    protected void setSparrowNBTComponent(ComponentItemWrapper item, Object type, Tag value) {
         item.setSparrowNBTComponent(type, value);
+    }
+
+    @Override
+    protected void setNBTComponent(ComponentItemWrapper item, Object type, Object value) {
+        item.setNBTComponent(type, value);
     }
 
     @Override

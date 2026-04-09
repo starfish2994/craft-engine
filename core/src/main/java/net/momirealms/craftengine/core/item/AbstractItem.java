@@ -473,7 +473,12 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public void setNBTComponent(Object type, Tag value) {
+    public void setSparrowNBTComponent(Object type, Tag value) {
+        this.factory.setSparrowNBTComponent(this.item, type, value);
+    }
+
+    @Override
+    public void setNBTComponent(Object type, Object value) {
         this.factory.setNBTComponent(this.item, type, value);
     }
 

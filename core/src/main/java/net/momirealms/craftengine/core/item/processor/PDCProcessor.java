@@ -25,7 +25,7 @@ public final class PDCProcessor implements ItemProcessor {
         if (VersionHelper.isOrAbove1_20_5()) {
             CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getSparrowNBTComponent(DataComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
             customData.put(BUKKIT_PDC, this.data);
-            item.setNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
+            item.setSparrowNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
         } else {
             item.setTag(this.data, BUKKIT_PDC);
         }

@@ -95,7 +95,12 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
     }
 
     @Override
-    protected void setNBTComponent(W item, Object type, Tag value) {
+    protected void setSparrowNBTComponent(W item, Object type, Tag value) {
+        throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
+    }
+
+    @Override
+    protected void setNBTComponent(W item, Object type, Object value) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 

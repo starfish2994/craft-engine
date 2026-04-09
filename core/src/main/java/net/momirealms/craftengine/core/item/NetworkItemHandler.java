@@ -41,7 +41,7 @@ public interface NetworkItemHandler {
     }
 
     enum Operation {
-        ADD(0, Item::setNBTComponent, (i, s, t) -> i.setTag(t, (Object[]) StringUtils.splitByDot(s))),
+        ADD(0, Item::setSparrowNBTComponent, (i, s, t) -> i.setTag(t, (Object[]) StringUtils.splitByDot(s))),
         REMOVE(1, (i, s, t) -> i.removeComponent(s), (i, s, t) -> i.removeTag((Object[]) StringUtils.splitByDot(s))),
         RESET(2, (i, s, t) -> i.resetComponent(s), (i, s, t) -> i.removeTag((Object[]) StringUtils.splitByDot(s)));
 

@@ -107,7 +107,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
                 // 如果清空了，则直接移除这个组件
                 if (compoundTag.isEmpty()) wrapped.resetComponent(DataComponentTypes.CUSTOM_DATA);
                 // 否则设置为新的
-                else wrapped.setNBTComponent(DataComponentTypes.CUSTOM_DATA, compoundTag);
+                else wrapped.setSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA, compoundTag);
             }
         }
 
@@ -229,7 +229,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {
             customData.put(NETWORK_ITEM_TAG, tag);
-            wrapped.setNBTComponent(DataComponentTypes.CUSTOM_DATA, customData);
+            wrapped.setSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA, customData);
             forceReturn = true;
         }
         return forceReturn ? Optional.of(wrapped) : Optional.empty();
@@ -296,7 +296,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         if (nameTag == null) return false;
         Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(nameTag);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(DataComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
+            item.setSparrowNBTComponent(DataComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
             tag.get().put(DataComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
@@ -308,7 +308,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         if (nameTag == null) return false;
         Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(nameTag);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(DataComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
+            item.setSparrowNBTComponent(DataComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
             tag.get().put(DataComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
@@ -332,7 +332,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             }
         }
         if (changed) {
-            item.setNBTComponent(DataComponentKeys.LORE, newLore);
+            item.setSparrowNBTComponent(DataComponentKeys.LORE, newLore);
             tagSupplier.get().put(DataComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
             return true;
         }
@@ -371,7 +371,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
                         .map(CompoundTag.class::cast)
                         .orElseGet(CompoundTag::new);
                 customData.put(NETWORK_ITEM_TAG, getOrCreateTag());
-                this.item.setNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
+                this.item.setSparrowNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
                 return Optional.of(this.item);
             } else if (this.forceReturn) {
                 return Optional.of(this.item);

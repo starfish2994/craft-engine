@@ -149,7 +149,7 @@ public final class HideTooltipProcessor implements ItemProcessor {
             Tag previous = item.getSparrowNBTComponent(this.component);
             if (previous instanceof CompoundTag compoundTag) {
                 compoundTag.putBoolean("show_in_tooltip", false);
-                item.setNBTComponent(this.component, compoundTag);
+                item.setSparrowNBTComponent(this.component, compoundTag);
             }
         }
     }

@@ -44,7 +44,7 @@ public final class ComponentsProcessor implements ItemProcessor {
     @Override
     public Item apply(Item item, ItemBuildContext context) {
         for (DynamicComponentProvider argument : arguments) {
-            item.setNBTComponent(argument.type, argument.function.apply(context));
+            item.setSparrowNBTComponent(argument.type, argument.function.apply(context));
         }
         if (this.customData != null) {
             CompoundTag tag = (CompoundTag) item.getTag(DataComponentKeys.CUSTOM_DATA);
