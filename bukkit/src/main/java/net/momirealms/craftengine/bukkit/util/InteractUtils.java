@@ -44,13 +44,15 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.type.*;
-import org.bukkit.block.data.type.Observer;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 public final class InteractUtils {
     private static final Map<Key, QuadFunction<Player, Item, BlockData, BlockHitResult, Boolean>> INTERACTIONS = new HashMap<>();

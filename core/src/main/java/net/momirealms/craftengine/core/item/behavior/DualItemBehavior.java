@@ -8,7 +8,6 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.function.Consumer;
 
 public final class DualItemBehavior extends ItemBehavior {
