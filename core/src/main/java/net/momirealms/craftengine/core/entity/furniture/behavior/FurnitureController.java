@@ -112,9 +112,15 @@ public abstract class FurnitureController {
     }
 
     /**
-     * Triggered when the furniture is broken.
+     * Triggered when the furniture is removed.
      */
-    public void onDestroy(@Nullable Player player) {
+    public void preRemove(@Nullable Player player) {
+    }
+
+    /**
+     * Triggered when the furniture is removed.
+     */
+    public void postRemove(@Nullable Player player) {
     }
 
     /**
@@ -124,13 +130,15 @@ public abstract class FurnitureController {
     }
 
     /**
-     * Triggered when the chunk containing the furniture is unloaded.
+     * Called when the furniture is unloaded from memory.
+     * This can occur due to chunk unloading or the furniture being destroyed.
      */
     public void onUnload() {
     }
 
     /**
-     * Triggered when the furniture is loaded into the world during chunk load.
+     * Called when the furniture is loaded into memory.
+     * This can occur due to chunk loading or the furniture being placed.
      */
     public void onLoad() {
     }
@@ -248,9 +256,15 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onDestroy(Player player) {
-            this.first.onDestroy(player);
-            this.second.onDestroy(player);
+        public void preRemove(Player player) {
+            this.first.preRemove(player);
+            this.second.preRemove(player);
+        }
+
+        @Override
+        public void postRemove(@Nullable Player player) {
+            this.first.postRemove(player);
+            this.second.postRemove(player);
         }
 
         @Override
@@ -443,9 +457,16 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onDestroy(Player player) {
+        public void preRemove(Player player) {
             for (FurnitureController controller : this.controllers) {
-                controller.onDestroy(player);
+                controller.preRemove(player);
+            }
+        }
+
+        @Override
+        public void postRemove(@Nullable Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.postRemove(player);
             }
         }
 

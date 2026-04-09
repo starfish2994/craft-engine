@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRe
 import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureLightData;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -269,6 +270,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public void remove() {
     }
 
+    public abstract FurnitureLightData furnitureLightData();
+
     public abstract void playParticle(Key particleId, double x, double y, double z);
 
     public abstract void removeTrackedEntity(int entityId);
@@ -278,14 +281,6 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract WorldPosition eyePosition();
 
     public abstract Cache<Object, Boolean> receivedMapData();
-
-    public abstract int addLightData(BlockPos pos, int lightPower);
-
-    public abstract int removeLightData(BlockPos pos, int lightPower);
-
-    public abstract void clearLightData();
-
-    public abstract int getLightPower(BlockPos pos);
 
     @Override
     public boolean isValid() {

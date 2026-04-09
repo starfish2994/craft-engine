@@ -208,12 +208,13 @@ public final class BukkitFurniture extends Furniture {
     @Override
     public void destroy(net.momirealms.craftengine.core.entity.player.Player player) {
         try {
-            this.controller.onDestroy(player);
+            this.controller.preRemove(player);
         } finally {
             Optional.ofNullable(this.metaEntity.get()).ifPresent(Entity::remove);
             for (Collider entity : super.snapshot.colliders()) {
                 entity.destroy();
             }
+            this.controller.postRemove(player);
         }
     }
 

@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
@@ -193,14 +194,12 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             this.invalidateFurniture(furniture);
 
             // 区块还在加载的时候，就重复卸载了。为极其特殊情况
-            {
-                Location location = entity.getLocation();
-                Object entityLookup = WorldUtils.getEntityLookup(location.getWorld());
-                Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
-                boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
-                if (!isPreventing) {
-                    furniture.destroySeats();
-                }
+            Location location = entity.getLocation();
+            Object entityLookup = WorldUtils.getEntityLookup(location.getWorld());
+            Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
+            boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
+            if (!isPreventing) {
+                furniture.destroySeats();
             }
 
             // 触发行为卸载

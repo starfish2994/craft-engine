@@ -1649,7 +1649,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (world != null) {
                 player.setClientSideWorld(BukkitAdaptor.adapt(world));
                 player.clearTrackedChunks();
-                player.clearLightData();
+                player.furnitureLightData().clearLightData();
                 player.clearTrackedBlockEntities();
                 player.clearTrackedEntities();
             }
@@ -2547,12 +2547,12 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                                 int beforeState = beforeStates[i];
                                 lightSection.setBlockType(pos.x, pos.y, pos.z, getLightBlockType(beforeState));
                                 if (beforeState == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) {
-                                    int lightPower = ((BukkitServerPlayer) user).getLightPower(new BlockPos(sectionPos.x * 16 + pos.x, sectionPos.y * 16 + pos.y, sectionPos.z * 16 + pos.z));
+                                    int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(new BlockPos(sectionPos.x * 16 + pos.x, sectionPos.y * 16 + pos.y, sectionPos.z * 16 + pos.z));
                                     if (lightPower != 0) {
                                         afterStates[i] = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.LIGHT_BLOCK_STATES[lightPower]);
                                     }
                                 } else if (beforeState == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) {
-                                    int lightPower = ((BukkitServerPlayer) user).getLightPower(new BlockPos(sectionPos.x * 16 + pos.x, sectionPos.y * 16 + pos.y, sectionPos.z * 16 + pos.z));
+                                    int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(new BlockPos(sectionPos.x * 16 + pos.x, sectionPos.y * 16 + pos.y, sectionPos.z * 16 + pos.z));
                                     if (lightPower != 0) {
                                         afterStates[i] = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.WATERLOGGED_LIGHT_BLOCK_STATES[lightPower]);
                                     }
@@ -2608,12 +2608,12 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     if (this.glowingFurniture) {
                         trackedChunk.setLightBlockType(pos.x, pos.y, pos.z, getLightBlockType(before));
                         if (before == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) {
-                            int lightPower = ((BukkitServerPlayer) user).getLightPower(pos);
+                            int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(pos);
                             if (lightPower != 0) {
                                 state = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.LIGHT_BLOCK_STATES[lightPower]);
                             }
                         } else if (before == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) {
-                            int lightPower = ((BukkitServerPlayer) user).getLightPower(pos);
+                            int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(pos);
                             if (lightPower != 0) {
                                 state = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.WATERLOGGED_LIGHT_BLOCK_STATES[lightPower]);
                             }
