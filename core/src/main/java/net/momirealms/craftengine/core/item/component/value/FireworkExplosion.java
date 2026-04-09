@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.item.data;
+package net.momirealms.craftengine.core.item.component.value;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;

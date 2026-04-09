@@ -11,10 +11,12 @@ import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.SlabType;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
-import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
+import net.momirealms.craftengine.core.item.behavior.BlockItem;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.util.ItemUtils;
+import net.momirealms.craftengine.core.util.MutableBoolean;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
@@ -44,7 +46,7 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements Path
         ItemDefinition itemDefinition = itemInHand.get();
 
         MutableBoolean sameId = new MutableBoolean(false);
-        itemDefinition.behavior().let(BlockBoundItemBehavior.class, b -> {
+        itemDefinition.behavior().let(BlockItem.class, b -> {
             if (b.block().equals(super.blockDefinition.id())) {
                 sameId.set(true);
             }

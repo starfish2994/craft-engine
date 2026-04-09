@@ -18,8 +18,6 @@ import net.momirealms.craftengine.core.entity.furniture.element.tint.FurnitureTi
 import net.momirealms.craftengine.core.entity.furniture.element.tint.FurnitureTintSourceType;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxConfigType;
-import net.momirealms.craftengine.core.item.ItemSettingsModifier;
-import net.momirealms.craftengine.core.item.ItemSettingsModifierType;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorType;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
@@ -36,6 +34,8 @@ import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainder;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainderType;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessor;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessorType;
+import net.momirealms.craftengine.core.item.setting.ItemSettingsModifier;
+import net.momirealms.craftengine.core.item.setting.ItemSettingsModifierType;
 import net.momirealms.craftengine.core.item.updater.ItemUpdater;
 import net.momirealms.craftengine.core.item.updater.ItemUpdaterType;
 import net.momirealms.craftengine.core.loot.entry.LootEntryContainer;

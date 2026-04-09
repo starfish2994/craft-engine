@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.item.setting;
+package net.momirealms.craftengine.core.item.setting.value;
 
 import net.momirealms.craftengine.core.sound.SoundData;
 

@@ -3,11 +3,11 @@ package net.momirealms.craftengine.core.item;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.AttributeModifier;
-import net.momirealms.craftengine.core.item.data.Enchantment;
-import net.momirealms.craftengine.core.item.data.FireworkExplosion;
-import net.momirealms.craftengine.core.item.data.JukeboxPlayable;
-import net.momirealms.craftengine.core.item.data.Trim;
-import net.momirealms.craftengine.core.item.setting.EquipmentData;
+import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
+import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
+import net.momirealms.craftengine.core.item.component.value.Trim;
+import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.Color;
@@ -33,9 +33,21 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract void merge(W item1, W item2);
 
-    protected abstract Object getJavaTag(W item, Object... path);
+    protected abstract Object getMinecraftTag(W item, Object... path);
 
-    protected abstract Tag getTag(W item, Object... path);
+    protected abstract Tag getSparrowTag(W item, Object... path);
+
+    protected abstract Object getTagAsJava(W item, Object... path);
+
+    protected abstract JsonElement getTagAsJson(W item, Object... path);
+
+    protected abstract void setMinecraftTag(W item, Object value, Object[] path);
+
+    protected abstract void setSparrowTag(W item, Tag value, Object... path);
+
+    protected abstract void setJsonTag(W item, JsonElement value, Object... path);
+
+    protected abstract void setJavaTag(W item, Object value, Object... path);
 
     protected abstract void setTag(W item, Object value, Object... path);
 
@@ -43,11 +55,17 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract boolean removeTag(W item, Object... path);
 
+    protected abstract void setJavaComponent(W item, Object type, Object value);
+
+    protected abstract void setJsonComponent(W item, Object type, JsonElement value);
+
+    protected abstract void setSparrowNBTComponent(W item, Object type, Tag value);
+
+    protected abstract void setNBTComponent(W item, Object type, Object value);
+
     protected abstract void setComponent(W item, Object type, Object value);
 
     protected abstract Object getExactComponent(W item, Object type);
-
-    protected abstract Object getExactTag(W item, Object... path);
 
     protected abstract void setExactComponent(W item, Object type, Object value);
 
@@ -202,14 +220,6 @@ public abstract class ItemFactory<W extends ItemWrapper> {
     protected abstract Optional<FireworkExplosion> fireworkExplosion(W item);
 
     protected abstract byte[] toByteArray(W item);
-
-    protected abstract void setJavaComponent(W item, Object type, Object value);
-
-    protected abstract void setJsonComponent(W item, Object type, JsonElement value);
-
-    protected abstract void setSparrowNBTComponent(W item, Object type, Tag value);
-
-    protected abstract void setNBTComponent(W item, Object type, Object value);
 
     protected abstract W transmuteCopy(W item, Key newItem, int amount);
 

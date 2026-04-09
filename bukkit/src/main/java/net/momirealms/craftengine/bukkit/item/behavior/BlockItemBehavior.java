@@ -16,7 +16,8 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
+import net.momirealms.craftengine.core.item.behavior.BlockItem;
+import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigSection;
@@ -61,7 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class BlockItemBehavior extends BlockBoundItemBehavior {
+public class BlockItemBehavior extends ItemBehavior implements BlockItem {
     public static final ItemBehaviorFactory<BlockItemBehavior> FACTORY = new Factory();
     private final Key blockId;
 

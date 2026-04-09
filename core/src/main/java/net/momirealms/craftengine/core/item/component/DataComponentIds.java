@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.item;
+package net.momirealms.craftengine.core.item.component;
 
 public final class DataComponentIds {
     private DataComponentIds() {}

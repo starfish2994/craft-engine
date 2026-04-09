@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 public final class FurnitureHitEvent extends PlayerEvent implements Cancellable {
@@ -16,16 +15,18 @@ public final class FurnitureHitEvent extends PlayerEvent implements Cancellable 
     private boolean cancelled;
     private final BukkitFurniture furniture;
     private final FurnitureHitBox hitBox;
+    private final Location hitPoint;
     private final ContextHolder.Builder contextBuilder;
 
-    @ApiStatus.Internal
     public FurnitureHitEvent(@NotNull Player player,
                              @NotNull BukkitFurniture furniture,
+                             @NotNull Location hitPoint,
                              @NotNull FurnitureHitBox hitBox,
                              @NotNull ContextHolder.Builder contextBuilder) {
         super(player);
         this.furniture = furniture;
         this.hitBox = hitBox;
+        this.hitPoint = hitPoint;
         this.contextBuilder = contextBuilder;
     }
 
@@ -42,6 +43,11 @@ public final class FurnitureHitEvent extends PlayerEvent implements Cancellable 
     @NotNull
     public Player player() {
         return getPlayer();
+    }
+
+    @NotNull
+    public Location hitPoint() {
+        return this.hitPoint;
     }
 
     @NotNull

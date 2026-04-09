@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.behavior.FurnitureItem;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
@@ -41,7 +42,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class FurnitureItemBehavior extends ItemBehavior {
+public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem {
     public static final ItemBehaviorFactory<FurnitureItemBehavior> FACTORY = new Factory();
     static final Set<String> ALLOWED_ANCHOR_TYPES = Set.of("wall", "ceiling", "ground");
     private final Key id;
@@ -59,7 +60,8 @@ public class FurnitureItemBehavior extends ItemBehavior {
         this.ignoreEntities = ignoreEntities;
     }
 
-    public Key furnitureId() {
+    @Override
+    public Key furniture() {
         return this.id;
     }
 

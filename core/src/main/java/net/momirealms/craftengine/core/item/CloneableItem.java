@@ -2,15 +2,15 @@ package net.momirealms.craftengine.core.item;
 
 import net.momirealms.craftengine.core.util.Key;
 
-public class CloneableConstantItem implements BuildableItem {
+public final class CloneableItem implements BuildableItem {
     private final Item item;
 
-    private CloneableConstantItem(Item item) {
+    private CloneableItem(Item item) {
         this.item = item;
     }
 
-    public static CloneableConstantItem of(Item item) {
-        return new CloneableConstantItem(item);
+    public static CloneableItem of(Item item) {
+        return new CloneableItem(item);
     }
 
     @Override
@@ -21,10 +21,5 @@ public class CloneableConstantItem implements BuildableItem {
     @Override
     public Item buildItem(ItemBuildContext context, int count) {
         return this.item.copyWithCount(count);
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return this.item.isEmpty();
     }
 }

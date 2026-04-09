@@ -5,8 +5,10 @@ import com.google.gson.JsonPrimitive;
 import com.mojang.datafixers.util.Either;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.core.item.behavior.*;
+import net.momirealms.craftengine.core.item.customdata.*;
 import net.momirealms.craftengine.core.item.equipment.*;
 import net.momirealms.craftengine.core.item.processor.*;
+import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
 import net.momirealms.craftengine.core.item.updater.ItemUpdater;
@@ -43,7 +45,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public abstract class AbstractItemManager extends AbstractModelGenerator implements ItemManager {
     protected static final Map<Key, ItemBehavior> VANILLA_ITEM_EXTRA_BEHAVIORS = new HashMap<>();
@@ -76,6 +77,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         super(plugin);
         this.itemParser = new ItemParser();
         this.equipmentParser = new EquipmentParser();
+        CustomDataSerializers.registerSerializer(FurnitureDebugStickData.class, FurnitureDebugStickDataSerializer.INSTANCE);
+        CustomDataSerializers.registerSerializer(BlockDebugStickData.class, BlockDebugStickDataSerializer.INSTANCE);
     }
 
     protected static void registerVanillaItemExtraBehavior(ItemBehavior behavior, Key... items) {
@@ -418,10 +421,10 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                             }
                         }
                     }
-                    if (settings.keepOnDeathChance != 0) {
+                    if (settings.keepOnDeathChance() != 0) {
                         AbstractItemManager.this.featureFlag$keepOnDeathChance = true;
                     }
-                    if (settings.destroyOnDeathChance != 0) {
+                    if (settings.destroyOnDeathChance() != 0) {
                         AbstractItemManager.this.featureFlag$destroyOnDeathChance = true;
                     }
                 }

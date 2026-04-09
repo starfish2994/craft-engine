@@ -1,12 +1,13 @@
-package net.momirealms.craftengine.core.item;
+package net.momirealms.craftengine.core.item.setting;
 
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
+import net.momirealms.craftengine.core.item.AbstractItemManager;
 import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.equipment.Equipments;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainders;
 import net.momirealms.craftengine.core.item.recipe.remainder.EmptyCraftRemainder;
-import net.momirealms.craftengine.core.item.setting.*;
+import net.momirealms.craftengine.core.item.setting.value.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;

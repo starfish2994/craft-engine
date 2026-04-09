@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.item.factory;
 
+import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.item.LegacyItemWrapper;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
@@ -7,9 +8,9 @@ import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.attribute.AttributeModifier;
 import net.momirealms.craftengine.core.item.ItemType;
-import net.momirealms.craftengine.core.item.data.Enchantment;
-import net.momirealms.craftengine.core.item.data.FireworkExplosion;
-import net.momirealms.craftengine.core.item.data.Trim;
+import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
+import net.momirealms.craftengine.core.item.component.value.Trim;
 import net.momirealms.craftengine.core.item.processor.IdProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Color;
@@ -54,18 +55,43 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     }
 
     @Override
-    protected Object getJavaTag(LegacyItemWrapper item, Object... path) {
-        return item.getJavaTag(path);
+    protected void setMinecraftTag(LegacyItemWrapper item, Object value, Object[] path) {
+        item.setMinecraftTag(value, path);
     }
 
     @Override
-    protected Tag getTag(LegacyItemWrapper item, Object... path) {
-        return item.getNBTTag(path);
+    protected void setSparrowTag(LegacyItemWrapper item, Tag value, Object... path) {
+        item.setSparrowTag(value, path);
     }
 
     @Override
-    protected Object getExactTag(LegacyItemWrapper item, Object... path) {
-        return item.getExactTag(path);
+    protected void setJsonTag(LegacyItemWrapper item, JsonElement value, Object... path) {
+        item.setJsonTag(value, path);
+    }
+
+    @Override
+    protected void setJavaTag(LegacyItemWrapper item, Object value, Object... path) {
+        item.setJavaTag(value, path);
+    }
+
+    @Override
+    protected JsonElement getTagAsJson(LegacyItemWrapper item, Object... path) {
+        return item.getTagAsJson(path);
+    }
+
+    @Override
+    protected Object getTagAsJava(LegacyItemWrapper item, Object... path) {
+        return item.getTagAsJava(path);
+    }
+
+    @Override
+    protected Tag getSparrowTag(LegacyItemWrapper item, Object... path) {
+        return item.getSparrowTag(path);
+    }
+
+    @Override
+    protected Object getMinecraftTag(LegacyItemWrapper item, Object... path) {
+        return item.getMinecraftTag(path);
     }
 
     @Override
@@ -112,7 +138,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @Override
     protected Optional<String> customNameJson(LegacyItemWrapper item) {
         if (!item.hasTag("display", "Name")) return Optional.empty();
-        return Optional.of(item.getJavaTag("display", "Name"));
+        return Optional.of(item.getTagAsJava("display", "Name"));
     }
 
     @Override
@@ -137,7 +163,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @Override
     protected Optional<Integer> customModelData(LegacyItemWrapper item) {
         if (!item.hasTag("CustomModelData")) return Optional.empty();
-        return Optional.of(item.getJavaTag("CustomModelData"));
+        return Optional.of(item.getTagAsJava("CustomModelData"));
     }
 
     @Override
@@ -159,7 +185,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @Override
     protected Optional<List<String>> loreJson(LegacyItemWrapper item) {
         if (!item.hasTag("display", "Lore")) return Optional.empty();
-        return Optional.of(item.getJavaTag("display", "Lore"));
+        return Optional.of(item.getTagAsJava("display", "Lore"));
     }
 
     @Override
@@ -173,7 +199,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected boolean unbreakable(LegacyItemWrapper item) {
-        return Optional.ofNullable((Boolean) item.getJavaTag("Unbreakable")).orElse(false);
+        return Optional.ofNullable((Boolean) item.getTagAsJava("Unbreakable")).orElse(false);
     }
 
     @Override
@@ -184,7 +210,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @Override
     protected Optional<Integer> damage(LegacyItemWrapper item) {
         if (!item.hasTag("Damage")) return Optional.empty();
-        return Optional.of(item.getJavaTag("Damage"));
+        return Optional.of(item.getTagAsJava("Damage"));
     }
 
     @Override
@@ -195,7 +221,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @Override
     protected Optional<Color> dyedColor(LegacyItemWrapper item) {
         if (!item.hasTag("display", "color")) return Optional.empty();
-        return Optional.of(Color.fromDecimal(item.getJavaTag("display", "color")));
+        return Optional.of(Color.fromDecimal(item.getTagAsJava("display", "color")));
     }
 
     @Override
@@ -253,7 +279,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @SuppressWarnings("DuplicatedCode")
     @Override
     protected Optional<List<Enchantment>> enchantments(LegacyItemWrapper item) {
-        ListTag enchantmentTag = (ListTag) item.getNBTTag("Enchantments");
+        ListTag enchantmentTag = (ListTag) item.getSparrowTag("Enchantments");
         if (enchantmentTag == null) return Optional.empty();
         List<Enchantment> enchantments = new ArrayList<>();
         for (Tag tag : enchantmentTag) {
@@ -267,7 +293,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @SuppressWarnings("DuplicatedCode")
     @Override
     protected Optional<List<Enchantment>> storedEnchantments(LegacyItemWrapper item) {
-        ListTag enchantmentTag = (ListTag) item.getNBTTag("StoredEnchantments");
+        ListTag enchantmentTag = (ListTag) item.getSparrowTag("StoredEnchantments");
         if (enchantmentTag == null) return Optional.empty();
         List<Enchantment> enchantments = new ArrayList<>();
         for (Tag tag : enchantmentTag) {
@@ -310,7 +336,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     @Override
     protected Optional<Integer> repairCost(LegacyItemWrapper item) {
         if (!item.hasTag("RepairCost")) return Optional.empty();
-        return Optional.of(item.getJavaTag("RepairCost"));
+        return Optional.of(item.getTagAsJava("RepairCost"));
     }
 
     @Override
@@ -325,7 +351,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected Optional<FireworkExplosion> fireworkExplosion(LegacyItemWrapper item) {
-        Map<String, Object> explosionObj = item.getJavaTag("Explosion");
+        Map<String, Object> explosionObj = item.getTagAsJava("Explosion");
         if (explosionObj == null) return Optional.empty();
         IntArrayList colors = (IntArrayList) explosionObj.get("Colors");
         IntArrayList fadeColors = (IntArrayList) explosionObj.get("FadeColors");
@@ -357,7 +383,7 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected Optional<Map<String, String>> blockState(LegacyItemWrapper item) {
-        Map<String, String> state = item.getJavaTag("BlockStateTag");
+        Map<String, String> state = item.getTagAsJava("BlockStateTag");
         if (state == null) return Optional.empty();
         return Optional.of(state);
     }
@@ -369,8 +395,8 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
 
     @Override
     protected Optional<Trim> trim(LegacyItemWrapper item) {
-        String material = item.getJavaTag("Trim", "material");
-        String pattern = item.getJavaTag("Trim", "pattern");
+        String material = item.getTagAsJava("Trim", "material");
+        String pattern = item.getTagAsJava("Trim", "pattern");
         if (material == null || pattern == null) return Optional.empty();
         return Optional.of(new Trim(Key.of(material), Key.of(pattern)));
     }

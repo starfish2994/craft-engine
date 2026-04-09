@@ -17,8 +17,7 @@ import net.momirealms.craftengine.core.entity.furniture.FurnitureDebugStickState
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.util.EnumUtils;
-import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.item.customdata.FurnitureDebugStickData;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSystemChatPacketProxy;
@@ -28,16 +27,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.world.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.Optional;
 
 @SuppressWarnings("DuplicatedCode")
 public final class FurnitureEventListener implements Listener {
+    private static final String DEBUG_STICK_TAG = "craftengine:debug_stick_state";
     private final BukkitFurnitureManager manager;
     private final BukkitWorldManager worldManager;
 
@@ -162,23 +159,19 @@ public final class FurnitureEventListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        Object storedData = itemInHand.getJavaTag("craftengine:debug_stick_state");
-        if (storedData == null) storedData = new HashMap<>();
-        if (storedData instanceof Map<?,?> map) {
-            Map<String, Object> data = new HashMap<>(MiscUtils.castToMap(map));
-            FurnitureDebugStickState state = EnumUtils.getAsEnum(data.get("furniture"), FurnitureDebugStickState.class, FurnitureDebugStickState.VARIANT);
-            state = player.isSecondaryUseActive() ? state.previous() : state.next();
-            String propertyName = state.name().toLowerCase(Locale.ROOT);
-            data.put("furniture", propertyName);
-            itemInHand.setTag(data, "craftengine:debug_stick_state");
-            Object systemChatPacket = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(
-                    ComponentUtils.adventureToMinecraft(Component.translatable("item.minecraft.debug_stick.select")
-                            .arguments(
-                                    Component.text(propertyName),
-                                    Component.text(state.format(furniture))
-                            )), true);
-            player.sendPacket(systemChatPacket, false);
-        }
+
+        FurnitureDebugStickData debugStickData = Optional.ofNullable(itemInHand.getCustomData(FurnitureDebugStickData.class, DEBUG_STICK_TAG, "furniture")).orElseGet(FurnitureDebugStickData::new);
+        FurnitureDebugStickState state = debugStickData.state;
+        state = player.isSecondaryUseActive() ? state.previous() : state.next();
+        debugStickData.state = state;
+        itemInHand.setCustomData(debugStickData, DEBUG_STICK_TAG, "furniture");
+        Object systemChatPacket = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(
+                ComponentUtils.adventureToMinecraft(Component.translatable("item.minecraft.debug_stick.select")
+                        .arguments(
+                                Component.text(state.propertyName()),
+                                Component.text(state.format(furniture))
+                        )), true);
+        player.sendPacket(systemChatPacket, false);
     }
 
     @SuppressWarnings("DuplicatedCode")
@@ -192,26 +185,23 @@ public final class FurnitureEventListener implements Listener {
         if (!(player.canInstabuild() && player.hasPermission("minecraft.debugstick")) && !player.hasPermission("minecraft.debugstick.always")) {
             return;
         }
-        Object storedData = itemInHand.getJavaTag("craftengine:debug_stick_state");
-        if (storedData == null) storedData = new HashMap<>();
-        if (storedData instanceof Map<?,?> map) {
-            Map<String, Object> data = new HashMap<>(MiscUtils.castToMap(map));
-            FurnitureDebugStickState state = EnumUtils.getAsEnum(data.get("furniture"), FurnitureDebugStickState.class, FurnitureDebugStickState.VARIANT);
-            BukkitFurniture furniture = event.furniture();
-            state.handler().onInteract(player.isSecondaryUseActive(), furniture, (s1, s2) -> {
-                Object systemChatPacket = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(
-                        ComponentUtils.adventureToMinecraft(Component.translatable("item.minecraft.debug_stick.update")
-                                .arguments(
-                                        Component.text(s1),
-                                        Component.text(s2)
-                                )), true);
-                player.sendPacket(systemChatPacket, false);
-            }, () -> {
-                Object systemChatPacket = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(
-                        ComponentUtils.adventureToMinecraft(Component.translatable("item.minecraft.debug_stick.empty").arguments(Component.text(furniture.id().asString()))), true);
-                player.sendPacket(systemChatPacket, false);
-            });
-        }
+
+        FurnitureDebugStickData debugStickData = Optional.ofNullable(itemInHand.getCustomData(FurnitureDebugStickData.class, DEBUG_STICK_TAG, "furniture")).orElseGet(FurnitureDebugStickData::new);
+        FurnitureDebugStickState state = debugStickData.state;
+        BukkitFurniture furniture = event.furniture();
+        state.handler().onInteract(player.isSecondaryUseActive(), furniture, (s1, s2) -> {
+            Object systemChatPacket = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(
+                    ComponentUtils.adventureToMinecraft(Component.translatable("item.minecraft.debug_stick.update")
+                            .arguments(
+                                    Component.text(s1),
+                                    Component.text(s2)
+                            )), true);
+            player.sendPacket(systemChatPacket, false);
+        }, () -> {
+            Object systemChatPacket = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(
+                    ComponentUtils.adventureToMinecraft(Component.translatable("item.minecraft.debug_stick.empty").arguments(Component.text(furniture.id().asString()))), true);
+            player.sendPacket(systemChatPacket, false);
+        });
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)

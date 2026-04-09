@@ -1,6 +1,9 @@
 package net.momirealms.craftengine.core.item.processor;
 
-import net.momirealms.craftengine.core.item.*;
+import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -63,7 +66,7 @@ public final class TagsProcessor implements ItemProcessor {
     @Override
     public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.isOrAbove1_20_5()) {
-            Tag previous = item.getSparrowNBTComponent(DataComponentKeys.CUSTOM_DATA);
+            Tag previous = item.getComponentAsSparrowTag(DataComponentKeys.CUSTOM_DATA);
             if (previous != null) {
                 networkData.put(DataComponentKeys.CUSTOM_DATA.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
             } else {
@@ -73,7 +76,7 @@ public final class TagsProcessor implements ItemProcessor {
             for (Map.Entry<String, Object> entry : this.arguments.entrySet()) {
                 String key = entry.getKey();
                 String[] split = key.split("\\.");
-                Tag previous = item.getTag((Object[]) split);
+                Tag previous = item.getSparrowTag((Object[]) split);
                 if (previous != null) {
                     networkData.put(entry.getKey(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
                 } else {

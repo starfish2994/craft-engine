@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.item;
 import net.momirealms.craftengine.core.item.behavior.EmptyItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
+import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -109,10 +110,5 @@ public abstract class AbstractItemDefinition implements ItemDefinition {
     @Override
     public @NotNull ItemBehavior behavior() {
         return this.behavior;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return false;
     }
 }

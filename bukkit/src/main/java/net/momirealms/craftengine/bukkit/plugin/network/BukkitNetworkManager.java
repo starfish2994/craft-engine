@@ -42,7 +42,6 @@ import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManag
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.item.behavior.FurnitureItemBehavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCommand;
@@ -72,6 +71,7 @@ import net.momirealms.craftengine.core.font.EmojiTextProcessResult;
 import net.momirealms.craftengine.core.font.FontManager;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
+import net.momirealms.craftengine.core.item.behavior.FurnitureItem;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipeHolder;
 import net.momirealms.craftengine.core.item.recipe.network.modern.RecipeBookEntry;
@@ -4090,12 +4090,36 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     if (!BukkitCraftEngine.instance().antiGriefProvider().test(platformPlayer, Flag.BREAK, location))
                         return;
 
+                    FurnitureHitboxPart part = null;
+                    for (FurnitureHitboxPart p : hitBox.parts()) {
+                        if (p.entityId() == entityId) {
+                            part = p;
+                            break;
+                        }
+                    }
+                    if (part == null) {
+                        return;
+                    }
+
+                    Location eyeLocation = platformPlayer.getEyeLocation();
+                    Vector direction = eyeLocation.getDirection();
+                    Location endLocation = eyeLocation.clone();
+                    endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
+                    Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
+                    if (optionalHitResult.isEmpty()) {
+                        return;
+                    }
+                    EntityHitResult hitResult = optionalHitResult.get();
+                    Vec3d hitLocation = hitResult.hitLocation();
+                    // 获取正确的交互点
+                    Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
+
                     ContextHolder.Builder contextBuilder = ContextHolder.builder()
                             .withParameter(DirectContextParameters.FURNITURE, furniture)
                             .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
                             .withParameter(DirectContextParameters.ITEM_IN_HAND, serverPlayer.getItemInHand(InteractionHand.MAIN_HAND))
                             .withParameter(DirectContextParameters.POSITION, furniture.position());
-                    FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, hitBox, contextBuilder);
+                    FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, interactionPoint, hitBox, contextBuilder);
                     if (EventUtils.fireAndCheckCancel(hitEvent))
                         return;
 
@@ -4245,9 +4269,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                         Optional<ItemDefinition> optionalItemDefinition = itemInHand.getDefinition();
                         if (optionalItemDefinition.isPresent()) {
                             ItemDefinition itemDefinition = optionalItemDefinition.get();
-                            FurnitureItemBehavior firstFurniture = itemDefinition.behavior().getFirst(FurnitureItemBehavior.class);
+                            FurnitureItem firstFurniture = itemDefinition.behavior().getFirst(FurnitureItem.class);
                             if (firstFurniture != null) {
-                                firstFurniture.useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
+                                ((ItemBehavior) firstFurniture).useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
                                 return;
                             }
                         }

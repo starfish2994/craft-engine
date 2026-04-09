@@ -9,7 +9,6 @@ import net.momirealms.craftengine.bukkit.item.behavior.AxeItemBehavior;
 import net.momirealms.craftengine.bukkit.item.behavior.FlintAndSteelItemBehavior;
 import net.momirealms.craftengine.bukkit.item.factory.BukkitItemFactory;
 import net.momirealms.craftengine.bukkit.item.listener.ArmorEventListener;
-import net.momirealms.craftengine.bukkit.item.listener.DebugStickListener;
 import net.momirealms.craftengine.bukkit.item.listener.ItemEventListener;
 import net.momirealms.craftengine.bukkit.item.listener.SlotChangeListener;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
@@ -21,6 +20,8 @@ import net.momirealms.craftengine.bukkit.util.RegistryOps;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.*;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.recipe.DatapackRecipeResult;
 import net.momirealms.craftengine.core.item.recipe.IngredientUnlockable;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
@@ -62,7 +63,6 @@ public final class BukkitItemManager extends AbstractItemManager {
     private final BukkitItemFactory<? extends BukkitItemWrapper> factory;
     private final BukkitCraftEngine plugin;
     private final ItemEventListener itemEventListener;
-    private final DebugStickListener debugStickListener;
     private final ArmorEventListener armorEventListener;
     private final SlotChangeListener slotChangeListener;
     private final NetworkItemHandler networkItemHandler;
@@ -78,7 +78,6 @@ public final class BukkitItemManager extends AbstractItemManager {
         this.plugin = plugin;
         this.factory = BukkitItemFactory.create(plugin);
         this.itemEventListener = new ItemEventListener(plugin, this);
-        this.debugStickListener = new DebugStickListener(plugin);
         this.armorEventListener = new ArmorEventListener();
         this.slotChangeListener = VersionHelper.isOrAbove1_20_3() ? new SlotChangeListener(this) : null;
         this.networkItemHandler = VersionHelper.isOrAbove1_20_5() ? new ModernNetworkItemHandler() : new LegacyNetworkItemHandler();
@@ -128,7 +127,6 @@ public final class BukkitItemManager extends AbstractItemManager {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.itemEventListener, this.plugin.javaPlugin());
-        Bukkit.getPluginManager().registerEvents(this.debugStickListener, this.plugin.javaPlugin());
         Bukkit.getPluginManager().registerEvents(this.armorEventListener, this.plugin.javaPlugin());
         if (this.slotChangeListener != null) Bukkit.getPluginManager().registerEvents(this.slotChangeListener, this.plugin.javaPlugin());
     }
@@ -190,7 +188,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         if (vanilla == null) {
             return Optional.empty();
         }
-        return Optional.of(CloneableConstantItem.of(this.wrap(vanilla)));
+        return Optional.of(CloneableItem.of(this.wrap(vanilla)));
     }
 
     @Override
@@ -202,7 +200,6 @@ public final class BukkitItemManager extends AbstractItemManager {
     public void disable() {
         this.unload();
         HandlerList.unregisterAll(this.itemEventListener);
-        HandlerList.unregisterAll(this.debugStickListener);
         HandlerList.unregisterAll(this.armorEventListener);
         if (this.slotChangeListener != null) HandlerList.unregisterAll(this.slotChangeListener);
         this.persistLastRegisteredPatterns();

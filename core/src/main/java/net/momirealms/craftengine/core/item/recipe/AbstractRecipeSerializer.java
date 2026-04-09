@@ -38,7 +38,7 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
 
     protected CustomRecipeResult parseResult(DatapackRecipeResult recipeResult) {
         Item result = CraftEngine.instance().itemManager().build(recipeResult);
-        return new CustomRecipeResult(CloneableConstantItem.of(result), recipeResult.count(), null);
+        return new CustomRecipeResult(CloneableItem.of(result), recipeResult.count(), null);
     }
 
     protected CustomRecipeResult parseResult(ConfigSection section) {

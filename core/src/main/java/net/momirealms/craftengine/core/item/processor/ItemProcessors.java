@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.item.processor;
 
-import net.momirealms.craftengine.core.item.ItemProcessorFactory;
 import net.momirealms.craftengine.core.item.processor.lore.DynamicLoreProcessor;
 import net.momirealms.craftengine.core.item.processor.lore.LoreProcessor;
 import net.momirealms.craftengine.core.item.processor.lore.OverwritableLoreProcessor;

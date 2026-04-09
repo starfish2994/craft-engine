@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.equipment;
 
-import net.momirealms.craftengine.core.item.DataComponentKeys;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.processor.HideTooltipProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.processor.TrimProcessor;

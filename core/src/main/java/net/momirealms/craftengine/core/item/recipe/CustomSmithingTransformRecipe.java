@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.item.recipe;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
-import net.momirealms.craftengine.core.item.data.Enchantment;
+import net.momirealms.craftengine.core.item.component.value.Enchantment;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
@@ -341,7 +341,7 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         @Override
         public void accept(Item item1, Item item2, Item item3) {
             for (String[] path : this.paths) {
-                Object dataObj = item1.getJavaTag((Object[]) path);
+                Object dataObj = item1.getTagAsJava((Object[]) path);
                 if (dataObj != null) {
                     item3.setTag(dataObj, (Object[]) path);
                 }
@@ -397,7 +397,7 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         @Override
         public void accept(Item item1, Item item2, Item item3) {
             for (String[] tag : this.tags) {
-                Object tagObj = item1.getJavaTag((Object[]) tag);
+                Object tagObj = item1.getTagAsJava((Object[]) tag);
                 if (tagObj != null) {
                     item3.setTag(tagObj, (Object[]) tag);
                 }
