@@ -55,9 +55,9 @@ public interface ItemManager extends Manageable, ModelGenerator {
 
     Optional<Equipment> getEquipment(Key key);
 
-    Optional<ItemDefinition> getCustomItem(Key key);
+    Optional<ItemDefinition> getItemDefinition(Key key);
 
-    Optional<List<ItemBehavior>> getItemBehavior(Key key);
+    Optional<ItemBehavior> getItemBehavior(Key key);
 
     Optional<? extends BuildableItem> getVanillaItem(Key key);
 
@@ -66,7 +66,7 @@ public interface ItemManager extends Manageable, ModelGenerator {
     NetworkItemHandler networkItemHandler();
 
     default Optional<? extends BuildableItem> getBuildableItem(Key key) {
-        Optional<ItemDefinition> item = getCustomItem(key);
+        Optional<ItemDefinition> item = getItemDefinition(key);
         if (item.isPresent()) {
             return item;
         }

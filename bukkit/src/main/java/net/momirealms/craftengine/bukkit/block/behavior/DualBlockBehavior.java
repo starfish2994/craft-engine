@@ -38,11 +38,10 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> void let(Class<T> tClass, Consumer<T> consumer) {
-        if (tClass.isInstance(this.first)) consumer.accept((T) this.first);
-        if (tClass.isInstance(this.second)) consumer.accept((T) this.second);
+        this.first.let(tClass, consumer);
+        this.second.let(tClass, consumer);
     }
 
     @Override

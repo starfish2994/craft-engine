@@ -39,13 +39,10 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> void let(Class<T> tClass, Consumer<T> consumer) {
         for (BlockBehavior behavior : this.behaviors) {
-            if (tClass.isInstance(behavior)) {
-                consumer.accept((T) behavior);
-            }
+            behavior.let(tClass, consumer);
         }
     }
 

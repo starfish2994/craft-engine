@@ -73,7 +73,7 @@ public final class CustomNameplateHatSettings implements Listener {
         TagRenderer tagRender = CustomNameplates.getInstance().getUnlimitedTagManager().getTagRender(cnPlayer);
         if (tagRender == null) return;
         Item wrapped = BukkitItemManager.instance().wrap(newItem);
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         if (optionalCustomItem.isEmpty()) {
             tagRender.hatOffset(0d);
             return;

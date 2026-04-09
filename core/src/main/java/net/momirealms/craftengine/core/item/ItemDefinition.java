@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.UniqueKey;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public interface ItemDefinition extends BuildableItem {
     void execute(Context context, EventTrigger trigger);
 
     @NotNull
-    List<ItemBehavior> behaviors();
+    ItemBehavior behavior();
 
     interface Builder {
         Builder isVanillaItem(boolean isVanillaItem);
@@ -72,8 +73,6 @@ public interface ItemDefinition extends BuildableItem {
         Builder clientBoundProcessors(List<ItemProcessor> modifiers);
 
         Builder behavior(ItemBehavior behavior);
-
-        Builder behaviors(List<ItemBehavior> behaviors);
 
         Builder settings(ItemSettings settings);
 

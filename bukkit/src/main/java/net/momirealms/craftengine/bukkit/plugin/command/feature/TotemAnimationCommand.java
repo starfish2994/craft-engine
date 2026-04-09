@@ -76,7 +76,7 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                     Collection<Player> players = selector.values();
                     NamespacedKey namespacedKey = context.get("id");
                     Key key = Key.of(namespacedKey.namespace(), namespacedKey.value());
-                    ItemDefinition itemDefinition = plugin().itemManager().getCustomItem(key).orElse(null);
+                    ItemDefinition itemDefinition = plugin().itemManager().getItemDefinition(key).orElse(null);
                     if (itemDefinition == null || (!VersionHelper.isOrAbove1_21_2() && itemDefinition.material().equals(ItemKeys.TOTEM_OF_UNDYING))) {
                         handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.toString()));
                         return;

@@ -242,7 +242,7 @@ public final class RecipeInjector {
         if (input1.count() != 1 || !isDamageableItem(input1)) return false;
         if (input2.count() != 1 || !isDamageableItem(input2)) return false;
         if (!input1.id().equals(input2.id())) return false;
-        Optional<ItemDefinition> customItem = input1.getCustomItem();
+        Optional<ItemDefinition> customItem = input1.getDefinition();
         return customItem.isEmpty() || customItem.get().settings().repairable().craftingTable() != Tristate.FALSE;
     }
 
@@ -328,7 +328,7 @@ public final class RecipeInjector {
 
     @Nullable
     private static Color getDyeColor(final Item dyeItem) {
-        Optional<ItemDefinition> optionalCustomItem = dyeItem.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = dyeItem.getDefinition();
         if (optionalCustomItem.isPresent()) {
             ItemDefinition itemDefinition = optionalCustomItem.get();
             return Optional.ofNullable(itemDefinition.settings().dyeColor()).orElseGet(() -> getVanillaDyeColor(dyeItem));
@@ -338,7 +338,7 @@ public final class RecipeInjector {
 
     @Nullable
     private static Color getFireworkColor(final Item dyeItem) {
-        Optional<ItemDefinition> optionalCustomItem = dyeItem.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = dyeItem.getDefinition();
         if (optionalCustomItem.isPresent()) {
             ItemDefinition itemDefinition = optionalCustomItem.get();
             return Optional.ofNullable(itemDefinition.settings().fireworkColor()).orElseGet(() -> getVanillaFireworkColor(dyeItem));
@@ -355,7 +355,7 @@ public final class RecipeInjector {
                     });
 
     private static boolean isDyeable(final Item item) {
-        Optional<ItemDefinition> optionalCustomItem = item.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = item.getDefinition();
         if (optionalCustomItem.isPresent()) {
             ItemDefinition itemDefinition = optionalCustomItem.get();
             if (itemDefinition.settings().dyeable() == Tristate.FALSE) {
@@ -397,7 +397,7 @@ public final class RecipeInjector {
     }
 
     private static boolean isArmorDye(Item dyeItem) {
-        Optional<ItemDefinition> optionalCustomItem = dyeItem.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = dyeItem.getDefinition();
         if (optionalCustomItem.isPresent()) {
             ItemDefinition itemDefinition = optionalCustomItem.get();
             return itemDefinition.settings().dyeColor() != null || isVanillaDyeItem(dyeItem);
@@ -406,7 +406,7 @@ public final class RecipeInjector {
     }
 
     private static boolean isFireworkDye(Item dyeItem) {
-        Optional<ItemDefinition> optionalCustomItem = dyeItem.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = dyeItem.getDefinition();
         if (optionalCustomItem.isPresent()) {
             ItemDefinition itemDefinition = optionalCustomItem.get();
             return itemDefinition.settings().fireworkColor() != null || isVanillaDyeItem(dyeItem);

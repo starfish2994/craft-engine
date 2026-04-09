@@ -409,9 +409,9 @@ public final class RecipeEventListener implements Listener {
         ItemStack second = inventory.getSecondItem();
         if (first == null || second == null) return;
         Item wrappedFirst = BukkitItemManager.instance().wrap(first);
-        Optional<ItemDefinition> firstCustom = wrappedFirst.getCustomItem();
+        Optional<ItemDefinition> firstCustom = wrappedFirst.getDefinition();
         Item wrappedSecond = BukkitItemManager.instance().wrap(second);
-        Optional<ItemDefinition> secondCustom = wrappedFirst.getCustomItem();
+        Optional<ItemDefinition> secondCustom = wrappedFirst.getDefinition();
         // 两个都是原版物品
         if (firstCustom.isEmpty() && secondCustom.isEmpty()) {
             return;
@@ -483,7 +483,7 @@ public final class RecipeEventListener implements Listener {
 
         Item wrappedSecond = BukkitItemManager.instance().wrap(second);
         // 如果材料不是自定义的，那么忽略
-        Optional<ItemDefinition> customItemOptional = this.plugin.itemManager().getCustomItem(wrappedSecond.id());
+        Optional<ItemDefinition> customItemOptional = this.plugin.itemManager().getItemDefinition(wrappedSecond.id());
         if (customItemOptional.isEmpty()) {
             return;
         }
@@ -503,7 +503,7 @@ public final class RecipeEventListener implements Listener {
         if (damage == 0 || maxDamage == 0) return;
 
         Key firstId = wrappedFirst.id();
-        Optional<ItemDefinition> optionalCustomTool = wrappedFirst.getCustomItem();
+        Optional<ItemDefinition> optionalCustomTool = wrappedFirst.getDefinition();
         // 物品无法被修复
         if (optionalCustomTool.isPresent() && optionalCustomTool.get().settings().repairable().anvilRepair() == Tristate.FALSE) {
             return;
@@ -631,7 +631,7 @@ public final class RecipeEventListener implements Listener {
             return;
         }
         Item wrappedFirst = BukkitItemManager.instance().wrap(first);
-        wrappedFirst.getCustomItem().ifPresent(item -> {
+        wrappedFirst.getDefinition().ifPresent(item -> {
             if (!item.settings().renameable()) {
                 String renameText;
                 if (VersionHelper.isOrAbove1_21()) {
@@ -684,7 +684,7 @@ public final class RecipeEventListener implements Listener {
                 int durability1 = first.maxDamage() - first.damage().orElse(0);
                 int durability2 = right.maxDamage() - right.damage().orElse(0);
                 int finalDurability = durability1 + durability2 + max * 5 / 100;
-                Optional<ItemDefinition> customItemOptional = plugin.itemManager().getCustomItem(first.id());
+                Optional<ItemDefinition> customItemOptional = plugin.itemManager().getItemDefinition(first.id());
                 if (customItemOptional.isEmpty()) {
                     inventory.setResult(null);
                     return;
@@ -951,7 +951,7 @@ public final class RecipeEventListener implements Listener {
             ItemStack equipment = inventory.getInputEquipment();
             if (!ItemStackUtils.isEmpty(equipment)) {
                 Item wrappedEquipment = this.itemManager.wrap(equipment);
-                Optional<ItemDefinition> optionalCustomItem = wrappedEquipment.getCustomItem();
+                Optional<ItemDefinition> optionalCustomItem = wrappedEquipment.getDefinition();
                 if (optionalCustomItem.isPresent()) {
                     ItemDefinition itemDefinition = optionalCustomItem.get();
                     ItemEquipment itemEquipmentSettings = itemDefinition.settings().equipment();

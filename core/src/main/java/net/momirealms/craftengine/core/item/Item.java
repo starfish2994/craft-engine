@@ -39,9 +39,9 @@ public interface Item {
 
     boolean isEmpty();
 
-    Optional<ItemDefinition> getCustomItem();
+    Optional<ItemDefinition> getDefinition();
 
-    Optional<List<ItemBehavior>> getItemBehavior();
+    Optional<ItemBehavior> getBehavior();
 
     boolean isCustomItem();
 

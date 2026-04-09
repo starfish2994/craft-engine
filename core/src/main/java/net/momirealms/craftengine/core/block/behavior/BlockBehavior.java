@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MutableBoolean;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldAccessor;
@@ -17,6 +18,8 @@ import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public abstract class BlockBehavior {
@@ -446,16 +449,18 @@ public abstract class BlockBehavior {
         // 如果物品和方块是一家人，那么不应该被替换
         Key clickedBlockId = state.owner().value().id();
         Item item = context.getItem();
-        Optional<ItemDefinition> customItem = CraftEngine.instance().itemManager().getCustomItem(item.id());
+        Optional<ItemDefinition> customItem = CraftEngine.instance().itemManager().getItemDefinition(item.id());
         if (customItem.isEmpty()) return state.settings().replaceable();
         ItemDefinition custom = customItem.get();
-        for (ItemBehavior behavior : custom.behaviors()) {
-            if (behavior instanceof BlockBoundItemBehavior blockItemBehavior) {
-                Key blockId = blockItemBehavior.block();
-                if (blockId.equals(clickedBlockId)) {
-                    return false;
-                }
+        MutableBoolean canPlace = new MutableBoolean(true);
+        custom.behavior().let(BlockBoundItemBehavior.class, b -> {
+            Key blockId = b.block();
+            if (blockId.equals(clickedBlockId)) {
+                canPlace.set(false);
             }
+        });
+        if (!canPlace.booleanValue()) {
+            return false;
         }
         return state.settings().replaceable();
     }

@@ -14,10 +14,7 @@ import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.ItemUtils;
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
@@ -40,18 +37,20 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements Path
     @Override
     public boolean canBeReplaced(BlockPlaceContext context, ImmutableBlockState state) {
         SlabType type = state.get(this.typeProperty);
-        Item item = (Item) context.getItem();
+        Item item = context.getItem();
         if (type == SlabType.DOUBLE || ItemUtils.isEmpty(item)) return false;
-        Optional<ItemDefinition> itemInHand = item.getCustomItem();
+        Optional<ItemDefinition> itemInHand = item.getDefinition();
         if (itemInHand.isEmpty()) return false;
         ItemDefinition itemDefinition = itemInHand.get();
-        Key blockId = null;
-        for (ItemBehavior itemBehavior : itemDefinition.behaviors()) {
-            if (itemBehavior instanceof BlockBoundItemBehavior behavior) {
-                blockId = behavior.block();
+
+        MutableBoolean sameId = new MutableBoolean(false);
+        itemDefinition.behavior().let(BlockBoundItemBehavior.class, b -> {
+            if (b.block().equals(super.blockDefinition.id())) {
+                sameId.set(true);
             }
-        }
-        if (blockId == null || !blockId.equals(super.blockDefinition.id())) return false;
+        });
+
+        if (!sameId.booleanValue()) return false;
         if (!context.replacingClickedBlock()) return true;
         boolean upper = context.getClickedLocation().y - (double) context.getClickedPos().y() > (double) 0.5F;
         Direction clickedFace = context.getClickedFace();

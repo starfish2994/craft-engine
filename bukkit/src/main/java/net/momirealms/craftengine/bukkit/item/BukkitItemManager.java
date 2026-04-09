@@ -195,7 +195,7 @@ public final class BukkitItemManager extends AbstractItemManager {
 
     @Override
     public int getFuelTime(Key id) {
-        return getCustomItem(id).map(it -> it.settings().fuelTime()).orElse(0);
+        return getItemDefinition(id).map(it -> it.settings().fuelTime()).orElse(0);
     }
 
     @Override

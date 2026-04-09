@@ -4,8 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.datafixers.util.Either;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
-import net.momirealms.craftengine.core.item.behavior.ItemBehaviors;
+import net.momirealms.craftengine.core.item.behavior.*;
 import net.momirealms.craftengine.core.item.equipment.*;
 import net.momirealms.craftengine.core.item.processor.*;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
@@ -47,7 +46,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public abstract class AbstractItemManager extends AbstractModelGenerator implements ItemManager {
-    protected static final Map<Key, List<ItemBehavior>> VANILLA_ITEM_EXTRA_BEHAVIORS = new HashMap<>();
+    protected static final Map<Key, ItemBehavior> VANILLA_ITEM_EXTRA_BEHAVIORS = new HashMap<>();
     protected static final Set<Key> VANILLA_ITEMS = new HashSet<>(1024);
     protected static final Map<Key, List<UniqueKey>> VANILLA_ITEM_TAGS = new HashMap<>();
     // 解析器
@@ -81,7 +80,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     protected static void registerVanillaItemExtraBehavior(ItemBehavior behavior, Key... items) {
         for (Key key : items) {
-            VANILLA_ITEM_EXTRA_BEHAVIORS.computeIfAbsent(key, k -> new ArrayList<>()).add(behavior);
+            VANILLA_ITEM_EXTRA_BEHAVIORS.put(key, behavior);
         }
     }
 
@@ -124,7 +123,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     }
 
     @Override
-    public Optional<ItemDefinition> getCustomItem(Key key) {
+    public Optional<ItemDefinition> getItemDefinition(Key key) {
         return Optional.ofNullable(this.customItemsById.get(key));
     }
 
@@ -144,7 +143,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public ItemUpdateResult updateItem(Item item, Supplier<ItemBuildContext> contextSupplier) {
-        Optional<ItemDefinition> optionalCustomItem = item.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = item.getDefinition();
         if (optionalCustomItem.isPresent()) {
             ItemDefinition itemDefinition = optionalCustomItem.get();
             Optional<ItemUpdateConfig> updater = itemDefinition.updater();
@@ -182,25 +181,22 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         return Collections.unmodifiableCollection(this.cachedTotemSuggestions);
     }
 
-    @Override
-    public Optional<List<ItemBehavior>> getItemBehavior(Key key) {
-        Optional<ItemDefinition> customItemOptional = getCustomItem(key);
-        if (customItemOptional.isPresent()) {
-            ItemDefinition itemDefinition = customItemOptional.get();
-            Key vanillaMaterial = itemDefinition.material();
-            List<ItemBehavior> behavior = VANILLA_ITEM_EXTRA_BEHAVIORS.get(vanillaMaterial);
-            if (behavior != null) {
-                return Optional.of(Stream.concat(itemDefinition.behaviors().stream(), behavior.stream()).toList());
-            } else {
-                return Optional.of(List.copyOf(itemDefinition.behaviors()));
-            }
+    public ItemBehavior getOrCreateItemBehavior(Key itemId) {
+        Optional<ItemDefinition> definitionOptional = getItemDefinition(itemId);
+        if (definitionOptional.isPresent()) {
+            return definitionOptional.get().behavior();
         } else {
-            List<ItemBehavior> behavior = VANILLA_ITEM_EXTRA_BEHAVIORS.get(key);
-            if (behavior != null) {
-                return Optional.of(List.copyOf(behavior));
-            } else {
-                return Optional.empty();
-            }
+            return Optional.ofNullable(VANILLA_ITEM_EXTRA_BEHAVIORS.get(itemId)).orElse(EmptyItemBehavior.INSTANCE);
+        }
+    }
+
+    @Override
+    public Optional<ItemBehavior> getItemBehavior(Key key) {
+        Optional<ItemDefinition> definitionOptional = getItemDefinition(key);
+        if (definitionOptional.isPresent()) {
+            return Optional.of(definitionOptional.get().behavior());
+        } else {
+            return Optional.ofNullable(VANILLA_ITEM_EXTRA_BEHAVIORS.get(key));
         }
     }
 
@@ -621,13 +617,19 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 }
 
                 // 行为
-                // todo 重构
-                List<ItemBehavior> behaviors;
+                ItemBehavior behavior;
                 try {
-                    behaviors = section.getList(BEHAVIORS, v -> ItemBehaviors.fromConfig(pack, path, id, v.getAsSection()));
+                    List<ItemBehavior> behaviors = new ArrayList<>(section.getList(BEHAVIORS, v -> ItemBehaviors.fromConfig(pack, path, id, v.getAsSection())));
+                    Optional.ofNullable(VANILLA_ITEM_EXTRA_BEHAVIORS.get(material)).ifPresent(behaviors::add);
+                    switch (behaviors.size()) {
+                        case 0 -> behavior = EmptyItemBehavior.INSTANCE;
+                        case 1 -> behavior = behaviors.getFirst();
+                        case 2 -> behavior = new DualItemBehavior(behaviors.get(0), behaviors.get(1));
+                        default -> behavior = new CompositeItemBehavior(behaviors);
+                    }
                 } catch (KnownResourceException e) {
                     error(e, path);
-                    behaviors = Collections.emptyList();
+                    behavior = VANILLA_ITEM_EXTRA_BEHAVIORS.getOrDefault(material, EmptyItemBehavior.INSTANCE);
                 }
 
                 // 如果有物品更新器
@@ -654,11 +656,10 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 // 构建自定义物品
                 ItemDefinition itemDefinition = itemBuilder
                         .isVanillaItem(isVanillaItem)
-                        .behaviors(behaviors)
+                        .behavior(behavior)
                         .settings(settings)
                         .events(events)
                         .build();
-
 
                 AbstractItemManager.this.customItemsById.put(id, itemDefinition);
                 AbstractItemManager.this.customItemsByPath.put(id.value(), itemDefinition);

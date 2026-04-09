@@ -125,7 +125,7 @@ public final class BlockEventListener implements Listener {
         Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
 
         if (!event.isCancelled() && !ItemUtils.isEmpty(itemInHand)) {
-            Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
+            Optional<ItemDefinition> optionalCustomItem = itemInHand.getDefinition();
             if (optionalCustomItem.isPresent()) {
                 ItemDefinition itemDefinition = optionalCustomItem.get();
                 Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
@@ -141,9 +141,7 @@ public final class BlockEventListener implements Listener {
                 if (cancellable.isCancelled()) {
                     return;
                 }
-                for (ItemBehavior behavior : itemDefinition.behaviors()) {
-                    behavior.onBreakBlock(world, serverPlayer, blockPos);
-                }
+                itemDefinition.behavior().onBreakBlock(world, serverPlayer, blockPos);
             }
         }
 

@@ -4242,13 +4242,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     }
                     // 必须从网络包层面处理，否则无法获取交互的具体实体
                     if (serverPlayer.isSecondaryUseActive() && !itemInHand.isEmpty() && hitBox.config().canUseItemOn()) {
-                        Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
-                        if (optionalCustomItem.isPresent() && !optionalCustomItem.get().behaviors().isEmpty()) {
-                            for (ItemBehavior itemBehavior : optionalCustomItem.get().behaviors()) {
-                                if (itemBehavior instanceof FurnitureItemBehavior) {
-                                    itemBehavior.useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
-                                    return;
-                                }
+                        Optional<ItemDefinition> optionalItemDefinition = itemInHand.getDefinition();
+                        if (optionalItemDefinition.isPresent()) {
+                            ItemDefinition itemDefinition = optionalItemDefinition.get();
+                            FurnitureItemBehavior firstFurniture = itemDefinition.behavior().getFirst(FurnitureItemBehavior.class);
+                            if (firstFurniture != null) {
+                                firstFurniture.useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
+                                return;
                             }
                         }
 

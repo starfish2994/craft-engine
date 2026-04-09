@@ -79,7 +79,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
 
         // 先尝试恢复client-bound-material
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         if (optionalCustomItem.isPresent()) {
             BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
             if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem())) {
@@ -163,7 +163,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // todo 处理book
 
         // 不是自定义物品或修改过的原版物品
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         if (optionalCustomItem.isEmpty()) {
             if (!Config.interceptItem()) {
                 return forceReturn ? Optional.of(wrapped) : Optional.empty();

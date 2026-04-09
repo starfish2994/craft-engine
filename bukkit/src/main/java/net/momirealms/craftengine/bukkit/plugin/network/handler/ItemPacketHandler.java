@@ -64,7 +64,7 @@ public final class ItemPacketHandler implements EntityPacketHandler {
                 // 处理 drop-display 物品设置
                 // 一定要处理经历过客户端侧组件修改的物品
                 Item wrappedItem = BukkitItemManager.instance().wrap(itemStack);
-                Optional<ItemDefinition> optionalCustomItem = wrappedItem.getCustomItem();
+                Optional<ItemDefinition> optionalCustomItem = wrappedItem.getDefinition();
                 String showName = null;
                 if (optionalCustomItem.isPresent()) {
                     ItemSettings settings = optionalCustomItem.get().settings();

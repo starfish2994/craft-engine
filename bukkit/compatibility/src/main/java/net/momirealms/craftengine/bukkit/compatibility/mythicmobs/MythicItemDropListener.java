@@ -30,7 +30,7 @@ public final class MythicItemDropListener implements Listener {
             return;
         }
         event.register(new MythicItemDrop(line, event.getConfig(),
-                LazyReference.lazyReference(() -> this.plugin.itemManager().getCustomItem(Key.of(itemId)).orElse(null)),
+                LazyReference.lazyReference(() -> this.plugin.itemManager().getItemDefinition(Key.of(itemId)).orElse(null)),
                 itemId
         ));
     }
