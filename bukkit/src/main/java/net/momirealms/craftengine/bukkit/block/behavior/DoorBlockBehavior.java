@@ -13,7 +13,6 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
-import net.momirealms.craftengine.core.block.behavior.PlayerWillDestroyBlockBehavior;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.DoorHinge;
 import net.momirealms.craftengine.core.block.properties.type.DoubleBlockHalf;
@@ -56,7 +55,7 @@ import static net.momirealms.craftengine.core.block.UpdateFlags.*;
 
 @SuppressWarnings("DuplicatedCode")
 public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior
-        implements PathFindingBlock, PlayerWillDestroyBlockBehavior {
+        implements PathFindingBlock {
     public static final BlockBehaviorFactory<DoorBlockBehavior> FACTORY = new Factory();
     public final Property<DoubleBlockHalf> halfProperty;
     public final Property<Direction> facingProperty;

@@ -9,7 +9,6 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.PlayerWillDestroyBlockBehavior;
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
@@ -30,7 +29,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsPro
 
 import static net.momirealms.craftengine.core.block.UpdateFlags.*;
 
-public final class MultiHighBlockBehavior extends BukkitBlockBehavior implements PlayerWillDestroyBlockBehavior {
+public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<MultiHighBlockBehavior> FACTORY = new Factory();
     public final IntegerProperty property;
 

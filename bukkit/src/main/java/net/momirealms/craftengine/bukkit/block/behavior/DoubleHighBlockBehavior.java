@@ -9,7 +9,6 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.PlayerWillDestroyBlockBehavior;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.DoubleBlockHalf;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -32,7 +31,7 @@ import java.util.Optional;
 
 import static net.momirealms.craftengine.core.block.UpdateFlags.*;
 
-public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavior implements PlayerWillDestroyBlockBehavior {
+public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavior {
     public static final BlockBehaviorFactory<DoubleHighBlockBehavior> FACTORY = new Factory();
     public final Property<DoubleBlockHalf> halfProperty;
 
