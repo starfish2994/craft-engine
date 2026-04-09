@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureSnapshotState;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -95,10 +96,10 @@ public abstract class FurnitureController {
     public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
     }
 
-    public void onAsyncPlayerTrack(Player player) {
+    public void onAsyncPlayerTrack(Player player, FurnitureSnapshotState snapshotState) {
     }
 
-    public void onAsyncPlayerUntrack(Player player) {
+    public void onAsyncPlayerUntrack(Player player, FurnitureSnapshotState snapshotState) {
     }
 
     public void onPlayerTrack(Player player) {
@@ -226,15 +227,15 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onAsyncPlayerTrack(Player player) {
-            this.first.onAsyncPlayerTrack(player);
-            this.second.onAsyncPlayerTrack(player);
+        public void onAsyncPlayerTrack(Player player, FurnitureSnapshotState snapshotState) {
+            this.first.onAsyncPlayerTrack(player, snapshotState);
+            this.second.onAsyncPlayerTrack(player, snapshotState);
         }
 
         @Override
-        public void onAsyncPlayerUntrack(Player player) {
-            this.first.onAsyncPlayerUntrack(player);
-            this.second.onAsyncPlayerUntrack(player);
+        public void onAsyncPlayerUntrack(Player player, FurnitureSnapshotState snapshotState) {
+            this.first.onAsyncPlayerUntrack(player, snapshotState);
+            this.second.onAsyncPlayerUntrack(player, snapshotState);
         }
 
         @Override
@@ -418,16 +419,16 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onAsyncPlayerTrack(Player player) {
+        public void onAsyncPlayerTrack(Player player, FurnitureSnapshotState snapshotState) {
             for (FurnitureController controller : this.controllers) {
-                controller.onAsyncPlayerTrack(player);
+                controller.onAsyncPlayerTrack(player, snapshotState);
             }
         }
 
         @Override
-        public void onAsyncPlayerUntrack(Player player) {
+        public void onAsyncPlayerUntrack(Player player, FurnitureSnapshotState snapshotState) {
             for (FurnitureController controller : this.controllers) {
-                controller.onAsyncPlayerUntrack(player);
+                controller.onAsyncPlayerUntrack(player, snapshotState);
             }
         }
 

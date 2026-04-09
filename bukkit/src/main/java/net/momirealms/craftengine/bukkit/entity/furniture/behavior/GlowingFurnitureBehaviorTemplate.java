@@ -4,10 +4,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.BlockKeys;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.UpdateFlags;
-import net.momirealms.craftengine.core.entity.furniture.Furniture;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureLightData;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
+import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
@@ -16,9 +13,10 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.Vec3d;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,8 +78,10 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
 
     // 行为处理器
     public static final class GlowingFurnitureController extends FurnitureController {
+        private static final ContextKey<List<LightData.Actually>> LIGHT_DATA_KEY = ContextKey.direct("craftengine:light_data_actually");
         private final GlowingFurnitureBehaviorTemplate behavior;
         private boolean unloaded = false;
+        private List<LightData.Actually> actualise;
 
         public GlowingFurnitureController(Furniture furniture, GlowingFurnitureBehaviorTemplate behavior) {
             super(furniture);
@@ -94,46 +94,13 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
             List<LightData> oldLightData = this.behavior.getLightDataByVariant(previousVariant.name());
             List<LightData> lightData = this.behavior.getLightDataByVariant(furniture.getCurrentVariant().name());
             if (oldLightData.isEmpty() && lightData.isEmpty()) return; // 都没有配置, 不处理.
-            // 获取变化
-            MiscUtils.DiffResult<LightData> diffResult = MiscUtils.diff(oldLightData, lightData);
-            List<LightData> added = diffResult.added();
-            List<LightData> removed = diffResult.removed();
-
-            FurnitureLightData realLightData = getOrCreateLightData();
-
-            for (int i = 0; i < added.size(); i++) {
-                LightData addedData = added.get(i);
-                BlockPos blockPos = BlockPos.fromVec3d(super.furniture.getRelativePosition(addedData.relative));
-                for (Player player : furniture.getTrackedBy()) {
-                    int newLight = player.furnitureLightData().addLightData(blockPos, addedData.light());
-                    if (newLight != -1) {
-                        this.updateLightBlock(player, blockPos, newLight);
-                    }
-                }
-                int newLight = realLightData.addLightData(blockPos, addedData.light());
-                if (newLight != -1) {
-                    this.updateServerLightBlock(blockPos, newLight);
-                }
-            }
-            for (int i = 0; i < removed.size(); i++) {
-                LightData removeData = removed.get(i);
-                BlockPos blockPos = BlockPos.fromVec3d(super.furniture.getRelativePosition(removeData.relative));
-                for (Player player : super.furniture.getTrackedBy()) {
-                    int newLight = player.furnitureLightData().removeLightData(blockPos, removeData.light());
-                    if (newLight != -1) {
-                        this.updateLightBlock(player, blockPos, newLight);
-                    }
-                }
-                int newLight = realLightData.removeLightData(blockPos, removeData.light());
-                if (newLight != -1) {
-                    this.updateServerLightBlock(blockPos, newLight);
-                }
-            }
+            this.removeLightBlock(actualise, true);
+            this.updateLightDataActualise();
         }
 
         @Override
         public void preRemove(@Nullable Player player) {
-            this.removeLightBlock(true);
+            this.removeLightBlock(actualise, true);
             this.unloaded = true;
         }
 
@@ -146,17 +113,17 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
         @Override
         public void onUnload() {
             if (!this.unloaded) {
-                this.removeLightBlock(false);
+                this.removeLightBlock(actualise, false);
             }
         }
 
         private void setLightBlock() {
-            List<LightData> lightData = this.behavior.getLightDataByVariant(super.furniture.currentVariant().name());
-            if (!lightData.isEmpty()) {
-                FurnitureLightData realLightData = getOrCreateLightData();
-                for (int i = 0; i < lightData.size(); i++) {
-                    LightData addData = lightData.get(i);
-                    BlockPos blockPos = BlockPos.fromVec3d(super.furniture.getRelativePosition(addData.relative));
+            this.updateLightDataActualise();
+            if (!this.actualise.isEmpty()) {
+                FurnitureLightData realLightData = this.getOrCreateLightData();
+                for (int i = 0; i < this.actualise.size(); i++) {
+                    LightData.Actually addData = this.actualise.get(i);
+                    BlockPos blockPos = addData.blockPos;
                     int changed = realLightData.addLightData(blockPos, addData.light());
                     if (changed != -1) {
                         updateServerLightBlock(blockPos, changed);
@@ -165,13 +132,12 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
             }
         }
 
-        private void removeLightBlock(boolean remove) {
-            List<LightData> lightData = this.behavior.getLightDataByVariant(super.furniture.currentVariant().name());
-            if (!lightData.isEmpty()) {
-                FurnitureLightData realLightData = getOrCreateLightData();
-                for (int i = 0; i < lightData.size(); i++) {
-                    LightData removeData = lightData.get(i);
-                    BlockPos blockPos = BlockPos.fromVec3d(super.furniture.getRelativePosition(removeData.relative));
+        private void removeLightBlock(List<LightData.Actually> actualise, boolean remove) {
+            if (actualise != null && !actualise.isEmpty()) {
+                FurnitureLightData realLightData = this.getOrCreateLightData();
+                for (int i = 0; i < actualise.size(); i++) {
+                    LightData.Actually removeData = actualise.get(i);
+                    BlockPos blockPos = removeData.blockPos;
                     int changed = realLightData.removeLightData(blockPos, removeData.light());
                     if (changed != -1 && remove) {
                         updateServerLightBlock(blockPos, changed);
@@ -212,12 +178,12 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
         }
 
         @Override
-        public void onAsyncPlayerTrack(Player player) {
-            List<LightData> lightData = this.behavior.lightDataByVariant.get(furniture.getCurrentVariant().name());
-            if (lightData == null || lightData.isEmpty()) return;
-            for (int i = 0; i < lightData.size(); i++) {
-                LightData addData = lightData.get(i);
-                BlockPos blockPos = BlockPos.fromVec3d(super.furniture.getRelativePosition(addData.relative));
+        public void onAsyncPlayerTrack(Player player, FurnitureSnapshotState snapshotState) {
+            List<LightData.Actually> actualise = this.getLightDataActualise(snapshotState);
+            if (actualise == null || actualise.isEmpty()) return;
+            for (int i = 0; i < actualise.size(); i++) {
+                LightData.Actually addData = actualise.get(i);
+                BlockPos blockPos = addData.blockPos;
                 int newLight = player.furnitureLightData().addLightData(blockPos, addData.light());
                 if (newLight != -1) {
                     this.updateLightBlock(player, blockPos, newLight);
@@ -226,17 +192,30 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
         }
 
         @Override
-        public void onAsyncPlayerUntrack(Player player) {
-            List<LightData> lightData = this.behavior.lightDataByVariant.get(furniture.getCurrentVariant().name());
-            if (lightData == null || lightData.isEmpty()) return;
-            for (int i = 0; i < lightData.size(); i++) {
-                LightData removeData = lightData.get(i);
-                BlockPos blockPos = BlockPos.fromVec3d(super.furniture.getRelativePosition(removeData.relative));
+        public void onAsyncPlayerUntrack(Player player, FurnitureSnapshotState snapshotState) {
+            List<LightData.Actually> actualise = this.getLightDataActualise(snapshotState);
+            if (actualise == null || actualise.isEmpty()) return;
+            for (int i = 0; i < actualise.size(); i++) {
+                LightData.Actually removeData = actualise.get(i);
+                BlockPos blockPos = removeData.blockPos;
                 int newLight = player.furnitureLightData().removeLightData(blockPos, removeData.light());
                 if (newLight != -1) {
                     this.updateLightBlock(player, blockPos, newLight);
                 }
             }
+        }
+
+        @Nullable
+        private List<LightData.Actually> getLightDataActualise(FurnitureSnapshotState snapshotState) {
+            return snapshotState.getCustomData(LIGHT_DATA_KEY);
+        }
+
+        // 更新当前的具体光照数据
+        private void updateLightDataActualise() {
+            List<LightData> lightData = this.behavior.lightDataByVariant.get(furniture.getCurrentVariant().name());
+            List<LightData.Actually> currentActualise = lightData.stream().map(it -> it.actually(furniture)).toList();
+            this.furniture.snapshotState().setCustomData(LIGHT_DATA_KEY, currentActualise);
+            this.actualise = currentActualise;
         }
 
         // 更新光照方块 TODO 传入多个, 最后转成 SectionBlockUpdate.
@@ -317,5 +296,16 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
     public record LightData (
             Vector3f relative,
             int light
-    ) { }
+    ) {
+
+        public Actually actually(Furniture furniture) {
+            Vec3d actually = furniture.getRelativePosition(relative);
+            return new Actually(BlockPos.fromVec3d(actually), light);
+        }
+
+        public record Actually(
+                BlockPos blockPos,
+                int light
+        ) { }
+    }
 }

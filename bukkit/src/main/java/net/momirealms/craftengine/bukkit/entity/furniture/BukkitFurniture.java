@@ -12,8 +12,10 @@ import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.QuaternionUtils;
+import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
@@ -50,8 +52,8 @@ public final class BukkitFurniture extends Furniture {
     }
 
     @Override
-    protected FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements, List<FurnitureHitBox> hitboxes, Int2ObjectMap<FurnitureHitBox> hitboxMap, List<Collider> colliders) {
-        return new BukkitVariantSnapshot(elements, hitboxes, hitboxMap, colliders);
+    protected FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements, List<FurnitureHitBox> hitboxes, Int2ObjectMap<FurnitureHitBox> hitboxMap, List<Collider> colliders, Map<ContextKey<?>, Object> customData) {
+        return new BukkitVariantSnapshot(elements, hitboxes, hitboxMap, colliders, customData);
     }
 
     @Override

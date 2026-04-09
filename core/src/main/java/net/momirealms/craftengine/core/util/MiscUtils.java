@@ -411,7 +411,7 @@ public final class MiscUtils {
      * 计算两个列表中新加和丢失的元素。
      * @param previousCollection 可能为null的旧列表
      * @param newCollection 可能为null的新列表
-     * @return Map，key "added" 对应新列表中独有元素，key "removed" 对应旧列表中独有元素
+     * @return DiffResult,  "added" 对应新列表中独有元素，"removed" 对应旧列表中独有元素
      */
     public static <T> DiffResult<T> diff(@Nullable Collection<T> previousCollection, @Nullable Collection<T> newCollection) {
         Set<T> previousSet = previousCollection == null ? Collections.emptySet() : new HashSet<>(previousCollection);
