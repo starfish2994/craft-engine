@@ -22,6 +22,7 @@ import net.momirealms.craftengine.core.util.LegacyChatFormatter;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -77,24 +78,24 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         };
     }
 
-    public BlockEntityTintSource createTintSource(World world, BlockPos pos) {
+    public BlockEntityTintSource createTintSource(CEChunk chunk, BlockPos pos) {
         if (this.tintSource != null) {
-            return this.tintSource.create(world, pos);
+            return this.tintSource.create(chunk, pos);
         }
         return null;
     }
 
     @Override
-    public ArmorStandBlockEntityElement create(World world, BlockPos pos) {
-        return new ArmorStandBlockEntityElement(this, pos, createTintSource(world, pos));
+    public ArmorStandBlockEntityElement create(CEChunk chunk, BlockPos pos) {
+        return new ArmorStandBlockEntityElement(this, pos, createTintSource(chunk, pos));
     }
 
     @Override
-    public ArmorStandBlockEntityElement create(World world, BlockPos pos, ArmorStandBlockEntityElement previous) {
+    public ArmorStandBlockEntityElement create(CEChunk chunk, BlockPos pos, ArmorStandBlockEntityElement previous) {
         if (previous.config.scale != scale || previous.config.glowColor != glowColor) {
             return null;
         }
-        return new ArmorStandBlockEntityElement(this, pos, createTintSource(world, pos), previous.entityId,
+        return new ArmorStandBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId,
                 previous.config.yRot != this.yRot ||
                 previous.config.xRot != this.xRot ||
                 !previous.config.position.equals(this.position)
@@ -102,11 +103,11 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
     }
 
     @Override
-    public ArmorStandBlockEntityElement createExact(World world, BlockPos pos, ArmorStandBlockEntityElement previous) {
+    public ArmorStandBlockEntityElement createExact(CEChunk chunk, BlockPos pos, ArmorStandBlockEntityElement previous) {
         if (!previous.config.isSamePosition(this)) {
             return null;
         }
-        return new ArmorStandBlockEntityElement(this, pos, createTintSource(world, pos), previous.entityId, false);
+        return new ArmorStandBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId, false);
     }
 
     @Override

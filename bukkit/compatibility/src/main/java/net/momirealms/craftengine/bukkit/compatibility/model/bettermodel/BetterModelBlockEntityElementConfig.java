@@ -9,7 +9,7 @@ import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -61,8 +61,8 @@ public final class BetterModelBlockEntityElementConfig implements BlockEntityEle
     }
 
     @Override
-    public BetterModelBlockEntityElement create(World world, BlockPos pos) {
-        return new BetterModelBlockEntityElement(this, world, pos);
+    public BetterModelBlockEntityElement create(CEChunk chunk, BlockPos pos) {
+        return new BetterModelBlockEntityElement(this, chunk.world.world, pos);
     }
 
     @Override

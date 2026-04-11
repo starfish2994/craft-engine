@@ -19,6 +19,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -62,21 +63,21 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
     }
 
     @Override
-    public ItemBlockEntityElement create(World world, BlockPos pos) {
-        return new ItemBlockEntityElement(this, pos, createTintSource(world, pos));
+    public ItemBlockEntityElement create(CEChunk chunk, BlockPos pos) {
+        return new ItemBlockEntityElement(this, pos, createTintSource(chunk, pos));
     }
 
     @Override
-    public ItemBlockEntityElement create(World world, BlockPos pos, ItemBlockEntityElement previous) {
-        return new ItemBlockEntityElement(this, pos, createTintSource(world, pos), previous.entityId1, previous.entityId2, !previous.config.position.equals(this.position));
+    public ItemBlockEntityElement create(CEChunk chunk, BlockPos pos, ItemBlockEntityElement previous) {
+        return new ItemBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId1, previous.entityId2, !previous.config.position.equals(this.position));
     }
 
     @Override
-    public ItemBlockEntityElement createExact(World world, BlockPos pos, ItemBlockEntityElement previous) {
+    public ItemBlockEntityElement createExact(CEChunk chunk, BlockPos pos, ItemBlockEntityElement previous) {
         if (!previous.config.isSamePosition(this)) {
             return null;
         }
-        return new ItemBlockEntityElement(this, pos, createTintSource(world, pos), previous.entityId1, previous.entityId2, false);
+        return new ItemBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId1, previous.entityId2, false);
     }
 
     @Override
@@ -92,9 +93,9 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
         return this.itemId;
     }
 
-    public BlockEntityTintSource createTintSource(World world, BlockPos pos) {
+    public BlockEntityTintSource createTintSource(CEChunk chunk, BlockPos pos) {
         if (this.tintSource != null) {
-            return this.tintSource.create(world, pos);
+            return this.tintSource.create(chunk, pos);
         }
         return null;
     }

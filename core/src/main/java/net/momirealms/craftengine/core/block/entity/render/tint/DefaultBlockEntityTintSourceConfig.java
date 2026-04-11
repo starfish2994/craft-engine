@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.TintSource;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 
 import java.util.List;
 
@@ -25,8 +26,8 @@ public final class DefaultBlockEntityTintSourceConfig implements BlockEntityTint
     }
 
     @Override
-    public DefaultBlockEntityTintSource create(World world, BlockPos pos) {
-        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos, false);
+    public DefaultBlockEntityTintSource create(CEChunk chunk, BlockPos pos) {
+        BlockEntity blockEntity = chunk.getBlockEntity(pos, false);
         if (blockEntity != null) {
             TintSource tintSource = blockEntity.controller.get(TintSource.class, this.tintIndex);
             if (tintSource != null) {

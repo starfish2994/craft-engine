@@ -201,7 +201,6 @@ public class CEChunk {
                             .map(data -> new CullingData(data.aabb.move(pos), data.maxDistance, data.aabbExpansion, data.rayTracing))
                             .orElse(null)
             );
-            World wrappedWorld = this.world.world();
             List<Player> trackedBy = getTrackedBy();
             boolean hasTrackedBy = trackedBy != null && !trackedBy.isEmpty();
             // 处理旧到新的转换
@@ -219,7 +218,7 @@ public class CEChunk {
                     BlockEntityElementConfig<? extends BlockEntityElement> config = renderers[0];
                     outer: {
                         if (previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
-                            ConstantBlockEntityElement element = ((BlockEntityElementConfig) config).create(wrappedWorld, pos, previousElement);
+                            ConstantBlockEntityElement element = ((BlockEntityElementConfig) config).create(this, pos, previousElement);
                             if (element != null) {
                                 elements[0] = element;
                                 if (hasTrackedBy) {
@@ -243,7 +242,7 @@ public class CEChunk {
                                 break outer;
                             }
                         }
-                        ConstantBlockEntityElement element = config.create(wrappedWorld, pos);
+                        ConstantBlockEntityElement element = config.create(this, pos);
                         elements[0] = element;
                         if (hasTrackedBy) {
                             for (Player player : trackedBy) {
@@ -287,7 +286,7 @@ public class CEChunk {
                         for (int j = 0; j < previousElements.length; j++) {
                             ConstantBlockEntityElement previousElement = previousElements[j];
                             if (previousElement != null && previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
-                                ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).createExact(wrappedWorld, pos, previousElement);
+                                ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).createExact(this, pos, previousElement);
                                 if (newElement != null) {
                                     previousElements[j] = null;
                                     elements[i] = newElement;
@@ -310,7 +309,7 @@ public class CEChunk {
                         for (int j = 0; j < previousElements.length; j++) {
                             ConstantBlockEntityElement previousElement = previousElements[j];
                             if (previousElement != null && previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
-                                ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).create(wrappedWorld, pos, previousElement);
+                                ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).create(this, pos, previousElement);
                                 if (newElement != null) {
                                     previousElements[j] = null;
                                     elements[i] = newElement;
@@ -330,7 +329,7 @@ public class CEChunk {
                         /*
                          * 不可变换的直接生成
                          */
-                        ConstantBlockEntityElement newElement = config.create(wrappedWorld, pos);
+                        ConstantBlockEntityElement newElement = config.create(this, pos);
                         elements[i] = newElement;
                         if (hasTrackedBy) {
                             for (int k = 0; k < trackedBy.size(); k++) {
@@ -374,7 +373,7 @@ public class CEChunk {
                  *
                  */
                 for (int i = 0; i < elements.length; i++) {
-                    elements[i] = renderers[i].create(wrappedWorld, pos);
+                    elements[i] = renderers[i].create(this, pos);
                 }
                 if (hasTrackedBy) {
                     for (Player player : trackedBy) {

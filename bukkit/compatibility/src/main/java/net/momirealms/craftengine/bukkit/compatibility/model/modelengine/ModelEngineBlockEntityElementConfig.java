@@ -9,7 +9,7 @@ import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -54,8 +54,8 @@ public final class ModelEngineBlockEntityElementConfig implements BlockEntityEle
     }
 
     @Override
-    public ModelEngineBlockEntityElement create(World world, BlockPos pos) {
-        return new ModelEngineBlockEntityElement(this, world, pos);
+    public ModelEngineBlockEntityElement create(CEChunk chunk, BlockPos pos) {
+        return new ModelEngineBlockEntityElement(this, chunk.world.world, pos);
     }
 
     @Override

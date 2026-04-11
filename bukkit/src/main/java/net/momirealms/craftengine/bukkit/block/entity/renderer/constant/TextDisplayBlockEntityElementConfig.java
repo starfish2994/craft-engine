@@ -20,7 +20,7 @@ import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -134,12 +134,12 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
     }
 
     @Override
-    public TextDisplayBlockEntityElement create(World world, BlockPos pos) {
+    public TextDisplayBlockEntityElement create(CEChunk chunk, BlockPos pos) {
         return new TextDisplayBlockEntityElement(this, pos);
     }
 
     @Override
-    public TextDisplayBlockEntityElement create(World world, BlockPos pos, TextDisplayBlockEntityElement previous) {
+    public TextDisplayBlockEntityElement create(CEChunk chunk, BlockPos pos, TextDisplayBlockEntityElement previous) {
         return new TextDisplayBlockEntityElement(this, pos, previous.entityId,
                 previous.config.yRot != this.yRot ||
                         previous.config.xRot != this.xRot ||
@@ -148,7 +148,7 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
     }
 
     @Override
-    public TextDisplayBlockEntityElement createExact(World world, BlockPos pos, TextDisplayBlockEntityElement previous) {
+    public TextDisplayBlockEntityElement createExact(CEChunk chunk, BlockPos pos, TextDisplayBlockEntityElement previous) {
         if (!previous.config.isSamePosition(this)) {
             return null;
         }

@@ -24,6 +24,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -125,21 +126,21 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         };
     }
 
-    public BlockEntityTintSource createTintSource(World world, BlockPos pos) {
+    public BlockEntityTintSource createTintSource(CEChunk chunk, BlockPos pos) {
         if (this.tintSource != null) {
-            return this.tintSource.create(world, pos);
+            return this.tintSource.create(chunk, pos);
         }
         return null;
     }
 
     @Override
-    public ItemDisplayBlockEntityElement create(World world, BlockPos pos) {
-        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(world, pos));
+    public ItemDisplayBlockEntityElement create(CEChunk chunk, BlockPos pos) {
+        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(chunk, pos));
     }
 
     @Override
-    public ItemDisplayBlockEntityElement create(World world, BlockPos pos, ItemDisplayBlockEntityElement previous) {
-        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(world, pos), previous.entityId,
+    public ItemDisplayBlockEntityElement create(CEChunk chunk, BlockPos pos, ItemDisplayBlockEntityElement previous) {
+        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId,
                 previous.config.yRot != this.yRot ||
                         previous.config.xRot != this.xRot ||
                         !previous.config.position.equals(this.position)
@@ -147,11 +148,11 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
     }
 
     @Override
-    public ItemDisplayBlockEntityElement createExact(World world, BlockPos pos, ItemDisplayBlockEntityElement previous) {
+    public ItemDisplayBlockEntityElement createExact(CEChunk chunk, BlockPos pos, ItemDisplayBlockEntityElement previous) {
         if (!previous.config.isSamePosition(this)) {
             return null;
         }
-        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(world, pos), previous.entityId, false);
+        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId, false);
     }
 
     @Override
