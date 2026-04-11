@@ -1815,7 +1815,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 if (action.intermediate() || !VersionHelper.isOrAbove1_20_2()) return;
                 event.setCancelled(true);
                 Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(user.connection());
-                if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return;
+                if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return; // 不是配置阶段不处理
                 Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
                 // 主线程上处理这个包
                 CraftEngine.instance().scheduler().executeSync(() -> {
