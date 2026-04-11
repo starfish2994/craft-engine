@@ -48,6 +48,8 @@ public final class GetItemCommand extends BukkitCommandFeature<CommandSender> {
                 .optional("amount", IntegerParser.integerParser(1, 9999))
                 .handler(context -> {
                     Player player = context.sender();
+                    BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+                    if (serverPlayer == null) return;
                     int amount = context.getOrDefault("amount", 1);
                     NamespacedKey namespacedKey = context.get("id");
                     Key itemId = Key.of(namespacedKey.namespace(), namespacedKey.value());
@@ -61,7 +63,6 @@ public final class GetItemCommand extends BukkitCommandFeature<CommandSender> {
                             itemId = itemDefinition.id();
                         }
                     }
-                    BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                     Item builtItem = itemDefinition.buildItem(serverPlayer);
                     if (builtItem != null) {
                         PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);

@@ -334,7 +334,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         return null;
     }
 
-    public ItemStack buildItemStack(Key id, Player player) {
+    public ItemStack buildItemStack(Key id, @Nullable Player player) {
         BukkitItem wrappedItem = createWrappedItem(id, player);
         if (wrappedItem != null) {
             return wrappedItem.getBukkitItem();

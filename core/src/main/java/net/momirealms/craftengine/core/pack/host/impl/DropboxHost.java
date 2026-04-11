@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.HashUtils;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +58,7 @@ public final class DropboxHost implements ResourcePackHost {
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(UUID player) {
+    public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(NetWorkUser user) {
         if (this.cachedUrl == null || this.cachedSha1 == null) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }

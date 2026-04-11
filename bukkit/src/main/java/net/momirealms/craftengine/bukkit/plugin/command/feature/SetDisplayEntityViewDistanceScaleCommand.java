@@ -30,6 +30,7 @@ public final class SetDisplayEntityViewDistanceScaleCommand extends BukkitComman
                     double scale = context.get("scale");
                     SinglePlayerSelector playerSelector = context.get("player");
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(playerSelector.single());
+                    if (serverPlayer == null) return;
                     serverPlayer.setDisplayEntityViewDistanceScale(scale);
                     handleFeedback(context, MessageConstants.COMMAND_DISPLAY_ENTITY_VIEW_DISTANCE_SCALE_SET_SUCCESS, Component.text(scale), Component.text(serverPlayer.name()));
                 });

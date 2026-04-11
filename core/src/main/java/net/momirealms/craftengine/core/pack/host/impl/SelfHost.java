@@ -7,11 +7,11 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class SelfHost implements ResourcePackHost {
@@ -23,8 +23,8 @@ public final class SelfHost implements ResourcePackHost {
     }
 
     @Override
-    public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(UUID player) {
-        ResourcePackDownloadData data = SelfHostHttpServer.instance().generateOneTimeUrl(player);
+    public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(NetWorkUser user) {
+        ResourcePackDownloadData data = SelfHostHttpServer.instance().generateOneTimeUrl(user.uuid());
         if (data == null) return CompletableFuture.completedFuture(List.of());
         return CompletableFuture.completedFuture(List.of(data));
     }

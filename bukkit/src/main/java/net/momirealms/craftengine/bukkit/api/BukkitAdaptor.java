@@ -15,6 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class BukkitAdaptor {
     private BukkitAdaptor() {}
@@ -26,6 +27,7 @@ public final class BukkitAdaptor {
      * @param player the Bukkit Player to adapt, must not be null
      * @return a BukkitServerPlayer instance wrapping the provided player, null if the player is not online
      */
+    @Nullable
     public static BukkitServerPlayer adapt(@NotNull final Player player) {
         return (BukkitServerPlayer) BukkitNetworkManager.instance().getOnlineUser(player.getUniqueId());
     }

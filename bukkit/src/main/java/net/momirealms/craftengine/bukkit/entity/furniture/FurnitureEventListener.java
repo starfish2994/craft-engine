@@ -210,7 +210,9 @@ public final class FurnitureEventListener implements Listener {
             int entityId = furnitureEntity.getEntityId();
             BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
             if (furniture == null) return;
-            furniture.controller.onPlayerTrack(BukkitAdaptor.adapt(event.getPlayer()));
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
+            if (serverPlayer == null) return;
+            furniture.controller.onPlayerTrack(serverPlayer);
         }
     }
 
@@ -220,9 +222,9 @@ public final class FurnitureEventListener implements Listener {
             int entityId = furnitureEntity.getEntityId();
             BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
             if (furniture == null) return;
-            BukkitServerPlayer bukkitServerPlayer = BukkitAdaptor.adapt(event.getPlayer());
-            if (bukkitServerPlayer == null) return;
-            furniture.controller.onPlayerUntrack(bukkitServerPlayer);
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
+            if (serverPlayer == null) return;
+            furniture.controller.onPlayerUntrack(serverPlayer);
         }
     }
 }

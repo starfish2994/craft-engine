@@ -80,6 +80,7 @@ import net.momirealms.craftengine.core.item.recipe.network.modern.display.Recipe
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.pack.host.ResourcePackHost;
+import net.momirealms.craftengine.core.pack.host.ResourcePackResponseAction;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.*;
@@ -781,16 +782,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         } else {
             pipeline.addFirst(CONNECTION_HANDLER_NAME, new ServerChannelHandler());
         }
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Channel channel = getChannel(player);
-            NetWorkUser user = getUser(player);
-            if (user == null) {
-                user = new BukkitServerPlayer(plugin, channel);
-                ((BukkitServerPlayer) user).setPlayer(player);
-                injectChannel(channel, ConnectionState.PLAY);
-            }
-        }
     }
 
     private void uninjectServerChannel(Channel channel) {
@@ -830,7 +821,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         @Override
         public void channelRegistered(ChannelHandlerContext context) {
             try {
-                injectChannel(context.channel(), ConnectionState.HANDSHAKING);
+                injectChannel(context.channel());
             } catch (Throwable t) {
                 exceptionCaught(context, t);
             } finally {
@@ -849,13 +840,12 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
     }
 
-    public void injectChannel(Channel channel, ConnectionState state) {
+    public void injectChannel(Channel channel) {
         if (isFakeChannel(channel)) {
             return;
         }
 
         BukkitServerPlayer user = new BukkitServerPlayer(plugin, channel);
-        user.setConnectionState(state);
         if (channel.pipeline().get("splitter") == null) {
             channel.close();
             return;
@@ -1801,7 +1791,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
         @Override
         public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            Object action = ServerboundResourcePackPacketProxy.INSTANCE.getAction(packet);
+            Enum<?> nmsAction = ServerboundResourcePackPacketProxy.INSTANCE.getAction(packet);
 
             if (VersionHelper.isOrAbove1_20_3()) {
                 UUID uuid = ServerboundResourcePackPacketProxy.INSTANCE.getId(packet);
@@ -1811,44 +1801,39 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 }
             }
 
-            if (action == null) {
+            if (nmsAction == null) {
                 user.kick(Component.text("Corrupted ResourcePackResponse Packet"));
                 return;
             }
 
-            // 检查是否是拒绝
-            if (Config.kickOnDeclined()) {
-                if (action == ServerboundResourcePackPacketProxy.ActionProxy.DECLINED || action == ServerboundResourcePackPacketProxy.ActionProxy.DISCARDED) {
-                    user.kick(Component.translatable("multiplayer.requiredTexturePrompt.disconnect"));
-                    return;
+            ResourcePackHost host = CraftEngine.instance().packManager().resourcePackHost();
+            host.response(user, ResourcePackResponseAction.byOrdinal(nmsAction.ordinal())).whenComplete((action, t) -> {
+                if (t != null) {
+                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.handle_response_failed", user.name()), t);
                 }
-            }
-
-            // 检查是否失败
-            if (Config.kickOnFailedApply()) {
-                if (action == ServerboundResourcePackPacketProxy.ActionProxy.FAILED_DOWNLOAD
-                        || (VersionHelper.isOrAbove1_20_3() && action == ServerboundResourcePackPacketProxy.ActionProxy.INVALID_URL)) {
-                    user.kick(Component.translatable("multiplayer.requiredTexturePrompt.disconnect"));
-                    return;
-                }
-            }
-
-            boolean isTerminal = action != ServerboundResourcePackPacketProxy.ActionProxy.ACCEPTED && action != ServerboundResourcePackPacketProxy.ActionProxy.DOWNLOADED;
-            if (isTerminal && VersionHelper.isOrAbove1_20_2()) {
+                // 响应不是最终的或者没有配置阶段就不处理后续
+                if (action.intermediate() || !VersionHelper.isOrAbove1_20_2()) return;
                 event.setCancelled(true);
                 Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(user.connection());
                 if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return;
+                Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
                 // 主线程上处理这个包
                 CraftEngine.instance().scheduler().executeSync(() -> {
                     try {
                         // 当客户端发出多次成功包的时候，finish会报错，我们忽略他
                         ServerCommonPacketListenerProxy.INSTANCE.handleResourcePackResponse(packetListener, packet);
-                        ServerConfigurationPacketListenerImplProxy.INSTANCE.finishCurrentTask(packetListener, ServerResourcePackConfigurationTaskProxy.TYPE);
+                        if (VersionHelper.isPaper() && VersionHelper.isOrAbove1_21_7()) { // paper在1.21.7+增加了判断不会主动结束任务
+                            ServerConfigurationPacketListenerImplProxy.INSTANCE.finishCurrentTask(packetListener, ServerResourcePackConfigurationTaskProxy.TYPE);
+                        }
                     } catch (Throwable e) {
                         Debugger.RESOURCE_PACK.warn(() -> "Cannot finish current task", e);
+                    } finally { // 无论如何如果全部资源包任务处理完成就加入并执行JoinWorldTask
+                        if (tasks.isEmpty()) {
+                            S2CFinishConfigurationListener.returnToWorld(tasks, packetListener);
+                        }
                     }
                 });
-            }
+            });
         }
     }
 
@@ -1893,8 +1878,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
     public static class S2CFinishConfigurationListener implements NMSPacketListener {
 
-        private void returnToWorld(Queue<Object> configurationTasks, Object packetListener) {
-            configurationTasks.add(JoinWorldTaskProxy.INSTANCE.newInstance());
+        private static void returnToWorld(Queue<Object> tasks, Object packetListener) {
+            tasks.add(JoinWorldTaskProxy.INSTANCE.newInstance());
             ServerConfigurationPacketListenerImplProxy.INSTANCE.startNextTask(packetListener);
         }
 
@@ -1940,30 +1925,30 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
             // 请求资源包
             ResourcePackHost host = CraftEngine.instance().packManager().resourcePackHost();
-            host.requestResourcePackDownloadLink(user.uuid()).whenComplete((dataList, t) -> {
-                Queue<Object> configurationTasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
+            host.requestResourcePackDownloadLink(user).whenComplete((dataList, t) -> {
+                Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
                 if (t != null) {
                     CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.get_url_failed", user.name()), t);
-                    returnToWorld(configurationTasks, packetListener);
+                    returnToWorld(tasks, packetListener);
                     return;
                 }
                 if (dataList.isEmpty()) {
-                    returnToWorld(configurationTasks, packetListener);
+                    returnToWorld(tasks, packetListener);
                     return;
                 }
                 // 向配置阶段连接的任务重加入资源包的任务
                 if (VersionHelper.isOrAbove1_20_3()) {
                     for (ResourcePackDownloadData data : dataList) {
-                        configurationTasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+                        tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
                         user.addResourcePackUUID(data.uuid());
                     }
                 } else { // 1.20.2 只支持一个服务器资源包
                     ResourcePackDownloadData data = dataList.getFirst();
-                    configurationTasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+                    tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
                     user.addResourcePackUUID(data.uuid());
                 }
-                // 最后再加入一个 JoinWorldTask 并开始资源包任务
-                returnToWorld(configurationTasks, packetListener);
+                // 直接开始资源包任务，JoinWorldTask任务在资源包响应中处理
+                ServerConfigurationPacketListenerImplProxy.INSTANCE.startNextTask(packetListener);
             });
         }
     }

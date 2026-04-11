@@ -71,15 +71,15 @@ public final class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
                         if (VersionHelper.isFolia()) {
                             player.getScheduler().run(plugin().javaPlugin(), t -> {
                                 BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
-                                if (serverPlayer != null) {
-                                    Item builtItem = finalItemDefinition.buildItem(serverPlayer);
-                                    if (builtItem != null) {
-                                        PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);
-                                    }
+                                if (serverPlayer == null) return;
+                                Item builtItem = finalItemDefinition.buildItem(serverPlayer);
+                                if (builtItem != null) {
+                                    PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);
                                 }
                             }, null);
                         } else {
                             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+                            if (serverPlayer == null) continue;
                             Item builtItem = finalItemDefinition.buildItem(serverPlayer);
                             if (builtItem != null) {
                                 PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);

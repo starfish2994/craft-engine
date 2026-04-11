@@ -11,8 +11,8 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.pack.obfuscation.ObfA;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.util.Base64Utils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Bukkit;
@@ -48,7 +48,7 @@ public final class BukkitPackManager extends AbstractPackManager implements List
     @Override
     public void delayedInit() {
         super.delayedInit();
-        Bukkit.getPluginManager().registerEvents(this, plugin.javaPlugin());
+        Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -63,7 +63,7 @@ public final class BukkitPackManager extends AbstractPackManager implements List
 
     @Override
     public void load() {
-        if (ReloadCommand.RELOAD_PACK_FLAG || CraftEngine.instance().isInitializing()) {
+        if (ReloadCommand.RELOAD_PACK_FLAG || this.plugin.isInitializing()) {
             super.load();
         }
     }
@@ -81,7 +81,7 @@ public final class BukkitPackManager extends AbstractPackManager implements List
 
     @Override
     public void sendResourcePack(Player player) {
-        CompletableFuture<List<ResourcePackDownloadData>> future = resourcePackHost().requestResourcePackDownloadLink(player.uuid());
+        CompletableFuture<List<ResourcePackDownloadData>> future = resourcePackHost().requestResourcePackDownloadLink(player);
         future.thenAccept(dataList -> {
             if (player.isOnline()) {
                 player.unloadCurrentResourcePack();
@@ -101,8 +101,8 @@ public final class BukkitPackManager extends AbstractPackManager implements List
                     player.sendPackets(packets, true);
                 }
             }
-        }).exceptionally(throwable -> {
-            CraftEngine.instance().logger().warn("Failed to send resource pack to player " + player.name(), throwable);
+        }).exceptionally(t -> {
+            this.plugin.logger().warn(TranslationManager.instance().plainTranslation("host.get_url_failed", player.name()), t);
             return null;
         });
     }

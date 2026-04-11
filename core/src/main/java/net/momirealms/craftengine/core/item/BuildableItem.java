@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.item;
 
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.Key;
+import org.jetbrains.annotations.Nullable;
 
 public interface BuildableItem {
 
@@ -9,7 +10,7 @@ public interface BuildableItem {
 
     Item buildItem(ItemBuildContext context, int count);
 
-    default Item buildItem(Player player) {
+    default Item buildItem(@Nullable Player player) {
         return buildItem(ItemBuildContext.of(player));
     }
 

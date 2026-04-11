@@ -18,7 +18,7 @@ public interface ServerboundResourcePackPacketProxy extends PacketProxy {
     UUID getId(Object target);
 
     @FieldGetter(name = "action")
-    Object getAction(Object target);
+    Enum<?> getAction(Object target);
 
     @ReflectionProxy(name = {"net.minecraft.network.protocol.common.ServerboundResourcePackPacket$Action", "net.minecraft.network.protocol.game.ServerboundResourcePackPacket$Action"})
     interface ActionProxy {

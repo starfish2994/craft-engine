@@ -72,9 +72,8 @@ public final class BukkitFontManager extends AbstractFontManager implements List
     public void onPlayerJoin(PlayerJoinEvent event) {
         this.plugin.scheduler().async().execute(() -> {
             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
-            if (serverPlayer != null) {
-                refreshEmojiSuggestions(serverPlayer);
-            }
+            if (serverPlayer == null) return;
+            refreshEmojiSuggestions(serverPlayer);
         });
     }
 

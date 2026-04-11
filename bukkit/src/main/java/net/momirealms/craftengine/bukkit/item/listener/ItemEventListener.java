@@ -501,6 +501,7 @@ public final class ItemEventListener implements Listener {
         }
         Player player = event.getPlayer();
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+        if (serverPlayer == null) return;
         Cancellable cancellable = Cancellable.of(event::isCancelled, event::setCancelled);
         ItemDefinition itemDefinition = optionalCustomItem.get();
         PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
@@ -570,6 +571,7 @@ public final class ItemEventListener implements Listener {
         if (event.getDamager() instanceof Player player) {
             Entity hitEntity = event.getEntity();
             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+            if (serverPlayer == null || serverPlayer.isSpectatorMode()) return;
 
             // 获取物品
             BukkitItem itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);

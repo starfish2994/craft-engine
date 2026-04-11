@@ -30,6 +30,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProx
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public final class PlayerUtils {
     private PlayerUtils() {
     }
 
-    public static void giveItem(Player player, int amount, Item original, boolean spawnEntity) {
+    public static void giveItem(@NotNull Player player, int amount, Item original, boolean spawnEntity) {
         int amountToGive = amount;
         int maxStack = original.maxStackSize();
         while (amountToGive > 0) {
@@ -51,8 +52,7 @@ public final class PlayerUtils {
         }
     }
 
-    public static void giveItem(Player player, Item original, Item item, boolean spawnFakeEntity) {
-        if (player == null) return;
+    public static void giveItem(@NotNull Player player, Item original, Item item, boolean spawnFakeEntity) {
         Object serverPlayer = player.serverPlayer();
         Object inventory = PlayerProxy.INSTANCE.getInventory(serverPlayer);
         boolean flag = InventoryProxy.INSTANCE.add(inventory, item.minecraftItem());

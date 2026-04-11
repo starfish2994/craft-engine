@@ -30,6 +30,7 @@ public final class SetEntityCullingDistanceScaleCommand extends BukkitCommandFea
                     double scale = context.get("scale");
                     SinglePlayerSelector playerSelector = context.get("player");
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(playerSelector.single());
+                    if (serverPlayer == null) return;
                     serverPlayer.setEntityCullingDistanceScale(scale);
                     handleFeedback(context, MessageConstants.COMMAND_ENTITY_CULLING_DISTANCE_SCALE_SET_SUCCESS, Component.text(scale), Component.text(serverPlayer.name()));
                 });

@@ -36,6 +36,7 @@ import net.momirealms.craftengine.core.entity.player.GameMode;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -65,7 +66,9 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerGameModeProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.network.ServerConfigurationPacketListenerImplProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerGamePacketListenerImplProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerResourcePackConfigurationTaskProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.thread.BlockableEventLoopProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
@@ -128,8 +131,8 @@ public class BukkitServerPlayer extends Player {
     private PropertyMap propertyMap;
     private boolean isNameVerified;
     private boolean isUUIDVerified;
-    private ConnectionState decoderState; // inbound(decode|c2s)
-    private ConnectionState encoderState; // outbound(encode|s2c)
+    private ConnectionState decoderState = ConnectionState.HANDSHAKING; // inbound(decode|c2s)
+    private ConnectionState encoderState = ConnectionState.HANDSHAKING; // outbound(encode|s2c)
     private boolean shouldProcessFinishConfiguration = true;
     private final Set<UUID> resourcePackUUID = Collections.synchronizedSet(new HashSet<>());
     // some references
@@ -1772,5 +1775,28 @@ public class BukkitServerPlayer extends Player {
 
     public Set<UniqueKey> obtainedItems() {
         return this.obtainedItems;
+    }
+
+    @Override
+    public void addResourcePackTasks(List<ResourcePackDownloadData> dataList) {
+        if (dataList.isEmpty()) return;
+        if (VersionHelper.isOrAbove1_20_2()) {
+            ChannelHandler connection = connection();
+            if (connection == null) return;
+            Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(connection);
+            if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return;
+            Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
+            if (VersionHelper.isOrAbove1_20_3()) {
+                for (ResourcePackDownloadData data : dataList) {
+                    tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+                }
+            } else {
+                ResourcePackDownloadData data = dataList.getFirst();
+                tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+            }
+        } else {
+            ResourcePackDownloadData data = dataList.getFirst();
+            sendPacket(ResourcePackUtils.createPacket(data.uuid(), data.url(), data.sha1()), true);
+        }
     }
 }
