@@ -732,6 +732,9 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
                     // 获取方块实体行为
                     boolean isEntityBlock = blockBehavior.getFirst(EntityBlock.class) != null;
+                    if (isEntityBlock && blockBehavior instanceof EntityBlock entityBlock) {
+                        entityBlock.initControllerId(0);
+                    }
 
                     // 绑定行为
                     for (ImmutableBlockState state : states) {

@@ -28,8 +28,12 @@ public final class WallTorchParticleBlockBehavior extends BukkitBlockBehavior im
     }
 
     @Override
-    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         return new WallTorchParticleBlockEntityController(blockEntity, this);
+    }
+
+    @Override
+    public void initControllerId(int id) {
     }
 
     private static class Factory implements BlockBehaviorFactory<WallTorchParticleBlockBehavior> {

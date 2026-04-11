@@ -47,15 +47,24 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
-    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
-        int index = 0;
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         List<BlockEntityController> controllers = new ArrayList<>(this.behaviors.length);
         for (BlockBehavior behavior : this.behaviors) {
             if (behavior instanceof EntityBlock entityBlock) {
-                controllers.add(entityBlock.createBlockEntityController(blockEntity, index++));
+                controllers.add(entityBlock.createBlockEntityController(blockEntity));
             }
         }
         return BlockEntityController.createFromList(blockEntity, controllers);
+    }
+
+    @Override
+    public void initControllerId(int id) {
+        int index = 0;
+        for (BlockBehavior behavior : this.behaviors) {
+            if (behavior instanceof EntityBlock entityBlock) {
+                entityBlock.initControllerId(index++);
+            }
+        }
     }
 
     @Override

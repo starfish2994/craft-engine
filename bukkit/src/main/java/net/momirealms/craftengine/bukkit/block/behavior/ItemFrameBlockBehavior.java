@@ -71,9 +71,13 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
-    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
-        this.controllerId = controllerId;
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         return new ItemFrameBlockEntityController(blockEntity, this);
+    }
+
+    @Override
+    public void initControllerId(int id) {
+        this.controllerId = id;
     }
 
     @Override

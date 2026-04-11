@@ -23,8 +23,12 @@ public final class SimpleParticleBlockBehavior extends BukkitBlockBehavior imple
     }
 
     @Override
-    public BlockEntityController createBlockEntityController(BlockEntity entity, int controllerId) {
+    public BlockEntityController createBlockEntityController(BlockEntity entity) {
         return new SimpleParticleBlockEntityController(entity, this);
+    }
+
+    @Override
+    public void initControllerId(int id) {
     }
 
     private static class Factory implements BlockBehaviorFactory<SimpleParticleBlockBehavior> {

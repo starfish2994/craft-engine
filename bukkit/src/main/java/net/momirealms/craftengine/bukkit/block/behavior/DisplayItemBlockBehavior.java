@@ -61,8 +61,12 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     }
 
     @Override
-    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
-        this.controllerId = controllerId;
+    public void initControllerId(int id) {
+        this.controllerId = id;
+    }
+
+    @Override
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         return new DisplayItemBlockEntityController(blockEntity, this);
     }
 

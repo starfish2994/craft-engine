@@ -75,9 +75,13 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
     }
 
     @Override
-    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
-        this.controllerId = controllerId;
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         return new DrawerBlockEntityController(blockEntity, this);
+    }
+
+    @Override
+    public void initControllerId(int id) {
+        this.controllerId = id;
     }
 
     @Override

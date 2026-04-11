@@ -22,8 +22,12 @@ public final class TintSourceBlockBehavior extends BukkitBlockBehavior implement
     }
 
     @Override
-    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         return new TintSourceBlockEntityController(blockEntity, this);
+    }
+
+    @Override
+    public void initControllerId(int id) {
     }
 
     private static class Factory implements BlockBehaviorFactory<TintSourceBlockBehavior> {

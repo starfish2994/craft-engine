@@ -24,7 +24,7 @@ public final class BlockEntity {
     public BlockEntity(BlockPos pos, ImmutableBlockState blockState) {
         this.pos = pos;
         this.blockState = blockState;
-        this.controller = ((EntityBlock) blockState.behavior()).createBlockEntityController(this, 0);
+        this.controller = ((EntityBlock) blockState.behavior()).createBlockEntityController(this);
         if (this.controller.hasElement()) {
             List<BlockEntityElement> elements = new ArrayList<>(4);
             this.controller.gatherElements(elements::add);

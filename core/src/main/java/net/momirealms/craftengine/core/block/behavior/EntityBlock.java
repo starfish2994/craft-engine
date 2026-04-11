@@ -5,5 +5,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 
 public interface EntityBlock {
 
-    BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId);
+    BlockEntityController createBlockEntityController(BlockEntity blockEntity);
+
+    void initControllerId(int id);
 }

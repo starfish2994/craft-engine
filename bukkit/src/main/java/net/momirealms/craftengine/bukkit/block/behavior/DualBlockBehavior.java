@@ -45,16 +45,26 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
     }
 
     @Override
-    public BlockEntityController createBlockEntityController(BlockEntity blockEntity, int controllerId) {
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         List<BlockEntityController> controllers = new ArrayList<>(2);
-        int index = 0;
         if (this.first instanceof EntityBlock eb1) {
-            controllers.add(eb1.createBlockEntityController(blockEntity, index++));
+            controllers.add(eb1.createBlockEntityController(blockEntity));
         }
         if (this.second instanceof EntityBlock eb2) {
-            controllers.add(eb2.createBlockEntityController(blockEntity, index));
+            controllers.add(eb2.createBlockEntityController(blockEntity));
         }
         return BlockEntityController.createFromList(blockEntity, controllers);
+    }
+
+    @Override
+    public void initControllerId(int id) {
+        int index = 0;
+        if (this.first instanceof EntityBlock eb1) {
+            eb1.initControllerId(index++);
+        }
+        if (this.second instanceof EntityBlock eb2) {
+            eb2.initControllerId(index);
+        }
     }
 
     @Override
@@ -67,6 +77,7 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
         }
         return super.canPlaceLiquid(thisBlock, args);
     }
+
     @Override
     public boolean placeLiquid(Object thisBlock, Object[] args) {
         if (this.first instanceof LiquidBlockContainer lbc1) {
