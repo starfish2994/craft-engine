@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.entity.furniture;
+package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import net.momirealms.craftengine.core.util.ArrayUtils;
 import net.momirealms.craftengine.core.world.BlockPos;

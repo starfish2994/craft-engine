@@ -127,7 +127,7 @@ public abstract class Furniture implements Cullable {
      */
     @Nullable
     public Item buildNewFurnitureItem() {
-        Key itemId = this.config.settings().itemId;
+        Key itemId = this.config.settings().itemId();
         if (itemId == null) {
             return null;
         }

@@ -1,5 +1,6 @@
-package net.momirealms.craftengine.core.entity.furniture;
+package net.momirealms.craftengine.core.entity.furniture.setting;
 
+import net.momirealms.craftengine.core.entity.furniture.FurnitureSounds;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;

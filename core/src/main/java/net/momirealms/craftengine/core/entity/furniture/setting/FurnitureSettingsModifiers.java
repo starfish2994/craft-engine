@@ -1,5 +1,6 @@
-package net.momirealms.craftengine.core.entity.furniture;
+package net.momirealms.craftengine.core.entity.furniture.setting;
 
+import net.momirealms.craftengine.core.entity.furniture.FurnitureSounds;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;

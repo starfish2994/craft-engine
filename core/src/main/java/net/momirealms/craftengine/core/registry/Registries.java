@@ -1,15 +1,15 @@
 package net.momirealms.craftengine.core.registry;
 
 import net.momirealms.craftengine.core.block.BlockDefinition;
-import net.momirealms.craftengine.core.block.BlockSettingsModifier;
-import net.momirealms.craftengine.core.block.BlockSettingsModifierType;
+import net.momirealms.craftengine.core.block.setting.BlockSettingsModifier;
+import net.momirealms.craftengine.core.block.setting.BlockSettingsModifierType;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorType;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigType;
 import net.momirealms.craftengine.core.block.properties.PropertyType;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureSettingsModifier;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureSettingsModifierType;
+import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifier;
+import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifierType;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorType;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;

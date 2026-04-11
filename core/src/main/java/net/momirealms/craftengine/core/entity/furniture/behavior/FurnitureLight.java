@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.entity.furniture;
+package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import org.joml.Vector3f;
 

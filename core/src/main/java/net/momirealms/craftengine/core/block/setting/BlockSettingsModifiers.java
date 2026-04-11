@@ -1,5 +1,6 @@
-package net.momirealms.craftengine.core.block;
+package net.momirealms.craftengine.core.block.setting;
 
+import net.momirealms.craftengine.core.block.BlockSounds;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;

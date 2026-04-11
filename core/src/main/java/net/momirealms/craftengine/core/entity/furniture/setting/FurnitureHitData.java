@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.entity.furniture;
+package net.momirealms.craftengine.core.entity.furniture.setting;
 
 public final class FurnitureHitData {
     private int times;

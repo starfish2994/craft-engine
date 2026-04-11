@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.block;
+package net.momirealms.craftengine.core.block.setting;
 
 public enum PushReaction {
     NORMAL,

@@ -1,5 +1,6 @@
-package net.momirealms.craftengine.core.block;
+package net.momirealms.craftengine.core.block.setting;
 
+import net.momirealms.craftengine.core.block.BlockSounds;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
