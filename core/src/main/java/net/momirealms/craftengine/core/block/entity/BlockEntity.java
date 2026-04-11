@@ -3,11 +3,14 @@ package net.momirealms.craftengine.core.block.entity;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.SectionPos;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
 
 import java.util.ArrayList;
@@ -126,5 +129,17 @@ public final class BlockEntity {
 
     public BlockEntityRenderer renderer() {
         return this.renderer;
+    }
+
+    public void updateConstantRenderers() {
+        CEChunk ceChunk = this.world.getChunkAtIfLoaded(this.pos);
+        if (ceChunk != null) {
+            ConstantBlockEntityRenderer renderer = ceChunk.getConstantBlockEntityRenderer(this.pos);
+            if (renderer != null) {
+                for (Player player : ceChunk.getTrackedBy()) {
+                    renderer.update(player);
+                }
+            }
+        }
     }
 }

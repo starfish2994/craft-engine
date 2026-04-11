@@ -379,5 +379,12 @@ public abstract class BlockEntityController {
                 controller.loadCustomDataFromItem(item);
             }
         }
+
+        @Override
+        public void onRemove() {
+            for (BlockEntityController controller : this.controllers) {
+                controller.onRemove();
+            }
+        }
     }
 }

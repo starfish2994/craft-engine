@@ -71,17 +71,11 @@ public final class TintSourceBlockEntityController extends BlockEntityController
     }
 
     public void setSourceItem(@NotNull Item sourceItem) {
-        this.sourceItem = sourceItem;
-        BlockEntity blockEntity = super.blockEntity;
-        CEChunk ceChunk = blockEntity.world.getChunkAtIfLoaded(blockEntity.pos);
-        if (ceChunk != null) {
-            ConstantBlockEntityRenderer renderer = ceChunk.getConstantBlockEntityRenderer(blockEntity.pos);
-            if (renderer != null) {
-                for (Player player : ceChunk.getTrackedBy()) {
-                    renderer.update(player);
-                }
-            }
+        if (this.sourceItem.isSimilar(sourceItem)) {
+            return;
         }
+        this.sourceItem = sourceItem;
+        super.blockEntity.updateConstantRenderers();
     }
 
     @Override

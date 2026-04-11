@@ -42,12 +42,14 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     private int controllerId;
     @Nullable
     public final String customDataKey;
+    public final boolean tintSource;
 
     public DisplayItemBlockBehavior(BlockDefinition blockDefinition,
                                     SoundData putSound,
                                     SoundData takeSound,
                                     boolean hasAnalogOutputSignal,
                                     Vector3f relativePosition,
+                                    boolean tintSource,
                                     @Nullable Property<Direction> directionProperty,
                                     @Nullable String customDataKey
     ) {
@@ -58,6 +60,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         this.relativePosition = relativePosition;
         this.directionProperty = directionProperty;
         this.customDataKey = customDataKey;
+        this.tintSource = tintSource;
     }
 
     @Override
@@ -67,7 +70,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
 
     @Override
     public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
-        return new DisplayItemBlockEntityController(blockEntity, this);
+        return this.tintSource ? new DisplayItemBlockEntityController.Tintable(blockEntity, this) : new DisplayItemBlockEntityController(blockEntity, this);
     }
 
     @Override
@@ -139,6 +142,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     private static class Factory implements BlockBehaviorFactory<DisplayItemBlockBehavior> {
         private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
         private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
 
         @Override
         public DisplayItemBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -160,6 +164,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                     takeSound,
                     section.getBoolean(HAS_SIGNAL, true),
                     position,
+                    section.getBoolean(TINT_SOURCE, false),
                     facing,
                     section.getString(DATA_KEY)
             );
