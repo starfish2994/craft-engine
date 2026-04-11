@@ -1810,6 +1810,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             host.response(user, ResourcePackResponseAction.byOrdinal(nmsAction.ordinal())).whenComplete((action, t) -> {
                 if (t != null) {
                     CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.handle_response_failed", user.name()), t);
+                    return;
                 }
                 // 响应不是最终的或者没有配置阶段就不处理后续
                 if (action.intermediate() || !VersionHelper.isOrAbove1_20_2()) return;
