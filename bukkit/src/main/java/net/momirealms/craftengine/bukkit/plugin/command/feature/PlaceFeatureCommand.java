@@ -68,6 +68,7 @@ public final class PlaceFeatureCommand extends BukkitCommandFeature<CommandSende
                         return;
                     }
                     BukkitServerPlayer player = BukkitAdaptor.adapt(sender);
+                    if (player == null) return;
                     BlockPos pos;
                     if (context.contains("location")) {
                         Location location = context.get("location");

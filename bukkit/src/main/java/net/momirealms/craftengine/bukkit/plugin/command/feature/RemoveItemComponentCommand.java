@@ -49,6 +49,7 @@ public final class RemoveItemComponentCommand extends BukkitCommandFeature<Comma
                 .handler(context -> {
                     String component = context.get("component").toString();
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(context.sender());
+                    if (serverPlayer == null) return;
                     Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
                     if (itemInHand.isEmpty()) {
                         handleFeedback(context, MessageConstants.COMMAND_PLAYER_ITEMLESS, Component.text(serverPlayer.name()));

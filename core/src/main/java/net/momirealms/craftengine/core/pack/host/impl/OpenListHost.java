@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.HashUtils;
 import net.momirealms.craftengine.core.util.Pair;
@@ -66,7 +67,7 @@ public final class OpenListHost implements ResourcePackHost {
     }
 
     @Override
-    public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(UUID player) {
+    public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(NetWorkUser user) {
         CompletableFuture<List<ResourcePackDownloadData>> future = new CompletableFuture<>();
 
         CraftEngine.instance().scheduler().executeAsync(() -> {

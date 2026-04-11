@@ -24,6 +24,7 @@ public final class DebugClearCooldownCommand extends BukkitCommandFeature<Comman
                 .handler(context -> {
                     SinglePlayerSelector playerSelector = context.get("player");
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(playerSelector.single());
+                    if (serverPlayer == null) return;
                     serverPlayer.cooldown().clearCooldowns();
                     plugin().senderFactory().wrap(context.sender()).sendMessage(Component.text("Done clearing cooldowns!"));
                 });

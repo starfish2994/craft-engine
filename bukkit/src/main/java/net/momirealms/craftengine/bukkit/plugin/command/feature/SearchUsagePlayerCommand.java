@@ -31,6 +31,7 @@ public final class SearchUsagePlayerCommand extends BukkitCommandFeature<Command
                 .handler(context -> {
                     Player player = context.sender();
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+                    if (serverPlayer == null) return;
                     Item item = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
                     if (ItemUtils.isEmpty(item)) {
                         handleFeedback(context, MessageConstants.COMMAND_SEARCH_USAGE_NO_ITEM);

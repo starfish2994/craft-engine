@@ -129,6 +129,7 @@ loot.function.formula.unknown_type: 未知的公式类型“<arg:0>”
 host.unknown_type: 未知的资源包托管类型“<arg:0>”
 host.missing_environment_variable: 缺少环境变量“<arg:0>”
 host.get_url_failed: 获取玩家<arg:0>的资源包下载链接失败
+host.handle_response_failed: 处理玩家<arg:0>的资源包响应失败
 host.upload_started: 正在上传资源包…
 host.upload_finished: 资源包上传成功，耗时<arg:0>毫秒
 host.upload_failed: 资源包上传失败
