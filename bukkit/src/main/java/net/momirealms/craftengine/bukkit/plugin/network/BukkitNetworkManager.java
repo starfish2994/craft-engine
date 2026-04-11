@@ -4439,15 +4439,16 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
                 BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(id);
                 if (furniture != null) {
-                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, new FurniturePacketHandler(furniture));
+                    FurniturePacketHandler furniturePacketHandler = new FurniturePacketHandler(furniture);
+                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, furniturePacketHandler);
                     if (Config.enableEntityCulling()) {
                         serverPlayer.addTrackedEntity(id, furniture);
-                        furniture.controller.onAsyncPlayerTrack(serverPlayer);
+                        furniture.controller.onAsyncPlayerTrack(serverPlayer, furniturePacketHandler.snapshotState);
                     } else {
                         // 修复addEntityToWorld，包比事件先发的问题 (WE)
                         if (previous == null || previous instanceof ItemDisplayPacketHandler) {
                             furniture.show(serverPlayer);
-                            furniture.controller.onAsyncPlayerTrack(serverPlayer);
+                            furniture.controller.onAsyncPlayerTrack(serverPlayer, furniturePacketHandler.snapshotState);
                         }
                     }
                     if (Config.hideBaseEntity() && !furniture.hasExternalModel()) {
