@@ -59,9 +59,9 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract void setJsonComponent(W item, Object type, JsonElement value);
 
-    protected abstract void setSparrowNBTComponent(W item, Object type, Tag value);
+    protected abstract void setSparrowTagComponent(W item, Object type, Tag value);
 
-    protected abstract void setNBTComponent(W item, Object type, Object value);
+    protected abstract void setMinecraftTagComponent(W item, Object type, Object value);
 
     protected abstract void setComponent(W item, Object type, Object value);
 
@@ -69,13 +69,13 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract void setExactComponent(W item, Object type, Object value);
 
-    protected abstract Object getJavaComponent(W item, Object type);
+    protected abstract Object getComponentAsJava(W item, Object type);
 
-    protected abstract JsonElement getJsonComponent(W item, Object type);
+    protected abstract JsonElement getComponentAsJson(W item, Object type);
 
-    protected abstract Tag getSparrowNBTComponent(W item, Object type);
+    protected abstract Tag getComponentAsSparrowTag(W item, Object type);
 
-    protected abstract Object getNBTComponent(W item, Object type);
+    protected abstract Object getComponentAsMinecraftTag(W item, Object type);
 
     protected abstract boolean hasComponent(W item, Object type);
 

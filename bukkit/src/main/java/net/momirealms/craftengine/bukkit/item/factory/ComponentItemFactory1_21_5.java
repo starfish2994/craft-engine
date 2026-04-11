@@ -38,7 +38,7 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
 
     @Override
     protected Optional<String> customNameJson(ComponentItemWrapper item) {
-        return item.getJsonComponent(DataComponentTypes.CUSTOM_NAME).map(it -> GsonHelper.get().toJson(it));
+        return item.getComponentAsJson(DataComponentTypes.CUSTOM_NAME).map(it -> GsonHelper.get().toJson(it));
     }
 
     @Override
@@ -75,13 +75,13 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
 
     @Override
     protected Optional<String> itemNameJson(ComponentItemWrapper item) {
-        return item.getJsonComponent(DataComponentTypes.ITEM_NAME).map(it -> GsonHelper.get().toJson(it));
+        return item.getComponentAsJson(DataComponentTypes.ITEM_NAME).map(it -> GsonHelper.get().toJson(it));
     }
 
     @Override
     protected Optional<List<String>> loreJson(ComponentItemWrapper item) {
         if (!item.hasComponent(DataComponentTypes.LORE)) return Optional.empty();
-        Optional<JsonElement> json = item.getJsonComponent(DataComponentTypes.LORE);
+        Optional<JsonElement> json = item.getComponentAsJson(DataComponentTypes.LORE);
         if (json.isEmpty()) return Optional.empty();
         List<String> lore = new ArrayList<>();
         for (JsonElement jsonElement : (JsonArray) json.get()) {
@@ -119,7 +119,7 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
     @Override
     protected Optional<JukeboxPlayable> jukeboxSong(ComponentItemWrapper item) {
         if (!item.hasComponent(DataComponentTypes.JUKEBOX_PLAYABLE)) return Optional.empty();
-        String song = (String) item.getJavaComponent(DataComponentTypes.JUKEBOX_PLAYABLE).orElse(null);
+        String song = (String) item.getComponentAsJava(DataComponentTypes.JUKEBOX_PLAYABLE).orElse(null);
         if (song == null) return Optional.empty();
         return Optional.of(new JukeboxPlayable(song, true));
     }

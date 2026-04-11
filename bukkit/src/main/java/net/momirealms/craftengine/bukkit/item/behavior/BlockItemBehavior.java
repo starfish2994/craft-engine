@@ -11,6 +11,8 @@ import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
+import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -112,6 +114,12 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
         Block againstBlock = world.getBlockAt(againstPos.x(), againstPos.y(), againstPos.z());
         org.bukkit.entity.Player bukkitPlayer = player != null ? (org.bukkit.entity.Player) player.platformPlayer() : null;
 
+        // TODO 检测多方块行为??? 或许应该在 canPlace里实现？
+//        BlockBehavior behavior = blockStateToPlace.behavior();
+//        if (behavior.hasMultiState(blockStateToPlace) && !behavior.canPlaceMultiState(context.getLevel(), pos, blockStateToPlace)) {
+//            return InteractionResult.FAIL;
+//        }
+
         ContextHolder.Builder contextBuilder = ContextHolder.builder();
 
         if (player != null) {
@@ -181,7 +189,26 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
         );
         block.execute(functionContext, EventTrigger.PLACE);
         if (dummy.isCancelled()) {
-            return InteractionResult.SUCCESS_AND_CANCEL;
+            for (BlockState state : revertStates) {
+                state.update(true, false);
+            }
+            return InteractionResult.FAIL;
+        }
+
+        // 放置多元素
+        blockStateToPlace.behavior().placeMultiState(BlockStateUtils.getBlockOwner(blockStateToPlace.customBlockState().minecraftState()), new Object[]{
+                context.getLevel().minecraftWorld(),
+                LocationUtils.toBlockPos(context.getClickedPos()),
+                blockStateToPlace.customBlockState().minecraftState(),
+                Optional.ofNullable(context.getPlayer()).map(Player::serverPlayer).orElse(null),
+                context.getItem().minecraftItem()
+        });
+
+        if (blockStateToPlace.hasBlockEntity()) {
+            BlockEntity blockEntity = context.getLevel().storageWorld().getBlockEntityAtIfLoaded(pos, true);
+            if (blockEntity != null) {
+                blockEntity.controller.loadCustomDataFromItem(item);
+            }
         }
 
         if (player != null) {
@@ -191,7 +218,6 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
             player.swingHand(context.getHand());
         }
 
-        block.setPlacedBy(context, blockStateToPlace);
         context.getLevel().playBlockSound(position, blockStateToPlace.settings().sounds().placeSound());
         world.sendGameEvent(bukkitPlayer, GameEvent.BLOCK_PLACE, new Vector(pos.x(), pos.y(), pos.z()));
         return InteractionResult.SUCCESS;

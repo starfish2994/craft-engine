@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.block.entity;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings("unchecked")
 public abstract class BlockEntityController {
     protected final BlockEntity blockEntity;
 
@@ -23,24 +25,34 @@ public abstract class BlockEntityController {
         return this.blockEntity;
     }
 
-    @SuppressWarnings("unchecked")
-    public <C extends BlockEntityController> void let(Class<C> clazz, int index, Consumer<C> consumer) {
-        if (clazz.isInstance(this)) {
+    public <C> void let(Class<C> clazz, int index, Consumer<C> consumer) {
+        if (index == 0 && clazz.isInstance(this)) {
             consumer.accept((C) this);
         }
     }
-
-    @SuppressWarnings("unchecked")
-    public <C extends BlockEntityController, V> V let(Class<C> clazz, int index, Function<C, V> function) {
-        if (clazz.isInstance(this)) {
+    
+    public <C, V> V let(Class<C> clazz, int index, Function<C, V> function) {
+        if (index == 0 && clazz.isInstance(this)) {
             return function.apply((C) this);
         }
         return null;
     }
-
-    @SuppressWarnings("unchecked")
-    public <C extends BlockEntityController> C get(Class<C> clazz, int index) {
+    
+    public <C> void let(Class<C> clazz, Consumer<C> consumer) {
         if (clazz.isInstance(this)) {
+            consumer.accept((C) this);
+        }
+    }
+    
+    public <C> C getAt(Class<C> clazz, int index) {
+        if (index == 0 && clazz.isInstance(this)) {
+            return (C) this;
+        }
+        return null;
+    }
+
+    public <C> C get(Class<C> clazz, int order) {
+        if (order == 0 && clazz.isInstance(this)) {
             return (C) this;
         }
         return null;
@@ -59,6 +71,9 @@ public abstract class BlockEntityController {
     public void loadCustomData(CompoundTag data) {
     }
 
+    public void loadCustomDataFromItem(Item item) {
+    }
+
     public void onRemove() {
     }
 
@@ -73,7 +88,6 @@ public abstract class BlockEntityController {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     public static <C extends BlockEntityController, T extends BlockEntityController> BlockEntityTicker<C> createTickerHelper(BlockEntityTicker<? super T> ticker) {
         return (BlockEntityTicker<C>) ticker;
     }
@@ -158,23 +172,62 @@ public abstract class BlockEntityController {
         }
 
         @Override
-        public <C extends BlockEntityController> void let(Class<C> clazz, int index, Consumer<C> consumer) {
-            if (index == 0) this.first.let(clazz, index, consumer);
-            else if (index == 1) this.second.let(clazz, index, consumer);
+        public void loadCustomDataFromItem(Item item) {
+            this.first.loadCustomDataFromItem(item);
+            this.second.loadCustomDataFromItem(item);
         }
 
         @Override
-        public <C extends BlockEntityController, V> V let(Class<C> clazz, int index, Function<C, V> function) {
-            if (index == 0) return this.first.let(clazz, index, function);
-            else if (index == 1) return this.second.let(clazz, index, function);
+        public <C> void let(Class<C> clazz, int index, Consumer<C> consumer) {
+            if (index == 0) {
+                if (clazz.isInstance(this.first)) {
+                    consumer.accept((C) this.first);
+                }
+            } else if (index == 1) {
+                if (clazz.isInstance(this.second)) {
+                    consumer.accept((C) this.second);
+                }
+            }
+        }
+        
+        @Override
+        public <C, V> V let(Class<C> clazz, int index, Function<C, V> function) {
+            if (index == 0) {
+                if (clazz.isInstance(this.first)) {
+                    return function.apply((C) this.first);
+                }
+            } else if (index == 1) {
+                if (clazz.isInstance(this.second)) {
+                    return function.apply((C) this.second);
+                }
+            }
             return null;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public <C extends BlockEntityController> C get(Class<C> clazz, int index) {
+        public <C> void let(Class<C> clazz, Consumer<C> consumer) {
+            this.first.let(clazz, consumer);
+            this.second.let(clazz, consumer);
+        }
+        
+        @Override
+        public <C> C getAt(Class<C> clazz, int index) {
             if (index == 0) return clazz.isInstance(this.first) ? (C) this.first : null;
             if (index == 1) return clazz.isInstance(this.second) ? (C) this.second : null;
+            return null;
+        }
+
+        @Override
+        public <C> C get(Class<C> clazz, int order) {
+            int count = 0;
+            if (clazz.isInstance(this.first)) {
+                if (count == order) return (C) this.first;
+                count++;
+            }
+            if (clazz.isInstance(this.second)) {
+                if (count == order) return (C) this.second;
+                count++;
+            }
             return null;
         }
     }
@@ -212,7 +265,6 @@ public abstract class BlockEntityController {
             return createCombinedTicker(world, blockState, BlockEntityController::createAsyncBlockEntityTicker);
         }
 
-        @SuppressWarnings("unchecked")
         private <C extends BlockEntityController> BlockEntityTicker<C> createCombinedTicker(
                 CEWorld world,
                 ImmutableBlockState blockState,
@@ -260,23 +312,47 @@ public abstract class BlockEntityController {
         }
 
         @Override
-        public <C extends BlockEntityController> void let(Class<C> clazz, int index, Consumer<C> consumer) {
+        public <C> void let(Class<C> clazz, int index, Consumer<C> consumer) {
             if (index >= 0 && index < this.controllers.length) {
-                this.controllers[index].let(clazz, index, consumer);
+                BlockEntityController controller = this.controllers[index];
+                if (clazz.isInstance(controller)) {
+                    consumer.accept(clazz.cast(controller));
+                }
             }
         }
 
         @Override
-        public <C extends BlockEntityController, V> V let(Class<C> clazz, int index, Function<C, V> function) {
+        public <C, V> V let(Class<C> clazz, int index, Function<C, V> function) {
             if (index >= 0 && index < this.controllers.length) {
-                return this.controllers[index].let(clazz, index, function);
+                BlockEntityController controller = this.controllers[index];
+                if (clazz.isInstance(controller)) {
+                    return function.apply(clazz.cast(controller));
+                }
             }
             return null;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public <C extends BlockEntityController> C get(Class<C> clazz, int index) {
+        public <C> void let(Class<C> clazz, Consumer<C> consumer) {
+            for (BlockEntityController controller : this.controllers) {
+                controller.let(clazz, consumer);
+            }
+        }
+
+        @Override
+        public <C> C get(Class<C> clazz, int order) {
+            int count = 0;
+            for (BlockEntityController controller : this.controllers) {
+                if (clazz.isInstance(controller)) {
+                    if (count == order) return (C) controller;
+                    count++;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public <C> C getAt(Class<C> clazz, int index) {
             if (index >= 0 && index < this.controllers.length) {
                 return (C) this.controllers[index];
             }
@@ -294,6 +370,13 @@ public abstract class BlockEntityController {
         public void loadCustomData(CompoundTag data) {
             for (BlockEntityController controller : this.controllers) {
                 controller.loadCustomData(data);
+            }
+        }
+
+        @Override
+        public void loadCustomDataFromItem(Item item) {
+            for (BlockEntityController controller : this.controllers) {
+                controller.loadCustomDataFromItem(item);
             }
         }
     }

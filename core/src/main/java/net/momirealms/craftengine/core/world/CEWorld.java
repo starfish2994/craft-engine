@@ -112,6 +112,11 @@ public abstract class CEWorld {
     }
 
     @Nullable
+    public CEChunk getChunkAtIfLoaded(BlockPos pos) {
+        return getChunkAtIfLoaded(pos.x >> 4, pos.z >> 4);
+    }
+
+    @Nullable
     public CEChunk getChunkAtIfLoaded(ChunkPos chunkPos) {
         return getChunkAtIfLoaded(chunkPos.longKey);
     }
@@ -148,6 +153,10 @@ public abstract class CEWorld {
 
     @Nullable
     public BlockEntity getBlockEntityAtIfLoaded(BlockPos blockPos) {
+        return getBlockEntityAtIfLoaded(blockPos, true);
+    }
+
+    public BlockEntity getBlockEntityAtIfLoaded(BlockPos blockPos, boolean create) {
         if (this.worldHeightAccessor.isOutsideBuildHeight(blockPos)) {
             return null;
         }
@@ -155,9 +164,9 @@ public abstract class CEWorld {
         if (chunk == null) {
             return null;
         }
-        return chunk.getBlockEntity(blockPos, true);
+        return chunk.getBlockEntity(blockPos, create);
     }
-
+    
     public WorldDataStorage worldDataStorage() {
         return worldDataStorage;
     }

@@ -1,15 +1,15 @@
 package net.momirealms.craftengine.core.registry;
 
 import net.momirealms.craftengine.core.block.BlockDefinition;
-import net.momirealms.craftengine.core.block.setting.BlockSettingsModifier;
-import net.momirealms.craftengine.core.block.setting.BlockSettingsModifierType;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorType;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigType;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSourceType;
 import net.momirealms.craftengine.core.block.properties.PropertyType;
-import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifier;
-import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifierType;
+import net.momirealms.craftengine.core.block.setting.BlockSettingsModifier;
+import net.momirealms.craftengine.core.block.setting.BlockSettingsModifierType;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorType;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
@@ -18,6 +18,8 @@ import net.momirealms.craftengine.core.entity.furniture.element.tint.FurnitureTi
 import net.momirealms.craftengine.core.entity.furniture.element.tint.FurnitureTintSourceType;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxConfigType;
+import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifier;
+import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifierType;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorType;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
@@ -82,6 +84,7 @@ import java.util.function.Supplier;
 public final class BuiltInRegistries {
     public static final Registry<BlockDefinition> BLOCK = new BlockRegistry<>(Registries.BLOCK, 512);
     public static final Registry<BlockBehaviorType<? extends BlockBehavior>> BLOCK_BEHAVIOR_TYPE = createConstantBoundRegistry(Registries.BLOCK_BEHAVIOR_TYPE, 64);
+    public static final Registry<BlockEntityTintSourceType<? extends BlockEntityTintSource>> BLOCK_ENTITY_TINT_SOURCE_TYPE = createConstantBoundRegistry(Registries.BLOCK_ENTITY_TINT_SOURCE_TYPE, 16);
     public static final Registry<ItemProcessorType<? extends ItemProcessor>> ITEM_PROCESSOR_TYPE = createConstantBoundRegistry(Registries.ITEM_PROCESSOR_TYPE, 64);
     public static final Registry<ItemBehaviorType<? extends ItemBehavior>> ITEM_BEHAVIOR_TYPE = createConstantBoundRegistry(Registries.ITEM_BEHAVIOR_TYPE, 64);
     public static final Registry<PropertyType<? extends Comparable<?>>> PROPERTY_TYPE = createConstantBoundRegistry(Registries.PROPERTY_TYPE, 16);

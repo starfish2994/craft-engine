@@ -16,7 +16,7 @@ public class ComponentItemFactory1_21 extends ComponentItemFactory1_20_5 {
 
     @Override
     protected Optional<JukeboxPlayable> jukeboxSong(ComponentItemWrapper item) {
-        Optional<Map<String, Object>> map = item.getJavaComponent(DataComponentTypes.JUKEBOX_PLAYABLE);
+        Optional<Map<String, Object>> map = item.getComponentAsJava(DataComponentTypes.JUKEBOX_PLAYABLE);
         return map.map(song -> new JukeboxPlayable(
                 (String) song.get("song"),
                 (boolean) song.getOrDefault("show_in_tooltip", true))

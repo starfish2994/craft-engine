@@ -57,6 +57,7 @@ public final class BukkitBlockBehaviors extends BlockBehaviors {
     public static final BlockBehaviorType<ItemFrameBlockBehavior> ITEM_FRAME_BLOCK = register(Key.ce("item_frame_block"), ItemFrameBlockBehavior.FACTORY);
     public static final BlockBehaviorType<DisplayItemBlockBehavior> DISPLAY_ITEM_BLOCK = register(Key.ce("display_item_block"), DisplayItemBlockBehavior.FACTORY);
     public static final BlockBehaviorType<DrawerBlockBehavior> DRAWER_BLOCK = register(Key.ce("drawer_block"), DrawerBlockBehavior.FACTORY);
+    public static final BlockBehaviorType<TintSourceBlockBehavior> TINT_SOURCE_BLOCK = register(Key.ce("tint_source_block"), TintSourceBlockBehavior.FACTORY);
 
     public static void init() {
     }

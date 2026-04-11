@@ -46,6 +46,4 @@ public interface BlockDefinition {
     ImmutableBlockState defaultState();
 
     ImmutableBlockState getStateForPlacement(BlockPlaceContext context);
-
-    void setPlacedBy(BlockPlaceContext context, ImmutableBlockState state);
 }

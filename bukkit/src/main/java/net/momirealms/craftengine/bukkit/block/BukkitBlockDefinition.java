@@ -31,19 +31,4 @@ public final class BukkitBlockDefinition extends AbstractBlockDefinition {
     ) {
         super(holder, variantProvider, events, loot);
     }
-
-    @Override
-    public void setPlacedBy(BlockPlaceContext context, ImmutableBlockState state) {
-        try {
-            this.behavior.placeMultiState(BlockStateUtils.getBlockOwner(state.customBlockState().minecraftState()), new Object[]{
-                    context.getLevel().minecraftWorld(),
-                    LocationUtils.toBlockPos(context.getClickedPos()),
-                    state.customBlockState().minecraftState(),
-                    Optional.ofNullable(context.getPlayer()).map(Player::serverPlayer).orElse(null),
-                    context.getItem().minecraftItem()
-            });
-        } catch (Throwable t) {
-            CraftEngine.instance().logger().warn("Failed to run setPlacedBy ", t);
-        }
-    }
 }

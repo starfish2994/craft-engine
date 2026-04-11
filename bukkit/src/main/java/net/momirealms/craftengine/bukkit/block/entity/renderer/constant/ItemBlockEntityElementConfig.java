@@ -4,6 +4,9 @@ import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSourceConfig;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSources;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
@@ -21,30 +24,36 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 public final class ItemBlockEntityElementConfig implements BlockEntityElementConfig<ItemBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ItemBlockEntityElement> FACTORY = new Factory();
-    public final Function<Player, List<Object>> lazyMetadataPacket;
+    public final BiFunction<Player, BlockEntityTintSource, List<Object>> lazyMetadataPacket;
     public final Key itemId;
     public final Vector3f position;
+    public final BlockEntityTintSourceConfig<? extends BlockEntityTintSource> tintSource;
     public final Predicate<PlayerContext> predicate;
     public final boolean hasCondition;
 
     public ItemBlockEntityElementConfig(Key itemId,
                                         Vector3f position,
+                                        BlockEntityTintSourceConfig<? extends BlockEntityTintSource> tintSource,
                                         Predicate<PlayerContext> predicate,
                                         boolean hasCondition) {
         this.itemId = itemId;
         this.position = position;
+        this.tintSource = tintSource;
         this.hasCondition = hasCondition;
         this.predicate = predicate;
-        this.lazyMetadataPacket = player -> {
+        this.lazyMetadataPacket = (player, ts) -> {
             List<Object> dataValues = new ArrayList<>();
             Item wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
             if (wrappedItem == null) {
                 wrappedItem = Objects.requireNonNull(BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player));
+            }
+            if (ts != null) {
+                ts.applyTint(wrappedItem);
             }
             ItemEntityData.Item.addEntityData(wrappedItem.minecraftItem(), dataValues);
             ItemEntityData.NoGravity.addEntityData(true, dataValues);
@@ -54,12 +63,12 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
 
     @Override
     public ItemBlockEntityElement create(World world, BlockPos pos) {
-        return new ItemBlockEntityElement(this, pos);
+        return new ItemBlockEntityElement(this, pos, createTintSource(world, pos));
     }
 
     @Override
     public ItemBlockEntityElement create(World world, BlockPos pos, ItemBlockEntityElement previous) {
-        return new ItemBlockEntityElement(this, pos, previous.entityId1, previous.entityId2, !previous.config.position.equals(this.position));
+        return new ItemBlockEntityElement(this, pos, createTintSource(world, pos), previous.entityId1, previous.entityId2, !previous.config.position.equals(this.position));
     }
 
     @Override
@@ -67,7 +76,7 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
         if (!previous.config.isSamePosition(this)) {
             return null;
         }
-        return new ItemBlockEntityElement(this, pos, previous.entityId1, previous.entityId2, false);
+        return new ItemBlockEntityElement(this, pos, createTintSource(world, pos), previous.entityId1, previous.entityId2, false);
     }
 
     @Override
@@ -83,8 +92,15 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
         return this.itemId;
     }
 
-    public List<Object> metadataValues(Player player) {
-        return this.lazyMetadataPacket.apply(player);
+    public BlockEntityTintSource createTintSource(World world, BlockPos pos) {
+        if (this.tintSource != null) {
+            return this.tintSource.create(world, pos);
+        }
+        return null;
+    }
+
+    public List<Object> metadataValues(Player player, BlockEntityTintSource tintSource) {
+        return this.lazyMetadataPacket.apply(player, tintSource);
     }
 
     public boolean isSamePosition(ItemBlockEntityElementConfig that) {
@@ -92,6 +108,7 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
     }
 
     private static class Factory implements BlockEntityElementConfigFactory<ItemBlockEntityElement> {
+        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
 
         @Override
         public ItemBlockEntityElementConfig create(ConfigSection section) {
@@ -99,6 +116,7 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
             return new ItemBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
                     section.getVector3f("position", ConfigConstants.CENTER_VECTOR3),
+                    section.getValue(TINT_SOURCE, BlockEntityTintSources::fromConfig),
                     MiscUtils.allOf(conditions),
                     !conditions.isEmpty()
             );

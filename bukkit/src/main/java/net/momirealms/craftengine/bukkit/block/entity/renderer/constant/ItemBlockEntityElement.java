@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.block.entity.render.element.AbstractConstantBlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
@@ -13,6 +14,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -27,13 +29,16 @@ public final class ItemBlockEntityElement extends AbstractConstantBlockEntityEle
     public final Object cachedUpdatePosPacket;
     public final int entityId1;
     public final int entityId2;
+    @Nullable
+    public BlockEntityTintSource tintSource;
 
-    public ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos) {
-        this(config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+    public ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
+        this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, int entityId1, int entityId2, boolean posChanged) {
+    public ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId1, int entityId2, boolean posChanged) {
         super(config.predicate, config.hasCondition);
+        this.tintSource = tintSource;
         this.config = config;
         Vector3f position = config.position();
         this.cachedSpawnPacket1 = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
@@ -58,15 +63,15 @@ public final class ItemBlockEntityElement extends AbstractConstantBlockEntityEle
 
     @Override
     public void showInternal(Player player) {
-        player.sendPackets(List.of(this.cachedSpawnPacket1, this.cachedSpawnPacket2, this.cachedRidePacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player))), false);
+        player.sendPackets(List.of(this.cachedSpawnPacket1, this.cachedSpawnPacket2, this.cachedRidePacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player, this.tintSource))), false);
     }
 
     @Override
     public void update(@NotNull Player player) {
         if (this.cachedUpdatePosPacket != null) {
-            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player))), false);
+            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player, this.tintSource))), false);
         } else {
-            player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player)), false);
+            player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId2, this.config.metadataValues(player, this.tintSource)), false);
         }
     }
 

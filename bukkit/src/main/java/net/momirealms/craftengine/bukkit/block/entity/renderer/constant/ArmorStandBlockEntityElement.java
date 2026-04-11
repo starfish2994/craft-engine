@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.block.entity.render.element.AbstractConstantBlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -17,6 +18,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.Att
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Collections;
@@ -33,12 +35,14 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
     public final Object cachedTeamPacket;
     public final int entityId;
     public final UUID uuid = UUID.randomUUID();
+    @Nullable
+    public BlockEntityTintSource tintSource;
 
-    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos) {
-        this(config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
+        this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, int entityId, boolean posChanged) {
+    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
         super(config.predicate, config.hasCondition);
         Vector3f position = config.position();
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
@@ -46,6 +50,7 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
                 config.xRot(), config.yRot(), EntityTypeProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, config.yRot()
         );
         this.config = config;
+        this.tintSource = tintSource;
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));
         this.entityId = entityId;
         this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z, config.yRot(), config.xRot(), false) : null;
@@ -75,7 +80,7 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
     public void showInternal(Player player) {
         player.sendPackets(List.of(this.cachedSpawnPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player))), false);
         player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
+                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
         )), false);
         if (this.cachedDespawnPacket != null) {
             player.sendPacket(this.cachedDespawnPacket, false);
@@ -92,13 +97,13 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
                     this.cachedUpdatePosPacket,
                     ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player)),
                     ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                            Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
+                            Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
                     ))
             ), false);
         } else {
             player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player)), false);
             player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                    Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
+                    Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
             )), false);
         }
     }

@@ -469,22 +469,22 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
 
     @Override
     public Object getComponentAsJava(Object type) {
-        return this.factory.getJavaComponent(this.item, type);
+        return this.factory.getComponentAsJava(this.item, type);
     }
 
     @Override
     public JsonElement getComponentAsJson(Object type) {
-        return this.factory.getJsonComponent(this.item, type);
+        return this.factory.getComponentAsJson(this.item, type);
     }
 
     @Override
     public Tag getComponentAsSparrowTag(Object type) {
-        return this.factory.getSparrowNBTComponent(this.item, type);
+        return this.factory.getComponentAsSparrowTag(this.item, type);
     }
 
     @Override
     public Object getComponentAsMinecraftTag(Object type) {
-        return this.factory.getNBTComponent(this.item, type);
+        return this.factory.getComponentAsMinecraftTag(this.item, type);
     }
 
     @Override
@@ -504,12 +504,12 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
 
     @Override
     public void setSparrowTagComponent(Object type, Tag value) {
-        this.factory.setSparrowNBTComponent(this.item, type, value);
+        this.factory.setSparrowTagComponent(this.item, type, value);
     }
 
     @Override
     public void setMinecraftTagComponent(Object type, Object value) {
-        this.factory.setNBTComponent(this.item, type, value);
+        this.factory.setMinecraftTagComponent(this.item, type, value);
     }
 
     @Override

@@ -68,7 +68,7 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
                                              Billboard billboard,
                                              float shadowRadius,
                                              float shadowStrength,
-                                              FurnitureTintSourceConfig<? extends FurnitureTintSource> tint,
+                                             FurnitureTintSourceConfig<? extends FurnitureTintSource> tint,
                                              @Nullable Color glowColor,
                                              int blockLight,
                                              int skyLight,

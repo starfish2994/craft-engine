@@ -32,7 +32,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
 
     @Override
     protected Optional<String> tooltipStyle(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.TOOLTIP_STYLE);
+        return item.getComponentAsJava(DataComponentTypes.TOOLTIP_STYLE);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
 
     @Override
     protected Optional<String> itemModel(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.ITEM_MODEL);
+        return item.getComponentAsJava(DataComponentTypes.ITEM_MODEL);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
 
     @Override
     protected Optional<EquipmentData> equippable(ComponentItemWrapper item) {
-        Optional<Object> optionalData = item.getJavaComponent(DataComponentTypes.EQUIPPABLE);
+        Optional<Object> optionalData = item.getComponentAsJava(DataComponentTypes.EQUIPPABLE);
         if (optionalData.isEmpty()) return Optional.empty();
         Map<String, Object> data = MiscUtils.castToMap(optionalData.get());
         String slot = data.get("slot").toString();

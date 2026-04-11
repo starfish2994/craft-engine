@@ -81,19 +81,19 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getJavaComponent(Object type) {
+    public <T> Optional<T> getComponentAsJava(Object type) {
         return (Optional<T>) getComponentInternal(type, RegistryOps.JAVA);
     }
 
-    public Optional<JsonElement> getJsonComponent(Object type) {
+    public Optional<JsonElement> getComponentAsJson(Object type) {
         return getComponentInternal(type, RegistryOps.JSON);
     }
 
-    public Optional<Object> getNBTComponent(Object type) {
+    public Optional<Object> getComponentAsMinecraftTag(Object type) {
         return getComponentInternal(type, RegistryOps.NBT);
     }
 
-    public Optional<Tag> getSparrowNBTComponent(Object type) {
+    public Optional<Tag> getComponentAsSparrowTag(Object type) {
         return getComponentInternal(type, RegistryOps.SPARROW_NBT).map(Tag::copy);
     }
 

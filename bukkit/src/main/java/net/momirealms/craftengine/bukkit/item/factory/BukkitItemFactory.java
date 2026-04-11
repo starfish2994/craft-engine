@@ -95,32 +95,32 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
     }
 
     @Override
-    protected void setSparrowNBTComponent(W item, Object type, Tag value) {
+    protected void setSparrowTagComponent(W item, Object type, Tag value) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    protected void setNBTComponent(W item, Object type, Object value) {
+    protected void setMinecraftTagComponent(W item, Object type, Object value) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    protected Object getJavaComponent(W item, Object type) {
+    protected Object getComponentAsJava(W item, Object type) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    protected JsonElement getJsonComponent(W item, Object type) {
+    protected JsonElement getComponentAsJson(W item, Object type) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    public Object getNBTComponent(W item, Object type) {
+    public Object getComponentAsMinecraftTag(W item, Object type) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    protected Tag getSparrowNBTComponent(W item, Object type) {
+    protected Tag getComponentAsSparrowTag(W item, Object type) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 

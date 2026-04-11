@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.world.chunk;
 
+import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
@@ -35,7 +36,7 @@ public class CEChunk {
     public final ChunkPos chunkPos;
     protected final CESection[] sections;
     protected final WorldHeight worldHeightAccessor;
-    protected final Map<BlockPos, BlockEntity> blockEntities;  // 从区域线程上访问，安全
+    protected final ConcurrentLong2ReferenceChainedHashTable<BlockEntity> blockEntities;  // 从区域线程上访问，安全
     protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingSyncBlockEntitiesByPos; // 从区域线程上访问，安全
     protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingAsyncBlockEntitiesByPos; // 从区域线程上访问，安全
     protected final Map<BlockPos, ConstantBlockEntityRenderer> constantBlockEntityRenderers; // 会从区域线程上读写，netty线程上读取
@@ -53,7 +54,7 @@ public class CEChunk {
         this.chunkPos = chunkPos;
         this.worldHeightAccessor = world.worldHeight();
         this.sections = new CESection[this.worldHeightAccessor.getSectionsCount()];
-        this.blockEntities = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
+        this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
         this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         this.dynamicBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         this.tickingSyncBlockEntitiesByPos = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
@@ -80,14 +81,14 @@ public class CEChunk {
         }
         this.fillEmptySection();
         if (blockEntitiesTag != null) {
-            this.blockEntities = new Object2ObjectOpenHashMap<>(Math.max(blockEntitiesTag.size(), DEFAULT_MAP_SIZE), 0.5f);
+            this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
             List<BlockEntity> blockEntities = DefaultBlockEntitySerializer.deserialize(this, blockEntitiesTag);
             for (int i = 0, size = blockEntities.size(); i < size; i++) {
                 BlockEntity blockEntity = blockEntities.get(i);
                 this.setBlockEntity(blockEntity);
             }
         } else {
-            this.blockEntities = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
+            this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
         }
         if (blockEntityRenders != null) {
             this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(Math.max(blockEntityRenders.size(), DEFAULT_MAP_SIZE), 0.5f);
@@ -147,7 +148,21 @@ public class CEChunk {
     }
 
     public boolean hasConstantBlockEntityRenderer(BlockPos pos) {
-        return this.constantBlockEntityRenderers.containsKey(pos);
+        try {
+            this.renderLock.readLock().lock();
+            return this.constantBlockEntityRenderers.containsKey(pos);
+        } finally {
+            this.renderLock.readLock().unlock();
+        }
+    }
+
+    public ConstantBlockEntityRenderer getConstantBlockEntityRenderer(BlockPos pos) {
+        try {
+            this.renderLock.readLock().lock();
+            return this.constantBlockEntityRenderers.get(pos);
+        } finally {
+            this.renderLock.readLock().unlock();
+        }
     }
 
     public ConstantBlockEntityRenderer addConstantBlockEntityRenderer(BlockPos pos) {
@@ -432,7 +447,7 @@ public class CEChunk {
     }
 
     public void removeBlockEntity(BlockPos blockPos) {
-        BlockEntity removedBlockEntity = this.blockEntities.remove(blockPos);
+        BlockEntity removedBlockEntity = this.blockEntities.remove(blockPos.asLong());
         if (removedBlockEntity != null) {
             removedBlockEntity.setValid(false);
         }
@@ -451,8 +466,13 @@ public class CEChunk {
             this.replaceOrCreateTickingBlockEntity(blockEntity);
             this.createDynamicBlockEntityRenderer(blockEntity);
         }
-        for (ConstantBlockEntityRenderer renderer : this.constantBlockEntityRenderers.values()) {
-            renderer.activate();
+        try {
+            this.renderLock.readLock().lock();
+            for (ConstantBlockEntityRenderer renderer : this.constantBlockEntityRenderers.values()) {
+                renderer.activate();
+            }
+        } finally {
+            this.renderLock.readLock().unlock();
         }
         this.activated = true;
     }
@@ -460,11 +480,22 @@ public class CEChunk {
     public void deactivateAllBlockEntities() {
         if (!this.activated) return;
         this.blockEntities.values().forEach(e -> e.setValid(false));
+
         if (!CraftEngine.instance().platform().isStopping()) {
-            this.constantBlockEntityRenderers.values().forEach(ConstantBlockEntityRenderer::deactivate);
-            this.dynamicBlockEntityRenderers.values().forEach(BlockEntityRenderer::deactivate);
+            try {
+                this.renderLock.readLock().lock();
+                this.constantBlockEntityRenderers.values().forEach(ConstantBlockEntityRenderer::deactivate);
+                this.dynamicBlockEntityRenderers.values().forEach(BlockEntityRenderer::deactivate);
+            } finally {
+                this.renderLock.readLock().unlock();
+            }
         }
-        this.dynamicBlockEntityRenderers.clear();
+        try {
+            this.renderLock.writeLock().lock();
+            this.dynamicBlockEntityRenderers.clear();
+        } finally {
+            this.renderLock.writeLock().unlock();
+        }
         this.tickingSyncBlockEntitiesByPos.values().forEach((ticker) -> ticker.setTicker(DummyTickingBlockEntity.INSTANCE));
         this.tickingSyncBlockEntitiesByPos.clear();
         this.tickingAsyncBlockEntitiesByPos.values().forEach((ticker) -> ticker.setTicker(DummyTickingBlockEntity.INSTANCE));
@@ -568,7 +599,7 @@ public class CEChunk {
         // 设置方块实体所在世界
         blockEntity.setWorld(this.world);
         blockEntity.setValid(true);
-        BlockEntity previous = this.blockEntities.put(pos, blockEntity);
+        BlockEntity previous = this.blockEntities.put(pos.asLong(), blockEntity);
         // 标记旧的方块实体无效
         if (previous != null && previous != blockEntity) {
             previous.setValid(false);
@@ -577,7 +608,7 @@ public class CEChunk {
 
     @Nullable
     public BlockEntity getBlockEntity(BlockPos pos, boolean create) {
-        BlockEntity blockEntity = this.blockEntities.get(pos);
+        BlockEntity blockEntity = this.blockEntities.get(pos.asLong());
         if (blockEntity == null) {
             if (create) {
                 blockEntity = createBlockEntity(pos);
@@ -587,7 +618,7 @@ public class CEChunk {
             }
         } else {
             if (!blockEntity.isValid()) {
-                this.blockEntities.remove(pos);
+                this.blockEntities.remove(pos.asLong());
                 return null;
             }
         }
