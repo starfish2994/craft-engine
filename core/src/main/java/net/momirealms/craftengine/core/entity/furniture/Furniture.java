@@ -19,11 +19,10 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.QuaternionUtils;
-import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -308,7 +307,7 @@ public abstract class Furniture implements Cullable {
         // 虚拟碰撞箱的实体id
         this.interactableEntityIds = interactableEntityIds.toIntArray();
         this.colliderEntityIds = colliders.stream().mapToInt(Collider::entityId).toArray();
-        this.snapshot = createSnapshot(elements, hitboxes, hitboxMap, colliders, new HashMap<>());
+        this.snapshot = createSnapshot(elements, hitboxes, hitboxMap, colliders, new IdentityHashMap<>(4));
         this.cullingData = createCullingData(variant.cullingData());
 
         // 外部模型
@@ -336,7 +335,7 @@ public abstract class Furniture implements Cullable {
                                                              List<FurnitureHitBox> hitboxes,
                                                              Int2ObjectMap<FurnitureHitBox> hitboxMap,
                                                              List<Collider> colliders,
-                                                             Map<ContextKey<?>, Object> customData);
+                                                             Map<CustomDataType<?>, Object> customData);
 
     /**
      * Creates culling data based on hitboxes or pre-defined AABB.

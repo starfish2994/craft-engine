@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.seat.Seat;
-import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.world.World;
 
 import java.util.Collections;
@@ -17,9 +17,13 @@ public abstract class FurnitureSnapshotState {
     protected final List<FurnitureHitBox> hitboxes;
     protected final Int2ObjectMap<FurnitureHitBox> hitboxMap;
     protected final List<Collider> colliders;
-    protected final Map<ContextKey<?>, Object> customData;
+    protected final Map<CustomDataType<?>, Object> customData;
 
-    public FurnitureSnapshotState(List<FurnitureElement> elements, List<FurnitureHitBox> hitboxes, Int2ObjectMap<FurnitureHitBox> hitboxMap, List<Collider> colliders, Map<ContextKey<?>, Object> customData) {
+    public FurnitureSnapshotState(List<FurnitureElement> elements,
+                                  List<FurnitureHitBox> hitboxes,
+                                  Int2ObjectMap<FurnitureHitBox> hitboxMap,
+                                  List<Collider> colliders,
+                                  Map<CustomDataType<?>, Object> customData) {
         this.elements = elements;
         this.hitboxes = hitboxes;
         this.hitboxMap = hitboxMap;
@@ -93,16 +97,16 @@ public abstract class FurnitureSnapshotState {
         return Collections.unmodifiableList(this.colliders);
     }
 
-    public Map<ContextKey<?>, Object> customData() {
+    public Map<CustomDataType<?>, Object> customData() {
         return Collections.unmodifiableMap(this.customData);
     }
 
-    public <T> void setCustomData(ContextKey<T> contextKey, T value) {
+    public <T> void setCustomData(CustomDataType<T> contextKey, T value) {
         this.customData.put(contextKey, value);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getCustomData(ContextKey<T> contextKey) {
+    public <T> T getCustomData(CustomDataType<T> contextKey) {
         return (T) this.customData.get(contextKey);
     }
 }
