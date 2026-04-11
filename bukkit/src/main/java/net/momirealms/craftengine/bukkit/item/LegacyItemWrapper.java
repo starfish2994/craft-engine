@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.item;
 
+import com.google.gson.JsonElement;
 import net.momirealms.craftengine.bukkit.util.RegistryOps;
 import net.momirealms.craftengine.core.item.ItemWrapper;
 import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
@@ -17,29 +18,20 @@ public final class LegacyItemWrapper extends BukkitItemWrapper {
         super(itemStack);
     }
 
-    public boolean setTag(Object value, Object... path) {
-        Object finalNMSTag;
-        if (value instanceof Tag tag) {
-            finalNMSTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, tag);
-        } else if (TagProxy.CLASS.isInstance(value)) {
-            finalNMSTag = value;
-        } else {
-            finalNMSTag = RegistryOps.JAVA.convertTo(RegistryOps.NBT, value);
-        }
-
+    public void setMinecraftTag(Object value, Object... path) {
         if (path == null || path.length == 0) {
-            if (CompoundTagProxy.CLASS.isInstance(finalNMSTag)) {
-                ItemStackProxy.INSTANCE.setTag(this.itemStack, finalNMSTag);
-                return true;
+            if (CompoundTagProxy.CLASS.isInstance(value)) {
+                ItemStackProxy.INSTANCE.setTag(this.itemStack, value);
+                return;
             }
-            return false;
+            throw new IllegalArgumentException("Root tag is not a compound tag");
         }
 
         Object currentTag = ItemStackProxy.INSTANCE.getOrCreateTag(this.itemStack);
 
         for (int i = 0; i < path.length - 1; i++) {
             Object pathSegment = path[i];
-            if (pathSegment == null) return false;
+            if (pathSegment == null) return;
             Object childTag = CompoundTagProxy.INSTANCE.get(currentTag, pathSegment.toString());
             if (!CompoundTagProxy.CLASS.isInstance(childTag)) {
                 childTag = CompoundTagProxy.INSTANCE.newInstance();
@@ -49,25 +41,56 @@ public final class LegacyItemWrapper extends BukkitItemWrapper {
         }
 
         String finalKey = path[path.length - 1].toString();
-        CompoundTagProxy.INSTANCE.put(currentTag, finalKey, finalNMSTag);
-        return true;
+        CompoundTagProxy.INSTANCE.put(currentTag, finalKey, value);
+    }
+
+    public void setSparrowTag(Tag value, Object... path) {
+        setMinecraftTag(RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, value), path);
+    }
+
+    public void setJavaTag(Object value, Object... path) {
+        setMinecraftTag(RegistryOps.JAVA.convertTo(RegistryOps.NBT, value), path);
+    }
+
+    public void setJsonTag(JsonElement value, Object... path) {
+        setMinecraftTag(RegistryOps.JSON.convertTo(RegistryOps.NBT, value), path);
+    }
+
+    public void setTag(Object value, Object... path) {
+        Object valueTag;
+        if (value instanceof Tag tag) {
+            valueTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, tag);
+        } else if (TagProxy.CLASS.isInstance(value)) {
+            valueTag = value;
+        } else if (value instanceof JsonElement je) {
+            valueTag = RegistryOps.JSON.convertTo(RegistryOps.NBT, je);
+        } else {
+            valueTag = RegistryOps.JAVA.convertTo(RegistryOps.NBT, value);
+        }
+        setMinecraftTag(valueTag, path);
     }
 
     @SuppressWarnings("unchecked")
-    public <V> V getJavaTag(Object... path) {
-        Object tag = getExactTag(path);
+    public <V> V getTagAsJava(Object... path) {
+        Object tag = getMinecraftTag(path);
         if (tag == null) return null;
         return (V) RegistryOps.NBT.convertTo(RegistryOps.JAVA, tag);
     }
 
-    public Tag getNBTTag(Object... path) {
-        Object tag = getExactTag(path);
+    public Tag getSparrowTag(Object... path) {
+        Object tag = getMinecraftTag(path);
         if (tag == null) return null;
         return RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, tag);
     }
 
+    public JsonElement getTagAsJson(Object... path) {
+        Object tag = getMinecraftTag(path);
+        if (tag == null) return null;
+        return RegistryOps.NBT.convertTo(RegistryOps.JSON, tag);
+    }
+
     @SuppressWarnings("DuplicatedCode")
-    public Object getExactTag(Object... path) {
+    public Object getMinecraftTag(Object... path) {
         Object compoundTag = ItemStackProxy.INSTANCE.getTag(this.itemStack);
         if (compoundTag == null) return null;
         Object currentTag = compoundTag;
@@ -120,7 +143,7 @@ public final class LegacyItemWrapper extends BukkitItemWrapper {
     }
 
     public boolean hasTag(Object... path) {
-        return getExactTag(path) != null;
+        return getMinecraftTag(path) != null;
     }
 
     @Override

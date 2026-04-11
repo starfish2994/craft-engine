@@ -6,7 +6,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
+import net.momirealms.craftengine.core.item.behavior.BlockItem;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MutableBoolean;
@@ -450,7 +450,7 @@ public abstract class BlockBehavior {
         if (customItem.isEmpty()) return state.settings().replaceable();
         ItemDefinition custom = customItem.get();
         MutableBoolean canPlace = new MutableBoolean(true);
-        custom.behavior().let(BlockBoundItemBehavior.class, b -> {
+        custom.behavior().let(BlockItem.class, b -> {
             Key blockId = b.block();
             if (blockId.equals(clickedBlockId)) {
                 canPlace.set(false);

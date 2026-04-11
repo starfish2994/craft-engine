@@ -6,11 +6,11 @@ import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.attribute.AttributeModifier;
-import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.ItemType;
-import net.momirealms.craftengine.core.item.data.Enchantment;
-import net.momirealms.craftengine.core.item.data.FireworkExplosion;
-import net.momirealms.craftengine.core.item.data.Trim;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
+import net.momirealms.craftengine.core.item.component.value.Trim;
 import net.momirealms.craftengine.core.item.processor.IdProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.*;
@@ -75,9 +75,30 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
         return Optional.of(Key.of(StringTagProxy.INSTANCE.getData(stringTag)));
     }
 
+    @Override
+    protected JsonElement getTagAsJson(ComponentItemWrapper item, Object... path) {
+        JsonElement rootElement = item.getJsonComponent(DataComponentTypes.CUSTOM_DATA).orElse(null);
+        if (rootElement == null) return null;
+        JsonElement currentElement = rootElement;
+        for (int i = 0; i < path.length; i++) {
+            Object pathSegment = path[i];
+            if (pathSegment == null) return null;
+            if (currentElement.isJsonObject()) {
+                currentElement = currentElement.getAsJsonObject().get(pathSegment.toString());
+            } else {
+                return null;
+            }
+            if (currentElement == null) return null;
+            if (i == path.length - 1) {
+                return currentElement;
+            }
+        }
+        return currentElement;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    protected Object getJavaTag(ComponentItemWrapper item, Object... path) {
+    protected Object getTagAsJava(ComponentItemWrapper item, Object... path) {
         Map<String, Object> rootMap = (Map<String, Object>) item.getJavaComponent(DataComponentTypes.CUSTOM_DATA).orElse(null);
         if (rootMap == null) return null;
         Object currentObj = rootMap;
@@ -98,7 +119,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    protected Object getExactTag(ComponentItemWrapper item, Object... path) {
+    protected Object getMinecraftTag(ComponentItemWrapper item, Object... path) {
         Object customData = getExactComponent(item, DataComponentTypes.CUSTOM_DATA);
         if (customData == null) return null;
         Object currentTag = CustomDataProxy.INSTANCE.getTag(customData);
@@ -118,7 +139,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected Tag getTag(ComponentItemWrapper item, Object... path) {
+    protected Tag getSparrowTag(ComponentItemWrapper item, Object... path) {
         CompoundTag rootTag = (CompoundTag) item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA).orElse(null);
         if (rootTag == null) return null;
         Tag currentTag = rootTag;
@@ -139,21 +160,8 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected void setTag(ComponentItemWrapper item, Object value, Object... path) {
-        Tag valueTag;
-        if (value instanceof Tag tag) {
-            valueTag = tag;
-        } else if (value instanceof JsonElement je) {
-            valueTag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, je);
-        } else if (TagProxy.CLASS.isInstance(value)) {
-            valueTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, value);
-        } else {
-            assert RegistryOps.JAVA != null;
-            valueTag = RegistryOps.JAVA.convertTo(RegistryOps.SPARROW_NBT, value);
-        }
-
+    protected void setSparrowTag(ComponentItemWrapper item, Tag valueTag, Object... path) {
         CompoundTag rootTag = (CompoundTag) item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA).orElseGet(CompoundTag::new);
-
         if (path == null || path.length == 0) {
             if (valueTag instanceof CompoundTag) {
                 rootTag = (CompoundTag) valueTag;
@@ -184,8 +192,39 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
+    protected void setTag(ComponentItemWrapper item, Object value, Object... path) {
+        Tag valueTag;
+        if (value instanceof Tag tag) {
+            valueTag = tag;
+        } else if (value instanceof JsonElement je) {
+            valueTag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, je);
+        } else if (TagProxy.CLASS.isInstance(value)) {
+            valueTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, value);
+        } else {
+            assert RegistryOps.JAVA != null;
+            valueTag = RegistryOps.JAVA.convertTo(RegistryOps.SPARROW_NBT, value);
+        }
+        setSparrowTag(item, valueTag, path);
+    }
+
+    @Override
+    protected void setMinecraftTag(ComponentItemWrapper item, Object value, Object... path) {
+        setSparrowTag(item, RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, value), path);
+    }
+
+    @Override
+    protected void setJavaTag(ComponentItemWrapper item, Object value, Object... path) {
+        setSparrowTag(item, RegistryOps.JAVA.convertTo(RegistryOps.SPARROW_NBT, value), path);
+    }
+
+    @Override
+    protected void setJsonTag(ComponentItemWrapper item, JsonElement value, Object... path) {
+        setSparrowTag(item, RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, value), path);
+    }
+
+    @Override
     protected boolean hasTag(ComponentItemWrapper item, Object... path) {
-        return getTag(item, path) != null;
+        return getSparrowTag(item, path) != null;
     }
 
     @Override

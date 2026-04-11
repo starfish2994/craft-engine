@@ -6,11 +6,11 @@ import net.momirealms.craftengine.core.attribute.AttributeModifier;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
-import net.momirealms.craftengine.core.item.data.Enchantment;
-import net.momirealms.craftengine.core.item.data.FireworkExplosion;
-import net.momirealms.craftengine.core.item.data.JukeboxPlayable;
-import net.momirealms.craftengine.core.item.data.Trim;
-import net.momirealms.craftengine.core.item.setting.EquipmentData;
+import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
+import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
+import net.momirealms.craftengine.core.item.component.value.Trim;
+import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.Tag;
@@ -382,18 +382,34 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Object getJavaTag(Object... path) {
-        return this.factory.getJavaTag(this.item, path);
+    public boolean hasTag(Object... path) {
+        return this.factory.hasTag(this.item, path);
     }
 
     @Override
-    public Tag getTag(Object... path) {
-        return this.factory.getTag(this.item, path);
+    public boolean removeTag(Object... path) {
+        return this.factory.removeTag(this.item, path);
+    }
+
+
+    @Override
+    public Object getTagAsJava(Object... path) {
+        return this.factory.getTagAsJava(this.item, path);
     }
 
     @Override
-    public Object getExactTag(Object... path) {
-        return this.factory.getExactTag(this.item, path);
+    public Object getMinecraftTag(Object... path) {
+        return this.factory.getMinecraftTag(this.item, path);
+    }
+
+    @Override
+    public Tag getSparrowTag(Object... path) {
+        return this.factory.getSparrowTag(this.item, path);
+    }
+
+    @Override
+    public JsonElement getTagAsJson(Object... path) {
+        return this.factory.getTagAsJson(this.item, path);
     }
 
     @Override
@@ -403,13 +419,27 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public boolean hasTag(Object... path) {
-        return this.factory.hasTag(this.item, path);
+    public Item setMinecraftTag(Object value, Object... path) {
+        this.factory.setMinecraftTag(this.item, value, path);
+        return this;
     }
 
     @Override
-    public boolean removeTag(Object... path) {
-        return this.factory.removeTag(this.item, path);
+    public Item setJsonTag(JsonElement value, Object... path) {
+        this.factory.setJsonTag(this.item, value, path);
+        return this;
+    }
+
+    @Override
+    public Item setJavaTag(Object value, Object... path) {
+        this.factory.setJavaTag(this.item, value, path);
+        return this;
+    }
+
+    @Override
+    public Item setSparrowTag(Tag value, Object... path) {
+        this.factory.setSparrowTag(this.item, value, path);
+        return this;
     }
 
     @Override
@@ -438,22 +468,22 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Object getJavaComponent(Object type) {
+    public Object getComponentAsJava(Object type) {
         return this.factory.getJavaComponent(this.item, type);
     }
 
     @Override
-    public JsonElement getJsonComponent(Object type) {
+    public JsonElement getComponentAsJson(Object type) {
         return this.factory.getJsonComponent(this.item, type);
     }
 
     @Override
-    public Tag getSparrowNBTComponent(Object type) {
+    public Tag getComponentAsSparrowTag(Object type) {
         return this.factory.getSparrowNBTComponent(this.item, type);
     }
 
     @Override
-    public Object getNBTComponent(Object type) {
+    public Object getComponentAsMinecraftTag(Object type) {
         return this.factory.getNBTComponent(this.item, type);
     }
 
@@ -473,12 +503,12 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public void setSparrowNBTComponent(Object type, Tag value) {
+    public void setSparrowTagComponent(Object type, Tag value) {
         this.factory.setSparrowNBTComponent(this.item, type, value);
     }
 
     @Override
-    public void setNBTComponent(Object type, Object value) {
+    public void setMinecraftTagComponent(Object type, Object value) {
         this.factory.setNBTComponent(this.item, type, value);
     }
 

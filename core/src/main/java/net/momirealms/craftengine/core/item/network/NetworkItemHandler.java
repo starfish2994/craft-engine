@@ -1,6 +1,7 @@
-package net.momirealms.craftengine.core.item;
+package net.momirealms.craftengine.core.item.network;
 
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.StringUtils;
 import net.momirealms.craftengine.core.util.TriConsumer;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -41,7 +42,7 @@ public interface NetworkItemHandler {
     }
 
     enum Operation {
-        ADD(0, Item::setSparrowNBTComponent, (i, s, t) -> i.setTag(t, (Object[]) StringUtils.splitByDot(s))),
+        ADD(0, Item::setSparrowTagComponent, (i, s, t) -> i.setTag(t, (Object[]) StringUtils.splitByDot(s))),
         REMOVE(1, (i, s, t) -> i.removeComponent(s), (i, s, t) -> i.removeTag((Object[]) StringUtils.splitByDot(s))),
         RESET(2, (i, s, t) -> i.resetComponent(s), (i, s, t) -> i.removeTag((Object[]) StringUtils.splitByDot(s)));
 

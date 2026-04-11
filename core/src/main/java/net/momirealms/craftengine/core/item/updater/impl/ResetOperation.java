@@ -39,7 +39,7 @@ public final class ResetOperation implements ItemUpdater {
         } else {
             for (String[] nbt : this.tagsToKeep) {
                 if (item.hasTag((Object[]) nbt)) {
-                    newItem.setTag(item.getTag((Object[]) nbt), (Object[]) nbt);
+                    newItem.setTag(item.getSparrowTag((Object[]) nbt), (Object[]) nbt);
                 }
             }
         }

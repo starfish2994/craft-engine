@@ -30,7 +30,7 @@ public final class ItemUpdateConfig {
     }
 
     public ItemUpdateResult update(Item item, Supplier<ItemBuildContext> context) {
-        Tag versionTag = item.getTag(ItemVersionProcessor.VERSION_TAG);
+        Tag versionTag = item.getSparrowTag(ItemVersionProcessor.VERSION_TAG);
         int currentVersion = 0;
         if (versionTag instanceof NumericTag numericTag) {
             currentVersion = numericTag.getAsInt();

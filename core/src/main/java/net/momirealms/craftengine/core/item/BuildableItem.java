@@ -7,8 +7,6 @@ public interface BuildableItem {
 
     Key id();
 
-    boolean isEmpty();
-
     Item buildItem(ItemBuildContext context, int count);
 
     default Item buildItem(Player player) {

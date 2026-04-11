@@ -12,7 +12,7 @@ import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.ItemSettings;
+import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;

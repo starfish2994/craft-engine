@@ -1,11 +1,11 @@
-package net.momirealms.craftengine.core.item;
+package net.momirealms.craftengine.core.item.setting;
 
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.processor.EquippableProcessor;
 import net.momirealms.craftengine.core.item.processor.FoodProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainder;
-import net.momirealms.craftengine.core.item.setting.*;
+import net.momirealms.craftengine.core.item.setting.value.*;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
