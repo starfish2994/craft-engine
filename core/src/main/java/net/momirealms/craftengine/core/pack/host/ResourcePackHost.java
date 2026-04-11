@@ -15,21 +15,30 @@ public interface ResourcePackHost {
     CompletableFuture<Void> upload(Path resourcePackPath);
 
     default CompletableFuture<ResourcePackResponseAction> response(NetWorkUser user, ResourcePackResponseAction action) {
+        defaultResponseCheck(user, action);
+        return CompletableFuture.completedFuture(action);
+    }
+
+    /**
+     * @return false为拒绝，true为可继续处理
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    static boolean defaultResponseCheck(NetWorkUser user, ResourcePackResponseAction action) {
         // 检查是否是拒绝
         if (Config.kickOnDeclined()) {
             if (action == ResourcePackResponseAction.DECLINED || action == ResourcePackResponseAction.DISCARDED) {
                 user.kick(Component.translatable("multiplayer.requiredTexturePrompt.disconnect"));
-                return CompletableFuture.completedFuture(action);
+                return false;
             }
         }
         // 检查是否失败
         if (Config.kickOnFailedApply()) {
             if (action == ResourcePackResponseAction.FAILED_DOWNLOAD || action == ResourcePackResponseAction.INVALID_URL) {
                 user.kick(Component.translatable("multiplayer.requiredTexturePrompt.disconnect"));
-                return CompletableFuture.completedFuture(action);
+                return false;
             }
         }
-        return CompletableFuture.completedFuture(action);
+        return true;
     }
 
     boolean canUpload();
