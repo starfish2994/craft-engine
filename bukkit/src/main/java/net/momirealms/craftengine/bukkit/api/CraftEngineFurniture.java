@@ -125,7 +125,7 @@ public final class CraftEngineFurniture {
     public static BukkitFurniture place(Location location, Key furnitureId, String variant) {
         FurnitureDefinition furniture = byId(furnitureId);
         if (furniture == null) return null;
-        return BukkitFurnitureManager.instance().place(location, furniture, FurniturePersistentData.ofVariant(variant), true);
+        return BukkitFurnitureManager.instance().place(location, furniture, FurniturePersistentData.ofVariant(variant), true, null);
     }
 
     /**
@@ -155,7 +155,7 @@ public final class CraftEngineFurniture {
      */
     @NotNull
     public static BukkitFurniture place(Location location, FurnitureDefinition furniture, String variant, boolean playSound) {
-        return BukkitFurnitureManager.instance().place(location, furniture, FurniturePersistentData.ofVariant(variant), playSound);
+        return BukkitFurnitureManager.instance().place(location, furniture, FurniturePersistentData.ofVariant(variant), playSound, null);
     }
 
     /**
@@ -169,7 +169,7 @@ public final class CraftEngineFurniture {
      */
     @NotNull
     public static BukkitFurniture place(Location location, FurnitureDefinition furniture, CompoundTag data, boolean playSound) {
-        return BukkitFurnitureManager.instance().place(location, furniture, FurniturePersistentData.of(data), playSound);
+        return BukkitFurnitureManager.instance().place(location, furniture, FurniturePersistentData.of(data), playSound, null);
     }
 
     /**
@@ -183,7 +183,7 @@ public final class CraftEngineFurniture {
      */
     @NotNull
     public static BukkitFurniture place(Location location, FurnitureDefinition furniture, FurniturePersistentData dataAccessor, boolean playSound) {
-        return BukkitFurnitureManager.instance().place(location, furniture, dataAccessor, playSound);
+        return BukkitFurnitureManager.instance().place(location, furniture, dataAccessor, playSound, null);
     }
 
     /**

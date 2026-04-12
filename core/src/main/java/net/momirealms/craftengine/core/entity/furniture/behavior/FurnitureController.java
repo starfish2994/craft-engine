@@ -65,6 +65,9 @@ public abstract class FurnitureController {
     public void saveCustomData(CompoundTag data) {
     }
 
+    public void loadCustomDataFromItem(Item item) {
+    }
+
     /**
      * Creates a ticker that runs on the main server thread.
      */
@@ -127,7 +130,7 @@ public abstract class FurnitureController {
     /**
      * Triggered when the furniture is first placed in the world.
      */
-    public void onPlace(UseOnContext context) {
+    public void onPlace(@Nullable Player player) {
     }
 
     /**
@@ -269,9 +272,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onPlace(UseOnContext context) {
-            this.first.onPlace(context);
-            this.second.onPlace(context);
+        public void onPlace(Player player) {
+            this.first.onPlace(player);
+            this.second.onPlace(player);
         }
 
         @Override
@@ -296,6 +299,12 @@ public abstract class FurnitureController {
         public void saveCustomData(CompoundTag data) {
             this.first.saveCustomData(data);
             this.second.saveCustomData(data);
+        }
+
+        @Override
+        public void loadCustomDataFromItem(Item item) {
+            this.first.loadCustomDataFromItem(item);
+            this.second.loadCustomDataFromItem(item);
         }
 
         @Override
@@ -472,9 +481,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onPlace(UseOnContext context) {
+        public void onPlace(Player player) {
             for (FurnitureController controller : this.controllers) {
-                controller.onPlace(context);
+                controller.onPlace(player);
             }
         }
 
@@ -503,6 +512,13 @@ public abstract class FurnitureController {
         public void saveCustomData(CompoundTag data) {
             for (FurnitureController controller : this.controllers) {
                 controller.saveCustomData(data);
+            }
+        }
+
+        @Override
+        public void loadCustomDataFromItem(Item item) {
+            for (FurnitureController controller : this.controllers) {
+                controller.loadCustomDataFromItem(item);
             }
         }
 

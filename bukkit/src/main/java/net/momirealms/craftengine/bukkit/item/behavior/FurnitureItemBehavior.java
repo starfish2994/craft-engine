@@ -185,7 +185,7 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
         dataAccessor.setVariant(variant.name());
         dataAccessor.setItem(item.copyWithCount(1));
         // 放置家具
-        BukkitFurniture bukkitFurniture = BukkitFurnitureManager.instance().place(furnitureLocation.clone(), furnitureDefinition, dataAccessor, false);
+        BukkitFurniture bukkitFurniture = BukkitFurnitureManager.instance().place(furnitureLocation.clone(), furnitureDefinition, dataAccessor, false, player);
         // 触发放置事件
         if (player != null) {
             FurniturePlaceEvent placeEvent = new FurniturePlaceEvent(bukkitPlayer, bukkitFurniture, furnitureLocation, context.getHand(), contextBuilder);
@@ -208,15 +208,20 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
         if (dummy.isCancelled()) {
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
+
+        // 让家具加载物品
+        bukkitFurniture.controller.loadCustomDataFromItem(item);
+
         // 后续处理
         if (player != null) {
             if (!player.canInstabuild()) {
-                item.count(item.count() - 1);
+                item.shrink(1);
             }
             player.swingHand(context.getHand());
         }
+
         context.getLevel().playBlockSound(finalPlacePosition, furnitureDefinition.settings().sounds().placeSound());
-        bukkitFurniture.controller.onPlace(context);
+
         return InteractionResult.SUCCESS;
     }
 
