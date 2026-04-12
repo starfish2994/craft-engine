@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.item;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
+import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.recipe.DatapackRecipeResult;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
 import net.momirealms.craftengine.core.pack.model.definition.ModernItemModel;
@@ -55,9 +56,9 @@ public interface ItemManager extends Manageable, ModelGenerator {
 
     Optional<Equipment> getEquipment(Key key);
 
-    Optional<ItemDefinition> getCustomItem(Key key);
+    Optional<ItemDefinition> getItemDefinition(Key key);
 
-    Optional<List<ItemBehavior>> getItemBehavior(Key key);
+    Optional<ItemBehavior> getItemBehavior(Key key);
 
     Optional<? extends BuildableItem> getVanillaItem(Key key);
 
@@ -66,7 +67,7 @@ public interface ItemManager extends Manageable, ModelGenerator {
     NetworkItemHandler networkItemHandler();
 
     default Optional<? extends BuildableItem> getBuildableItem(Key key) {
-        Optional<ItemDefinition> item = getCustomItem(key);
+        Optional<ItemDefinition> item = getItemDefinition(key);
         if (item.isPresent()) {
             return item;
         }

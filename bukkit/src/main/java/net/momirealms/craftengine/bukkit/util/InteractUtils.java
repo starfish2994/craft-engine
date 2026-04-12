@@ -44,13 +44,15 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.type.*;
-import org.bukkit.block.data.type.Observer;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 public final class InteractUtils {
     private static final Map<Key, QuadFunction<Player, Item, BlockData, BlockHitResult, Boolean>> INTERACTIONS = new HashMap<>();
@@ -241,31 +243,16 @@ public final class InteractUtils {
         registerInteraction(BlockKeys.CRAFTER, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.HOPPER, (player, item, blockState, result) -> true);
         registerInteraction(BlockKeys.TNT, (player, item, blockState, result) -> {
-            Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
-            if (behaviors.isPresent()) {
-                for (ItemBehavior behavior : behaviors.get()) {
-                    if (behavior instanceof FlintAndSteelItemBehavior) return true;
-                }
-            }
-            return false;
+            Optional<ItemBehavior> behavior = item.getBehavior();
+            return behavior.filter(itemBehavior -> itemBehavior.getFirst(FlintAndSteelItemBehavior.class) != null).isPresent();
         });
         registerInteraction(BlockKeys.REDSTONE_ORE, (player, item, blockState, result) -> {
-            Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
-            if (behaviors.isPresent()) {
-                for (ItemBehavior behavior : behaviors.get()) {
-                    if (behavior instanceof BlockItemBehavior) return false;
-                }
-            }
-            return true;
+            Optional<ItemBehavior> behavior = item.getBehavior();
+            return behavior.map(itemBehavior -> itemBehavior.getFirst(BlockItemBehavior.class) == null).orElse(true);
         });
         registerInteraction(BlockKeys.DEEPSLATE_REDSTONE_ORE, (player, item, blockState, result) -> {
-            Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
-            if (behaviors.isPresent()) {
-                for (ItemBehavior behavior : behaviors.get()) {
-                    if (behavior instanceof BlockItemBehavior) return false;
-                }
-            }
-            return true;
+            Optional<ItemBehavior> behavior = item.getBehavior();
+            return behavior.map(itemBehavior -> itemBehavior.getFirst(BlockItemBehavior.class) == null).orElse(true);
         });
         // 管理员用品
         registerInteraction(BlockKeys.COMMAND_BLOCK, (player, item, blockState, result) -> player.isOp() && player.getGameMode() == GameMode.CREATIVE);
@@ -833,13 +820,8 @@ public final class InteractUtils {
         });
 
         registerEntityInteraction(EntityTypeKeys.CREEPER, (player, entity, item) -> {
-            Optional<List<ItemBehavior>> behaviors = item.getItemBehavior();
-            if (behaviors.isPresent()) {
-                for (ItemBehavior behavior : behaviors.get()) {
-                    if (behavior instanceof FlintAndSteelItemBehavior) return true;
-                }
-            }
-            return false;
+            Optional<ItemBehavior> behaviors = item.getBehavior();
+            return behaviors.filter(itemBehavior -> itemBehavior.getFirst(FlintAndSteelItemBehavior.class) != null).isPresent();
         });
         registerEntityInteraction(EntityTypeKeys.PIGLIN, (player, entity, item) -> {
             Key id = item.vanillaId();

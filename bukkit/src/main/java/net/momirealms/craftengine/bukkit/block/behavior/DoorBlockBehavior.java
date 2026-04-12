@@ -12,7 +12,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.DoorHinge;
 import net.momirealms.craftengine.core.block.properties.type.DoubleBlockHalf;
@@ -50,12 +50,12 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 import static net.momirealms.craftengine.core.block.UpdateFlags.*;
 
 @SuppressWarnings("DuplicatedCode")
-public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior implements IsPathFindableBlockBehavior {
+public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior
+        implements PathFindingBlock {
     public static final BlockBehaviorFactory<DoorBlockBehavior> FACTORY = new Factory();
     public final Property<DoubleBlockHalf> halfProperty;
     public final Property<Direction> facingProperty;
@@ -94,7 +94,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object level = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
         Object blockState = args[0];
@@ -130,21 +130,25 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     }
 
     @Override
-    public Object playerWillDestroy(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object playerWillDestroy(Object thisBlock, Object[] args) {
         Object level = args[0];
         Object pos = args[1];
         Object state = args[2];
         Object player = args[3];
         ImmutableBlockState blockState = BukkitBlockManager.instance().getImmutableBlockState(BlockStateUtils.blockStateToId(state));
-        if (blockState == null || blockState.isEmpty()) return superMethod.call();
+        if (blockState == null || blockState.isEmpty()) {
+            return state;
+        }
         org.bukkit.entity.Player bukkitPlayer = ServerPlayerProxy.INSTANCE.getBukkitEntity(player);
         BukkitServerPlayer cePlayer = BukkitAdaptor.adapt(bukkitPlayer);
-        if (cePlayer == null) return superMethod.call();
+        if (cePlayer == null) {
+            return state;
+        }
         Item item = cePlayer.getItemInHand(InteractionHand.MAIN_HAND);
         if (cePlayer.canInstabuild() || !BlockStateUtils.isCorrectTool(blockState, item)) {
             preventDropFromBottomPart(level, pos, blockState, player);
         }
-        return superMethod.call();
+        return state;
     }
 
     private void preventDropFromBottomPart(Object level, Object pos, ImmutableBlockState state, Object player) {
@@ -162,7 +166,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     }
 
     @Override
-    public void onExplosionHit(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void preExplosionHit(Object thisBlock, Object[] args) {
         if (this.canOpenByWindCharge && ExplosionProxy.INSTANCE.canTriggerBlocks(args[3])) {
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
             if (optionalCustomState.isEmpty()) return;
@@ -183,7 +187,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     }
 
     @Override
-    public void placeMultiState(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void placeMultiState(Object thisBlock, Object[] args) {
         Object blockState = args[2];
         Object pos = args[1];
         Optional<ImmutableBlockState> immutableBlockState = BlockStateUtils.getOptionalCustomBlockState(blockState);
@@ -297,7 +301,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
     }
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         Object type = VersionHelper.isOrAbove1_20_5() ? args[1] : args[3];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
@@ -310,7 +314,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior imp
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    public void neighborChanged(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void neighborChanged(Object thisBlock, Object[] args) {
         Object blockPos = args[2];
         Object level = args[1];
         Object blockState = args[0];

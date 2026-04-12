@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.item.processor;
 
-import net.momirealms.craftengine.core.item.ItemProcessorFactory;
 import net.momirealms.craftengine.core.item.processor.lore.DynamicLoreProcessor;
 import net.momirealms.craftengine.core.item.processor.lore.LoreProcessor;
 import net.momirealms.craftengine.core.item.processor.lore.OverwritableLoreProcessor;
@@ -53,7 +52,8 @@ public final class ItemProcessors {
     public static final ItemProcessorType<DynamicLoreProcessor> DYNAMIC_LORE = register(Key.ce("dynamic_lore"), DynamicLoreProcessor.FACTORY);
     public static final ItemProcessorType<OverwritableLoreProcessor> OVERWRITABLE_LORE = register(Key.ce("overwritable_lore"), OverwritableLoreProcessor.FACTORY);
     public static final ItemProcessorType<MaxDamageProcessor> MAX_DAMAGE = register(Key.ce("max_damage"), MaxDamageProcessor.FACTORY, VersionHelper.isOrAbove1_20_5());
-    public static final ItemProcessorType<BlockStateProcessor> BLOCK_STATE = register(Key.ce("blockstate"), BlockStateProcessor.FACTORY);
+    public static final ItemProcessorType<BlockStateProcessor> BLOCK_STATE = register(Key.ce("block_state"), BlockStateProcessor.FACTORY);
+    public static final ItemProcessorType<BlockStateProcessor> BLOCKSTATE = register(Key.ce("blockstate"), BlockStateProcessor.FACTORY);
     public static final ItemProcessorType<ConditionalProcessor> CONDITIONAL = register(Key.ce("conditional"), ConditionalProcessor.FACTORY, VersionHelper.PREMIUM);
     public static final ItemProcessorType<ConditionalProcessor> CONDITION = register(Key.ce("condition"), ConditionalProcessor.FACTORY, VersionHelper.PREMIUM);
     public static final ItemProcessorType<ProfileProcessor> PROFILE = register(Key.ce("profile"), ProfileProcessor.FACTORY);

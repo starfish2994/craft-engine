@@ -19,6 +19,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.QuaternionUtils;
@@ -126,7 +127,7 @@ public abstract class Furniture implements Cullable {
      */
     @Nullable
     public Item buildNewFurnitureItem() {
-        Key itemId = this.config.settings().itemId;
+        Key itemId = this.config.settings().itemId();
         if (itemId == null) {
             return null;
         }
@@ -252,6 +253,7 @@ public abstract class Furniture implements Cullable {
      * This sets up elements, hitboxes, seats, and culling data.
      */
     protected void setVariantInternal(FurnitureVariant variant) {
+        FurnitureVariant previousVariant = this.currentVariant;
         this.currentVariant = variant;
         Int2ObjectMap<FurnitureHitBox> hitboxMap = new Int2ObjectOpenHashMap<>();
 
@@ -305,7 +307,7 @@ public abstract class Furniture implements Cullable {
         // 虚拟碰撞箱的实体id
         this.interactableEntityIds = interactableEntityIds.toIntArray();
         this.colliderEntityIds = colliders.stream().mapToInt(Collider::entityId).toArray();
-        this.snapshot = createSnapshot(elements, hitboxes, hitboxMap, colliders);
+        this.snapshot = createSnapshot(elements, hitboxes, hitboxMap, colliders, new IdentityHashMap<>(4));
         this.cullingData = createCullingData(variant.cullingData());
 
         // 外部模型
@@ -324,13 +326,16 @@ public abstract class Furniture implements Cullable {
         }
 
         // 触发变体变化
-        this.controller.onVariantChange();
+        if (previousVariant != null) {
+            this.controller.onVariantChange(previousVariant);
+        }
     }
 
     protected abstract FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements,
                                                              List<FurnitureHitBox> hitboxes,
                                                              Int2ObjectMap<FurnitureHitBox> hitboxMap,
-                                                             List<Collider> colliders);
+                                                             List<Collider> colliders,
+                                                             Map<CustomDataType<?>, Object> customData);
 
     /**
      * Creates culling data based on hitboxes or pre-defined AABB.

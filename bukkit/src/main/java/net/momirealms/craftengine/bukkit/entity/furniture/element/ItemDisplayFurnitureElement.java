@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class ItemDisplayFurnitureElement extends AbstractFurnitureElement {
+public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnitureElement {
     public final ItemDisplayFurnitureElementConfig config;
     public final Furniture furniture;
     public final FurnitureTintSource tintSource;

@@ -144,7 +144,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
         }
 
         @Override
-        public void onDestroy(Player player) {
+        public void preRemove(Player player) {
             this.inventory.close();
             Location dropLocation = ((BukkitFurniture) this.furniture).getDropLocation();
             for (ItemStack stack : this.inventory.getContents()) {

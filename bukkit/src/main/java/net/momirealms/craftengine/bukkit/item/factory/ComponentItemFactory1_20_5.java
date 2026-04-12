@@ -6,11 +6,11 @@ import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.attribute.AttributeModifier;
-import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.ItemType;
-import net.momirealms.craftengine.core.item.data.Enchantment;
-import net.momirealms.craftengine.core.item.data.FireworkExplosion;
-import net.momirealms.craftengine.core.item.data.Trim;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
+import net.momirealms.craftengine.core.item.component.value.Trim;
 import net.momirealms.craftengine.core.item.processor.IdProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.*;
@@ -75,10 +75,31 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
         return Optional.of(Key.of(StringTagProxy.INSTANCE.getData(stringTag)));
     }
 
+    @Override
+    protected JsonElement getTagAsJson(ComponentItemWrapper item, Object... path) {
+        JsonElement rootElement = item.getComponentAsJson(DataComponentTypes.CUSTOM_DATA).orElse(null);
+        if (rootElement == null) return null;
+        JsonElement currentElement = rootElement;
+        for (int i = 0; i < path.length; i++) {
+            Object pathSegment = path[i];
+            if (pathSegment == null) return null;
+            if (currentElement.isJsonObject()) {
+                currentElement = currentElement.getAsJsonObject().get(pathSegment.toString());
+            } else {
+                return null;
+            }
+            if (currentElement == null) return null;
+            if (i == path.length - 1) {
+                return currentElement;
+            }
+        }
+        return currentElement;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    protected Object getJavaTag(ComponentItemWrapper item, Object... path) {
-        Map<String, Object> rootMap = (Map<String, Object>) item.getJavaComponent(DataComponentTypes.CUSTOM_DATA).orElse(null);
+    protected Object getTagAsJava(ComponentItemWrapper item, Object... path) {
+        Map<String, Object> rootMap = (Map<String, Object>) item.getComponentAsJava(DataComponentTypes.CUSTOM_DATA).orElse(null);
         if (rootMap == null) return null;
         Object currentObj = rootMap;
         for (int i = 0; i < path.length; i++) {
@@ -98,7 +119,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    protected Object getExactTag(ComponentItemWrapper item, Object... path) {
+    protected Object getMinecraftTag(ComponentItemWrapper item, Object... path) {
         Object customData = getExactComponent(item, DataComponentTypes.CUSTOM_DATA);
         if (customData == null) return null;
         Object currentTag = CustomDataProxy.INSTANCE.getTag(customData);
@@ -118,8 +139,8 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected Tag getTag(ComponentItemWrapper item, Object... path) {
-        CompoundTag rootTag = (CompoundTag) item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA).orElse(null);
+    protected Tag getSparrowTag(ComponentItemWrapper item, Object... path) {
+        CompoundTag rootTag = (CompoundTag) item.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA).orElse(null);
         if (rootTag == null) return null;
         Tag currentTag = rootTag;
         for (int i = 0; i < path.length; i++) {
@@ -139,21 +160,8 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected void setTag(ComponentItemWrapper item, Object value, Object... path) {
-        Tag valueTag;
-        if (value instanceof Tag tag) {
-            valueTag = tag;
-        } else if (value instanceof JsonElement je) {
-            valueTag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, je);
-        } else if (TagProxy.CLASS.isInstance(value)) {
-            valueTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, value);
-        } else {
-            assert RegistryOps.JAVA != null;
-            valueTag = RegistryOps.JAVA.convertTo(RegistryOps.SPARROW_NBT, value);
-        }
-
-        CompoundTag rootTag = (CompoundTag) item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA).orElseGet(CompoundTag::new);
-
+    protected void setSparrowTag(ComponentItemWrapper item, Tag valueTag, Object... path) {
+        CompoundTag rootTag = (CompoundTag) item.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA).orElseGet(CompoundTag::new);
         if (path == null || path.length == 0) {
             if (valueTag instanceof CompoundTag) {
                 rootTag = (CompoundTag) valueTag;
@@ -184,13 +192,44 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
+    protected void setTag(ComponentItemWrapper item, Object value, Object... path) {
+        Tag valueTag;
+        if (value instanceof Tag tag) {
+            valueTag = tag;
+        } else if (value instanceof JsonElement je) {
+            valueTag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, je);
+        } else if (TagProxy.CLASS.isInstance(value)) {
+            valueTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, value);
+        } else {
+            assert RegistryOps.JAVA != null;
+            valueTag = RegistryOps.JAVA.convertTo(RegistryOps.SPARROW_NBT, value);
+        }
+        setSparrowTag(item, valueTag, path);
+    }
+
+    @Override
+    protected void setMinecraftTag(ComponentItemWrapper item, Object value, Object... path) {
+        setSparrowTag(item, RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, value), path);
+    }
+
+    @Override
+    protected void setJavaTag(ComponentItemWrapper item, Object value, Object... path) {
+        setSparrowTag(item, RegistryOps.JAVA.convertTo(RegistryOps.SPARROW_NBT, value), path);
+    }
+
+    @Override
+    protected void setJsonTag(ComponentItemWrapper item, JsonElement value, Object... path) {
+        setSparrowTag(item, RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, value), path);
+    }
+
+    @Override
     protected boolean hasTag(ComponentItemWrapper item, Object... path) {
-        return getTag(item, path) != null;
+        return getSparrowTag(item, path) != null;
     }
 
     @Override
     protected boolean removeTag(ComponentItemWrapper item, Object... path) {
-        CompoundTag rootTag = (CompoundTag) item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA).orElse(null);
+        CompoundTag rootTag = (CompoundTag) item.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA).orElse(null);
         if (rootTag == null || path == null || path.length == 0) return false;
 
         if (path.length == 1) {
@@ -252,8 +291,13 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected void setNBTComponent(ComponentItemWrapper item, Object type, Tag value) {
+    protected void setSparrowTagComponent(ComponentItemWrapper item, Object type, Tag value) {
         item.setSparrowNBTComponent(type, value);
+    }
+
+    @Override
+    protected void setMinecraftTagComponent(ComponentItemWrapper item, Object type, Object value) {
+        item.setNBTComponent(type, value);
     }
 
     @Override
@@ -272,23 +316,23 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected Object getJavaComponent(ComponentItemWrapper item, Object type) {
-        return item.getJavaComponent(type).orElse(null);
+    protected Object getComponentAsJava(ComponentItemWrapper item, Object type) {
+        return item.getComponentAsJava(type).orElse(null);
     }
 
     @Override
-    protected JsonElement getJsonComponent(ComponentItemWrapper item, Object type) {
-        return item.getJsonComponent(type).orElse(null);
+    protected JsonElement getComponentAsJson(ComponentItemWrapper item, Object type) {
+        return item.getComponentAsJson(type).orElse(null);
     }
 
     @Override
-    public Object getNBTComponent(ComponentItemWrapper item, Object type) {
-        return item.getNBTComponent(type).orElse(null);
+    public Object getComponentAsMinecraftTag(ComponentItemWrapper item, Object type) {
+        return item.getComponentAsMinecraftTag(type).orElse(null);
     }
 
     @Override
-    protected Tag getSparrowNBTComponent(ComponentItemWrapper item, Object type) {
-        return item.getSparrowNBTComponent(type).orElse(null);
+    protected Tag getComponentAsSparrowTag(ComponentItemWrapper item, Object type) {
+        return item.getComponentAsSparrowTag(type).orElse(null);
     }
 
     @Override
@@ -317,7 +361,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<Integer> customModelData(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.CUSTOM_MODEL_DATA);
+        return item.getComponentAsJava(DataComponentTypes.CUSTOM_MODEL_DATA);
     }
 
     @Override
@@ -331,7 +375,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<String> customNameJson(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.CUSTOM_NAME);
+        return item.getComponentAsJava(DataComponentTypes.CUSTOM_NAME);
     }
 
     @Override
@@ -345,7 +389,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<String> itemNameJson(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.ITEM_NAME);
+        return item.getComponentAsJava(DataComponentTypes.ITEM_NAME);
     }
 
     @Override
@@ -360,7 +404,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<List<String>> loreJson(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.LORE);
+        return item.getComponentAsJava(DataComponentTypes.LORE);
     }
 
     @Override
@@ -402,7 +446,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<Integer> damage(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.DAMAGE);
+        return item.getComponentAsJava(DataComponentTypes.DAMAGE);
     }
 
     @Override
@@ -417,7 +461,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     @Override
     protected Optional<Color> dyedColor(ComponentItemWrapper item) {
         if (!item.hasComponent(DataComponentTypes.DYED_COLOR)) return Optional.empty();
-        Object javaObj = getJavaComponent(item, DataComponentTypes.DYED_COLOR);
+        Object javaObj = this.getComponentAsJava(item, DataComponentTypes.DYED_COLOR);
         if (javaObj instanceof Integer integer) {
             return Optional.of(Color.fromDecimal(integer));
         } else if (javaObj instanceof Map<?, ?> map) {
@@ -437,7 +481,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected int maxDamage(ComponentItemWrapper item) {
-        Optional<Integer> damage = item.getJavaComponent(DataComponentTypes.MAX_DAMAGE);
+        Optional<Integer> damage = item.getComponentAsJava(DataComponentTypes.MAX_DAMAGE);
         return damage.orElseGet(() -> (int) item.platformItem().getType().getMaxDurability());
     }
 
@@ -507,7 +551,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected int maxStackSize(ComponentItemWrapper item) {
-        Optional<Integer> stackSize = item.getJavaComponent(DataComponentTypes.MAX_STACK_SIZE);
+        Optional<Integer> stackSize = item.getComponentAsJava(DataComponentTypes.MAX_STACK_SIZE);
         return stackSize.orElseGet(() -> item.platformItem().getType().getMaxStackSize());
     }
 
@@ -531,7 +575,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<Integer> repairCost(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.REPAIR_COST);
+        return item.getComponentAsJava(DataComponentTypes.REPAIR_COST);
     }
 
     @Override
@@ -555,7 +599,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<Trim> trim(ComponentItemWrapper item) {
-        Optional<Object> trim = item.getJavaComponent(DataComponentTypes.TRIM);
+        Optional<Object> trim = item.getComponentAsJava(DataComponentTypes.TRIM);
         if (trim.isEmpty()) {
             return Optional.empty();
         }
@@ -567,7 +611,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     @SuppressWarnings("unchecked")
     @Override
     protected Optional<FireworkExplosion> fireworkExplosion(ComponentItemWrapper item) {
-        Optional<Object> optionalExplosion = item.getJavaComponent(DataComponentTypes.FIREWORK_EXPLOSION);
+        Optional<Object> optionalExplosion = item.getComponentAsJava(DataComponentTypes.FIREWORK_EXPLOSION);
         if (optionalExplosion.isEmpty()) return Optional.empty();
         Map<String, Object> explosions = MiscUtils.castToMap(optionalExplosion.get());
         FireworkExplosion.Shape shape = Optional.ofNullable(FireworkExplosion.Shape.byName((String) explosions.get("shape"))).orElse(FireworkExplosion.Shape.SMALL_BALL);
@@ -631,7 +675,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected void attributeModifiers(ComponentItemWrapper item, List<AttributeModifier> modifierList) {
-        CompoundTag compoundTag = (CompoundTag) item.getSparrowNBTComponent(DataComponentKeys.ATTRIBUTE_MODIFIERS).orElseGet(CompoundTag::new);
+        CompoundTag compoundTag = (CompoundTag) item.getComponentAsSparrowTag(DataComponentKeys.ATTRIBUTE_MODIFIERS).orElseGet(CompoundTag::new);
         ListTag modifiers = new ListTag();
         compoundTag.put("modifiers", modifiers);
         for (AttributeModifier modifier : modifierList) {
@@ -653,7 +697,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
 
     @Override
     protected Optional<Map<String, String>> blockState(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.BLOCK_STATE);
+        return item.getComponentAsJava(DataComponentTypes.BLOCK_STATE);
     }
 
     @Override

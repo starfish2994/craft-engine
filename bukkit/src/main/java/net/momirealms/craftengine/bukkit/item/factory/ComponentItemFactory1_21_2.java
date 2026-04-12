@@ -4,9 +4,9 @@ import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
-import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.setting.EquipmentData;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -34,7 +34,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
 
     @Override
     protected Optional<String> tooltipStyle(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.TOOLTIP_STYLE);
+        return item.getComponentAsJava(DataComponentTypes.TOOLTIP_STYLE);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
 
     @Override
     protected Optional<String> itemModel(ComponentItemWrapper item) {
-        return item.getJavaComponent(DataComponentTypes.ITEM_MODEL);
+        return item.getComponentAsJava(DataComponentTypes.ITEM_MODEL);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
 
     @Override
     protected Optional<EquipmentData> equippable(ComponentItemWrapper item) {
-        Optional<Object> optionalData = item.getJavaComponent(DataComponentTypes.EQUIPPABLE);
+        Optional<Object> optionalData = item.getComponentAsJava(DataComponentTypes.EQUIPPABLE);
         if (optionalData.isEmpty()) return Optional.empty();
         Map<String, Object> data = MiscUtils.castToMap(optionalData.get());
         String slot = data.get("slot").toString();

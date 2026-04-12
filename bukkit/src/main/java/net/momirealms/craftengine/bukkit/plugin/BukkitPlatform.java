@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin;
 
 import com.google.gson.JsonElement;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryOps;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
@@ -51,11 +52,7 @@ public final class BukkitPlatform implements Platform {
 
     @Override
     public Player getPlayer(UUID uuid) {
-        org.bukkit.entity.Player player = Bukkit.getPlayer(uuid);
-        if (player == null) {
-            return null;
-        }
-        return BukkitAdaptor.adapt(player);
+        return (Player) BukkitNetworkManager.instance().getOnlineUser(uuid);
     }
 
     @Override

@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.core.entity.furniture.element.tint;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
-import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.sparrow.nbt.Tag;
@@ -37,20 +37,21 @@ public final class DefaultFurnitureTintSource implements FurnitureTintSource {
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void applyTint(Item item) {
         Item sourceItem = this.furniture.sourceItem();
         if (sourceItem != null) {
             if (VersionHelper.COMPONENT_RELEASE) {
                 for (Key component : this.components) {
-                    Tag componentData = sourceItem.getSparrowNBTComponent(component);
+                    Tag componentData = sourceItem.getComponentAsSparrowTag(component);
                     if (componentData != null) {
-                        item.setNBTComponent(component, componentData);
+                        item.setSparrowTagComponent(component, componentData);
                     }
                 }
             } else {
                 for (Object[] legacyNBTPath : this.legacyNBTPaths) {
-                    Tag tag = sourceItem.getTag(legacyNBTPath);
+                    Tag tag = sourceItem.getSparrowTag(legacyNBTPath);
                     if (tag != null) {
                         item.setTag(tag, legacyNBTPath);
                     }

@@ -27,6 +27,8 @@ public interface BlocksProxy {
     Object FURNACE = INSTANCE.getFurnace();
     Object SMOKER = INSTANCE.getSmoker();
     Object BLAST_FURNACE = INSTANCE.getBlastFurnace();
+    Object LIGHT = INSTANCE.getLight();
+
     Object AIR$defaultState = BlockProxy.INSTANCE.getDefaultBlockState(AIR);
     Object STONE$defaultState = BlockProxy.INSTANCE.getDefaultBlockState(STONE);
     Object WATER$defaultState = BlockProxy.INSTANCE.getDefaultBlockState(WATER);
@@ -91,4 +93,7 @@ public interface BlocksProxy {
 
     @FieldGetter(name = "BLAST_FURNACE", isStatic = true)
     Object getBlastFurnace();
+
+    @FieldGetter(name = "LIGHT", isStatic = true)
+    Object getLight();
 }

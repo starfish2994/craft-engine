@@ -6,18 +6,16 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.CanBeReplacedBlockBehavior;
-import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.block.properties.type.SlabType;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
-import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
+import net.momirealms.craftengine.core.item.behavior.BlockItem;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
-import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MutableBoolean;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
@@ -27,9 +25,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsPro
 import net.momirealms.craftengine.proxy.minecraft.world.level.pathfinder.PathComputationTypeProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
-public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior, CanBeReplacedBlockBehavior {
+public final class SlabBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock {
     public static final BlockBehaviorFactory<SlabBlockBehavior> FACTORY = new Factory();
     public final Property<SlabType> typeProperty;
 
@@ -39,22 +36,23 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
         this.typeProperty = typeProperty;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean canBeReplaced(BlockPlaceContext context, ImmutableBlockState state) {
         SlabType type = state.get(this.typeProperty);
-        Item item = (Item) context.getItem();
+        Item item = context.getItem();
         if (type == SlabType.DOUBLE || ItemUtils.isEmpty(item)) return false;
-        Optional<ItemDefinition> itemInHand = item.getCustomItem();
+        Optional<ItemDefinition> itemInHand = item.getDefinition();
         if (itemInHand.isEmpty()) return false;
         ItemDefinition itemDefinition = itemInHand.get();
-        Key blockId = null;
-        for (ItemBehavior itemBehavior : itemDefinition.behaviors()) {
-            if (itemBehavior instanceof BlockBoundItemBehavior behavior) {
-                blockId = behavior.block();
+
+        MutableBoolean sameId = new MutableBoolean(false);
+        itemDefinition.behavior().let(BlockItem.class, b -> {
+            if (b.block().equals(super.blockDefinition.id())) {
+                sameId.set(true);
             }
-        }
-        if (blockId == null || !blockId.equals(super.blockDefinition.id())) return false;
+        });
+
+        if (!sameId.booleanValue()) return false;
         if (!context.replacingClickedBlock()) return true;
         boolean upper = context.getClickedLocation().y - (double) context.getClickedPos().y() > (double) 0.5F;
         Direction clickedFace = context.getClickedFace();
@@ -81,21 +79,21 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
     }
 
     @Override
-    public boolean placeLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean placeLiquid(Object thisBlock, Object[] args) {
         Object blockState = args[2];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.placeLiquid(thisBlock, args, superMethod)).isPresent();
+        return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.placeLiquid(thisBlock, args)).isPresent();
     }
 
     @Override
-    public boolean canPlaceLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean canPlaceLiquid(Object thisBlock, Object[] args) {
         Object blockState = VersionHelper.isOrAbove1_20_2() ? args[3] : args[2];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.canPlaceLiquid(thisBlock, args, superMethod)).isPresent();
+        return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.canPlaceLiquid(thisBlock, args)).isPresent();
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         if (super.waterloggedProperty == null) return blockState;
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
@@ -107,7 +105,7 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements IsPa
     }
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         Object type = VersionHelper.isOrAbove1_20_5() ? args[1] : args[3];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);

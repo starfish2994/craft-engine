@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.behavior.FurnitureItem;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
@@ -41,7 +42,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class FurnitureItemBehavior extends ItemBehavior {
+public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem {
     public static final ItemBehaviorFactory<FurnitureItemBehavior> FACTORY = new Factory();
     static final Set<String> ALLOWED_ANCHOR_TYPES = Set.of("wall", "ceiling", "ground");
     private final Key id;
@@ -59,7 +60,8 @@ public class FurnitureItemBehavior extends ItemBehavior {
         this.ignoreEntities = ignoreEntities;
     }
 
-    public Key furnitureId() {
+    @Override
+    public Key furniture() {
         return this.id;
     }
 
@@ -183,7 +185,7 @@ public class FurnitureItemBehavior extends ItemBehavior {
         dataAccessor.setVariant(variant.name());
         dataAccessor.setItem(item.copyWithCount(1));
         // 放置家具
-        BukkitFurniture bukkitFurniture = BukkitFurnitureManager.instance().place(furnitureLocation.clone(), furnitureDefinition, dataAccessor, false);
+        BukkitFurniture bukkitFurniture = BukkitFurnitureManager.instance().place(furnitureLocation.clone(), furnitureDefinition, dataAccessor, false, player);
         // 触发放置事件
         if (player != null) {
             FurniturePlaceEvent placeEvent = new FurniturePlaceEvent(bukkitPlayer, bukkitFurniture, furnitureLocation, context.getHand(), contextBuilder);
@@ -204,17 +206,23 @@ public class FurnitureItemBehavior extends ItemBehavior {
         );
         furnitureDefinition.execute(functionContext, EventTrigger.PLACE);
         if (dummy.isCancelled()) {
+            bukkitFurniture.destroy();
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
+
+        // 让家具加载物品
+        bukkitFurniture.controller.loadCustomDataFromItem(item);
+
         // 后续处理
         if (player != null) {
             if (!player.canInstabuild()) {
-                item.count(item.count() - 1);
+                item.shrink(1);
             }
             player.swingHand(context.getHand());
         }
+
         context.getLevel().playBlockSound(finalPlacePosition, furnitureDefinition.settings().sounds().placeSound());
-        bukkitFurniture.controller.onPlace(context);
+
         return InteractionResult.SUCCESS;
     }
 

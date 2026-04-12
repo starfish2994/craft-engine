@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.core.entity.furniture.behavior;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureSnapshotState;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
@@ -63,6 +65,9 @@ public abstract class FurnitureController {
     public void saveCustomData(CompoundTag data) {
     }
 
+    public void loadCustomDataFromItem(Item item) {
+    }
+
     /**
      * Creates a ticker that runs on the main server thread.
      */
@@ -85,7 +90,7 @@ public abstract class FurnitureController {
         return InteractionResult.PASS;
     }
 
-    public void onVariantChange() {
+    public void onVariantChange(FurnitureVariant previousVariant) {
     }
 
     public void gatherElements(Consumer<FurnitureElement> consumer) {
@@ -94,26 +99,50 @@ public abstract class FurnitureController {
     public void gatherHitboxes(Consumer<FurnitureHitBox> consumer) {
     }
 
+    public void onAsyncPlayerTrack(Player player, FurnitureSnapshotState snapshotState) {
+    }
+
+    public void onAsyncPlayerUntrack(Player player, FurnitureSnapshotState snapshotState) {
+    }
+
+    public void onPlayerTrack(Player player) {
+    }
+
+    public void onPlayerUntrack(Player player) {
+    }
+
+    public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
+        return InteractionResult.PASS;
+    }
+
     /**
-     * Triggered when the furniture is broken.
+     * Triggered when the furniture is removed.
      */
-    public void onDestroy(@Nullable Player player) {
+    public void preRemove(@Nullable Player player) {
+    }
+
+    /**
+     * Triggered when the furniture is removed.
+     */
+    public void postRemove(@Nullable Player player) {
     }
 
     /**
      * Triggered when the furniture is first placed in the world.
      */
-    public void onPlace(UseOnContext context) {
+    public void onPlace(@Nullable Player player) {
     }
 
     /**
-     * Triggered when the chunk containing the furniture is unloaded.
+     * Called when the furniture is unloaded from memory.
+     * This can occur due to chunk unloading or the furniture being destroyed.
      */
     public void onUnload() {
     }
 
     /**
-     * Triggered when the furniture is loaded into the world during chunk load.
+     * Called when the furniture is loaded into memory.
+     * This can occur due to chunk loading or the furniture being placed.
      */
     public void onLoad() {
     }
@@ -128,7 +157,7 @@ public abstract class FurnitureController {
         return switch (behaviors.size()) {
             case 0 -> new EmptyFurnitureBehaviorTemplate.EmptyFurnitureController(furniture);
             case 1 -> behaviors.getFirst().createController(furniture);
-            case 2 -> new BiController(furniture, behaviors.getFirst().createController(furniture), behaviors.getLast().createController(furniture));
+            case 2 -> new DualController(furniture, behaviors.getFirst().createController(furniture), behaviors.getLast().createController(furniture));
             default -> {
                 FurnitureController[] controllers = new FurnitureController[behaviors.size()];
                 for (int i = 0; i < behaviors.size(); i++) {
@@ -139,11 +168,11 @@ public abstract class FurnitureController {
         };
     }
 
-    private static final class BiController extends FurnitureController {
+    private static final class DualController extends FurnitureController {
         private final FurnitureController first;
         private final FurnitureController second;
 
-        private BiController(Furniture furniture, FurnitureController first, FurnitureController second) {
+        private DualController(Furniture furniture, FurnitureController first, FurnitureController second) {
             super(furniture);
             this.first = first;
             this.second = second;
@@ -163,13 +192,13 @@ public abstract class FurnitureController {
             return createTickerHelper(gettFurnitureTicker(firstFurnitureTicker, secondFurnitureTicker));
         }
 
-        private static FurnitureTicker<BiController> gettFurnitureTicker(FurnitureTicker<FurnitureController> firstFurnitureTicker, FurnitureTicker<FurnitureController> secondFurnitureTicker) {
+        private static FurnitureTicker<DualController> gettFurnitureTicker(FurnitureTicker<FurnitureController> firstFurnitureTicker, FurnitureTicker<FurnitureController> secondFurnitureTicker) {
             if (firstFurnitureTicker == null && secondFurnitureTicker == null) return null;
-            if (firstFurnitureTicker == null) return (f, biController) -> secondFurnitureTicker.tick(f, biController.second);
-            if (secondFurnitureTicker == null) return (f, biController) -> firstFurnitureTicker.tick(f, biController.first);
-            return (f, biController) -> {
-                firstFurnitureTicker.tick(f, biController.first);
-                secondFurnitureTicker.tick(f, biController.second);
+            if (firstFurnitureTicker == null) return (f, dualController) -> secondFurnitureTicker.tick(f, dualController.second);
+            if (secondFurnitureTicker == null) return (f, dualController) -> firstFurnitureTicker.tick(f, dualController.first);
+            return (f, dualController) -> {
+                firstFurnitureTicker.tick(f, dualController.first);
+                secondFurnitureTicker.tick(f, dualController.second);
             };
         }
 
@@ -201,15 +230,51 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onDestroy(Player player) {
-            this.first.onDestroy(player);
-            this.second.onDestroy(player);
+        public void onAsyncPlayerTrack(Player player, FurnitureSnapshotState snapshotState) {
+            this.first.onAsyncPlayerTrack(player, snapshotState);
+            this.second.onAsyncPlayerTrack(player, snapshotState);
         }
 
         @Override
-        public void onPlace(UseOnContext context) {
-            this.first.onPlace(context);
-            this.second.onPlace(context);
+        public void onAsyncPlayerUntrack(Player player, FurnitureSnapshotState snapshotState) {
+            this.first.onAsyncPlayerUntrack(player, snapshotState);
+            this.second.onAsyncPlayerUntrack(player, snapshotState);
+        }
+
+        @Override
+        public void onPlayerTrack(Player player) {
+            this.first.onPlayerTrack(player);
+            this.second.onPlayerTrack(player);
+        }
+
+        @Override
+        public void onPlayerUntrack(Player player) {
+            this.first.onPlayerUntrack(player);
+            this.second.onPlayerUntrack(player);
+        }
+
+        @Override
+        public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
+            InteractionResult result = this.first.onPlayerHit(player, hitBox);
+            return result == InteractionResult.PASS ? this.second.onPlayerHit(player, hitBox) : result;
+        }
+
+        @Override
+        public void preRemove(Player player) {
+            this.first.preRemove(player);
+            this.second.preRemove(player);
+        }
+
+        @Override
+        public void postRemove(@Nullable Player player) {
+            this.first.postRemove(player);
+            this.second.postRemove(player);
+        }
+
+        @Override
+        public void onPlace(Player player) {
+            this.first.onPlace(player);
+            this.second.onPlace(player);
         }
 
         @Override
@@ -237,9 +302,15 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onVariantChange() {
-            this.first.onVariantChange();
-            this.second.onVariantChange();
+        public void loadCustomDataFromItem(Item item) {
+            this.first.loadCustomDataFromItem(item);
+            this.second.loadCustomDataFromItem(item);
+        }
+
+        @Override
+        public void onVariantChange(FurnitureVariant previousVariant) {
+            this.first.onVariantChange(previousVariant);
+            this.second.onVariantChange(previousVariant);
         }
 
         @Override
@@ -357,16 +428,62 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onDestroy(Player player) {
+        public void onAsyncPlayerTrack(Player player, FurnitureSnapshotState snapshotState) {
             for (FurnitureController controller : this.controllers) {
-                controller.onDestroy(player);
+                controller.onAsyncPlayerTrack(player, snapshotState);
             }
         }
 
         @Override
-        public void onPlace(UseOnContext context) {
+        public void onAsyncPlayerUntrack(Player player, FurnitureSnapshotState snapshotState) {
             for (FurnitureController controller : this.controllers) {
-                controller.onPlace(context);
+                controller.onAsyncPlayerUntrack(player, snapshotState);
+            }
+        }
+
+        @Override
+        public void onPlayerTrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlayerTrack(player);
+            }
+        }
+
+        @Override
+        public void onPlayerUntrack(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlayerUntrack(player);
+            }
+        }
+
+        @Override
+        public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
+            for (FurnitureController controller : this.controllers) {
+                InteractionResult result = controller.onPlayerHit(player, hitBox);
+                if (InteractionResult.PASS != result) {
+                    return result;
+                }
+            }
+            return InteractionResult.PASS;
+        }
+
+        @Override
+        public void preRemove(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.preRemove(player);
+            }
+        }
+
+        @Override
+        public void postRemove(@Nullable Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.postRemove(player);
+            }
+        }
+
+        @Override
+        public void onPlace(Player player) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onPlace(player);
             }
         }
 
@@ -399,9 +516,16 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onVariantChange() {
+        public void loadCustomDataFromItem(Item item) {
             for (FurnitureController controller : this.controllers) {
-                controller.onVariantChange();
+                controller.loadCustomDataFromItem(item);
+            }
+        }
+
+        @Override
+        public void onVariantChange(FurnitureVariant previousVariant) {
+            for (FurnitureController controller : this.controllers) {
+                controller.onVariantChange(previousVariant);
             }
         }
 

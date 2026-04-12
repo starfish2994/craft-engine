@@ -5,7 +5,8 @@ import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
-import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.element.AbstractConstantBlockEntityElement;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -16,6 +17,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProx
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Collections;
@@ -23,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public final class ArmorStandBlockEntityElement implements BlockEntityElement {
+public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEntityElement {
     public final ArmorStandBlockEntityElementConfig config;
     public final Object cachedSpawnPacket;
     public final Object cachedDespawnPacket;
@@ -32,18 +35,22 @@ public final class ArmorStandBlockEntityElement implements BlockEntityElement {
     public final Object cachedTeamPacket;
     public final int entityId;
     public final UUID uuid = UUID.randomUUID();
+    @Nullable
+    public BlockEntityTintSource tintSource;
 
-    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos) {
-        this(config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
+        this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, int entityId, boolean posChanged) {
+    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
+        super(config.predicate, config.hasCondition);
         Vector3f position = config.position();
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId, this.uuid, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
                 config.xRot(), config.yRot(), EntityTypeProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, config.yRot()
         );
         this.config = config;
+        this.tintSource = tintSource;
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));
         this.entityId = entityId;
         this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z, config.yRot(), config.xRot(), false) : null;
@@ -65,15 +72,15 @@ public final class ArmorStandBlockEntityElement implements BlockEntityElement {
     }
 
     @Override
-    public void hide(Player player) {
+    public void hide(@NotNull Player player) {
         player.sendPacket(this.cachedDespawnPacket, false);
     }
 
     @Override
-    public void show(Player player) {
+    public void showInternal(Player player) {
         player.sendPackets(List.of(this.cachedSpawnPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player))), false);
         player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
+                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
         )), false);
         if (this.cachedDespawnPacket != null) {
             player.sendPacket(this.cachedDespawnPacket, false);
@@ -84,20 +91,25 @@ public final class ArmorStandBlockEntityElement implements BlockEntityElement {
     }
 
     @Override
-    public void update(Player player) {
+    public void update(@NotNull Player player) {
         if (this.cachedUpdatePosPacket != null) {
             player.sendPackets(List.of(
                     this.cachedUpdatePosPacket,
                     ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player)),
                     ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                            Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
+                            Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
                     ))
             ), false);
         } else {
             player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player)), false);
             player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                    Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player).minecraftItem())
+                    Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
             )), false);
         }
+    }
+
+    @Override
+    public boolean supportsTransform() {
+        return true;
     }
 }

@@ -12,11 +12,15 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.Color;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -24,6 +28,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class TextDisplayBlockEntityElementConfig implements BlockEntityElementConfig<TextDisplayBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<TextDisplayBlockEntityElement> FACTORY = new Factory();
@@ -49,6 +54,8 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
     public final boolean isSeeThrough;
     public final boolean useDefaultBackgroundColor;
     public final TextDisplayAlignment alignment;
+    public final Predicate<PlayerContext> predicate;
+    public final boolean hasCondition;
 
     public TextDisplayBlockEntityElementConfig(String text,
                                                Vector3f scale,
@@ -70,7 +77,9 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
                                                boolean hasShadow,
                                                boolean isSeeThrough,
                                                boolean useDefaultBackgroundColor,
-                                               TextDisplayAlignment alignment) {
+                                               TextDisplayAlignment alignment,
+                                               Predicate<PlayerContext> predicate,
+                                               boolean hasCondition) {
         this.text = text;
         this.scale = scale;
         this.position = position;
@@ -92,6 +101,8 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
         this.useDefaultBackgroundColor = useDefaultBackgroundColor;
         this.alignment = alignment;
         this.isSeeThrough = isSeeThrough;
+        this.hasCondition = hasCondition;
+        this.predicate = predicate;
         this.lazyMetadataPacket = player -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
@@ -123,12 +134,12 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
     }
 
     @Override
-    public TextDisplayBlockEntityElement create(World world, BlockPos pos) {
+    public TextDisplayBlockEntityElement create(CEChunk chunk, BlockPos pos) {
         return new TextDisplayBlockEntityElement(this, pos);
     }
 
     @Override
-    public TextDisplayBlockEntityElement create(World world, BlockPos pos, TextDisplayBlockEntityElement previous) {
+    public TextDisplayBlockEntityElement create(CEChunk chunk, BlockPos pos, TextDisplayBlockEntityElement previous) {
         return new TextDisplayBlockEntityElement(this, pos, previous.entityId,
                 previous.config.yRot != this.yRot ||
                         previous.config.xRot != this.xRot ||
@@ -137,7 +148,7 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
     }
 
     @Override
-    public TextDisplayBlockEntityElement createExact(World world, BlockPos pos, TextDisplayBlockEntityElement previous) {
+    public TextDisplayBlockEntityElement createExact(CEChunk chunk, BlockPos pos, TextDisplayBlockEntityElement previous) {
         if (!previous.config.isSamePosition(this)) {
             return null;
         }
@@ -214,6 +225,7 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
         @Override
         public TextDisplayBlockEntityElementConfig create(ConfigSection section) {
             ConfigSection brightness = section.getSection("brightness");
+            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new TextDisplayBlockEntityElementConfig(
                     section.getNonNullString("text"),
                     section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),
@@ -235,7 +247,9 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
                     section.getBoolean(HAS_SHADOW),
                     section.getBoolean(IS_SEE_THROUGH),
                     section.getBoolean(USE_DEFAULT_BACKGROUND_COLOR),
-                    section.getEnum("alignment", TextDisplayAlignment.class, TextDisplayAlignment.CENTER)
+                    section.getEnum("alignment", TextDisplayAlignment.class, TextDisplayAlignment.CENTER),
+                    MiscUtils.allOf(conditions),
+                    !conditions.isEmpty()
             );
         }
     }

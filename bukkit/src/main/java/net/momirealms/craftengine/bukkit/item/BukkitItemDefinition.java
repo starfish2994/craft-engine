@@ -6,9 +6,9 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.AbstractItemDefinition;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.ItemSettings;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
+import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -28,12 +28,12 @@ public final class BukkitItemDefinition extends AbstractItemDefinition {
     private final Object clientItem;
 
     public BukkitItemDefinition(boolean isVanillaItem, UniqueKey id, Object item, Object clientItem, Key materialKey, Key clientBoundMaterialKey,
-                                List<ItemBehavior> behaviors,
+                                ItemBehavior behavior,
                                 List<ItemProcessor> modifiers, List<ItemProcessor> clientBoundModifiers,
                                 ItemSettings settings,
                                 Map<EventTrigger, List<Function<Context>>> events,
                                 ItemUpdateConfig updater) {
-        super(isVanillaItem, id, materialKey, clientBoundMaterialKey, behaviors, modifiers, clientBoundModifiers, settings, events, updater);
+        super(isVanillaItem, id, materialKey, clientBoundMaterialKey, behavior, modifiers, clientBoundModifiers, settings, events, updater);
         this.item = item;
         this.clientItem = clientItem;
     }
@@ -92,7 +92,7 @@ public final class BukkitItemDefinition extends AbstractItemDefinition {
         private Key clientBoundItemKey;
         private final Object clientBoundItem;
         private final Map<EventTrigger, List<Function<Context>>> events = new EnumMap<>(EventTrigger.class);
-        private final List<ItemBehavior> behaviors = new ArrayList<>(4);
+        private ItemBehavior behavior;
         private final List<ItemProcessor> processors = new ArrayList<>(4);
         private final List<ItemProcessor> clientBoundProcessors = new ArrayList<>(4);
         private ItemSettings settings;
@@ -153,13 +153,7 @@ public final class BukkitItemDefinition extends AbstractItemDefinition {
 
         @Override
         public Builder behavior(ItemBehavior behavior) {
-            this.behaviors.add(behavior);
-            return this;
-        }
-
-        @Override
-        public Builder behaviors(List<ItemBehavior> behaviors) {
-            this.behaviors.addAll(behaviors);
+            this.behavior = behavior;
             return this;
         }
 
@@ -185,7 +179,7 @@ public final class BukkitItemDefinition extends AbstractItemDefinition {
         public ItemDefinition build() {
             this.processors.addAll(this.settings.processors());
             this.clientBoundProcessors.addAll(this.settings.clientBoundProcessors());
-            return new BukkitItemDefinition(this.isVanillaItem, this.id, this.item, this.clientBoundItem, this.itemKey, this.clientBoundItemKey, List.copyOf(this.behaviors),
+            return new BukkitItemDefinition(this.isVanillaItem, this.id, this.item, this.clientBoundItem, this.itemKey, this.clientBoundItemKey, this.behavior,
                     List.copyOf(this.processors), List.copyOf(this.clientBoundProcessors), this.settings, this.events, updater);
         }
     }

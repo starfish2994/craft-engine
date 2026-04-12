@@ -12,7 +12,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy
 import net.momirealms.craftengine.proxy.minecraft.world.phys.BlockHitResultProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 public final class ChimeBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<ChimeBlockBehavior> FACTORY = new Factory();
@@ -24,7 +23,7 @@ public final class ChimeBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void onProjectileHit(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void onProjectileHit(Object thisBlock, Object[] args) {
         if (this.hitSound == null) return;
         Object blockPos = BlockHitResultProxy.INSTANCE.getBlockPos(args[2]);
         Object sound = SoundEventProxy.INSTANCE.create(KeyUtils.toIdentifier(hitSound.id()), Optional.empty());

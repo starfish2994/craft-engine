@@ -6,9 +6,9 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
-import net.momirealms.craftengine.core.block.BlockSettings;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
@@ -26,7 +26,6 @@ import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 
-import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
@@ -43,7 +42,7 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void spawnAfterBreak(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void spawnAfterBreak(Object thisBlock, Object[] args) {
         boolean dropExperience = (boolean) args[4]; // 通常来说是 false
         Item item = BukkitItemManager.instance().wrap(ItemStackUtils.getBukkitStack(args[3]));
         if (!dropExperience) {

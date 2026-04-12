@@ -42,7 +42,7 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
 
         @Override
         public BushBlockBehavior create(BlockDefinition block, ConfigSection section) {
-            TagsAndState tagsAndState = readTagsAndState(section, "below");
+            TagsAndState tagsAndState = readTagsAndState(section, "bottom");
             return new BushBlockBehavior(
                     block,
                     section.getInt("delay", 0),
@@ -57,7 +57,7 @@ public class BushBlockBehavior extends AbstractCanSurviveBlockBehavior {
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws Exception {
+    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
         Object belowPos = LocationUtils.below(blockPos);
         Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
         return mayPlaceOn(belowState, world, belowPos);

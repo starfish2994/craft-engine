@@ -1,7 +1,9 @@
 package net.momirealms.craftengine.core.item;
 
+import net.momirealms.craftengine.core.item.behavior.EmptyItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
+import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -22,13 +24,13 @@ public abstract class AbstractItemDefinition implements ItemDefinition {
     protected final Key clientBoundMaterial;
     protected final ItemProcessor[] processors;
     protected final ItemProcessor[] clientBoundProcessors;
-    protected final List<ItemBehavior> behaviors;
+    protected final ItemBehavior behavior;
     protected final ItemSettings settings;
     protected final Map<EventTrigger, List<Function<Context>>> events;
     protected final ItemUpdateConfig updater;
 
     public AbstractItemDefinition(boolean isVanillaItem, UniqueKey id, Key material, Key clientBoundMaterial,
-                                  List<ItemBehavior> behaviors,
+                                  ItemBehavior behavior,
                                   List<ItemProcessor> processors,
                                   List<ItemProcessor> clientBoundProcessors,
                                   ItemSettings settings,
@@ -43,7 +45,7 @@ public abstract class AbstractItemDefinition implements ItemDefinition {
         this.processors = processors.toArray(new ItemProcessor[0]);
         // unchecked cast
         this.clientBoundProcessors = clientBoundProcessors.toArray(new ItemProcessor[0]);
-        this.behaviors = List.copyOf(behaviors);
+        this.behavior = Optional.ofNullable(behavior).orElse(EmptyItemBehavior.INSTANCE);
         this.settings = settings;
         this.updater = updater;
     }
@@ -106,12 +108,7 @@ public abstract class AbstractItemDefinition implements ItemDefinition {
     }
 
     @Override
-    public @NotNull List<ItemBehavior> behaviors() {
-        return this.behaviors;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return false;
+    public @NotNull ItemBehavior behavior() {
+        return this.behavior;
     }
 }

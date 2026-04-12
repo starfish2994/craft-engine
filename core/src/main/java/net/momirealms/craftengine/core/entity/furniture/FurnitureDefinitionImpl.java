@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.entity.furniture;
 import com.google.common.collect.ImmutableSortedMap;
 import net.momirealms.craftengine.core.entity.furniture.behavior.EmptyFurnitureBehaviorTemplate;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;
+import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettings;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;

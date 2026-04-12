@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.CanBeReplacedBlockBehavior;
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.item.Item;
@@ -18,7 +17,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 
 import java.util.List;
 
-public final class StackableBlockBehavior extends BukkitBlockBehavior implements CanBeReplacedBlockBehavior {
+public final class StackableBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<StackableBlockBehavior> FACTORY = new Factory();
     public final IntegerProperty amountProperty;
     public final List<Key> items;
@@ -36,6 +35,7 @@ public final class StackableBlockBehavior extends BukkitBlockBehavior implements
 
     @Override
     public boolean canBeReplaced(BlockPlaceContext context, ImmutableBlockState state) {
+        // 如果不是一家人，肯定走父类的替换逻辑
         if (super.canBeReplaced(context, state)) {
             return true;
         }

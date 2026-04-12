@@ -7,8 +7,8 @@ import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemFactory;
 import net.momirealms.craftengine.core.item.ItemKeys;
-import net.momirealms.craftengine.core.item.data.JukeboxPlayable;
-import net.momirealms.craftengine.core.item.setting.EquipmentData;
+import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
+import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -95,27 +95,32 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
     }
 
     @Override
-    protected void setNBTComponent(W item, Object type, Tag value) {
+    protected void setSparrowTagComponent(W item, Object type, Tag value) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    protected Object getJavaComponent(W item, Object type) {
+    protected void setMinecraftTagComponent(W item, Object type, Object value) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    protected JsonElement getJsonComponent(W item, Object type) {
+    protected Object getComponentAsJava(W item, Object type) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    public Object getNBTComponent(W item, Object type) {
+    protected JsonElement getComponentAsJson(W item, Object type) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 
     @Override
-    protected Tag getSparrowNBTComponent(W item, Object type) {
+    public Object getComponentAsMinecraftTag(W item, Object type) {
+        throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
+    }
+
+    @Override
+    protected Tag getComponentAsSparrowTag(W item, Object type) {
         throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
     }
 

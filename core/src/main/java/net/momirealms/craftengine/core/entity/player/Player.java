@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRe
 import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureLightData;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -268,6 +269,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     @Override
     public void remove() {
     }
+
+    public abstract FurnitureLightData furnitureLightData();
 
     public abstract void playParticle(Key particleId, double x, double y, double z);
 

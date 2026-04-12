@@ -1,7 +1,10 @@
 package net.momirealms.craftengine.core.item.processor;
 
 import com.google.common.collect.ImmutableMap;
-import net.momirealms.craftengine.core.item.*;
+import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -99,7 +102,7 @@ public final class HideTooltipProcessor implements ItemProcessor {
     @Override
     public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.isOrAbove1_21_5()) {
-            Tag previous = item.getSparrowNBTComponent(DataComponentKeys.TOOLTIP_DISPLAY);
+            Tag previous = item.getComponentAsSparrowTag(DataComponentKeys.TOOLTIP_DISPLAY);
             if (previous != null) {
                 networkData.put(DataComponentKeys.TOOLTIP_DISPLAY.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
             } else {
@@ -107,7 +110,7 @@ public final class HideTooltipProcessor implements ItemProcessor {
             }
         } else if (VersionHelper.isOrAbove1_20_5()) {
             for (Key component : this.components) {
-                Tag previous = item.getSparrowNBTComponent(component);
+                Tag previous = item.getComponentAsSparrowTag(component);
                 if (previous != null) {
                     networkData.put(component.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
                 } else {
@@ -115,7 +118,7 @@ public final class HideTooltipProcessor implements ItemProcessor {
                 }
             }
         } else {
-            Tag previous = item.getTag("HideFlags");
+            Tag previous = item.getSparrowTag("HideFlags");
             if (previous != null) {
                 networkData.put("HideFlags", NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
             } else {
@@ -146,10 +149,10 @@ public final class HideTooltipProcessor implements ItemProcessor {
 
         @Override
         public void apply(Item item) {
-            Tag previous = item.getSparrowNBTComponent(this.component);
+            Tag previous = item.getComponentAsSparrowTag(this.component);
             if (previous instanceof CompoundTag compoundTag) {
                 compoundTag.putBoolean("show_in_tooltip", false);
-                item.setNBTComponent(this.component, compoundTag);
+                item.setSparrowTagComponent(this.component, compoundTag);
             }
         }
     }
@@ -184,7 +187,7 @@ public final class HideTooltipProcessor implements ItemProcessor {
 
         @Override
         public void apply(Item item) {
-            Integer previousFlags = (Integer) item.getJavaTag("HideFlags");
+            Integer previousFlags = (Integer) item.getTagAsJava("HideFlags");
             if (previousFlags != null) {
                 item.setTag(this.legacyValue | previousFlags, "HideFlags");
             } else {
@@ -206,7 +209,7 @@ public final class HideTooltipProcessor implements ItemProcessor {
 
         @Override
         public void apply(Item item) {
-            Object tooltipDisplayJava = item.getJavaComponent(DataComponentKeys.TOOLTIP_DISPLAY);
+            Object tooltipDisplayJava = item.getComponentAsJava(DataComponentKeys.TOOLTIP_DISPLAY);
             if (tooltipDisplayJava == null) {
                 item.setJavaComponent(DataComponentKeys.TOOLTIP_DISPLAY, Map.of("hidden_components", this.components));
             } else {

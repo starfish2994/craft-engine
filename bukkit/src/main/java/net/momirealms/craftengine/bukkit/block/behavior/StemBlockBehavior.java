@@ -9,7 +9,8 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.BonemealableBlock;
+import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -29,9 +30,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockB
 import net.momirealms.craftengine.proxy.minecraft.world.level.pathfinder.PathComputationTypeProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
-public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
+public final class StemBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock, BonemealableBlock {
     public static final BlockBehaviorFactory<StemBlockBehavior> FACTORY = new Factory();
     private static final Object MAY_PLACE_FRUIT = BlockTags.getOrCreate(Key.of("minecraft:dirt"));
     public final IntegerProperty ageProperty;
@@ -58,13 +58,13 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
     }
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         return (VersionHelper.isOrAbove1_20_5() ? args[1] : args[3]).equals(PathComputationTypeProxy.AIR)
-                && !BlockBehaviourProxy.INSTANCE.hasCollision(thisBlock) || (boolean) superMethod.call();
+                && !BlockBehaviourProxy.INSTANCE.hasCollision(thisBlock) || super.isPathFindable(thisBlock, args);
     }
 
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void randomTick(Object thisBlock, Object[] args) {
         Object state = args[0];
         Object level = args[1];
         Object pos = args[2];
@@ -104,19 +104,19 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements IsPa
     }
 
     @Override
-    public boolean isValidBoneMealTarget(Object thisBlock, Object[] args) {
+    public boolean isValidBonemealTarget(Object thisBlock, Object[] args) {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[2]).orElse(null);
         if (state == null || state.isEmpty()) return false;
         return state.get(ageProperty) != ageProperty.max;
     }
 
     @Override
-    public boolean isBoneMealSuccess(Object thisBlock, Object[] args) {
+    public boolean isBonemealSuccess(Object thisBlock, Object[] args) {
         return true;
     }
 
     @Override
-    public void performBoneMeal(Object thisBlock, Object[] args) {
+    public void performBonemeal(Object thisBlock, Object[] args) {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[3]).orElse(null);
         if (state == null || state.isEmpty()) return;
         int min = Math.min(7, state.get(ageProperty) + RandomUtils.generateRandomInt(Math.min(ageProperty.min + 2, ageProperty.max), Math.min(ageProperty.max - 2, ageProperty.max)));

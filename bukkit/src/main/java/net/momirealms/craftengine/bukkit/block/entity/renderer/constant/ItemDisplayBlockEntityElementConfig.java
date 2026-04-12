@@ -5,6 +5,9 @@ import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSourceConfig;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSources;
 import net.momirealms.craftengine.core.entity.display.Billboard;
 import net.momirealms.craftengine.core.entity.display.ItemDisplayContext;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -13,21 +16,27 @@ import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 public final class ItemDisplayBlockEntityElementConfig implements BlockEntityElementConfig<ItemDisplayBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ItemDisplayBlockEntityElement> FACTORY = new Factory();
-    public final Function<Player, List<Object>> lazyMetadataPacket;
+    public final BiFunction<Player, BlockEntityTintSource, List<Object>> lazyMetadataPacket;
     public final Key itemId;
     public final Vector3f scale;
     public final Vector3f position;
@@ -43,6 +52,9 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
     public final int blockLight;
     public final int skyLight;
     public final float viewRange;
+    public final BlockEntityTintSourceConfig<? extends BlockEntityTintSource> tintSource;
+    public final Predicate<PlayerContext> predicate;
+    public final boolean hasCondition;
 
     public ItemDisplayBlockEntityElementConfig(Key itemId,
                                                Vector3f scale,
@@ -58,7 +70,10 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
                                                @Nullable Color glowColor,
                                                int blockLight,
                                                int skyLight,
-                                               float viewRange) {
+                                               float viewRange,
+                                               BlockEntityTintSourceConfig<? extends BlockEntityTintSource> tintSource,
+                                               Predicate<PlayerContext> predicate,
+                                               boolean hasCondition) {
         this.itemId = itemId;
         this.scale = scale;
         this.position = position;
@@ -74,7 +89,10 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         this.blockLight = blockLight;
         this.skyLight = skyLight;
         this.viewRange = viewRange;
-        this.lazyMetadataPacket = player -> {
+        this.hasCondition = hasCondition;
+        this.predicate = predicate;
+        this.tintSource = tintSource;
+        this.lazyMetadataPacket = (player, ts) -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
                 ItemDisplayEntityData.SharedFlags.addEntityData((byte) 0x40, dataValues);
@@ -86,6 +104,9 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
             Item wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
             if (wrappedItem == null) {
                 wrappedItem = java.util.Objects.requireNonNull(BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player));
+            }
+            if (ts != null) {
+                ts.applyTint(wrappedItem);
             }
             ItemDisplayEntityData.DisplayedItem.addEntityData(wrappedItem.minecraftItem(), dataValues);
             ItemDisplayEntityData.Scale.addEntityData(this.scale, dataValues);
@@ -105,14 +126,21 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         };
     }
 
-    @Override
-    public ItemDisplayBlockEntityElement create(World world, BlockPos pos) {
-        return new ItemDisplayBlockEntityElement(this, pos);
+    public BlockEntityTintSource createTintSource(CEChunk chunk, BlockPos pos) {
+        if (this.tintSource != null) {
+            return this.tintSource.create(chunk, pos);
+        }
+        return null;
     }
 
     @Override
-    public ItemDisplayBlockEntityElement create(World world, BlockPos pos, ItemDisplayBlockEntityElement previous) {
-        return new ItemDisplayBlockEntityElement(this, pos, previous.entityId,
+    public ItemDisplayBlockEntityElement create(CEChunk chunk, BlockPos pos) {
+        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(chunk, pos));
+    }
+
+    @Override
+    public ItemDisplayBlockEntityElement create(CEChunk chunk, BlockPos pos, ItemDisplayBlockEntityElement previous) {
+        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId,
                 previous.config.yRot != this.yRot ||
                         previous.config.xRot != this.xRot ||
                         !previous.config.position.equals(this.position)
@@ -120,11 +148,11 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
     }
 
     @Override
-    public ItemDisplayBlockEntityElement createExact(World world, BlockPos pos, ItemDisplayBlockEntityElement previous) {
+    public ItemDisplayBlockEntityElement createExact(CEChunk chunk, BlockPos pos, ItemDisplayBlockEntityElement previous) {
         if (!previous.config.isSamePosition(this)) {
             return null;
         }
-        return new ItemDisplayBlockEntityElement(this, pos, previous.entityId, false);
+        return new ItemDisplayBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId, false);
     }
 
     @Override
@@ -180,8 +208,8 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         return this.shadowStrength;
     }
 
-    public List<Object> metadataValues(Player player) {
-        return this.lazyMetadataPacket.apply(player);
+    public List<Object> metadataValues(Player player, BlockEntityTintSource source) {
+        return this.lazyMetadataPacket.apply(player, source);
     }
 
     public boolean isSamePosition(ItemDisplayBlockEntityElementConfig that) {
@@ -200,10 +228,12 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         private static final String[] BLOCK_LIGHT = new String[] {"block_light", "block-light"};
         private static final String[] SKY_LIGHT = new String[] {"sky_light", "sky-light"};
         private static final String[] VIEW_RANGE = new String[] {"view_range", "view-range"};
+        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
 
         @Override
         public ItemDisplayBlockEntityElementConfig create(ConfigSection section) {
             ConfigSection brightness = section.getSection("brightness");
+            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new ItemDisplayBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
                     section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),
@@ -219,7 +249,10 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
                     section.getValue(GLOW_COLOR, ConfigValue::getAsColor),
                     brightness != null ? brightness.getInt(BLOCK_LIGHT, -1) : -1,
                     brightness != null ? brightness.getInt(SKY_LIGHT, -1) : -1,
-                    section.getFloat(VIEW_RANGE, 1f)
+                    section.getFloat(VIEW_RANGE, 1f),
+                    section.getValue(TINT_SOURCE, BlockEntityTintSources::fromConfig),
+                    MiscUtils.allOf(conditions),
+                    !conditions.isEmpty()
             );
         }
     }

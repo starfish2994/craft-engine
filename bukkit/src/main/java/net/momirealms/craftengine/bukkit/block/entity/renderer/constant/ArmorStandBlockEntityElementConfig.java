@@ -6,20 +6,29 @@ import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSourceConfig;
+import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSources;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Condition;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LegacyChatFormatter;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class ArmorStandBlockEntityElementConfig implements BlockEntityElementConfig<ArmorStandBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ArmorStandBlockEntityElement> FACTORY = new Factory();
@@ -31,6 +40,9 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
     public final float yRot;
     public final boolean small;
     public final LegacyChatFormatter glowColor;
+    public final BlockEntityTintSourceConfig<? extends BlockEntityTintSource> tintSource;
+    public final Predicate<PlayerContext> predicate;
+    public final boolean hasCondition;
 
     public ArmorStandBlockEntityElementConfig(Key itemId,
                                               float scale,
@@ -38,7 +50,10 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
                                               float xRot,
                                               float yRot,
                                               boolean small,
-                                              LegacyChatFormatter glowColor) {
+                                              LegacyChatFormatter glowColor,
+                                              BlockEntityTintSourceConfig<? extends BlockEntityTintSource> tintSource,
+                                              Predicate<PlayerContext> predicate,
+                                              boolean hasCondition) {
         this.itemId = itemId;
         this.glowColor = glowColor;
         this.scale = scale;
@@ -46,6 +61,9 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         this.xRot = xRot;
         this.yRot = yRot;
         this.small = small;
+        this.tintSource = tintSource;
+        this.predicate = predicate;
+        this.hasCondition = hasCondition;
         this.lazyMetadataPacket = player -> {
             List<Object> dataValues = new ArrayList<>(2);
             if (glowColor != null) {
@@ -60,17 +78,24 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         };
     }
 
-    @Override
-    public ArmorStandBlockEntityElement create(World world, BlockPos pos) {
-        return new ArmorStandBlockEntityElement(this, pos);
+    public BlockEntityTintSource createTintSource(CEChunk chunk, BlockPos pos) {
+        if (this.tintSource != null) {
+            return this.tintSource.create(chunk, pos);
+        }
+        return null;
     }
 
     @Override
-    public ArmorStandBlockEntityElement create(World world, BlockPos pos, ArmorStandBlockEntityElement previous) {
+    public ArmorStandBlockEntityElement create(CEChunk chunk, BlockPos pos) {
+        return new ArmorStandBlockEntityElement(this, pos, createTintSource(chunk, pos));
+    }
+
+    @Override
+    public ArmorStandBlockEntityElement create(CEChunk chunk, BlockPos pos, ArmorStandBlockEntityElement previous) {
         if (previous.config.scale != scale || previous.config.glowColor != glowColor) {
             return null;
         }
-        return new ArmorStandBlockEntityElement(this, pos, previous.entityId,
+        return new ArmorStandBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId,
                 previous.config.yRot != this.yRot ||
                 previous.config.xRot != this.xRot ||
                 !previous.config.position.equals(this.position)
@@ -78,11 +103,11 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
     }
 
     @Override
-    public ArmorStandBlockEntityElement createExact(World world, BlockPos pos, ArmorStandBlockEntityElement previous) {
+    public ArmorStandBlockEntityElement createExact(CEChunk chunk, BlockPos pos, ArmorStandBlockEntityElement previous) {
         if (!previous.config.isSamePosition(this)) {
             return null;
         }
-        return new ArmorStandBlockEntityElement(this, pos, previous.entityId, false);
+        return new ArmorStandBlockEntityElement(this, pos, createTintSource(chunk, pos), previous.entityId, false);
     }
 
     @Override
@@ -90,9 +115,15 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         return ArmorStandBlockEntityElement.class;
     }
 
-    public Item item(Player player) {
+    public Item item(Player player, BlockEntityTintSource ts) {
         Item wrappedItem = BukkitItemManager.instance().createWrappedItem(this.itemId, player);
-        return wrappedItem == null ? BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player) : wrappedItem ;
+        if (wrappedItem == null) {
+            wrappedItem = BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player);
+        }
+        if (ts != null) {
+            ts.applyTint(wrappedItem);
+        }
+        return wrappedItem;
     }
 
     public Key itemId() {
@@ -131,9 +162,11 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
 
     private static class Factory implements BlockEntityElementConfigFactory<ArmorStandBlockEntityElement> {
         private static final String[] GLOW_COLOR = new String[] {"glow_color", "glow-color"};
+        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
 
         @Override
         public ArmorStandBlockEntityElementConfig create(ConfigSection section) {
+            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
             return new ArmorStandBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
                     section.getFloat("scale", 1f),
@@ -141,7 +174,10 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
                     section.getFloat("pitch", 0f),
                     section.getFloat("yaw", 0f),
                     section.getBoolean("small"),
-                    section.getEnum(GLOW_COLOR, LegacyChatFormatter.class)
+                    section.getEnum(GLOW_COLOR, LegacyChatFormatter.class),
+                    section.getValue(TINT_SOURCE, BlockEntityTintSources::fromConfig),
+                    MiscUtils.allOf(conditions),
+                    !conditions.isEmpty()
             );
         }
     }

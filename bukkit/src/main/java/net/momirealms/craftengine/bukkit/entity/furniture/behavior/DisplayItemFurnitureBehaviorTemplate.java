@@ -150,7 +150,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
 
         // 破坏家具时, 掉落存储的展示物品.
         @Override
-        public void onDestroy(Player player) {
+        public void preRemove(Player player) {
             if (!ItemUtils.isEmpty(this.savedItem) && this.displayItemElement != null) {
                 this.furniture.world().dropItemNaturally(this.displayItemElement.position, this.savedItem);
             }

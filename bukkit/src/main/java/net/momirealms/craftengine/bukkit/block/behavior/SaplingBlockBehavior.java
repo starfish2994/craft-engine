@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.BonemealableBlock;
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -39,10 +40,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 @SuppressWarnings("DuplicatedCode")
-public final class SaplingBlockBehavior extends BukkitBlockBehavior {
+public final class SaplingBlockBehavior extends BukkitBlockBehavior implements BonemealableBlock {
     public static final BlockBehaviorFactory<SaplingBlockBehavior> FACTORY = new Factory();
     public final Key feature;
     public final IntegerProperty stageProperty;
@@ -66,7 +66,7 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void randomTick(Object thisBlock, Object[] args) {
         Object world = args[1];
         Object blockPos = args[2];
         Object blockState = args[0];
@@ -115,7 +115,7 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public boolean isBoneMealSuccess(Object thisBlock, Object[] args) {
+    public boolean isBonemealSuccess(Object thisBlock, Object[] args) {
         boolean success = RandomUtils.generateRandomDouble(0d, 1d) < this.boneMealSuccessChance;
         Object level = args[0];
         Object blockPos = args[2];
@@ -152,12 +152,12 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public boolean isValidBoneMealTarget(Object thisBlock, Object[] args) {
+    public boolean isValidBonemealTarget(Object thisBlock, Object[] args) {
         return true;
     }
 
     @Override
-    public void performBoneMeal(Object thisBlock, Object[] args) {
+    public void performBonemeal(Object thisBlock, Object[] args) {
         this.increaseStage(args[0], args[2], args[3], args[1]);
     }
 

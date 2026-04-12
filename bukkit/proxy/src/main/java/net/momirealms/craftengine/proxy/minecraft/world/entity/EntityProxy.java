@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.proxy.minecraft.world.entity;
 
 import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourceProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.*;
@@ -101,6 +102,9 @@ public interface EntityProxy {
 
     @MethodInvoker(name = "setDeltaMovement")
     void setDeltaMovement(Object target, double x, double y, double z);
+
+    @MethodInvoker(name = "setDeltaMovement")
+    void setDeltaMovement(Object target, @Type(clazz = Vec3Proxy.class) Object deltaMovement);
 
     @MethodInvoker(name = "getDeltaMovement")
     Object getDeltaMovement(Object target);

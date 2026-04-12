@@ -27,8 +27,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockB
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
-import java.util.concurrent.Callable;
-
 import static net.momirealms.craftengine.core.block.UpdateFlags.*;
 
 public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
@@ -42,7 +40,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
         if (customState == null || customState.isEmpty()) {
@@ -106,21 +104,22 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public Object playerWillDestroy(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object playerWillDestroy(Object thisBlock, Object[] args) {
         Object player = args[3];
-        ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(args[2]).orElse(null);
+        Object state = args[2];
+        ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (blockState == null || blockState.isEmpty()) {
-            return superMethod.call();
+            return state;
         }
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(ServerPlayerProxy.INSTANCE.getBukkitEntity(player));
         if (serverPlayer == null) {
-            return superMethod.call();
+            return state;
         }
         Item item = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
         if (serverPlayer.canInstabuild() || !BlockStateUtils.isCorrectTool(blockState, item)) {
             preventDropFromBasePart(args[0], args[1], blockState, player);
         }
-        return superMethod.call();
+        return state;
     }
 
     private void preventDropFromBasePart(Object level, Object pos, ImmutableBlockState state, Object player) {
@@ -155,7 +154,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean canSurvive(Object thisBlock, Object[] args) {
         Object state = args[0];
         Object world = args[1];
         Object blockPos = args[2];
@@ -184,7 +183,7 @@ public final class MultiHighBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void placeMultiState(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void placeMultiState(Object thisBlock, Object[] args) {
         Object blockState = args[2];
         Object pos = args[1];
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);

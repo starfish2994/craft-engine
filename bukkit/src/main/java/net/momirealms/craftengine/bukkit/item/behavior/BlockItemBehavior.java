@@ -11,11 +11,14 @@ import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
+import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.behavior.BlockBoundItemBehavior;
+import net.momirealms.craftengine.core.item.behavior.BlockItem;
+import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigSection;
@@ -60,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class BlockItemBehavior extends BlockBoundItemBehavior {
+public class BlockItemBehavior extends ItemBehavior implements BlockItem {
     public static final ItemBehaviorFactory<BlockItemBehavior> FACTORY = new Factory();
     private final Key blockId;
 
@@ -100,12 +103,21 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
             return InteractionResult.PASS;
         }
 
+        Item item = context.getItem();
+        blockStateToPlace = updateBlockStateProperties(blockStateToPlace, item);
+
         BlockPos againstPos = context.getAgainstPos();
         World world = (World) context.getLevel().platformWorld();
         Location placeLocation = new Location(world, pos.x(), pos.y(), pos.z());
         Block bukkitBlock = world.getBlockAt(placeLocation);
         Block againstBlock = world.getBlockAt(againstPos.x(), againstPos.y(), againstPos.z());
         org.bukkit.entity.Player bukkitPlayer = player != null ? (org.bukkit.entity.Player) player.platformPlayer() : null;
+
+        // TODO 检测多方块行为??? 或许应该在 canPlace里实现？
+//        BlockBehavior behavior = blockStateToPlace.behavior();
+//        if (behavior.hasMultiState(blockStateToPlace) && !behavior.canPlaceMultiState(context.getLevel(), pos, blockStateToPlace)) {
+//            return InteractionResult.FAIL;
+//        }
 
         ContextHolder.Builder contextBuilder = ContextHolder.builder();
 
@@ -176,21 +188,55 @@ public class BlockItemBehavior extends BlockBoundItemBehavior {
         );
         block.execute(functionContext, EventTrigger.PLACE);
         if (dummy.isCancelled()) {
-            return InteractionResult.SUCCESS_AND_CANCEL;
+            for (BlockState state : revertStates) {
+                state.update(true, false);
+            }
+            return InteractionResult.FAIL;
+        }
+
+        // 放置多元素
+        blockStateToPlace.behavior().placeMultiState(BlockStateUtils.getBlockOwner(blockStateToPlace.customBlockState().minecraftState()), new Object[]{
+                context.getLevel().minecraftWorld(),
+                LocationUtils.toBlockPos(context.getClickedPos()),
+                blockStateToPlace.customBlockState().minecraftState(),
+                Optional.ofNullable(context.getPlayer()).map(Player::serverPlayer).orElse(null),
+                context.getItem().minecraftItem()
+        });
+
+        if (blockStateToPlace.hasBlockEntity()) {
+            BlockEntity blockEntity = context.getLevel().storageWorld().getBlockEntityAtIfLoaded(pos, true);
+            if (blockEntity != null) {
+                blockEntity.controller.loadCustomDataFromItem(item);
+            }
         }
 
         if (player != null) {
             if (!player.isCreativeMode()) {
-                Item item = context.getItem();
                 item.count(item.count() - 1);
             }
             player.swingHand(context.getHand());
         }
 
-        block.setPlacedBy(context, blockStateToPlace);
         context.getLevel().playBlockSound(position, blockStateToPlace.settings().sounds().placeSound());
         world.sendGameEvent(bukkitPlayer, GameEvent.BLOCK_PLACE, new Vector(pos.x(), pos.y(), pos.z()));
         return InteractionResult.SUCCESS;
+    }
+
+    protected ImmutableBlockState updateBlockStateProperties(ImmutableBlockState state, Item item) {
+        Optional<Map<String, String>> optionalBlockProperties = item.blockState();
+        if (optionalBlockProperties.isEmpty()) {
+            return state;
+        }
+        for (Map.Entry<String, String> entry : optionalBlockProperties.get().entrySet()) {
+            Property<?> property = state.getProperty(entry.getKey());
+            if (property != null) {
+                Comparable<?> value = property.valueByName(entry.getValue());
+                if (value != null) {
+                    state = ImmutableBlockState.with(state, property, value);
+                }
+            }
+        }
+        return state;
     }
 
     protected ImmutableBlockState getPlacementState(BlockPlaceContext context, BlockDefinition block) {

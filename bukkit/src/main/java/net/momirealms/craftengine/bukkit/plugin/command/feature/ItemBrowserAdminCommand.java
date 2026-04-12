@@ -28,7 +28,7 @@ public final class ItemBrowserAdminCommand extends BukkitCommandFeature<CommandS
                     Collection<Player> players = selector.values();
                     for (Player player : players) {
                         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
-                        if (serverPlayer == null) return;
+                        if (serverPlayer == null) continue;
                         plugin().itemBrowserManager().open(serverPlayer);
                     }
                 });

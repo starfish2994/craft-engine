@@ -22,6 +22,7 @@ public final class VersionHelper {
     private static final boolean folia;
     private static final boolean paper;
     private static final boolean leaves;
+    private static final boolean canvas;
     private static final boolean v1_20;
     private static final boolean v1_20_1;
     private static final boolean v1_20_2;
@@ -107,6 +108,7 @@ public final class VersionHelper {
             folia = checkFolia();
             paper = checkPaper();
             leaves = checkLeaves();
+            canvas = checkCanvas();
         } catch (Exception e) {
             throw new RuntimeException("Failed to init VersionHelper", e);
         }
@@ -188,12 +190,20 @@ public final class VersionHelper {
         return exists("org.leavesmc.leaves.bot.BotList");
     }
 
+    private static boolean checkCanvas() {
+        return exists("io.canvasmc.canvas.Config");
+    }
+
     public static boolean isFolia() {
         return folia;
     }
 
     public static boolean isPaper() {
         return paper;
+    }
+
+    public static boolean isCanvas() {
+        return canvas;
     }
 
     public static boolean isLeaves() {

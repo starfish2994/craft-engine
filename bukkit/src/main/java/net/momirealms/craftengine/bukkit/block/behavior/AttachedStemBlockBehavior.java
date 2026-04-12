@@ -6,7 +6,7 @@ import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.IsPathFindableBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -17,9 +17,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockB
 import net.momirealms.craftengine.proxy.minecraft.world.level.pathfinder.PathComputationTypeProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
-public final class AttachedStemBlockBehavior extends BukkitBlockBehavior implements IsPathFindableBlockBehavior {
+public final class AttachedStemBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock {
     public static final BlockBehaviorFactory<AttachedStemBlockBehavior> FACTORY = new Factory();
     public final Property<Direction> facingProperty;
     public final Key fruit;
@@ -36,19 +35,19 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
     }
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         return (VersionHelper.isOrAbove1_20_5() ? args[1] : args[3]).equals(PathComputationTypeProxy.AIR)
-                && !BlockBehaviourProxy.INSTANCE.hasCollision(thisBlock) || (boolean) superMethod.call();
+                && !BlockBehaviourProxy.INSTANCE.hasCollision(thisBlock) || super.isPathFindable(thisBlock, args);
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object state = args[0];
         Direction direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]);
         Object neighborState = args[updateShape$neighborState];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(state);
         if (optionalCustomState.isEmpty() || direction != optionalCustomState.get().get(this.facingProperty)) {
-            return super.updateShape(thisBlock, args, superMethod);
+            return super.updateShape(thisBlock, args);
         }
         Optional<ImmutableBlockState> optionalCustomNeighborState = BlockStateUtils.getOptionalCustomBlockState(neighborState);
         if (optionalCustomNeighborState.isPresent()) {
@@ -64,7 +63,7 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
                 if (stemBlock != null) return stemBlock;
             }
         }
-        return super.updateShape(thisBlock, args, superMethod);
+        return super.updateShape(thisBlock, args);
     }
 
     private Object resetStemBlock() {

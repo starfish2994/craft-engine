@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.host.impl;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -19,7 +20,7 @@ public final class ExternalHost implements ResourcePackHost {
     }
 
     @Override
-    public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(UUID player) {
+    public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(NetWorkUser user) {
         return CompletableFuture.completedFuture(List.of(this.downloadData));
     }
 

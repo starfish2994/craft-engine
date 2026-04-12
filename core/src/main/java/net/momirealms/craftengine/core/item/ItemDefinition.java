@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.item;
 
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
+import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -52,7 +53,7 @@ public interface ItemDefinition extends BuildableItem {
     void execute(Context context, EventTrigger trigger);
 
     @NotNull
-    List<ItemBehavior> behaviors();
+    ItemBehavior behavior();
 
     interface Builder {
         Builder isVanillaItem(boolean isVanillaItem);
@@ -72,8 +73,6 @@ public interface ItemDefinition extends BuildableItem {
         Builder clientBoundProcessors(List<ItemProcessor> modifiers);
 
         Builder behavior(ItemBehavior behavior);
-
-        Builder behaviors(List<ItemBehavior> behaviors);
 
         Builder settings(ItemSettings settings);
 

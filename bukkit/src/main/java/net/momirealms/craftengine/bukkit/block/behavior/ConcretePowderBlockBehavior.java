@@ -29,9 +29,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.event.block.BlockFormEvent;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.Callable;
-
-public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
+public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior implements BukkitFallableBlock {
     public static final BlockBehaviorFactory<ConcretePowderBlockBehavior> FACTORY = new Factory();
     public final LazyReference<@Nullable ImmutableBlockState> targetBlock;
 
@@ -77,7 +75,7 @@ public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior {
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object level = args[updateShape$level];
         Object pos = args[updateShape$blockPos];
         if (touchesLiquid(level, pos)) {

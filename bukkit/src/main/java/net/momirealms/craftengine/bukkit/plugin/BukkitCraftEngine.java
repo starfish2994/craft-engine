@@ -324,6 +324,9 @@ public final class BukkitCraftEngine extends CraftEngine {
         if (VersionHelper.isLeaves()) {
             patches.add("leaves");
         }
+        if (VersionHelper.isCanvas()) {
+            patches.add("canvas");
+        }
         return patches;
     }
 

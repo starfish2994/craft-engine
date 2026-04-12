@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
@@ -125,7 +126,9 @@ public final class BukkitGuiManager implements GuiManager, Listener {
         if (!(event.getPlayer() instanceof Player player)) return;
         InventoryHolder holder = inventory.getHolder(false);
         if (holder instanceof WorldlyContainerHolder furnitureInventoryHolder) {
-            furnitureInventoryHolder.onClose(BukkitAdaptor.adapt(player));
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+            if (serverPlayer == null) return;
+            furnitureInventoryHolder.onClose(serverPlayer);
         }
     }
 
@@ -136,7 +139,9 @@ public final class BukkitGuiManager implements GuiManager, Listener {
         if (!InventoryUtils.isCustomContainer(inventory)) return;
         InventoryHolder holder = inventory.getHolder(false);
         if (holder instanceof WorldlyContainerHolder furnitureInventoryHolder) {
-            furnitureInventoryHolder.onClose(BukkitAdaptor.adapt(player));
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+            if (serverPlayer == null) return;
+            furnitureInventoryHolder.onClose(serverPlayer);
         }
     }
 

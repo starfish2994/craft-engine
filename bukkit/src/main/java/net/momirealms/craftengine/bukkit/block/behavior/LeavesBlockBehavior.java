@@ -27,7 +27,6 @@ import org.bukkit.World;
 import org.bukkit.event.block.LeavesDecayEvent;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 public final class LeavesBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<LeavesBlockBehavior> FACTORY = new Factory();
@@ -59,7 +58,7 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object world = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
         Object neighborState = args[updateShape$neighborState];
@@ -75,7 +74,7 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void tick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void tick(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         Object level = args[1];
         Object blockPos = args[2];
@@ -94,7 +93,7 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void randomTick(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         Object level = args[1];
         Object blockPos = args[2];

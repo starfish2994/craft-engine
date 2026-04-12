@@ -2,7 +2,12 @@ package net.momirealms.craftengine.bukkit.item;
 
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.*;
+import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemDefinition;
+import net.momirealms.craftengine.core.item.component.DataComponentIds;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
+import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.processor.ArgumentsProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -79,7 +84,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
 
         // 先尝试恢复client-bound-material
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         if (optionalCustomItem.isPresent()) {
             BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
             if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem())) {
@@ -89,7 +94,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
 
         // 获取custom data
-        Tag customData = wrapped.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA);
+        Tag customData = wrapped.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA);
         if (customData instanceof CompoundTag compoundTag) {
             CompoundTag networkData = compoundTag.getCompound(NETWORK_ITEM_TAG);
             if (networkData != null) {
@@ -107,7 +112,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
                 // 如果清空了，则直接移除这个组件
                 if (compoundTag.isEmpty()) wrapped.resetComponent(DataComponentTypes.CUSTOM_DATA);
                 // 否则设置为新的
-                else wrapped.setNBTComponent(DataComponentTypes.CUSTOM_DATA, compoundTag);
+                else wrapped.setSparrowTagComponent(DataComponentTypes.CUSTOM_DATA, compoundTag);
             }
         }
 
@@ -163,7 +168,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // todo 处理book
 
         // 不是自定义物品或修改过的原版物品
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         if (optionalCustomItem.isEmpty()) {
             if (!Config.interceptItem()) {
                 return forceReturn ? Optional.of(wrapped) : Optional.empty();
@@ -187,7 +192,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
         }
         // 获取custom data
-        CompoundTag customData = Optional.ofNullable(wrapped.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA))
+        CompoundTag customData = Optional.ofNullable(wrapped.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA))
                 .map(CompoundTag.class::cast)
                 .orElseGet(CompoundTag::new);
         CompoundTag arguments = customData.getCompound(ArgumentsProcessor.ARGUMENTS_TAG);
@@ -229,7 +234,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {
             customData.put(NETWORK_ITEM_TAG, tag);
-            wrapped.setNBTComponent(DataComponentTypes.CUSTOM_DATA, customData);
+            wrapped.setSparrowTagComponent(DataComponentTypes.CUSTOM_DATA, customData);
             forceReturn = true;
         }
         return forceReturn ? Optional.of(wrapped) : Optional.empty();
@@ -292,11 +297,11 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
     }
 
     public static boolean processModernItemName(Item item, Supplier<CompoundTag> tag, Context context) {
-        Tag nameTag = item.getSparrowNBTComponent(DataComponentTypes.ITEM_NAME);
+        Tag nameTag = item.getComponentAsSparrowTag(DataComponentTypes.ITEM_NAME);
         if (nameTag == null) return false;
         Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(nameTag);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(DataComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
+            item.setSparrowTagComponent(DataComponentKeys.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
             tag.get().put(DataComponentIds.ITEM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
@@ -304,11 +309,11 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
     }
 
     public static boolean processModernCustomName(Item item, Supplier<CompoundTag> tag, Context context) {
-        Tag nameTag = item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_NAME);
+        Tag nameTag = item.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_NAME);
         if (nameTag == null) return false;
         Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(nameTag);
         if (!tokens.isEmpty()) {
-            item.setNBTComponent(DataComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
+            item.setSparrowTagComponent(DataComponentKeys.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.replaceText(AdventureHelper.nbtToComponent(nameTag), tokens, context)));
             tag.get().put(DataComponentIds.CUSTOM_NAME, NetworkItemHandler.pack(Operation.ADD, nameTag));
             return true;
         }
@@ -316,7 +321,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
     }
 
     public static boolean processModernLore(Item item, Supplier<CompoundTag> tagSupplier, Context context) {
-        Tag loreTag = item.getSparrowNBTComponent(DataComponentTypes.LORE);
+        Tag loreTag = item.getComponentAsSparrowTag(DataComponentTypes.LORE);
         boolean changed = false;
         if (!(loreTag instanceof ListTag listTag)) {
             return false;
@@ -332,7 +337,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             }
         }
         if (changed) {
-            item.setNBTComponent(DataComponentKeys.LORE, newLore);
+            item.setSparrowTagComponent(DataComponentKeys.LORE, newLore);
             tagSupplier.get().put(DataComponentIds.LORE, NetworkItemHandler.pack(Operation.ADD, listTag));
             return true;
         }
@@ -367,11 +372,11 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
                     this.globalChanged = true;
             }
             if (this.globalChanged) {
-                CompoundTag customData = Optional.ofNullable(this.item.getSparrowNBTComponent(DataComponentTypes.CUSTOM_DATA))
+                CompoundTag customData = Optional.ofNullable(this.item.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA))
                         .map(CompoundTag.class::cast)
                         .orElseGet(CompoundTag::new);
                 customData.put(NETWORK_ITEM_TAG, getOrCreateTag());
-                this.item.setNBTComponent(DataComponentKeys.CUSTOM_DATA, customData);
+                this.item.setSparrowTagComponent(DataComponentKeys.CUSTOM_DATA, customData);
                 return Optional.of(this.item);
             } else if (this.forceReturn) {
                 return Optional.of(this.item);

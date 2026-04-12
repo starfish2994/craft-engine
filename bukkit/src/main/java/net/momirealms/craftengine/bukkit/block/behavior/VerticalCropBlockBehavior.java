@@ -17,7 +17,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<VerticalCropBlockBehavior> FACTORY = new Factory();
@@ -39,7 +38,7 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void randomTick(Object thisBlock, Object[] args) {
         Object blockState = args[0];
         Object level = args[1];
         Object blockPos = args[2];

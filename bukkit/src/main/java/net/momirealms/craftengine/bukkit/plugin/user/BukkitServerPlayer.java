@@ -28,13 +28,15 @@ import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
 import net.momirealms.craftengine.core.entity.culling.EntityCulling;
 import net.momirealms.craftengine.core.entity.data.EntityData;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureHitData;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureLightData;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
+import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureHitData;
 import net.momirealms.craftengine.core.entity.player.GameMode;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -64,7 +66,9 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerGameModeProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.network.ServerConfigurationPacketListenerImplProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerGamePacketListenerImplProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerResourcePackConfigurationTaskProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.thread.BlockableEventLoopProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
@@ -127,8 +131,8 @@ public class BukkitServerPlayer extends Player {
     private PropertyMap propertyMap;
     private boolean isNameVerified;
     private boolean isUUIDVerified;
-    private ConnectionState decoderState; // inbound(decode|c2s)
-    private ConnectionState encoderState; // outbound(encode|s2c)
+    private ConnectionState decoderState = ConnectionState.HANDSHAKING; // inbound(decode|c2s)
+    private ConnectionState encoderState = ConnectionState.HANDSHAKING; // outbound(encode|s2c)
     private boolean shouldProcessFinishConfiguration = true;
     private final Set<UUID> resourcePackUUID = Collections.synchronizedSet(new HashSet<>());
     // some references
@@ -180,8 +184,8 @@ public class BukkitServerPlayer extends Player {
     // 客户端选择的语言
     private Locale clientLocale;
     // 跟踪到的方块实体渲染器
-    private final Map<BlockPos, CullableHolder> trackedBlockEntityRenderers = new ConcurrentHashMap<>();
-    private final Map<Integer, CullableHolder> trackedEntities = new ConcurrentHashMap<>();
+    private Map<BlockPos, CullableHolder> trackedBlockEntityRenderers;
+    private Map<Integer, CullableHolder> trackedEntities;
     private final EntityCulling culling;
     private Vec3d firstPersonCameraVec3;
     private Vec3d thirdPersonCameraVec3;
@@ -209,15 +213,13 @@ public class BukkitServerPlayer extends Player {
     private int preventBreakTick;
     // 用于辨别是否在范围挖掘
     private boolean isRangeMining;
-    // 家具击打记录
-    private final FurnitureHitData furnitureHitData = new FurnitureHitData();
     // 缓存的已接收的地图数据，为了防止动态物品展示框渲染器在渲染地图物品的时候重复发送地图数据导致服务器带宽消耗过大
-    private final Cache<Object, Boolean> receivedMapData = CacheBuilder.newBuilder()
-            .weakKeys()
-            .expireAfterAccess(30, TimeUnit.MINUTES)
-            .concurrencyLevel(4)
-            .build();
-    private final Set<UniqueKey> obtainedItems = new HashSet<>();
+    private Cache<Object, Boolean> receivedMapData;
+    private Set<UniqueKey> obtainedItems;
+    // 家具击打记录
+    private FurnitureHitData furnitureHitData;
+    // 缓存可见的家具光源数据
+    private FurnitureLightData furnitureLightData;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -241,6 +243,7 @@ public class BukkitServerPlayer extends Player {
         this.isUUIDVerified = true;
         this.name = player.getName();
         this.isNameVerified = true;
+        this.initPlayStageFields();
         byte[] bytes = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(CooldownData.COOLDOWN_KEY), PersistentDataType.BYTE_ARRAY);
         String locale = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(SELECTED_LOCALE_KEY), PersistentDataType.STRING);
         Double scale = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(ENTITY_CULLING_DISTANCE_SCALE), PersistentDataType.DOUBLE);
@@ -249,8 +252,6 @@ public class BukkitServerPlayer extends Player {
         this.enableFurnitureDebug = Optional.ofNullable(player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(ENABLE_FURNITURE_DEBUG), PersistentDataType.BOOLEAN)).orElse(false);
         this.culling.setDistanceScale(Optional.ofNullable(scale).orElse(1.0));
         this.selectedLocale = TranslationManager.parseLocale(locale);
-        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
-        this.entityTypeView = new ConcurrentHashMap<>(256);
         this.eyeLocation = getEyePos();
         try {
             this.cooldownData = CooldownData.fromBytes(bytes);
@@ -264,6 +265,21 @@ public class BukkitServerPlayer extends Player {
                 this.obtainedItems.add(UniqueKey.create(BukkitItemManager.instance().wrap(item).id()));
             }
         }
+    }
+
+    private void initPlayStageFields() {
+        this.trackedBlockEntityRenderers = new ConcurrentHashMap<>(64);
+        this.trackedEntities = new ConcurrentHashMap<>(64);
+        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
+        this.entityTypeView = new ConcurrentHashMap<>(256);
+        this.obtainedItems = new HashSet<>(32);
+        this.furnitureHitData = new FurnitureHitData();
+        this.furnitureLightData = new FurnitureLightData();
+        this.receivedMapData = CacheBuilder.newBuilder()
+                .weakKeys()
+                .expireAfterAccess(30, TimeUnit.MINUTES)
+                .concurrencyLevel(4)
+                .build();
     }
 
     @Override
@@ -1696,6 +1712,11 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
+    public FurnitureLightData furnitureLightData() {
+        return this.furnitureLightData;
+    }
+
+    @Override
     public void playParticle(Key particleId, double x, double y, double z) {
         Particle particle = Registry.PARTICLE_TYPE.get(KeyUtils.toNamespacedKey(particleId));
         if (particle != null) {
@@ -1754,5 +1775,28 @@ public class BukkitServerPlayer extends Player {
 
     public Set<UniqueKey> obtainedItems() {
         return this.obtainedItems;
+    }
+
+    @Override
+    public void addResourcePackTasks(List<ResourcePackDownloadData> dataList) {
+        if (dataList.isEmpty()) return;
+        if (VersionHelper.isOrAbove1_20_2()) {
+            ChannelHandler connection = connection();
+            if (connection == null) return;
+            Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(connection);
+            if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return;
+            Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
+            if (VersionHelper.isOrAbove1_20_3()) {
+                for (ResourcePackDownloadData data : dataList) {
+                    tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+                }
+            } else {
+                ResourcePackDownloadData data = dataList.getFirst();
+                tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+            }
+        } else {
+            ResourcePackDownloadData data = dataList.getFirst();
+            sendPacket(ResourcePackUtils.createPacket(data.uuid(), data.url(), data.sha1()), true);
+        }
     }
 }

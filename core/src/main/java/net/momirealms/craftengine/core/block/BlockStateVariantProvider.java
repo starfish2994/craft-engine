@@ -50,7 +50,7 @@ public final class BlockStateVariantProvider {
             for (Pair<Property<?>, Comparable<?>> entry : entries) {
                 reference2ObjectArrayMap.put(entry.left(), entry.right());
             }
-            ImmutableBlockState state = factory.create(owner, reference2ObjectArrayMap);
+            ImmutableBlockState state = factory.create(owner, this, reference2ObjectArrayMap);
             map.put(reference2ObjectArrayMap, state);
             list.add(state);
         });
@@ -83,7 +83,7 @@ public final class BlockStateVariantProvider {
     }
 
     public interface Factory<O, S> {
-        S create(O owner, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap);
+        S create(O owner, BlockStateVariantProvider variantProvider, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertyMap);
     }
 
     @NotNull

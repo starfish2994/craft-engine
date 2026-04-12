@@ -9,19 +9,20 @@ import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 
 public final class FurniturePacketHandler implements EntityPacketHandler {
-    private final int entityId;
-    private final FurnitureSnapshotState snapshotState;
+    public final Furniture furniture;
+    public final FurnitureSnapshotState snapshotState;
 
     public FurniturePacketHandler(Furniture furniture) {
-        this.entityId = furniture.entityId();
+        this.furniture = furniture;
         this.snapshotState = furniture.snapshotState();
     }
 
     @Override
     public boolean handleEntitiesRemove(NetWorkUser user, IntList entityIds) {
         Player player = (Player) user;
-        player.removeTrackedEntity(this.entityId);
+        player.removeTrackedEntity(this.furniture.entityId());
         this.snapshotState.hide(player);
+        this.furniture.controller.onAsyncPlayerUntrack(player, this.snapshotState);
         return true;
     }
 

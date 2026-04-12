@@ -51,4 +51,10 @@ public interface ItemEntityProxy {
 
     @MethodInvoker(name = "setDefaultPickUpDelay")
     void setDefaultPickUpDelay(Object target);
+
+    @MethodInvoker(name = "getItem")
+    Object getItem(Object target);
+
+    @MethodInvoker(name = "setItem")
+    void setItem(Object target, @Type(clazz = ItemStackProxy.class) Object item);
 }

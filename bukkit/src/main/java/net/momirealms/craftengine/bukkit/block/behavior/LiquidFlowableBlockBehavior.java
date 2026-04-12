@@ -3,18 +3,16 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.PlaceLiquidBlockBehavior;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.WorldGenLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
-import java.util.concurrent.Callable;
-
-public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior implements PlaceLiquidBlockBehavior {
+public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<LiquidFlowableBlockBehavior> FACTORY = new Factory();
 
     private LiquidFlowableBlockBehavior(BlockDefinition blockDefinition) {
@@ -22,12 +20,12 @@ public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior imple
     }
 
     @Override
-    public boolean canPlaceLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean canPlaceLiquid(Object thisBlock, Object[] args) {
         return true;
     }
 
     @Override
-    public boolean placeLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean placeLiquid(Object thisBlock, Object[] args) {
         Object level = args[0];
         Object pos = args[1];
         Object blockState = args[2];
@@ -36,7 +34,9 @@ public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior imple
         if (fluidType == FluidsProxy.LAVA || fluidType == FluidsProxy.FLOWING_LAVA) {
             LevelAccessorProxy.INSTANCE.levelEvent(level, WorldEvents.LAVA_CONVERTS_BLOCK, pos, 0);
         } else {
-            BlockProxy.INSTANCE.dropResources(blockState, level, pos);
+            if (!WorldGenLevelProxy.CLASS.isInstance(level)) {
+                BlockProxy.INSTANCE.dropResources(blockState, level, pos);
+            }
         }
         LevelWriterProxy.INSTANCE.setBlock(level, pos, FluidStateProxy.INSTANCE.createLegacyBlock(fluidState), UpdateFlags.UPDATE_ALL);
         return true;

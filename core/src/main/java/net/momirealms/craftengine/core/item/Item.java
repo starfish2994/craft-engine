@@ -6,12 +6,14 @@ import net.momirealms.craftengine.core.attribute.AttributeModifier;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
-import net.momirealms.craftengine.core.item.data.Enchantment;
-import net.momirealms.craftengine.core.item.data.FireworkExplosion;
-import net.momirealms.craftengine.core.item.data.JukeboxPlayable;
-import net.momirealms.craftengine.core.item.data.Trim;
+import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
+import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
+import net.momirealms.craftengine.core.item.component.value.Trim;
+import net.momirealms.craftengine.core.item.customdata.CustomDataSerializer;
+import net.momirealms.craftengine.core.item.customdata.CustomDataSerializers;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
-import net.momirealms.craftengine.core.item.setting.EquipmentData;
+import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.Tag;
@@ -28,7 +30,6 @@ import java.util.Optional;
  * damage, display name, lore, enchantments, and tags.
  */
 public interface Item {
-
     Object minecraftItem();
 
     default Object platformItem() {
@@ -39,9 +40,9 @@ public interface Item {
 
     boolean isEmpty();
 
-    Optional<ItemDefinition> getCustomItem();
+    Optional<ItemDefinition> getDefinition();
 
-    Optional<List<ItemBehavior>> getItemBehavior();
+    Optional<ItemBehavior> getBehavior();
 
     boolean isCustomItem();
 
@@ -85,7 +86,6 @@ public interface Item {
 
     Optional<Map<String, String>> blockState();
 
-    // todo 考虑部分版本的show in tooltip保留
     Item dyedColor(Color data);
 
     Optional<Color> dyedColor();
@@ -170,13 +170,46 @@ public interface Item {
 
     Item itemFlags(List<String> flags);
 
-    Object getJavaTag(Object... path);
+    Tag getSparrowTag(Object... path);
 
-    Tag getTag(Object... path);
+    Object getMinecraftTag(Object... path);
 
-    Object getExactTag(Object... path);
+    JsonElement getTagAsJson(Object... path);
+
+    Object getTagAsJava(Object... path);
 
     Item setTag(Object value, Object... path);
+
+    Item setSparrowTag(Tag value, Object... path);
+
+    Item setJavaTag(Object value, Object... path);
+
+    Item setMinecraftTag(Object value, Object... path);
+
+    Item setJsonTag(JsonElement value, Object... path);
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    default void setCustomData(Object value, Object... path) {
+        CustomDataSerializer serializer = CustomDataSerializers.getSerializer(value.getClass());
+        if (serializer == null) {
+            throw new IllegalArgumentException("Custom data serializer not supported: " + value.getClass());
+        }
+        Tag tag = serializer.serialize(value);
+        setSparrowTag(tag, path);
+    }
+
+    @Nullable
+    default <T> T getCustomData(Class<T> clazz, Object... path) {
+        CustomDataSerializer<T> serializer = CustomDataSerializers.getSerializer(clazz);
+        if (serializer == null) {
+            throw new IllegalArgumentException("Custom data serializer not supported: " + clazz);
+        }
+        Tag sparrowTag = getSparrowTag(path);
+        if (sparrowTag == null) {
+            return null;
+        }
+        return serializer.deserialize(sparrowTag);
+    }
 
     boolean hasTag(Object... path);
 
@@ -188,25 +221,27 @@ public interface Item {
 
     void removeComponent(Object type);
 
-    void setExactComponent(Object type, Object value);
-
     Object getExactComponent(Object type);
 
-    Object getJavaComponent(Object type);
+    Object getComponentAsJava(Object type);
 
-    JsonElement getJsonComponent(Object type);
+    JsonElement getComponentAsJson(Object type);
 
-    Tag getSparrowNBTComponent(Object type);
+    Tag getComponentAsSparrowTag(Object type);
 
-    Object getNBTComponent(Object type);
+    Object getComponentAsMinecraftTag(Object type);
 
     void setComponent(Object type, Object value);
+
+    void setExactComponent(Object type, Object value);
 
     void setJavaComponent(Object type, Object value);
 
     void setJsonComponent(Object type, JsonElement value);
 
-    void setNBTComponent(Object type, Tag value);
+    void setSparrowTagComponent(Object type, Tag value);
+
+    void setMinecraftTagComponent(Object type, Object value);
 
     void resetComponent(Object type);
 

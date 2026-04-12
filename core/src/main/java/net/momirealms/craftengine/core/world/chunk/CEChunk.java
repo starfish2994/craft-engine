@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.world.chunk;
 
+import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
@@ -10,12 +11,14 @@ import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
+import net.momirealms.craftengine.core.block.entity.render.element.ConstantBlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.tick.*;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.chunk.serialization.DefaultBlockEntityRendererSerializer;
@@ -33,7 +36,7 @@ public class CEChunk {
     public final ChunkPos chunkPos;
     protected final CESection[] sections;
     protected final WorldHeight worldHeightAccessor;
-    protected final Map<BlockPos, BlockEntity> blockEntities;  // 从区域线程上访问，安全
+    protected final ConcurrentLong2ReferenceChainedHashTable<BlockEntity> blockEntities;  // 从区域线程上访问，安全
     protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingSyncBlockEntitiesByPos; // 从区域线程上访问，安全
     protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingAsyncBlockEntitiesByPos; // 从区域线程上访问，安全
     protected final Map<BlockPos, ConstantBlockEntityRenderer> constantBlockEntityRenderers; // 会从区域线程上读写，netty线程上读取
@@ -51,7 +54,7 @@ public class CEChunk {
         this.chunkPos = chunkPos;
         this.worldHeightAccessor = world.worldHeight();
         this.sections = new CESection[this.worldHeightAccessor.getSectionsCount()];
-        this.blockEntities = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
+        this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
         this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         this.dynamicBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         this.tickingSyncBlockEntitiesByPos = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
@@ -78,14 +81,14 @@ public class CEChunk {
         }
         this.fillEmptySection();
         if (blockEntitiesTag != null) {
-            this.blockEntities = new Object2ObjectOpenHashMap<>(Math.max(blockEntitiesTag.size(), DEFAULT_MAP_SIZE), 0.5f);
+            this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
             List<BlockEntity> blockEntities = DefaultBlockEntitySerializer.deserialize(this, blockEntitiesTag);
             for (int i = 0, size = blockEntities.size(); i < size; i++) {
                 BlockEntity blockEntity = blockEntities.get(i);
                 this.setBlockEntity(blockEntity);
             }
         } else {
-            this.blockEntities = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
+            this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
         }
         if (blockEntityRenders != null) {
             this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(Math.max(blockEntityRenders.size(), DEFAULT_MAP_SIZE), 0.5f);
@@ -145,7 +148,21 @@ public class CEChunk {
     }
 
     public boolean hasConstantBlockEntityRenderer(BlockPos pos) {
-        return this.constantBlockEntityRenderers.containsKey(pos);
+        try {
+            this.renderLock.readLock().lock();
+            return this.constantBlockEntityRenderers.containsKey(pos);
+        } finally {
+            this.renderLock.readLock().unlock();
+        }
+    }
+
+    public ConstantBlockEntityRenderer getConstantBlockEntityRenderer(BlockPos pos) {
+        try {
+            this.renderLock.readLock().lock();
+            return this.constantBlockEntityRenderers.get(pos);
+        } finally {
+            this.renderLock.readLock().unlock();
+        }
     }
 
     public ConstantBlockEntityRenderer addConstantBlockEntityRenderer(BlockPos pos) {
@@ -156,24 +173,40 @@ public class CEChunk {
         return this.addConstantBlockEntityRenderer(pos, state, null);
     }
 
+    private static void updateBlockEntityVisibility(Player player, ConstantBlockEntityElement before, ConstantBlockEntityElement after) {
+        if (before.hasCondition() || after.hasCondition()) {
+            PlayerOptionalContext context = PlayerOptionalContext.ofImmutable(player);
+            boolean previousCanSee = before.canSee(context);
+            boolean afterCanSee = after.canSee(context);
+            if (previousCanSee && afterCanSee) {
+                after.update(player);
+            } else if (previousCanSee) {
+                after.hide(player);
+            } else if (afterCanSee) {
+                after.show(player);
+            }
+        } else {
+            after.update(player);
+        }
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     public ConstantBlockEntityRenderer addConstantBlockEntityRenderer(BlockPos pos, ImmutableBlockState state, @Nullable ConstantBlockEntityRenderer previous) {
-        BlockEntityElementConfig<? extends BlockEntityElement>[] renderers = state.constantRenderers();
+        BlockEntityElementConfig<? extends ConstantBlockEntityElement>[] renderers = state.constantRenderers();
         if (renderers != null && renderers.length > 0) {
-            BlockEntityElement[] elements = new BlockEntityElement[renderers.length];
+            ConstantBlockEntityElement[] elements = new ConstantBlockEntityElement[renderers.length];
             ConstantBlockEntityRenderer renderer = new ConstantBlockEntityRenderer(
                     elements,
                     Optional.ofNullable(state.cullingData())
                             .map(data -> new CullingData(data.aabb.move(pos), data.maxDistance, data.aabbExpansion, data.rayTracing))
                             .orElse(null)
             );
-            World wrappedWorld = this.world.world();
             List<Player> trackedBy = getTrackedBy();
             boolean hasTrackedBy = trackedBy != null && !trackedBy.isEmpty();
             // 处理旧到新的转换
             if (previous != null) {
                 // 由于entity-render的体量基本都很小，所以考虑一个特殊情况，即前后都是1个renderer，对此情况进行简化和优化
-                BlockEntityElement[] previousElements = previous.elements().clone();
+                ConstantBlockEntityElement[] previousElements = previous.elements().clone();
 
                 /*
                  *
@@ -181,11 +214,11 @@ public class CEChunk {
                  *
                  */
                 if (previousElements.length == 1 && renderers.length == 1) {
-                    BlockEntityElement previousElement = previousElements[0];
+                    ConstantBlockEntityElement previousElement = previousElements[0];
                     BlockEntityElementConfig<? extends BlockEntityElement> config = renderers[0];
                     outer: {
-                        if (config.elementClass().isInstance(previousElement)) {
-                            BlockEntityElement element = ((BlockEntityElementConfig) config).create(wrappedWorld, pos, previousElement);
+                        if (previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
+                            ConstantBlockEntityElement element = ((BlockEntityElementConfig) config).create(this, pos, previousElement);
                             if (element != null) {
                                 elements[0] = element;
                                 if (hasTrackedBy) {
@@ -194,7 +227,7 @@ public class CEChunk {
                                         if (Config.enableEntityCulling()) {
                                             CullableHolder holder = player.getTrackedBlockEntity(pos);
                                             if (holder == null || holder.isShown) {
-                                                element.update(player);
+                                                updateBlockEntityVisibility(player, previousElement, element);
                                             }
                                             if (holder != null) {
                                                 holder.cullable = renderer;
@@ -202,14 +235,14 @@ public class CEChunk {
                                                 player.addTrackedBlockEntity(pos, renderer);
                                             }
                                         } else {
-                                            element.update(player);
+                                            updateBlockEntityVisibility(player, previousElement, element);
                                         }
                                     }
                                 }
                                 break outer;
                             }
                         }
-                        BlockEntityElement element = config.create(wrappedWorld, pos);
+                        ConstantBlockEntityElement element = config.create(this, pos);
                         elements[0] = element;
                         if (hasTrackedBy) {
                             for (Player player : trackedBy) {
@@ -246,14 +279,14 @@ public class CEChunk {
                     }
 
                     outer: for (int i = 0; i < elements.length; i++) {
-                        BlockEntityElementConfig<? extends BlockEntityElement> config = renderers[i];
+                        BlockEntityElementConfig<? extends ConstantBlockEntityElement> config = renderers[i];
                         /*
                          * 严格可变换部分
                          */
                         for (int j = 0; j < previousElements.length; j++) {
-                            BlockEntityElement previousElement = previousElements[j];
-                            if (previousElement != null && config.elementClass().isInstance(previousElement)) {
-                                BlockEntityElement newElement = ((BlockEntityElementConfig) config).createExact(wrappedWorld, pos, previousElement);
+                            ConstantBlockEntityElement previousElement = previousElements[j];
+                            if (previousElement != null && previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
+                                ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).createExact(this, pos, previousElement);
                                 if (newElement != null) {
                                     previousElements[j] = null;
                                     elements[i] = newElement;
@@ -262,7 +295,7 @@ public class CEChunk {
                                             Player player = trackedBy.get(k);
                                             CullableHolder cullableObject = previousObjects[k];
                                             if (cullableObject == null || cullableObject.isShown) {
-                                                newElement.update(player);
+                                                updateBlockEntityVisibility(player, previousElement, newElement);
                                             }
                                         }
                                     }
@@ -274,9 +307,9 @@ public class CEChunk {
                          * 可变换部分
                          */
                         for (int j = 0; j < previousElements.length; j++) {
-                            BlockEntityElement previousElement = previousElements[j];
-                            if (previousElement != null && config.elementClass().isInstance(previousElement)) {
-                                BlockEntityElement newElement = ((BlockEntityElementConfig) config).create(wrappedWorld, pos, previousElement);
+                            ConstantBlockEntityElement previousElement = previousElements[j];
+                            if (previousElement != null && previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
+                                ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).create(this, pos, previousElement);
                                 if (newElement != null) {
                                     previousElements[j] = null;
                                     elements[i] = newElement;
@@ -285,7 +318,7 @@ public class CEChunk {
                                             Player player = trackedBy.get(k);
                                             CullableHolder cullableObject = previousObjects[k];
                                             if (cullableObject == null || cullableObject.isShown) {
-                                                newElement.update(player);
+                                                updateBlockEntityVisibility(player, previousElement, newElement);
                                             }
                                         }
                                     }
@@ -296,7 +329,7 @@ public class CEChunk {
                         /*
                          * 不可变换的直接生成
                          */
-                        BlockEntityElement newElement = config.create(wrappedWorld, pos);
+                        ConstantBlockEntityElement newElement = config.create(this, pos);
                         elements[i] = newElement;
                         if (hasTrackedBy) {
                             for (int k = 0; k < trackedBy.size(); k++) {
@@ -326,7 +359,9 @@ public class CEChunk {
                             if (previousHolder != null) {
                                 previousHolder.cullable = renderer;
                             } else {
-                                trackedBy.get(i).addTrackedBlockEntity(pos, renderer);
+                                if (Config.enableEntityCulling()) {
+                                    trackedBy.get(i).addTrackedBlockEntity(pos, renderer);
+                                }
                             }
                         }
                     }
@@ -338,7 +373,7 @@ public class CEChunk {
                  *
                  */
                 for (int i = 0; i < elements.length; i++) {
-                    elements[i] = renderers[i].create(wrappedWorld, pos);
+                    elements[i] = renderers[i].create(this, pos);
                 }
                 if (hasTrackedBy) {
                     for (Player player : trackedBy) {
@@ -411,7 +446,7 @@ public class CEChunk {
     }
 
     public void removeBlockEntity(BlockPos blockPos) {
-        BlockEntity removedBlockEntity = this.blockEntities.remove(blockPos);
+        BlockEntity removedBlockEntity = this.blockEntities.remove(blockPos.asLong());
         if (removedBlockEntity != null) {
             removedBlockEntity.setValid(false);
         }
@@ -430,8 +465,13 @@ public class CEChunk {
             this.replaceOrCreateTickingBlockEntity(blockEntity);
             this.createDynamicBlockEntityRenderer(blockEntity);
         }
-        for (ConstantBlockEntityRenderer renderer : this.constantBlockEntityRenderers.values()) {
-            renderer.activate();
+        try {
+            this.renderLock.readLock().lock();
+            for (ConstantBlockEntityRenderer renderer : this.constantBlockEntityRenderers.values()) {
+                renderer.activate();
+            }
+        } finally {
+            this.renderLock.readLock().unlock();
         }
         this.activated = true;
     }
@@ -439,11 +479,22 @@ public class CEChunk {
     public void deactivateAllBlockEntities() {
         if (!this.activated) return;
         this.blockEntities.values().forEach(e -> e.setValid(false));
+
         if (!CraftEngine.instance().platform().isStopping()) {
-            this.constantBlockEntityRenderers.values().forEach(ConstantBlockEntityRenderer::deactivate);
-            this.dynamicBlockEntityRenderers.values().forEach(BlockEntityRenderer::deactivate);
+            try {
+                this.renderLock.readLock().lock();
+                this.constantBlockEntityRenderers.values().forEach(ConstantBlockEntityRenderer::deactivate);
+                this.dynamicBlockEntityRenderers.values().forEach(BlockEntityRenderer::deactivate);
+            } finally {
+                this.renderLock.readLock().unlock();
+            }
         }
-        this.dynamicBlockEntityRenderers.clear();
+        try {
+            this.renderLock.writeLock().lock();
+            this.dynamicBlockEntityRenderers.clear();
+        } finally {
+            this.renderLock.writeLock().unlock();
+        }
         this.tickingSyncBlockEntitiesByPos.values().forEach((ticker) -> ticker.setTicker(DummyTickingBlockEntity.INSTANCE));
         this.tickingSyncBlockEntitiesByPos.clear();
         this.tickingAsyncBlockEntitiesByPos.values().forEach((ticker) -> ticker.setTicker(DummyTickingBlockEntity.INSTANCE));
@@ -547,7 +598,7 @@ public class CEChunk {
         // 设置方块实体所在世界
         blockEntity.setWorld(this.world);
         blockEntity.setValid(true);
-        BlockEntity previous = this.blockEntities.put(pos, blockEntity);
+        BlockEntity previous = this.blockEntities.put(pos.asLong(), blockEntity);
         // 标记旧的方块实体无效
         if (previous != null && previous != blockEntity) {
             previous.setValid(false);
@@ -556,7 +607,7 @@ public class CEChunk {
 
     @Nullable
     public BlockEntity getBlockEntity(BlockPos pos, boolean create) {
-        BlockEntity blockEntity = this.blockEntities.get(pos);
+        BlockEntity blockEntity = this.blockEntities.get(pos.asLong());
         if (blockEntity == null) {
             if (create) {
                 blockEntity = createBlockEntity(pos);
@@ -566,7 +617,7 @@ public class CEChunk {
             }
         } else {
             if (!blockEntity.isValid()) {
-                this.blockEntities.remove(pos);
+                this.blockEntities.remove(pos.asLong());
                 return null;
             }
         }

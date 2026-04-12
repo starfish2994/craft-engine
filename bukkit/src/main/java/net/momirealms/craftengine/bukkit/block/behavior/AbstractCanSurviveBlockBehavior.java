@@ -21,7 +21,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockB
 import org.bukkit.Bukkit;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavior {
     protected final int delay;
@@ -32,12 +31,12 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
     }
 
     @Override
-    public void tick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void tick(Object thisBlock, Object[] args) {
         if (this.delay == 0) return;
         Object blockState = args[0];
         Object level = args[1];
         Object blockPos = args[2];
-        if (!canSurvive(thisBlock, args, () -> true)) {
+        if (!canSurvive(thisBlock, args)) {
             BlockStateUtils.getOptionalCustomBlockState(blockState).ifPresent(customState -> {
                 if (!customState.isEmpty() && customState.owner().value() == this.blockDefinition) {
                     net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(level));
@@ -50,7 +49,7 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean canSurvive(Object thisBlock, Object[] args) {
         Object state = args[0];
         Object world = args[1];
         Object pos = args[2];
@@ -58,14 +57,14 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
     }
 
     @Override
-    public void onPlace(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void onPlace(Object thisBlock, Object[] args) {
         Object world = args[1];
         Object blockPos = args[2];
         LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 2);
     }
 
     @Override
-    public Object updateShape(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object updateShape(Object thisBlock, Object[] args) {
         Object level = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
         Object state = args[0];
@@ -84,7 +83,7 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
         return state;
     }
 
-    protected abstract boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) throws Exception;
+    protected abstract boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos);
 
     protected static TagsAndState readTagsAndState(ConfigSection section, String prefix) {
         List<Object> mcTags = section.getList(new String[] {prefix + "_block_tags", prefix + "-block-tags"}, v -> BlockTags.getOrCreate(v.getAsIdentifier()));

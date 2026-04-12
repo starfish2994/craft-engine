@@ -5,7 +5,7 @@ import kr.toxicity.model.api.bukkit.platform.BukkitAdapter;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.tracker.DummyTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
-import net.momirealms.craftengine.bukkit.entity.furniture.element.AbstractFurnitureElement;
+import net.momirealms.craftengine.bukkit.entity.furniture.element.AbstractConditionalFurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -16,7 +16,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
 
-public final class BetterModelFurnitureElement extends AbstractFurnitureElement {
+public final class BetterModelFurnitureElement extends AbstractConditionalFurnitureElement {
     public final Furniture furniture;
     public final BetterModelFurnitureElementConfig config;
     public final Location location;

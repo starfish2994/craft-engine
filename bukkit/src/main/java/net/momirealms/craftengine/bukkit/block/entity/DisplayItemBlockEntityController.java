@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.world.TintSource;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -25,7 +26,7 @@ import org.joml.Vector3f;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public final class DisplayItemBlockEntityController extends BlockEntityController {
+public class DisplayItemBlockEntityController extends BlockEntityController {
     private static final String DEFAULT_DATA_KEY = "craftengine:display_item";
     private final DisplayItemBlockBehavior behavior;
     private final DynamicDisplayItemBlockEntityElement element;
@@ -141,7 +142,7 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
     public WorldPosition calculateDisplayItemPosition(ImmutableBlockState blockState) {
         float angleDeg;
         Direction direction = blockState.get(behavior.directionProperty, Direction.SOUTH);
-        switch (direction) {
+        switch (direction.opposite()) {
             case EAST -> angleDeg = 90f;
             case SOUTH -> angleDeg = 180f;
             case WEST -> angleDeg = 270f;
@@ -159,5 +160,30 @@ public final class DisplayItemBlockEntityController extends BlockEntityControlle
                 this.blockCenter.y + this.behavior.relativePosition.y,
                 this.blockCenter.z + rotatedZ
         );
+    }
+
+    public static class Tintable extends DisplayItemBlockEntityController implements TintSource {
+
+        public Tintable(BlockEntity blockEntity, DisplayItemBlockBehavior behavior) {
+            super(blockEntity, behavior);
+        }
+
+        @Override
+        public Item tintSource() {
+            return super.displayItem();
+        }
+
+        @Override
+        public Item takeDisplayItem() {
+            Item item = super.takeDisplayItem();
+            super.blockEntity.updateConstantRenderers();
+            return item;
+        }
+
+        @Override
+        public void putDisplayItem(Item inputItem) {
+            super.putDisplayItem(inputItem);
+            super.blockEntity.updateConstantRenderers();
+        }
     }
 }

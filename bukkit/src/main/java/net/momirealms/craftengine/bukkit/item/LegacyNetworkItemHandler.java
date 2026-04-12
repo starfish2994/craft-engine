@@ -4,8 +4,8 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.NetworkItemBuildContext;
-import net.momirealms.craftengine.core.item.NetworkItemHandler;
+import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
+import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.processor.ArgumentsProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -45,7 +45,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         boolean forceReturn = false;
 
         // 处理收纳袋
-        Object bundleContents = wrapped.getExactTag("Items");
+        Object bundleContents = wrapped.getMinecraftTag("Items");
         if (bundleContents != null) {
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
@@ -70,7 +70,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         }
 
         // 处理container
-        Object containerContents = wrapped.getExactTag("BlockEntityTag");
+        Object containerContents = wrapped.getMinecraftTag("BlockEntityTag");
         if (containerContents != null) {
             Object itemTags = CompoundTagProxy.INSTANCE.get(containerContents, "Items");
             if (itemTags != null) {
@@ -101,7 +101,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
             }
         }
 
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         if (optionalCustomItem.isPresent()) {
             BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
             if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem())) {
@@ -110,7 +110,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
             }
         }
 
-        CompoundTag networkData = (CompoundTag) wrapped.getTag(NETWORK_ITEM_TAG);
+        CompoundTag networkData = (CompoundTag) wrapped.getSparrowTag(NETWORK_ITEM_TAG);
         if (networkData != null) {
             forceReturn = true;
             // 移除tag
@@ -131,7 +131,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         boolean forceReturn = false;
 
         // 处理收纳袋
-        Object bundleContents = wrapped.getExactTag("Items");
+        Object bundleContents = wrapped.getMinecraftTag("Items");
         if (bundleContents != null) {
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
@@ -156,7 +156,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         }
 
         // 处理container
-        Object containerContents = wrapped.getExactTag("BlockEntityTag");
+        Object containerContents = wrapped.getMinecraftTag("BlockEntityTag");
         if (containerContents != null) {
             Object itemTags = CompoundTagProxy.INSTANCE.get(containerContents, "Items");
             if (itemTags != null) {
@@ -189,7 +189,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
 
         // todo 处理book
 
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getCustomItem();
+        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         // 不是自定义物品或修改过的原版物品
         if (optionalCustomItem.isEmpty()) {
             if (!Config.interceptItem()) {
@@ -216,7 +216,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         // 应用client-bound-data
         CompoundTag tag = new CompoundTag();
         // 创建context
-        Tag argumentTag = wrapped.getTag(ArgumentsProcessor.ARGUMENTS_TAG);
+        Tag argumentTag = wrapped.getSparrowTag(ArgumentsProcessor.ARGUMENTS_TAG);
         NetworkItemBuildContext context;
         if (argumentTag instanceof CompoundTag arguments) {
             ContextHolder.Builder builder = ContextHolder.builder();

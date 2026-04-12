@@ -8,7 +8,7 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -31,7 +31,7 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
+public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implements EntityBlock {
     public static final BlockBehaviorFactory<DisplayItemBlockBehavior> FACTORY = new Factory();
     public final SoundData putSound;
     public final SoundData takeSound;
@@ -42,12 +42,14 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     private int controllerId;
     @Nullable
     public final String customDataKey;
+    public final boolean tintSource;
 
     public DisplayItemBlockBehavior(BlockDefinition blockDefinition,
                                     SoundData putSound,
                                     SoundData takeSound,
                                     boolean hasAnalogOutputSignal,
                                     Vector3f relativePosition,
+                                    boolean tintSource,
                                     @Nullable Property<Direction> directionProperty,
                                     @Nullable String customDataKey
     ) {
@@ -58,12 +60,17 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         this.relativePosition = relativePosition;
         this.directionProperty = directionProperty;
         this.customDataKey = customDataKey;
+        this.tintSource = tintSource;
     }
 
     @Override
-    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
-        this.controllerId = controllerId;
-        return new DisplayItemBlockEntityController(blockEntity, this);
+    public void initControllerId(int id) {
+        this.controllerId = id;
+    }
+
+    @Override
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
+        return this.tintSource ? new DisplayItemBlockEntityController.Tintable(blockEntity, this) : new DisplayItemBlockEntityController(blockEntity, this);
     }
 
     @Override
@@ -135,6 +142,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     private static class Factory implements BlockBehaviorFactory<DisplayItemBlockBehavior> {
         private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
         private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
 
         @Override
         public DisplayItemBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -156,6 +164,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                     takeSound,
                     section.getBoolean(HAS_SIGNAL, true),
                     position,
+                    section.getBoolean(TINT_SOURCE, false),
                     facing,
                     section.getString(DATA_KEY)
             );

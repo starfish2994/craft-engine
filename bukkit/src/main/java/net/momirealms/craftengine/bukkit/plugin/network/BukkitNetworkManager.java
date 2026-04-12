@@ -37,11 +37,11 @@ import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
+import net.momirealms.craftengine.bukkit.entity.furniture.behavior.GlowingFurnitureBehaviorTemplate;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManager;
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.item.behavior.FurnitureItemBehavior;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCommand;
@@ -61,9 +61,9 @@ import net.momirealms.craftengine.core.advancement.network.AdvancementProgress;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureHitData;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
+import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureHitData;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.seat.Seat;
@@ -71,6 +71,7 @@ import net.momirealms.craftengine.core.font.EmojiTextProcessResult;
 import net.momirealms.craftengine.core.font.FontManager;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
+import net.momirealms.craftengine.core.item.behavior.FurnitureItem;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipeHolder;
 import net.momirealms.craftengine.core.item.recipe.network.modern.RecipeBookEntry;
@@ -79,6 +80,7 @@ import net.momirealms.craftengine.core.item.recipe.network.modern.display.Recipe
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.pack.host.ResourcePackHost;
+import net.momirealms.craftengine.core.pack.host.ResourcePackResponseAction;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.*;
@@ -103,9 +105,12 @@ import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Palette;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
-import net.momirealms.craftengine.core.world.chunk.client.ClientSection;
-import net.momirealms.craftengine.core.world.chunk.client.PackedOcclusionStorage;
-import net.momirealms.craftengine.core.world.chunk.client.SingularOcclusionStorage;
+import net.momirealms.craftengine.core.world.chunk.client.light.LightSection;
+import net.momirealms.craftengine.core.world.chunk.client.light.PackedLightStorage;
+import net.momirealms.craftengine.core.world.chunk.client.light.UniformLightStorage;
+import net.momirealms.craftengine.core.world.chunk.client.occlusion.OccludingSection;
+import net.momirealms.craftengine.core.world.chunk.client.occlusion.PackedOcclusionStorage;
+import net.momirealms.craftengine.core.world.chunk.client.occlusion.UniformOcclusionStorage;
 import net.momirealms.craftengine.core.world.chunk.packet.BlockEntityData;
 import net.momirealms.craftengine.core.world.chunk.packet.MCSection;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
@@ -560,6 +565,11 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 this.packetIds.clientboundPlayerChatPacket(), "ClientboundPlayerChatPacket",
                 ConnectionState.PLAY, PacketFlow.CLIENTBOUND
         );
+        registerByteBufferPacketListener(
+                new CustomPayloadListener(),
+                this.packetIds.clientboundCustomPayloadPacket(), "ClientboundCustomPayloadPacket",
+                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
+        );
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -629,6 +639,12 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         Object settings = DedicatedServerProxy.INSTANCE.getSettings(MinecraftServerProxy.INSTANCE.getServer());
         Object properties = DedicatedServerSettingsProxy.INSTANCE.getProperties(settings);
         DedicatedServerPropertiesProxy.INSTANCE.setEnforceSecureProfile(properties, false);
+    }
+
+    private static int getLightBlockType(int blockStateId) {
+        if (blockStateId == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) return 1;
+        else if (blockStateId == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) return 2;
+        else return 0;
     }
 
     @Override
@@ -766,16 +782,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         } else {
             pipeline.addFirst(CONNECTION_HANDLER_NAME, new ServerChannelHandler());
         }
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Channel channel = getChannel(player);
-            NetWorkUser user = getUser(player);
-            if (user == null) {
-                user = new BukkitServerPlayer(plugin, channel);
-                ((BukkitServerPlayer) user).setPlayer(player);
-                injectChannel(channel, ConnectionState.PLAY);
-            }
-        }
     }
 
     private void uninjectServerChannel(Channel channel) {
@@ -815,7 +821,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         @Override
         public void channelRegistered(ChannelHandlerContext context) {
             try {
-                injectChannel(context.channel(), ConnectionState.HANDSHAKING);
+                injectChannel(context.channel());
             } catch (Throwable t) {
                 exceptionCaught(context, t);
             } finally {
@@ -834,13 +840,12 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
     }
 
-    public void injectChannel(Channel channel, ConnectionState state) {
+    public void injectChannel(Channel channel) {
         if (isFakeChannel(channel)) {
             return;
         }
 
         BukkitServerPlayer user = new BukkitServerPlayer(plugin, channel);
-        user.setConnectionState(state);
         if (channel.pipeline().get("splitter") == null) {
             channel.close();
             return;
@@ -1634,6 +1639,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (world != null) {
                 player.setClientSideWorld(BukkitAdaptor.adapt(world));
                 player.clearTrackedChunks();
+                player.furnitureLightData().clearLightData();
                 player.clearTrackedBlockEntities();
                 player.clearTrackedEntities();
             }
@@ -1785,7 +1791,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
         @Override
         public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            Object action = ServerboundResourcePackPacketProxy.INSTANCE.getAction(packet);
+            Enum<?> nmsAction = ServerboundResourcePackPacketProxy.INSTANCE.getAction(packet);
 
             if (VersionHelper.isOrAbove1_20_3()) {
                 UUID uuid = ServerboundResourcePackPacketProxy.INSTANCE.getId(packet);
@@ -1795,44 +1801,40 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 }
             }
 
-            if (action == null) {
+            if (nmsAction == null) {
                 user.kick(Component.text("Corrupted ResourcePackResponse Packet"));
                 return;
             }
 
-            // 检查是否是拒绝
-            if (Config.kickOnDeclined()) {
-                if (action == ServerboundResourcePackPacketProxy.ActionProxy.DECLINED || action == ServerboundResourcePackPacketProxy.ActionProxy.DISCARDED) {
-                    user.kick(Component.translatable("multiplayer.requiredTexturePrompt.disconnect"));
+            ResourcePackHost host = CraftEngine.instance().packManager().resourcePackHost();
+            host.response(user, ResourcePackResponseAction.byOrdinal(nmsAction.ordinal())).whenComplete((action, t) -> {
+                if (t != null) {
+                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.handle_response_failed", user.name()), t);
                     return;
                 }
-            }
-
-            // 检查是否失败
-            if (Config.kickOnFailedApply()) {
-                if (action == ServerboundResourcePackPacketProxy.ActionProxy.FAILED_DOWNLOAD
-                        || (VersionHelper.isOrAbove1_20_3() && action == ServerboundResourcePackPacketProxy.ActionProxy.INVALID_URL)) {
-                    user.kick(Component.translatable("multiplayer.requiredTexturePrompt.disconnect"));
-                    return;
-                }
-            }
-
-            boolean isTerminal = action != ServerboundResourcePackPacketProxy.ActionProxy.ACCEPTED && action != ServerboundResourcePackPacketProxy.ActionProxy.DOWNLOADED;
-            if (isTerminal && VersionHelper.isOrAbove1_20_2()) {
+                // 响应不是最终的或者没有配置阶段就不处理后续
+                if (action.intermediate() || !VersionHelper.isOrAbove1_20_2()) return;
                 event.setCancelled(true);
                 Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(user.connection());
-                if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return;
+                if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return; // 不是配置阶段不处理
+                Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
                 // 主线程上处理这个包
                 CraftEngine.instance().scheduler().executeSync(() -> {
                     try {
                         // 当客户端发出多次成功包的时候，finish会报错，我们忽略他
                         ServerCommonPacketListenerProxy.INSTANCE.handleResourcePackResponse(packetListener, packet);
-                        ServerConfigurationPacketListenerImplProxy.INSTANCE.finishCurrentTask(packetListener, ServerResourcePackConfigurationTaskProxy.TYPE);
+                        if (VersionHelper.isPaper() && VersionHelper.isOrAbove1_21_7()) { // paper在1.21.7+增加了判断不会主动结束任务
+                            ServerConfigurationPacketListenerImplProxy.INSTANCE.finishCurrentTask(packetListener, ServerResourcePackConfigurationTaskProxy.TYPE);
+                        }
                     } catch (Throwable e) {
                         Debugger.RESOURCE_PACK.warn(() -> "Cannot finish current task", e);
+                    } finally { // 无论如何如果全部资源包任务处理完成就加入并执行JoinWorldTask
+                        if (tasks.isEmpty()) {
+                            S2CFinishConfigurationListener.returnToWorld(tasks, packetListener);
+                        }
                     }
                 });
-            }
+            });
         }
     }
 
@@ -1877,8 +1879,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
     public static class S2CFinishConfigurationListener implements NMSPacketListener {
 
-        private void returnToWorld(Queue<Object> configurationTasks, Object packetListener) {
-            configurationTasks.add(JoinWorldTaskProxy.INSTANCE.newInstance());
+        private static void returnToWorld(Queue<Object> tasks, Object packetListener) {
+            tasks.add(JoinWorldTaskProxy.INSTANCE.newInstance());
             ServerConfigurationPacketListenerImplProxy.INSTANCE.startNextTask(packetListener);
         }
 
@@ -1924,30 +1926,30 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
             // 请求资源包
             ResourcePackHost host = CraftEngine.instance().packManager().resourcePackHost();
-            host.requestResourcePackDownloadLink(user.uuid()).whenComplete((dataList, t) -> {
-                Queue<Object> configurationTasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
+            host.requestResourcePackDownloadLink(user).whenComplete((dataList, t) -> {
+                Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
                 if (t != null) {
                     CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.get_url_failed", user.name()), t);
-                    returnToWorld(configurationTasks, packetListener);
+                    returnToWorld(tasks, packetListener);
                     return;
                 }
                 if (dataList.isEmpty()) {
-                    returnToWorld(configurationTasks, packetListener);
+                    returnToWorld(tasks, packetListener);
                     return;
                 }
                 // 向配置阶段连接的任务重加入资源包的任务
                 if (VersionHelper.isOrAbove1_20_3()) {
                     for (ResourcePackDownloadData data : dataList) {
-                        configurationTasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+                        tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
                         user.addResourcePackUUID(data.uuid());
                     }
                 } else { // 1.20.2 只支持一个服务器资源包
                     ResourcePackDownloadData data = dataList.getFirst();
-                    configurationTasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+                    tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
                     user.addResourcePackUUID(data.uuid());
                 }
-                // 最后再加入一个 JoinWorldTask 并开始资源包任务
-                returnToWorld(configurationTasks, packetListener);
+                // 直接开始资源包任务，JoinWorldTask任务在资源包响应中处理
+                ServerConfigurationPacketListenerImplProxy.INSTANCE.startNextTask(packetListener);
             });
         }
     }
@@ -2206,7 +2208,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         private final IntIdentityList blockList;
         private final boolean needsDowngrade;
         private final Predicate<Integer> occlusionPredicate;
-
         public LevelChunkWithLightListener(int[] blockStateMapper, int[] modBlockStateMapper, int blockRegistrySize, int biomeRegistrySize, Predicate<Integer> occlusionPredicate) {
             this.blockStateMapper = blockStateMapper;
             this.modBlockStateMapper = modBlockStateMapper;
@@ -2257,8 +2258,10 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             boolean hasChangedAnyBlock = false;
             boolean hasGlobalPalette = false;
 
-            // 创建客户端侧世界（只在开启实体情况下创建）
-            ClientSection[] clientSections = Config.entityCullingRayTracing() ? new ClientSection[count] : null;
+            // 创建客户端侧遮挡世界, 只在开启光线追踪情况下创建.
+            OccludingSection[] occludingSections = Config.entityCullingRayTracing() ? new OccludingSection[count] : null;
+            // 创建客户侧光照世界, 只在家具中存在 GlowingFurnitureBehavior 行为时创建.
+            LightSection[] lightSections = Config.enableFurnitureLightSystem() ? new LightSection[count] : null;
 
             for (int i = 0; i < count; i++) {
                 MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
@@ -2279,26 +2282,28 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     }
 
                     // 处理客户端侧哪些方块有阻挡
-                    if (clientSections != null) {
+                    if (occludingSections != null) {
                         int size = palette.getSize();
                         // 单个元素的情况下，使用优化的存储方案
                         if (size == 1) {
-                            clientSections[i] = new ClientSection(new SingularOcclusionStorage(this.occlusionPredicate.test(palette.get(0))));
+                            occludingSections[i] = new OccludingSection(UniformOcclusionStorage.fromTest(this.occlusionPredicate.test(palette.get(0))));
                         } else {
                             boolean hasOcclusions = false;
                             boolean hasNoOcclusions = false;
                             for (int h = 0; h < size; h++) {
-                                int entry = palette.get(h);
-                                if (this.occlusionPredicate.test(entry)) {
+                                if (this.occlusionPredicate.test(palette.get(h))) {
                                     hasOcclusions = true;
                                 } else {
                                     hasNoOcclusions = true;
+                                }
+                                if (hasOcclusions && hasNoOcclusions) {
+                                    break;
                                 }
                             }
                             // 两种情况都有，那么需要一个个遍历处理视线遮挡数据
                             if (hasOcclusions && hasNoOcclusions) {
                                 PackedOcclusionStorage storage = new PackedOcclusionStorage(false);
-                                clientSections[i] = new ClientSection(storage);
+                                occludingSections[i] = new OccludingSection(storage);
                                 for (int j = 0; j < 4096; j++) {
                                     int state = container.get(j);
                                     storage.set(j, this.occlusionPredicate.test(state));
@@ -2306,17 +2311,66 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                             }
                             // 全遮蔽或全透视则使用优化存储方案
                             else {
-                                clientSections[i] = new ClientSection(new SingularOcclusionStorage(hasOcclusions));
+                                occludingSections[i] = new OccludingSection(UniformOcclusionStorage.fromTest(hasOcclusions));
+                            }
+                        }
+                    }
+
+                    // 处理客户端侧光照方块
+                    if (lightSections != null) {
+                        int size = palette.getSize();
+                        // 单个元素的情况下，使用优化的存储方案
+                        if (size == 1) {
+                            int result = getLightBlockType(palette.get(0));
+                            lightSections[i] = new LightSection(UniformLightStorage.fromLightPredicate(result));
+                        }
+                        // 多元素情况, 遍历检查
+                        else {
+                            boolean hasReplaceable = false;
+                            boolean hasSolid = false;
+
+                            // 遍历调色盘的元素
+                            for (int h = 0; h < size; h++) {
+                                int result = getLightBlockType(palette.get(h));
+                                if (result == 0) {
+                                    hasSolid = true;
+                                } else {
+                                    hasReplaceable = true;
+                                }
+                                if (hasReplaceable && hasSolid) {
+                                    break;
+                                }
+                            }
+
+                            // 如果全实心, 则使用优化存储
+                            if (hasSolid && !hasReplaceable) {
+                                lightSections[i] = new LightSection(UniformLightStorage.SOLID);
+                                sections[i] = mcSection;
+                                continue;
+                            }
+
+                            // 需要一个个遍历处理
+                            PackedLightStorage storage = new PackedLightStorage();
+                            lightSections[i] = new LightSection(storage);
+                            for (int j = 0; j < 4096; j++) {
+                                int state = container.get(j);
+                                storage.set(j, getLightBlockType(state));
                             }
                         }
                     }
                 } else {
                     hasGlobalPalette = true;
 
-                    PackedOcclusionStorage storage = null;
-                    if (clientSections != null) {
-                        storage = new PackedOcclusionStorage(false);
-                        clientSections[i] = new ClientSection(storage);
+                    PackedOcclusionStorage occlusionStorage = null;
+                    if (occludingSections != null) {
+                        occlusionStorage = new PackedOcclusionStorage(false);
+                        occludingSections[i] = new OccludingSection(occlusionStorage);
+                    }
+
+                    PackedLightStorage lightStorage = null;
+                    if (lightSections != null) {
+                        lightStorage = new PackedLightStorage();
+                        lightSections[i] = new LightSection(lightStorage);
                     }
 
                     for (int j = 0; j < 4096; j++) {
@@ -2330,8 +2384,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                         }
 
                         // 写入视线遮挡数据
-                        if (storage != null) {
-                            storage.set(j, this.occlusionPredicate.test(state));
+                        if (occlusionStorage != null) {
+                            occlusionStorage.set(j, this.occlusionPredicate.test(state));
+                        }
+
+                        // 写入光照数据
+                        if (lightStorage != null) {
+                            lightStorage.set(j, getLightBlockType(state));
                         }
                     }
                 }
@@ -2400,7 +2459,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             }
 
             // 记录加载的区块
-            player.addTrackedChunk(chunkPos.longKey, new ClientChunk(clientSections, worldHeight));
+            player.addTrackedChunk(chunkPos.longKey, new ClientChunk(occludingSections, lightSections, worldHeight));
 
             // 生成方块实体
             CEWorld ceWorld = clientSideWorld.storageWorld();
@@ -2419,11 +2478,17 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         private final int[] blockStateMapper;
         private final int[] modBlockStateMapper;
         private final Predicate<Integer> occlusionPredicate;
+        private final boolean cullingRayTracing;
+        private final boolean glowingFurniture;
+        private final boolean handleClientChunk;
 
         public SectionBlockUpdateListener(int[] blockStateMapper, int[] modBlockStateMapper, Predicate<Integer> occlusionPredicate) {
             this.blockStateMapper = blockStateMapper;
             this.modBlockStateMapper = modBlockStateMapper;
             this.occlusionPredicate = occlusionPredicate;
+            this.cullingRayTracing = Config.entityCullingRayTracing();
+            this.glowingFurniture = Config.enableFurnitureLightSystem();
+            this.handleClientChunk = this.cullingRayTracing || this.glowingFurniture;
         }
 
         @Override
@@ -2433,28 +2498,54 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             long sPos = buf.readLong();
             int blocks = buf.readVarInt();
             short[] positions = new short[blocks];
-            int[] states = new int[blocks];
-
-            // 获取客户端侧区域
-            ClientSection clientSection = null;
-            if (Config.entityCullingRayTracing()) {
-                SectionPos sectionPos = SectionPos.of(sPos);
-                ClientChunk trackedChunk = user.getTrackedChunk(sectionPos.asChunkPos().longKey);
-                if (trackedChunk != null) {
-                    clientSection = trackedChunk.sectionById(sectionPos.y);
-                }
-            }
+            int[] beforeStates = new int[blocks];
+            int[] afterStates = new int[blocks];
 
             for (int i = 0; i < blocks; i++) {
                 long k = buf.readVarLong();
                 short posIndex = (short) ((int) (k & 4095L));
                 positions[i] = posIndex;
                 int beforeState = ((int) (k >>> 12));
-                states[i] = remapper[beforeState];
-                if (clientSection != null) {
-                    // 设置遮蔽状态
-                    BlockPos pos = SectionPos.unpackSectionRelativePos(posIndex);
-                    clientSection.setOccluding(pos.x, pos.y, pos.z, this.occlusionPredicate.test(beforeState));
+                beforeStates[i] = beforeState;
+                afterStates[i] = remapper[beforeState];
+            }
+
+            // 获取客户端侧区域
+            LightSection lightSection;
+            if (this.handleClientChunk) {
+                SectionPos sectionPos = SectionPos.of(sPos);
+                ClientChunk trackedChunk = user.getTrackedChunk(sectionPos.asChunkPos().longKey);
+                if (trackedChunk != null) {
+                    if (this.cullingRayTracing) {
+                        OccludingSection occludingSection = trackedChunk.occludingSectionById(sectionPos.y);
+                        if (occludingSection != null) {
+                            for (int i = 0; i < blocks; i++) {
+                                BlockPos pos = SectionPos.unpackSectionRelativePos(positions[i]);
+                                occludingSection.setOccluding(pos.x, pos.y, pos.z, this.occlusionPredicate.test(beforeStates[i]));
+                            }
+                        }
+                    }
+                    if (this.glowingFurniture) {
+                        lightSection = trackedChunk.lightSectionById(sectionPos.y);
+                        if (lightSection != null) {
+                            for (int i = 0; i < blocks; i++) {
+                                BlockPos pos = SectionPos.unpackSectionRelativePos(positions[i]);
+                                int beforeState = beforeStates[i];
+                                lightSection.setBlockType(pos.x, pos.y, pos.z, getLightBlockType(beforeState));
+                                if (beforeState == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) {
+                                    int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(new BlockPos(sectionPos.x * 16 + pos.x, sectionPos.y * 16 + pos.y, sectionPos.z * 16 + pos.z));
+                                    if (lightPower != 0) {
+                                        afterStates[i] = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.LIGHT_BLOCK_STATES[lightPower]);
+                                    }
+                                } else if (beforeState == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) {
+                                    int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(new BlockPos(sectionPos.x * 16 + pos.x, sectionPos.y * 16 + pos.y, sectionPos.z * 16 + pos.z));
+                                    if (lightPower != 0) {
+                                        afterStates[i] = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.WATERLOGGED_LIGHT_BLOCK_STATES[lightPower]);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -2463,7 +2554,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             buf.writeLong(sPos);
             buf.writeVarInt(blocks);
             for (int i = 0; i < blocks; i++) {
-                buf.writeVarLong((long) states[i] << 12 | positions[i]);
+                buf.writeVarLong((long) afterStates[i] << 12 | positions[i]);
             }
             event.setChanged(true);
         }
@@ -2473,11 +2564,17 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         private final int[] blockStateMapper;
         private final int[] modBlockStateMapper;
         private final Predicate<Integer> occlusionPredicate;
+        private final boolean cullingRayTracing;
+        private final boolean glowingFurniture;
+        private final boolean handleClientChunk;
 
         public BlockUpdateListener(int[] blockStateMapper, int[] modBlockStateMapper, Predicate<Integer> occlusionPredicate) {
             this.blockStateMapper = blockStateMapper;
             this.modBlockStateMapper = modBlockStateMapper;
             this.occlusionPredicate = occlusionPredicate;
+            this.cullingRayTracing = Config.entityCullingRayTracing();
+            this.glowingFurniture = Config.enableFurnitureLightSystem();
+            this.handleClientChunk = this.cullingRayTracing || this.glowingFurniture;
         }
 
         @Override
@@ -2485,17 +2582,38 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             FriendlyByteBuf buf = event.getBuffer();
             BlockPos pos = buf.readBlockPos();
             int before = buf.readVarInt();
-            if (Config.entityCullingRayTracing()) {
+            int state = user.clientModEnabled() ? modBlockStateMapper[before] : blockStateMapper[before];
+
+            if (this.handleClientChunk) {
                 ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(pos.x >> 4, pos.z >> 4));
                 if (trackedChunk != null) {
-                    trackedChunk.setOccluding(pos.x, pos.y, pos.z, this.occlusionPredicate.test(before));
+                    if (this.cullingRayTracing) {
+                        trackedChunk.setOccluding(pos.x, pos.y, pos.z, this.occlusionPredicate.test(before));
+                    }
+                    // 记录到客户侧世界
+                    if (this.glowingFurniture) {
+                        trackedChunk.setLightBlockType(pos.x, pos.y, pos.z, getLightBlockType(before));
+                        if (before == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) {
+                            int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(pos);
+                            if (lightPower != 0) {
+                                state = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.LIGHT_BLOCK_STATES[lightPower]);
+                            }
+                        } else if (before == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) {
+                            int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(pos);
+                            if (lightPower != 0) {
+                                state = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.WATERLOGGED_LIGHT_BLOCK_STATES[lightPower]);
+                            }
+                        }
+                    }
                 }
             }
-            if (user.clientModEnabled() && !BlockStateUtils.isVanillaBlock(before)) {
+
+            // 未修改则忽略
+            if (state == before) {
                 return;
             }
-            int state = user.clientModEnabled() ? modBlockStateMapper[before] : blockStateMapper[before];
-            if (state == before) {
+            // 如果客户端有mod，且发送的是自定义方块，则忽略
+            if (user.clientModEnabled() && !BlockStateUtils.isVanillaBlock(before)) {
                 return;
             }
             event.setChanged(true);
@@ -3958,12 +4076,36 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     if (!BukkitCraftEngine.instance().antiGriefProvider().test(platformPlayer, Flag.BREAK, location))
                         return;
 
+                    FurnitureHitboxPart part = null;
+                    for (FurnitureHitboxPart p : hitBox.parts()) {
+                        if (p.entityId() == entityId) {
+                            part = p;
+                            break;
+                        }
+                    }
+                    if (part == null) {
+                        return;
+                    }
+
+                    Location eyeLocation = platformPlayer.getEyeLocation();
+                    Vector direction = eyeLocation.getDirection();
+                    Location endLocation = eyeLocation.clone();
+                    endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
+                    Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
+                    if (optionalHitResult.isEmpty()) {
+                        return;
+                    }
+                    EntityHitResult hitResult = optionalHitResult.get();
+                    Vec3d hitLocation = hitResult.hitLocation();
+                    // 获取正确的交互点
+                    Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
+
                     ContextHolder.Builder contextBuilder = ContextHolder.builder()
                             .withParameter(DirectContextParameters.FURNITURE, furniture)
                             .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
                             .withParameter(DirectContextParameters.ITEM_IN_HAND, serverPlayer.getItemInHand(InteractionHand.MAIN_HAND))
                             .withParameter(DirectContextParameters.POSITION, furniture.position());
-                    FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, contextBuilder);
+                    FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, interactionPoint, hitBox, contextBuilder);
                     if (EventUtils.fireAndCheckCancel(hitEvent))
                         return;
 
@@ -4110,13 +4252,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     }
                     // 必须从网络包层面处理，否则无法获取交互的具体实体
                     if (serverPlayer.isSecondaryUseActive() && !itemInHand.isEmpty() && hitBox.config().canUseItemOn()) {
-                        Optional<ItemDefinition> optionalCustomItem = itemInHand.getCustomItem();
-                        if (optionalCustomItem.isPresent() && !optionalCustomItem.get().behaviors().isEmpty()) {
-                            for (ItemBehavior itemBehavior : optionalCustomItem.get().behaviors()) {
-                                if (itemBehavior instanceof FurnitureItemBehavior) {
-                                    itemBehavior.useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
-                                    return;
-                                }
+                        Optional<ItemDefinition> optionalItemDefinition = itemInHand.getDefinition();
+                        if (optionalItemDefinition.isPresent()) {
+                            ItemDefinition itemDefinition = optionalItemDefinition.get();
+                            FurnitureItem firstFurniture = itemDefinition.behavior().getFirst(FurnitureItem.class);
+                            if (firstFurniture != null) {
+                                ((ItemBehavior) firstFurniture).useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
+                                return;
                             }
                         }
 
@@ -4142,7 +4284,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                                     ServerGamePacketListenerImplProxy.INSTANCE.handleUseItemOn(ServerPlayerProxy.INSTANCE.getConnection(nmsPlayer), useItemPacket);
                                 } finally {
                                     ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, previousBlockState, UpdateFlags.UPDATE_INVISIBLE);
-                                    serverPlayer.sendPacket(ClientboundBlockUpdatePacketProxy.INSTANCE.newInstance(serverLevel, blockPos), false);
+                                    serverPlayer.sendPacket(ClientboundBlockUpdatePacketProxy.INSTANCE.newInstance$1(serverLevel, blockPos), false);
                                 }
                             }
                         }
@@ -4283,13 +4425,16 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
                 BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(id);
                 if (furniture != null) {
-                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, new FurniturePacketHandler(furniture));
+                    FurniturePacketHandler furniturePacketHandler = new FurniturePacketHandler(furniture);
+                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, furniturePacketHandler);
                     if (Config.enableEntityCulling()) {
                         serverPlayer.addTrackedEntity(id, furniture);
+                        furniture.controller.onAsyncPlayerTrack(serverPlayer, furniturePacketHandler.snapshotState);
                     } else {
                         // 修复addEntityToWorld，包比事件先发的问题 (WE)
                         if (previous == null || previous instanceof ItemDisplayPacketHandler) {
                             furniture.show(serverPlayer);
+                            furniture.controller.onAsyncPlayerTrack(serverPlayer, furniturePacketHandler.snapshotState);
                         }
                     }
                     if (Config.hideBaseEntity() && !furniture.hasExternalModel()) {
@@ -4840,6 +4985,43 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             List<String> markedEntries = new MarkedArrayList<>(rawEntries);
             markedEntries.addAll(BukkitFontManager.instance().getEmojiSuggestions((net.momirealms.craftengine.core.entity.player.Player) user));
             ClientboundCustomChatCompletionsPacketProxy.INSTANCE.setEntries(packet, markedEntries);
+        }
+    }
+
+    public class CustomPayloadListener implements ByteBufferPacketListener {
+
+        @Override
+        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            FriendlyByteBuf buffer = event.getBuffer();
+            Key key = buffer.readKey();
+            if (key.equals(GlowingFurnitureBehaviorTemplate.PAYLOAD_ID)) {
+                // 读取
+                int x = buffer.readInt();
+                int y = buffer.readInt();
+                int z = buffer.readInt();
+                byte lightPower = buffer.readByte();
+
+                // 检查发来的方块是不是自定义光源方块, 是就替换成真实的光源方块, 并且不记录到客户端侧世界;
+                ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(x >> 4, z >> 4));
+                if (trackedChunk != null) {
+                    int targetState;
+                    int blockType = trackedChunk.lightBlockType(x, y, z);
+                    if (blockType == 0) {
+                        event.setCancelled(true);
+                        return;
+                    } else if (blockType == 1) {
+                        targetState = GlowingFurnitureBehaviorTemplate.LIGHT_BLOCK_STATES_ID[lightPower];
+                    } else {
+                        targetState = GlowingFurnitureBehaviorTemplate.WATERLOGGED_LIGHT_BLOCK_STATES_ID[lightPower];
+                    }
+
+                    // 重写入发出
+                    buffer.clear();
+                    buffer.writeVarInt(packetIds.clientboundBlockUpdatePacket());
+                    buffer.writeBlockPos(new BlockPos(x, y, z));
+                    buffer.writeVarInt(targetState);
+                }
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
+import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -33,9 +33,7 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.concurrent.Callable;
-
-public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements EntityBlockBehavior {
+public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements EntityBlock {
     public static final BlockBehaviorFactory<ItemFrameBlockBehavior> FACTORY = new Factory();
     public final Vector3f position;
     public final boolean glow;
@@ -73,18 +71,22 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
-    public BlockEntityController createController(BlockEntity blockEntity, int controllerId) {
-        this.controllerId = controllerId;
+    public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         return new ItemFrameBlockEntityController(blockEntity, this);
     }
 
     @Override
-    public int getSignal(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void initControllerId(int id) {
+        this.controllerId = id;
+    }
+
+    @Override
+    public int getSignal(Object thisBlock, Object[] args) {
         return getSignal(args[0], args[1], args[2], args[3]);
     }
 
     @Override
-    public int getDirectSignal(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public int getDirectSignal(Object thisBlock, Object[] args) {
         return getSignal(args[0], args[1], args[2], args[3]);
     }
 
@@ -113,7 +115,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
-    public boolean isSignalSource(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean isSignalSource(Object thisBlock, Object[] args) {
         return true;
     }
 

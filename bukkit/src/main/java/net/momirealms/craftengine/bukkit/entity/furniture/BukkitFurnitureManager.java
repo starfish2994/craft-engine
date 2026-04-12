@@ -76,10 +76,10 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
     @Override
     public Furniture place(WorldPosition position, FurnitureDefinition furniture, FurniturePersistentData dataAccessor, boolean playSound) {
-        return this.place(LocationUtils.toLocation(position), furniture, dataAccessor, playSound);
+        return this.place(LocationUtils.toLocation(position), furniture, dataAccessor, playSound, null);
     }
 
-    public BukkitFurniture place(Location location, FurnitureDefinition furniture, FurniturePersistentData data, boolean playSound) {
+    public BukkitFurniture place(Location location, FurnitureDefinition furniture, FurniturePersistentData data, boolean playSound, @Nullable net.momirealms.craftengine.core.entity.player.Player player) {
         Entity furnitureEntity = EntityUtils.spawnEntity(location.getWorld(), location, EntityType.ITEM_DISPLAY, entity -> {
             ItemDisplay display = (ItemDisplay) entity;
             display.getPersistentDataContainer().set(BukkitFurnitureManager.FURNITURE_KEY, PersistentDataType.STRING, furniture.id().toString());
@@ -94,7 +94,12 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             SoundData sound = furniture.settings().sounds().placeSound();
             location.getWorld().playSound(location, sound.id().toString(), SoundCategory.BLOCKS, sound.volume().get(), sound.pitch().get());
         }
-        return loadedFurnitureByMetaEntityId(furnitureEntity.getEntityId());
+        BukkitFurniture furnitureInstance = loadedFurnitureByMetaEntityId(furnitureEntity.getEntityId());
+        if (furnitureInstance != null) {
+            furnitureInstance.controller.onPlace(player);
+        }
+
+        return furnitureInstance;
     }
 
     @Override
@@ -193,14 +198,12 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             this.invalidateFurniture(furniture);
 
             // 区块还在加载的时候，就重复卸载了。为极其特殊情况
-            {
-                Location location = entity.getLocation();
-                Object entityLookup = WorldUtils.getEntityLookup(location.getWorld());
-                Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
-                boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
-                if (!isPreventing) {
-                    furniture.destroySeats();
-                }
+            Location location = entity.getLocation();
+            Object entityLookup = WorldUtils.getEntityLookup(location.getWorld());
+            Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
+            boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
+            if (!isPreventing) {
+                furniture.destroySeats();
             }
 
             // 触发行为卸载

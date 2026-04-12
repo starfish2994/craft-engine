@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.block;
 
-import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
+import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -19,7 +19,6 @@ public final class EmptyBlockDefinition extends AbstractBlockDefinition {
         holder.bindValue(INSTANCE);
         STATE = INSTANCE.defaultState();
         STATE.setSettings(BlockSettings.of());
-        STATE.setBehavior(EmptyBlockBehavior.INSTANCE);
     }
 
     private EmptyBlockDefinition(Holder.Reference<BlockDefinition> holder) {

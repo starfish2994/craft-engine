@@ -13,29 +13,33 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Mirror;
 import net.momirealms.craftengine.core.util.Rotation;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourcesProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 
-public abstract class BukkitBlockBehavior extends BlockBehavior {
+public class BukkitBlockBehavior extends BlockBehavior implements BukkitSimpleWaterloggedBlock {
     private static final Map<String, BiConsumer<@NotNull BukkitBlockBehavior, Property<?>>> HARD_CODED_PROPERTY_DATA = new HashMap<>();
 
     static {
         HARD_CODED_PROPERTY_DATA.put("axis", (behavior, property) -> {
             @SuppressWarnings("unchecked")
             Property<Direction.Axis> axisProperty = (Property<Direction.Axis>) property;
-            behavior.rotateFunction = (thisBlock, blockState, rotation) -> {
+            behavior.rotateFunction = (blockState, rotation) -> {
                 Direction.Axis axis = blockState.get(axisProperty);
                 return switch (rotation) {
                     case COUNTERCLOCKWISE_90, CLOCKWISE_90 -> switch (axis) {
@@ -51,12 +55,12 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
             if (property.valueClass() == Direction.class) {
                 @SuppressWarnings("unchecked")
                 Property<Direction> directionProperty = (Property<Direction>) property;
-                behavior.rotateFunction = (thisBlock, blockState, rotation) ->
+                behavior.rotateFunction = (blockState, rotation) ->
                         blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty)))
                                 .customBlockState().minecraftState();
-                behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
+                behavior.mirrorFunction = (blockState, mirror) -> {
                     Rotation rotation = mirror.getRotation(blockState.get(directionProperty));
-                    return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
+                    return behavior.rotateFunction.rotate(blockState, rotation);
                 };
             }
         });
@@ -64,12 +68,12 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
             if (property.valueClass() == Direction.class) {
                 @SuppressWarnings("unchecked")
                 Property<Direction> directionProperty = (Property<Direction>) property;
-                behavior.rotateFunction = (thisBlock, blockState, rotation) ->
+                behavior.rotateFunction = (blockState, rotation) ->
                         blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty)))
                                 .customBlockState().minecraftState();
-                behavior.mirrorFunction = (thisBlock, blockState, mirror) -> {
+                behavior.mirrorFunction = (blockState, mirror) -> {
                     Rotation rotation = mirror.getRotation(blockState.get(directionProperty));
-                    return behavior.rotateFunction.rotate(thisBlock, blockState, rotation);
+                    return behavior.rotateFunction.rotate(blockState, rotation);
                 };
             }
         });
@@ -92,35 +96,35 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
     }
 
     @Override
-    public Object mirror(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object mirror(Object thisBlock, Object[] args) {
         if (this.mirrorFunction != null) {
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
             if (optionalCustomState.isEmpty()) return args[0];
-            return this.mirrorFunction.mirror(thisBlock, optionalCustomState.get(), MirrorUtils.fromNMSMirror(args[1]));
+            return this.mirrorFunction.mirror(optionalCustomState.get(), MirrorUtils.fromNMSMirror(args[1]));
         }
-        return super.mirror(thisBlock, args, superMethod);
+        return super.mirror(thisBlock, args);
     }
 
     @Override
-    public Object rotate(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public Object rotate(Object thisBlock, Object[] args) {
         if (this.rotateFunction != null) {
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
             if (optionalCustomState.isEmpty()) return args[0];
-            return this.rotateFunction.rotate(thisBlock, optionalCustomState.get(), RotationUtils.fromNMSRotation(args[1]));
+            return this.rotateFunction.rotate(optionalCustomState.get(), RotationUtils.fromNMSRotation(args[1]));
         }
-        return super.rotate(thisBlock, args, superMethod);
+        return super.rotate(thisBlock, args);
     }
 
     @FunctionalInterface
     interface MirrorFunction {
 
-        Object mirror(Object thisBlock, ImmutableBlockState state, Mirror mirror) throws Exception;
+        Object mirror(ImmutableBlockState state, Mirror mirror);
     }
 
     @FunctionalInterface
     interface RotateFunction {
 
-        Object rotate(Object thisBlock, ImmutableBlockState state, Rotation rotation) throws Exception;
+        Object rotate(ImmutableBlockState state, Rotation rotation);
     }
 
     private static final int pickupBlock$world = VersionHelper.isOrAbove1_20_2() ? 1 : 0;
@@ -128,7 +132,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
     private static final int pickupBlock$blockState = VersionHelper.isOrAbove1_20_2() ? 3 : 2;
 
     @Override
-    public Object pickupBlock(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public Object pickupBlock(Object thisBlock, Object[] args) {
         if (this.waterloggedProperty == null) return ItemStackProxy.EMPTY;
         Object blockState = args[pickupBlock$blockState];
         Object world = args[pickupBlock$world];
@@ -144,7 +148,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
     }
 
     @Override
-    public boolean placeLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean placeLiquid(Object thisBlock, Object[] args) {
         if (this.waterloggedProperty == null) return false;
         Object blockState = args[2];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
@@ -162,7 +166,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
     private static final int canPlaceLiquid$liquid = VersionHelper.isOrAbove1_20_2() ? 4 : 3;
 
     @Override
-    public boolean canPlaceLiquid(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public boolean canPlaceLiquid(Object thisBlock, Object[] args) {
         if (this.waterloggedProperty == null) return false;
         return args[canPlaceLiquid$liquid] == FluidsProxy.WATER;
     }
@@ -175,7 +179,7 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
     protected static final int isPathFindable$type = VersionHelper.isOrAbove1_20_5() ? 1 : 3;
 
     @Override
-    public boolean isPathFindable(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public boolean isPathFindable(Object thisBlock, Object[] args) {
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
         if (optionalCustomState.isEmpty()) return false;
         BlockStateWrapper vanillaState = optionalCustomState.get().visualBlockState();
@@ -184,6 +188,32 @@ public abstract class BukkitBlockBehavior extends BlockBehavior {
             return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPathfindable(vanillaState.minecraftState(), args[isPathFindable$type]);
         } else {
             return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPathfindable(vanillaState.minecraftState(), args[1], args[2], args[isPathFindable$type]);
+        }
+    }
+
+    @Override
+    public void fallOn(Object thisBlock, Object[] args) {
+        Object sources = EntityProxy.INSTANCE.damageSources(args[3]);
+        if (VersionHelper.isOrAbove1_21_5()) {
+            EntityProxy.INSTANCE.causeFallDamage(args[3], (double) args[4], 1.0f, DamageSourcesProxy.INSTANCE.fall(sources));
+        } else {
+            EntityProxy.INSTANCE.causeFallDamage(args[3], (float) args[4], 1.0f, DamageSourcesProxy.INSTANCE.fall(sources));
+        }
+    }
+
+    @Override
+    public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args) {
+        Object deltaMovement = EntityProxy.INSTANCE.getDeltaMovement(args[1]);
+        Object multiplied = Vec3Proxy.INSTANCE.multiply(deltaMovement, 1.0, 0, 1.0);
+        EntityProxy.INSTANCE.setDeltaMovement(args[1], multiplied);
+    }
+
+    @Override
+    public void affectNeighborsAfterRemoval(Object thisBlock, Object[] args) {
+        if (!VersionHelper.isOrAbove1_21_5()) {
+            if (BlockStateProxy.INSTANCE.hasBlockEntity(args[0]) && !BlockStateProxy.INSTANCE.is$0(args[0], BlockStateProxy.INSTANCE.getBlock(args[3]))) {
+                LevelProxy.INSTANCE.removeBlockEntity(args[1], args[2]);
+            }
         }
     }
 }

@@ -1,7 +1,10 @@
 package net.momirealms.craftengine.core.item.processor;
 
 import com.google.gson.JsonElement;
-import net.momirealms.craftengine.core.item.*;
+import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -44,10 +47,10 @@ public final class ComponentsProcessor implements ItemProcessor {
     @Override
     public Item apply(Item item, ItemBuildContext context) {
         for (DynamicComponentProvider argument : arguments) {
-            item.setNBTComponent(argument.type, argument.function.apply(context));
+            item.setSparrowTagComponent(argument.type, argument.function.apply(context));
         }
         if (this.customData != null) {
-            CompoundTag tag = (CompoundTag) item.getTag(DataComponentKeys.CUSTOM_DATA);
+            CompoundTag tag = (CompoundTag) item.getSparrowTag(DataComponentKeys.CUSTOM_DATA);
             if (tag != null) {
                 for (Map.Entry<String, Tag> entry : ((CompoundTag) this.customData.function.apply(context)).entrySet()) {
                     tag.put(entry.getKey(), entry.getValue());
@@ -64,7 +67,7 @@ public final class ComponentsProcessor implements ItemProcessor {
     public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         for (DynamicComponentProvider argument : this.arguments) {
             String componentType = argument.type.asString();
-            Tag previous = item.getSparrowNBTComponent(componentType);
+            Tag previous = item.getComponentAsSparrowTag(componentType);
             if (previous != null) {
                 networkData.put(componentType, NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
             } else {

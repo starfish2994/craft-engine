@@ -124,7 +124,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         }
         Item wrapped = this.plugin.itemManager().wrap(projectileItem);
         if (ItemUtils.isEmpty(wrapped)) return;
-        wrapped.getCustomItem().ifPresent(it -> {
+        wrapped.getDefinition().ifPresent(it -> {
             ProjectileMeta meta = it.settings().projectileMeta();
             if (meta != null) {
                 BukkitCustomProjectile customProjectile = new BukkitCustomProjectile(meta, projectile, wrapped);

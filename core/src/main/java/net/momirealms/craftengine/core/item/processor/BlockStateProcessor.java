@@ -2,10 +2,9 @@ package net.momirealms.craftengine.core.item.processor;
 
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.CustomBlockStateWrapper;
-import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
-import net.momirealms.craftengine.core.item.ItemProcessorFactory;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -65,7 +64,8 @@ public final class BlockStateProcessor implements SimpleNetworkItemProcessor {
                     if (blockState != null) {
                         Map<String, String> properties = new HashMap<>(4);
                         for (String property : blockState.getPropertyNames()) {
-                            properties.put(property, String.valueOf(blockState.getProperty(property)).toLowerCase(Locale.ROOT)); // 可能是 Enum
+                            Object propertyValue = blockState.getProperty(property);
+                            properties.put(property, String.valueOf(propertyValue).toLowerCase(Locale.ROOT)); // 可能是 Enum
                         }
                         return properties;
                     }

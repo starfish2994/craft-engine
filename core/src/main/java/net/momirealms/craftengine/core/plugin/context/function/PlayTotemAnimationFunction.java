@@ -1,9 +1,9 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.item.DataComponentKeys;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -47,7 +47,7 @@ public final class PlayTotemAnimationFunction<CTX extends Context> extends Abstr
 
     @Override
     protected void runInternal(CTX ctx) {
-        ItemDefinition itemDefinition = CraftEngine.instance().itemManager().getCustomItem(this.item).orElse(null);
+        ItemDefinition itemDefinition = CraftEngine.instance().itemManager().getItemDefinition(this.item).orElse(null);
         if (itemDefinition == null) {
             return;
         }

@@ -30,7 +30,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStat
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public final class BuddingBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<BuddingBlockBehavior> FACTORY = new Factory();
@@ -46,7 +45,7 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void randomTick(Object thisBlock, Object[] args) {
         if (RandomUtils.generateRandomFloat(0, 1) >= this.growthChance) return;
         Object nmsDirection = DirectionProxy.VALUES[RandomUtils.generateRandomInt(0, 6)];
         Direction direction = DirectionUtils.fromNMSDirection(nmsDirection);

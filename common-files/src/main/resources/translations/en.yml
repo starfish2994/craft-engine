@@ -129,6 +129,7 @@ loot.function.formula.unknown_type: Unknown formula type '<arg:0>'
 host.unknown_type: Unknown resource pack host type '<arg:0>'
 host.missing_environment_variable: Missing environment variable '<arg:0>'
 host.get_url_failed: "Failed to retrieve resource pack download URL for player <arg:0>"
+host.handle_response_failed: "Failed to handle the resource pack response for player <arg:0>"
 host.upload_started: "Initiating resource pack upload..."
 host.upload_finished: "Successfully uploaded resource pack in <arg:0> ms"
 host.upload_failed: "Failed to upload resource pack"
@@ -215,6 +216,7 @@ resource.furniture.element.unknown_type: Unknown furniture element type '<arg:0>
 resource.furniture.element.tint_source.unknown_type: Unknown furniture tint source type '<arg:0>'
 resource.furniture.hitbox.unknown_type: Unknown furniture hitbox type '<arg:0>'
 resource.furniture.behavior.unknown_type: Unknown furniture behavior type '<arg:0>'
+resource.furniture.hitbox.custom.invalid_entity_type: Invalid entity type '<arg:0>'
 resource.template.unknown_argument_type: Unknown template argument type '<arg:0>'
 resource.template.invalid_template: Invalid template '<arg:0>'
 resource.template.missing_argument: 'Missing template argument: ''<arg:0>''. Please provide this argument using the ''arguments'' option or set a default value for it'
@@ -230,7 +232,7 @@ resource.block.state.entity_renderer.unknown_type: Unknown block entity renderer
 resource.block.state.invalid_variant_nbt: Invalid partial block state nbt '<arg:0>'
 resource.block.state.undefined_appearance: Undefined block state appearance '<arg:0>'
 resource.block.state.model_conflict: Failed to bind model '<arg:0>' to block state '<arg:1>' which has already been bound to model '<arg:4>'
-resource.furniture.hitbox.custom.invalid_entity_type: Invalid entity type '<arg:0>'
+resource.block.entity_renderer.tint_source.unknown_type: Unknown block entity tint source type '<arg:0>'
 resource.item.model_definition.unknown_type: Unknown item model definition type '<arg:0>'
 resource.item.model_definition.condition.unknown_type: Unknown condition property type '<arg:0>'
 resource.item.model_definition.range_dispatch.unknown_type: Unknown range_dispatch property type '<arg:0>'

@@ -27,6 +27,7 @@ public final class SetItemCustomModelDataCommand extends BukkitCommandFeature<Co
                 .required("value", IntegerParser.integerParser())
                 .handler(context -> {
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(context.sender());
+                    if (serverPlayer == null) return;
                     Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
                     if (itemInHand.isEmpty()) {
                         return;

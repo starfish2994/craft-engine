@@ -140,8 +140,4 @@ public abstract class AbstractBlockDefinition implements BlockDefinition {
         ImmutableBlockState state = this.placementFunction.apply(context, defaultState());
         return this.behavior.updateStateForPlacement(context, state);
     }
-
-    @Override
-    public void setPlacedBy(BlockPlaceContext context, ImmutableBlockState state) {
-    }
 }

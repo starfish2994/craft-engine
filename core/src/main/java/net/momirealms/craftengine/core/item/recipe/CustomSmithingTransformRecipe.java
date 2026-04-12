@@ -3,9 +3,12 @@ package net.momirealms.craftengine.core.item.recipe;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
-import net.momirealms.craftengine.core.item.data.Enchantment;
+import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.item.processor.ItemProcessor;
+import net.momirealms.craftengine.core.item.processor.ItemProcessors;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
+import net.momirealms.craftengine.core.item.recipe.result.ApplyItemDataPostProcessor;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -265,6 +268,7 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         public static final ItemDataProcessor.Type<KeepTags> KEEP_TAGS = register(Key.ce("keep_tags"), KeepTags.FACTORY);
         public static final ItemDataProcessor.Type<KeepCustomData> KEEP_CUSTOM_DATA = register(Key.ce("keep_custom_data"), KeepCustomData.FACTORY);
         public static final ItemDataProcessor.Type<MergeEnchantments> MERGE_ENCHANTMENTS = register(Key.ce("merge_enchantments"), MergeEnchantments.FACTORY);
+        public static final ItemDataProcessor.Type<ApplyData> APPLY_DATA = register(Key.ce("apply_data"), ApplyData.FACTORY);
 
         private ItemDataProcessors() {}
 
@@ -330,6 +334,32 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         }
     }
 
+    public static class ApplyData implements ItemDataProcessor {
+        public static final ItemDataProcessor.Factory<ApplyData> FACTORY = new Factory();
+        private final ItemProcessor[] modifiers;
+
+        public ApplyData(ItemProcessor[] modifiers) {
+            this.modifiers = modifiers;
+        }
+
+        @Override
+        public void accept(Item item1, Item item2, Item item3) {
+            for (ItemProcessor modifier : this.modifiers) {
+                item3.apply(modifier, ItemBuildContext.EMPTY);
+            }
+        }
+
+        private static class Factory implements ItemDataProcessor.Factory<ApplyData> {
+
+            @Override
+            public ApplyData create(ConfigSection section) {
+                List<ItemProcessor> modifiers = new ArrayList<>();
+                ItemProcessors.collectProcessors(section.getNonNullSection("data"), modifiers::add);
+                return new ApplyData(modifiers.toArray(new ItemProcessor[0]));
+            }
+        }
+    }
+
     public static class KeepCustomData implements ItemDataProcessor {
         public static final ItemDataProcessor.Factory<KeepCustomData> FACTORY = new Factory();
         private final List<String[]> paths;
@@ -341,7 +371,7 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         @Override
         public void accept(Item item1, Item item2, Item item3) {
             for (String[] path : this.paths) {
-                Object dataObj = item1.getJavaTag((Object[]) path);
+                Object dataObj = item1.getTagAsJava((Object[]) path);
                 if (dataObj != null) {
                     item3.setTag(dataObj, (Object[]) path);
                 }
@@ -397,7 +427,7 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         @Override
         public void accept(Item item1, Item item2, Item item3) {
             for (String[] tag : this.tags) {
-                Object tagObj = item1.getJavaTag((Object[]) tag);
+                Object tagObj = item1.getTagAsJava((Object[]) tag);
                 if (tagObj != null) {
                     item3.setTag(tagObj, (Object[]) tag);
                 }

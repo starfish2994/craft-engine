@@ -45,4 +45,7 @@ public interface Vec3Proxy {
 
     @MethodInvoker(name = "subtract")
     Object subtract(Object target, @Type(clazz = Vec3Proxy.class) Object vec);
+
+    @MethodInvoker(name = "multiply")
+    Object multiply(Object target, double factorX, double factorY, double factorZ);
 }

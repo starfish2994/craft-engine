@@ -21,7 +21,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockB
 import org.bukkit.Location;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 public final class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<ToggleableLampBlockBehavior> FACTORY = new Factory();
@@ -66,7 +65,7 @@ public final class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void onPlace(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void onPlace(Object thisBlock, Object[] args) {
         if (this.poweredProperty == null) return;
         Object state = args[0];
         Object level = args[1];
@@ -80,7 +79,7 @@ public final class ToggleableLampBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void neighborChanged(Object thisBlock, Object[] args, Callable<Object> superMethod) {
+    public void neighborChanged(Object thisBlock, Object[] args) {
         if (this.poweredProperty == null) return;
         Object blockState = args[0];
         Object world = args[1];

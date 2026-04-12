@@ -7,14 +7,14 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
-import net.momirealms.craftengine.core.block.behavior.EmptyBlockBehavior;
-import net.momirealms.craftengine.core.block.behavior.EntityBlockBehavior;
-import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigs;
+import net.momirealms.craftengine.core.block.entity.render.element.ConstantBlockEntityElement;
 import net.momirealms.craftengine.core.block.parser.BlockNbtParser;
 import net.momirealms.craftengine.core.block.properties.Properties;
 import net.momirealms.craftengine.core.block.properties.Property;
+import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.loot.Loot;
@@ -255,6 +255,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     public abstract void registerBlockStatePacketListener();
 
+    public abstract BlockBehavior createFallbackBehavior(BlockDefinition definition);
+
     public abstract BlockBehavior createBlockBehavior(BlockDefinition blockDefinition, ConfigValue value);
 
     public boolean isViewBlockingBlock(int stateId) {
@@ -477,8 +479,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             // 先绑定无效方块，防止因为后续报错导致未绑定
             holder.bindValue(new InactiveBlockDefinition(holder));
             // 根据properties生成variant provider
-            BlockStateVariantProvider variantProvider = new BlockStateVariantProvider(holder, (owner, propertyMap) -> {
-                ImmutableBlockState blockState = new ImmutableBlockState(owner, propertyMap);
+            BlockStateVariantProvider variantProvider = new BlockStateVariantProvider(holder, (owner, provider, propertyMap) -> {
+                ImmutableBlockState blockState = new ImmutableBlockState(owner, provider, propertyMap);
                 blockState.setSettings(settings);
                 return blockState;
             }, properties);
@@ -725,13 +727,14 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                         blockBehavior = createBlockBehavior(customBlock, section.getValue(BEHAVIOR));
                     } catch (KnownResourceException e) {
                         error(e, path);
-                        blockBehavior = new EmptyBlockBehavior(customBlock);
+                        blockBehavior = createFallbackBehavior(customBlock);
                     }
 
                     // 获取方块实体行为
-                    List<EntityBlockBehavior> entityBehaviors = new ArrayList<>();
-                    blockBehavior.let(EntityBlockBehavior.class, entityBehaviors::add);
-                    boolean isEntityBlock = !entityBehaviors.isEmpty();
+                    boolean isEntityBlock = blockBehavior.getFirst(EntityBlock.class) != null;
+                    if (isEntityBlock && blockBehavior instanceof EntityBlock entityBlock) {
+                        entityBlock.initControllerId(0);
+                    }
 
                     // 绑定行为
                     for (ImmutableBlockState state : states) {
@@ -799,9 +802,9 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         }
 
         @SuppressWarnings("unchecked")
-        private Optional<BlockEntityElementConfig<? extends BlockEntityElement>[]> parseBlockEntityRender(ConfigValue arguments) {
+        private Optional<BlockEntityElementConfig<? extends ConstantBlockEntityElement>[]> parseBlockEntityRender(ConfigValue arguments) {
             if (arguments == null) return Optional.empty();
-            List<BlockEntityElementConfig<BlockEntityElement>> configs = arguments.getAsList(v -> BlockEntityElementConfigs.fromConfig(v.getAsSection()));
+            List<BlockEntityElementConfig<ConstantBlockEntityElement>> configs = arguments.getAsList(v -> BlockEntityElementConfigs.fromConfig(v.getAsSection()));
             if (configs.isEmpty()) return Optional.empty();
             return Optional.of(configs.toArray(new BlockEntityElementConfig[0]));
         }

@@ -40,7 +40,7 @@ public final class CESection {
 
     @ApiStatus.Internal
     public ImmutableBlockState getBlockState(int index) {
-        return statesContainer.get(index);
+        return this.statesContainer.get(index);
     }
 
     @ApiStatus.Internal

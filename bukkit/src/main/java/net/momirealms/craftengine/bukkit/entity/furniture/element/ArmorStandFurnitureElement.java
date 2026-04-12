@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class ArmorStandFurnitureElement extends AbstractFurnitureElement {
+public final class ArmorStandFurnitureElement extends AbstractConditionalFurnitureElement {
     public final ArmorStandFurnitureElementConfig config;
     public final Furniture furniture;
     public final FurnitureTintSource tintSource;

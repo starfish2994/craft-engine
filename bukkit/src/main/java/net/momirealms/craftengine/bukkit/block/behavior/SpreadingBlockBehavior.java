@@ -13,7 +13,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
 public final class SpreadingBlockBehavior extends BukkitBlockBehavior {
     public static final BlockBehaviorFactory<SpreadingBlockBehavior> FACTORY = new Factory();
@@ -26,7 +25,7 @@ public final class SpreadingBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    public void randomTick(Object thisBlock, Object[] args, Callable<Object> superMethod) throws Exception {
+    public void randomTick(Object thisBlock, Object[] args) {
         Object level = args[1];
         Object pos = args[2];
         Object blockPos = BlockPosProxy.INSTANCE.offset(pos, RandomUtils.generateRandomInt(-1, 2), RandomUtils.generateRandomInt(-3, 2), RandomUtils.generateRandomInt(-1, 2));
