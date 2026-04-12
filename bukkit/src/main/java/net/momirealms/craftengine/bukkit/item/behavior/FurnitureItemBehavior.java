@@ -206,6 +206,7 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
         );
         furnitureDefinition.execute(functionContext, EventTrigger.PLACE);
         if (dummy.isCancelled()) {
+            bukkitFurniture.destroy();
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
 
