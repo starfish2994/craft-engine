@@ -55,6 +55,11 @@ public final class RecipeRegistry1_20_2 implements RecipeRegistry {
     }
 
     @Override
+    public Object get(Key id) {
+        return this.byName.get(KeyUtils.toIdentifier(id));
+    }
+
+    @Override
     public void finalizeRegistration() {
         if (this.byName != null && this.byType != null) {
             RecipeManagerProxy.INSTANCE.setByType$legacy(BukkitRecipeManager.minecraftRecipeManager(), this.byType);

@@ -8,7 +8,6 @@ import net.bytebuddy.ClassFileVersion;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -20,6 +19,7 @@ import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderLookupProxy;
@@ -30,11 +30,16 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.CraftingContai
 import net.momirealms.craftengine.proxy.minecraft.world.item.*;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.*;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
+import net.momirealms.sparrow.reflection.clazz.SparrowClass;
+import net.momirealms.sparrow.reflection.constructor.matcher.ConstructorMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -43,9 +48,10 @@ public final class RecipeInjector {
     public static final Key ARMOR_DYE = Key.of("armor_dye");
     public static final Key REPAIR_ITEM = Key.of("repair_item");
     public static final Key FIREWORK_STAR_FADE = Key.of("firework_star_fade");
-    public static Object ARMOR_DYE_RECIPE;
-    public static Object FIREWORK_STAR_FADE_RECIPE;
+    public static Object ARMOR_DYE_RECIPE;  // 1.21.11-
+    public static Object FIREWORK_STAR_FADE_RECIPE;  // 1.21.11-
     public static Object REPAIR_ITEM_RECIPE;
+    public static Constructor<?> FIREWORK_STAR_FADE_RECIPE_CONSTRUCTOR; // 26.1+
 
     private RecipeInjector() {}
 
@@ -77,7 +83,7 @@ public final class RecipeInjector {
                 .getLoaded();
         REPAIR_ITEM_RECIPE = createSpecialRecipe(REPAIR_ITEM, clazz$InjectedRepairItemRecipe);
 
-        // 26.1 以上的染色配方直接注册
+        // 26.1 以上的染色配方直接注册，无需特殊配方
         if (!VersionHelper.isOrAbove26_1()) {
             Class<?> clazz$InjectedArmorDyeRecipe = byteBuddy
                     .subclass(ArmorDyeRecipeProxy.CLASS, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING)
@@ -102,6 +108,21 @@ public final class RecipeInjector {
                     .load(RecipeInjector.class.getClassLoader())
                     .getLoaded();
             FIREWORK_STAR_FADE_RECIPE = createSpecialRecipe(FIREWORK_STAR_FADE, clazz$InjectedFireworkStarFadeRecipe);
+        }
+
+        if (VersionHelper.isOrAbove26_1()) {
+            Class<?> clazz$InjectedFireworkStarFadeRecipe = byteBuddy
+                    .subclass(FireworkStarFadeRecipeProxy.CLASS)
+                    .name("net.momirealms.craftengine.bukkit.item.recipe.FireworkStarFadeRecipe")
+                    .method(matches)
+                    .intercept(MethodDelegation.to(FireworkStarFadeMatchesInterceptor.INSTANCE))
+                    .method(assemble)
+                    .intercept(MethodDelegation.to(FireworkStarFadeAssembleInterceptor.INSTANCE))
+                    .make()
+                    .load(RecipeInjector.class.getClassLoader())
+                    .getLoaded();
+            FIREWORK_STAR_FADE_RECIPE_CONSTRUCTOR = SparrowClass.of(clazz$InjectedFireworkStarFadeRecipe)
+                    .getConstructor(ConstructorMatcher.takeArguments(IngredientProxy.CLASS, IngredientProxy.CLASS, ItemStackTemplateProxy.CLASS));
         }
     }
 
@@ -140,8 +161,7 @@ public final class RecipeInjector {
         public static final FireworkStarFadeMatchesInterceptor INSTANCE = new FireworkStarFadeMatchesInterceptor();
 
         @RuntimeType
-        public Object intercept(@AllArguments Object[] args) {
-            Object input = args[0];
+        public Object intercept(@Argument(value = 0) Object input) {
             if (DYE_INGREDIENT_COUNT_CHECKER.apply(input)) {
                 return false;
             }
@@ -174,10 +194,9 @@ public final class RecipeInjector {
         public static final FireworkStarFadeAssembleInterceptor INSTANCE = new FireworkStarFadeAssembleInterceptor();
 
         @RuntimeType
-        public Object intercept(@AllArguments Object[] args) {
+        public Object intercept(@Argument(value = 0) Object input) {
             IntList colors = new IntArrayList();
             Item starItem = null;
-            Object input = args[0];
             int size = INGREDIENT_SIZE_GETTER.apply(input);
             for (int i = 0; i < size; i++) {
                 Object itemStack = INGREDIENT_GETTER.apply(input, i);
@@ -208,8 +227,7 @@ public final class RecipeInjector {
         public static final RepairMatchesInterceptor INSTANCE = new RepairMatchesInterceptor();
 
         @RuntimeType
-        public Object intercept(@AllArguments Object[] args) {
-            Object input = args[0];
+        public Object intercept(@Argument(value = 0) Object input) {
             if (REPAIR_INGREDIENT_COUNT_CHECKER.apply(input)) {
                 return false;
             }
@@ -396,10 +414,18 @@ public final class RecipeInjector {
 
     @Nullable
     private static Color getVanillaFireworkColor(final Item item) {
-        Object itemStack = item.minecraftItem();
-        Object dyeItem = ItemStackProxy.INSTANCE.getItem(itemStack);
-        if (!DyeItemProxy.CLASS.isInstance(dyeItem)) return null;
-        return Color.fromDecimal(DyeColorProxy.INSTANCE.getFireworkColor(DyeItemProxy.INSTANCE.getDyeColor(dyeItem)));
+        if (VersionHelper.isOrAbove26_1()) {
+            String colorType = (String) item.getComponentAsJava(DataComponentKeys.DYE);
+            if (colorType == null) {
+                return null;
+            }
+            return new Color(DyeColor.valueOf(colorType.toUpperCase(Locale.ROOT)).fireworkColor());
+        } else {
+            Object itemStack = item.minecraftItem();
+            Object dyeItem = ItemStackProxy.INSTANCE.getItem(itemStack);
+            if (!DyeItemProxy.CLASS.isInstance(dyeItem)) return null;
+            return Color.fromDecimal(DyeColorProxy.INSTANCE.getFireworkColor(DyeItemProxy.INSTANCE.getDyeColor(dyeItem)));
+        }
     }
 
     private static boolean isDye(Item dyeItem) {

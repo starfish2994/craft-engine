@@ -10,7 +10,6 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
-import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

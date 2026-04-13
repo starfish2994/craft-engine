@@ -25,4 +25,7 @@ public interface RecipeMapProxy {
 
     @FieldGetter(name = "byKey")
     Map<Object, Object> getByKey(Object target);
+
+    @MethodInvoker(name = "byKey")
+    Object byKey(Object target, @Type(clazz = ResourceKeyProxy.class) Object recipeId);
 }

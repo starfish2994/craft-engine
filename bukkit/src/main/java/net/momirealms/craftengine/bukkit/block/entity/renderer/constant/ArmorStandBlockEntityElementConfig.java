@@ -21,7 +21,6 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LegacyChatFormatter;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import org.joml.Vector3f;
 

@@ -16,8 +16,6 @@ import net.momirealms.craftengine.proxy.minecraft.advancements.*;
 import net.momirealms.craftengine.proxy.minecraft.advancements.criterion.ImpossibleTriggerProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
 
 import java.util.*;
 

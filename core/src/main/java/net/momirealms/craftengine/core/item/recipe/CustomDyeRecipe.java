@@ -14,7 +14,10 @@ import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
-import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.util.Color;
+import net.momirealms.craftengine.core.util.DyeColor;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -175,7 +178,7 @@ public final class CustomDyeRecipe extends CustomCraftingTableRecipe {
 
     public static class Serializer extends AbstractRecipeSerializer<CustomDyeRecipe> {
         private static final String[] RESULT_OR_TARGET = new String[] {"result", "target"}; // 必须先 result 后 target
-        
+
         @SuppressWarnings("unchecked")
         @Override
         public CustomDyeRecipe readConfig(Key id, ConfigSection section) {

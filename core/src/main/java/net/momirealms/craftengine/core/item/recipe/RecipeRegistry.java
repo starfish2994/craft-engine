@@ -6,6 +6,8 @@ public interface RecipeRegistry {
 
     void prepareRegistration();
 
+    Object get(Key id);
+
     void register(Key id, Object recipe);
 
     void unregister(Key id);

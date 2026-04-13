@@ -28,6 +28,8 @@ import net.momirealms.craftengine.proxy.minecraft.server.packs.repository.PackRe
 import net.momirealms.craftengine.proxy.minecraft.server.packs.resources.MultiPackResourceManagerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.packs.resources.ResourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.players.PlayerListProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.FireworkStarFadeRecipeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeHolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeManagerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
@@ -199,6 +201,22 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
             super.recipeRegistry.unregister(RecipeInjector.FIREWORK_STAR_FADE);
             super.recipeRegistry.register(RecipeInjector.ARMOR_DYE, RecipeInjector.ARMOR_DYE_RECIPE);
             super.recipeRegistry.register(RecipeInjector.FIREWORK_STAR_FADE, RecipeInjector.FIREWORK_STAR_FADE_RECIPE);
+        } else {
+            Key recipeId = Key.of("firework_star_fade");
+            Object fireworkStarFadeRecipe = super.recipeRegistry.get(recipeId);
+            if (fireworkStarFadeRecipe != null) {
+                fireworkStarFadeRecipe = RecipeHolderProxy.INSTANCE.getValue(fireworkStarFadeRecipe);
+                super.recipeRegistry.unregister(recipeId);
+                try {
+                    super.recipeRegistry.register(recipeId, RecipeInjector.FIREWORK_STAR_FADE_RECIPE_CONSTRUCTOR.newInstance(
+                        FireworkStarFadeRecipeProxy.INSTANCE.getTarget(fireworkStarFadeRecipe),
+                        FireworkStarFadeRecipeProxy.INSTANCE.getDye(fireworkStarFadeRecipe),
+                        FireworkStarFadeRecipeProxy.INSTANCE.getResult(fireworkStarFadeRecipe)
+                    ));
+                } catch (ReflectiveOperationException e) {
+                    this.plugin.logger().warn("Failed to construct FireworkStarFadeRecipe", e);
+                }
+            }
         }
 
         // 完成注册

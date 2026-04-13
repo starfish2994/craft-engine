@@ -42,6 +42,12 @@ public final class RecipeRegistry1_21_2 implements RecipeRegistry {
     }
 
     @Override
+    public Object get(Key id) {
+        Object resourceKey = ResourceKeyProxy.INSTANCE.create(RegistriesProxy.RECIPE, KeyUtils.toIdentifier(id));
+        return RecipeMapProxy.INSTANCE.byKey(this.mirrorRecipeMap, resourceKey);
+    }
+
+    @Override
     public void finalizeRegistration() {
         if (this.mirrorRecipeMap != null) {
             RecipeManagerProxy.INSTANCE.setRecipes(BukkitRecipeManager.minecraftRecipeManager(), this.mirrorRecipeMap);
