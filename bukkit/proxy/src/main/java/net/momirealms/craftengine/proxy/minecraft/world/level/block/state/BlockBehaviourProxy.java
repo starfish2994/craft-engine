@@ -18,6 +18,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.phys.shapes.CollisionCon
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.*;
+import org.bukkit.block.data.BlockData;
 
 @ReflectionProxy(name = "net.minecraft.world.level.block.state.BlockBehaviour")
 public interface BlockBehaviourProxy {
@@ -313,6 +314,9 @@ public interface BlockBehaviourProxy {
 
         @MethodInvoker(name = "hasBlockEntity")
         boolean hasBlockEntity(Object target);
+
+        @MethodInvoker(name = {"asBlockData", "createCraftBlockData"})
+        BlockData asBlockData(Object target);
 
         @ReflectionProxy(name = "net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase$Cache")
         interface CacheProxy {

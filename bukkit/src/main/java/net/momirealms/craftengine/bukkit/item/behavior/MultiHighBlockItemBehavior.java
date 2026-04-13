@@ -25,6 +25,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.shapes.CollisionContextProxy;
 import org.bukkit.Bukkit;
@@ -76,7 +77,7 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
             Object world = CraftWorldProxy.INSTANCE.getWorld((World) context.getLevel().platformWorld());
             boolean defaultReturn = ServerLevelProxy.INSTANCE.checkEntityCollision(world, blockState, player, voxelShape, blockPos, true); // paper only
             Block block = CraftBlockProxy.INSTANCE.at(world, blockPos);
-            BlockData blockData = CraftBlockDataProxy.INSTANCE.fromData(blockState);
+            BlockData blockData = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.asBlockData(blockState);
             BlockCanBuildEvent canBuildEvent = new BlockCanBuildEvent(
                     block, cePlayer != null ? (org.bukkit.entity.Player) cePlayer.platformPlayer() : null, blockData, defaultReturn,
                     context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND

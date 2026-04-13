@@ -172,6 +172,12 @@ tasks {
  * Register Run Dev Server Tasks
  */
 listOf(
+    "26.1.2",
+).forEach {
+    registerPaperTask(it, javaVersion = 25)
+}
+
+listOf(
     "1.21.11",
     "1.21.10",
     "1.21.8",

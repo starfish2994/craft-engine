@@ -64,7 +64,7 @@ public final class BlockStateUtils {
     }
 
     public static BlockData fromBlockData(Object blockState) {
-        return CraftBlockDataProxy.INSTANCE.fromData(blockState);
+        return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.asBlockData(blockState);
     }
 
     public static int blockDataToId(BlockData blockData) {

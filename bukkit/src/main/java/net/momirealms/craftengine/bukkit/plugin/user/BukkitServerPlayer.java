@@ -81,7 +81,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.player.AbilitiesP
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.InventoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.InventoryMenuProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndTintGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkSourceProxy;
@@ -622,7 +622,7 @@ public class BukkitServerPlayer extends Player {
         }
         sentChunks = sentChunks.clone();
         Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(platformPlayer().getWorld());
-        Object lightEngine = BlockAndTintGetterProxy.INSTANCE.getLightEngine(serverLevel);
+        Object lightEngine = BlockAndLightGetterProxy.INSTANCE.getLightEngine(serverLevel);
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(serverLevel);
         for (long chunkPos : sentChunks) {
             int chunkX = (int) chunkPos;

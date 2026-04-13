@@ -20,42 +20,51 @@ public final class CraftBukkitRemapper implements Remapper {
     }
 
     static {
+        String cbPkgVersion = "";
+        boolean needRemap = true;
         if (SparrowClass.existsNoRemap("net.neoforged.art.internal.RenamerImpl")) {
-            CB_PKG_VERSION = "";
-            NEED_REMAP = false;
+            needRemap = false;
         } else {
             Class<?> minecraftClass = SparrowClass.find("net.minecraft.obfuscate.DontObfuscate", "net.minecraft.server.Main");
-            int major;
-            int minor;
+            int major = 0;
+            int minor = 0;
             try (InputStream inputStream = minecraftClass.getResourceAsStream("/version.json")) {
                 if (inputStream == null) {
                     throw new IOException("Failed to load version.json");
                 }
                 JsonObject json = new Gson().fromJson(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
-                String versionString = json.getAsJsonPrimitive("id").getAsString()
-                        .split("-", 2)[0]
-                        .split("_", 2)[0];
-                String[] split = versionString.split("\\.");
-                major = Integer.parseInt(split[1]);
-                minor = split.length == 3 ? Integer.parseInt(split[2]) : 0;
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to init WithCraftBukkitClassNameRemapper", e);
-            }
-            String name;
-            label: {
-                for (int i = 0; i <= minor; i++) {
-                    try {
-                        name = "v1_" + major + "_R" + i + ".";
-                        Class.forName(PREFIX_CRAFTBUKKIT + name + "CraftServer");
-                        break label;
-                    } catch (ClassNotFoundException ignored) {
-                    }
+                if (json.get("world_version").getAsInt() >= 4764) {
+                    needRemap = false;
+                } else {
+                    String versionString = json.getAsJsonPrimitive("id").getAsString()
+                            .split("-", 2)[0]
+                            .split("_", 2)[0];
+                    String[] split = versionString.split("\\.");
+                    major = Integer.parseInt(split[1]);
+                    minor = split.length == 3 ? Integer.parseInt(split[2]) : 0;
                 }
-                throw new RuntimeException("Could not find CraftServer version");
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to init CraftBukkitRemapper", e);
             }
-            CB_PKG_VERSION = name;
-            NEED_REMAP = true;
+            if (needRemap) {
+                String name;
+                label:
+                {
+                    for (int i = 0; i <= minor; i++) {
+                        try {
+                            name = "v1_" + major + "_R" + i + ".";
+                            Class.forName(PREFIX_CRAFTBUKKIT + name + "CraftServer");
+                            break label;
+                        } catch (ClassNotFoundException ignored) {
+                        }
+                    }
+                    throw new RuntimeException("Could not find CraftServer version");
+                }
+                cbPkgVersion = name;
+            }
         }
+        CB_PKG_VERSION = cbPkgVersion;
+        NEED_REMAP = needRemap;
     }
 
     public static Remapper create(Remapper delegate) {
