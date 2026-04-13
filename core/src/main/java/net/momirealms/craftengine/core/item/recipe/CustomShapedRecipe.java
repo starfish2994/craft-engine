@@ -228,8 +228,8 @@ public final class CustomShapedRecipe extends CustomCraftingTableRecipe {
             return new CustomShapedRecipe(
                     id,
                     section.getBoolean(SHOW_NOTIFICATIONS, true),
-                    super.parseResult(section.getNonNullSection("result")),
-                    section.getValue(VISUAL_RESULT, v -> super.parseResult(v.getAsSection())),
+                    super.parseResult(section.getNonNullValue("result", ConfigConstants.ARGUMENT_SECTION)),
+                    section.getValue(VISUAL_RESULT, super::parseResult),
                     section.getString("group"),
                     section.getEnum("category", CraftingRecipeCategory.class),
                     new Pattern(pattern.toArray(new String[0]), ingredients),

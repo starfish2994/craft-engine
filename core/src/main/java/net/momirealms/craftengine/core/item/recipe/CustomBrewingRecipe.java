@@ -80,7 +80,7 @@ public final class CustomBrewingRecipe extends AbstractFixedResultRecipe {
                     id,
                     section.getBoolean(SHOW_NOTIFICATIONS, true),
                     section.getNonNullValue(INGREDIENTS, ConfigConstants.ARGUMENT_LIST, super::parseIngredient),
-                    super.parseResult(section.getNonNullSection("result")),
+                    super.parseResult(section.getNonNullValue("result", ConfigConstants.ARGUMENT_SECTION)),
                     section.getNonNullValue("container", ConfigConstants.ARGUMENT_LIST, super::parseIngredient)
             );
         }

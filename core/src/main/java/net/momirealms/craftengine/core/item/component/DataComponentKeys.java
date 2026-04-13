@@ -29,6 +29,7 @@ public final class DataComponentKeys {
     public static final Key DAMAGE_RESISTANT = Key.of("minecraft", "damage_resistant");
     public static final Key DEBUG_STICK_STATE = Key.of("minecraft", "debug_stick_state");
     public static final Key DEATH_PROTECTION = Key.of("minecraft", "death_protection");
+    public static final Key DYE = Key.of("minecraft", "dye");
     public static final Key DYED_COLOR = Key.of("minecraft", "dyed_color");
     public static final Key ENCHANTABLE = Key.of("minecraft", "enchantable");
     public static final Key ENCHANTMENT_GLINT_OVERRIDE = Key.of("minecraft", "enchantment_glint_override");
@@ -68,6 +69,7 @@ public final class DataComponentKeys {
     public static final Key REPAIRABLE = Key.of("minecraft", "repairable");
     public static final Key REPAIR_COST = Key.of("minecraft", "repair_cost");
     public static final Key STORED_ENCHANTMENTS = Key.of("minecraft", "stored_enchantments");
+    public static final Key SULFUR_CUBE_CONTENT = Key.of("minecraft", "sulfur_cube_content");
     public static final Key SUSPICIOUS_STEW_EFFECTS = Key.of("minecraft", "suspicious_stew_effects");
     public static final Key SWING_ANIMATION = Key.of("minecraft", "swing_animation");
     public static final Key TOOL = Key.of("minecraft", "tool");

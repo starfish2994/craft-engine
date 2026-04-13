@@ -62,6 +62,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     protected final Map<Key, TreeSet<LegacyOverridesModel>> legacyOverrides = new ConcurrentHashMap<>();
     protected final Map<Key, TreeMap<Integer, ModernItemModel>> modernOverrides = new ConcurrentHashMap<>();
     protected final Map<Key, Equipment> equipments = new ConcurrentHashMap<>();
+    protected final Map<Key, ItemDefinition> dyeableItems = new ConcurrentHashMap<>();
     // 指令补全
     protected final List<Suggestion> cachedCustomItemSuggestions = new ObjectArrayList<>();
     protected final List<Suggestion> cachedTotemSuggestions = new ObjectArrayList<>();
@@ -108,6 +109,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         this.modernItemModels1_21_2.clear();
         this.ingredientSubstitutes.clear();
         this.orderedItemIds.clear();
+        this.dyeableItems.clear();
     }
 
     private void clearFeatureFlags() {
@@ -184,23 +186,10 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         return Collections.unmodifiableCollection(this.cachedTotemSuggestions);
     }
 
-    public ItemBehavior getOrCreateItemBehavior(Key itemId) {
-        Optional<ItemDefinition> definitionOptional = getItemDefinition(itemId);
-        if (definitionOptional.isPresent()) {
-            return definitionOptional.get().behavior();
-        } else {
-            return Optional.ofNullable(VANILLA_ITEM_EXTRA_BEHAVIORS.get(itemId)).orElse(EmptyItemBehavior.INSTANCE);
-        }
-    }
-
     @Override
     public Optional<ItemBehavior> getItemBehavior(Key key) {
         Optional<ItemDefinition> definitionOptional = getItemDefinition(key);
-        if (definitionOptional.isPresent()) {
-            return Optional.of(definitionOptional.get().behavior());
-        } else {
-            return Optional.ofNullable(VANILLA_ITEM_EXTRA_BEHAVIORS.get(key));
-        }
+        return definitionOptional.map(ItemDefinition::behavior).or(() -> Optional.ofNullable(VANILLA_ITEM_EXTRA_BEHAVIORS.get(key)));
     }
 
     @Override
@@ -253,6 +242,11 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     protected abstract ItemDefinition.Builder createPlatformItemBuilder(UniqueKey id, Key material, Key clientBoundMaterial);
 
     protected abstract void registerArmorTrimPattern(Collection<Key> equipments);
+
+    // 26.1 +
+    public Map<Key, ItemDefinition> dyeableItems() {
+        return this.dyeableItems;
+    }
 
     private final class EquipmentParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"equipments", "equipment"};
@@ -618,6 +612,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 } catch (KnownResourceException e) {
                     error(e, path);
                 }
+                settings.lateInit();
 
                 // 行为
                 ItemBehavior behavior;
@@ -666,6 +661,9 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
                 AbstractItemManager.this.customItemsById.put(id, itemDefinition);
                 AbstractItemManager.this.customItemsByPath.put(id.value(), itemDefinition);
+                if (VersionHelper.isOrAbove26_1() && settings.dyeable() == Tristate.TRUE) {
+                    AbstractItemManager.this.dyeableItems.put(id, itemDefinition);
+                }
 
                 // 如果有类别，则添加
                 if (section.containsKey("category")) {

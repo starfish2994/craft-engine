@@ -1,6 +1,8 @@
 items:
   default:cap:
     material: leather_helmet
+    settings:
+      dyeable: true
     $$<=1.21.1:
       client_bound_material: leather_horse_armor
     data:

@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.item.recipe.CustomCraftingTableRecipe;
+import net.momirealms.craftengine.core.item.recipe.CustomDyeRecipe;
 import net.momirealms.craftengine.core.item.recipe.Recipe;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.Key;
@@ -44,6 +45,8 @@ public final class CrafterEventListener implements Listener {
             }
         }
         if (ceRecipe.hasVisualResult() || ceRecipe.alwaysRebuildOutput()) {
+            // 不要处理染色配方
+            if (ceRecipe instanceof CustomDyeRecipe) return;
             // 重新构建产物，保证papi最新
             event.setResult(ItemStackUtils.getBukkitStack(ceRecipe.assemble(null, ItemBuildContext.empty())));
         }

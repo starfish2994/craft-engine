@@ -108,4 +108,6 @@ public interface ItemManager extends Manageable, ModelGenerator {
     List<UniqueKey> getIngredientSubstitutes(Key item);
 
     ItemUpdateResult updateItem(Item item, Supplier<ItemBuildContext> contextSupplier);
+
+    Item emptyItem();
 }

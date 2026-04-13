@@ -41,6 +41,19 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
         return new CustomRecipeResult(CloneableItem.of(result), recipeResult.count(), null);
     }
 
+    protected CustomRecipeResult parseResult(ConfigValue value) {
+        if (value.is(Map.class)) {
+            return parseResult(value.getAsSection());
+        } else {
+            Key id = value.getAsIdentifier();
+            Optional<? extends BuildableItem> buildableItem = CraftEngine.instance().itemManager().getBuildableItem(id);
+            if (buildableItem.isEmpty()) {
+                throw new KnownResourceException("resource.recipe.result.item_not_exist", value.path(), id.asString());
+            }
+            return new CustomRecipeResult(buildableItem.get(), 1, null);
+        }
+    }
+
     protected CustomRecipeResult parseResult(ConfigSection section) {
         Key id = section.getNonNullIdentifier("id");
         int count = section.getInt("count", 1);

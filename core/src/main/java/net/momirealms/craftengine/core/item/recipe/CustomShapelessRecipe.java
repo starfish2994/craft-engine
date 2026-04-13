@@ -52,7 +52,6 @@ public final class CustomShapelessRecipe extends CustomCraftingTableRecipe {
         return this.ingredients;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean matches(RecipeInput input) {
         return matches((CraftingInput) input);
@@ -68,7 +67,6 @@ public final class CustomShapelessRecipe extends CustomCraftingTableRecipe {
         return input.finder().canCraft(this);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void takeInput(@NotNull RecipeInput in, int ignore) {
         CraftingInput input = (CraftingInput) in;
@@ -117,11 +115,10 @@ public final class CustomShapelessRecipe extends CustomCraftingTableRecipe {
         @SuppressWarnings({"unchecked", "DuplicatedCode"})
         @Override
         public CustomShapelessRecipe readConfig(Key id, ConfigSection section) {
-            List<Ingredient> ingredients;
+            List<Ingredient> ingredients = new ArrayList<>(4);
             boolean hasAdditionalInput = false;
             ConfigValue ingredientsValue = section.getNonNullValue(INGREDIENTS, ConfigConstants.ARGUMENT_LIST);
             if (ingredientsValue.is(Map.class)) {
-                ingredients = new ArrayList<>();
                 ConfigSection ingredientSection = ingredientsValue.getAsSection();
                 for (String key : ingredientSection.keySet()) {
                     Ingredient value = ingredientSection.getNonNullValue(key, ConfigConstants.ARGUMENT_LIST, super::parseIngredient);
@@ -131,7 +128,7 @@ public final class CustomShapelessRecipe extends CustomCraftingTableRecipe {
                     }
                 }
             } else if (ingredientsValue.is(List.class)) {
-                ingredients = ingredientsValue.getAsList(super::parseIngredient);
+                ingredients.addAll(ingredientsValue.getAsList(super::parseIngredient));
                 for (Ingredient ingredient : ingredients) {
                     if (ingredient.count() > 1) {
                         hasAdditionalInput = true;
@@ -140,7 +137,7 @@ public final class CustomShapelessRecipe extends CustomCraftingTableRecipe {
                 }
             } else {
                 Ingredient ingredient = super.parseIngredient(ingredientsValue);
-                ingredients = List.of(ingredient);
+                ingredients.add(ingredient);
                 if (ingredient.count() > 1) {
                     hasAdditionalInput = true;
                 }
@@ -152,8 +149,8 @@ public final class CustomShapelessRecipe extends CustomCraftingTableRecipe {
             return new CustomShapelessRecipe(
                     id,
                     section.getBoolean(SHOW_NOTIFICATIONS, true),
-                    super.parseResult(section.getNonNullSection("result")),
-                    section.getValue(VISUAL_RESULT, v -> super.parseResult(v.getAsSection())),
+                    super.parseResult(section.getNonNullValue("result", ConfigConstants.ARGUMENT_SECTION)),
+                    section.getValue(VISUAL_RESULT, super::parseResult),
                     section.getString("group"),
                     section.getEnum("category", CraftingRecipeCategory.class),
                     ingredients,

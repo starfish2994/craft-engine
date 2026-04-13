@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.item.customdata.CustomDataSerializer;
 import net.momirealms.craftengine.core.item.customdata.CustomDataSerializers;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.Tag;
@@ -30,6 +31,11 @@ import java.util.Optional;
  * damage, display name, lore, enchantments, and tags.
  */
 public interface Item {
+
+    static Item empty() {
+        return CraftEngine.instance().itemManager().emptyItem();
+    }
+
     Object minecraftItem();
 
     default Object platformItem() {

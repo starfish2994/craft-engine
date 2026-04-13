@@ -49,7 +49,6 @@ public final class CustomStoneCuttingRecipe extends AbstractGroupedRecipe {
         return this.ingredient;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void takeInput(@NotNull RecipeInput in, int ignore) {
         SingleItemInput input = (SingleItemInput) in;
@@ -63,7 +62,7 @@ public final class CustomStoneCuttingRecipe extends AbstractGroupedRecipe {
         public CustomStoneCuttingRecipe readConfig(Key id, ConfigSection section) {
             return new CustomStoneCuttingRecipe(id,
                     section.getBoolean(SHOW_NOTIFICATIONS, true),
-                    super.parseResult(section.getNonNullSection("result")),
+                    super.parseResult(section.getNonNullValue("result", ConfigConstants.ARGUMENT_SECTION)),
                     section.getString("group"),
                     section.getNonNullValue(INGREDIENTS, ConfigConstants.ARGUMENT_LIST, super::parseIngredient)
             );

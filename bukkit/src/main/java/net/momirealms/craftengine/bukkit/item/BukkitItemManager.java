@@ -456,6 +456,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         }
     }
 
+    @Override
     public Item emptyItem() {
         return this.emptyItem;
     }

@@ -30,6 +30,7 @@ import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.classpath.ClassPathAppender;
 import net.momirealms.craftengine.core.plugin.classpath.ReflectionClassPathAppender;
@@ -143,12 +144,10 @@ public final class BukkitCraftEngine extends CraftEngine {
             this.injectRegistries();
         }
         // 注入一些新的类型，但是并不需要太早
-        if (!VersionHelper.isOrAbove26_1()) { // fixme 26.1+
-            try {
-                RecipeInjector.init();
-            } catch (Throwable e) {
-                throw new InjectionException("Error injecting recipes", e);
-            }
+        try {
+            RecipeInjector.init();
+        } catch (Throwable e) {
+            throw new InjectionException("Error injecting recipes", e);
         }
         // 初始化一些注册表
         super.onPluginLoad();

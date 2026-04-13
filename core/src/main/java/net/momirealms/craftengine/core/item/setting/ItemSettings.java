@@ -93,6 +93,17 @@ public final class ItemSettings {
         return processors;
     }
 
+    public void lateInit() {
+        if (VersionHelper.isOrAbove26_1() && this.dyeColor != null) {
+            Key dyesTag = Key.of("minecraft:dyes");
+            if (this.tags.isEmpty()) {
+                this.tags = Set.of(dyesTag);
+            } else {
+                this.tags.add(dyesTag);
+            }
+        }
+    }
+
     public static ItemSettings of() {
         return new ItemSettings();
     }

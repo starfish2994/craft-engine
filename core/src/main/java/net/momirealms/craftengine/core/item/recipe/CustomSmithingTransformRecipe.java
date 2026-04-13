@@ -109,7 +109,6 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         return this.condition != null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void takeInput(@NotNull RecipeInput input, int ignore) {
         SmithingInput smithingInput = (SmithingInput) input;
@@ -118,7 +117,6 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         if (this.addition != null) super.takeIngredient(this.addition, smithingInput.addition().item(), ignore);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean matches(RecipeInput input) {
         SmithingInput smithingInput = (SmithingInput) input;
@@ -232,8 +230,8 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
                     templateIngredient,
                     baseIngredient,
                     additionIngredient,
-                    super.parseResult(section.getNonNullSection("result")),
-                    section.getValue(VISUAL_RESULT, v -> super.parseResult(v.getAsSection())),
+                    super.parseResult(section.getNonNullValue("result", ConfigConstants.ARGUMENT_SECTION)),
+                    section.getValue(VISUAL_RESULT, super::parseResult),
                     section.getList(POST_PROCESSOR, ItemDataProcessors::fromConfig),
                     section.getBoolean(MERGE_COMPONENTS, true),
                     section.getBoolean(MERGE_ENCHANTMENTS, false),

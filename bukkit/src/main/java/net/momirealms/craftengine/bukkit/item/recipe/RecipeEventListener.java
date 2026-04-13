@@ -671,9 +671,21 @@ public final class RecipeEventListener implements Listener {
         }
         try {
             Object mcRecipe = CraftComplexRecipeProxy.INSTANCE.getRecipe(complexRecipe);
-            if (ArmorDyeRecipeProxy.CLASS.isInstance(mcRecipe) || FireworkStarFadeRecipeProxy.CLASS.isInstance(mcRecipe)) {
+            if (FireworkStarFadeRecipeProxy.CLASS.isInstance(mcRecipe)) {
                 return;
             }
+
+            if (VersionHelper.isOrAbove26_1()) {
+                // 在26.1以后dye不再应为special recipe
+                if (DyeRecipeProxy.CLASS.isInstance(mcRecipe)) {
+                    return;
+                }
+            } else {
+                if (ArmorDyeRecipeProxy.CLASS.isInstance(mcRecipe)) {
+                    return;
+                }
+            }
+
             // 处理修复配方，在此处理才能使用玩家参数构建物品
             if (RepairItemRecipeProxy.CLASS.isInstance(mcRecipe)) {
                 Pair<ItemStack, ItemStack> theOnlyTwoItem = getTheOnlyTwoItem(inventory.getMatrix());
@@ -696,6 +708,7 @@ public final class RecipeEventListener implements Listener {
                 inventory.setResult(ItemStackUtils.getBukkitStack(newItem));
                 return;
             }
+
             // 其他配方不允许使用自定义物品
             inventory.setResult(null);
         } catch (Exception e) {
@@ -750,7 +763,11 @@ public final class RecipeEventListener implements Listener {
         } else {
             if (craftingTableRecipe.alwaysRebuildOutput()) {
                 ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
-                inventory.setResult(ItemStackUtils.getBukkitStack(craftingTableRecipe.assemble(null, itemBuildContext)));
+                if (craftingTableRecipe instanceof CustomDyeRecipe dyeRecipe) {
+                    inventory.setResult(ItemStackUtils.getBukkitStack(dyeRecipe.assemble(getCraftingInput(inventory), itemBuildContext)));
+                } else {
+                    inventory.setResult(ItemStackUtils.getBukkitStack(craftingTableRecipe.assemble(null, itemBuildContext)));
+                }
             }
         }
     }

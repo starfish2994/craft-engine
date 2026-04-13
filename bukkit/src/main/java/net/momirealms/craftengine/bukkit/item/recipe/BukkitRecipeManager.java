@@ -56,7 +56,8 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
             RecipeSerializers.CAMPFIRE_COOKING, recipe -> FastNMS.INSTANCE.createCampfireRecipe((CustomCampfireRecipe) recipe),
             RecipeSerializers.STONECUTTING, recipe -> FastNMS.INSTANCE.createStonecuttingRecipe((CustomStoneCuttingRecipe) recipe),
             RecipeSerializers.SMITHING_TRIM, recipe -> FastNMS.INSTANCE.createSmithingTrimRecipe((CustomSmithingTrimRecipe) recipe),
-            RecipeSerializers.SMITHING_TRANSFORM, recipe -> FastNMS.INSTANCE.createSmithingTransformRecipe((CustomSmithingTransformRecipe) recipe)
+            RecipeSerializers.SMITHING_TRANSFORM, recipe -> FastNMS.INSTANCE.createSmithingTransformRecipe((CustomSmithingTransformRecipe) recipe),
+            RecipeSerializers.DYE, recipe -> FastNMS.INSTANCE.createDyeRecipe((CustomDyeRecipe) recipe)
     );
 
     // nms 模块需要使用此方法
@@ -89,7 +90,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     private Object lastRecipeManager = null;
 
     public BukkitRecipeManager(BukkitCraftEngine plugin) {
-        super(createRecipeRegistry());
+        super(createRecipeRegistry(), plugin);
         instance = this;
         this.plugin = plugin;
         this.recipeEventListener = new RecipeEventListener(plugin, this, plugin.itemManager());
@@ -186,16 +187,17 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
             } catch (Exception e) {
                 collector.add(e);
             }
-
         }
 
         // 重新注入特殊配方
-        if (!VersionHelper.isOrAbove26_1()) { // fixme 26.1+
+        super.recipeRegistry.unregister(RecipeInjector.REPAIR_ITEM);
+        super.recipeRegistry.register(RecipeInjector.REPAIR_ITEM, RecipeInjector.REPAIR_ITEM_RECIPE);
+
+        // 在低版本是特殊配方，高版本不是
+        if (!VersionHelper.isOrAbove26_1()) {
             super.recipeRegistry.unregister(RecipeInjector.ARMOR_DYE);
-            super.recipeRegistry.unregister(RecipeInjector.REPAIR_ITEM);
             super.recipeRegistry.unregister(RecipeInjector.FIREWORK_STAR_FADE);
             super.recipeRegistry.register(RecipeInjector.ARMOR_DYE, RecipeInjector.ARMOR_DYE_RECIPE);
-            super.recipeRegistry.register(RecipeInjector.REPAIR_ITEM, RecipeInjector.REPAIR_ITEM_RECIPE);
             super.recipeRegistry.register(RecipeInjector.FIREWORK_STAR_FADE, RecipeInjector.FIREWORK_STAR_FADE_RECIPE);
         }
 

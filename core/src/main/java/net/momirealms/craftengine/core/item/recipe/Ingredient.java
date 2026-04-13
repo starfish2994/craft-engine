@@ -27,12 +27,12 @@ public final class Ingredient implements Predicate<UniqueIdItem>, StackedContent
         return count;
     }
 
-    public static <T> boolean isInstance(Optional<Ingredient> optionalIngredient, UniqueIdItem stack) {
+    public static boolean isInstance(Optional<Ingredient> optionalIngredient, UniqueIdItem stack) {
         return optionalIngredient.map((ingredient) -> ingredient.test(stack))
                 .orElseGet(stack::isEmpty);
     }
 
-    public static <T> Ingredient of(List<IngredientElement> elements, Set<UniqueKey> items, Set<UniqueKey> minecraftItems, boolean hasCustomItem, int count) {
+    public static Ingredient of(List<IngredientElement> elements, Set<UniqueKey> items, Set<UniqueKey> minecraftItems, boolean hasCustomItem, int count) {
         return new Ingredient(elements, new ArrayList<>(items), new ArrayList<>(minecraftItems), hasCustomItem, count);
     }
 

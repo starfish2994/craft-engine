@@ -9,6 +9,7 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
+import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
@@ -33,9 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -45,8 +44,8 @@ public final class RecipeInjector {
     public static final Key REPAIR_ITEM = Key.of("repair_item");
     public static final Key FIREWORK_STAR_FADE = Key.of("firework_star_fade");
     public static Object ARMOR_DYE_RECIPE;
-    public static Object REPAIR_ITEM_RECIPE;
     public static Object FIREWORK_STAR_FADE_RECIPE;
+    public static Object REPAIR_ITEM_RECIPE;
 
     private RecipeInjector() {}
 
@@ -59,25 +58,13 @@ public final class RecipeInjector {
         ).and(ElementMatchers.returns(boolean.class));
         ElementMatcher.Junction<MethodDescription> assemble = (
                 VersionHelper.isOrAbove26_1() ?
-                        ElementMatchers.takesArguments(CraftingInputProxy.CLASS) :
-                            VersionHelper.isOrAbove1_21() ?
-                                    ElementMatchers.takesArguments(CraftingInputProxy.CLASS, HolderLookupProxy.ProviderProxy.CLASS) :
-                                    VersionHelper.isOrAbove1_20_5() ?
-                                            ElementMatchers.takesArguments(CraftingContainerProxy.CLASS, HolderLookupProxy.ProviderProxy.CLASS) :
-                                            ElementMatchers.takesArguments(CraftingContainerProxy.CLASS, RegistryAccessProxy.CLASS)
+                ElementMatchers.takesArguments(CraftingInputProxy.CLASS) :
+                VersionHelper.isOrAbove1_21() ?
+                ElementMatchers.takesArguments(CraftingInputProxy.CLASS, HolderLookupProxy.ProviderProxy.CLASS) :
+                VersionHelper.isOrAbove1_20_5() ?
+                ElementMatchers.takesArguments(CraftingContainerProxy.CLASS, HolderLookupProxy.ProviderProxy.CLASS) :
+                ElementMatchers.takesArguments(CraftingContainerProxy.CLASS, RegistryAccessProxy.CLASS)
         ).and(ElementMatchers.returns(ItemStackProxy.CLASS));
-
-        Class<?> clazz$InjectedArmorDyeRecipe = byteBuddy
-                .subclass(ArmorDyeRecipeProxy.CLASS, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING)
-                .name("net.momirealms.craftengine.bukkit.item.recipe.ArmorDyeRecipe")
-                .method(matches)
-                .intercept(MethodDelegation.to(DyeMatchesInterceptor.INSTANCE))
-                .method(assemble)
-                .intercept(MethodDelegation.to(DyeAssembleInterceptor.INSTANCE))
-                .make()
-                .load(RecipeInjector.class.getClassLoader())
-                .getLoaded();
-        ARMOR_DYE_RECIPE = createSpecialRecipe(ARMOR_DYE, clazz$InjectedArmorDyeRecipe);
 
         Class<?> clazz$InjectedRepairItemRecipe = byteBuddy
                 .subclass(RepairItemRecipeProxy.CLASS, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING)
@@ -90,22 +77,41 @@ public final class RecipeInjector {
                 .getLoaded();
         REPAIR_ITEM_RECIPE = createSpecialRecipe(REPAIR_ITEM, clazz$InjectedRepairItemRecipe);
 
-        Class<?> clazz$InjectedFireworkStarFadeRecipe = byteBuddy
-                .subclass(FireworkStarFadeRecipeProxy.CLASS)
-                .name("net.momirealms.craftengine.bukkit.item.recipe.FireworkStarFadeRecipe")
-                .method(matches)
-                .intercept(MethodDelegation.to(FireworkStarFadeMatchesInterceptor.INSTANCE))
-                .method(assemble)
-                .intercept(MethodDelegation.to(FireworkStarFadeAssembleInterceptor.INSTANCE))
-                .make()
-                .load(RecipeInjector.class.getClassLoader())
-                .getLoaded();
-        FIREWORK_STAR_FADE_RECIPE = createSpecialRecipe(FIREWORK_STAR_FADE, clazz$InjectedFireworkStarFadeRecipe);
+        // 26.1 以上的染色配方直接注册
+        if (!VersionHelper.isOrAbove26_1()) {
+            Class<?> clazz$InjectedArmorDyeRecipe = byteBuddy
+                    .subclass(ArmorDyeRecipeProxy.CLASS, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING)
+                    .name("net.momirealms.craftengine.bukkit.item.recipe.DyeRecipe")
+                    .method(matches)
+                    .intercept(MethodDelegation.to(DyeMatchesInterceptor.INSTANCE))
+                    .method(assemble)
+                    .intercept(MethodDelegation.to(DyeAssembleInterceptor.INSTANCE))
+                    .make()
+                    .load(RecipeInjector.class.getClassLoader())
+                    .getLoaded();
+            ARMOR_DYE_RECIPE = createSpecialRecipe(ARMOR_DYE, clazz$InjectedArmorDyeRecipe);
+
+            Class<?> clazz$InjectedFireworkStarFadeRecipe = byteBuddy
+                    .subclass(FireworkStarFadeRecipeProxy.CLASS)
+                    .name("net.momirealms.craftengine.bukkit.item.recipe.FireworkStarFadeRecipe")
+                    .method(matches)
+                    .intercept(MethodDelegation.to(FireworkStarFadeMatchesInterceptor.INSTANCE))
+                    .method(assemble)
+                    .intercept(MethodDelegation.to(FireworkStarFadeAssembleInterceptor.INSTANCE))
+                    .make()
+                    .load(RecipeInjector.class.getClassLoader())
+                    .getLoaded();
+            FIREWORK_STAR_FADE_RECIPE = createSpecialRecipe(FIREWORK_STAR_FADE, clazz$InjectedFireworkStarFadeRecipe);
+        }
     }
 
     @NotNull
     private static Object createSpecialRecipe(Key id, Class<?> clazz) throws InstantiationException, IllegalAccessException, java.lang.reflect.InvocationTargetException {
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove26_1()) {
+            Constructor<?> constructor = ReflectionUtils.getConstructor(clazz);
+            assert constructor != null;
+            return constructor.newInstance();
+        } else if (VersionHelper.isOrAbove1_20_2()) {
             Constructor<?> constructor = ReflectionUtils.getConstructor(clazz, CraftingBookCategoryProxy.CLASS);
             assert constructor != null;
             return constructor.newInstance(CraftingBookCategoryProxy.MISC);
@@ -265,8 +271,7 @@ public final class RecipeInjector {
         public static final DyeMatchesInterceptor INSTANCE = new DyeMatchesInterceptor();
 
         @RuntimeType
-        public Object intercept(@AllArguments Object[] args) {
-            Object input = args[0];
+        public Object intercept(@Argument(value = 0) Object input) {
             if (DYE_INGREDIENT_COUNT_CHECKER.apply(input)) {
                 return false;
             }
@@ -285,7 +290,7 @@ public final class RecipeInjector {
                     }
                     itemToDye = wrapped;
                 } else {
-                    if (!isArmorDye(wrapped)) {
+                    if (!isDye(wrapped)) {
                         return false;
                     }
                     hasDye = true;
@@ -299,10 +304,9 @@ public final class RecipeInjector {
         public static final DyeAssembleInterceptor INSTANCE = new DyeAssembleInterceptor();
 
         @RuntimeType
-        public Object intercept(@AllArguments Object[] args) {
+        public Object intercept(@Argument(value = 0) Object input) {
             List<Color> colors = new ArrayList<>();
             Item itemToDye = null;
-            Object input = args[0];
             int size = INGREDIENT_SIZE_GETTER.apply(input);
             for (int i = 0; i < size; i++) {
                 Object itemStack = INGREDIENT_GETTER.apply(input, i);
@@ -398,7 +402,7 @@ public final class RecipeInjector {
         return Color.fromDecimal(DyeColorProxy.INSTANCE.getFireworkColor(DyeItemProxy.INSTANCE.getDyeColor(dyeItem)));
     }
 
-    private static boolean isArmorDye(Item dyeItem) {
+    private static boolean isDye(Item dyeItem) {
         Optional<ItemDefinition> optionalCustomItem = dyeItem.getDefinition();
         if (optionalCustomItem.isPresent()) {
             ItemDefinition itemDefinition = optionalCustomItem.get();

@@ -15,6 +15,7 @@ items:
       block: default:deepslate_topaz_ore
   default:topaz:
     settings:
+      dye_color: 255,140,0
       anvil_repair_item:
         - target:
             - '#default:topaz_tools'

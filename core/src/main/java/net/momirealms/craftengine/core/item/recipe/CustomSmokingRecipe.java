@@ -45,7 +45,7 @@ public final class CustomSmokingRecipe extends CustomCookingRecipe {
             return new CustomSmokingRecipe(
                     id,
                     section.getBoolean(SHOW_NOTIFICATIONS, true),
-                    super.parseResult(section.getNonNullSection("result")),
+                    super.parseResult(section.getNonNullValue("result", ConfigConstants.ARGUMENT_SECTION)),
                     section.getString("group"),
                     section.getEnum("category", CookingRecipeCategory.class),
                     section.getNonNullValue(INGREDIENTS, ConfigConstants.ARGUMENT_LIST, super::parseIngredient),
