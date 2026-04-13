@@ -765,10 +765,15 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                         AbstractBlockManager.this.applyPlatformSettings(customBlock, state);
                         // generate mod assets
                         if (Config.generateModAssets()) {
+                            JsonElement model = AbstractBlockManager.this.tempVanillaBlockStateModels[appearanceId];
+                            // 如果未指定模型，说明复用原版模型？但是插件目前无法得知其原版变体模型，且部分模型是多部位模型，无法使用变体解决问题
+                            if (model == null) {
+                                model = EMPTY_VARIANT_MODEL;
+                                AbstractBlockManager.this.isTransparentModelInUse = true;
+                            }
                             AbstractBlockManager.this.modBlockStateOverrides.put(
                                     BlockManager.createCustomBlockKey(index),
-                                    // 如果未指定模型，说明复用原版模型？但是插件目前无法得知其原版变体模型，且部分模型是多部位模型，无法使用变体解决问题
-                                    Optional.ofNullable(AbstractBlockManager.this.tempVanillaBlockStateModels[appearanceId]).orElse(EMPTY_VARIANT_MODEL)
+                                    model
                             );
                         }
                     }
