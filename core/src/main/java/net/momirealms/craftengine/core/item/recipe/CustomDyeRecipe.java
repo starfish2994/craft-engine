@@ -174,8 +174,8 @@ public final class CustomDyeRecipe extends CustomCraftingTableRecipe {
     }
 
     public static class Serializer extends AbstractRecipeSerializer<CustomDyeRecipe> {
-        private static final String[] RESULT_OR_TARGET = new String[] {"target", "result"};
-
+        private static final String[] RESULT_OR_TARGET = new String[] {"result", "target"}; // 必须先 result 后 target
+        
         @SuppressWarnings("unchecked")
         @Override
         public CustomDyeRecipe readConfig(Key id, ConfigSection section) {
