@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display.slot;
 
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
 public final class WithRemainderSlotDisplay implements SlotDisplay {
@@ -20,7 +21,7 @@ public final class WithRemainderSlotDisplay implements SlotDisplay {
 
     @Override
     public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item> writer) {
-        buf.writeVarInt(6);
+        buf.writeVarInt(BuiltInRegistries.SLOT_DISPLAY_TYPE.getId(SlotDisplayTypes.WITH_REMAINDER));
         this.input.write(buf, writer);
         this.remainder.write(buf, writer);
     }

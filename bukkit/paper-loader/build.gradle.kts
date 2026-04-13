@@ -207,7 +207,6 @@ fun registerPaperTask(
             pluginJars.from(tasks.shadowJar.flatMap { it.archiveFile })
             runDirectory = rootProject.layout.projectDirectory.dir("runPaper/${dirName}")
             javaLauncher = javaToolchains.launcherFor {
-                vendor = JvmVendorSpec.JETBRAINS
                 languageVersion = JavaLanguageVersion.of(javaVersion)
             }
             systemProperties["com.mojang.eula.agree"] = true
@@ -216,8 +215,6 @@ fun registerPaperTask(
             jvmArgs("-Dsun.stdout.encoding=UTF-8")
             jvmArgs("-Dsun.stderr.encoding=UTF-8")
             jvmArgs("-Ddisable.watchdog=true")
-            jvmArgs("-Xlog:redefine+class*=info")
-            jvmArgs("-XX:+AllowEnhancedClassRedefinition")
         }
     }
 }

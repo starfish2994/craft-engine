@@ -15,7 +15,6 @@ import java.util.function.Function;
 
 public record RecipeBookDisplayEntry(RecipeDisplayId displayId, RecipeDisplay display, OptionalInt group, int category, Optional<List<Ingredient>> ingredients) {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static RecipeBookDisplayEntry read(FriendlyByteBuf buffer, FriendlyByteBuf.Reader<Item> reader) {
         RecipeDisplayId displayId = RecipeDisplayId.read(buffer);
         RecipeDisplay display = RecipeDisplay.read(buffer, reader);

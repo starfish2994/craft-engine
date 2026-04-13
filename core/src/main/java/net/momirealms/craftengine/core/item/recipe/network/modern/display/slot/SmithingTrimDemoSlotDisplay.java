@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.item.recipe.network.modern.display.slot;
 import com.mojang.datafixers.util.Either;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
@@ -48,7 +49,7 @@ public final class SmithingTrimDemoSlotDisplay implements SlotDisplay {
 
     @Override
     public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item> writer) {
-        buf.writeVarInt(5);
+        buf.writeVarInt(BuiltInRegistries.SLOT_DISPLAY_TYPE.getId(SlotDisplayTypes.SMITHING_TRIM));
         this.base.write(buf, writer);
         this.material.write(buf, writer);
         if (VersionHelper.isOrAbove1_21_5()) {

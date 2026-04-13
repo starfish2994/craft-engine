@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.item.behavior;
 
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.block.behavior.MultiHighBlockBehavior;
+import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.properties.IntegerProperty;
@@ -77,7 +78,7 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
             Object world = CraftWorldProxy.INSTANCE.getWorld((World) context.getLevel().platformWorld());
             boolean defaultReturn = ServerLevelProxy.INSTANCE.checkEntityCollision(world, blockState, player, voxelShape, blockPos, true); // paper only
             Block block = CraftBlockProxy.INSTANCE.at(world, blockPos);
-            BlockData blockData = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.asBlockData(blockState);
+            BlockData blockData = BlockStateUtils.fromBlockData(blockState);
             BlockCanBuildEvent canBuildEvent = new BlockCanBuildEvent(
                     block, cePlayer != null ? (org.bukkit.entity.Player) cePlayer.platformPlayer() : null, blockData, defaultReturn,
                     context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND

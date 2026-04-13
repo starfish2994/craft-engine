@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display.slot;
 
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
 import java.util.function.Function;
@@ -19,7 +20,7 @@ public final class ItemStackSlotDisplay implements SlotDisplay {
 
     @Override
     public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item> writer) {
-        buf.writeVarInt(3);
+        buf.writeVarInt(BuiltInRegistries.SLOT_DISPLAY_TYPE.getId(SlotDisplayTypes.ITEM_STACK));
         writer.accept(buf, this.item);
     }
 

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.item.recipe.network.modern.display.slot;
 
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
 public final class AnyFuelDisplay implements SlotDisplay {
@@ -12,7 +13,7 @@ public final class AnyFuelDisplay implements SlotDisplay {
 
     @Override
     public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item> writer) {
-        buf.writeVarInt(1);
+        buf.writeVarInt(BuiltInRegistries.SLOT_DISPLAY_TYPE.getId(SlotDisplayTypes.ANY_FUEL));
     }
 
     @Override
