@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.item.recipe.Recipe;
 import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.SingleItemInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
+import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.setting.value.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.value.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -25,6 +26,7 @@ import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftComplexRecipeProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryAnvilProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
@@ -39,6 +41,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.CraftingContai
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.*;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkAccessProxy;
@@ -267,9 +270,34 @@ public final class RecipeEventListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onFurnaceBurn(FurnaceBurnEvent event) {
         ItemStack fuel = event.getFuel();
-        int fuelTime = this.itemManager.getFuelTime(BukkitAdaptor.adapt(fuel).id());
-        if (fuelTime != 0) {
-            event.setBurnTime(fuelTime);
+        BukkitItem item = BukkitAdaptor.adapt(fuel);
+        Optional<ItemDefinition> optionalDefinition = item.getDefinition();
+        if (optionalDefinition.isPresent()) {
+            ItemDefinition itemDefinition = optionalDefinition.get();
+            int fuelTime = itemDefinition.settings().fuelTime();
+            if (fuelTime != 0) {
+                // 自定义燃烧时间
+                event.setBurnTime(fuelTime);
+                Key remainder = itemDefinition.settings().fuelRemainder();
+                if (remainder != null && item.count() == 1) {
+                    Block block = event.getBlock();
+                    Object blockPos = LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ());
+                    // 先获取方块实体
+                    Object blockEntity = LevelProxy.INSTANCE.getBlockEntity(CraftWorldProxy.INSTANCE.getWorld(block.getWorld()), blockPos);
+                    if (AbstractFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
+                        int litTimeRemaining = AbstractFurnaceBlockEntityProxy.INSTANCE.getLitTimeRemaining(blockEntity);
+                        // 准备开始燃烧
+                        if (litTimeRemaining <= 0) {
+                            Item remainderItem = this.itemManager.createWrappedItem(remainder, null);
+                            if (remainderItem == null) return;
+                            List<Object> items = AbstractFurnaceBlockEntityProxy.INSTANCE.getItems(blockEntity);
+                            event.setConsumeFuel(false);
+                            item.shrink(1);
+                            items.set(1, remainderItem.minecraftItem());
+                        }
+                    }
+                }
+            }
         }
     }
 

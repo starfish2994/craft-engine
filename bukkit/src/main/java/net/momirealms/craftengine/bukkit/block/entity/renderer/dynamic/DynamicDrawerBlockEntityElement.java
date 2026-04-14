@@ -87,7 +87,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
     public void refreshSpawnItemAndTextPacket(WorldPosition itemPosition, WorldPosition textPosition, float entityYRot) {
         this.spawnItemPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 itemId, itemUUID, itemPosition.x, itemPosition.y, itemPosition.z,
-                0.0f, -entityYRot, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                0.0f, entityYRot, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.spawnTextPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 textId, textUUID, textPosition.x, textPosition.y, textPosition.z,
@@ -95,7 +95,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         );
         this.updateItemPosPacket = EntityUtils.createUpdatePosPacket(this.itemId,
                 itemPosition.x, itemPosition.y, itemPosition.z,
-                -entityYRot, 0.0f, true
+                entityYRot, 0.0f, true
         );
         this.updateTextPosPacket = EntityUtils.createUpdatePosPacket(this.textId,
                 textPosition.x, textPosition.y, textPosition.z,

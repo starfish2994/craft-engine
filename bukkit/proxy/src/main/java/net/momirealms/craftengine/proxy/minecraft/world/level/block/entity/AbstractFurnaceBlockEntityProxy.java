@@ -7,6 +7,8 @@ import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
+import java.util.List;
+
 @ReflectionProxy(name = "net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity")
 public interface AbstractFurnaceBlockEntityProxy extends BaseContainerBlockEntityProxy {
     AbstractFurnaceBlockEntityProxy INSTANCE = ASMProxyFactory.create(AbstractFurnaceBlockEntityProxy.class);
@@ -20,4 +22,10 @@ public interface AbstractFurnaceBlockEntityProxy extends BaseContainerBlockEntit
 
     @MethodInvoker(name = "getItem", activeIf = "max_version=1.20.4")
     Object getItem(Object target, int slot);
+
+    @FieldGetter(name = "items")
+    List<Object> getItems(Object target);
+
+    @FieldGetter(name = "litTimeRemaining")
+    int getLitTimeRemaining(Object target);
 }

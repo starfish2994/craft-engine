@@ -178,6 +178,10 @@ public final class ItemSettingsModifiers {
         List<Key> list = value.getAsList(ConfigValue::getAsIdentifier);
         settings.ingredientSubstitutes(list);
     }));
+    public static final ItemSettingsModifierType<ItemSettingsModifier> FUEL_REMAINDER = register(Key.ce("fuel_remainder"), (value -> settings -> {
+        Key itemId = value.getAsIdentifier();
+        settings.fuelRemainder(itemId);
+    }));
 
     private ItemSettingsModifiers() {}
 

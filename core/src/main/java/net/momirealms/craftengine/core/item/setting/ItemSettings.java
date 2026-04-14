@@ -29,6 +29,7 @@ public final class ItemSettings {
     FoodData foodData = null;
     Key consumeReplacement = null;
     CraftRemainder craftRemainder = null;
+    Key fuelRemainder = null;
     List<DamageSource> invulnerable = List.of();
     boolean canEnchant = true;
     float compostProbability= 0.5f;
@@ -130,6 +131,7 @@ public final class ItemSettings {
         newSettings.foodData = settings.foodData;
         newSettings.consumeReplacement = settings.consumeReplacement;
         newSettings.craftRemainder = settings.craftRemainder;
+        newSettings.fuelRemainder = settings.fuelRemainder;
         newSettings.invulnerable = settings.invulnerable;
         newSettings.canEnchant = settings.canEnchant;
         newSettings.compostProbability = settings.compostProbability;
@@ -290,6 +292,11 @@ public final class ItemSettings {
         return this.dropDisplay;
     }
 
+    @Nullable
+    public Key fuelRemainder() {
+        return this.fuelRemainder;
+    }
+
     public ItemSettings fireworkColor(Color color) {
         this.fireworkColor = color;
         return this;
@@ -412,6 +419,11 @@ public final class ItemSettings {
 
     public ItemSettings triggerAdvancement(boolean triggerAdvancement) {
         this.triggerAdvancement = triggerAdvancement;
+        return this;
+    }
+
+    public ItemSettings fuelRemainder(Key fuelRemainder) {
+        this.fuelRemainder = fuelRemainder;
         return this;
     }
 }
