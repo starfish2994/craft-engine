@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.util;
 
-import net.momirealms.craftengine.bukkit.nms.StorageContainer;
+import net.momirealms.craftengine.bukkit.nms.ContainerMarker;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import org.bukkit.entity.Player;
@@ -57,6 +57,6 @@ public final class InventoryUtils {
         if (!CraftInventoryProxy.CLASS.isInstance(inventory)) return false;
         Object container = CraftInventoryProxy.INSTANCE.getInventory(inventory);
         if (container == null) return false;
-        return container instanceof StorageContainer;
+        return container instanceof ContainerMarker;
     }
 }

@@ -3,20 +3,20 @@ package net.momirealms.craftengine.bukkit.block.entity;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.behavior.SimpleStorageBlockBehavior;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.nms.FastNMS;
-import net.momirealms.craftengine.bukkit.nms.StorageContainer;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
+import net.momirealms.craftengine.bukkit.world.inventory.BukkitWorldlyStorageContainer;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -31,6 +31,7 @@ import org.bukkit.GameEvent;
 import org.bukkit.GameMode;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -49,14 +50,8 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
         super(blockEntity);
         this.behavior = behavior;
         WorldlyContainerHolder holder = new WorldlyContainerHolder(this::onPlayerClose, () -> new WorldPosition(blockEntity.world.world, blockEntity.pos.x + 0.5, blockEntity.pos.y + 0.5, blockEntity.pos.z + 0.5));
-        this.inventory = FastNMS.INSTANCE.createSimpleStorageContainer(holder, this.behavior.rows * 9, this.behavior.canPlaceItem, this.behavior.canTakeItem);
+        this.inventory = CraftInventoryProxy.INSTANCE.newInstance(CraftEngine.instance().platform().createContainer(new SimpleStorageBlockContainer(holder, this.behavior.rows * 9, this.behavior.canPlaceItem, this.behavior.canTakeItem, blockEntity)));
         holder.setInventory(this.inventory);
-        StorageContainer container = (StorageContainer) CraftInventoryProxy.INSTANCE.getInventory(this.inventory);
-        container.onContentsChanged($ -> {
-            CEWorld ceWorld = blockEntity.world;
-            if (ceWorld == null) return;
-            ceWorld.blockEntityChanged(blockEntity.pos);
-        });
     }
 
     @Override
@@ -209,5 +204,21 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
             }
         }
         this.inventory.clear();
+    }
+
+    public static class SimpleStorageBlockContainer extends BukkitWorldlyStorageContainer {
+        private final BlockEntity blockEntity;
+
+        public SimpleStorageBlockContainer(InventoryHolder owner, int size, boolean canPlaceItem, boolean canTakeItem, BlockEntity blockEntity) {
+            super(owner, size, canPlaceItem, canTakeItem);
+            this.blockEntity = blockEntity;
+        }
+
+        @Override
+        public void setChanged() {
+            CEWorld ceWorld = blockEntity.world;
+            if (ceWorld == null) return;
+            ceWorld.blockEntityChanged(blockEntity.pos);
+        }
     }
 }
