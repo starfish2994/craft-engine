@@ -8,9 +8,11 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
+import net.momirealms.craftengine.bukkit.world.inventory.BukkitStorageContainer;
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.plugin.gui.*;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftMerchantCustomProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftMerchantProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundOpenScreenPacketProxy;
@@ -82,7 +84,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
     @Override
     public Inventory createInventory(Gui gui, int size) {
         CraftEngineGUIHolder holder = new CraftEngineGUIHolder(gui);
-        org.bukkit.inventory.Inventory inventory = FastNMS.INSTANCE.createSimpleStorageContainer(holder, size, false, false);
+        org.bukkit.inventory.Inventory inventory = CraftInventoryProxy.INSTANCE.newInstance(this.plugin.platform().createContainer(new BukkitStorageContainer(holder, size)));
         holder.holder().bindValue(inventory);
         return new BukkitInventory(inventory);
     }

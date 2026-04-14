@@ -2,15 +2,18 @@ package net.momirealms.craftengine.bukkit.plugin;
 
 import com.google.gson.JsonElement;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryOps;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
+import net.momirealms.craftengine.bukkit.world.BukkitContainer;
 import net.momirealms.craftengine.bukkit.world.particle.BukkitParticleType;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.Platform;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.Container;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.particle.ParticleType;
 import net.momirealms.sparrow.nbt.Tag;
@@ -76,5 +79,14 @@ public final class BukkitPlatform implements Platform {
     @Override
     public int biomeCount() {
         return RegistryUtils.currentBiomeRegistrySize();
+    }
+
+    @Override
+    public Object createContainer(Container container) {
+        if (container instanceof BukkitContainer bukkitContainer) {
+            return FastNMS.INSTANCE.createContainer(bukkitContainer);
+        } else {
+            throw new IllegalArgumentException("Container is not a BukkitContainer");
+        }
     }
 }

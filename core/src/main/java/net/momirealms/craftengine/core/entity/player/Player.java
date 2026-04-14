@@ -282,6 +282,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract Cache<Object, Boolean> receivedMapData();
 
+    public abstract boolean canInteractPoint(Vec3d vec3d, double range);
+
     @Override
     public boolean isValid() {
         return this.isOnline();

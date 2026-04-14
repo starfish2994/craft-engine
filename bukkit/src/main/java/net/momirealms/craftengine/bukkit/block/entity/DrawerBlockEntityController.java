@@ -31,7 +31,7 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     private static final String DEFAULT_DATA_KEY = "craftengine:drawer";
     public final DrawerBlockBehavior behavior;
     public final DynamicDrawerBlockEntityElement element;
-    private final Object container;
+    private Object container;
     @NotNull
     private Item storedItem;
     private WorldPosition itemPosition;
@@ -50,7 +50,6 @@ public final class DrawerBlockEntityController extends BlockEntityController {
         this.textPosition = this.calculateDisplayPosition(blockEntity.blockState, this.behavior.textPosition);
         this.entityYRot = this.calculateYRot(blockEntity.blockState);
         this.element = new DynamicDrawerBlockEntityElement(this, this.itemPosition, this.textPosition, this.entityYRot);
-        this.container = FastNMS.INSTANCE.createDrawerContainer(this);
     }
 
     public Object container() {

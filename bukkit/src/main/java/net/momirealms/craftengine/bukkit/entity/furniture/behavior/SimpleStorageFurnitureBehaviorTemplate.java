@@ -9,6 +9,7 @@ import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
+import net.momirealms.craftengine.bukkit.world.inventory.BukkitWorldlyStorageContainer;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorFactory;
@@ -17,6 +18,7 @@ import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureContro
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
@@ -26,6 +28,7 @@ import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import org.bukkit.GameMode;
@@ -103,7 +106,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
             this.furniture = furniture;
             this.template = template;
             WorldlyContainerHolder holder = new WorldlyContainerHolder(this::onPlayerClose, this.furniture::position);
-            this.inventory = FastNMS.INSTANCE.createSimpleStorageContainer(holder, this.template.rows * 9, false, false);
+            this.inventory = CraftInventoryProxy.INSTANCE.newInstance(CraftEngine.instance().platform().createContainer(new BukkitWorldlyStorageContainer(holder, this.template.rows * 9, false, false)));
             holder.setInventory(this.inventory);
         }
 

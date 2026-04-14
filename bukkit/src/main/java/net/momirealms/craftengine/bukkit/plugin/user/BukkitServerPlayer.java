@@ -814,6 +814,7 @@ public class BukkitServerPlayer extends Player {
         return (new AABB(pos)).distanceToSqr(this.eyeLocation) < d * d;
     }
 
+    @Override
     public boolean canInteractPoint(Vec3d pos, double distance) {
         double d = this.getCachedInteractionRange() + distance;
         return Vec3d.distanceToSqr(this.eyeLocation, pos) < d * d;
