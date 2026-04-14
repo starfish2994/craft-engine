@@ -3,7 +3,6 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.DrawerBlockEntityController;
-import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
@@ -31,7 +30,6 @@ import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
@@ -135,19 +133,24 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
 
             // 双击批量放入背包里所有相似物品
             if (hasStoredItem && isDoubleClick) {
-                int putAmount = player.clearOrCountMatchingInventoryItems(item -> item.isSimilar(storedItem), Integer.MAX_VALUE);
-                if (putAmount > 0) {
-                    controller.growStorageCount(putAmount);
-                }
+                // 清理缓存
                 controller.lastClickPlayer(null);
                 controller.lastClickTime(null);
-                player.swingHand(hand);
-                if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
-                return InteractionResult.SUCCESS_AND_CANCEL;
+                // 先计算能放入多少个
+                int matchedCount = player.clearOrCountMatchingInventoryItems(item -> item.isSimilar(storedItem), 0);
+                int putAbleCount = this.maxStorageCount - controller.storageCount();
+                int putCount = Math.min(matchedCount, putAbleCount);
+                // 尝试放入
+                if (putCount > 0) {
+                    int finalPutCount = player.clearOrCountMatchingInventoryItems(item -> item.isSimilar(storedItem), putCount);
+                    controller.growStorageCount(finalPutCount);
+                    player.swingHand(hand);
+                    if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
+                    return InteractionResult.SUCCESS_AND_CANCEL;
+                }
             }
-
             // 单击放入手中物品（空存储或物品相似）
-            if (handHasItem && (!hasStoredItem || storedItem.isSimilar(itemInHand))) {
+            else if (handHasItem && (!hasStoredItem || storedItem.isSimilar(itemInHand))) {
                 // 第一次点击或者间隔超过500ms, 放入手中所有物品
                 int count = itemInHand.count();
                 Item toInsert = itemInHand.copyWithCount(count);

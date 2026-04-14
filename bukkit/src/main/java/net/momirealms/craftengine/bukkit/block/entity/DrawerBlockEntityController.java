@@ -38,6 +38,8 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     private WorldPosition textPosition;
     private float entityYRot;
     private final Vector3f blockCenter;
+    private Item lastUpdateItem = Item.empty(); // 最后一次包发送的物品
+    private int lastUpdateContent = 0; // 最后一次包发送的物品数量
     private UUID lastClickPlayer;
     private Long lastClickTime;
 
@@ -84,10 +86,13 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     public void putStorageItem(Item inputItem /* Not Empty */) {
         if (this.storedItem.isEmpty()) {
             this.storedItem = inputItem;
-            this.refreshDynamicElement(DynamicDrawerBlockEntityElement::update);
+            this.refreshItemDisplayPacket();
+            this.refreshTextContentPacket();
+            this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateItemAndText);
         } else {
             int count = this.storageCount() + inputItem.count();
             this.storedItem.count(count);
+            this.refreshTextContentPacket();
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
     }
@@ -97,6 +102,7 @@ public final class DrawerBlockEntityController extends BlockEntityController {
         if (!storedItem.isEmpty()) {
             int count = this.storageCount() + putCount;
             this.storedItem.count(count);
+            this.refreshTextContentPacket();
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
     }
@@ -108,7 +114,9 @@ public final class DrawerBlockEntityController extends BlockEntityController {
 
     public void setStoredItem(Item item) {
         this.storedItem = item;
-        this.refreshDynamicElement(DynamicDrawerBlockEntityElement::update);
+        this.refreshItemDisplayPacket();
+        this.refreshTextContentPacket();
+        this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateItemAndText);
     }
 
     // 取走方块内的物品
@@ -126,20 +134,10 @@ public final class DrawerBlockEntityController extends BlockEntityController {
             int remainingCount = this.storageCount() - takeCount;
             takeItem = this.storedItem.copyWithCount(takeCount);
             this.storedItem.count(remainingCount);
+            this.refreshTextContentPacket();
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
         return takeItem;
-    }
-
-    // 刷新展示元素
-    public void refreshDynamicElement(BiConsumer<DynamicDrawerBlockEntityElement, Player> consumer) {
-        this.element.refreshChangeDisplayItemPacket(this.storedItem);
-        CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
-        if (chunk != null) {
-            for (Player trackedPlayer : chunk.getTrackedBy()) {
-                consumer.accept(this.element, trackedPlayer);
-            }
-        }
     }
 
     // 方块状态变更时
@@ -148,15 +146,8 @@ public final class DrawerBlockEntityController extends BlockEntityController {
         this.itemPosition = this.calculateDisplayPosition(newState, this.behavior.itemPosition);
         this.textPosition = this.calculateDisplayPosition(newState, this.behavior.textPosition);
         this.entityYRot = this.calculateYRot(newState);
-        this.element.positionDirty(true);
-        this.element.refreshSpawnItemAndTextPacket(this.itemPosition, this.textPosition, this.entityYRot);
-        CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
-        if (chunk != null) {
-            for (Player trackedPlayer : chunk.getTrackedBy()) {
-                this.element.update(trackedPlayer);
-            }
-        }
-        this.element.positionDirty(false);
+        this.refreshElementPosPacket();
+        this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateElementPos);
     }
 
     // 读取方块内存储的物品
@@ -180,8 +171,11 @@ public final class DrawerBlockEntityController extends BlockEntityController {
         // 记录并刷新
         this.storedItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
         this.storedItem.count(count);
+
         this.element.refreshChangeDisplayItemPacket(this.storedItem);
         this.element.refreshChangeTextContentPacket(count);
+        this.lastUpdateItem = this.storedItem;
+        this.lastUpdateContent = count;
     }
 
     @Override
@@ -209,6 +203,37 @@ public final class DrawerBlockEntityController extends BlockEntityController {
             }
         }
         this.storedItem = Item.empty();
+    }
+
+    // 刷新展示元素
+    public void refreshDynamicElement(BiConsumer<DynamicDrawerBlockEntityElement, Player> consumer) {
+        CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
+        if (chunk != null) {
+            for (Player trackedPlayer : chunk.getTrackedBy()) {
+                consumer.accept(this.element, trackedPlayer);
+            }
+        }
+    }
+
+    // 检查并刷新元素物品展示实体的内容包
+    public void refreshItemDisplayPacket() {
+        Item displayItem = this.storedItem();
+        if (displayItem.minecraftItem() != this.lastUpdateItem.minecraftItem() || !displayItem.isSimilar(this.lastUpdateItem)) {
+            this.element.refreshChangeDisplayItemPacket(displayItem);
+        }
+    }
+
+    // 检查并刷新元素展示的文本实体的内容包
+    public void refreshTextContentPacket() {
+        int storageCount = this.storageCount();
+        if (this.lastUpdateContent != storageCount) {
+            this.element.refreshChangeTextContentPacket(storageCount);
+        }
+    }
+
+    // 检查并刷新元素展示位置的内容包
+    public void refreshElementPosPacket() {
+        this.element.refreshSpawnItemAndTextPacket(this.itemPosition, this.textPosition, this.entityYRot);
     }
 
     public WorldPosition calculateDisplayPosition(ImmutableBlockState blockState, Vector3f relative) {
