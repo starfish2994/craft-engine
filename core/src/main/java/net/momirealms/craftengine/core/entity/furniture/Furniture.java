@@ -554,4 +554,12 @@ public abstract class Furniture implements Cullable {
     public boolean isUnsaved() {
         return this.unsaved;
     }
+
+    public boolean canInteract(Player player) {
+        WorldPosition position = position();
+        if (!player.canInteractPoint(new Vec3d(position.x, position.y, position.z), 16d)) {
+            return false;
+        }
+        return true;
+    }
 }

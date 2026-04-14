@@ -64,6 +64,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     private final Map<String, ItemSource> itemSources;
     private final Map<String, LevelerProvider> levelerProviders;
     private final Map<String, EntityProvider> entityProviders;
+    private ModelProvider[] modelProviderArray;
     private TagResolverProvider[] tagResolverProviderArray = null;
     private boolean hasPlaceholderAPI;
     private boolean hasGeyser;
@@ -77,6 +78,17 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         this.entityProviders = new HashMap<>();
         this.modelProviders = new HashMap<>();
         this.tagResolverProviders = new HashMap<>();
+        this.modelProviderArray = new ModelProvider[0];
+    }
+
+    @Override
+    public int remapEntityId(int entityId) {
+        if (this.modelProviderArray.length > 0) {
+            for (int i = 0; i < this.modelProviderArray.length; i++) {
+                entityId = this.modelProviderArray[i].remapEntityId(entityId);
+            }
+        }
+        return entityId;
     }
 
     @Override
@@ -87,6 +99,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     @Override
     public void registerModelProvider(final ModelProvider provider) {
         this.modelProviders.put(provider.plugin(), provider);
+        this.modelProviderArray = this.modelProviders.values().toArray(new ModelProvider[0]);
     }
 
     @Override
@@ -264,11 +277,6 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
             }
         }
         return null;
-    }
-
-    @Override
-    public int interactionToBaseEntity(int id) {
-        return ModelEngineUtils.interactionToBaseEntity(id);
     }
 
     private void initLuckPermsHook() {

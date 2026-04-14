@@ -248,4 +248,9 @@ public final class PacketIds1_20 implements PacketIds {
     public int clientboundCustomPayloadPacket() {
         return PacketIdHelper.byClazz(ClientboundCustomPayloadPacketProxy.CLASS, PacketFlow.CLIENTBOUND, ConnectionState.PLAY);
     }
+
+    @Override
+    public int serverboundAttackPacket() {
+        return -1;
+    }
 }

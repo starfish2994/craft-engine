@@ -60,6 +60,7 @@ import net.momirealms.craftengine.core.advancement.network.AdvancementHolder;
 import net.momirealms.craftengine.core.advancement.network.AdvancementProgress;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
+import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
@@ -490,7 +491,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(new SetEntityDataListener(), this.packetIds.clientboundSetEntityDataPacket(), "ClientboundSetEntityDataPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(new SetCreativeModeSlotListener(), this.packetIds.serverboundSetCreativeModeSlotPacket(), "ServerboundSetCreativeModeSlotPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
         registerByteBufferPacketListener(new ContainerClick1_20(), VersionHelper.isOrAbove1_21_5() ? -1 : this.packetIds.serverboundContainerClickPacket(), "ServerboundContainerClickPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(new InteractEntityListener(), this.packetIds.serverboundInteractPacket(), "ServerboundInteractPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(VersionHelper.isOrAbove26_1() ? new InteractEntityListener26_1() : new InteractEntityListener1_20(), this.packetIds.serverboundInteractPacket(), "ServerboundInteractPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(new AttackListener(), this.packetIds.serverboundAttackPacket(), "ServerboundAttackPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
         registerByteBufferPacketListener(new CustomPayloadListener1_20(), VersionHelper.isOrAbove1_20_2() ? -1 : this.packetIds.serverboundCustomPayloadPacket(), "ServerboundCustomPayloadPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
         registerByteBufferPacketListener(VersionHelper.isOrAbove1_20_5() ? new MerchantOffersListener1_20_5() : new MerchantOffersListener1_20(), this.packetIds.clientBoundMerchantOffersPacket(), "ClientboundMerchantOffersPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(new AddEntityListener(RegistryUtils.currentEntityTypeRegistrySize()), this.packetIds.clientboundAddEntityPacket(), "ClientboundAddEntityPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
@@ -4026,7 +4028,269 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
     }
 
-    public class InteractEntityListener implements ByteBufferPacketListener {
+    private void performAttackFurniture(BukkitFurniture furniture, int entityId, BukkitServerPlayer serverPlayer) {
+        Location location = furniture.location();
+
+        Runnable mainThreadTask = () -> {
+            if (!furniture.isValid()) {
+                return;
+            }
+
+            FurnitureDefinition config = furniture.config;
+            if (serverPlayer.isAdventureMode() && !config.settings().allowBreakingInAdventureMode()) {
+                return;
+            }
+
+            // 先检查碰撞箱部分是否存在
+            FurnitureHitBox hitBox = furniture.hitboxByEntityId(entityId);
+            if (hitBox == null) return;
+
+            Player platformPlayer = serverPlayer.platformPlayer();
+            if (platformPlayer == null) return;
+
+            if (!BukkitCraftEngine.instance().antiGriefProvider().test(platformPlayer, Flag.BREAK, location))
+                return;
+
+            FurnitureHitboxPart part = null;
+            for (FurnitureHitboxPart p : hitBox.parts()) {
+                if (p.entityId() == entityId) {
+                    part = p;
+                    break;
+                }
+            }
+            if (part == null) {
+                return;
+            }
+
+            Location eyeLocation = platformPlayer.getEyeLocation();
+            Vector direction = eyeLocation.getDirection();
+            Location endLocation = eyeLocation.clone();
+            endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
+            Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
+            if (optionalHitResult.isEmpty()) {
+                return;
+            }
+            EntityHitResult hitResult = optionalHitResult.get();
+            Vec3d hitLocation = hitResult.hitLocation();
+            // 获取正确的交互点
+            Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
+
+            ContextHolder.Builder contextBuilder = ContextHolder.builder()
+                    .withParameter(DirectContextParameters.FURNITURE, furniture)
+                    .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
+                    .withParameter(DirectContextParameters.ITEM_IN_HAND, serverPlayer.getItemInHand(InteractionHand.MAIN_HAND))
+                    .withParameter(DirectContextParameters.POSITION, furniture.position());
+            FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, interactionPoint, hitBox, contextBuilder);
+            if (EventUtils.fireAndCheckCancel(hitEvent))
+                return;
+
+            int hitTimes = config.settings().hitTimes();
+            if (hitTimes > 1 && !serverPlayer.isCreativeMode()) {
+                FurnitureHitData furnitureHitData = serverPlayer.furnitureHitData();
+                int previousTimes = furnitureHitData.times(furniture.entityId());
+                int alreadyHit = furnitureHitData.hit(furniture.entityId());
+
+                // execute functions
+                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
+                        contextBuilder
+                                .withParameter(DirectContextParameters.EVENT, Cancellable.of(hitEvent::isCancelled, hitEvent::setCancelled))
+                                .withParameter(DirectContextParameters.HIT_TIMES, alreadyHit)
+                );
+                config.execute(context, EventTrigger.LEFT_CLICK);
+                if (hitEvent.isCancelled()) {
+                    furnitureHitData.setTimes(previousTimes);
+                    return;
+                }
+
+                if (alreadyHit < hitTimes) {
+                    SoundData soundData = config.settings().sounds().hitSound();
+                    serverPlayer.world().playSound(furniture.position(), soundData.id(), soundData.volume().get(), soundData.pitch().get(), SoundSource.PLAYER);
+                    return;
+                } else {
+                    serverPlayer.furnitureHitData().reset();
+                }
+            }
+
+            FurnitureBreakEvent breakEvent = new FurnitureBreakEvent(serverPlayer.platformPlayer(), furniture, contextBuilder);
+            breakEvent.setDropItems(!serverPlayer.isCreativeMode());
+            if (EventUtils.fireAndCheckCancel(breakEvent))
+                return;
+
+            // execute functions
+            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
+                    contextBuilder.withParameter(DirectContextParameters.EVENT, Cancellable.of(breakEvent::isCancelled, breakEvent::setCancelled)));
+            config.execute(context, EventTrigger.BREAK);
+            if (breakEvent.isCancelled()) {
+                return;
+            }
+            CraftEngineFurniture.remove(furniture, serverPlayer, breakEvent.dropItems(), true);
+        };
+
+        if (VersionHelper.isFolia()) {
+            this.plugin.scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        } else {
+            this.plugin.scheduler().executeSync(mainThreadTask);
+        }
+    }
+
+    private void performInteractFurniture(BukkitFurniture furniture,
+                                          int entityId,
+                                          BukkitServerPlayer serverPlayer,
+                                          InteractionHand hand,
+                                          boolean usingSecondaryAction) {
+        Location location = furniture.location();
+
+        Runnable mainThreadTask = () -> {
+            if (!furniture.isValid()) {
+                return;
+            }
+
+            // 先检查碰撞箱部分是否存在
+            FurnitureHitBox hitBox = furniture.hitboxByEntityId(entityId);
+            if (hitBox == null) return;
+            FurnitureHitboxPart part = null;
+            for (FurnitureHitboxPart p : hitBox.parts()) {
+                if (p.entityId() == entityId) {
+                    part = p;
+                    break;
+                }
+            }
+            if (part == null) {
+                return;
+            }
+
+            Player platformPlayer = serverPlayer.platformPlayer();
+            if (platformPlayer == null) return;
+            // 检测能否交互碰撞箱
+            Location eyeLocation = platformPlayer.getEyeLocation();
+            Vector direction = eyeLocation.getDirection();
+            Location endLocation = eyeLocation.clone();
+            endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
+            Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
+            if (optionalHitResult.isEmpty()) {
+                return;
+            }
+            EntityHitResult hitResult = optionalHitResult.get();
+            Vec3d hitLocation = hitResult.hitLocation();
+
+            // 获取正确的交互点
+            Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
+            // 触发事件
+            ContextHolder.Builder contextBuilder = ContextHolder.builder();
+            FurnitureInteractEvent interactEvent = new FurnitureInteractEvent(serverPlayer.platformPlayer(), furniture, hand, interactionPoint, hitBox, contextBuilder);
+            if (EventUtils.fireAndCheckCancel(interactEvent)) {
+                return;
+            }
+
+            // 执行家具行为
+            InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
+            InteractionResult result = furniture.controller.useOnFurniture(hitBox, interactEntityContext);
+            if (result.success()) {
+                serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
+                return;
+            }
+            if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
+                result = furniture.controller.useWithoutItem(interactEntityContext);
+                if (result.success()) {
+                    serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
+                    return;
+                }
+            }
+            if (result == InteractionResult.FAIL) {
+                return;
+            }
+
+            // 执行事件动作
+            Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
+            Cancellable cancellable = Cancellable.of(interactEvent::isCancelled, interactEvent::setCancelled);
+            // execute functions
+            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
+                    contextBuilder
+                            .withParameter(DirectContextParameters.EVENT, cancellable)
+                            .withParameter(DirectContextParameters.FURNITURE, furniture)
+                            .withParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
+                            .withParameter(DirectContextParameters.HAND, hand)
+                            .withParameter(DirectContextParameters.POSITION, furniture.position())
+            );
+            furniture.config().execute(context, EventTrigger.RIGHT_CLICK);
+            if (cancellable.isCancelled()) {
+                return;
+            }
+            // 不处理调试棒
+            if (BukkitItemUtils.isDebugStick(itemInHand)) {
+                return;
+            }
+            // 已经有过交互了
+            if (serverPlayer.lastSuccessfulInteractionTick() == serverPlayer.gameTicks()) {
+                return;
+            }
+            // 必须从网络包层面处理，否则无法获取交互的具体实体
+            if (usingSecondaryAction && !itemInHand.isEmpty() && hitBox.config().canUseItemOn()) {
+                Optional<ItemDefinition> optionalItemDefinition = itemInHand.getDefinition();
+                if (optionalItemDefinition.isPresent()) {
+                    ItemDefinition itemDefinition = optionalItemDefinition.get();
+                    FurnitureItem firstFurniture = itemDefinition.behavior().getFirst(FurnitureItem.class);
+                    if (firstFurniture != null) {
+                        ((ItemBehavior) firstFurniture).useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
+                        return;
+                    }
+                }
+
+                // 模拟原版物品交互行为
+                serverPlayer.setResendSound();
+
+                {
+                    Object nmsPlayer = serverPlayer.serverPlayer();
+                    Object serverLevel = ServerPlayerProxy.INSTANCE.getLevel(nmsPlayer);
+                    Object blockPos = LocationUtils.toBlockPos(hitResult.blockPos());
+                    Object previousBlockState = ServerLevelProxy.INSTANCE.getBlockStateIfLoaded(serverLevel, blockPos);
+                    if (previousBlockState != null) {
+                        Object clickedPoint = Vec3Proxy.INSTANCE.newInstance(hitResult.hitLocation().x, hitResult.hitLocation().y, hitResult.hitLocation().z);
+                        Object nmsDirection = DirectionUtils.toNMSDirection(hitResult.direction());
+                        Object useItemPacket = ServerboundUseItemOnPacketProxy.INSTANCE.newInstance(
+                                InteractionHandProxy.MAIN_HAND,
+                                BlockHitResultProxy.INSTANCE.newInstance(clickedPoint, nmsDirection, blockPos, false),
+                                0
+                        );
+                        try {
+                            ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, BlockProxy.INSTANCE.getDefaultBlockState(BlocksProxy.COBWEB), UpdateFlags.UPDATE_INVISIBLE);
+                            ServerboundUseItemOnPacketProxy.INSTANCE.setTimestamp(useItemPacket, System.currentTimeMillis());
+                            ServerGamePacketListenerImplProxy.INSTANCE.handleUseItemOn(ServerPlayerProxy.INSTANCE.getConnection(nmsPlayer), useItemPacket);
+                        } finally {
+                            ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, previousBlockState, UpdateFlags.UPDATE_INVISIBLE);
+                            serverPlayer.sendPacket(ClientboundBlockUpdatePacketProxy.INSTANCE.newInstance$1(serverLevel, blockPos), false);
+                        }
+                    }
+                }
+
+                if (!part.interactive()) {
+                    serverPlayer.swingHand(InteractionHand.MAIN_HAND);
+                }
+            } else {
+                if (!usingSecondaryAction) {
+                    for (Seat<FurnitureHitBox> seat : hitBox.seats()) {
+                        if (!seat.isOccupied()) {
+                            if (seat.spawnSeat(serverPlayer, furniture.position())) {
+                                if (!part.interactive()) {
+                                    serverPlayer.swingHand(InteractionHand.MAIN_HAND);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        if (VersionHelper.isFolia()) {
+            this.plugin.scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        } else {
+            this.plugin.scheduler().executeSync(mainThreadTask);
+        }
+    }
+
+    // 26.1+
+    public class AttackListener implements ByteBufferPacketListener {
 
         @Override
         public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
@@ -4036,19 +4300,78 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             serverPlayer.stopMiningBlock();
 
             FriendlyByteBuf buf = event.getBuffer();
-            int entityId = hasModelEngine() ? plugin.compatibilityManager().interactionToBaseEntity(buf.readVarInt()) : buf.readVarInt();
+            int rawId = buf.readVarInt();
+            int entityId = BukkitNetworkManager.this.plugin.compatibilityManager().remapEntityId(rawId);
             BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
             if (furniture == null) return;
-            FurnitureDefinition config = furniture.config;
-            int actionType = buf.readVarInt();
-            Player platformPlayer = serverPlayer.platformPlayer();
-            Location location = furniture.location();
-            // 太远就是挂
-            if (!serverPlayer.canInteractPoint(new Vec3d(location.getX(), location.getY(), location.getZ()), 16d)) {
-                return;
+
+            if (entityId != furniture.entityId()) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeVarInt(furniture.entityId());
             }
 
-            Runnable mainThreadTask;
+            if (!furniture.canInteract(serverPlayer)) return;
+
+            performAttackFurniture(furniture, entityId, serverPlayer);
+        }
+    }
+
+    public class InteractEntityListener26_1 implements ByteBufferPacketListener {
+
+        @Override
+        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
+            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
+            if (serverPlayer.isSpectatorMode()) return;
+            // 交互实体的时候，应该取消挖掘
+            serverPlayer.stopMiningBlock();
+
+            FriendlyByteBuf buf = event.getBuffer();
+            int rawId = buf.readVarInt();
+            int entityId = BukkitNetworkManager.this.plugin.compatibilityManager().remapEntityId(rawId);
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
+            if (furniture == null) return;
+            // 太远就是挂
+            if (!furniture.canInteract(serverPlayer)) return;
+
+            InteractionHand hand = buf.readVarInt() == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+            Vec3d vec3d = buf.readLpVec3();
+            boolean usingSecondaryAction = buf.readBoolean();
+
+            if (entityId != furniture.entityId()) {
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeVarInt(furniture.entityId());
+                buf.writeVarInt(hand == InteractionHand.MAIN_HAND ? 0 : 1);
+                buf.writeLpVec3(vec3d);
+                buf.writeBoolean(usingSecondaryAction);
+            }
+
+            performInteractFurniture(furniture, entityId, serverPlayer, hand, usingSecondaryAction);
+        }
+    }
+
+    // 1.20-1.21.11
+    public class InteractEntityListener1_20 implements ByteBufferPacketListener {
+
+        @Override
+        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
+            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
+            if (serverPlayer.isSpectatorMode()) return;
+            // 交互实体的时候，应该取消挖掘
+            serverPlayer.stopMiningBlock();
+
+            FriendlyByteBuf buf = event.getBuffer();
+            int rawId = buf.readVarInt();
+            int entityId = BukkitNetworkManager.this.plugin.compatibilityManager().remapEntityId(rawId);
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
+            if (furniture == null) return;
+            int actionType = buf.readVarInt();
+            // 太远就是挂
+            if (!furniture.canInteract(serverPlayer)) return;
+
             if (actionType == 1) {
                 // ATTACK
                 boolean usingSecondaryAction = buf.readBoolean();
@@ -4061,95 +4384,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     buf.writeBoolean(usingSecondaryAction);
                 }
 
-                mainThreadTask = () -> {
-                    if (!furniture.isValid()) {
-                        return;
-                    }
-                    if (serverPlayer.isAdventureMode() && !config.settings().allowBreakingInAdventureMode()) {
-                        return;
-                    }
-
-                    // 先检查碰撞箱部分是否存在
-                    FurnitureHitBox hitBox = furniture.hitboxByEntityId(entityId);
-                    if (hitBox == null) return;
-
-                    if (!BukkitCraftEngine.instance().antiGriefProvider().test(platformPlayer, Flag.BREAK, location))
-                        return;
-
-                    FurnitureHitboxPart part = null;
-                    for (FurnitureHitboxPart p : hitBox.parts()) {
-                        if (p.entityId() == entityId) {
-                            part = p;
-                            break;
-                        }
-                    }
-                    if (part == null) {
-                        return;
-                    }
-
-                    Location eyeLocation = platformPlayer.getEyeLocation();
-                    Vector direction = eyeLocation.getDirection();
-                    Location endLocation = eyeLocation.clone();
-                    endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
-                    Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
-                    if (optionalHitResult.isEmpty()) {
-                        return;
-                    }
-                    EntityHitResult hitResult = optionalHitResult.get();
-                    Vec3d hitLocation = hitResult.hitLocation();
-                    // 获取正确的交互点
-                    Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
-
-                    ContextHolder.Builder contextBuilder = ContextHolder.builder()
-                            .withParameter(DirectContextParameters.FURNITURE, furniture)
-                            .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
-                            .withParameter(DirectContextParameters.ITEM_IN_HAND, serverPlayer.getItemInHand(InteractionHand.MAIN_HAND))
-                            .withParameter(DirectContextParameters.POSITION, furniture.position());
-                    FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, interactionPoint, hitBox, contextBuilder);
-                    if (EventUtils.fireAndCheckCancel(hitEvent))
-                        return;
-
-                    int hitTimes = config.settings().hitTimes();
-                    if (hitTimes > 1 && !serverPlayer.isCreativeMode()) {
-                        FurnitureHitData furnitureHitData = serverPlayer.furnitureHitData();
-                        int previousTimes = furnitureHitData.times(furniture.entityId());
-                        int alreadyHit = furnitureHitData.hit(furniture.entityId());
-
-                        // execute functions
-                        PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                                contextBuilder
-                                        .withParameter(DirectContextParameters.EVENT, Cancellable.of(hitEvent::isCancelled, hitEvent::setCancelled))
-                                        .withParameter(DirectContextParameters.HIT_TIMES, alreadyHit)
-                        );
-                        config.execute(context, EventTrigger.LEFT_CLICK);
-                        if (hitEvent.isCancelled()) {
-                            furnitureHitData.setTimes(previousTimes);
-                            return;
-                        }
-
-                        if (alreadyHit < hitTimes) {
-                            SoundData soundData = config.settings().sounds().hitSound();
-                            serverPlayer.world().playSound(furniture.position(), soundData.id(), soundData.volume().get(), soundData.pitch().get(), SoundSource.PLAYER);
-                            return;
-                        } else {
-                            serverPlayer.furnitureHitData().reset();
-                        }
-                    }
-
-                    FurnitureBreakEvent breakEvent = new FurnitureBreakEvent(serverPlayer.platformPlayer(), furniture, contextBuilder);
-                    breakEvent.setDropItems(!serverPlayer.isCreativeMode());
-                    if (EventUtils.fireAndCheckCancel(breakEvent))
-                        return;
-
-                    // execute functions
-                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                            contextBuilder.withParameter(DirectContextParameters.EVENT, Cancellable.of(breakEvent::isCancelled, breakEvent::setCancelled)));
-                    config.execute(context, EventTrigger.BREAK);
-                    if (breakEvent.isCancelled()) {
-                        return;
-                    }
-                    CraftEngineFurniture.remove(furniture, serverPlayer, breakEvent.dropItems(), true);
-                };
+                performAttackFurniture(furniture, entityId, serverPlayer);
             } else if (actionType == 2) {
                 // INTERACT_AT
                 float x = buf.readFloat();
@@ -4168,146 +4403,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     buf.writeBoolean(usingSecondaryAction);
                 }
 
-                mainThreadTask = () -> {
-                    if (!furniture.isValid()) {
-                        return;
-                    }
-
-                    // 先检查碰撞箱部分是否存在
-                    FurnitureHitBox hitBox = furniture.hitboxByEntityId(entityId);
-                    if (hitBox == null) return;
-                    FurnitureHitboxPart part = null;
-                    for (FurnitureHitboxPart p : hitBox.parts()) {
-                        if (p.entityId() == entityId) {
-                            part = p;
-                            break;
-                        }
-                    }
-                    if (part == null) {
-                        return;
-                    }
-
-                    // 检测能否交互碰撞箱
-                    Location eyeLocation = platformPlayer.getEyeLocation();
-                    Vector direction = eyeLocation.getDirection();
-                    Location endLocation = eyeLocation.clone();
-                    endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
-                    Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
-                    if (optionalHitResult.isEmpty()) {
-                        return;
-                    }
-                    EntityHitResult hitResult = optionalHitResult.get();
-                    Vec3d hitLocation = hitResult.hitLocation();
-
-                    // 获取正确的交互点
-                    Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
-                    // 触发事件
-                    ContextHolder.Builder contextBuilder = ContextHolder.builder();
-                    FurnitureInteractEvent interactEvent = new FurnitureInteractEvent(serverPlayer.platformPlayer(), furniture, hand, interactionPoint, hitBox, contextBuilder);
-                    if (EventUtils.fireAndCheckCancel(interactEvent)) {
-                        return;
-                    }
-
-                    // 执行家具行为
-                    InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
-                    InteractionResult result = furniture.controller.useOnFurniture(hitBox, interactEntityContext);
-                    if (result.success()) {
-                        serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
-                        return;
-                    }
-                    if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
-                        result = furniture.controller.useWithoutItem(interactEntityContext);
-                        if (result.success()) {
-                            serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
-                            return;
-                        }
-                    }
-                    if (result == InteractionResult.FAIL) {
-                        return;
-                    }
-
-                    // 执行事件动作
-                    Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
-                    Cancellable cancellable = Cancellable.of(interactEvent::isCancelled, interactEvent::setCancelled);
-                    // execute functions
-                    PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                            contextBuilder
-                            .withParameter(DirectContextParameters.EVENT, cancellable)
-                            .withParameter(DirectContextParameters.FURNITURE, furniture)
-                            .withParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
-                            .withParameter(DirectContextParameters.HAND, hand)
-                            .withParameter(DirectContextParameters.POSITION, furniture.position())
-                    );
-                    furniture.config().execute(context, EventTrigger.RIGHT_CLICK);
-                    if (cancellable.isCancelled()) {
-                        return;
-                    }
-                    // 不处理调试棒
-                    if (BukkitItemUtils.isDebugStick(itemInHand)) {
-                        return;
-                    }
-                    // 已经有过交互了
-                    if (serverPlayer.lastSuccessfulInteractionTick() == serverPlayer.gameTicks()) {
-                        return;
-                    }
-                    // 必须从网络包层面处理，否则无法获取交互的具体实体
-                    if (serverPlayer.isSecondaryUseActive() && !itemInHand.isEmpty() && hitBox.config().canUseItemOn()) {
-                        Optional<ItemDefinition> optionalItemDefinition = itemInHand.getDefinition();
-                        if (optionalItemDefinition.isPresent()) {
-                            ItemDefinition itemDefinition = optionalItemDefinition.get();
-                            FurnitureItem firstFurniture = itemDefinition.behavior().getFirst(FurnitureItem.class);
-                            if (firstFurniture != null) {
-                                ((ItemBehavior) firstFurniture).useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
-                                return;
-                            }
-                        }
-
-                        // 模拟原版物品交互行为
-                        serverPlayer.setResendSound();
-
-                        {
-                            Object nmsPlayer = serverPlayer.serverPlayer();
-                            Object serverLevel = ServerPlayerProxy.INSTANCE.getLevel(nmsPlayer);
-                            Object blockPos = LocationUtils.toBlockPos(hitResult.blockPos());
-                            Object previousBlockState = ServerLevelProxy.INSTANCE.getBlockStateIfLoaded(serverLevel, blockPos);
-                            if (previousBlockState != null) {
-                                Object clickedPoint = Vec3Proxy.INSTANCE.newInstance(hitResult.hitLocation().x, hitResult.hitLocation().y, hitResult.hitLocation().z);
-                                Object nmsDirection = DirectionUtils.toNMSDirection(hitResult.direction());
-                                Object useItemPacket = ServerboundUseItemOnPacketProxy.INSTANCE.newInstance(
-                                        InteractionHandProxy.MAIN_HAND,
-                                        BlockHitResultProxy.INSTANCE.newInstance(clickedPoint, nmsDirection, blockPos, false),
-                                        0
-                                );
-                                try {
-                                    ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, BlockProxy.INSTANCE.getDefaultBlockState(BlocksProxy.COBWEB), UpdateFlags.UPDATE_INVISIBLE);
-                                    ServerboundUseItemOnPacketProxy.INSTANCE.setTimestamp(useItemPacket, System.currentTimeMillis());
-                                    ServerGamePacketListenerImplProxy.INSTANCE.handleUseItemOn(ServerPlayerProxy.INSTANCE.getConnection(nmsPlayer), useItemPacket);
-                                } finally {
-                                    ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, previousBlockState, UpdateFlags.UPDATE_INVISIBLE);
-                                    serverPlayer.sendPacket(ClientboundBlockUpdatePacketProxy.INSTANCE.newInstance$1(serverLevel, blockPos), false);
-                                }
-                            }
-                        }
-
-                        if (!part.interactive()) {
-                            serverPlayer.swingHand(InteractionHand.MAIN_HAND);
-                        }
-                    } else {
-                        if (!serverPlayer.isSecondaryUseActive()) {
-                            for (Seat<FurnitureHitBox> seat : hitBox.seats()) {
-                                if (!seat.isOccupied()) {
-                                    if (seat.spawnSeat(serverPlayer, furniture.position())) {
-                                        if (!part.interactive()) {
-                                            serverPlayer.swingHand(InteractionHand.MAIN_HAND);
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
+                performInteractFurniture(furniture, entityId, serverPlayer, hand, usingSecondaryAction);
             } else if (actionType == 0) {
+                // INTERACT
                 int hand = buf.readVarInt();
                 boolean usingSecondaryAction = buf.readBoolean();
                 if (entityId != furniture.entityId()) {
@@ -4319,15 +4417,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                     buf.writeVarInt(hand);
                     buf.writeBoolean(usingSecondaryAction);
                 }
-                return;
-            } else {
-                return;
-            }
-
-            if (VersionHelper.isFolia()) {
-                BukkitNetworkManager.this.plugin.scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
-            } else {
-                BukkitCraftEngine.instance().scheduler().executeSync(mainThreadTask);
             }
         }
     }

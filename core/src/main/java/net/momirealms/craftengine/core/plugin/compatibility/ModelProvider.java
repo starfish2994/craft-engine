@@ -7,4 +7,6 @@ public interface ModelProvider {
     String plugin();
 
     ExternalModel createModel(String id);
+
+    int remapEntityId(int entityId);
 }
