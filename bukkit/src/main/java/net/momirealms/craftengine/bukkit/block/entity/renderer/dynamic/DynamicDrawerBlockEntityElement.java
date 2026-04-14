@@ -124,6 +124,13 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
     }
 
     // 更新文本展示实体的文本
+    public void updateDisplayItem(Player player) {
+        player.sendPackets(List.of(
+                this.spawnItemPacket, this.changeItemDataPacket
+        ), false);
+    }
+
+    // 更新文本展示实体的文本
     public void updateTextContent(Player player) {
         player.sendPacket(this.changeTextContentDataPacket, false);
     }
