@@ -44,7 +44,8 @@ public interface Container extends Iterable<Item> {
         return true;
     }
 
-    default boolean canTakeItem(int slot, Item item) {
+    // todo 完成对 minecraft container 的封装
+    default boolean canTakeItem(Object into, int slot, Item item) {
         return true;
     }
 
