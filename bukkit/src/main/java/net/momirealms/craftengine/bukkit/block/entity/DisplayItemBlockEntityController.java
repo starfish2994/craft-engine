@@ -67,10 +67,9 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         return this.displayItem;
     }
 
-    // 放入方块内的展示物品
     public void putDisplayItem(Item inputItem /* Not Empty */) {
         this.displayItem = inputItem;
-        this.element.refreshChangeDisplayItemPacket(inputItem.minecraftItem());
+        this.element.refreshChangeDisplayItemPacket(this.displayItem.minecraftItem());
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
@@ -79,7 +78,6 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         }
     }
 
-    // 取走方块内的展示物品
     public Item takeDisplayItem() {
         Item temp = this.displayItem;
         this.displayItem = Item.empty();
@@ -95,15 +93,15 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
     @Override
     public void preBlockStateChange(ImmutableBlockState newState) {
         this.displayItemPosition = this.calculateDisplayItemPosition(newState);
-        this.element.positionDirty(true);
         this.element.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition);
+        this.element.refreshChangeDisplayItemPacket(this.displayItem.minecraftItem());
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
-                this.element.update(trackedPlayer);
+                this.element.updateElementPos(trackedPlayer);
+                this.element.refreshDisplayItem(trackedPlayer);
             }
         }
-        this.element.positionDirty(false);
     }
 
     // 读取方块内存储的物品

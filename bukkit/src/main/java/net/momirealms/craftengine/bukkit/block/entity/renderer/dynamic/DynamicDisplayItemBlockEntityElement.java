@@ -24,9 +24,6 @@ import java.util.UUID;
 
 public final class DynamicDisplayItemBlockEntityElement implements BlockEntityElement {
     public final DisplayItemBlockEntityController controller;
-    @NotNull
-    private Object lastUpdateMinecraftItem; // 最后一次发送更新掉落物品
-    private boolean positionDirty; // 坐标脏位
     public final int vehicleId;
     public final int passengerId;
     public final UUID vehicleUUID = UUID.randomUUID();
@@ -64,7 +61,6 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
 
     // 更新展示的物品
     public void refreshChangeDisplayItemPacket(Object minecraftItem) {
-        this.lastUpdateMinecraftItem = minecraftItem; // 更新缓存
         this.changeDisplayItemPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.passengerId, new ArrayList<>() {{
             ItemEntityData.Item.addEntityData(minecraftItem, this);
         }});
@@ -85,10 +81,6 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
         );
     }
 
-    public void positionDirty(boolean dirtyFlag) {
-        this.positionDirty = dirtyFlag;
-    }
-
     @Override
     public void show(@NotNull Player player) {
         if (!this.controller.displayItem().isEmpty()) {
@@ -106,28 +98,6 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
         player.sendPacket(this.despawnAllPacket, false);
     }
 
-    @Override
-    public void update(@NotNull Player player) {
-        // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
-        Item displayItem = this.controller.displayItem();
-        Object minecraftItem = displayItem.minecraftItem();
-        if (this.lastUpdateMinecraftItem != minecraftItem) {
-            this.refreshChangeDisplayItemPacket(minecraftItem);
-        }
-        // 如果缓存的显示位置和最新的不一样, 额外发送一个同步位置包.
-        if (this.positionDirty) {
-            player.sendPacket(this.updatePosPacket, false);
-        }
-        // 重发物品刷新包
-        if (displayItem.isEmpty()) {
-            this.hide(player);
-        } else {
-            player.sendPackets(List.of(
-                    this.despawnPassengerPacket, this.spawnVehiclePacket, this.spawnPassengerPacket, this.ridePacket, this.changeDisplayItemPacket
-            ), false);
-        }
-    }
-
     // 展示最新的展示物品
     public void showDisplayItem(Player player) {
         player.sendPackets(List.of(
@@ -136,5 +106,17 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
                 this.ridePacket,
                 this.changeDisplayItemPacket
         ), false);
+    }
+
+    // 刷新物品
+    public void refreshDisplayItem(Player player) {
+        player.sendPackets(List.of(
+                this.despawnPassengerPacket, this.spawnVehiclePacket, this.spawnPassengerPacket, this.ridePacket, this.changeDisplayItemPacket
+        ), false);
+    }
+
+    // 变更位置
+    public void updateElementPos(Player player) {
+        player.sendPacket(this.updatePosPacket, false);
     }
 }
