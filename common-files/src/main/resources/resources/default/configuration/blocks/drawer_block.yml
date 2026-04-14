@@ -9,7 +9,12 @@ items:
         loot:
           template: default:loot_table/self
         settings:
-          template: default:settings/wood
+          template:
+            - default:sound/wood
+            - default:hardness/wood
+          overrides:
+            instrument: bass
+            tags: ["minecraft:mineable/axe"]
         behavior:
           type: drawer_block
           item_position: 0,0,-0.52
