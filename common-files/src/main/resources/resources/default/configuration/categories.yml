@@ -114,3 +114,4 @@ categories:
       - default:drill
       - default:showcase
       - default:togglable_light_block
+      - default:drawer_block

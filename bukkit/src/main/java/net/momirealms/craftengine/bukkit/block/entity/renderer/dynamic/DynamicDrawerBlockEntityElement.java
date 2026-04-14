@@ -69,7 +69,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         this.lastUpdateItem = item; // 更新缓存
         this.changeItemDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.itemId, new ArrayList<>() {{
             ItemDisplayEntityData.DisplayedItem.addEntityData(item.minecraftItem(), this);
-            ItemDisplayEntityData.Scale.addEntityData(new Vector3f(0.8f, 0.8f, 0.8f), this);
+            ItemDisplayEntityData.Scale.addEntityData(controller.behavior.itemScale, this);
             ItemDisplayEntityData.DisplayType.addEntityData((byte) 6, this);
         }});
     }
@@ -79,7 +79,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         this.lastUpdateContent = count; // 更新缓存
         this.changeTextContentDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.textId, new ArrayList<>() {{
             TextDisplayEntityData.Text.addEntityData(ComponentUtils.adventureToMinecraft(Component.text(count)), this);
-            TextDisplayEntityData.Scale.addEntityData(new Vector3f(0.5f, 0.5f, 0.5f), this);
+            TextDisplayEntityData.Scale.addEntityData(controller.behavior.textScale, this);
         }});
     }
 
@@ -91,7 +91,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         );
         this.spawnTextPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 textId, textUUID, textPosition.x, textPosition.y, textPosition.z,
-                0.0f, entityYRot, EntityTypeProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                0.0f, entityYRot - 180, EntityTypeProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.updateItemPosPacket = EntityUtils.createUpdatePosPacket(this.itemId,
                 itemPosition.x, itemPosition.y, itemPosition.z,
@@ -99,7 +99,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         );
         this.updateTextPosPacket = EntityUtils.createUpdatePosPacket(this.textId,
                 textPosition.x, textPosition.y, textPosition.z,
-                entityYRot, 0.0f, true
+                entityYRot - 180, 0.0f, true
         );
     }
 

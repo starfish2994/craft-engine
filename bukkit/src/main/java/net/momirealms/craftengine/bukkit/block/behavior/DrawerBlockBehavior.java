@@ -1,8 +1,10 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.DrawerBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
@@ -27,6 +29,7 @@ import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
@@ -143,44 +146,52 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
         });
     }
 
-//    @Override
-//    public void onMiningStart(ImmutableBlockState state, BlockPos pos, Player player, InteractionHand hand, Item tool) {
-//        World world = player.world();
-//        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
-//        if (blockEntity == null) return;
-//        // 有保护, 不交互, 开始挖掘.
-//        Location location = new Location((org.bukkit.World) world.platformWorld(), pos.x, pos.y, pos.z);
-//        if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
-//            return;
-//        }
-//        blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
-//            Item storedItem = controller.storedItem();
-//            if (storedItem.isEmpty() || controller.storageCount() <= 0) return;
-//
-//            boolean handEmpty = ItemUtils.isEmpty(tool);
-//            boolean takeGroup = player.isSneaking();
-//
-//            // 判断是否可以取出物品
-//            if (!handEmpty) {
-//                boolean isHandFull = tool.count() == tool.maxStackSize();
-//                boolean notSimilar = !tool.isSimilar(storedItem);
-//                if (isHandFull || notSimilar) return;
-//            }
-//
-//            // 计算可取出数量
-//            int takeAmount = 1;
-//            if (takeGroup) {
-//                int available = ItemUtils.isEmpty(tool) ? storedItem.maxStackSize() : storedItem.maxStackSize() - tool.count();
-//                takeAmount = Math.min(available, controller.storageCount());
-//            }
-//
-//            // 取出物品
-//            Item takenItem = controller.takeStorageItem(takeAmount);
-//            player.setItemInHand(hand, takenItem);
-//            player.swingHand(hand);
-//            if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
-//        });
-//    }
+    @Override
+    public void attack(Object thisBlock, Object[] args) {
+        BlockPos pos = LocationUtils.fromBlockPos(args[2]);
+        BukkitServerPlayer player = BukkitAdaptor.adapt(ServerPlayerProxy.INSTANCE.getBukkitEntity(args[3]));
+        if (player == null) return;
+        World world = player.world();
+        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
+        if (blockEntity == null) return;
+        // 有保护, 不交互, 开始挖掘.
+        Location location = new Location((org.bukkit.World) world.platformWorld(), pos.x, pos.y, pos.z);
+        if (!BukkitCraftEngine.instance().antiGriefProvider().test(player.platformPlayer(), Flag.OPEN_CONTAINER, location)) {
+            return;
+        }
+        blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
+            Item storedItem = controller.storedItem();
+            if (storedItem.isEmpty() || controller.storageCount() <= 0) return;
+
+            Item tool = player.getItemInHand(InteractionHand.MAIN_HAND);
+            boolean handEmpty = ItemUtils.isEmpty(tool);
+            boolean takeGroup = player.isSneaking();
+
+            // 判断是否可以取出物品
+            if (!handEmpty) {
+                boolean isHandFull = tool.count() == tool.maxStackSize();
+                boolean notSimilar = !tool.isSimilar(storedItem);
+                if (isHandFull || notSimilar) return;
+            }
+
+            // 计算可取出数量
+            int takeAmount = 1;
+            if (takeGroup) {
+                int available = ItemUtils.isEmpty(tool) ? storedItem.maxStackSize() : storedItem.maxStackSize() - tool.count();
+                takeAmount = Math.min(available, controller.storageCount());
+            }
+
+            // 取出物品
+            Item takenItem = controller.takeStorageItem(takeAmount);
+            if (handEmpty) {
+                player.setItemInHand(InteractionHand.MAIN_HAND, takenItem);
+            } else {
+                tool.grow(takeAmount);
+            }
+            player.swingHand(InteractionHand.MAIN_HAND);
+            if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
+        });
+    }
 
     // 比较器红石信号.
     @Override
