@@ -3,7 +3,10 @@ package net.momirealms.craftengine.bukkit.block.entity;
 import net.momirealms.craftengine.bukkit.block.behavior.DisplayItemBlockBehavior;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic.DynamicDisplayItemBlockEntityElement;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
+import net.momirealms.craftengine.bukkit.nms.StorageContainer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
@@ -17,10 +20,15 @@ import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.TintSource;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.IntTag;
 import net.momirealms.sparrow.nbt.Tag;
+import org.bukkit.GameMode;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Optional;
@@ -39,7 +47,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         super(blockEntity);
         this.behavior = behavior;
         this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
-        this.displayItem = BukkitItemManager.instance().emptyItem();
+        this.displayItem = Item.empty();
         this.displayItemPosition = this.calculateDisplayItemPosition(blockEntity.blockState);
         this.element = new DynamicDisplayItemBlockEntityElement(this, this.displayItemPosition);
     }
@@ -74,7 +82,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
     // 取走方块内的展示物品
     public Item takeDisplayItem() {
         Item temp = this.displayItem;
-        this.displayItem = BukkitItemManager.instance().emptyItem();
+        this.displayItem = Item.empty();
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
@@ -104,7 +112,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
         // 空数据
         if (dataTag == null) {
-            this.displayItem = BukkitItemManager.instance().emptyItem();
+            this.displayItem = Item.empty();
             return;
         }
         // 读取数据
@@ -112,7 +120,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         Tag itemTag = dataTag.get("display_item");
         // 非法数据
         if (itemTag == null) {
-            this.displayItem = BukkitItemManager.instance().emptyItem();
+            this.displayItem = Item.empty();
             return;
         }
         // 记录并刷新
@@ -136,7 +144,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         if (!ItemUtils.isEmpty(displayItem)) {
             super.blockEntity.world.world().dropItemNaturally(this.displayItemPosition, this.displayItem);
         }
-        this.displayItem = BukkitItemManager.instance().emptyItem();;
+        this.displayItem = Item.empty();;
     }
 
     public WorldPosition calculateDisplayItemPosition(ImmutableBlockState blockState) {
