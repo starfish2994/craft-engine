@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.DrawerBlockEntityController;
+import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
@@ -11,6 +12,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlock;
+import net.momirealms.craftengine.core.block.behavior.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
@@ -29,6 +31,7 @@ import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
@@ -37,7 +40,7 @@ import org.joml.Vector3f;
 
 import java.util.UUID;
 
-public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBlock {
+public final class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBlock, WorldlyContainerHolder {
     public static final BlockBehaviorFactory<DrawerBlockBehavior> FACTORY = new DrawerBlockBehavior.Factory();
     public final SoundData putSound;
     public final SoundData takeSound;
@@ -49,9 +52,11 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
     public final int maxStorageCount;
     @Nullable
     public final Property<Direction> directionProperty;
-    private int controllerId;
+    public final boolean canPlaceItem;
+    public final boolean canTakeItem;
     @Nullable
     public final String customDataKey;
+    private int controllerId;
 
     public DrawerBlockBehavior(BlockDefinition blockDefinition,
                                SoundData putSound,
@@ -62,7 +67,10 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
                                Vector3f itemScale,
                                Vector3f textScale,
                                int maxStorageCount,
-                               @Nullable Property<Direction> directionProperty, @Nullable String customDataKey
+                               boolean canPlaceItem,
+                               boolean canTakeItem,
+                               @Nullable Property<Direction> directionProperty,
+                               @Nullable String customDataKey
     ) {
         super(blockDefinition);
         this.putSound = putSound;
@@ -75,6 +83,8 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
         this.maxStorageCount = maxStorageCount;
         this.directionProperty = directionProperty;
         this.customDataKey = customDataKey;
+        this.canPlaceItem = canPlaceItem;
+        this.canTakeItem = canTakeItem;
     }
 
     @Override
@@ -85,6 +95,15 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
     @Override
     public void initControllerId(int id) {
         this.controllerId = id;
+    }
+
+    @Override
+    public Object getContainer(Object thisBlock, Object[] args) {
+        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(LevelProxy.INSTANCE.getWorld(args[1]));
+        BlockPos blockPos = LocationUtils.fromBlockPos(args[2]);
+        BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(blockPos);
+        if (blockEntity == null) return null;
+        return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, DrawerBlockEntityController::container);
     }
 
     @Override
@@ -228,6 +247,8 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
         private static final String[] TEXT_SCALE = new String[] {"text_scale", "text-scale"};
         private static final String[] MAX_STORAGE_COUNT = new String[] {"max_storage_count", "max-storage-count"};
         private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
+        private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
 
         @Override
         public DrawerBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -257,6 +278,8 @@ public class DrawerBlockBehavior extends BukkitBlockBehavior implements EntityBl
                     itemScale,
                     textScale,
                     maxStorageCount,
+                    section.getBoolean(ALLOW_INPUT, true),
+                    section.getBoolean(ALLOW_OUTPUT, true),
                     facing,
                     section.getString(DATA_KEY)
             );

@@ -87,7 +87,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
         public DisplayItemFurnitureController(Furniture furniture, DisplayItemFurnitureBehaviorTemplate behavior) {
             super(furniture);
             this.behavior = behavior;
-            this.savedItem = BukkitItemManager.instance().emptyItem();
+            this.savedItem = Item.empty();
         }
 
         @Override
@@ -203,7 +203,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
             if (item != null) {
                 this.savedItem = item;
             } else {
-                this.savedItem = BukkitItemManager.instance().emptyItem();
+                this.savedItem = Item.empty();
             }
             this.furniture.setUnsaved();
         }

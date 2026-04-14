@@ -71,8 +71,6 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         this.customDataKey = customDataKey;
     }
 
-
-
     @Override
     public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         return new SimpleStorageBlockEntityController(blockEntity, this);

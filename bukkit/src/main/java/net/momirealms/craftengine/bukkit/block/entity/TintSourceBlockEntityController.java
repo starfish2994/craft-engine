@@ -26,7 +26,7 @@ public final class TintSourceBlockEntityController extends BlockEntityController
 
     public TintSourceBlockEntityController(BlockEntity blockEntity, TintSourceBlockBehavior behavior) {
         super(blockEntity);
-        this.sourceItem = BukkitItemManager.instance().emptyItem();
+        this.sourceItem = Item.empty();
         this.behavior = behavior;
     }
 
@@ -50,13 +50,13 @@ public final class TintSourceBlockEntityController extends BlockEntityController
     public void loadCustomData(CompoundTag tag) {
         CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
         if (dataTag == null) {
-            this.sourceItem = BukkitItemManager.instance().emptyItem();
+            this.sourceItem = Item.empty();
             return;
         }
         int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
         Tag itemTag = dataTag.get("tint_source_item");
         if (itemTag == null) {
-            this.sourceItem = BukkitItemManager.instance().emptyItem();
+            this.sourceItem = Item.empty();
             return;
         }
         this.sourceItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));

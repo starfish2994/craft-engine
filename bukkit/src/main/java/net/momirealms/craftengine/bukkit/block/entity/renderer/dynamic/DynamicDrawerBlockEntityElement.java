@@ -8,6 +8,7 @@ import net.momirealms.craftengine.bukkit.entity.data.TextDisplayEntityData;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
+import net.momirealms.craftengine.core.entity.display.ItemDisplayContext;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -70,7 +71,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         this.changeItemDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.itemId, new ArrayList<>() {{
             ItemDisplayEntityData.DisplayedItem.addEntityData(item.minecraftItem(), this);
             ItemDisplayEntityData.Scale.addEntityData(controller.behavior.itemScale, this);
-            ItemDisplayEntityData.DisplayType.addEntityData((byte) 6, this);
+            ItemDisplayEntityData.DisplayType.addEntityData(ItemDisplayContext.FIXED.id(), this);
         }});
     }
 
@@ -91,7 +92,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         );
         this.spawnTextPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 textId, textUUID, textPosition.x, textPosition.y, textPosition.z,
-                0.0f, entityYRot - 180, EntityTypeProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                0.0f, entityYRot, EntityTypeProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.updateItemPosPacket = EntityUtils.createUpdatePosPacket(this.itemId,
                 itemPosition.x, itemPosition.y, itemPosition.z,
@@ -99,7 +100,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         );
         this.updateTextPosPacket = EntityUtils.createUpdatePosPacket(this.textId,
                 textPosition.x, textPosition.y, textPosition.z,
-                entityYRot - 180, 0.0f, true
+                entityYRot, 0.0f, true
         );
     }
 
@@ -126,15 +127,25 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
 
     @Override
     public void update(@NotNull Player player) {
-        // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
+        // 如果
         Item displayItem = this.controller.storedItem();
-        if (!displayItem.isSimilar(this.lastUpdateItem)) {
+        if (displayItem.isEmpty()) {
+            this.hide(player);
+            return;
+        }
+        // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
+        boolean itemChanged = false;
+        boolean isCachedItemEmpty = this.lastUpdateItem == Item.empty();
+        if (displayItem.minecraftItem() != this.lastUpdateItem.minecraftItem() || !displayItem.isSimilar(this.lastUpdateItem)) {
             this.refreshChangeDisplayItemPacket(displayItem);
+            itemChanged = true;
         }
         // 检查最新数量和当前的是否一样, 不一样则刷新缓存的包.
-        int storageCount = this.controller.storageCount();
+        boolean textChanged = false;
+        int storageCount = displayItem.count();
         if (this.lastUpdateContent != storageCount) {
             this.refreshChangeTextContentPacket(storageCount);
+            textChanged = true;
         }
         // 如果缓存的显示位置和最新的不一样, 额外发送一个同步位置包.
         if (this.positionDirty) {
@@ -144,12 +155,22 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         if (displayItem.isEmpty()) {
             this.hide(player);
         } else {
-            player.sendPackets(List.of(
-                    this.spawnItemPacket,
-                    this.spawnTextPacket,
-                    this.changeItemDataPacket,
-                    this.changeTextContentDataPacket
-            ), false);
+            // 如果物品和数量都变化了
+            if (isCachedItemEmpty && itemChanged && textChanged) {
+                player.sendPackets(List.of(
+                        this.spawnItemPacket,
+                        this.spawnTextPacket,
+                        this.changeItemDataPacket,
+                        this.changeTextContentDataPacket
+                ), false);
+            }
+            else if (itemChanged) {
+
+            }
+            else if (textChanged) {
+                player.sendPacket(this.changeTextContentDataPacket, false);
+            }
+
         }
     }
 

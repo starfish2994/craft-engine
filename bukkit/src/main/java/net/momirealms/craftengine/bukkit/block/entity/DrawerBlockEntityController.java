@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.entity;
 
 import net.momirealms.craftengine.bukkit.block.behavior.DrawerBlockBehavior;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic.DynamicDrawerBlockEntityElement;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
@@ -31,9 +31,9 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     private static final String DEFAULT_DATA_KEY = "craftengine:drawer";
     public final DrawerBlockBehavior behavior;
     public final DynamicDrawerBlockEntityElement element;
+    private final Object container;
     @NotNull
     private Item storedItem;
-    private int count;
     private WorldPosition itemPosition;
     private WorldPosition textPosition;
     private float entityYRot;
@@ -45,11 +45,16 @@ public final class DrawerBlockEntityController extends BlockEntityController {
         super(blockEntity);
         this.behavior = behavior;
         this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
-        this.storedItem = BukkitItemManager.instance().emptyItem();
+        this.storedItem = Item.empty();
         this.itemPosition = this.calculateDisplayPosition(blockEntity.blockState, this.behavior.itemPosition);
         this.textPosition = this.calculateDisplayPosition(blockEntity.blockState, this.behavior.textPosition);
         this.entityYRot = this.calculateYRot(blockEntity.blockState);
         this.element = new DynamicDrawerBlockEntityElement(this, this.itemPosition, this.textPosition, this.entityYRot);
+        this.container = FastNMS.INSTANCE.createDrawerContainer(this);
+    }
+
+    public Object container() {
+        return this.container;
     }
 
     @Override
@@ -68,22 +73,21 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     }
 
     public int storageCount() {
-        return this.count;
+        return this.storedItem.count();
     }
 
     public boolean isFull() {
-        return this.count >= behavior.maxStorageCount;
+        return this.storageCount() >= behavior.maxStorageCount;
     }
 
     // 放入物品
     public void putStorageItem(Item inputItem /* Not Empty */) {
         if (this.storedItem.isEmpty()) {
             this.storedItem = inputItem;
-            this.count = inputItem.count();
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::update);
         } else {
-            this.count += inputItem.count();
-            this.storedItem.count(this.count);
+            int count = this.storageCount() + inputItem.count();
+            this.storedItem.count(count);
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
     }
@@ -91,28 +95,37 @@ public final class DrawerBlockEntityController extends BlockEntityController {
     // 增加存储物品的数量
     public void growStorageCount(int putCount) {
         if (!storedItem.isEmpty()) {
-            this.count += putCount;
-            this.storedItem.count(this.count);
+            int count = this.storageCount() + putCount;
+            this.storedItem.count(count);
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
     }
+    
+    public void clearStoredItem() {
+        this.storedItem = Item.empty();
+        this.refreshDynamicElement(DynamicDrawerBlockEntityElement::hide);
+    }
+
+    public void setStoredItem(Item item) {
+        this.storedItem = item;
+        this.refreshDynamicElement(DynamicDrawerBlockEntityElement::update);
+    }
 
     // 取走方块内的物品
-    public Item takeStorageItem(int count) {
-        if (count <= 0) return BukkitItemManager.instance().emptyItem();
+    public Item takeStorageItem(int takeCount) {
+        if (takeCount <= 0) return Item.empty();
         Item takeItem;
         // 全部拿完了
-        if (count >= this.count) {
+        if (takeCount >= this.storageCount()) {
             takeItem = this.storedItem.copy();
-            this.storedItem = BukkitItemManager.instance().emptyItem();
-            this.count = 0;
+            this.storedItem = Item.empty();
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::hide);
         }
         // 拿一部分
         else {
-            takeItem = this.storedItem.copyWithCount(count);
-            this.count -= count;
-            this.storedItem.count(this.count);
+            int remainingCount = this.storageCount() - takeCount;
+            takeItem = this.storedItem.copyWithCount(takeCount);
+            this.storedItem.count(remainingCount);
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
         return takeItem;
@@ -152,34 +165,32 @@ public final class DrawerBlockEntityController extends BlockEntityController {
         CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
         // 空数据
         if (dataTag == null) {
-            this.storedItem = BukkitItemManager.instance().emptyItem();
-            this.count = 0;
+            this.storedItem = Item.empty();
             return;
         }
         // 读取数据
         int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
-        Tag itemTag = dataTag.get("drawer_storage_item");
-        this.count = dataTag.getInt("drawer_storage_amount", 0);
+        Tag itemTag = dataTag.get("item");
+        int count = dataTag.getInt("count", 0);
         // 非法数据
-        if (itemTag == null || this.count <= 0) {
-            this.storedItem = BukkitItemManager.instance().emptyItem();
-            this.count = 0;
+        if (itemTag == null || count <= 0) {
+            this.storedItem = Item.empty();
             return;
         }
         // 记录并刷新
         this.storedItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
-        this.storedItem.count(this.count);
+        this.storedItem.count(count);
         this.element.refreshChangeDisplayItemPacket(this.storedItem);
-        this.element.refreshChangeTextContentPacket(this.count);
+        this.element.refreshChangeTextContentPacket(count);
     }
 
     @Override
     public void saveCustomData(CompoundTag tag) {
-        if (!ItemUtils.isEmpty(this.storedItem) && this.count > 0) {
+        if (!ItemUtils.isEmpty(this.storedItem) && this.storageCount() > 0) {
             CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
                 dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
-                dataTag.put("drawer_storage_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.count(1).minecraftItem()));
-                dataTag.put("drawer_storage_amount", new IntTag(this.count));
+                dataTag.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.count(1).minecraftItem()));
+                dataTag.put("count", new IntTag(this.storageCount()));
             });
             tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
         }
@@ -187,7 +198,7 @@ public final class DrawerBlockEntityController extends BlockEntityController {
 
     @Override
     public void onRemove() {
-        if (this.count < storedItem.maxStackSize()) {
+        if (this.storageCount() < storedItem.maxStackSize()) {
             super.blockEntity.world.world().dropItemNaturally(this.itemPosition, this.storedItem);
         } else {
             int remaining = this.storedItem.count();
@@ -197,7 +208,7 @@ public final class DrawerBlockEntityController extends BlockEntityController {
                 super.blockEntity.world.world().dropItemNaturally(this.itemPosition, splitItem);
             }
         }
-        this.storedItem = BukkitItemManager.instance().emptyItem();
+        this.storedItem = Item.empty();
     }
 
     public WorldPosition calculateDisplayPosition(ImmutableBlockState blockState, Vector3f relative) {
@@ -225,7 +236,7 @@ public final class DrawerBlockEntityController extends BlockEntityController {
 
     public float calculateYRot(ImmutableBlockState blockState) {
         Direction direction = blockState.get(behavior.directionProperty, Direction.SOUTH);
-        return switch (direction) {
+        return switch (direction.opposite()) {
             case EAST -> 90f;
             case SOUTH -> 180f;
             case WEST -> 270f;
