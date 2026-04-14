@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.item;
 
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.AbstractItem;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.component.DataComponentIds;
@@ -20,7 +21,9 @@ import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftItemStackProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.component.BundleContentsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.component.ItemContainerContentsProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -38,6 +41,11 @@ import java.util.function.Supplier;
 
 @SuppressWarnings("DuplicatedCode")
 public final class ModernNetworkItemHandler implements NetworkItemHandler {
+    private final BukkitItemManager itemManager;
+
+    public ModernNetworkItemHandler(BukkitItemManager itemManager) {
+        this.itemManager = itemManager;
+    }
 
     @Override
     public Optional<Item> c2s(Item wrapped) {
@@ -48,13 +56,26 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             Object bundleContents = wrapped.getExactComponent(DataComponentTypes.BUNDLE_CONTENTS);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
-            for (Object previousItem : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
-                Optional<Item> itemStack = BukkitItemManager.instance().c2s(ItemStackUtils.wrap(previousItem));
-                if (itemStack.isPresent()) {
-                    newItems.add(itemStack.get().minecraftItem());
-                    changed = true;
-                } else {
-                    newItems.add(previousItem);
+            if (VersionHelper.isOrAbove26_1()) {
+                for (Object itemTemplate : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
+                    Object previousItem = ItemStackTemplateProxy.INSTANCE.create(itemTemplate);
+                    Optional<Item> converted = this.itemManager.c2s(this.itemManager.wrap(previousItem));
+                    if (converted.isPresent()) {
+                        newItems.add(ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(converted.get().minecraftItem()));
+                        changed = true;
+                    } else {
+                        newItems.add(itemTemplate);
+                    }
+                }
+            } else {
+                for (Object previousItem : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
+                    Optional<Item> itemStack = this.itemManager.c2s(this.itemManager.wrap(previousItem));
+                    if (itemStack.isPresent()) {
+                        newItems.add(itemStack.get().minecraftItem());
+                        changed = true;
+                    } else {
+                        newItems.add(previousItem);
+                    }
                 }
             }
             if (changed) {
@@ -68,13 +89,33 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             Object containerContents = wrapped.getExactComponent(DataComponentTypes.CONTAINER);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
-            for (Object previousItem : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
-                Optional<Item> itemStack = BukkitItemManager.instance().c2s(ItemStackUtils.wrap(previousItem));
-                if (itemStack.isPresent()) {
-                    newItems.add(itemStack.get().minecraftItem());
-                    changed = true;
-                } else {
-                    newItems.add(previousItem);
+            if (VersionHelper.isOrAbove26_1()) {
+                for (Object previousItem : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
+                    @SuppressWarnings("unchecked")
+                    Optional<Object> previousTemplate = (Optional<Object>) previousItem;
+                    if (previousTemplate.isPresent()) {
+                        Object itemTemplate = previousTemplate.get();
+                        BukkitItem wrap = this.itemManager.wrap(ItemStackTemplateProxy.INSTANCE.create(itemTemplate));
+                        Optional<Item> converted = this.itemManager.c2s(wrap);
+                        if (converted.isPresent()) {
+                            newItems.add(converted.get().minecraftItem());
+                            changed = true;
+                        } else {
+                            newItems.add(wrap.minecraftItem());
+                        }
+                    } else {
+                        newItems.add(ItemStackProxy.EMPTY);
+                    }
+                }
+            } else {
+                for (Object previousItem : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
+                    Optional<Item> converted = this.itemManager.c2s(this.itemManager.wrap(previousItem));
+                    if (converted.isPresent()) {
+                        newItems.add(converted.get().minecraftItem());
+                        changed = true;
+                    } else {
+                        newItems.add(previousItem);
+                    }
                 }
             }
             if (changed) {
@@ -128,14 +169,26 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             Object bundleContents = wrapped.getExactComponent(DataComponentTypes.BUNDLE_CONTENTS);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
-            for (Object previousItem : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
-                ItemStack cloned = ItemStackUtils.getBukkitStack(previousItem).clone();
-                Optional<ItemStack> itemStack = BukkitItemManager.instance().s2c(cloned, player);
-                if (itemStack.isPresent()) {
-                    newItems.add(CraftItemStackProxy.INSTANCE.unwrap(itemStack.get()));
-                    changed = true;
-                } else {
-                    newItems.add(CraftItemStackProxy.INSTANCE.unwrap(cloned));
+            if (VersionHelper.isOrAbove26_1()) {
+                for (Object itemTemplate : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
+                    Object previousItem = ItemStackTemplateProxy.INSTANCE.create(itemTemplate);
+                    Optional<Item> converted = this.itemManager.s2c(this.itemManager.wrap(previousItem), player);
+                    if (converted.isPresent()) {
+                        newItems.add(ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(converted.get().minecraftItem()));
+                        changed = true;
+                    } else {
+                        newItems.add(itemTemplate);
+                    }
+                }
+            } else {
+                for (Object previousItem : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
+                    Optional<Item> converted = this.itemManager.s2c(this.itemManager.wrap(previousItem).copy(), player);
+                    if (converted.isPresent()) {
+                        newItems.add(converted.get().minecraftItem());
+                        changed = true;
+                    } else {
+                        newItems.add(previousItem);
+                    }
                 }
             }
             if (changed) {
@@ -147,21 +200,40 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // 处理潜影盒等
         if (wrapped.hasComponent(DataComponentTypes.CONTAINER)) {
             Object containerContents = wrapped.getExactComponent(DataComponentTypes.CONTAINER);
+            boolean changed = false;
             List<Object> newItems = new ArrayList<>();
-            for (Object previousItem : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
-                boolean changed = false;
-                ItemStack cloned = ItemStackUtils.getBukkitStack(previousItem).clone();
-                Optional<ItemStack> itemStack = BukkitItemManager.instance().s2c(cloned, player);
-                if (itemStack.isPresent()) {
-                    newItems.add(CraftItemStackProxy.INSTANCE.unwrap(itemStack.get()));
-                    changed = true;
-                } else {
-                    newItems.add(CraftItemStackProxy.INSTANCE.unwrap(cloned));
+            if (VersionHelper.isOrAbove26_1()) {
+                for (Object optionalTemplate : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
+                    @SuppressWarnings("unchecked")
+                    Optional<Object> previousTemplate = (Optional<Object>) optionalTemplate;
+                    if (previousTemplate.isPresent()) {
+                        Object itemTemplate = previousTemplate.get();
+                        Object previousItem = ItemStackTemplateProxy.INSTANCE.create(itemTemplate);
+                        Optional<Item> converted = this.itemManager.s2c(this.itemManager.wrap(previousItem), player);
+                        if (converted.isPresent()) {
+                            newItems.add(converted.get().minecraftItem());
+                            changed = true;
+                        } else {
+                            newItems.add(previousItem);
+                        }
+                    } else {
+                        newItems.add(ItemStackProxy.EMPTY);
+                    }
                 }
-                if (changed) {
-                    wrapped.setExactComponent(DataComponentTypes.CONTAINER, ItemContainerContentsProxy.INSTANCE.fromItems(newItems));
-                    forceReturn = true;
+            } else {
+                for (Object previousItem : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
+                    Optional<Item> itemStack = this.itemManager.s2c(this.itemManager.wrap(previousItem).copy(), player);
+                    if (itemStack.isPresent()) {
+                        newItems.add(itemStack.get().minecraftItem());
+                        changed = true;
+                    } else {
+                        newItems.add(previousItem);
+                    }
                 }
+            }
+            if (changed) {
+                wrapped.setExactComponent(DataComponentTypes.CONTAINER, ItemContainerContentsProxy.INSTANCE.fromItems(newItems));
+                forceReturn = true;
             }
         }
 

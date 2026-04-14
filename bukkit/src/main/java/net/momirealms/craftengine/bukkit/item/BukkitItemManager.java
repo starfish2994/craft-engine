@@ -80,7 +80,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         this.itemEventListener = new ItemEventListener(plugin, this);
         this.armorEventListener = new ArmorEventListener();
         this.slotChangeListener = VersionHelper.isOrAbove1_20_3() ? new SlotChangeListener(this) : null;
-        this.networkItemHandler = VersionHelper.isOrAbove1_20_5() ? new ModernNetworkItemHandler() : new LegacyNetworkItemHandler();
+        this.networkItemHandler = VersionHelper.isOrAbove1_20_5() ? new ModernNetworkItemHandler(this) : new LegacyNetworkItemHandler();
         this.registerAllVanillaItems();
         this.bedrockItemHolder = Objects.requireNonNull(RegistryUtils.getHolder(BuiltInRegistriesProxy.ITEM, ResourceKeyProxy.INSTANCE.create(RegistriesProxy.ITEM, KeyUtils.toIdentifier(Key.of("minecraft:bedrock")))));
         this.registerCustomTrimMaterial();

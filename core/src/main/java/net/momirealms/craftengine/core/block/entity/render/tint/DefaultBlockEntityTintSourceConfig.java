@@ -6,7 +6,6 @@ import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.TintSource;
-import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 
 import java.util.List;

@@ -159,7 +159,7 @@ public final class ItemStackUtils {
         return ItemStackTemplateProxy.INSTANCE.newInstance(
                 ItemStackProxy.INSTANCE.typeHolder(minecraftItem),
                 ItemStackProxy.INSTANCE.getCount(minecraftItem),
-                ItemStackProxy.INSTANCE.getComponents(minecraftItem)
+                ItemStackProxy.INSTANCE.getComponentsPatch(minecraftItem)
         );
     }
 }
