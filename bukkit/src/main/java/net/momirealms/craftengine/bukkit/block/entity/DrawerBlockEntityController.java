@@ -13,7 +13,6 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -30,21 +29,20 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 public final class DrawerBlockEntityController extends BlockEntityController implements BukkitContainer, WorldlyContainer {
     private static final String DEFAULT_DATA_KEY = "craftengine:drawer";
-    private static final int[] SLOTS = new int[] {0};
     public final DrawerBlockBehavior behavior;
     public final DynamicDrawerBlockEntityElement element;
     private final Object container;
     private final InventoryHolder owner;
-    @NotNull
-    private Item storedItem;
     private WorldPosition itemPosition;
     private WorldPosition textPosition;
     private float entityYRot;
@@ -53,18 +51,22 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     private int lastUpdateCount = 0; // 最后一次包发送的物品数量
     private UUID lastClickPlayer;
     private Long lastClickTime;
+    private final Item[] items;
+    private final int[] slots;
 
     public DrawerBlockEntityController(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
         super(blockEntity);
+        this.items = new Item[behavior.maxStacks];
+        Arrays.fill(items, Item.empty());
         this.behavior = behavior;
         this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
-        this.storedItem = Item.empty();
         this.itemPosition = this.calculateDisplayPosition(blockEntity.blockState, this.behavior.itemPosition);
         this.textPosition = this.calculateDisplayPosition(blockEntity.blockState, this.behavior.textPosition);
         this.entityYRot = this.calculateYRot(blockEntity.blockState);
         this.element = new DynamicDrawerBlockEntityElement(this, this.itemPosition, this.textPosition, this.entityYRot);
         this.container = CraftEngine.instance().platform().createContainer(this);
         this.owner = new Holder(this);
+        this.slots = IntStream.range(0, behavior.maxStacks).toArray();
     }
 
     public Object container() {
@@ -83,64 +85,130 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     @NotNull
     public Item storedItem() {
-        return this.storedItem;
+        return this.items[0];
+    }
+
+    public int maxStorageCount(Item item) {
+        return item.maxStackSize() * this.behavior.maxStacks;
+    }
+
+    public int maxStorageCount() {
+        return this.items[0].maxStackSize() * this.behavior.maxStacks;
     }
 
     public int storageCount() {
-        return this.storedItem.count();
+        int count = 0;
+        for (int i = 0; i < this.items.length; i++) {
+            Item item = this.items[i];
+            if (item.isEmpty()) {
+                break;
+            }
+            count += item.count();
+        }
+        return count;
     }
 
     public boolean isFull() {
-        return this.storageCount() >= behavior.maxStorageCount;
-    }
-
-    // 放入物品
-    public void putStorageItem(Item inputItem /* Not Empty */) {
-        if (this.storedItem.isEmpty()) {
-            this.storedItem = inputItem;
-        } else {
-            int count = this.storageCount() + inputItem.count();
-            this.storedItem.count(count);
+        Item lastItem = this.items[this.items.length - 1];
+        if (lastItem.isEmpty()) {
+            return false;
         }
-        this.setChanged();
+        if (lastItem.count() < lastItem.maxStackSize()) {
+            return false;
+        }
+        return true;
     }
 
-    // 增加存储物品的数量
-    public void growStorageCount(int putCount) {
-        if (!storedItem.isEmpty()) {
-            int count = this.storageCount() + putCount;
-            this.storedItem.count(count);
+    // 放入物品，返回值为实际放入的量
+    public int put(Item inputItem /* Not Empty */, int count) {
+        if (count <= 0) return 0;
+
+        if (!isEmpty() && !this.items[0].isSimilar(inputItem)) {
+            return 0;
+        }
+
+        int remainingToAdd = count;
+        int maxStack = inputItem.maxStackSize();
+
+        for (int i = 0; i < this.items.length && remainingToAdd > 0; i++) {
+            if (this.items[i].isEmpty()) {
+                int toAdd = Math.min(remainingToAdd, maxStack);
+                this.items[i] = inputItem.copyWithCount(toAdd);
+                remainingToAdd -= toAdd;
+            } else {
+                int currentCount = this.items[i].count();
+                int space = maxStack - currentCount;
+                if (space > 0) {
+                    int toAdd = Math.min(remainingToAdd, space);
+                    this.items[i].grow(toAdd);
+                    remainingToAdd -= toAdd;
+                }
+            }
+        }
+
+        this.setChanged();
+        return count - remainingToAdd;
+    }
+
+    // 增加存储物品的数量，返回值为实际增加的量
+    public int add(int count) {
+        if (!isEmpty() && count > 0) {
+            Item baseItem = this.items[0];
+            int maxStack = baseItem.maxStackSize();
+            int remaining = count;
+
+            for (int i = 0; i < this.items.length && remaining > 0; i++) {
+                if (this.items[i].isEmpty()) {
+                    int toAdd = Math.min(remaining, maxStack);
+                    this.items[i] = baseItem.copyWithCount(toAdd);
+                    remaining -= toAdd;
+                } else {
+                    int canAccept = maxStack - this.items[i].count();
+                    int toAdd = Math.min(remaining, canAccept);
+                    this.items[i].grow(toAdd);
+                    remaining -= toAdd;
+                }
+            }
+
+            this.setChanged();
+            return count - remaining;
+        }
+        return 0;
+    }
+
+    // 取走方块内的物品，返回值为实际取走的量
+    public int take(int count, Consumer<Item> consumer) {
+        if (count <= 0 || isEmpty()) return 0;
+
+        // 记录物品模板，用于后续生成 Item
+        Item template = this.items[0];
+        int maxStack = template.maxStackSize();
+        int remainingToTake = count;
+        for (int i = this.items.length - 1; i >= 0 && remainingToTake > 0; i--) {
+            if (this.items[i].isEmpty()) continue;
+
+            int canTakeFromSlot = Math.min(remainingToTake, this.items[i].count());
+            this.items[i].shrink(canTakeFromSlot);
+            remainingToTake -= canTakeFromSlot;
+
+            if (this.items[i].count() <= 0) {
+                this.items[i] = Item.empty();
+            }
+        }
+
+        int actualTaken = count - remainingToTake;
+
+        if (actualTaken > 0) {
+            int toCallback = actualTaken;
+            while (toCallback > 0) {
+                int currentBatch = Math.min(toCallback, maxStack);
+                consumer.accept(template.copyWithCount(currentBatch));
+                toCallback -= currentBatch;
+            }
             this.setChanged();
         }
-    }
-    
-    public void clearStoredItem() {
-        this.storedItem = Item.empty();
-        this.setChanged();
-    }
 
-    public void setStoredItem(Item item) {
-        this.storedItem = item;
-        this.setChanged();
-    }
-
-    // 取走方块内的物品
-    public Item takeStorageItem(int takeCount) {
-        if (takeCount <= 0) return Item.empty();
-        Item takeItem;
-        // 全部拿完了
-        if (takeCount >= this.storageCount()) {
-            takeItem = this.storedItem.copy();
-            this.storedItem = Item.empty();
-        }
-        // 拿一部分
-        else {
-            int remainingCount = this.storageCount() - takeCount;
-            takeItem = this.storedItem.copyWithCount(takeCount);
-            this.storedItem.count(remainingCount);
-        }
-        this.setChanged();
-        return takeItem;
+        return actualTaken;
     }
 
     // 方块状态变更时
@@ -159,7 +227,6 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
         // 空数据
         if (dataTag == null) {
-            this.storedItem = Item.empty();
             return;
         }
         // 读取数据
@@ -168,26 +235,36 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         int count = dataTag.getInt("count", 0);
         // 非法数据
         if (itemTag == null || count <= 0) {
-            this.storedItem = Item.empty();
             return;
         }
-        // 记录并刷新
-        this.storedItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
-        this.storedItem.count(count);
 
-        this.element.refreshChangeDisplayItemPacket(this.storedItem);
+        Item itemTemplate = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
+        int maxStackSize = itemTemplate.maxStackSize();
+        int remaining = count;
+
+        for (int i = 0; i < this.items.length; i++) {
+            if (remaining <= 0) {
+                break;
+            } else {
+                int currentCount = Math.min(remaining, maxStackSize);
+                this.items[i] = itemTemplate.copyWithCount(currentCount);
+                remaining -= currentCount;
+            }
+        }
+
+        this.element.refreshChangeDisplayItemPacket(this.items[0]);
         this.element.refreshChangeTextContentPacket(count);
-        this.lastUpdateItem = this.storedItem.copy();
+        this.lastUpdateItem = this.items[0].copy();
         this.lastUpdateCount = count;
     }
 
     @Override
     public void saveCustomData(CompoundTag tag) {
-        if (!ItemUtils.isEmpty(this.storedItem) && this.storageCount() > 0) {
+        if (!isEmpty() && this.storageCount() > 0) {
             CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
                 dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
                 dataTag.put("count", new IntTag(this.storageCount()));
-                dataTag.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.copyWithCount(1).minecraftItem()));
+                dataTag.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.items[0].copyWithCount(1).minecraftItem()));
             });
             tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
         }
@@ -195,17 +272,10 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     @Override
     public void onRemove() {
-        if (this.storageCount() < storedItem.maxStackSize()) {
-            super.blockEntity.world.world().dropItemNaturally(this.itemPosition, this.storedItem);
-        } else {
-            int remaining = this.storedItem.count();
-            while (remaining > 0) {
-                Item splitItem = this.storedItem.copyWithCount(Math.min(this.storedItem.maxStackSize(), remaining));
-                remaining -= splitItem.count();
-                super.blockEntity.world.world().dropItemNaturally(this.itemPosition, splitItem);
-            }
+        for (Item item : this.items) {
+            super.blockEntity.world.world().dropItemNaturally(this.itemPosition, item);
         }
-        this.storedItem = Item.empty();
+        Arrays.fill(this.items, Item.empty());
     }
 
     // 刷新展示元素
@@ -229,7 +299,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
             this.element.refreshChangeDisplayItemPacket(displayItem);
             result = true;
         }
-        this.lastUpdateItem = this.storedItem.copy();
+        this.lastUpdateItem = displayItem.copy();
         return result;
     }
 
@@ -301,79 +371,89 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     @Override
     public int[] getSlotsForFace(Direction direction) {
-        return SLOTS;
+        return this.slots;
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, Item stack, Direction direction) {
-        return this.storageCount() < this.behavior.maxStorageCount;
+        if (!this.isEmpty() && !stack.isSimilar(this.items[0])) {
+            return false;
+        }
+        return true;
     }
 
     @Override
     public boolean canTakeItemThroughFace(int slot, Item stack, Direction direction) {
-        return this.storageCount() > 0;
+        if (slot < 0 || slot >= this.items.length || this.items[slot].isEmpty()) {
+            return false;
+        }
+        // 保证漏斗从后往前遍历
+        if (slot == this.items.length - 1) {
+            return true;
+        }
+        return this.items[slot + 1].isEmpty();
     }
 
     @Override
     public int containerSize() {
-        return 1;
+        return this.behavior.maxStacks;
     }
 
     @Override
     public boolean isEmpty() {
-        return this.storedItem.isEmpty();
+        return this.items[0].isEmpty();
     }
 
     @Override
     public Item getItem(int slot) {
-        return this.storedItem;
+        return this.items[slot];
     }
 
     @Override
     public Item removeItem(int slot, int count) {
-        int currentCount = this.storageCount();
-        int removeCount = Math.min(currentCount, count);
-        int remainingCount = currentCount - removeCount;
-        // 全部移除
-        if (remainingCount == 0) {
-            Item removedItems = this.storedItem;
-            this.storedItem = Item.empty();
-            this.setChanged();
-            return removedItems;
+        Item item = this.items[slot];
+        if (item.isEmpty()) return item;
+        Item result;
+        if (item.count() <= count) {
+            this.setItem(slot, Item.empty());
+            result = item;
+        } else {
+            result = item.copyWithCount(count);
+            item.shrink(count);
         }
-        // 移除一部分
-        else {
-            Item removedItems = this.storedItem.copyWithCount(removeCount);
-            this.storedItem.count(remainingCount);
-            this.setChanged();
-            return removedItems;
-        }
+        this.setChanged();
+        return result;
     }
 
     @Override
     public Item removeItemNoUpdate(int slot) {
-        Item removedItems = this.storedItem;
-        this.storedItem = Item.empty();
-        this.setChanged();
-        return removedItems;
+        Item item = this.items[slot];
+        if (item.isEmpty()) return item;
+        Item result;
+        if (item.count() <= 1) {
+            this.setItem(slot, Item.empty());
+            result = item;
+        } else {
+            result = item.copyWithCount(1);
+            item.shrink(1);
+        }
+        return result;
     }
 
     @Override
     public void setItem(int slot, Item item) {
-        if (slot == 0) {
-            this.storedItem = item;
-        }
+        this.items[slot] = item;
     }
 
     @Override
     public int maxStackSize() {
-        return this.behavior.maxStorageCount;
+        return 99;
     }
 
     @Override
     public void setChanged() {
         boolean previousEmpty = this.lastUpdateItem.isEmpty();
-        boolean isEmpty = this.storedItem.isEmpty();
+        boolean isEmpty = this.items[0].isEmpty();
         boolean changedItem = this.refreshItemDisplayPacket();
         boolean changedCount = this.refreshTextContentPacket();
 
@@ -406,13 +486,13 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     @Override
     public void clearContent() {
-        this.storedItem = Item.empty();
+        Arrays.fill(this.items, Item.empty());
         this.setChanged();
     }
 
     @Override
     public List<Item> contents() {
-        return List.of(this.storedItem);
+        return Arrays.asList(this.items);
     }
 
     @Override
@@ -458,6 +538,5 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         public @NotNull Inventory getInventory() {
             return this.inventory;
         }
-
     }
 }
