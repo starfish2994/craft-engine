@@ -19,12 +19,12 @@ public final class DisplayContextSelectProperty implements SelectProperty {
     private DisplayContextSelectProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "display_context");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "display_context");
     }
 
     @Override
-    public void collectRevision(JsonElement element, Consumer<Revision> consumer) {
+    public void gatherRevisions(JsonElement element, Consumer<Revision> consumer) {
         if (element instanceof JsonPrimitive primitive && primitive.isString() && primitive.getAsString().equals("on_shelf")) {
             consumer.accept(Revisions.SINCE_1_21_9);
         }

@@ -17,9 +17,9 @@ public final class ComponentSelectProperty implements SelectProperty {
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "component");
-        jsonObject.addProperty("component", this.component);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "component");
+        model.addProperty("component", this.component);
     }
 
     private static class Factory implements SelectPropertyFactory<ComponentSelectProperty> {

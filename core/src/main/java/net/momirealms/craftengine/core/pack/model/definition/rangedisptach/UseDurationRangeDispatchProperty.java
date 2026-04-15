@@ -20,10 +20,10 @@ public final class UseDurationRangeDispatchProperty implements RangeDispatchProp
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "use_duration");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "use_duration");
         if (this.remaining) {
-            jsonObject.addProperty("remaining", true);
+            model.addProperty("remaining", true);
         }
     }
 

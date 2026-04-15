@@ -24,7 +24,7 @@ public final class CopperGolemStatueSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "copper_golem_statue");
         json.addProperty("pose", this.pose);

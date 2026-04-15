@@ -20,11 +20,11 @@ public final class BundleSelectedItemModel implements ItemModel {
     }
 
     @Override
-    public void collectRevision(Consumer<Revision> consumer) {
+    public void gatherRevisions(Consumer<Revision> consumer) {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "bundle/selected_item");
         return json;

@@ -17,10 +17,10 @@ public final class CustomModelDataConditionProperty implements ConditionProperty
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "custom_model_data");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "custom_model_data");
         if (this.index != 0) {
-            jsonObject.addProperty("index", this.index);
+            model.addProperty("index", this.index);
         }
     }
 

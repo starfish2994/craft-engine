@@ -31,8 +31,8 @@ public final class TrimMaterialSelectProperty implements SelectProperty, LegacyM
     private TrimMaterialSelectProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "trim_material");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "trim_material");
     }
 
     @Override

@@ -6,11 +6,12 @@ import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-public interface ItemModel extends Function<MinecraftVersion, JsonObject> {
+public interface ItemModel {
 
-    void collectRevision(Consumer<Revision> consumer);
+    void gatherRevisions(Consumer<Revision> consumer);
 
     void prepareModelGeneration(Consumer<ModelGenerationHolder> consumer);
+
+    JsonObject toJson(MinecraftVersion min, MinecraftVersion max);
 }

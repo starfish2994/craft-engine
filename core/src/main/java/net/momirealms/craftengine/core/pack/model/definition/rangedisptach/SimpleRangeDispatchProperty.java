@@ -18,8 +18,8 @@ public final class SimpleRangeDispatchProperty implements RangeDispatchProperty 
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", this.type.asMinimalString());
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", this.type.asMinimalString());
     }
 
     private static class Factory implements RangeDispatchPropertyFactory<SimpleRangeDispatchProperty> {

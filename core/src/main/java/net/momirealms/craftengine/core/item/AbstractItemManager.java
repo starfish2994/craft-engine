@@ -757,8 +757,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                                         modernModel,
                                         section.getBoolean(OVERSIZED_IN_GUI, true),
                                         section.getBoolean(HAND_ANIMATION_ON_SWAP, true),
-                                        section.getFloat(SWAP_ANIMATION_SCALE, 1f),
-                                        section.getValue("transformation", Transformation::fromValue)
+                                        section.getFloat(SWAP_ANIMATION_SCALE, 1f)
                                 ));
                                 return map;
                             });
@@ -785,8 +784,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                                     modernModel,
                                     section.getBoolean(OVERSIZED_IN_GUI, true),
                                     section.getBoolean(HAND_ANIMATION_ON_SWAP, true),
-                                    section.getFloat(SWAP_ANIMATION_SCALE, 1f),
-                                    section.getValue("transformation", Transformation::fromValue)
+                                    section.getFloat(SWAP_ANIMATION_SCALE, 1f)
                             ));
                         }
                         if (needsItemModelCompatibility() && needsLegacyCompatibility() && hasLegacyModel) {
@@ -807,8 +805,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                                 modernModel,
                                 section.getBoolean(OVERSIZED_IN_GUI, true),
                                 section.getBoolean(HAND_ANIMATION_ON_SWAP, true),
-                                section.getFloat(SWAP_ANIMATION_SCALE, 1f),
-                                section.getValue("transformation", Transformation::fromValue)
+                                section.getFloat(SWAP_ANIMATION_SCALE, 1f)
                         ));
                     }
                 }

@@ -24,10 +24,10 @@ public final class NormalizeRangeDispatchProperty implements RangeDispatchProper
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", this.type.asMinimalString());
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", this.type.asMinimalString());
         if (!this.normalize) {
-            jsonObject.addProperty("normalize", false);
+            model.addProperty("normalize", false);
         }
     }
 

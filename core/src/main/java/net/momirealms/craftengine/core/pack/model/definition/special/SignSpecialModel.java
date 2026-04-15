@@ -48,10 +48,10 @@ public final class SignSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.type.asMinimalString());
-        if (version.isAtOrAbove(MinecraftVersion.V26_1) && attachment != null) {
+        if (min.isAtOrAbove(MinecraftVersion.V26_1) && attachment != null) {
             json.addProperty("attachment", attachment);
         }
         json.addProperty("wood_type", woodType);

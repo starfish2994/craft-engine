@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +18,20 @@ public final class CompositeItemModel implements ItemModel {
     public static final ItemModelFactory<CompositeItemModel> FACTORY = new Factory();
     public static final ItemModelReader<CompositeItemModel> READER = new Reader();
     private final List<ItemModel> models;
+    private final Transformation transformation;
 
-    public CompositeItemModel(List<ItemModel> models) {
+    public CompositeItemModel(@NotNull List<ItemModel> models, @Nullable Transformation transformation) {
         this.models = models;
+        this.transformation = transformation;
+    }
+
+    public CompositeItemModel(@NotNull List<ItemModel> models) {
+        this(models, null);
+    }
+
+    @Nullable
+    public Transformation transformation() {
+        return this.transformation;
     }
 
     @NotNull
@@ -28,21 +40,24 @@ public final class CompositeItemModel implements ItemModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "composite");
         JsonArray array = new JsonArray();
         for (ItemModel model : this.models) {
-            array.add(model.apply(version));
+            array.add(model.toJson(min, max));
         }
         json.add("models", array);
+        if (this.transformation != null && max.isAtOrAbove(MinecraftVersion.V26_1)) {
+            json.add("transformation", this.transformation.toJson());
+        }
         return json;
     }
 
     @Override
-    public void collectRevision(Consumer<Revision> consumer) {
+    public void gatherRevisions(Consumer<Revision> consumer) {
         for (ItemModel model : this.models) {
-            model.collectRevision(consumer);
+            model.gatherRevisions(consumer);
         }
     }
 
@@ -57,7 +72,10 @@ public final class CompositeItemModel implements ItemModel {
 
         @Override
         public CompositeItemModel create(ConfigSection section) {
-            return new CompositeItemModel(section.getList("models", ItemModels::fromConfig));
+            return new CompositeItemModel(
+                    section.getList("models", ItemModels::fromConfig),
+                    section.getValue("transformation", Transformation::fromConfig)
+            );
         }
     }
 
@@ -76,7 +94,10 @@ public final class CompositeItemModel implements ItemModel {
                 }
                 modelList.add(ItemModels.fromJson(jo));
             }
-            return new CompositeItemModel(modelList);
+            return new CompositeItemModel(
+                    modelList,
+                    json.has("transformation") ? Transformation.fromJson(json.get("transformation")) : null
+            );
         }
     }
 }

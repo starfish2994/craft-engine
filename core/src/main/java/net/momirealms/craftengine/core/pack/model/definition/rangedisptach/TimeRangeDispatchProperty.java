@@ -23,11 +23,11 @@ public final class TimeRangeDispatchProperty implements RangeDispatchProperty {
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "time");
-        jsonObject.addProperty("source", this.source);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "time");
+        model.addProperty("source", this.source);
         if (!this.wobble) {
-            jsonObject.addProperty("wobble", false);
+            model.addProperty("wobble", false);
         }
     }
 

@@ -17,9 +17,9 @@ public final class KeyBindDownConditionProperty implements ConditionProperty {
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "keybind_down");
-        jsonObject.addProperty("keybind", this.keybind);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "keybind_down");
+        model.addProperty("keybind", this.keybind);
     }
 
     private static class Factory implements ConditionPropertyFactory<KeyBindDownConditionProperty> {

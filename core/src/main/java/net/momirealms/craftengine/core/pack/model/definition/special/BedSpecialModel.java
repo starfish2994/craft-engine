@@ -36,10 +36,10 @@ public final class BedSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "bed");
-        if (version.isAtOrAbove(MinecraftVersion.V26_1)) {
+        if (min.isAtOrAbove(MinecraftVersion.V26_1)) {
             json.addProperty("part", this.part);
         }
         json.addProperty("texture", this.texture);

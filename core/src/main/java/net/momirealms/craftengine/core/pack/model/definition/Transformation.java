@@ -44,7 +44,7 @@ public final class Transformation {
         this.isMatrix = true;
     }
 
-    public static Transformation fromValue(ConfigValue value) {
+    public static Transformation fromConfig(ConfigValue value) {
         if (value.is(List.class)) {
             return new Transformation(value.getAsFixedSizeList(16, ConfigValue::getAsFloat));
         }

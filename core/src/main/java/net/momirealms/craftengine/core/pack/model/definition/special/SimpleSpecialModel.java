@@ -19,7 +19,7 @@ public final class SimpleSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.type.asMinimalString());
         return json;

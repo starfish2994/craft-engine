@@ -70,9 +70,9 @@ public final class GeneratedModelReader implements SimplifiedModelReader {
         if (models.isEmpty()) {
             return EmptyItemModel.INSTANCE;
         } else if (models.size() == 1) {
-            return new BaseItemModel(models.getFirst(), this.tints, null);
+            return new BaseItemModel(models.getFirst(), this.tints);
         } else {
-            return new CompositeItemModel(models.stream().map(it -> (ItemModel) new BaseItemModel(it, this.tints, null)).toList());
+            return new CompositeItemModel(models.stream().map(it -> (ItemModel) new BaseItemModel(it, this.tints)).toList());
         }
     }
 }

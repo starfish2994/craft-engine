@@ -4,24 +4,22 @@ import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class ModernItemModel {
-    private final ItemModel itemModel;
+    private final ItemModel model;
     private final boolean oversizedInGui;
     private final boolean handAnimationOnSwap;
     private final float swapAnimationScale;
-    private final Transformation transformation;
 
-    public ModernItemModel(ItemModel itemModel, boolean handAnimationOnSwap, boolean oversizedInGui, float swapAnimationScale, Transformation transformation) {
+    public ModernItemModel(@NotNull ItemModel model, boolean handAnimationOnSwap, boolean oversizedInGui, float swapAnimationScale) {
         this.handAnimationOnSwap = handAnimationOnSwap;
-        this.itemModel = itemModel;
+        this.model = model;
         this.oversizedInGui = oversizedInGui;
         this.swapAnimationScale = swapAnimationScale;
-        this.transformation = transformation;
-
     }
 
     public static ModernItemModel fromJson(JsonObject json) {
@@ -30,41 +28,40 @@ public final class ModernItemModel {
                 model,
                 GsonHelper.getAsBoolean(json.get("hand_animation_on_swap"), true),
                 GsonHelper.getAsBoolean(json.get("oversized_in_gui"), false),
-                GsonHelper.getAsFloat(json.get("swap_animation_scale"), 1.0f),
-                json.has("transformation") ? Transformation.fromJson(json.get("transformation")) : null
+                GsonHelper.getAsFloat(json.get("swap_animation_scale"), 1.0f)
         );
     }
 
-    public JsonObject toJson(MinecraftVersion version) {
+    @NotNull
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
-        if (this.oversizedInGui && version.isAtOrAbove(MinecraftVersion.V1_21_6)) {
+        if (this.oversizedInGui && max.isAtOrAbove(MinecraftVersion.V1_21_6)) {
             json.addProperty("oversized_in_gui", true);
         }
         if (!this.handAnimationOnSwap) {
             json.addProperty("hand_animation_on_swap", false);
         }
-        if (this.swapAnimationScale != 1.0f && version.isAtOrAbove(MinecraftVersion.V1_21_11)) {
+        if (this.swapAnimationScale != 1.0f && max.isAtOrAbove(MinecraftVersion.V1_21_11)) {
             json.addProperty("swap_animation_scale", this.swapAnimationScale);
         }
-        json.add("model", this.itemModel.apply(version));
-        if (version.isAtOrAbove(MinecraftVersion.V26_1) && this.transformation != null) {
-            json.add("transformation", this.transformation.toJson());
-        }
+        json.add("model", this.model.toJson(min, max));
         return json;
     }
 
+    @NotNull
     public List<Revision> revisions() {
         List<Revision> revisions = new ArrayList<>(4);
-        this.itemModel.collectRevision(revisions::add);
+        this.model.gatherRevisions(revisions::add);
         return revisions.stream().distinct().toList();
+    }
+
+    @NotNull
+    public ItemModel model() {
+        return this.model;
     }
 
     public boolean handAnimationOnSwap() {
         return this.handAnimationOnSwap;
-    }
-
-    public ItemModel itemModel() {
-        return this.itemModel;
     }
 
     public boolean oversizedInGui() {
@@ -73,9 +70,5 @@ public final class ModernItemModel {
 
     public float swapAnimationScale() {
         return this.swapAnimationScale;
-    }
-
-    public Transformation transformation() {
-        return this.transformation;
     }
 }

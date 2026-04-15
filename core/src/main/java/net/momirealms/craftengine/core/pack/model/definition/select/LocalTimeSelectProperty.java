@@ -33,14 +33,14 @@ public final class LocalTimeSelectProperty implements SelectProperty {
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "local_time");
-        jsonObject.addProperty("pattern", this.pattern);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "local_time");
+        model.addProperty("pattern", this.pattern);
         if (this.locale != null) {
-            jsonObject.addProperty("locale", this.locale);
+            model.addProperty("locale", this.locale);
         }
         if (this.timeZone != null) {
-            jsonObject.addProperty("time_zone", this.timeZone);
+            model.addProperty("time_zone", this.timeZone);
         }
     }
 

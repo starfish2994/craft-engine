@@ -29,7 +29,6 @@ import net.momirealms.craftengine.core.pack.mcmeta.overlay.OverlayCombination;
 import net.momirealms.craftengine.core.pack.model.definition.ItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ModernItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.RangeDispatchItemModel;
-import net.momirealms.craftengine.core.pack.model.definition.Transformation;
 import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.CustomModelDataRangeDispatchProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
@@ -3103,7 +3102,8 @@ public abstract class AbstractPackManager implements PackManager {
             }
             ModernItemModel modernItemModel = entry.getValue();
             try (BufferedWriter writer = Files.newBufferedWriter(itemPath)) {
-                GsonHelper.get().toJson(modernItemModel.toJson(Config.packMinVersion()), writer);
+                // todo 修改
+                GsonHelper.get().toJson(modernItemModel.toJson(Config.packMinVersion(), Config.packMaxVersion()), writer);
             } catch (IOException e) {
                 this.plugin.logger().warn("Failed to save item model for " + key, e);
             }
@@ -3125,7 +3125,7 @@ public abstract class AbstractPackManager implements PackManager {
                             continue;
                         }
                         try (BufferedWriter writer = Files.newBufferedWriter(overlayItemPath)) {
-                            GsonHelper.get().toJson(modernItemModel.toJson(revision.minVersion()), writer);
+                            GsonHelper.get().toJson(modernItemModel.toJson(revision.minVersion(), revision.maxVersion()), writer);
                             callback.accept(revision);
                         } catch (IOException e) {
                             this.plugin.logger().warn("Failed to save item model for " + key, e);
@@ -3165,12 +3165,11 @@ public abstract class AbstractPackManager implements PackManager {
             boolean handAnimationOnSwap = originalItemModel.handAnimationOnSwap();
             boolean oversizedInGui = originalItemModel.oversizedInGui();
             float swapAnimationScale = originalItemModel.swapAnimationScale();
-            Transformation transformation = originalItemModel.transformation();
 
             Map<Float, ItemModel> entries = new TreeMap<>();
             for (Map.Entry<Integer, ModernItemModel> modelWithDataEntry : entry.getValue().entrySet()) {
                 ModernItemModel modernItemModel = modelWithDataEntry.getValue();
-                entries.put(modelWithDataEntry.getKey().floatValue(), modernItemModel.itemModel());
+                entries.put(modelWithDataEntry.getKey().floatValue(), modernItemModel.model());
                 if (modernItemModel.handAnimationOnSwap()) {
                     handAnimationOnSwap = true;
                 }
@@ -3182,10 +3181,10 @@ public abstract class AbstractPackManager implements PackManager {
             RangeDispatchItemModel rangeDispatch = new RangeDispatchItemModel(
                 new CustomModelDataRangeDispatchProperty(0),
                 1f,
-                    entries, originalItemModel.itemModel()
+                    entries, originalItemModel.model()
             );
 
-            ModernItemModel newItemModel = new ModernItemModel(rangeDispatch, handAnimationOnSwap, oversizedInGui, swapAnimationScale, transformation);
+            ModernItemModel newItemModel = new ModernItemModel(rangeDispatch, handAnimationOnSwap, oversizedInGui, swapAnimationScale);
             try {
                 Files.createDirectories(overridedItemPath.getParent());
             } catch (IOException e) {
@@ -3194,7 +3193,7 @@ public abstract class AbstractPackManager implements PackManager {
             }
 
             try (BufferedWriter writer = Files.newBufferedWriter(overridedItemPath)) {
-                GsonHelper.get().toJson(newItemModel.toJson(Config.packMinVersion()), writer);
+                GsonHelper.get().toJson(newItemModel.toJson(Config.packMinVersion(), Config.packMaxVersion()), writer);
             } catch (IOException e) {
                 this.plugin.logger().warn("Failed to save item model for " + vanillaItemModel, e);
             }
@@ -3216,7 +3215,7 @@ public abstract class AbstractPackManager implements PackManager {
                             continue;
                         }
                         try (BufferedWriter writer = Files.newBufferedWriter(overlayItemPath)) {
-                            GsonHelper.get().toJson(newItemModel.toJson(revision.minVersion()), writer);
+                            GsonHelper.get().toJson(newItemModel.toJson(revision.minVersion(), revision.maxVersion()), writer);
                             callback.accept(revision);
                         } catch (IOException e) {
                             this.plugin.logger().warn("Failed to save item model for " + vanillaItemModel, e);

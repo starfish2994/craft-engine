@@ -14,8 +14,8 @@ public final class BrokenConditionProperty implements ConditionProperty, LegacyM
     private BrokenConditionProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "broken");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "broken");
     }
 
     @Override

@@ -17,9 +17,9 @@ public final class BlockStateSelectProperty implements SelectProperty {
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "block_state");
-        jsonObject.addProperty("block_state_property", this.blockStateProperty);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "block_state");
+        model.addProperty("block_state_property", this.blockStateProperty);
     }
 
     private static class Factory implements SelectPropertyFactory<BlockStateSelectProperty> {

@@ -13,8 +13,8 @@ public final class MainHandSelectProperty implements SelectProperty, LegacyModel
     private MainHandSelectProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "main_hand");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "main_hand");
     }
 
     @Override

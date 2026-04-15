@@ -47,7 +47,7 @@ public final class ItemModels {
         if (value.is(Map.class)) {
             return fromConfig(value.getAsSection());
         } else {
-            return new BaseItemModel(value.getAsAssetPath(), List.of(), null);
+            return new BaseItemModel(value.getAsAssetPath(), List.of(), null, null);
         }
     }
 

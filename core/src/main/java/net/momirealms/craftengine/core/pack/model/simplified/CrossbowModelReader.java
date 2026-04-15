@@ -103,18 +103,18 @@ public final class CrossbowModelReader implements SimplifiedModelReader {
                         CrossBowPullingRangeDispatchProperty.INSTANCE,
                         1f,
                         Map.of(
-                                0.58f, new BaseItemModel(models.get(2), List.of(), null),
-                                1.0f, new BaseItemModel(models.get(3), List.of(), null)
+                                0.58f, new BaseItemModel(models.get(2)),
+                                1.0f, new BaseItemModel(models.get(3))
                         ),
-                        new BaseItemModel(models.get(1), List.of(), null)
+                        new BaseItemModel(models.get(1))
                 ),
                 new SelectItemModel(
                         ChargeTypeSelectProperty.INSTANCE,
                         Map.of(
-                                Either.left(new JsonPrimitive("arrow")), new BaseItemModel(models.get(4), List.of(), null),
-                                Either.left(new JsonPrimitive("rocket")), new BaseItemModel(models.get(5), List.of(), null)
+                                Either.left(new JsonPrimitive("arrow")), new BaseItemModel(models.get(4)),
+                                Either.left(new JsonPrimitive("rocket")), new BaseItemModel(models.get(5))
                         ),
-                        new BaseItemModel(models.get(0), List.of(), null)
+                        new BaseItemModel(models.get(0))
                 )
         );
     }

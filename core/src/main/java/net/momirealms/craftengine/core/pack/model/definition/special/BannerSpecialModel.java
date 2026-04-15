@@ -31,10 +31,10 @@ public final class BannerSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "banner");
-        if (version.isAtOrAbove(MinecraftVersion.V26_1) && this.attachment != null) {
+        if (min.isAtOrAbove(MinecraftVersion.V26_1) && this.attachment != null) {
             json.addProperty("attachment", this.attachment);
         }
         json.addProperty("color", this.color);

@@ -42,14 +42,14 @@ public final class ChestSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "chest");
         json.addProperty("texture", this.texture);
         if (this.openness > 0) {
             json.addProperty("openness", this.openness);
         }
-        if (version.isAtOrAbove(MinecraftVersion.V26_1) && this.chestType != null) {
+        if (min.isAtOrAbove(MinecraftVersion.V26_1) && this.chestType != null) {
             json.addProperty("chest_type", this.chestType);
         }
         return json;

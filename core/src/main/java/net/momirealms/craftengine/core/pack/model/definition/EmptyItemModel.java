@@ -18,7 +18,7 @@ public final class EmptyItemModel implements ItemModel {
     private EmptyItemModel() {}
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         return JSON;
     }
 
@@ -27,7 +27,7 @@ public final class EmptyItemModel implements ItemModel {
     }
 
     @Override
-    public void collectRevision(Consumer<Revision> consumer) {
+    public void gatherRevisions(Consumer<Revision> consumer) {
     }
 
     private static class Factory implements ItemModelFactory<EmptyItemModel> {

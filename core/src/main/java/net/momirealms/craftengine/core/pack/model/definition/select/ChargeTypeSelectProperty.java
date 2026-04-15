@@ -14,8 +14,8 @@ public final class ChargeTypeSelectProperty implements SelectProperty, LegacyMod
     private ChargeTypeSelectProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "charge_type");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "charge_type");
     }
 
     @Override

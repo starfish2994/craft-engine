@@ -81,11 +81,12 @@ public final class BowModelReader implements SimplifiedModelReader {
                         new UseDurationRangeDispatchProperty(false),
                         0.05f,
                         Map.of(
-                                0.65f, new BaseItemModel(models.get(2), List.of(), null),
-                                0.9f, new BaseItemModel(models.get(3), List.of(), null)
-                        ), new BaseItemModel(models.get(1), List.of(), null)
+                                0.65f, new BaseItemModel(models.get(2)),
+                                0.9f, new BaseItemModel(models.get(3))
+                        ),
+                        new BaseItemModel(models.get(1))
                 ),
-                new BaseItemModel(models.get(0), List.of(), null)
+                new BaseItemModel(models.get(0))
         );
     }
 }

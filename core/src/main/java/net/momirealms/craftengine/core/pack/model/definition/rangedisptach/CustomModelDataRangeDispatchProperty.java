@@ -19,9 +19,9 @@ public final class CustomModelDataRangeDispatchProperty implements RangeDispatch
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "custom_model_data");
-        jsonObject.addProperty("index", this.index);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "custom_model_data");
+        model.addProperty("index", this.index);
     }
 
     @Override

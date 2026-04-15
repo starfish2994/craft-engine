@@ -21,9 +21,9 @@ public final class PlayerHeadSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
-        if (version.isAtOrAbove(MinecraftVersion.V1_21_6)) {
+        if (min.isAtOrAbove(MinecraftVersion.V1_21_6)) {
             json.addProperty("type", "player_head");
         } else {
             json.addProperty("type", "head");

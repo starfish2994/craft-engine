@@ -45,12 +45,12 @@ public final class ShulkerBoxSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "shulker_box");
         json.addProperty("texture", this.texture);
-        if (version.isBelow(MinecraftVersion.V26_1) && this.orientation != null) {
-            json.addProperty("orientation", this.orientation.name().toLowerCase(Locale.ENGLISH));
+        if (min.isBelow(MinecraftVersion.V26_1) && this.orientation != null) {
+            json.addProperty("orientation", this.orientation.name().toLowerCase(Locale.ROOT));
         }
         json.addProperty("openness", this.openness);
         return json;

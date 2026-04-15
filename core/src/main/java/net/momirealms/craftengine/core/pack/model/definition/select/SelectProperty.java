@@ -8,13 +8,15 @@ import net.momirealms.craftengine.core.util.MinecraftVersion;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
-public interface SelectProperty extends Consumer<JsonObject> {
+public interface SelectProperty {
 
-    default void collectRevision(JsonElement element, Consumer<Revision> consumer) {
+    default void gatherRevisions(JsonElement element, Consumer<Revision> consumer) {
     }
 
     @Nullable
     default JsonElement remap(JsonElement element, MinecraftVersion version) {
         return element;
     }
+
+    void writeProperty(JsonObject model);
 }

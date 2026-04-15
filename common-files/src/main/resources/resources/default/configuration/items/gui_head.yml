@@ -17,6 +17,9 @@ items:
             scale: 2,2,2
       model:
         type: minecraft:player_head
+      transformation:
+        left_rotation: -1,0,0,0
+        translation: 0.5,0,0.5
   default:gui_head_size_4:
     material: player_head
     client_bound_data:
@@ -35,3 +38,6 @@ items:
             scale: 4,4,4
       model:
         type: minecraft:player_head
+      transformation:
+        left_rotation: -1,0,0,0
+        translation: 0.5,0,0.5

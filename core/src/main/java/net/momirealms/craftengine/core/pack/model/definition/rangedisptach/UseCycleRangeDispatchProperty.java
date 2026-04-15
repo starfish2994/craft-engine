@@ -17,9 +17,9 @@ public final class UseCycleRangeDispatchProperty implements RangeDispatchPropert
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "use_cycle");
-        jsonObject.addProperty("period", this.period);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "use_cycle");
+        model.addProperty("period", this.period);
     }
 
     private static class Factory implements RangeDispatchPropertyFactory<UseCycleRangeDispatchProperty> {

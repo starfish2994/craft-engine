@@ -60,8 +60,8 @@ public final class ConditionModelReader implements SimplifiedModelReader {
         List<Key> models = modelValue.getAsFixedSizeList(2, ConfigValue::getAsAssetPath);
         return new ConditionItemModel(
                 this.property,
-                new BaseItemModel(models.getLast(), List.of(), null),
-                new BaseItemModel(models.getFirst(), List.of(), null)
+                new BaseItemModel(models.getLast()),
+                new BaseItemModel(models.getFirst())
         );
     }
 }

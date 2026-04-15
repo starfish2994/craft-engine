@@ -14,8 +14,8 @@ public final class CrossBowPullingRangeDispatchProperty implements RangeDispatch
     private CrossBowPullingRangeDispatchProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "crossbow/pull");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "crossbow/pull");
     }
 
     @Override

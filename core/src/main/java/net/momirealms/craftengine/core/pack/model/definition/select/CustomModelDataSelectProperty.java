@@ -17,9 +17,9 @@ public final class CustomModelDataSelectProperty implements SelectProperty {
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "custom_model_data");
-        jsonObject.addProperty("index", this.index);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "custom_model_data");
+        model.addProperty("index", this.index);
     }
 
     private static class Factory implements SelectPropertyFactory<CustomModelDataSelectProperty> {

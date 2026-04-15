@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
@@ -13,10 +14,11 @@ public final class EndCubeSpecialModel implements SpecialModel {
     public static final SpecialModelReader<EndCubeSpecialModel> READER = new Reader();
     private final String effect;
 
-    public EndCubeSpecialModel(String effect) {
+    public EndCubeSpecialModel(@NotNull String effect) {
         this.effect = effect;
     }
 
+    @NotNull
     public String effect() {
         return this.effect;
     }
@@ -27,7 +29,7 @@ public final class EndCubeSpecialModel implements SpecialModel {
     }
 
     @Override
-    public JsonObject apply(MinecraftVersion version) {
+    public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         json.addProperty("type", "end_cube");
         json.addProperty("effect", this.effect);

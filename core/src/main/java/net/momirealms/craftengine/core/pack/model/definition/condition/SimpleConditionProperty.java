@@ -18,8 +18,8 @@ public final class SimpleConditionProperty implements ConditionProperty {
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", this.type.asMinimalString());
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", this.type.asMinimalString());
     }
 
     private static class Factory implements ConditionPropertyFactory<SimpleConditionProperty> {

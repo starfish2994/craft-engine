@@ -23,11 +23,11 @@ public final class CompassRangeDispatchProperty implements RangeDispatchProperty
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "compass");
-        jsonObject.addProperty("target", this.target);
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "compass");
+        model.addProperty("target", this.target);
         if (!this.wobble) {
-            jsonObject.addProperty("wobble", false);
+            model.addProperty("wobble", false);
         }
     }
 

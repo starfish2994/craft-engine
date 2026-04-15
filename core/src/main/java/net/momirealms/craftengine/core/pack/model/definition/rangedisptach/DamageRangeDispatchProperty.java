@@ -19,10 +19,10 @@ public final class DamageRangeDispatchProperty implements RangeDispatchProperty,
     }
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "damage");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "damage");
         if (!normalize) {
-            jsonObject.addProperty("normalize", false);
+            model.addProperty("normalize", false);
         }
     }
 

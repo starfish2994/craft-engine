@@ -14,8 +14,8 @@ public final class UsingItemConditionProperty implements ConditionProperty, Lega
     private UsingItemConditionProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "using_item");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "using_item");
     }
 
     @Override

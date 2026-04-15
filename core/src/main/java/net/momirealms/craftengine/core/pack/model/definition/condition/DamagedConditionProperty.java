@@ -13,8 +13,8 @@ public final class DamagedConditionProperty implements ConditionProperty, Legacy
     private DamagedConditionProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "damaged");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "damaged");
     }
 
     @Override

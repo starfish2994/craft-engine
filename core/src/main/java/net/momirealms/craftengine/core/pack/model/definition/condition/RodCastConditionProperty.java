@@ -14,8 +14,8 @@ public final class RodCastConditionProperty implements ConditionProperty, Legacy
     private RodCastConditionProperty() {}
 
     @Override
-    public void accept(JsonObject jsonObject) {
-        jsonObject.addProperty("property", "fishing_rod/cast");
+    public void writeProperty(JsonObject model) {
+        model.addProperty("property", "fishing_rod/cast");
     }
 
     @Override
