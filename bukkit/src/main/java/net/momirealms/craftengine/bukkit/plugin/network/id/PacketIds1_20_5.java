@@ -241,4 +241,9 @@ public final class PacketIds1_20_5 implements PacketIds {
     public int clientboundCustomPayloadPacket() {
         return PacketIdHelper.byName("minecraft:custom_payload", PacketFlow.CLIENTBOUND, ConnectionState.PLAY);
     }
+
+    @Override
+    public int serverboundAttackPacket() {
+        return PacketIdHelper.byName("minecraft:attack", PacketFlow.SERVERBOUND, ConnectionState.PLAY);
+    }
 }

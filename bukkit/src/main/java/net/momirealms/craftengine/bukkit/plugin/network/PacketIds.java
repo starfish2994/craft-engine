@@ -95,4 +95,6 @@ public interface PacketIds {
     int serverboundConfigurationAcknowledgedPacket();
 
     int clientboundCustomPayloadPacket();
+
+    int serverboundAttackPacket();
 }

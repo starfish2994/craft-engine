@@ -380,6 +380,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     void initFurniture(BukkitFurniture furniture) {
         int entityId = furniture.entityId();
         this.byMetaEntityId.put(entityId, furniture);
+        this.byInteractableEntityId.put(entityId, furniture);
         for (int id : furniture.interactableEntityIds()) {
             this.byInteractableEntityId.put(id, furniture);
         }
@@ -416,6 +417,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         int entityId = furniture.entityId();
         // 移除entity id映射
         this.byMetaEntityId.remove(entityId);
+        this.byInteractableEntityId.remove(entityId);
         for (int id : furniture.interactableEntityIds()) {
             this.byInteractableEntityId.remove(id);
         }

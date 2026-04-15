@@ -18,8 +18,6 @@ public interface CompatibilityManager {
 
     ExternalModel createModel(String id);
 
-    int interactionToBaseEntity(int id);
-
     boolean hasPlaceholderAPI();
 
     boolean isPluginEnabled(String plugin);
@@ -53,4 +51,6 @@ public interface CompatibilityManager {
     void registerEntityProvider(EntityProvider provider);
 
     boolean hasPermission(NetWorkUser user, String permission);
+
+    int remapEntityId(int entityId);
 }
