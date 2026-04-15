@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.TintSource;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -58,19 +59,18 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         return this.displayItem;
     }
 
-    // 放入方块内的展示物品
     public void putDisplayItem(Item inputItem /* Not Empty */) {
         this.displayItem = inputItem;
-        this.element.refreshChangeDisplayItemPacket(inputItem.minecraftItem());
+        this.element.refreshChangeDisplayItemPacket(this.displayItem.minecraftItem());
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
                 this.element.showDisplayItem(trackedPlayer);
             }
         }
+        super.blockEntity.world.blockEntityChanged(super.blockEntity.pos);
     }
 
-    // 取走方块内的展示物品
     public Item takeDisplayItem() {
         Item temp = this.displayItem;
         this.displayItem = Item.empty();
@@ -80,21 +80,22 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
                 this.element.hide(trackedPlayer);
             }
         }
+        super.blockEntity.world.blockEntityChanged(super.blockEntity.pos);
         return temp;
     }
 
     @Override
     public void preBlockStateChange(ImmutableBlockState newState) {
         this.displayItemPosition = this.calculateDisplayItemPosition(newState);
-        this.element.positionDirty(true);
         this.element.refreshSpawnVehicleAndPassengerPacket(this.displayItemPosition);
+        this.element.refreshChangeDisplayItemPacket(this.displayItem.minecraftItem());
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk != null) {
             for (Player trackedPlayer : chunk.getTrackedBy()) {
-                this.element.update(trackedPlayer);
+                this.element.updateElementPos(trackedPlayer);
+                this.element.refreshDisplayItem(trackedPlayer);
             }
         }
-        this.element.positionDirty(false);
     }
 
     // 读取方块内存储的物品
@@ -135,7 +136,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         if (!ItemUtils.isEmpty(displayItem)) {
             super.blockEntity.world.world().dropItemNaturally(this.displayItemPosition, this.displayItem);
         }
-        this.displayItem = Item.empty();;
+        this.displayItem = Item.empty();
     }
 
     public WorldPosition calculateDisplayItemPosition(ImmutableBlockState blockState) {
@@ -159,6 +160,13 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
                 this.blockCenter.y + this.behavior.relativePosition.y,
                 this.blockCenter.z + rotatedZ
         );
+    }
+
+    private void setChanged() {
+        // 设置脏位
+        CEWorld ceWorld = blockEntity.world;
+        if (ceWorld == null) return;
+        ceWorld.blockEntityChanged(blockEntity.pos);
     }
 
     public static class Tintable extends DisplayItemBlockEntityController implements TintSource {

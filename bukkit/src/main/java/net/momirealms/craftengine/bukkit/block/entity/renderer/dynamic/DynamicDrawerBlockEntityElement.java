@@ -28,10 +28,6 @@ import java.util.UUID;
 
 public final class DynamicDrawerBlockEntityElement implements BlockEntityElement {
     public final DrawerBlockEntityController controller;
-    @NotNull
-    private Item lastUpdateItem; // 最后一次发送的更新掉落物品
-    private int lastUpdateContent; // 最后一次发送的更新掉落物品
-    private boolean positionDirty; // 坐标脏位
     public final int itemId;
     public final int textId;
     public final UUID itemUUID = UUID.randomUUID();
@@ -67,7 +63,6 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
 
     // 更新展示的物品包
     public void refreshChangeDisplayItemPacket(Item item) {
-        this.lastUpdateItem = item; // 更新缓存
         this.changeItemDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.itemId, new ArrayList<>() {{
             ItemDisplayEntityData.DisplayedItem.addEntityData(item.minecraftItem(), this);
             ItemDisplayEntityData.Scale.addEntityData(controller.behavior.itemScale, this);
@@ -77,7 +72,6 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
 
     // 更新显示的数量包
     public void refreshChangeTextContentPacket(int count) {
-        this.lastUpdateContent = count; // 更新缓存
         this.changeTextContentDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.textId, new ArrayList<>() {{
             TextDisplayEntityData.Text.addEntityData(ComponentUtils.adventureToMinecraft(Component.text(count)), this);
             TextDisplayEntityData.Scale.addEntityData(controller.behavior.textScale, this);
@@ -104,10 +98,6 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         );
     }
 
-    public void positionDirty(boolean dirtyFlag) {
-        this.positionDirty = dirtyFlag;
-    }
-
     @Override
     public void show(@NotNull Player player) {
         if (!this.controller.storedItem().isEmpty()) {
@@ -125,62 +115,28 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
         player.sendPacket(this.despawnAllPacket, false);
     }
 
-    @Override
-    public void update(@NotNull Player player) {
-        // 如果
-        Item displayItem = this.controller.storedItem();
-        if (displayItem.isEmpty()) {
-            this.hide(player);
-            return;
-        }
-        // 检查最新的物品和当前刷新的是否一样, 不一样则刷新缓存的包.
-        boolean itemChanged = false;
-        boolean isCachedItemEmpty = this.lastUpdateItem == Item.empty();
-        if (displayItem.minecraftItem() != this.lastUpdateItem.minecraftItem() || !displayItem.isSimilar(this.lastUpdateItem)) {
-            this.refreshChangeDisplayItemPacket(displayItem);
-            itemChanged = true;
-        }
-        // 检查最新数量和当前的是否一样, 不一样则刷新缓存的包.
-        boolean textChanged = false;
-        int storageCount = displayItem.count();
-        if (this.lastUpdateContent != storageCount) {
-            this.refreshChangeTextContentPacket(storageCount);
-            textChanged = true;
-        }
-        // 如果缓存的显示位置和最新的不一样, 额外发送一个同步位置包.
-        if (this.positionDirty) {
-            player.sendPackets(List.of(this.updateItemPosPacket, this.updateTextPosPacket), false);
-        }
-        // 重发刷新包
-        if (displayItem.isEmpty()) {
-            this.hide(player);
-        } else {
-            // 如果物品和数量都变化了
-            if (isCachedItemEmpty && itemChanged && textChanged) {
-                player.sendPackets(List.of(
-                        this.spawnItemPacket,
-                        this.spawnTextPacket,
-                        this.changeItemDataPacket,
-                        this.changeTextContentDataPacket
-                ), false);
-            }
-            else if (itemChanged) {
-
-            }
-            else if (textChanged) {
-                player.sendPacket(this.changeTextContentDataPacket, false);
-            }
-
-        }
+    // 更新整套展示实体
+    public void updateItemAndText(Player player) {
+        player.sendPackets(List.of(
+                this.spawnItemPacket, this.spawnTextPacket,
+                this.changeItemDataPacket, this.changeTextContentDataPacket
+        ), false);
     }
 
-    // 只刷新展示的文本值
+    // 更新文本展示实体的文本
+    public void updateDisplayItem(Player player) {
+        player.sendPackets(List.of(
+                this.spawnItemPacket, this.changeItemDataPacket
+        ), false);
+    }
+
+    // 更新文本展示实体的文本
     public void updateTextContent(Player player) {
-        // 检查最新数量和当前的是否一样, 不一样则刷新缓存的包.
-        int storageCount = this.controller.storageCount();
-        if (this.lastUpdateContent != storageCount) {
-            this.refreshChangeTextContentPacket(storageCount);
-        }
         player.sendPacket(this.changeTextContentDataPacket, false);
+    }
+
+    // 更新元素展示位置
+    public void updateElementPos(Player player) {
+        player.sendPackets(List.of(this.updateItemPosPacket, this.updateTextPosPacket), false);
     }
 }
