@@ -445,16 +445,15 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     }
 
     public static class Holder implements InventoryHolder {
-        private final DrawerBlockEntityController container;
+        private final Inventory inventory;
 
         public Holder(DrawerBlockEntityController container) {
-            this.container = container;
+            this.inventory = CraftInventoryProxy.INSTANCE.newInstance(container.container);
         }
 
         @Override
         public @NotNull Inventory getInventory() {
-            return CraftInventoryProxy.INSTANCE.newInstance(container);
+            return this.inventory;
         }
-
     }
 }
