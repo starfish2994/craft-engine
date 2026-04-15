@@ -177,7 +177,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
         this.element.refreshChangeDisplayItemPacket(this.storedItem);
         this.element.refreshChangeTextContentPacket(count);
-        this.lastUpdateItem = this.storedItem;
+        this.lastUpdateItem = this.storedItem.copy();
         this.lastUpdateCount = count;
     }
 
@@ -186,8 +186,8 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         if (!ItemUtils.isEmpty(this.storedItem) && this.storageCount() > 0) {
             CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
                 dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
-                dataTag.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.count(1).minecraftItem()));
                 dataTag.put("count", new IntTag(this.storageCount()));
+                dataTag.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.storedItem.copyWithCount(1).minecraftItem()));
             });
             tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
         }
@@ -229,7 +229,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
             this.element.refreshChangeDisplayItemPacket(displayItem);
             result = true;
         }
-        this.lastUpdateItem = displayItem.copy();
+        this.lastUpdateItem = this.storedItem.copy();
         return result;
     }
 
@@ -337,6 +337,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         // 全部移除
         if (remainingCount == 0) {
             Item removedItems = this.storedItem;
+            this.storedItem = Item.empty();
             this.setChanged();
             return removedItems;
         }
@@ -352,6 +353,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     @Override
     public Item removeItemNoUpdate(int slot) {
         Item removedItems = this.storedItem;
+        this.storedItem = Item.empty();
         this.setChanged();
         return removedItems;
     }
@@ -456,5 +458,6 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         public @NotNull Inventory getInventory() {
             return this.inventory;
         }
+
     }
 }
