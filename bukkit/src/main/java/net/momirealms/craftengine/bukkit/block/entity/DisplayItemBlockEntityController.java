@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.TintSource;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -67,6 +68,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
                 this.element.showDisplayItem(trackedPlayer);
             }
         }
+        super.blockEntity.world.blockEntityChanged(super.blockEntity.pos);
     }
 
     public Item takeDisplayItem() {
@@ -78,6 +80,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
                 this.element.hide(trackedPlayer);
             }
         }
+        super.blockEntity.world.blockEntityChanged(super.blockEntity.pos);
         return temp;
     }
 
@@ -133,7 +136,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         if (!ItemUtils.isEmpty(displayItem)) {
             super.blockEntity.world.world().dropItemNaturally(this.displayItemPosition, this.displayItem);
         }
-        this.displayItem = Item.empty();;
+        this.displayItem = Item.empty();
     }
 
     public WorldPosition calculateDisplayItemPosition(ImmutableBlockState blockState) {
@@ -157,6 +160,13 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
                 this.blockCenter.y + this.behavior.relativePosition.y,
                 this.blockCenter.z + rotatedZ
         );
+    }
+
+    private void setChanged() {
+        // 设置脏位
+        CEWorld ceWorld = blockEntity.world;
+        if (ceWorld == null) return;
+        ceWorld.blockEntityChanged(blockEntity.pos);
     }
 
     public static class Tintable extends DisplayItemBlockEntityController implements TintSource {

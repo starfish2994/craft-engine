@@ -98,15 +98,11 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     public void putStorageItem(Item inputItem /* Not Empty */) {
         if (this.storedItem.isEmpty()) {
             this.storedItem = inputItem;
-            this.refreshItemDisplayPacket();
-            this.refreshTextContentPacket();
-            this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateItemAndText);
         } else {
             int count = this.storageCount() + inputItem.count();
             this.storedItem.count(count);
-            this.refreshTextContentPacket();
-            this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
+        this.setChanged();
     }
 
     // 增加存储物品的数量
@@ -114,21 +110,18 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         if (!storedItem.isEmpty()) {
             int count = this.storageCount() + putCount;
             this.storedItem.count(count);
-            this.refreshTextContentPacket();
-            this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
+            this.setChanged();
         }
     }
     
     public void clearStoredItem() {
         this.storedItem = Item.empty();
-        this.refreshDynamicElement(DynamicDrawerBlockEntityElement::hide);
+        this.setChanged();
     }
 
     public void setStoredItem(Item item) {
         this.storedItem = item;
-        this.refreshItemDisplayPacket();
-        this.refreshTextContentPacket();
-        this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateItemAndText);
+        this.setChanged();
     }
 
     // 取走方块内的物品
@@ -139,16 +132,14 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         if (takeCount >= this.storageCount()) {
             takeItem = this.storedItem.copy();
             this.storedItem = Item.empty();
-            this.refreshDynamicElement(DynamicDrawerBlockEntityElement::hide);
         }
         // 拿一部分
         else {
             int remainingCount = this.storageCount() - takeCount;
             takeItem = this.storedItem.copyWithCount(takeCount);
             this.storedItem.count(remainingCount);
-            this.refreshTextContentPacket();
-            this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
+        this.setChanged();
         return takeItem;
     }
 
