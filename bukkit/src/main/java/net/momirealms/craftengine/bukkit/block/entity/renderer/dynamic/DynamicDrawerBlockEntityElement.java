@@ -116,18 +116,22 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
     }
 
     // 更新整套展示实体
-    public void updateItemAndText(Player player) {
-        player.sendPackets(List.of(
-                this.spawnItemPacket, this.spawnTextPacket,
-                this.changeItemDataPacket, this.changeTextContentDataPacket
-        ), false);
+    public void updateItemAndText(Player player, boolean spawn) {
+        if (spawn) {
+            player.sendPackets(List.of(
+                    this.spawnItemPacket, this.spawnTextPacket,
+                    this.changeItemDataPacket, this.changeTextContentDataPacket
+            ), false);
+        } else {
+            player.sendPackets(List.of(
+                    this.changeItemDataPacket, this.changeTextContentDataPacket
+            ), false);
+        }
     }
 
     // 更新文本展示实体的文本
     public void updateDisplayItem(Player player) {
-        player.sendPackets(List.of(
-                this.spawnItemPacket, this.changeItemDataPacket
-        ), false);
+        player.sendPacket(this.changeItemDataPacket, false);
     }
 
     // 更新文本展示实体的文本

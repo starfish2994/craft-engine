@@ -229,7 +229,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
             this.element.refreshChangeDisplayItemPacket(displayItem);
             result = true;
         }
-        this.lastUpdateItem = this.storedItem;
+        this.lastUpdateItem = displayItem.copy();
         return result;
     }
 
@@ -370,24 +370,25 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     @Override
     public void setChanged() {
+        boolean previousEmpty = this.lastUpdateItem.isEmpty();
         boolean isEmpty = this.storedItem.isEmpty();
         boolean changedItem = this.refreshItemDisplayPacket();
-        boolean changedContent = this.refreshTextContentPacket();
+        boolean changedCount = this.refreshTextContentPacket();
 
         // 空了
         if (isEmpty) {
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::hide);
         }
         // 都变了
-        else if (changedItem && changedContent) {
-            this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateItemAndText);
+        else if (changedItem && changedCount) {
+            this.refreshDynamicElement((e, p) -> e.updateItemAndText(p, previousEmpty));
         }
         // 只变了物品
         else if (changedItem) {
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateDisplayItem);
         }
         // 只变了数量
-        else if (changedContent) {
+        else if (changedCount) {
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
 
