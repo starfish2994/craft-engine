@@ -44,6 +44,8 @@ items:
           - type: seat_block
             seats:
               - 0,0,0
+          - type: tint_source_block
+            drop_item: true
         state:
           state: white_bed[facing=west,occupied=false,part=foot]
           entity_renderer:

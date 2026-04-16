@@ -1,0 +1,210 @@
+items:
+  default:candle:
+    data:
+      item_name: <!i><lang:item.default.candle>
+    texture: minecraft:item/custom/candle_2d
+    behavior:
+      type: furniture_item
+      furniture: default:candle
+      rules:
+        ground:
+          rotation: sixteen
+          alignment: center
+        ceiling:
+          rotation: sixteen
+          alignment: center
+        wall:
+          rotation: eight
+          alignment: center
+  default:candle_ground:
+    model: minecraft:item/custom/candle_ground
+    data:
+      item_name: <!i><lang:item.default.candle>
+  default:candle_wall:
+    model: minecraft:item/custom/candle_wall
+    data:
+      item_name: <!i><lang:item.default.candle>
+  default:candle_ceiling:
+    model: minecraft:item/custom/candle_ceiling
+    data:
+      item_name: <!i><lang:item.default.candle>
+  default:candle_lit_ground:
+    model: minecraft:item/custom/candle_lit_ground
+    data:
+      item_name: <!i><lang:item.default.candle>
+  default:candle_lit_wall:
+    model: minecraft:item/custom/candle_lit_wall
+    data:
+      item_name: <!i><lang:item.default.candle>
+  default:candle_lit_ceiling:
+    model: minecraft:item/custom/candle_lit_ceiling
+    data:
+      item_name: <!i><lang:item.default.candle>
+
+furniture:
+  default:candle:
+    behaviors:
+      type: glowing_furniture
+      variants:
+        ground_lit:
+          - position: 0,0,0
+            level: 15
+        wall_lit:
+          - position: 0,0,0
+            level: 15
+        ceiling_lit:
+          - position: 0,-1,0
+            level: 15
+    events:
+      - on: right_click
+        conditions:
+          - type: match_item
+            id:
+              - "minecraft:fire_charge"
+              - "minecraft:flint_and_steel"
+            regex: false
+        functions:
+          - type: update_interaction_tick
+          - type: when
+            source: <arg:furniture.variant>
+            cases:
+              - when: "ground"
+                functions:
+                  - type: set_furniture_variant
+                    variant: "ground_lit"
+              - when: "wall"
+                functions:
+                  - type: set_furniture_variant
+                    variant: "wall_lit"
+              - when: "ceiling"
+                functions:
+                  - type: set_furniture_variant
+                    variant: "ceiling_lit"
+      - on: left_click
+        conditions:
+          - type: "!has_item"
+        functions:
+          - type: update_interaction_tick
+          - type: when
+            source: <arg:furniture.variant>
+            cases:
+              - when: "ground_lit"
+                functions:
+                  - type: set_furniture_variant
+                    variant: "ground"
+              - when: "wall_lit"
+                functions:
+                  - type: set_furniture_variant
+                    variant: "wall"
+              - when: "ceiling_lit"
+                functions:
+                  - type: set_furniture_variant
+                    variant: "ceiling"
+    settings:
+      item: default:candle
+      hit_times: 3
+      sounds:
+        break: minecraft:block.glass.break
+        place: minecraft:block.glass.place
+        hit: minecraft:block.glass.hit
+    variants:
+      ground:
+        loot_spawn_offset: 0,0.25,0
+        elements:
+          - type: item_display
+            item: default:candle_ground
+            position: 0,0.5,0
+        hitboxes:
+          - type: interaction
+            can_use_item_on: true
+            can_be_hit_by_projectile: true
+            blocks_building: true
+            position: 0,0,0
+            width: 0.7
+            height: 0.8
+            interactive: true
+            invisible: false
+      ground_lit:
+        loot_spawn_offset: 0,0.25,0
+        elements:
+          - type: item_display
+            item: default:candle_lit_ground
+            position: 0,0.5,0
+        hitboxes:
+          - type: interaction
+            can_use_item_on: true
+            can_be_hit_by_projectile: true
+            blocks_building: true
+            position: 0,0,0
+            width: 0.7
+            height: 0.8
+            interactive: true
+            invisible: false
+      wall:
+        loot_spawn_offset: 0,0.25,0
+        elements:
+          - type: item_display
+            item: default:candle_wall
+            position: 0,0,0.5
+        hitboxes:
+          - type: interaction
+            can_use_item_on: true
+            can_be_hit_by_projectile: true
+            blocks_building: true
+            position: 0,-0.3,0.35
+            width: 0.65
+            height: 0.75
+            interactive: true
+            invisible: false
+      wall_lit:
+        loot_spawn_offset: 0,0.25,0
+        elements:
+          - type: item_display
+            item: default:candle_lit_wall
+            position: 0,0,0.5
+        hitboxes:
+          - type: interaction
+            can_use_item_on: true
+            can_be_hit_by_projectile: true
+            blocks_building: true
+            position: 0,-0.3,0.35
+            width: 0.65
+            height: 0.75
+            interactive: true
+            invisible: false
+      ceiling:
+        loot_spawn_offset: 0,-0.5,0
+        elements:
+          - type: item_display
+            item: default:candle_ceiling
+            position: 0,-0.5,0
+        hitboxes:
+          - type: interaction
+            can_use_item_on: true
+            can_be_hit_by_projectile: true
+            blocks_building: true
+            position: 0,-0.85,0
+            width: 0.75
+            height: 0.85
+            interactive: true
+            invisible: false
+      ceiling_lit:
+        loot_spawn_offset: 0,-0.5,0
+        elements:
+          - type: item_display
+            item: default:candle_lit_ceiling
+            position: 0,-0.5,0
+        hitboxes:
+          - type: interaction
+            can_use_item_on: true
+            can_be_hit_by_projectile: true
+            blocks_building: true
+            position: 0,-0.85,0
+            width: 0.75
+            height: 0.85
+            interactive: true
+            invisible: false
+    loot:
+      template: default:loot_table/furniture
+      arguments:
+        item: default:candle
