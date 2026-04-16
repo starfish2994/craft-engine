@@ -12,8 +12,6 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
-import net.momirealms.craftengine.core.util.MiscUtils;
-import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.TintSource;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -23,11 +21,9 @@ import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public class DisplayItemBlockEntityController extends BlockEntityController {
-    private static final String DEFAULT_DATA_KEY = "craftengine:display_item";
     private final DisplayItemBlockBehavior behavior;
     private final DynamicDisplayItemBlockEntityElement element;
     @NotNull
@@ -59,7 +55,10 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
         return this.displayItem;
     }
 
-    public void putDisplayItem(Item inputItem /* Not Empty */) {
+    /**
+     * @param inputItem 不为空的物品
+     */
+    public void putDisplayItem(Item inputItem) {
         this.displayItem = inputItem;
         this.element.refreshChangeDisplayItemPacket(this.displayItem.minecraftItem());
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
@@ -101,7 +100,7 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
     // 读取方块内存储的物品
     @Override
     public void loadCustomData(CompoundTag tag) {
-        CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
+        CompoundTag dataTag = tag.getCompound(behavior.customDataKey);
         // 空数据
         if (dataTag == null) {
             this.displayItem = Item.empty();
@@ -122,13 +121,11 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
 
     @Override
     public void saveCustomData(CompoundTag tag) {
-        if (!ItemUtils.isEmpty(displayItem)) {
-            CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
-                dataTag.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.minecraftItem()));
-                dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
-            });
-            tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
-        }
+        if (ItemUtils.isEmpty(displayItem)) return;
+        CompoundTag data = new CompoundTag();
+        data.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+        data.put("display_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.displayItem.minecraftItem()));
+        tag.put(behavior.customDataKey, data);
     }
 
     @Override
@@ -160,13 +157,6 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
                 this.blockCenter.y + this.behavior.relativePosition.y,
                 this.blockCenter.z + rotatedZ
         );
-    }
-
-    private void setChanged() {
-        // 设置脏位
-        CEWorld ceWorld = blockEntity.world;
-        if (ceWorld == null) return;
-        ceWorld.blockEntityChanged(blockEntity.pos);
     }
 
     public static class Tintable extends DisplayItemBlockEntityController implements TintSource {

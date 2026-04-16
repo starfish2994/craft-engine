@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
@@ -47,12 +48,11 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
     public final Vector3f textPosition;
     public final Vector3f itemScale;
     public final Vector3f textScale;
-    public final int maxStacks;
+    public final long maxCount;
     @Nullable
     public final Property<Direction> directionProperty;
     public final boolean canPlaceItem;
     public final boolean canTakeItem;
-    @Nullable
     public final String customDataKey;
     private int controllerId;
 
@@ -64,11 +64,11 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                                Vector3f textPosition,
                                Vector3f itemScale,
                                Vector3f textScale,
-                               int maxStacks,
+                               long maxCount,
                                boolean canPlaceItem,
                                boolean canTakeItem,
                                @Nullable Property<Direction> directionProperty,
-                               @Nullable String customDataKey
+                               String customDataKey
     ) {
         super(blockDefinition);
         this.putSound = putSound;
@@ -78,7 +78,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         this.textPosition = textPosition;
         this.itemScale = itemScale;
         this.textScale = textScale;
-        this.maxStacks = maxStacks;
+        this.maxCount = maxCount;
         this.directionProperty = directionProperty;
         this.customDataKey = customDataKey;
         this.canPlaceItem = canPlaceItem;
@@ -119,7 +119,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         InteractionHand hand = context.getHand();
         Item itemInHand = player.getItemInHand(hand);
         return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
-            if (controller.isFull()) return InteractionResult.FAIL;
+            if (controller.isFull()) return InteractionResult.SUCCESS_AND_CANCEL;
 
             final UUID playerId = player.uuid();
             final long now = System.currentTimeMillis();
@@ -138,7 +138,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                 controller.lastClickTime(null);
                 // 先计算能放入多少个
                 int matchedCount = player.clearOrCountMatchingInventoryItems(item -> item.isSimilar(storedItem), 0);
-                int actuallyAdded = controller.add(matchedCount);
+                int actuallyAdded = (int) controller.add(matchedCount);
                 if (actuallyAdded > 0) {
                     player.clearOrCountMatchingInventoryItems(item -> item.isSimilar(storedItem), actuallyAdded);
                     if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
@@ -150,7 +150,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             else if (handHasItem && (!hasStoredItem || storedItem.isSimilar(itemInHand))) {
                 // 第一次点击或者间隔超过500ms, 放入手中所有物品
                 int count = itemInHand.count();
-                int actuallyPut = controller.put(itemInHand.copyWithCount(1), count);
+                int actuallyPut = (int) controller.put(itemInHand.copyWithCount(1), count);
                 itemInHand.shrink(actuallyPut);
                 // 更新点击时间, 等待可能的二次点击
                 controller.lastClickTime(now);
@@ -160,7 +160,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
 
-            return InteractionResult.TRY_EMPTY_HAND;
+            return InteractionResult.SUCCESS_AND_CANCEL;
         });
     }
 
@@ -179,7 +179,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         }
         blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
             Item storedItem = controller.storedItem();
-            if (storedItem.isEmpty() || controller.storageCount() <= 0) return;
+            if (storedItem.isEmpty() || controller.itemCount() <= 0) return;
 
             Item tool = player.getItemInHand(InteractionHand.MAIN_HAND);
             boolean handEmpty = ItemUtils.isEmpty(tool);
@@ -193,20 +193,20 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             }
 
             // 计算可取出数量
-            int takeAmount = 1;
+            long takeAmount = 1;
             if (takeGroup) {
-                int available = ItemUtils.isEmpty(tool) ? storedItem.maxStackSize() : storedItem.maxStackSize() - tool.count();
-                takeAmount = Math.min(available, controller.storageCount());
+                long available = ItemUtils.isEmpty(tool) ? storedItem.maxStackSize() : storedItem.maxStackSize() - tool.count();
+                takeAmount = Math.min(available, controller.itemCount());
             }
 
             // 取出物品
-            controller.take(takeAmount, (i) -> {
+            controller.take(takeAmount, item -> {
                 if (handEmpty) {
-                    player.setItemInHand(InteractionHand.MAIN_HAND, i);
+                    player.setItemInHand(InteractionHand.MAIN_HAND, item);
                 } else {
-                    tool.grow(i.count());
+                    tool.grow(item.count());
                 }
-            });
+            }, true);
 
             player.swingHand(InteractionHand.MAIN_HAND);
             if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
@@ -227,11 +227,10 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             return 0;
         }
         return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, c -> {
-            if (!ItemUtils.isEmpty(c.storedItem())) {
-                float i = (float) c.storageCount() / this.maxStacks;
-                return MiscUtils.lerpDiscrete(i, 0, 15);
+            if (ItemUtils.isEmpty(c.storedItem())) {
+                return 0;
             }
-            return 0;
+            return MiscUtils.lerpDiscrete((float) c.itemCount() / this.maxCount, 0, 15);
         });
     }
 
@@ -246,7 +245,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         private static final String[] TEXT_POSITION = new String[] {"text_position", "text-position"};
         private static final String[] ITEM_SCALE = new String[] {"item_scale", "item-scale"};
         private static final String[] TEXT_SCALE = new String[] {"text_scale", "text-scale"};
-        private static final String[] MAX_STACKS = new String[] {"max_stacks", "max-stacks"};
+        private static final String[] MAX_COUNT = new String[] {"max_count", "max-count"};
         private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
         private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
         private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
@@ -258,7 +257,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             Vector3f textPosition = section.getVector3f(TEXT_POSITION, ConfigConstants.CENTER_VECTOR3);
             Vector3f itemScale = section.getVector3f(ITEM_SCALE, ConfigConstants.CENTER_VECTOR3);
             Vector3f textScale = section.getVector3f(TEXT_SCALE, ConfigConstants.CENTER_VECTOR3);
-            int maxStacks = section.getInt(MAX_STACKS, 32);
+            long maxCount = section.getLong(MAX_COUNT, 2048);
             // 读取放入取出音效
             ConfigSection soundSection = section.getSection("sounds");
             SoundData putSound = null;
@@ -278,11 +277,11 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                     textPosition,
                     itemScale,
                     textScale,
-                    maxStacks,
+                    maxCount,
                     section.getBoolean(ALLOW_INPUT, true),
                     section.getBoolean(ALLOW_OUTPUT, true),
                     facing,
-                    section.getString(DATA_KEY)
+                    section.getValue(DATA_KEY, ConfigValue::getAsNonEmptyString, "craftengine:drawer")
             );
         }
     }

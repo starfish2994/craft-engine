@@ -591,4 +591,9 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     public void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot) {
         this.item.hurtAndBreak(amount, player, slot);
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{minecraftItem=" + minecraftItem() + "}";
+    }
 }

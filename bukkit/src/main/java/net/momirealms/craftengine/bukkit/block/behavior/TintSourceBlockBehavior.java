@@ -7,15 +7,14 @@ import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import org.jetbrains.annotations.Nullable;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 
 public final class TintSourceBlockBehavior extends BukkitBlockBehavior implements EntityBlock {
     public static final BlockBehaviorFactory<TintSourceBlockBehavior> FACTORY = new Factory();
     public final boolean dropItem;
-    @Nullable
     public final String customDataKey;
 
-    public TintSourceBlockBehavior(BlockDefinition blockDefinition, boolean dropItem, @Nullable String customDataKey) {
+    public TintSourceBlockBehavior(BlockDefinition blockDefinition, boolean dropItem, String customDataKey) {
         super(blockDefinition);
         this.dropItem = dropItem;
         this.customDataKey = customDataKey;
@@ -39,7 +38,7 @@ public final class TintSourceBlockBehavior extends BukkitBlockBehavior implement
             return new TintSourceBlockBehavior(
                     block,
                     section.getBoolean(DROP_ITEM, true),
-                    section.getString(DATA_KEY)
+                    section.getValue(DATA_KEY, ConfigValue::getAsNonEmptyString, "craftengine:tint_source")
             );
         }
     }

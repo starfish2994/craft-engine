@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
@@ -40,7 +41,6 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     @Nullable
     public final Property<Direction> directionProperty;
     private int controllerId;
-    @Nullable
     public final String customDataKey;
     public final boolean tintSource;
 
@@ -51,7 +51,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                                     Vector3f relativePosition,
                                     boolean tintSource,
                                     @Nullable Property<Direction> directionProperty,
-                                    @Nullable String customDataKey
+                                    String customDataKey
     ) {
         super(blockDefinition);
         this.putSound = putSound;
@@ -166,7 +166,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
                     position,
                     section.getBoolean(TINT_SOURCE, false),
                     facing,
-                    section.getString(DATA_KEY)
+                    section.getValue(DATA_KEY, ConfigValue::getAsNonEmptyString, "craftengine:display_item")
             );
         }
     }
