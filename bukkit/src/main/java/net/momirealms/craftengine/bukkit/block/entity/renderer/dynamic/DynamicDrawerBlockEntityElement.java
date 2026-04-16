@@ -72,7 +72,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
     }
 
     // 更新显示的数量包
-    public void refreshChangeTextContentPacket(long count) {
+    public void refreshChangeTextContentPacket(int count) {
         this.changeTextContentDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.textId, new ArrayList<>() {{
             TextDisplayEntityData.Text.addEntityData(ComponentUtils.adventureToMinecraft(Component.text(count)), this);
             TextDisplayEntityData.Scale.addEntityData(controller.behavior.textScale, this);
