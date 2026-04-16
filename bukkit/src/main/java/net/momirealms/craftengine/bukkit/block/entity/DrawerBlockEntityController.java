@@ -26,6 +26,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Collections;
@@ -80,8 +81,12 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     }
 
     @NotNull
-    public Item storedItem() {
-        return this.templateItem;
+    public Item templateItem() {
+        return this.templateItem.copyWithCount(1);
+    }
+
+    public void setTemplateItem(@Nullable Item item) {
+        this.templateItem = item == null ? Item.empty() : item.copyWithCount(1);
     }
 
     public long itemCount() {
@@ -110,7 +115,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         if (count <= 0 || inputItem.isEmpty()) return 0;
 
         if (isEmpty()) {
-            this.templateItem = inputItem.copyWithCount(1);
+            this.setTemplateItem(inputItem);
         } else if (!this.templateItem.isSimilar(inputItem)) {
             return 0;
         }
@@ -137,7 +142,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         if (count <= 0 || isEmpty()) return 0;
 
         // 记录物品模板，用于后续生成 Item
-        Item template = this.templateItem.copyWithCount(1);
+        Item template = this.templateItem();
         long actualTaken = Math.min(count, this.itemCount());
 
         if (actualTaken <= 0) return 0;
@@ -145,7 +150,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         this.addItemCount(-actualTaken);
 
         if (this.itemCount() <= 0) {
-            this.templateItem = Item.empty();
+            this.setTemplateItem(null);
             this.setItemCount(0);
         }
 
@@ -186,12 +191,13 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         // 非法数据
         if (itemTag == null || count <= 0) return;
 
-        this.templateItem = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion)).copyWithCount(1);
+        this.setTemplateItem(ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion)));
         this.setItemCount(count);
 
-        this.element.refreshChangeDisplayItemPacket(this.templateItem);
+        Item item = this.templateItem();
+        this.element.refreshChangeDisplayItemPacket(item);
         this.element.refreshChangeTextContentPacket(count);
-        this.lastUpdateItem = this.templateItem.copy();
+        this.lastUpdateItem = item;
         this.lastUpdateCount = count;
     }
 
@@ -201,16 +207,16 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         CompoundTag data = new CompoundTag();
         data.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
         data.put("count", new LongTag(this.itemCount()));
-        data.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.templateItem.copyWithCount(1).minecraftItem()));
+        data.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.templateItem().minecraftItem()));
         tag.put(behavior.customDataKey, data);
     }
 
     @Override
     public void onRemove() {
         if (this.itemCount() <= 0 || this.templateItem.isEmpty()) return;
-        Item template = this.templateItem.copyWithCount(1);
+        Item template = this.templateItem();
         long count = this.itemCount();
-        this.templateItem = Item.empty();
+        this.setTemplateItem(null);
         this.setItemCount(0);
         int maxStackSize = template.maxStackSize();
         while (count > 0) {
@@ -231,13 +237,13 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     // 检查并刷新元素物品展示实体的内容包
     public boolean refreshItemDisplayPacket() {
-        Item displayItem = this.templateItem;
+        Item displayItem = this.templateItem();
         boolean result = false;
         if (displayItem.minecraftItem() == this.lastUpdateItem.minecraftItem()) {
             return false;
         }
         if (!displayItem.isSimilar(this.lastUpdateItem)) {
-            this.lastUpdateItem = displayItem.copy();
+            this.lastUpdateItem = displayItem;
             this.element.refreshChangeDisplayItemPacket(displayItem);
             result = true;
         }
@@ -346,13 +352,13 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     @Override
     public Item getItem(int slot) {
         if (slot != HOPPER_TAKE_SLOT || this.isEmpty()) return Item.empty();
-        return this.templateItem.copyWithCount(1);
+        return this.templateItem();
     }
 
     @Override
     public Item removeItem(int slot, int count) {
         if (slot < 0) return Item.empty();
-        Item item = this.templateItem.copyWithCount(1);
+        Item item = this.templateItem();
         take(count, $ -> {}, true);
         return item;
     }
@@ -360,7 +366,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     @Override
     public Item removeItemNoUpdate(int slot) {
         if (slot < 0) return Item.empty();
-        Item item = this.templateItem.copyWithCount(1);
+        Item item = this.templateItem();
         take(this.itemCount(), $ -> {}, false);
         return item;
     }
@@ -373,7 +379,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         } else if (slot == HOPPER_TAKE_SLOT && item.isEmpty()) {
             take(1, $ -> {}, true); // 漏斗取出
         } else {
-            this.templateItem = item.copyWithCount(1);
+            this.setTemplateItem(item);
             this.setItemCount(count);
         }
     }
@@ -416,14 +422,14 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     @Override
     public void clearContent() {
-        this.templateItem = Item.empty();
+        this.setTemplateItem(null);
         this.setItemCount(0);
         this.setChanged();
     }
 
     @Override
     public List<Item> contents() {
-        return Collections.singletonList(this.templateItem);
+        return Collections.singletonList(this.templateItem());
     }
 
     @Override

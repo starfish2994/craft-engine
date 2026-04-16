@@ -20,7 +20,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,8 +55,8 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
                     a.add(itemId);
                     a.add(textId);
         }));
-        this.refreshChangeDisplayItemPacket(controller.storedItem());
-        this.refreshChangeTextContentPacket(controller.storedItem().count());
+        this.refreshChangeDisplayItemPacket(controller.templateItem());
+        this.refreshChangeTextContentPacket(controller.templateItem().count());
         this.refreshSpawnItemAndTextPacket(itemPosition, textPosition, entityYRot);
     }
 
@@ -100,7 +99,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
 
     @Override
     public void show(@NotNull Player player) {
-        if (!this.controller.storedItem().isEmpty()) {
+        if (!this.controller.templateItem().isEmpty()) {
             player.sendPackets(List.of(
                     this.spawnItemPacket,
                     this.spawnTextPacket,

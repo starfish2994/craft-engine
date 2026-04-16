@@ -123,7 +123,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
 
             final UUID playerId = player.uuid();
             final long now = System.currentTimeMillis();
-            Item storedItem = controller.storedItem();
+            Item storedItem = controller.templateItem();
             final UUID lastClickPlayer = controller.lastClickPlayer();
             final long lastClickTime = controller.lastClickTime() == null ? 0 : controller.lastClickTime();
 
@@ -178,7 +178,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             return;
         }
         blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
-            Item storedItem = controller.storedItem();
+            Item storedItem = controller.templateItem();
             if (storedItem.isEmpty() || controller.itemCount() <= 0) return;
 
             Item tool = player.getItemInHand(InteractionHand.MAIN_HAND);
@@ -227,7 +227,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             return 0;
         }
         return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, c -> {
-            if (ItemUtils.isEmpty(c.storedItem())) {
+            if (ItemUtils.isEmpty(c.templateItem())) {
                 return 0;
             }
             return MiscUtils.lerpDiscrete((float) c.itemCount() / this.maxStorageCount, 0, 15);
