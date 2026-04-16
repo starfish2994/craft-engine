@@ -21,6 +21,7 @@ items:
               - minecraft:farmland
             bottom_block_tags:
               - minecraft:dirt
+              - minecraft:supports_vegetation
         loot:
           template: default:loot_table/self
         state:
@@ -51,36 +52,79 @@ placed_features:
     dimension_type:
       - minecraft:overworld
     feature:
-      type: 'minecraft:random_patch'
-      config:
-        feature:
+      $$>=26.1:
+        type: 'minecraft:simple_block'
+        config:
+          to_place:
+            type: 'minecraft:rule_based_state_provider'
+            rules:
+              - if_true:
+                  type: 'minecraft:all_of'
+                  predicates:
+                    - type: 'minecraft:replaceable'
+                    - type: 'minecraft:matching_fluids'
+                      fluids: 'minecraft:empty'
+                    - type: 'minecraft:matching_blocks'
+                      offset:
+                        - 0
+                        - -1
+                        - 0
+                      blocks: 'minecraft:grass_block'
+                then:
+                  type: 'minecraft:simple_state_provider'
+                  state:
+                    Name: 'default:fairy_flower'
+      $$fallback:
+        type: 'minecraft:random_patch'
+        config:
           feature:
-            type: 'minecraft:simple_block'
-            config:
-              to_place:
-                type: 'minecraft:simple_state_provider'
-                state:
-                  Name: 'default:fairy_flower'
-          placement:
-            - type: 'minecraft:block_predicate_filter'
-              predicate:
-                type: 'minecraft:all_of'
-                predicates:
-                  - type: 'minecraft:replaceable'
-                  - type: 'minecraft:matching_fluids'
-                    fluids: 'minecraft:empty'
-                  - type: 'minecraft:matching_blocks'
-                    blocks: 'minecraft:grass_block'
-                    offset:
-                      - 0
-                      - -1
-                      - 0
-        tries: 64
-        xz_spread: 7
-        y_spread: 3
+            feature:
+              type: 'minecraft:simple_block'
+              config:
+                to_place:
+                  type: 'minecraft:simple_state_provider'
+                  state:
+                    Name: 'default:fairy_flower'
+            placement:
+              - type: 'minecraft:block_predicate_filter'
+                predicate:
+                  type: 'minecraft:all_of'
+                  predicates:
+                    - type: 'minecraft:replaceable'
+                    - type: 'minecraft:matching_fluids'
+                      fluids: 'minecraft:empty'
+                    - type: 'minecraft:matching_blocks'
+                      blocks: 'minecraft:grass_block'
+                      offset:
+                        - 0
+                        - -1
+                        - 0
+          tries: 64
+          xz_spread: 7
+          y_spread: 3
     placement:
-      - type: 'minecraft:rarity_filter'
-        chance: 100
-      - type: 'minecraft:in_square'
-      - type: 'minecraft:heightmap'
-        heightmap: MOTION_BLOCKING
+      $$>=26.1:
+        - type: 'minecraft:rarity_filter'
+          chance: 100
+        - type: 'minecraft:in_square'
+        - type: 'minecraft:heightmap'
+          heightmap: MOTION_BLOCKING
+        - type: 'minecraft:count'
+          count: 64
+        - type: 'minecraft:random_offset'
+          xz_spread:
+            type: 'minecraft:trapezoid'
+            max: 7
+            min: -7
+            plateau: 0
+          y_spread:
+            type: 'minecraft:trapezoid'
+            max: 3
+            min: -3
+            plateau: 0
+      $$fallback:
+        - type: 'minecraft:rarity_filter'
+          chance: 100
+        - type: 'minecraft:in_square'
+        - type: 'minecraft:heightmap'
+          heightmap: MOTION_BLOCKING

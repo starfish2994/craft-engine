@@ -142,6 +142,7 @@ items:
             bottom_block_tags:
               - minecraft:dirt
               - minecraft:sand
+              - minecraft:supports_vegetation
           - type: sapling_block
             feature: default:palm_tree
             bone_meal_success_chance: 0.45
