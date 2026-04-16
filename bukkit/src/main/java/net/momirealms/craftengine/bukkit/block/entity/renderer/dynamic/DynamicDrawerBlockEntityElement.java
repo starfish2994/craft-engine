@@ -34,16 +34,18 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
     public final Object despawnItemPacket;
     public final Object despawnTextPacket;
     public final Object despawnAllPacket;
-    @NotNull private Object spawnItemPacket;
-    @NotNull private Object spawnTextPacket;
-    @NotNull private Object changeItemDataPacket;
-    @NotNull private Object changeTextContentDataPacket;
-    @NotNull private Object updateItemPosPacket;
-    @NotNull private Object updateTextPosPacket;
+    private @NotNull Object spawnItemPacket;
+    private @NotNull Object spawnTextPacket;
+    private @NotNull Object changeItemDataPacket;
+    private @NotNull Object changeTextContentDataPacket;
+    private @NotNull Object updateItemPosPacket;
+    private @NotNull Object updateTextPosPacket;
 
-    public DynamicDrawerBlockEntityElement(@NotNull DrawerBlockEntityController controller,
-                                           @NotNull WorldPosition itemPosition, @NotNull WorldPosition textPosition,
-                                           float entityYRot
+    public DynamicDrawerBlockEntityElement(
+            @NotNull DrawerBlockEntityController controller,
+            @NotNull WorldPosition itemPosition,
+            @NotNull WorldPosition textPosition,
+            float entityYRot
     ) {
         this.controller = controller;
         this.itemId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
@@ -55,8 +57,8 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
                     a.add(itemId);
                     a.add(textId);
         }));
-        this.refreshChangeDisplayItemPacket(controller.templateItem());
-        this.refreshChangeTextContentPacket(controller.templateItem().count());
+        this.refreshChangeDisplayItemPacket(Item.empty());
+        this.refreshChangeTextContentPacket(0);
         this.refreshSpawnItemAndTextPacket(itemPosition, textPosition, entityYRot);
     }
 
@@ -99,7 +101,7 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
 
     @Override
     public void show(@NotNull Player player) {
-        if (!this.controller.templateItem().isEmpty()) {
+        if (!this.controller.item().isEmpty()) {
             player.sendPackets(List.of(
                     this.spawnItemPacket,
                     this.spawnTextPacket,
