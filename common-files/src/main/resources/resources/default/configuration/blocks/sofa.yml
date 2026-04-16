@@ -1,8 +1,17 @@
 items:
   default:sleeper_sofa:
+    $$<=1.21.1:
+      client_bound_material: leather_horse_armor
     data:
       item_name: <!i><lang:item.default.sofa>
-    model: minecraft:item/custom/sleeper_sofa
+      remove_components:
+        - attribute_modifiers
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sleeper_sofa
+      tints:
+        - type: minecraft:dye
+          value: 130,168,51
     behavior:
       type: block_item
       block:
@@ -40,13 +49,27 @@ items:
           entity_renderer:
             item: default:sleeper_sofa
   default:sofa_inner:
-    model: minecraft:item/custom/sofa_inner
+    $$<=1.21.1:
+      client_bound_material: leather_horse_armor
+    model:
+      type: minecraft:model
+      path: minecraft:item/custom/sofa_inner
+      tints:
+        - type: minecraft:dye
+          value: 130,168,51
   default:sofa:
+    $$<=1.21.1:
+      client_bound_material: leather_horse_armor
     data:
       item_name: <!i><lang:item.default.sofa>
+      remove_components:
+        - attribute_modifiers
     model:
       type: minecraft:model
       path: minecraft:item/custom/sofa
+      tints:
+        - type: minecraft:dye
+          value: 130,168,51
     behavior:
       type: block_item
       block:
@@ -81,6 +104,8 @@ items:
           - type: seat_block
             seats:
               - 0,0,0 0
+          - type: tint_source_block
+            drop_item: true
         states:
           properties:
             facing:
