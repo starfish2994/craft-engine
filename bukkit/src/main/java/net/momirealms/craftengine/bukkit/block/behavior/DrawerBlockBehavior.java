@@ -48,7 +48,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
     public final Vector3f textPosition;
     public final Vector3f itemScale;
     public final Vector3f textScale;
-    public final long maxCount;
+    public final long maxStorageCount;
     @Nullable
     public final Property<Direction> directionProperty;
     public final boolean canPlaceItem;
@@ -64,7 +64,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                                Vector3f textPosition,
                                Vector3f itemScale,
                                Vector3f textScale,
-                               long maxCount,
+                               long maxStorageCount,
                                boolean canPlaceItem,
                                boolean canTakeItem,
                                @Nullable Property<Direction> directionProperty,
@@ -78,7 +78,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         this.textPosition = textPosition;
         this.itemScale = itemScale;
         this.textScale = textScale;
-        this.maxCount = maxCount;
+        this.maxStorageCount = maxStorageCount;
         this.directionProperty = directionProperty;
         this.customDataKey = customDataKey;
         this.canPlaceItem = canPlaceItem;
@@ -230,7 +230,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             if (ItemUtils.isEmpty(c.storedItem())) {
                 return 0;
             }
-            return MiscUtils.lerpDiscrete((float) c.itemCount() / this.maxCount, 0, 15);
+            return MiscUtils.lerpDiscrete((float) c.itemCount() / this.maxStorageCount, 0, 15);
         });
     }
 
@@ -245,7 +245,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         private static final String[] TEXT_POSITION = new String[] {"text_position", "text-position"};
         private static final String[] ITEM_SCALE = new String[] {"item_scale", "item-scale"};
         private static final String[] TEXT_SCALE = new String[] {"text_scale", "text-scale"};
-        private static final String[] MAX_COUNT = new String[] {"max_count", "max-count"};
+        private static final String[] MAX_STORAGE_COUNT = new String[] {"max_storage_count", "max-storage-count"};
         private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
         private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
         private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
@@ -257,7 +257,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             Vector3f textPosition = section.getVector3f(TEXT_POSITION, ConfigConstants.CENTER_VECTOR3);
             Vector3f itemScale = section.getVector3f(ITEM_SCALE, ConfigConstants.CENTER_VECTOR3);
             Vector3f textScale = section.getVector3f(TEXT_SCALE, ConfigConstants.CENTER_VECTOR3);
-            long maxCount = section.getLong(MAX_COUNT, 2048);
+            long maxCount = section.getLong(MAX_STORAGE_COUNT, 2048);
             // 读取放入取出音效
             ConfigSection soundSection = section.getSection("sounds");
             SoundData putSound = null;

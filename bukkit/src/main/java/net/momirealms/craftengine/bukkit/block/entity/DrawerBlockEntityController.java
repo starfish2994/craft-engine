@@ -97,7 +97,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     }
 
     public boolean isFull() {
-        return this.itemCount() >= this.behavior.maxCount;
+        return this.itemCount() >= this.behavior.maxStorageCount;
     }
 
     /**
@@ -115,7 +115,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
             return 0;
         }
 
-        long actualAdded = Math.min(count, this.behavior.maxCount - this.itemCount());
+        long actualAdded = Math.min(count, this.behavior.maxStorageCount - this.itemCount());
         this.addItemCount(actualAdded);
 
         this.setChanged();
@@ -125,7 +125,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     // 增加存储物品的数量，返回值为实际增加的量
     public long add(long count) {
         if (count <= 0 || isEmpty()) return 0;
-        long actualAdded = Math.min(count, this.behavior.maxCount - this.itemCount());
+        long actualAdded = Math.min(count, this.behavior.maxStorageCount - this.itemCount());
         this.addItemCount(actualAdded);
         this.setChanged();
         return actualAdded;
@@ -325,7 +325,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         return behavior.canPlaceItem
                 && slot == HOPPER_PLACE_SLOT
                 && (this.isEmpty() || this.templateItem.isSimilar(stack))
-                && this.itemCount() + stack.count() <= behavior.maxCount;
+                && this.itemCount() + stack.count() <= behavior.maxStorageCount;
     }
 
     @Override

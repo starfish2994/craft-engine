@@ -21,7 +21,7 @@ items:
           text_position: 0,-0.4,-0.52
           item_scale: 0.6,0.6,0.6
           text_scale: 0.5,0.5,0.5
-          max_stacks: 20
+          max_storage_count: 640
           sounds:
             put: minecraft:block.decorated_pot.insert
             take: minecraft:block.decorated_pot.insert_fail
