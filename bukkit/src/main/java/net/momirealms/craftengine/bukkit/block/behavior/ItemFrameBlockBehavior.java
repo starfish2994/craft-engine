@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
@@ -30,7 +31,6 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements EntityBlock {
@@ -44,7 +44,6 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     public final SoundData rotateSound;
     public final Property<Direction> directionProperty;
     private int controllerId;
-    @Nullable
     public final String customDataKey;
 
     private ItemFrameBlockBehavior(BlockDefinition blockDefinition,
@@ -56,7 +55,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                                    SoundData takeSound,
                                    SoundData rotateSound,
                                    Property<Direction> directionProperty,
-                                   @Nullable String customDataKey
+                                   String customDataKey
     ) {
         super(blockDefinition);
         this.position = position;
@@ -203,7 +202,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                     takeSound,
                     rotateSound,
                     BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
-                    section.getString(DATA_KEY)
+                    section.getValue(DATA_KEY, ConfigValue::getAsNonEmptyString, "craftengine:item_frame")
             );
         }
     }

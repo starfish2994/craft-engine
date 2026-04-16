@@ -1,14 +1,12 @@
 package net.momirealms.craftengine.bukkit.block.entity;
 
 import net.momirealms.craftengine.bukkit.block.behavior.TintSourceBlockBehavior;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.ItemUtils;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.TintSource;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -16,10 +14,7 @@ import net.momirealms.sparrow.nbt.IntTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
 public final class TintSourceBlockEntityController extends BlockEntityController implements TintSource {
-    private static final String DEFAULT_DATA_KEY = "craftengine:tint_source";
     private final TintSourceBlockBehavior behavior;
     @NotNull
     private Item sourceItem;
@@ -37,18 +32,16 @@ public final class TintSourceBlockEntityController extends BlockEntityController
 
     @Override
     public void saveCustomData(CompoundTag tag) {
-        if (!ItemUtils.isEmpty(sourceItem)) {
-            CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
-                dataTag.put("tint_source_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.sourceItem.minecraftItem()));
-                dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
-            });
-            tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
-        }
+        if (ItemUtils.isEmpty(sourceItem)) return;
+        CompoundTag data = new CompoundTag();
+        data.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+        data.put("tint_source_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.sourceItem.minecraftItem()));
+        tag.put(behavior.customDataKey, data);
     }
 
     @Override
     public void loadCustomData(CompoundTag tag) {
-        CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
+        CompoundTag dataTag = tag.getCompound(behavior.customDataKey);
         if (dataTag == null) {
             this.sourceItem = Item.empty();
             return;

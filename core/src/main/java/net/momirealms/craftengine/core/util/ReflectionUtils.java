@@ -26,16 +26,15 @@ public final class ReflectionUtils {
             unsafeField.setAccessible(true);
             UNSAFE = (Unsafe) unsafeField.get(null);
             Field implLookup = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
-            @SuppressWarnings("deprecation") Object base = UNSAFE.staticFieldBase(implLookup);
             @SuppressWarnings("deprecation") long offset = UNSAFE.staticFieldOffset(implLookup);
-            LOOKUP = (MethodHandles.Lookup) UNSAFE.getObject(base, offset); // 获取神权lookup
+            LOOKUP = (MethodHandles.Lookup) UNSAFE.getObject(MethodHandles.Lookup.class, offset); // 获取神权lookup
             Class<?> clazz$MethodHandleNatives = Class.forName("java.lang.invoke.MethodHandleNatives");
             Class<?> clazz$MemberName = Class.forName("java.lang.invoke.MemberName");
             methodHandle$MethodHandleNatives$refKindIsSetter = LOOKUP.unreflect(clazz$MethodHandleNatives.getDeclaredMethod("refKindIsSetter", byte.class));
             methodHandle$constructor$MemberName = LOOKUP.unreflectConstructor(clazz$MemberName.getDeclaredConstructor(Field.class, boolean.class));
             methodHandle$MemberName$getReferenceKind = LOOKUP.unreflect(clazz$MemberName.getDeclaredMethod("getReferenceKind"));
             methodHandle$MethodHandles$Lookup$getDirectField = LOOKUP.unreflect(MethodHandles.Lookup.class.getDeclaredMethod("getDirectField", byte.class, Class.class, clazz$MemberName));
-        } catch (ReflectiveOperationException e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }

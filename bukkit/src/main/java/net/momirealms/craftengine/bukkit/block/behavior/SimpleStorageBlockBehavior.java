@@ -17,6 +17,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.properties.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.AdventureHelper;
@@ -45,7 +46,6 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
     @Nullable
     public final Property<Boolean> openProperty;
     private int controllerId;
-    @Nullable
     public final String customDataKey;
 
     private SimpleStorageBlockBehavior(BlockDefinition blockDefinition,
@@ -57,7 +57,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
                                        boolean canPlaceItem,
                                        boolean canTakeItem,
                                        @Nullable Property<Boolean> openProperty,
-                                       @Nullable String customDataKey
+                                       String customDataKey
     ) {
         super(blockDefinition);
         this.containerTitle = containerTitle;
@@ -195,7 +195,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
                     section.getBoolean(ALLOW_INPUT, true),
                     section.getBoolean(ALLOW_OUTPUT, true),
                     BlockBehaviorFactory.getOptionalProperty(block, "open", Boolean.class),
-                    section.getString(DATA_KEY)
+                    section.getValue(DATA_KEY, ConfigValue::getAsNonEmptyString, "craftengine:simple_storage")
             );
         }
     }

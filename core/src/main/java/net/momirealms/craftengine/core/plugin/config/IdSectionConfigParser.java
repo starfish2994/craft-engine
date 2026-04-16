@@ -56,7 +56,7 @@ public abstract class IdSectionConfigParser extends IdConfigParser {
                         return;
                     }
                     if (innerSection.getBoolean("debug")) {
-                        CraftEngine.instance().logger().info(GsonHelper.get().toJson(section.values()));
+                        CraftEngine.instance().logger().info(GsonHelper.get().toJson(section));
                     }
                     this.pendingConfigSections.add(new PendingConfigSection(cachedMajorSection.pack, filePath, id, innerSection));
                 } catch (KnownResourceException e) {

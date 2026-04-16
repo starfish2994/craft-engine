@@ -13,7 +13,6 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.WorldlyContainer;
@@ -26,38 +25,34 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
-public final class DrawerBlockEntityController extends BlockEntityController implements BukkitContainer, WorldlyContainer {
-    private static final String DEFAULT_DATA_KEY = "craftengine:drawer";
+@SuppressWarnings("DuplicatedCode")
+public sealed abstract class DrawerBlockEntityController extends BlockEntityController implements BukkitContainer, WorldlyContainer, InventoryHolder {
     public final DrawerBlockBehavior behavior;
     public final DynamicDrawerBlockEntityElement element;
-    private final Object container;
-    private final InventoryHolder owner;
-    private WorldPosition itemPosition;
-    private WorldPosition textPosition;
-    private float entityYRot;
-    private final Vector3f blockCenter;
-    private Item lastUpdateItem = Item.empty(); // 最后一次包发送的物品
-    private int lastUpdateCount = 0; // 最后一次包发送的物品数量
-    private UUID lastClickPlayer;
-    private Long lastClickTime;
-    private final Item[] items;
-    private final int[] slots;
+    protected final Object container;
+    protected final Inventory inventory;
+    protected WorldPosition itemPosition;
+    protected WorldPosition textPosition;
+    protected float entityYRot;
+    protected final Vector3f blockCenter;
+    protected Item lastUpdateItem = Item.empty(); // 最后一次包发送的物品
+    protected int lastUpdateCount = 0; // 最后一次包发送的物品数量
+    protected UUID lastClickPlayer;
+    protected long lastClickTime;
 
-    public DrawerBlockEntityController(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
+    protected DrawerBlockEntityController(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
         super(blockEntity);
-        this.items = new Item[behavior.maxStacks];
-        Arrays.fill(items, Item.empty());
         this.behavior = behavior;
         this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
         this.itemPosition = this.calculateDisplayPosition(blockEntity.blockState, this.behavior.itemPosition);
@@ -65,8 +60,7 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         this.entityYRot = this.calculateYRot(blockEntity.blockState);
         this.element = new DynamicDrawerBlockEntityElement(this, this.itemPosition, this.textPosition, this.entityYRot);
         this.container = CraftEngine.instance().platform().createContainer(this);
-        this.owner = new Holder(this);
-        this.slots = IntStream.range(0, behavior.maxStacks).toArray();
+        this.inventory = CraftInventoryProxy.INSTANCE.newInstance(this.container);
     }
 
     public Object container() {
@@ -84,132 +78,28 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     }
 
     @NotNull
-    public Item storedItem() {
-        return this.items[0];
-    }
+    public abstract Item item();
 
-    public int maxStorageCount(Item item) {
-        return item.maxStackSize() * this.behavior.maxStacks;
-    }
+    public abstract int itemCount();
 
-    public int maxStorageCount() {
-        return this.items[0].maxStackSize() * this.behavior.maxStacks;
-    }
+    public abstract int maxCount();
 
-    public int storageCount() {
-        int count = 0;
-        for (int i = 0; i < this.items.length; i++) {
-            Item item = this.items[i];
-            if (item.isEmpty()) {
-                break;
-            }
-            count += item.count();
-        }
-        return count;
-    }
+    public abstract void clearItems();
 
-    public boolean isFull() {
-        Item lastItem = this.items[this.items.length - 1];
-        if (lastItem.isEmpty()) {
-            return false;
-        }
-        if (lastItem.count() < lastItem.maxStackSize()) {
-            return false;
-        }
-        return true;
-    }
+    public abstract boolean isFull();
 
-    // 放入物品，返回值为实际放入的量
-    public int put(Item inputItem /* Not Empty */, int count) {
-        if (count <= 0) return 0;
+    /**
+     * 放入物品，返回值为实际放入的量
+     *
+     * @param inputItem 不为空的物品
+     * @param count 尝试放入的数量
+     */
+    public abstract int put(Item inputItem, int count);
 
-        if (!isEmpty() && !this.items[0].isSimilar(inputItem)) {
-            return 0;
-        }
+    public abstract int add(int count);
 
-        int remainingToAdd = count;
-        int maxStack = inputItem.maxStackSize();
-
-        for (int i = 0; i < this.items.length && remainingToAdd > 0; i++) {
-            if (this.items[i].isEmpty()) {
-                int toAdd = Math.min(remainingToAdd, maxStack);
-                this.items[i] = inputItem.copyWithCount(toAdd);
-                remainingToAdd -= toAdd;
-            } else {
-                int currentCount = this.items[i].count();
-                int space = maxStack - currentCount;
-                if (space > 0) {
-                    int toAdd = Math.min(remainingToAdd, space);
-                    this.items[i].grow(toAdd);
-                    remainingToAdd -= toAdd;
-                }
-            }
-        }
-
-        this.setChanged();
-        return count - remainingToAdd;
-    }
-
-    // 增加存储物品的数量，返回值为实际增加的量
-    public int add(int count) {
-        if (!isEmpty() && count > 0) {
-            Item baseItem = this.items[0];
-            int maxStack = baseItem.maxStackSize();
-            int remaining = count;
-
-            for (int i = 0; i < this.items.length && remaining > 0; i++) {
-                if (this.items[i].isEmpty()) {
-                    int toAdd = Math.min(remaining, maxStack);
-                    this.items[i] = baseItem.copyWithCount(toAdd);
-                    remaining -= toAdd;
-                } else {
-                    int canAccept = maxStack - this.items[i].count();
-                    int toAdd = Math.min(remaining, canAccept);
-                    this.items[i].grow(toAdd);
-                    remaining -= toAdd;
-                }
-            }
-
-            this.setChanged();
-            return count - remaining;
-        }
-        return 0;
-    }
-
-    // 取走方块内的物品，返回值为实际取走的量
-    public int take(int count, Consumer<Item> consumer) {
-        if (count <= 0 || isEmpty()) return 0;
-
-        // 记录物品模板，用于后续生成 Item
-        Item template = this.items[0];
-        int maxStack = template.maxStackSize();
-        int remainingToTake = count;
-        for (int i = this.items.length - 1; i >= 0 && remainingToTake > 0; i--) {
-            if (this.items[i].isEmpty()) continue;
-
-            int canTakeFromSlot = Math.min(remainingToTake, this.items[i].count());
-            this.items[i].shrink(canTakeFromSlot);
-            remainingToTake -= canTakeFromSlot;
-
-            if (this.items[i].count() <= 0) {
-                this.items[i] = Item.empty();
-            }
-        }
-
-        int actualTaken = count - remainingToTake;
-
-        if (actualTaken > 0) {
-            int toCallback = actualTaken;
-            while (toCallback > 0) {
-                int currentBatch = Math.min(toCallback, maxStack);
-                consumer.accept(template.copyWithCount(currentBatch));
-                toCallback -= currentBatch;
-            }
-            this.setChanged();
-        }
-
-        return actualTaken;
-    }
+    @SuppressWarnings("UnusedReturnValue")
+    public abstract int take(int count, Consumer<Item> consumer, boolean update);
 
     // 方块状态变更时
     @Override
@@ -221,97 +111,48 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateElementPos);
     }
 
-    // 读取方块内存储的物品
     @Override
-    public void loadCustomData(CompoundTag tag) {
-        CompoundTag dataTag = tag.getCompound(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY));
-        // 空数据
-        if (dataTag == null) {
-            return;
-        }
-        // 读取数据
-        int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
-        Tag itemTag = dataTag.get("item");
-        int count = dataTag.getInt("count", 0);
-        // 非法数据
-        if (itemTag == null || count <= 0) {
-            return;
-        }
-
-        Item itemTemplate = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
-        int maxStackSize = itemTemplate.maxStackSize();
-        int remaining = count;
-
-        for (int i = 0; i < this.items.length; i++) {
-            if (remaining <= 0) {
-                break;
-            } else {
-                int currentCount = Math.min(remaining, maxStackSize);
-                this.items[i] = itemTemplate.copyWithCount(currentCount);
-                remaining -= currentCount;
-            }
-        }
-
-        this.element.refreshChangeDisplayItemPacket(this.items[0]);
-        this.element.refreshChangeTextContentPacket(count);
-        this.lastUpdateItem = this.items[0].copy();
-        this.lastUpdateCount = count;
-    }
+    public abstract void loadCustomData(CompoundTag tag);
 
     @Override
-    public void saveCustomData(CompoundTag tag) {
-        if (!isEmpty() && this.storageCount() > 0) {
-            CompoundTag compoundTag = MiscUtils.init(new CompoundTag(), dataTag -> {
-                dataTag.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
-                dataTag.put("count", new IntTag(this.storageCount()));
-                dataTag.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.items[0].copyWithCount(1).minecraftItem()));
-            });
-            tag.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), compoundTag);
-        }
-    }
+    public abstract void saveCustomData(CompoundTag tag);
 
     @Override
-    public void onRemove() {
-        for (Item item : this.items) {
-            super.blockEntity.world.world().dropItemNaturally(this.itemPosition, item);
-        }
-        Arrays.fill(this.items, Item.empty());
-    }
+    public abstract void onRemove();
 
     // 刷新展示元素
     public void refreshDynamicElement(BiConsumer<DynamicDrawerBlockEntityElement, Player> consumer) {
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
-        if (chunk != null) {
-            for (Player trackedPlayer : chunk.getTrackedBy()) {
-                consumer.accept(this.element, trackedPlayer);
-            }
+        if (chunk == null) return;
+        for (Player trackedPlayer : chunk.getTrackedBy()) {
+            consumer.accept(this.element, trackedPlayer);
         }
     }
 
     // 检查并刷新元素物品展示实体的内容包
     public boolean refreshItemDisplayPacket() {
-        Item displayItem = this.storedItem();
+        Item displayItem = this.item();
         boolean result = false;
         if (displayItem.minecraftItem() == this.lastUpdateItem.minecraftItem()) {
             return false;
         }
         if (!displayItem.isSimilar(this.lastUpdateItem)) {
+            this.lastUpdateItem = displayItem;
             this.element.refreshChangeDisplayItemPacket(displayItem);
             result = true;
         }
-        this.lastUpdateItem = displayItem.copy();
         return result;
     }
 
     // 检查并刷新元素展示的文本实体的内容包
     public boolean refreshTextContentPacket() {
-        int storageCount = this.storageCount();
+        int storageCount = this.itemCount();
         boolean result = false;
         if (this.lastUpdateCount != storageCount) {
+            this.lastUpdateCount = storageCount;
             this.element.refreshChangeTextContentPacket(storageCount);
             result = true;
         }
-        this.lastUpdateCount = storageCount;
         return result;
     }
 
@@ -322,12 +163,16 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     public WorldPosition calculateDisplayPosition(ImmutableBlockState blockState, Vector3f relative) {
         float angleDeg;
-        Direction direction = blockState.get(behavior.directionProperty, Direction.SOUTH);
-        switch (direction) {
-            case EAST -> angleDeg = 90f;
-            case SOUTH -> angleDeg = 180f;
-            case WEST -> angleDeg = 270f;
-            default -> angleDeg = 0f;
+        if (this.behavior.directionProperty != null) {
+            Direction direction = blockState.get(this.behavior.directionProperty, Direction.SOUTH);
+            switch (direction) {
+                case EAST -> angleDeg = 90f;
+                case SOUTH -> angleDeg = 180f;
+                case WEST -> angleDeg = 270f;
+                default -> angleDeg = 0f;
+            }
+        } else {
+            angleDeg = 0f;
         }
         double angleRad = Math.toRadians(angleDeg);
 
@@ -344,7 +189,8 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     }
 
     public float calculateYRot(ImmutableBlockState blockState) {
-        Direction direction = blockState.get(behavior.directionProperty, Direction.SOUTH);
+        if (this.behavior.directionProperty == null) return 0f;
+        Direction direction = blockState.get(this.behavior.directionProperty, Direction.SOUTH);
         return switch (direction.opposite()) {
             case EAST -> 90f;
             case SOUTH -> 180f;
@@ -361,116 +207,62 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
         this.lastClickPlayer = lastClickPlayer;
     }
 
-    public Long lastClickTime() {
+    public long lastClickTime() {
         return lastClickTime;
     }
 
-    public void lastClickTime(Long lastClickTime) {
+    public void lastClickTime(long lastClickTime) {
         this.lastClickTime = lastClickTime;
     }
 
     @Override
-    public int[] getSlotsForFace(Direction direction) {
-        return this.slots;
-    }
+    public abstract int[] getSlotsForFace(Direction direction);
 
     @Override
-    public boolean canPlaceItemThroughFace(int slot, Item stack, Direction direction) {
-        if (!this.isEmpty() && !stack.isSimilar(this.items[0])) {
-            return false;
-        }
-        return true;
-    }
+    public abstract boolean canPlaceItemThroughFace(int slot, Item stack, Direction direction);
 
     @Override
-    public boolean canTakeItemThroughFace(int slot, Item stack, Direction direction) {
-        if (slot < 0 || slot >= this.items.length || this.items[slot].isEmpty()) {
-            return false;
-        }
-        // 保证漏斗从后往前遍历
-        if (slot == this.items.length - 1) {
-            return true;
-        }
-        return this.items[slot + 1].isEmpty();
-    }
+    public abstract boolean canTakeItemThroughFace(int slot, Item stack, Direction direction);
 
     @Override
-    public int containerSize() {
-        return this.behavior.maxStacks;
-    }
+    public abstract int containerSize();
 
     @Override
-    public boolean isEmpty() {
-        return this.items[0].isEmpty();
-    }
+    public abstract boolean isEmpty();
 
     @Override
-    public Item getItem(int slot) {
-        return this.items[slot];
-    }
+    public abstract Item getItem(int slot);
 
     @Override
-    public Item removeItem(int slot, int count) {
-        Item item = this.items[slot];
-        if (item.isEmpty()) return item;
-        Item result;
-        if (item.count() <= count) {
-            this.setItem(slot, Item.empty());
-            result = item;
-        } else {
-            result = item.copyWithCount(count);
-            item.shrink(count);
-        }
-        this.setChanged();
-        return result;
-    }
+    public abstract Item removeItem(int slot, int count);
 
     @Override
-    public Item removeItemNoUpdate(int slot) {
-        Item item = this.items[slot];
-        if (item.isEmpty()) return item;
-        Item result;
-        if (item.count() <= 1) {
-            this.setItem(slot, Item.empty());
-            result = item;
-        } else {
-            result = item.copyWithCount(1);
-            item.shrink(1);
-        }
-        return result;
-    }
+    public abstract Item removeItemNoUpdate(int slot);
 
     @Override
-    public void setItem(int slot, Item item) {
-        this.items[slot] = item;
-    }
+    public abstract void setItem(int slot, Item item);
 
     @Override
-    public int maxStackSize() {
-        return 99;
-    }
+    public abstract int maxStackSize();
 
     @Override
     public void setChanged() {
         boolean previousEmpty = this.lastUpdateItem.isEmpty();
-        boolean isEmpty = this.items[0].isEmpty();
+        boolean isEmpty = this.isEmpty();
         boolean changedItem = this.refreshItemDisplayPacket();
         boolean changedCount = this.refreshTextContentPacket();
 
-        // 空了
         if (isEmpty) {
+            // 空了
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::hide);
-        }
-        // 都变了
-        else if (changedItem && changedCount) {
+        } else if (changedItem && changedCount) {
+            // 都变了
             this.refreshDynamicElement((e, p) -> e.updateItemAndText(p, previousEmpty));
-        }
-        // 只变了物品
-        else if (changedItem) {
+        } else if (changedItem) {
+            // 只变了物品
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateDisplayItem);
-        }
-        // 只变了数量
-        else if (changedCount) {
+        } else if (changedCount) {
+            // 只变了数量
             this.refreshDynamicElement(DynamicDrawerBlockEntityElement::updateTextContent);
         }
 
@@ -486,13 +278,13 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
 
     @Override
     public void clearContent() {
-        Arrays.fill(this.items, Item.empty());
+        this.clearItems();
         this.setChanged();
     }
 
     @Override
     public List<Item> contents() {
-        return Arrays.asList(this.items);
+        return Collections.singletonList(this.item());
     }
 
     @Override
@@ -523,20 +315,515 @@ public final class DrawerBlockEntityController extends BlockEntityController imp
     }
 
     @Override
-    public @Nullable InventoryHolder getOwner() {
-        return this.owner;
+    public InventoryHolder getOwner() {
+        return this;
     }
 
-    public static class Holder implements InventoryHolder {
-        private final Inventory inventory;
+    @Override
+    public @NotNull Inventory getInventory() {
+        return this.inventory;
+    }
 
-        public Holder(DrawerBlockEntityController container) {
-            this.inventory = CraftInventoryProxy.INSTANCE.newInstance(container.container);
+    public static DrawerBlockEntityController create(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
+        return behavior.compatibleMode ? new Compatible(blockEntity, behavior) : new Modern(blockEntity, behavior);
+    }
+
+    private static final class Modern extends DrawerBlockEntityController {
+        private static final int HOPPER_PLACE_SLOT = -1;
+        private static final int HOPPER_TAKE_SLOT = -2;
+        private static final int[] SLOTS = new int[]{HOPPER_PLACE_SLOT, HOPPER_TAKE_SLOT};
+        private Item templateItem = Item.empty();
+        private int itemCount = 0;
+        private int maxStorageCount = this.behavior.maxStacks;
+
+        private Modern(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
+            super(blockEntity, behavior);
+        }
+
+        @NotNull
+        @Override
+        public Item item() {
+            return this.templateItem.copyWithCount(1);
+        }
+
+        private void setTemplateItem(@Nullable Item item) {
+            if (item == null) {
+                this.templateItem = Item.empty();
+                this.maxStorageCount = this.behavior.maxStacks;
+            } else {
+                this.templateItem = item.copyWithCount(1);
+                this.maxStorageCount = this.behavior.maxStacks * item.maxStackSize();
+            }
         }
 
         @Override
-        public @NotNull Inventory getInventory() {
-            return this.inventory;
+        public int itemCount() {
+            return this.itemCount;
+        }
+
+        @Override
+        public int maxCount() {
+            return this.maxStorageCount;
+        }
+
+        private void addItemCount(int count) {
+            this.itemCount += count;
+        }
+
+        private void setItemCount(int count) {
+            this.itemCount = count;
+        }
+
+        @Override
+        public void clearItems() {
+            this.setTemplateItem(null);
+            this.setItemCount(0);
+        }
+
+        @Override
+        public boolean isFull() {
+            return this.itemCount() >= this.maxCount();
+        }
+
+        @Override
+        public int put(Item inputItem, int count) {
+            if (count <= 0 || inputItem.isEmpty()) return 0;
+
+            if (isEmpty()) {
+                this.setTemplateItem(inputItem);
+            } else if (!this.templateItem.isSimilar(inputItem)) {
+                return 0;
+            }
+
+            int actualAdded = Math.min(count, this.maxCount() - this.itemCount());
+            this.addItemCount(actualAdded);
+
+            this.setChanged();
+            return actualAdded;
+        }
+
+        // 增加存储物品的数量，返回值为实际增加的量
+        @Override
+        public int add(int count) {
+            if (count <= 0 || isEmpty()) return 0;
+            int actualAdded = Math.min(count, this.maxCount() - this.itemCount());
+            this.addItemCount(actualAdded);
+            this.setChanged();
+            return actualAdded;
+        }
+
+        // 取走方块内的物品，返回值为实际取走的量
+        @Override
+        public int take(int count, Consumer<Item> consumer, boolean update) {
+            if (count <= 0 || isEmpty()) return 0;
+
+            // 记录物品模板，用于后续生成 Item
+            Item template = this.item();
+            int actualTaken = Math.min(count, this.itemCount());
+
+            if (actualTaken <= 0) return 0;
+
+            this.addItemCount(-actualTaken);
+
+            if (this.itemCount() <= 0) {
+                this.clearItems();
+            }
+
+            int maxStack = template.maxStackSize();
+            int toCallback = actualTaken;
+            while (toCallback > 0) {
+                int currentBatch = Math.min(toCallback, maxStack);
+                toCallback -= currentBatch;
+                consumer.accept(template.copyWithCount(currentBatch));
+            }
+            if (update) {
+                this.setChanged();
+            }
+
+            return actualTaken;
+        }
+
+        // 读取方块内存储的物品
+        @Override
+        public void loadCustomData(CompoundTag tag) {
+            CompoundTag dataTag = tag.getCompound(behavior.customDataKey);
+            // 空数据
+            if (dataTag == null) return;
+            // 读取数据
+            int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+            Tag itemTag = dataTag.get("item");
+            int count = dataTag.getInt("count", 0);
+            // 非法数据
+            if (itemTag == null || count <= 0) return;
+
+            this.setTemplateItem(ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion)));
+            this.setItemCount(count);
+
+            Item item = this.item();
+            this.element.refreshChangeDisplayItemPacket(item);
+            this.element.refreshChangeTextContentPacket(count);
+            this.lastUpdateItem = item;
+            this.lastUpdateCount = count;
+        }
+
+        @Override
+        public void saveCustomData(CompoundTag tag) {
+            if (isEmpty() || this.itemCount() <= 0) return;
+            CompoundTag data = new CompoundTag();
+            data.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+            data.put("count", new IntTag(this.itemCount()));
+            data.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.item().minecraftItem()));
+            tag.put(behavior.customDataKey, data);
+        }
+
+        @Override
+        public void onRemove() {
+            if (this.itemCount() <= 0 || this.templateItem.isEmpty()) return;
+            Item template = this.item();
+            int count = this.itemCount();
+            this.clearItems();
+            int maxStackSize = template.maxStackSize();
+            while (count > 0) {
+                int toDrop = Math.min(count, maxStackSize);
+                count -= toDrop;
+                super.blockEntity.world.world().dropItemNaturally(this.itemPosition, template.copyWithCount(toDrop));
+            }
+        }
+
+        @Override
+        public int[] getSlotsForFace(Direction direction) {
+            return SLOTS;
+        }
+
+        @Override
+        public boolean canPlaceItemThroughFace(int slot, Item stack, Direction direction) {
+            return behavior.canPlaceItem
+                    && slot == HOPPER_PLACE_SLOT
+                    && (this.isEmpty() || this.templateItem.isSimilar(stack))
+                    && this.itemCount() + stack.count() <= this.maxCount();
+        }
+
+        @Override
+        public boolean canTakeItemThroughFace(int slot, Item stack, Direction direction) {
+            return behavior.canTakeItem && slot == HOPPER_TAKE_SLOT && !this.isEmpty();
+        }
+
+        @Override
+        public int containerSize() {
+            return 1;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return this.templateItem.isEmpty() && this.itemCount() <= 0;
+        }
+
+        @Override
+        public Item getItem(int slot) {
+            if (slot != HOPPER_TAKE_SLOT || this.isEmpty()) return Item.empty();
+            return this.item();
+        }
+
+        @Override
+        public Item removeItem(int slot, int count) {
+            if (slot < 0) return Item.empty();
+            Item item = this.item();
+            take(count, $ -> {}, true);
+            return item;
+        }
+
+        @Override
+        public Item removeItemNoUpdate(int slot) {
+            if (slot < 0) return Item.empty();
+            Item item = this.item();
+            take(this.itemCount(), $ -> {}, false);
+            return item;
+        }
+
+        @Override
+        public void setItem(int slot, Item item) {
+            int count = item.count();
+            if (slot == HOPPER_PLACE_SLOT && this.templateItem.isSimilar(item) && count == 1) {
+                add(1); // 漏斗放入
+            } else if (slot == HOPPER_TAKE_SLOT && item.isEmpty()) {
+                take(1, $ -> {}, true); // 漏斗取出
+            } else {
+                this.setTemplateItem(item);
+                this.setItemCount(count);
+            }
+        }
+
+        @Override
+        public int maxStackSize() {
+            return 1;
+        }
+    }
+
+    private static final class Compatible extends DrawerBlockEntityController {
+        private final Item[] items;
+        private final int[] slots;
+
+        private Compatible(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
+            super(blockEntity, behavior);
+            this.items = new Item[behavior.maxStacks];
+            Arrays.fill(this.items, Item.empty());
+            this.slots = IntStream.range(0, behavior.maxStacks).toArray();
+        }
+
+        @Override
+        public @NotNull Item item() {
+            return this.items[0];
+        }
+
+        @Override
+        public int itemCount() {
+            int count = 0;
+            for (Item item : this.items) {
+                if (item.isEmpty()) break;
+                count += item.count();
+            }
+            return count;
+        }
+
+        @Override
+        public int maxCount() {
+            return this.behavior.maxStacks;
+        }
+
+        @Override
+        public void clearItems() {
+            Arrays.fill(this.items, Item.empty());
+        }
+
+        @Override
+        public boolean isFull() {
+            Item lastItem = this.items[this.items.length - 1];
+            if (lastItem.isEmpty()) return false;
+            return lastItem.count() >= lastItem.maxStackSize();
+        }
+
+        @Override
+        public int put(Item inputItem, int count) {
+            if (count <= 0) return 0;
+
+            if (!isEmpty() && !this.items[0].isSimilar(inputItem)) {
+                return 0;
+            }
+
+            int remainingToAdd = count;
+            int maxStack = inputItem.maxStackSize();
+
+            for (int i = 0; i < this.items.length && remainingToAdd > 0; i++) {
+                if (this.items[i].isEmpty()) {
+                    int toAdd = Math.min(remainingToAdd, maxStack);
+                    this.items[i] = inputItem.copyWithCount(toAdd);
+                    remainingToAdd -= toAdd;
+                } else {
+                    int currentCount = this.items[i].count();
+                    int space = maxStack - currentCount;
+                    if (space > 0) {
+                        int toAdd = Math.min(remainingToAdd, space);
+                        this.items[i].grow(toAdd);
+                        remainingToAdd -= toAdd;
+                    }
+                }
+            }
+
+            this.setChanged();
+            return count - remainingToAdd;
+        }
+
+        @Override
+        public int add(int count) {
+            if (!isEmpty() && count > 0) {
+                Item baseItem = this.items[0];
+                int maxStack = baseItem.maxStackSize();
+                int remaining = count;
+
+                for (int i = 0; i < this.items.length && remaining > 0; i++) {
+                    if (this.items[i].isEmpty()) {
+                        int toAdd = Math.min(remaining, maxStack);
+                        this.items[i] = baseItem.copyWithCount(toAdd);
+                        remaining -= toAdd;
+                    } else {
+                        int canAccept = maxStack - this.items[i].count();
+                        int toAdd = Math.min(remaining, canAccept);
+                        this.items[i].grow(toAdd);
+                        remaining -= toAdd;
+                    }
+                }
+
+                this.setChanged();
+                return count - remaining;
+            }
+            return 0;
+        }
+
+        @Override
+        public int take(int count, Consumer<Item> consumer, boolean update) {
+            if (count <= 0 || isEmpty()) return 0;
+
+            // 记录物品模板，用于后续生成 Item
+            Item template = this.items[0];
+            int maxStack = template.maxStackSize();
+            int remainingToTake = count;
+            for (int i = this.items.length - 1; i >= 0 && remainingToTake > 0; i--) {
+                if (this.items[i].isEmpty()) continue;
+
+                int canTakeFromSlot = Math.min(remainingToTake, this.items[i].count());
+                this.items[i].shrink(canTakeFromSlot);
+                remainingToTake -= canTakeFromSlot;
+
+                if (this.items[i].count() <= 0) {
+                    this.items[i] = Item.empty();
+                }
+            }
+
+            int actualTaken = count - remainingToTake;
+
+            if (actualTaken > 0) {
+                int toCallback = actualTaken;
+                while (toCallback > 0) {
+                    int currentBatch = Math.min(toCallback, maxStack);
+                    consumer.accept(template.copyWithCount(currentBatch));
+                    toCallback -= currentBatch;
+                }
+                this.setChanged();
+            }
+
+            return actualTaken;
+        }
+
+        @Override
+        public void loadCustomData(CompoundTag tag) {
+            CompoundTag dataTag = tag.getCompound(behavior.customDataKey);
+            // 空数据
+            if (dataTag == null) {
+                return;
+            }
+            // 读取数据
+            int dataVersion = dataTag.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
+            Tag itemTag = dataTag.get("item");
+            int count = dataTag.getInt("count", 0);
+            // 非法数据
+            if (itemTag == null || count <= 0) {
+                return;
+            }
+
+            Item itemTemplate = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
+            int maxStackSize = itemTemplate.maxStackSize();
+            int remaining = count;
+
+            for (int i = 0; i < this.items.length; i++) {
+                if (remaining <= 0) {
+                    break;
+                } else {
+                    int currentCount = Math.min(remaining, maxStackSize);
+                    this.items[i] = itemTemplate.copyWithCount(currentCount);
+                    remaining -= currentCount;
+                }
+            }
+
+            this.element.refreshChangeDisplayItemPacket(this.items[0]);
+            this.element.refreshChangeTextContentPacket(count);
+            this.lastUpdateItem = this.items[0].copy();
+            this.lastUpdateCount = count;
+        }
+
+        @Override
+        public void saveCustomData(CompoundTag tag) {
+            if (isEmpty() || this.itemCount() <= 0) return;
+            CompoundTag data = new CompoundTag();
+            data.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+            data.put("count", new IntTag(this.itemCount()));
+            data.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.items[0].copyWithCount(1).minecraftItem()));
+            tag.put(behavior.customDataKey, data);
+        }
+
+        @Override
+        public void onRemove() {
+            for (Item item : this.items) {
+                super.blockEntity.world.world().dropItemNaturally(this.itemPosition, item);
+            }
+            Arrays.fill(this.items, Item.empty());
+        }
+
+        @Override
+        public int[] getSlotsForFace(Direction direction) {
+            return this.slots;
+        }
+
+        @Override
+        public boolean canPlaceItemThroughFace(int slot, Item stack, Direction direction) {
+            return this.isEmpty() || stack.isSimilar(this.items[0]);
+        }
+
+        @Override
+        public boolean canTakeItemThroughFace(int slot, Item stack, Direction direction) {
+            if (slot < 0 || slot >= this.items.length || this.items[slot].isEmpty()) {
+                return false;
+            }
+            // 保证漏斗从后往前遍历
+            if (slot == this.items.length - 1) {
+                return true;
+            }
+            return this.items[slot + 1].isEmpty();
+        }
+
+        @Override
+        public int containerSize() {
+            return this.behavior.maxStacks;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return this.items[0].isEmpty();
+        }
+
+        @Override
+        public Item getItem(int slot) {
+            return this.items[slot];
+        }
+
+        @Override
+        public Item removeItem(int slot, int count) {
+            Item item = this.items[slot];
+            if (item.isEmpty()) return item;
+            Item result;
+            if (item.count() <= count) {
+                this.setItem(slot, Item.empty());
+                result = item;
+            } else {
+                result = item.copyWithCount(count);
+                item.shrink(count);
+            }
+            this.setChanged();
+            return result;
+        }
+
+        @Override
+        public Item removeItemNoUpdate(int slot) {
+            Item item = this.items[slot];
+            if (item.isEmpty()) return item;
+            Item result;
+            if (item.count() <= 1) {
+                this.setItem(slot, Item.empty());
+                result = item;
+            } else {
+                result = item.copyWithCount(1);
+                item.shrink(1);
+            }
+            return result;
+        }
+
+        @Override
+        public void setItem(int slot, Item item) {
+            this.items[slot] = item;
+        }
+
+        @Override
+        public int maxStackSize() {
+            return 99;
         }
     }
 }

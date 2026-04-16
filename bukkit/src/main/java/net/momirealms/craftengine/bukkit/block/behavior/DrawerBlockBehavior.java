@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
@@ -52,8 +53,8 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
     public final Property<Direction> directionProperty;
     public final boolean canPlaceItem;
     public final boolean canTakeItem;
-    @Nullable
     public final String customDataKey;
+    public final boolean compatibleMode;
     private int controllerId;
 
     public DrawerBlockBehavior(BlockDefinition blockDefinition,
@@ -68,7 +69,8 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                                boolean canPlaceItem,
                                boolean canTakeItem,
                                @Nullable Property<Direction> directionProperty,
-                               @Nullable String customDataKey
+                               String customDataKey,
+                               boolean compatibleMode
     ) {
         super(blockDefinition);
         this.putSound = putSound;
@@ -83,11 +85,12 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         this.customDataKey = customDataKey;
         this.canPlaceItem = canPlaceItem;
         this.canTakeItem = canTakeItem;
+        this.compatibleMode = compatibleMode;
     }
 
     @Override
     public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
-        return new DrawerBlockEntityController(blockEntity, this);
+        return DrawerBlockEntityController.create(blockEntity, this);
     }
 
     @Override
@@ -119,13 +122,13 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         InteractionHand hand = context.getHand();
         Item itemInHand = player.getItemInHand(hand);
         return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
-            if (controller.isFull()) return InteractionResult.FAIL;
+            if (controller.isFull()) return InteractionResult.SUCCESS_AND_CANCEL;
 
-            final UUID playerId = player.uuid();
-            final long now = System.currentTimeMillis();
-            Item storedItem = controller.storedItem();
-            final UUID lastClickPlayer = controller.lastClickPlayer();
-            final long lastClickTime = controller.lastClickTime() == null ? 0 : controller.lastClickTime();
+            UUID playerId = player.uuid();
+            long now = System.currentTimeMillis();
+            Item storedItem = controller.item();
+            UUID lastClickPlayer = controller.lastClickPlayer();
+            long lastClickTime = controller.lastClickTime();
 
             boolean isDoubleClick = playerId.equals(lastClickPlayer) && (now - lastClickTime) <= 500;
             boolean hasStoredItem = !storedItem.isEmpty();
@@ -135,7 +138,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             if (hasStoredItem && isDoubleClick) {
                 // 清理缓存
                 controller.lastClickPlayer(null);
-                controller.lastClickTime(null);
+                controller.lastClickTime(0);
                 // 先计算能放入多少个
                 int matchedCount = player.clearOrCountMatchingInventoryItems(item -> item.isSimilar(storedItem), 0);
                 int actuallyAdded = controller.add(matchedCount);
@@ -160,7 +163,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                 return InteractionResult.SUCCESS_AND_CANCEL;
             }
 
-            return InteractionResult.TRY_EMPTY_HAND;
+            return InteractionResult.SUCCESS_AND_CANCEL;
         });
     }
 
@@ -178,8 +181,8 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             return;
         }
         blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
-            Item storedItem = controller.storedItem();
-            if (storedItem.isEmpty() || controller.storageCount() <= 0) return;
+            Item storedItem = controller.item();
+            if (storedItem.isEmpty() || controller.itemCount() <= 0) return;
 
             Item tool = player.getItemInHand(InteractionHand.MAIN_HAND);
             boolean handEmpty = ItemUtils.isEmpty(tool);
@@ -196,17 +199,17 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             int takeAmount = 1;
             if (takeGroup) {
                 int available = ItemUtils.isEmpty(tool) ? storedItem.maxStackSize() : storedItem.maxStackSize() - tool.count();
-                takeAmount = Math.min(available, controller.storageCount());
+                takeAmount = Math.min(available, controller.itemCount());
             }
 
             // 取出物品
-            controller.take(takeAmount, (i) -> {
+            controller.take(takeAmount, item -> {
                 if (handEmpty) {
-                    player.setItemInHand(InteractionHand.MAIN_HAND, i);
+                    player.setItemInHand(InteractionHand.MAIN_HAND, item);
                 } else {
-                    tool.grow(i.count());
+                    tool.grow(item.count());
                 }
-            });
+            }, true);
 
             player.swingHand(InteractionHand.MAIN_HAND);
             if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
@@ -227,11 +230,10 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             return 0;
         }
         return blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, c -> {
-            if (!ItemUtils.isEmpty(c.storedItem())) {
-                float i = (float) c.storageCount() / this.maxStacks;
-                return MiscUtils.lerpDiscrete(i, 0, 15);
+            if (ItemUtils.isEmpty(c.item())) {
+                return 0;
             }
-            return 0;
+            return MiscUtils.lerpDiscrete((float) c.itemCount() / c.maxCount(), 0, 15);
         });
     }
 
@@ -250,6 +252,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
         private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
         private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
+        private static final String[] COMPATIBLE_MODE = new String[] {"compatible_mode", "compatible-mode"};
 
         @Override
         public DrawerBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -269,6 +272,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             }
             // 获取方向
             Property<Direction> facing = BlockBehaviorFactory.getOptionalProperty(block, "facing", Direction.class);
+            boolean compatibleMode = section.getBoolean(COMPATIBLE_MODE, false);
             return new DrawerBlockBehavior(
                     block,
                     putSound,
@@ -282,7 +286,8 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                     section.getBoolean(ALLOW_INPUT, true),
                     section.getBoolean(ALLOW_OUTPUT, true),
                     facing,
-                    section.getString(DATA_KEY)
+                    section.getValue(DATA_KEY, ConfigValue::getAsNonEmptyString, "craftengine:drawer"),
+                    compatibleMode
             );
         }
     }
