@@ -16,9 +16,10 @@ public final class SimplifiedModelFile {
         if (model.has("textures")) {
             JsonObject textures = model.get("textures").getAsJsonObject();
             for (Map.Entry<String, JsonElement> entry : textures.entrySet()) {
-                String value = entry.getValue().getAsString();
-                if (value.isEmpty() || value.charAt(0) == '#') continue;
-                this.textures.put(entry.getKey(), Key.of(value));
+                JsonElement value = entry.getValue();
+                String sprite = value.isJsonPrimitive() ? value.getAsString() : value.getAsJsonObject().get("sprite").getAsString();
+                if (sprite.isEmpty() || sprite.charAt(0) == '#') continue;
+                this.textures.put(entry.getKey(), Key.of(sprite));
             }
         }
         if (model.has("parent")) {

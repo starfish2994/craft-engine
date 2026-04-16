@@ -23,9 +23,10 @@ public final class TexturedModel {
             JsonObject textures = json.get("textures").getAsJsonObject();
             Map<String, Key> map = new HashMap<>(Math.max(textures.size() * 2, 4));
             for (Map.Entry<String, JsonElement> entry : textures.entrySet()) {
-                String value = entry.getValue().getAsString();
-                if (value.isEmpty() || value.charAt(0) == '#') continue;
-                map.put(entry.getKey(), Key.of(value));
+                JsonElement value = entry.getValue();
+                String sprite = value.isJsonPrimitive() ? value.getAsString() : value.getAsJsonObject().get("sprite").getAsString();
+                if (sprite.isEmpty() || sprite.charAt(0) == '#') continue;
+                map.put(entry.getKey(), Key.of(sprite));
             }
             return map;
         } else {
