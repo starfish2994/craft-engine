@@ -62,7 +62,7 @@ lang#items:
     item.default.togglable_light_block: Togglable Light Block
     item.default.showcase: Showcase
     item.default.drawer_block: Drawer Block
-    item.default.candle: Candle
+    item.default.candelabrum: Candelabrum
   zh_cn:
     item.default.chinese_lantern: 灯笼
     item.default.fairy_flower: 仙灵花
@@ -124,7 +124,7 @@ lang#items:
     item.default.togglable_light_block: 可调节光源方块
     item.default.showcase: 物品展示柜
     item.default.drawer_block: 抽屉方块
-    item.default.candle: 蜡烛
+    item.default.candelabrum: 烛台
   fr_fr:
     item.default.chinese_lantern: Lanterne Chinoise
     item.default.fairy_flower: Fleur Fée
@@ -186,7 +186,7 @@ lang#items:
     item.default.togglable_light_block: Bloc de lumière réglable
     item.default.showcase: Vitrine
     item.default.drawer_block: Bloc de tiroir
-    item.default.candle: Candle
+    item.default.candelabrum: Candélabre
 # Providing translations for blocks is particularly effective for plugins that retrieve server-side block translation keys.
 lang#blocks:
   en_us:
@@ -312,18 +312,18 @@ lang#furniture:
     furniture.default.globe: Globe
     furniture.default.wooden_chair: Wooden Chair
     furniture.default.showcase: Showcase
-    furniture.default.candel: Candle
+    furniture.default.candelabrum: Candelabrum
   zh_cn:
     furniture.default.bench: 长椅
     furniture.default.flower_basket: 花篮
     furniture.default.globe: 地球仪
     furniture.default.wooden_chair: 木椅
     furniture.default.showcase: 物品展示柜
-    furniture.default.candel: 蜡烛
+    furniture.default.candelabrum: 烛台
   fr_fr:
     furniture.default.bench: Banc
     furniture.default.flower_basket: Panier de fleurs
     furniture.default.globe: Globe
     furniture.default.wooden_chair: Chaise en bois
     furniture.default.showcase: Vitrine
-    furniture.default.candel: Candle
+    furniture.default.candelabrum: Candélabre
