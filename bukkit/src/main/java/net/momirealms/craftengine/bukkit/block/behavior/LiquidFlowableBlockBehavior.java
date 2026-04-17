@@ -8,7 +8,6 @@ import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.WorldGenLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.WorldGenRegionProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
@@ -16,9 +15,11 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsPro
 
 public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior implements LiquidBlockContainer {
     public static final BlockBehaviorFactory<LiquidFlowableBlockBehavior> FACTORY = new Factory();
+    private final boolean dropItem;
 
-    private LiquidFlowableBlockBehavior(BlockDefinition blockDefinition) {
+    private LiquidFlowableBlockBehavior(BlockDefinition blockDefinition, boolean dropItem) {
         super(blockDefinition);
+        this.dropItem = dropItem;
     }
 
     @Override
@@ -36,7 +37,7 @@ public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior imple
         if (fluidType == FluidsProxy.LAVA || fluidType == FluidsProxy.FLOWING_LAVA) {
             LevelAccessorProxy.INSTANCE.levelEvent(level, WorldEvents.LAVA_CONVERTS_BLOCK, pos, 0);
         } else {
-            if (!WorldGenRegionProxy.CLASS.isInstance(level)) {
+            if (this.dropItem && !WorldGenRegionProxy.CLASS.isInstance(level)) {
                 BlockProxy.INSTANCE.dropResources(blockState, level, pos);
             }
         }
@@ -45,10 +46,11 @@ public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior imple
     }
 
     private static class Factory implements BlockBehaviorFactory<LiquidFlowableBlockBehavior> {
+        private static final String[] DROP_ITEMS = new String[] {"drop_item", "drop-item"};
 
         @Override
         public LiquidFlowableBlockBehavior create(BlockDefinition block, ConfigSection section) {
-            return new LiquidFlowableBlockBehavior(block);
+            return new LiquidFlowableBlockBehavior(block, section.getBoolean(DROP_ITEMS, true));
         }
     }
 }
