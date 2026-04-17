@@ -17,6 +17,7 @@ import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
@@ -30,32 +31,33 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.pathfinder.PathComputationTypeProxy;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public final class StemBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock, BonemealableBlock, RandomTickBlock {
     public static final BlockBehaviorFactory<StemBlockBehavior> FACTORY = new Factory();
-    private static final Object MAY_PLACE_FRUIT = BlockTags.getOrCreate(Key.of("minecraft:dirt"));
     public final IntegerProperty ageProperty;
     public final Key fruit;
     public final Key attachedStem;
     public final int minGrowLight;
-    public final Object tagMayPlaceFruit;
-    public final Object blockMayPlaceFruit;
+    public final List<Object> tagsCanSurviveOn;
+    public final LazyReference<Set<Object>> blockStatesCanSurviveOn;
 
     private StemBlockBehavior(BlockDefinition blockDefinition,
                               IntegerProperty ageProperty,
                               Key fruit,
                               Key attachedStem,
                               int minGrowLight,
-                              Object tagMayPlaceFruit,
-                              Object blockMayPlaceFruit) {
+                              List<Object> tags,
+                              LazyReference<Set<Object>> blockStates) {
         super(blockDefinition);
         this.ageProperty = ageProperty;
         this.fruit = fruit;
         this.attachedStem = attachedStem;
         this.minGrowLight = minGrowLight;
-        this.tagMayPlaceFruit = Optional.ofNullable(tagMayPlaceFruit).orElse(MAY_PLACE_FRUIT);
-        this.blockMayPlaceFruit = blockMayPlaceFruit;
+        this.tagsCanSurviveOn = tags;
+        this.blockStatesCanSurviveOn = blockStates;
     }
 
     @Override
@@ -133,11 +135,16 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
         }
     }
 
-    private boolean mayPlaceFruit(Object blockState) {
-        boolean flag1 = tagMayPlaceFruit != null && BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(blockState, tagMayPlaceFruit);
-        boolean flag2 = blockMayPlaceFruit != null && BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$0(blockState, blockMayPlaceFruit);
-        if (tagMayPlaceFruit == null && blockMayPlaceFruit == null) return true;
-        return flag1 || flag2;
+    private boolean mayPlaceFruit(Object belowState) {
+        for (Object tag : this.tagsCanSurviveOn) {
+            if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$1(belowState, tag)) {
+                return true;
+            }
+        }
+        if (this.blockStatesCanSurviveOn.get().contains(belowState)) {
+            return true;
+        }
+        return false;
     }
 
     private static class Factory implements BlockBehaviorFactory<StemBlockBehavior> {
@@ -146,14 +153,15 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
 
         @Override
         public StemBlockBehavior create(BlockDefinition block, ConfigSection section) {
+            AbstractCanSurviveBlockBehavior.TagsAndState data = AbstractCanSurviveBlockBehavior.readTagsAndState(section, "fruit_bottom");
             return new StemBlockBehavior(
                     block,
                     (IntegerProperty) BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),
                     section.getNonNullIdentifier("fruit"),
                     section.getNonNullIdentifier(ATTACHED_STEM),
                     section.getInt(LIGHT_REQUIREMENT, 0),
-                    null,
-                    null
+                    data.tags(),
+                    data.blockStates()
             );
         }
     }

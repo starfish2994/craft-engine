@@ -100,6 +100,9 @@ blocks:
       - type: stem_block
         fruit: default:hami_melon
         attached_stem: default:attached_hami_melon_stem
+        fruit_bottom_blocks:
+          - minecraft:farmland
+          - minecraft:dirt
       - type: bush_block
         bottom_blocks:
           - minecraft:farmland
