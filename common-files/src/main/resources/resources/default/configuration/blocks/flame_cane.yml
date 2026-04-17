@@ -16,7 +16,7 @@ items:
         behaviors:
           - type: vertical_crop_block
             max_height: 4
-            grow_speed: 0.333
+            grow_speed: 1
             direction: up
           - type: bush_block
             stackable: true

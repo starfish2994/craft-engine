@@ -49,20 +49,16 @@ public final class AttachedStemBlockBehavior extends BukkitBlockBehavior impleme
         if (optionalCustomState.isEmpty() || direction != optionalCustomState.get().get(this.facingProperty)) {
             return super.updateShape(thisBlock, args);
         }
+
         Optional<ImmutableBlockState> optionalCustomNeighborState = BlockStateUtils.getOptionalCustomBlockState(neighborState);
-        if (optionalCustomNeighborState.isPresent()) {
-            ImmutableBlockState customNeighborState = optionalCustomNeighborState.get();
-            if (!customNeighborState.owner().value().id().equals(this.fruit)) {
-                Object stemBlock = resetStemBlock();
-                if (stemBlock != null) return stemBlock;
-            }
-        } else {
-            Key neighborBlockId = BlockStateUtils.getBlockOwnerIdFromState(neighborState);
-            if (!neighborBlockId.equals(this.fruit)) {
-                Object stemBlock = resetStemBlock();
-                if (stemBlock != null) return stemBlock;
-            }
+        Key neighborBlockId = optionalCustomNeighborState.isPresent()
+                ? optionalCustomNeighborState.get().owner().value().id()
+                : BlockStateUtils.getBlockOwnerIdFromState(neighborState);
+        if (!neighborBlockId.equals(this.fruit)) {
+            Object stemBlock = resetStemBlock();
+            if (stemBlock != null) return stemBlock;
         }
+
         return super.updateShape(thisBlock, args);
     }
 
