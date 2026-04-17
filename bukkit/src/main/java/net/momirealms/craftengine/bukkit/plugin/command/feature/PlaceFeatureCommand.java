@@ -61,7 +61,7 @@ public final class PlaceFeatureCommand extends BukkitCommandFeature<CommandSende
                 .optional("location", LocationParser.locationParser())
                 .handler(context -> {
                     Key id = KeyUtils.namespacedKeyToKey(context.get("feature"));
-                    Object feature = BukkitWorldManager.instance().configuredFeatureById(id);
+                    Object feature = BukkitWorldManager.instance().configuredFeatureHolderById(id);
                     Player sender = context.sender();
                     if (feature == null) {
                         handleFeedback(sender, MessageConstants.COMMAND_PLACE_FEATURE_INVALID, Component.text(id.asString()));

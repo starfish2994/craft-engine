@@ -224,7 +224,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     @Nullable
-    public Object configuredFeatureById(Key id) {
+    public Object configuredFeatureHolderById(Key id) {
         Object holder = this.configuredFeatures.get(id);
         if (holder == null) {
             Object registry = RegistryUtils.lookupOrThrow(RegistriesProxy.CONFIGURED_FEATURE);
@@ -234,7 +234,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     @Nullable
-    public Object placedFeatureById(Key id) {
+    public Object placedFeatureHolderById(Key id) {
         Object holder = this.placedFeatures.get(id);
         if (holder == null) {
             Object registry = RegistryUtils.lookupOrThrow(RegistriesProxy.PLACED_FEATURE);
@@ -886,7 +886,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
             // 构造 placed feature 实例
             Object placedFeature = PlacedFeatureProxy.INSTANCE.newInstance(configuredFeature, placements);
-            BukkitWorldManager.this.placedFeatures.put(id, placedFeature);
+            BukkitWorldManager.this.placedFeatures.put(id, HolderProxy.INSTANCE.direct(placedFeature));
             this.tempFeatures.add(new ConditionalFeature(this.id.getAndIncrement(), placedFeature, biomeFilter, worldFilter, environmentFilter, dimensionTypeFilter));
         }
 

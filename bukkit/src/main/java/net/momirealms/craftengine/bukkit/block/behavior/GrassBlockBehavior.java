@@ -134,7 +134,7 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior implements Bon
 
     @Override
     public void performBonemeal(Object thisBlock, Object[] args) {
-        Object holder = BukkitWorldManager.instance().placedFeatureById(boneMealFeature());
+        Object holder = BukkitWorldManager.instance().placedFeatureHolderById(boneMealFeature());
         if (holder == null) {
             CraftEngine.instance().logger().warn("Placed feature not found: " + boneMealFeature());
             return;

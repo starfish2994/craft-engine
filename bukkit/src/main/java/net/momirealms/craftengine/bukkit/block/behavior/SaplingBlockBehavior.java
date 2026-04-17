@@ -94,7 +94,7 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
     }
 
     private void generateTree(Object world, Object blockPos, Object blockState, Object randomSource) {
-        Object holder = BukkitWorldManager.instance().configuredFeatureById(treeFeature());
+        Object holder = BukkitWorldManager.instance().configuredFeatureHolderById(treeFeature());
         if (holder == null) {
             CraftEngine.instance().logger().warn("Configured feature not found: " + treeFeature());
             return;

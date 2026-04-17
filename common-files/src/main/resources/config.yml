@@ -485,7 +485,7 @@ network:
   # Settings related to communication with CraftEngineMod
   mod-channel:
     enable: true
-    requires-permission: true
+    requires-permission: false
 
 recipe:
   # Master switch for custom recipes
