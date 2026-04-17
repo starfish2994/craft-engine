@@ -4,10 +4,11 @@ items:
       material: leather_horse_armor
       client_bound_data:
         overwritable_dyed_color: 130,168,51
+      data:
+        remove_components:
+          - attribute_modifiers
     data:
       item_name: <!i><lang:item.default.sofa>
-      remove_components:
-        - attribute_modifiers
     settings:
       dyeable: true
     model:
@@ -69,10 +70,11 @@ items:
       material: leather_horse_armor
       client_bound_data:
         overwritable_dyed_color: 130,168,51
+      data:
+        remove_components:
+          - attribute_modifiers
     data:
       item_name: <!i><lang:item.default.sofa>
-      remove_components:
-        - attribute_modifiers
     settings:
       dyeable: true
     model:
