@@ -43,7 +43,6 @@ blocks:
         item: default:magma_fruit
         push_reaction: destroy
         map_color: 24
-        is_randomly_ticking: true
     behavior:
       - type: crop_block
         grow_speed: 0.25
@@ -97,8 +96,6 @@ blocks:
           appearance: age=2
         age=3:
           appearance: age=3
-          settings:
-            is_randomly_ticking: false
     loot:
       template: default:loot_table/crop
       arguments:

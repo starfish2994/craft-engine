@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.BonemealableBlock;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -42,7 +43,7 @@ import org.bukkit.World;
 import java.util.Optional;
 
 @SuppressWarnings("DuplicatedCode")
-public final class SaplingBlockBehavior extends BukkitBlockBehavior implements BonemealableBlock {
+public final class SaplingBlockBehavior extends BukkitBlockBehavior implements BonemealableBlock, RandomTickBlock {
     public static final BlockBehaviorFactory<SaplingBlockBehavior> FACTORY = new Factory();
     public final Key feature;
     public final IntegerProperty stageProperty;
@@ -59,6 +60,11 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
         this.stageProperty = stageProperty;
         this.boneMealSuccessChance = boneMealSuccessChance;
         this.growSpeed = growSpeed;
+    }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        return true;
     }
 
     public Key treeFeature() {

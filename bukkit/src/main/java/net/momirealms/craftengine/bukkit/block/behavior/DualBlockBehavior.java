@@ -445,4 +445,11 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
     public boolean triggerEvent(Object thisBlock, Object[] args) {
         return this.first.triggerEvent(thisBlock, args) || this.second.triggerEvent(thisBlock, args);
     }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        if (this.first instanceof RandomTickBlock randomTickBlock && randomTickBlock.canRandomlyTick(state)) return true;
+        if (this.second instanceof RandomTickBlock randomTickBlock && randomTickBlock.canRandomlyTick(state)) return true;
+        return false;
+    }
 }

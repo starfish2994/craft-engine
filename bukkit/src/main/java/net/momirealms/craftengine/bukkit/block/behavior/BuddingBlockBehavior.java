@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.BooleanProperty;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -31,7 +32,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsPro
 
 import java.util.List;
 
-public final class BuddingBlockBehavior extends BukkitBlockBehavior {
+public final class BuddingBlockBehavior extends BukkitBlockBehavior implements RandomTickBlock {
     public static final BlockBehaviorFactory<BuddingBlockBehavior> FACTORY = new Factory();
     public final float growthChance;
     public final List<Key> blocks;
@@ -65,6 +66,11 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior {
             BlockDefinition nextBlock = BukkitBlockManager.instance().blockById(nextBlockId).orElse(null);
             placeWithPropertyBlock(nextBlock, nextBlockId, direction, nmsDirection, args[1], blockPos, blockState);
         }
+    }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        return true;
     }
 
     @SuppressWarnings("unchecked")

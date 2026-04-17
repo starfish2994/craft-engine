@@ -18,7 +18,6 @@ templates#settings:
       - default:sound/grass
     overrides:
       push_reaction: destroy
-      is_randomly_ticking: true
       tags:
         - minecraft:mineable/axe
         - minecraft:saplings

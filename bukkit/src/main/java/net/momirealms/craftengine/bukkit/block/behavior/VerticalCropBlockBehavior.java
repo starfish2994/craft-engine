@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -18,7 +19,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 
 import java.util.Optional;
 
-public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
+public final class VerticalCropBlockBehavior extends BukkitBlockBehavior implements RandomTickBlock {
     public static final BlockBehaviorFactory<VerticalCropBlockBehavior> FACTORY = new Factory();
     public final int maxHeight;
     public final IntegerProperty ageProperty;
@@ -35,6 +36,11 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior {
         this.ageProperty = ageProperty;
         this.growSpeed = growSpeed;
         this.direction = direction;
+    }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        return true;
     }
 
     @Override

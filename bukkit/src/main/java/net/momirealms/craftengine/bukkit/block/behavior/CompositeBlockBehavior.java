@@ -521,4 +521,14 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
         }
         return false;
     }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        for (BlockBehavior behavior : this.behaviors) {
+            if (behavior instanceof RandomTickBlock randomTickBlock && randomTickBlock.canRandomlyTick(state)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

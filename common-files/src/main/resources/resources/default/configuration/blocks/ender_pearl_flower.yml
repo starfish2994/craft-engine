@@ -16,7 +16,6 @@ blocks:
         item: default:ender_pearl_flower_seeds
         push_reaction: destroy
         map_color: 24
-        is_randomly_ticking: true
     behaviors:
       - type: liquid_flowable_block
       - type: bush_block

@@ -91,7 +91,6 @@ blocks:
         is_suffocating: false
         is_redstone_conductor: false
         item: default:hami_melon_seeds
-        is_randomly_ticking: true
         tags:
           - minecraft:bee_growables
           - minecraft:crops
@@ -156,7 +155,6 @@ blocks:
         is_suffocating: false
         is_redstone_conductor: false
         item: default:hami_melon_seeds
-        is_randomly_ticking: true
         tags:
           - minecraft:maintains_farmland
     behaviors:

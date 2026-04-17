@@ -78,9 +78,6 @@ templates:
           resistance: 1200.0
           burnable: false
           fluid_state: water
-      distance=7,persistent=false:
-        settings:
-          is_randomly_ticking: true
   # any leaves block
   default:block_state/leaves:
     template: default:block_state/__leaves__

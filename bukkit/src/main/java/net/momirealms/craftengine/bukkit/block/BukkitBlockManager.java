@@ -11,6 +11,7 @@ import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviors;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.parser.BlockStateParser;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.block.setting.BlockSettings;
@@ -333,7 +334,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
                 }
             }
 
-            BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setIsRandomlyTicking(nmsState, settings.isRandomlyTicking());
+            if (state.behavior() instanceof RandomTickBlock randomTickBlock) {
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setIsRandomlyTicking(nmsState, randomTickBlock.canRandomlyTick(state));
+            } else {
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setIsRandomlyTicking(nmsState, settings.isRandomlyTicking());
+            }
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setFluidState(nmsState, settings.fluidState() ? FluidsProxy.WATER$defaultState : FluidsProxy.EMPTY$defaultState);
 
             Object holder = BukkitCraftEngine.instance().blockManager().getMinecraftBlockHolder(state.customBlockState().registryId());

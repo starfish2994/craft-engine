@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
@@ -28,7 +29,7 @@ import org.bukkit.event.block.LeavesDecayEvent;
 
 import java.util.Optional;
 
-public final class LeavesBlockBehavior extends BukkitBlockBehavior {
+public final class LeavesBlockBehavior extends BukkitBlockBehavior implements RandomTickBlock {
     public static final BlockBehaviorFactory<LeavesBlockBehavior> FACTORY = new Factory();
     public static final Object LOG_TAG = BlockTags.getOrCreate(Key.of("minecraft", "logs"));
     public final int maxDistance;
@@ -53,6 +54,11 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
 
     public boolean isPersistent(ImmutableBlockState state) {
         return state.get(this.persistentProperty);
+    }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        return !isPersistent(state) && getDistance(state) == this.maxDistance;
     }
 
     public boolean isWaterLogged(ImmutableBlockState state) {

@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior {
+public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior implements RandomTickBlock {
     public static final BlockBehaviorFactory<SurfaceSpreadingBlockBehavior> FACTORY = new Factory();
     public final int requiredLight;
     public final LazyReference<Object> baseBlock;
@@ -37,6 +38,11 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior {
         this.requiredLight = requiredLight;
         this.snowyProperty = snowyProperty;
         this.baseBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(baseBlock)).minecraftState());
+    }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        return true;
     }
 
     @Override

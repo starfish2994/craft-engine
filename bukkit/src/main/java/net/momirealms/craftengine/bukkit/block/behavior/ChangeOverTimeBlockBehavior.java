@@ -3,8 +3,10 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -14,7 +16,7 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 
 import java.util.List;
 
-public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior {
+public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior implements RandomTickBlock {
     public static final BlockBehaviorFactory<ChangeOverTimeBlockBehavior> FACTORY = new Factory();
     public final float changeSpeed;
     public final String nextBlock;
@@ -53,6 +55,11 @@ public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior {
             nextState = nextState.withProperties(filter(state.propertiesNbt()));
             CraftEventFactoryProxy.INSTANCE.handleBlockFormEvent(args[1], args[2], nextState.minecraftState(), UpdateFlags.UPDATE_ALL);
         });
+    }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        return true;
     }
 
     private static class Factory implements BlockBehaviorFactory<ChangeOverTimeBlockBehavior> {

@@ -13,7 +13,6 @@ items:
           overrides:
             push_reaction: destroy
             map_color: 15
-            is_randomly_ticking: true
         behaviors:
           - type: vertical_crop_block
             max_height: 4

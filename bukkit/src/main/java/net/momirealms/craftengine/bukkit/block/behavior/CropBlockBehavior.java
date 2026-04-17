@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.BonemealableBlock;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
@@ -42,7 +43,7 @@ import org.bukkit.World;
 import java.util.Optional;
 
 @SuppressWarnings("DuplicatedCode")
-public final class CropBlockBehavior extends BukkitBlockBehavior implements BonemealableBlock {
+public final class CropBlockBehavior extends BukkitBlockBehavior implements BonemealableBlock, RandomTickBlock {
     public static final BlockBehaviorFactory<CropBlockBehavior> FACTORY = new Factory();
     public final IntegerProperty ageProperty;
     public final float growSpeed;
@@ -57,6 +58,11 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         this.minGrowLight = minGrowLight;
         this.isBoneMealTarget = isBoneMealTarget;
         this.boneMealBonus = boneMealBonus;
+    }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        return !isMaxAge(state);
     }
 
     public int getAge(ImmutableBlockState state) {

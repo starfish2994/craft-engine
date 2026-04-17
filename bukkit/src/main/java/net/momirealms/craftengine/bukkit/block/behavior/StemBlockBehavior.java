@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.BonemealableBlock;
 import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
+import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -31,7 +32,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.pathfinder.PathCom
 
 import java.util.Optional;
 
-public final class StemBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock, BonemealableBlock {
+public final class StemBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock, BonemealableBlock, RandomTickBlock {
     public static final BlockBehaviorFactory<StemBlockBehavior> FACTORY = new Factory();
     private static final Object MAY_PLACE_FRUIT = BlockTags.getOrCreate(Key.of("minecraft:dirt"));
     public final IntegerProperty ageProperty;
@@ -55,6 +56,11 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
         this.minGrowLight = minGrowLight;
         this.tagMayPlaceFruit = Optional.ofNullable(tagMayPlaceFruit).orElse(MAY_PLACE_FRUIT);
         this.blockMayPlaceFruit = blockMayPlaceFruit;
+    }
+
+    @Override
+    public boolean canRandomlyTick(ImmutableBlockState state) {
+        return true;
     }
 
     @Override
