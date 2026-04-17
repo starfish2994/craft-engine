@@ -664,7 +664,7 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
             if (count <= 0 || isEmpty()) return 0;
 
             // 记录物品模板，用于后续生成 Item
-            Item template = this.items[0];
+            Item template = this.items[0].copyWithCount(1);
             int maxStack = template.maxStackSize();
             int remainingToTake = count;
             for (int i = this.items.length - 1; i >= 0 && remainingToTake > 0; i--) {

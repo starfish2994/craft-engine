@@ -184,21 +184,21 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             Item storedItem = controller.item();
             if (storedItem.isEmpty() || controller.itemCount() <= 0) return;
 
-            Item tool = player.getItemInHand(InteractionHand.MAIN_HAND);
-            boolean handEmpty = ItemUtils.isEmpty(tool);
+            Item itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
+            boolean handEmpty = itemInHand.isEmpty();
             boolean takeGroup = player.isSneaking();
 
             // 判断是否可以取出物品
             if (!handEmpty) {
-                boolean isHandFull = tool.count() == tool.maxStackSize();
-                boolean notSimilar = !tool.isSimilar(storedItem);
+                boolean isHandFull = itemInHand.count() == itemInHand.maxStackSize();
+                boolean notSimilar = !itemInHand.isSimilar(storedItem);
                 if (isHandFull || notSimilar) return;
             }
 
             // 计算可取出数量
             int takeAmount = 1;
             if (takeGroup) {
-                int available = ItemUtils.isEmpty(tool) ? storedItem.maxStackSize() : storedItem.maxStackSize() - tool.count();
+                int available = handEmpty ? storedItem.maxStackSize() : storedItem.maxStackSize() - itemInHand.count();
                 takeAmount = Math.min(available, controller.itemCount());
             }
 
@@ -207,7 +207,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                 if (handEmpty) {
                     player.setItemInHand(InteractionHand.MAIN_HAND, item);
                 } else {
-                    tool.grow(item.count());
+                    itemInHand.grow(item.count());
                 }
             }, true);
 
