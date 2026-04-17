@@ -26,6 +26,6 @@ public interface AbstractFurnaceBlockEntityProxy extends BaseContainerBlockEntit
     @FieldGetter(name = "items")
     List<Object> getItems(Object target);
 
-    @FieldGetter(name = "litTimeRemaining")
+    @FieldGetter(name = {"litTimeRemaining", "litTime"})
     int getLitTimeRemaining(Object target);
 }

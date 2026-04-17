@@ -10,7 +10,7 @@ import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 public interface ReloadableServerRegistriesProxy {
     ReloadableServerRegistriesProxy INSTANCE = ASMProxyFactory.create(ReloadableServerRegistriesProxy.class);
 
-    @ReflectionProxy(name = "net.minecraft.server.ReloadableServerRegistries$Holder")
+    @ReflectionProxy(name = "net.minecraft.server.ReloadableServerRegistries$Holder", activeIf = "min_version=1.20.5")
     interface HolderProxy {
         HolderProxy INSTANCE = ASMProxyFactory.create(HolderProxy.class);
 

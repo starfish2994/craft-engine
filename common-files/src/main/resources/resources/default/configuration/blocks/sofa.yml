@@ -1,7 +1,9 @@
 items:
   default:sleeper_sofa:
-    $$<=1.21.1:
-      client_bound_material: leather_horse_armor
+    $$<=1.21.3:
+      material: leather_horse_armor
+      client_bound_data:
+        overwritable_dyed_color: 130,168,51
     data:
       item_name: <!i><lang:item.default.sofa>
       remove_components:
@@ -52,8 +54,10 @@ items:
             item: default:sleeper_sofa
             tint_source: minecraft:dyed_color
   default:sofa_inner:
-    $$<=1.21.1:
-      client_bound_material: leather_horse_armor
+    $$<=1.21.3:
+      material: leather_horse_armor
+      client_bound_data:
+        overwritable_dyed_color: 130,168,51
     model:
       type: minecraft:model
       path: minecraft:item/custom/sofa_inner
@@ -61,8 +65,10 @@ items:
         - type: minecraft:dye
           value: 130,168,51
   default:sofa:
-    $$<=1.21.1:
-      client_bound_material: leather_horse_armor
+    $$<=1.21.3:
+      material: leather_horse_armor
+      client_bound_data:
+        overwritable_dyed_color: 130,168,51
     data:
       item_name: <!i><lang:item.default.sofa>
       remove_components:

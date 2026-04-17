@@ -24,7 +24,7 @@ public interface ClientboundUpdateAttributesPacketProxy extends PacketProxy {
     interface AttributeSnapshotProxy {
         AttributeSnapshotProxy INSTANCE = ASMProxyFactory.create(AttributeSnapshotProxy.class);
 
-        @ConstructorInvoker
+        @ConstructorInvoker(activeIf = "min_version=1.20.5")
         Object newInstance(@Type(clazz = HolderProxy.class) Object attribute,
                            double base,
                            Collection<?> modifiers);
