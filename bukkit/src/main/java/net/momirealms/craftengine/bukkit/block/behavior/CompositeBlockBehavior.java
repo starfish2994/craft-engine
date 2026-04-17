@@ -304,9 +304,9 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
     public boolean canBeReplaced(BlockPlaceContext context, ImmutableBlockState state) {
         // 有一个不能被替换，那就都不能被替换
         for (BlockBehavior behavior : this.behaviors) {
-            if (!behavior.canBeReplaced(context, state)) return false;
+            if (behavior.canBeReplaced(context, state)) return true;
         }
-        return true;
+        return false;
     }
 
     @Override

@@ -276,7 +276,7 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
 
     @Override
     public boolean canBeReplaced(BlockPlaceContext context, ImmutableBlockState state) {
-        return this.first.canBeReplaced(context, state) && this.second.canBeReplaced(context, state);
+        return this.first.canBeReplaced(context, state) || this.second.canBeReplaced(context, state);
     }
 
     @Override

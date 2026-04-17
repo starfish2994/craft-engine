@@ -334,7 +334,7 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
         private static final int[] SLOTS = new int[]{HOPPER_PLACE_SLOT, HOPPER_TAKE_SLOT};
         private Item templateItem = Item.empty();
         private int itemCount = 0;
-        private int maxStorageCount = this.behavior.maxStacks;
+        private int maxCount = this.behavior.maxStacks; // this.behavior.maxStacks * 1
 
         private Modern(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
             super(blockEntity, behavior);
@@ -349,10 +349,10 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
         private void setTemplateItem(@Nullable Item item) {
             if (item == null) {
                 this.templateItem = Item.empty();
-                this.maxStorageCount = this.behavior.maxStacks;
+                this.maxCount = this.behavior.maxStacks; // this.behavior.maxStacks * 1
             } else {
                 this.templateItem = item.copyWithCount(1);
-                this.maxStorageCount = this.behavior.maxStacks * item.maxStackSize();
+                this.maxCount = this.behavior.maxStacks * item.maxStackSize();
             }
         }
 
@@ -363,7 +363,7 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
 
         @Override
         public int maxCount() {
-            return this.maxStorageCount;
+            return this.maxCount;
         }
 
         private void addItemCount(int count) {

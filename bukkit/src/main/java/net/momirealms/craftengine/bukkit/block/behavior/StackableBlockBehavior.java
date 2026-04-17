@@ -49,11 +49,7 @@ public final class StackableBlockBehavior extends BukkitBlockBehavior {
         if (!this.items.contains(item.id())) {
             return false;
         }
-        Property<?> property = state.owner().value().getProperty(this.propertyName);
-        if (property == null || property.valueClass() != Integer.class) {
-            return false;
-        }
-        return (Integer) state.get(property) < this.amountProperty.max;
+        return state.get(this.amountProperty) < this.amountProperty.max;
     }
 
     @Override
@@ -64,11 +60,7 @@ public final class StackableBlockBehavior extends BukkitBlockBehavior {
         if (blockState == null) {
             return state;
         }
-        Property<?> property = blockState.owner().value().getProperty(this.propertyName);
-        if (property == null || property.valueClass() != Integer.class) {
-            return state;
-        }
-        return blockState.cycle(property);
+        return blockState.cycle(this.amountProperty);
     }
 
     private static class Factory implements BlockBehaviorFactory<StackableBlockBehavior> {
