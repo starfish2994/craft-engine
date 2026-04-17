@@ -33,7 +33,7 @@ public interface Recipe {
         return true;
     }
 
-    default boolean canBeSearchedByIngredients() {
+    default boolean canBeSearched() {
         return true;
     }
 }

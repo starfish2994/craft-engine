@@ -172,7 +172,7 @@ public final class CustomDyeRecipe extends CustomCraftingTableRecipe {
     }
 
     @Override
-    public boolean canBeSearchedByIngredients() {
+    public boolean canBeSearched() {
         return false;
     }
 

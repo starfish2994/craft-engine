@@ -138,7 +138,7 @@ public final class CustomSmithingTrimRecipe extends AbstractRecipe
     }
 
     @Override
-    public boolean canBeSearchedByIngredients() {
+    public boolean canBeSearched() {
         return false;
     }
 

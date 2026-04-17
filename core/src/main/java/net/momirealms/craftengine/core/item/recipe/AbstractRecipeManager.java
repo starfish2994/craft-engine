@@ -128,16 +128,16 @@ public abstract class AbstractRecipeManager implements RecipeManager {
         if (this.byId.containsKey(recipe.id())) return;
         this.byType.computeIfAbsent(recipe.type(), k -> new ArrayList<>()).add(recipe);
         this.byId.put(recipe.id(), recipe);
-        if (recipe instanceof AbstractFixedResultRecipe fixedResult) {
-            this.byResult.computeIfAbsent(fixedResult.result().item().id(), k -> new ArrayList<>()).add(recipe);
-        }
         if (recipe instanceof CustomBrewingRecipe brewingRecipe) {
             this.brewingRecipes.add(brewingRecipe);
         } else {
             this.nativeRecipes.add(recipe);
         }
         List<Ingredient> ingredients = recipe.ingredientsInUse();
-        if (recipe.canBeSearchedByIngredients()) {
+        if (recipe.canBeSearched()) {
+            if (recipe instanceof AbstractFixedResultRecipe fixedResult) {
+                this.byResult.computeIfAbsent(fixedResult.result().item().id(), k -> new ArrayList<>()).add(recipe);
+            }
             HashSet<Key> usedKeys = new HashSet<>();
             for (Ingredient ingredient : ingredients) {
                 for (UniqueKey holder : ingredient.items()) {

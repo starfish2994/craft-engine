@@ -161,10 +161,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public BlockBehavior createBlockBehavior(BlockDefinition blockDefinition, ConfigValue behaviorValue) {
         List<BlockBehavior> behaviors = new ArrayList<>(4);
-        // 用户自己设置的行为
-        if (behaviorValue != null) {
-           behaviors.addAll(behaviorValue.getAsList(v -> BlockBehaviors.fromConfig(blockDefinition, v.getAsSection())));
-        }
         // 硬编码旋转镜像行为
         for (Property<?> property : blockDefinition.properties()) {
             String propertyName = property.name();
@@ -176,6 +172,10 @@ public final class BukkitBlockManager extends AbstractBlockManager {
                     behaviors.add(behavior);
                 }
             }
+        }
+        // 用户自己设置的行为
+        if (behaviorValue != null) {
+           behaviors.addAll(behaviorValue.getAsList(v -> BlockBehaviors.fromConfig(blockDefinition, v.getAsSection())));
         }
         // 硬编码waterlogged行为
         Property<?> waterloggedProperty = blockDefinition.getProperty("waterlogged");
