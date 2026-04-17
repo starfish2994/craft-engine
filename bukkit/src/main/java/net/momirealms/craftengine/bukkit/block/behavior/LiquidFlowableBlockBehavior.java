@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.block.behavior.LiquidBlockContainer;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
@@ -12,7 +13,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
-public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior {
+public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior implements LiquidBlockContainer {
     public static final BlockBehaviorFactory<LiquidFlowableBlockBehavior> FACTORY = new Factory();
 
     private LiquidFlowableBlockBehavior(BlockDefinition blockDefinition) {

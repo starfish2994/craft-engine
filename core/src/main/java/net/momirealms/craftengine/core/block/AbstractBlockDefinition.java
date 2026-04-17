@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.block;
 
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
-import net.momirealms.craftengine.core.block.properties.Property;
+import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -16,13 +16,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.BiFunction;
 
 public abstract class AbstractBlockDefinition implements BlockDefinition {
     protected final Key id;
     protected final Holder.Reference<BlockDefinition> holder;
     protected final BlockStateVariantProvider variantProvider;
-    protected final BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> placementFunction;
     protected final ImmutableBlockState defaultState;
     protected final Map<EventTrigger, List<Function<Context>>> events;
     @Nullable
@@ -41,29 +39,6 @@ public abstract class AbstractBlockDefinition implements BlockDefinition {
         this.events = events;
         this.variantProvider = variantProvider;
         this.defaultState = this.variantProvider.getDefaultState();
-        List<BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState>> placements = new ArrayList<>(4);
-        for (Map.Entry<String, Property<?>> propertyEntry : this.variantProvider.properties().entrySet()) {
-            placements.add(Property.createStateForPlacement(propertyEntry.getKey(), propertyEntry.getValue()));
-        }
-        this.placementFunction = composite(placements);
-    }
-
-    private static BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> composite(List<BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState>> placements) {
-        return switch (placements.size()) {
-            case 0 -> (c, i) -> i;
-            case 1 -> placements.get(0);
-            case 2 -> {
-                BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> f1 = placements.get(0);
-                BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> f2 = placements.get(1);
-                yield (c, i) -> f2.apply(c, f1.apply(c, i));
-            }
-            default -> (c, i) -> {
-                for (BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> f : placements) {
-                    i = f.apply(c, i);
-                }
-                return i;
-            };
-        };
     }
 
     @Override
@@ -137,7 +112,6 @@ public abstract class AbstractBlockDefinition implements BlockDefinition {
 
     @Override
     public ImmutableBlockState getStateForPlacement(BlockPlaceContext context) {
-        ImmutableBlockState state = this.placementFunction.apply(context, defaultState());
-        return this.behavior.updateStateForPlacement(context, state);
+        return this.behavior.updateStateForPlacement(context, defaultState());
     }
 }

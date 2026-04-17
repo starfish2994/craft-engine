@@ -74,7 +74,7 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
                 return liquidBlockContainer.canPlaceLiquid(thisBlock, args);
             }
         }
-        return super.canPlaceLiquid(thisBlock, args);
+        return false;
     }
 
     @Override
@@ -84,7 +84,7 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
                 return liquidBlockContainer.placeLiquid(thisBlock, args);
             }
         }
-        return super.placeLiquid(thisBlock, args);
+        return false;
     }
 
     @Override
@@ -128,6 +128,7 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
         Object previous = args[0];
         for (BlockBehavior behavior : this.behaviors) {
             previous = behavior.updateShape(thisBlock, args);
+            args[0] = previous;
         }
         return previous;
     }
@@ -494,7 +495,7 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
                 }
             }
         }
-        return super.getPickupSound(thisBlock, args);
+        return Optional.empty();
     }
 
     @Override

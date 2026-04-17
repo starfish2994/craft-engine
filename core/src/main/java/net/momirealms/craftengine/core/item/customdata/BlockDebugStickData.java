@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.item.customdata;
 
 import net.momirealms.craftengine.core.block.BlockDefinition;
-import net.momirealms.craftengine.core.block.properties.Property;
+import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.util.Key;
 
 import java.util.HashMap;

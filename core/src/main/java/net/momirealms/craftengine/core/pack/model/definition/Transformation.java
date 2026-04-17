@@ -11,7 +11,9 @@ import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public final class Transformation {
     private static final String[] RIGHT_ROTATION = new String[]{"right_rotation", "right-rotation"};

@@ -7,8 +7,8 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
-import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.properties.type.SlabType;
+import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.block.property.type.SlabType;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.BlockItem;
@@ -26,13 +26,14 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.pathfinder.PathCom
 
 import java.util.Optional;
 
-public final class SlabBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock {
+public final class SlabBlockBehavior extends WaterloggedBlockBehavior implements PathFindingBlock {
     public static final BlockBehaviorFactory<SlabBlockBehavior> FACTORY = new Factory();
     public final Property<SlabType> typeProperty;
 
     private SlabBlockBehavior(BlockDefinition block,
-                              Property<SlabType> typeProperty) {
-        super(block);
+                              Property<SlabType> typeProperty,
+                              Property<Boolean> waterloggedProperty) {
+        super(block, waterloggedProperty);
         this.typeProperty = typeProperty;
     }
 
@@ -66,13 +67,13 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements Path
         BlockPos clickedPos = context.getClickedPos();
         ImmutableBlockState blockState = context.getLevel().getBlock(clickedPos).customBlockState();
         if (blockState != null && blockState.owner().value() == super.blockDefinition) {
-            if (super.waterloggedProperty != null)
-                blockState = blockState.with(super.waterloggedProperty, false);
+            if (this.waterloggedProperty != null)
+                blockState = blockState.with(this.waterloggedProperty, false);
             return blockState.with(this.typeProperty, SlabType.DOUBLE);
         } else {
             Object fluidState = BlockGetterProxy.INSTANCE.getFluidState(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(clickedPos));
-            if (super.waterloggedProperty != null)
-                state = state.with(super.waterloggedProperty, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
+            if (this.waterloggedProperty != null)
+                state = state.with(this.waterloggedProperty, FluidStateProxy.INSTANCE.getType(fluidState) == FluidsProxy.WATER);
             Direction clickedFace = context.getClickedFace();
             return clickedFace == Direction.DOWN || clickedFace != Direction.UP && context.getClickedLocation().y - (double) clickedPos.y() > (double) 0.5F ? state.with(this.typeProperty, SlabType.TOP) : state.with(this.typeProperty, SlabType.BOTTOM);
         }
@@ -95,10 +96,10 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements Path
     @Override
     public Object updateShape(Object thisBlock, Object[] args) {
         Object blockState = args[0];
-        if (super.waterloggedProperty == null) return blockState;
+        if (this.waterloggedProperty == null) return blockState;
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return blockState;
-        if (optionalCustomState.get().get(super.waterloggedProperty)) {
+        if (optionalCustomState.get().get(this.waterloggedProperty)) {
             LevelUtils.scheduleFluidTick(VersionHelper.isOrAbove1_21_2() ? args[2] : args[3], VersionHelper.isOrAbove1_21_2() ? args[3] : args[4], FluidsProxy.WATER, 5);
         }
         return blockState;
@@ -111,7 +112,7 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements Path
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return false;
         if (type == PathComputationTypeProxy.WATER) {
-            return super.waterloggedProperty != null && optionalCustomState.get().get(this.typeProperty) != SlabType.DOUBLE && optionalCustomState.get().get(super.waterloggedProperty);
+            return this.waterloggedProperty != null && optionalCustomState.get().get(this.typeProperty) != SlabType.DOUBLE && optionalCustomState.get().get(this.waterloggedProperty);
         }
         return false;
     }
@@ -122,7 +123,8 @@ public final class SlabBlockBehavior extends BukkitBlockBehavior implements Path
         public SlabBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SlabBlockBehavior(
                     block,
-                    BlockBehaviorFactory.getProperty(section.path(), block, "type", SlabType.class)
+                    BlockBehaviorFactory.getProperty(section.path(), block, "type", SlabType.class),
+                    BlockBehaviorFactory.getOptionalProperty(block, "waterlogged", Boolean.class)
             );
         }
     }

@@ -7,8 +7,8 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.properties.type.SofaShape;
+import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.block.property.type.SofaShape;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -20,15 +20,16 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsPro
 
 import java.util.Optional;
 
-public final class SofaBlockBehavior extends BukkitBlockBehavior {
+public final class SofaBlockBehavior extends WaterloggedBlockBehavior {
     public static final BlockBehaviorFactory<SofaBlockBehavior> FACTORY = new Factory();
     public final Property<Direction> facingProperty;
     public final Property<SofaShape> shapeProperty;
 
     private SofaBlockBehavior(BlockDefinition block,
                               Property<Direction> facing,
-                              Property<SofaShape> shape) {
-        super(block);
+                              Property<SofaShape> shape,
+                              Property<Boolean> waterlogged) {
+        super(block, waterlogged);
         this.facingProperty = facing;
         this.shapeProperty = shape;
     }
@@ -104,7 +105,8 @@ public final class SofaBlockBehavior extends BukkitBlockBehavior {
             return new SofaBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
-                    BlockBehaviorFactory.getProperty(section.path(), block, "shape", SofaShape.class)
+                    BlockBehaviorFactory.getProperty(section.path(), block, "shape", SofaShape.class),
+                    BlockBehaviorFactory.getOptionalProperty(block, "waterlogged", Boolean.class)
             );
         }
     }

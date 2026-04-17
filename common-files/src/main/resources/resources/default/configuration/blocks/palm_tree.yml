@@ -168,6 +168,7 @@ items:
     material: oak_leaves
     data:
       item_name: <!i><lang:item.default.palm_leaves>
+    client_bound_data:
       block_state: default:palm_leaves[persistent=true,waterlogged=false,distance=7]
     model:
       type: minecraft:model

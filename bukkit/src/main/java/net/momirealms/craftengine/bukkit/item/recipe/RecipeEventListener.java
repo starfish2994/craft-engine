@@ -18,7 +18,6 @@ import net.momirealms.craftengine.core.item.recipe.Recipe;
 import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.SingleItemInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
-import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.setting.value.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.value.ItemEquipment;
 import net.momirealms.craftengine.core.plugin.config.Config;

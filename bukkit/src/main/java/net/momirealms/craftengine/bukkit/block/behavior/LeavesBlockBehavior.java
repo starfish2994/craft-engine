@@ -8,7 +8,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.properties.Property;
+import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
@@ -34,14 +34,17 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
     public final int maxDistance;
     public final Property<Integer> distanceProperty;
     public final Property<Boolean> persistentProperty;
+    public final Property<Boolean> waterloggedProperty;
 
     private LeavesBlockBehavior(BlockDefinition block,
                                 Property<Integer> distanceProperty,
-                                Property<Boolean> persistentProperty) {
+                                Property<Boolean> persistentProperty,
+                                Property<Boolean> waterloggedProperty) {
         super(block);
         this.maxDistance = distanceProperty.possibleValues().getLast();
         this.distanceProperty = distanceProperty;
         this.persistentProperty = persistentProperty;
+        this.waterloggedProperty = waterloggedProperty;
     }
 
     public int getDistance(ImmutableBlockState state) {
@@ -159,7 +162,8 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior {
             return new LeavesBlockBehavior(
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "distance", Integer.class),
-                    BlockBehaviorFactory.getProperty(section.path(), block, "persistent", Boolean.class)
+                    BlockBehaviorFactory.getProperty(section.path(), block, "persistent", Boolean.class),
+                    BlockBehaviorFactory.getOptionalProperty(block, "waterlogged", Boolean.class)
             );
         }
     }

@@ -13,8 +13,8 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
-import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.properties.type.SingleBlockHalf;
+import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.block.property.type.SingleBlockHalf;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
@@ -55,6 +55,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
     public final Property<Direction> facingProperty;
     public final Property<Boolean> poweredProperty;
     public final Property<Boolean> openProperty;
+    public final Property<Boolean> waterloggedProperty;
     public final boolean canOpenWithHand;
     public final boolean canOpenByWindCharge;
     public final SoundData openSound;
@@ -65,6 +66,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
                                   Property<Direction> facingProperty,
                                   Property<Boolean> poweredProperty,
                                   Property<Boolean> openProperty,
+                                  Property<Boolean> waterloggedProperty,
                                   boolean canOpenWithHand,
                                   boolean canOpenByWindCharge,
                                   SoundData openSound,
@@ -74,6 +76,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
         this.facingProperty = facingProperty;
         this.poweredProperty = poweredProperty;
         this.openProperty = openProperty;
+        this.waterloggedProperty = waterloggedProperty;
         this.canOpenWithHand = canOpenWithHand;
         this.canOpenByWindCharge = canOpenByWindCharge;
         this.openSound = openSound;
@@ -83,9 +86,9 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
     @Override
     public Object updateShape(Object thisBlock, Object[] args) {
         Object blockState = args[0];
-        if (super.waterloggedProperty != null) {
+        if (this.waterloggedProperty != null) {
             BlockStateUtils.getOptionalCustomBlockState(blockState).ifPresent(customState -> {
-                if (customState.get(super.waterloggedProperty)) {
+                if (customState.get(this.waterloggedProperty)) {
                     LevelUtils.scheduleFluidTick(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
                 }
             });
@@ -147,7 +150,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
         if (type == PathComputationTypeProxy.LAND || type == PathComputationTypeProxy.AIR) {
             return optionalCustomState.get().get(this.openProperty);
         } else if (type == PathComputationTypeProxy.WATER) {
-            return optionalCustomState.get().get(super.waterloggedProperty);
+            return optionalCustomState.get().get(this.waterloggedProperty);
         }
         return false;
     }
@@ -259,6 +262,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
                     BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "powered", Boolean.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "open", Boolean.class),
+                    BlockBehaviorFactory.getOptionalProperty(block, "waterlogged", Boolean.class),
                     section.getBoolean(CAN_OPEN_WITH_HAND, true),
                     section.getBoolean(CAN_OPEN_BY_WIND_CHARGE, true),
                     openSound,

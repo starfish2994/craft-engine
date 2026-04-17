@@ -2,10 +2,7 @@ package net.momirealms.craftengine.bukkit.block;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import net.momirealms.craftengine.bukkit.block.behavior.BukkitBlockBehavior;
-import net.momirealms.craftengine.bukkit.block.behavior.CompositeBlockBehavior;
-import net.momirealms.craftengine.bukkit.block.behavior.DualBlockBehavior;
-import net.momirealms.craftengine.bukkit.block.behavior.EmptyBlockBehavior;
+import net.momirealms.craftengine.bukkit.block.behavior.*;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
@@ -15,6 +12,7 @@ import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviors;
 import net.momirealms.craftengine.core.block.parser.BlockStateParser;
+import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -158,28 +156,44 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         return new BukkitBlockBehavior(definition);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public BlockBehavior createBlockBehavior(BlockDefinition blockDefinition, ConfigValue behaviorValue) {
-        if (behaviorValue == null) {
-            return new BukkitBlockBehavior(blockDefinition);
-        } else if (behaviorValue.is(List.class)) {
-            List<BlockBehavior> behaviors = behaviorValue.getAsList(v -> BlockBehaviors.fromConfig(blockDefinition, v.getAsSection()));
-            switch (behaviors.size()) {
-                case 0 -> {
-                    return new BukkitBlockBehavior(blockDefinition);
-                }
-                case 1 -> {
-                    return behaviors.getFirst();
-                }
-                case 2 -> {
-                    return new DualBlockBehavior(blockDefinition, behaviors.get(0), behaviors.get(1));
-                }
-                default -> {
-                    return new CompositeBlockBehavior(blockDefinition, behaviors);
+        List<BlockBehavior> behaviors = new ArrayList<>(4);
+        // 用户自己设置的行为
+        if (behaviorValue != null) {
+           behaviors.addAll(behaviorValue.getAsList(v -> BlockBehaviors.fromConfig(blockDefinition, v.getAsSection())));
+        }
+        // 硬编码旋转镜像行为
+        for (Property<?> property : blockDefinition.properties()) {
+            String propertyName = property.name();
+            var behaviorGenerator = HardcodedPropertyBlockBehavior.HARD_CODED_PROPERTY_DATA.get(propertyName);
+
+            if (behaviorGenerator != null) {
+                HardcodedPropertyBlockBehavior behavior = behaviorGenerator.apply(blockDefinition, property);
+                if (behavior != null) {
+                    behaviors.add(behavior);
                 }
             }
-        } else {
-            return BlockBehaviors.fromConfig(blockDefinition, behaviorValue.getAsSection());
+        }
+        // 硬编码waterlogged行为
+        Property<?> waterloggedProperty = blockDefinition.getProperty("waterlogged");
+        if (waterloggedProperty != null && waterloggedProperty.valueClass() == Boolean.class) {
+            behaviors.add(new WaterloggedBlockBehavior(blockDefinition, (Property<Boolean>) waterloggedProperty));
+        }
+        switch (behaviors.size()) {
+            case 0 -> {
+                return new BukkitBlockBehavior(blockDefinition);
+            }
+            case 1 -> {
+                return behaviors.getFirst();
+            }
+            case 2 -> {
+                return new DualBlockBehavior(blockDefinition, behaviors.get(0), behaviors.get(1));
+            }
+            default -> {
+                return new CompositeBlockBehavior(blockDefinition, behaviors);
+            }
         }
     }
 

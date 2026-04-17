@@ -7,9 +7,9 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.block.properties.type.SingleBlockHalf;
-import net.momirealms.craftengine.core.block.properties.type.StairsShape;
+import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.block.property.type.SingleBlockHalf;
+import net.momirealms.craftengine.core.block.property.type.StairsShape;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -22,7 +22,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsPro
 import java.util.Optional;
 
 @SuppressWarnings("DuplicatedCode")
-public final class StairsBlockBehavior extends BukkitBlockBehavior {
+public final class StairsBlockBehavior extends WaterloggedBlockBehavior {
     public static final BlockBehaviorFactory<StairsBlockBehavior> FACTORY = new Factory();
     public final Property<Direction> facingProperty;
     public final Property<SingleBlockHalf> halfProperty;
@@ -31,8 +31,9 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
     private StairsBlockBehavior(BlockDefinition block,
                                 Property<Direction> facing,
                                 Property<SingleBlockHalf> half,
-                                Property<StairsShape> shape) {
-        super(block);
+                                Property<StairsShape> shape,
+                                Property<Boolean> waterloggedProperty) {
+        super(block, waterloggedProperty);
         this.facingProperty = facing;
         this.halfProperty = half;
         this.shapeProperty = shape;
@@ -127,7 +128,8 @@ public final class StairsBlockBehavior extends BukkitBlockBehavior {
                     block,
                     BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class),
                     BlockBehaviorFactory.getProperty(section.path(), block, "half", SingleBlockHalf.class),
-                    BlockBehaviorFactory.getProperty(section.path(), block, "shape", StairsShape.class)
+                    BlockBehaviorFactory.getProperty(section.path(), block, "shape", StairsShape.class),
+                    BlockBehaviorFactory.getOptionalProperty(block, "waterlogged", Boolean.class)
             );
         }
     }

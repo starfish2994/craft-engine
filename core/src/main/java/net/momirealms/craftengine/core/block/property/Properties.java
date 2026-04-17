@@ -1,6 +1,6 @@
-package net.momirealms.craftengine.core.block.properties;
+package net.momirealms.craftengine.core.block.property;
 
-import net.momirealms.craftengine.core.block.properties.type.*;
+import net.momirealms.craftengine.core.block.property.type.*;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;

@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.block.properties;
+package net.momirealms.craftengine.core.block.property;
 
 import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;

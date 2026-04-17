@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigType;
 import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
 import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSourceType;
-import net.momirealms.craftengine.core.block.properties.PropertyType;
+import net.momirealms.craftengine.core.block.property.PropertyType;
 import net.momirealms.craftengine.core.block.setting.BlockSettingsModifier;
 import net.momirealms.craftengine.core.block.setting.BlockSettingsModifierType;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureBehaviorTemplate;

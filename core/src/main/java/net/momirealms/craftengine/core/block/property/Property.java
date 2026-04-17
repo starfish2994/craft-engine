@@ -1,71 +1,15 @@
-package net.momirealms.craftengine.core.block.properties;
+package net.momirealms.craftengine.core.block.property;
 
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.SegmentedAngle;
-import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 @SuppressWarnings("unchecked")
 public abstract class Property<T extends Comparable<T>> {
-    public static final Map<String, Function<Property<?>, BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState>>> HARD_CODED_PLACEMENTS = new HashMap<>();
-
-    static {
-        HARD_CODED_PLACEMENTS.put("axis", (property -> {
-            Property<Direction.Axis> axisProperty = (Property<Direction.Axis>) property;
-            return (context, state) -> state.with(axisProperty, context.getClickedFace().axis());
-        }));
-        HARD_CODED_PLACEMENTS.put("facing", (property -> {
-            if (property.valueClass() == Direction.class) {
-                Property<Direction> directionProperty = (Property<Direction>) property;
-                List<?> values = property.possibleValues();
-                if (values.size() == 6) {
-                    return (context, state) -> state.with(directionProperty, context.getNearestLookingDirection().opposite());
-                } else if (values.size() == 4 && !values.contains(Direction.UP) && !values.contains(Direction.DOWN)) {
-                    return (context, state) -> state.with(directionProperty, context.getHorizontalDirection().opposite());
-                } else if (values.size() == 2) {
-                    // todo vertical
-                }
-            }
-            return (context, state) -> state;
-        }));
-        HARD_CODED_PLACEMENTS.put("facing_clockwise", (property -> {
-            if (property.valueClass() == Direction.class) {
-                Property<Direction> directionProperty = (Property<Direction>) property;
-                return (context, state) -> state.with(directionProperty, context.getHorizontalDirection().clockWise());
-            } else {
-                return (context, state) -> state;
-            }
-        }));
-        HARD_CODED_PLACEMENTS.put("waterlogged", (property -> {
-            Property<Boolean> waterloggedProperty = (Property<Boolean>) property;
-            return (context, state) -> state.with(waterloggedProperty, context.isWaterSource());
-        }));
-        HARD_CODED_PLACEMENTS.put("rotation", property -> {
-            if (property.valueClass() == Integer.class) {
-                IntegerProperty rotationProperty = (IntegerProperty) property;
-                if (rotationProperty.min == 0 && rotationProperty.max > 0) {
-                    return (context, state) -> {
-                        float rotation = context.getRotation();
-                        SegmentedAngle segmentedAngle = new SegmentedAngle(rotationProperty.max + 1);
-                        return state.with(rotationProperty, segmentedAngle.fromDegrees(rotation + 180));
-                    };
-                }
-            }
-            return (context, state) -> state;
-        });
-    }
-
     private final Class<T> clazz;
     private final String name;
     @Nullable
@@ -175,12 +119,6 @@ public abstract class Property<T extends Comparable<T>> {
         public @NotNull String toString() {
             return this.property.name + "=" + this.property.valueName(this.value);
         }
-    }
-
-    public static BiFunction<BlockPlaceContext, ImmutableBlockState, ImmutableBlockState> createStateForPlacement(String id, Property<?> property) {
-        return Optional.ofNullable(HARD_CODED_PLACEMENTS.get(id))
-                .map(it -> it.apply(property))
-                .orElse(((context, state) -> ImmutableBlockState.with(state, property, property.defaultValue())));
     }
 
     @SuppressWarnings("unchecked")

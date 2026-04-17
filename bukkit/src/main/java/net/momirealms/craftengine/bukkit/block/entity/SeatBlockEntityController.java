@@ -4,7 +4,7 @@ import net.momirealms.craftengine.bukkit.block.behavior.SeatBlockBehavior;
 import net.momirealms.craftengine.bukkit.entity.seat.BukkitSeat;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
-import net.momirealms.craftengine.core.block.properties.Property;
+import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.entity.seat.SeatOwner;

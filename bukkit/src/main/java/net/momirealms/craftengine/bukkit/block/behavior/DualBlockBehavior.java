@@ -75,7 +75,7 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
         if (this.second instanceof LiquidBlockContainer lbc2) {
             return lbc2.canPlaceLiquid(thisBlock, args);
         }
-        return super.canPlaceLiquid(thisBlock, args);
+        return false;
     }
 
     @Override
@@ -86,7 +86,7 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
         if (this.second instanceof LiquidBlockContainer lbc2) {
             return lbc2.placeLiquid(thisBlock, args);
         }
-        return super.placeLiquid(thisBlock, args);
+        return false;
     }
 
     @Override
@@ -426,7 +426,7 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
             Optional<Object> s2 = (Optional<Object>) bp2.getPickupSound(thisBlock, args);
             if (s2.isPresent()) return s2;
         }
-        return super.getPickupSound(thisBlock, args);
+        return Optional.empty();
     }
 
     @Override

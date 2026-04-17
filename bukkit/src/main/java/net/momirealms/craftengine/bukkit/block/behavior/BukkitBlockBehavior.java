@@ -1,174 +1,24 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.LevelUtils;
-import net.momirealms.craftengine.bukkit.util.MirrorUtils;
-import net.momirealms.craftengine.bukkit.util.RotationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
-import net.momirealms.craftengine.core.block.properties.Property;
-import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.Mirror;
-import net.momirealms.craftengine.core.util.Rotation;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourcesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockStateProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 
-public class BukkitBlockBehavior extends BlockBehavior implements BukkitSimpleWaterloggedBlock {
-    private static final Map<String, BiConsumer<@NotNull BukkitBlockBehavior, Property<?>>> HARD_CODED_PROPERTY_DATA = new HashMap<>();
+public class BukkitBlockBehavior extends BlockBehavior {
 
-    static {
-        HARD_CODED_PROPERTY_DATA.put("axis", (behavior, property) -> {
-            @SuppressWarnings("unchecked")
-            Property<Direction.Axis> axisProperty = (Property<Direction.Axis>) property;
-            behavior.rotateFunction = (blockState, rotation) -> {
-                Direction.Axis axis = blockState.get(axisProperty);
-                return switch (rotation) {
-                    case COUNTERCLOCKWISE_90, CLOCKWISE_90 -> switch (axis) {
-                        case X -> blockState.with(axisProperty, Direction.Axis.Z).customBlockState().minecraftState();
-                        case Z -> blockState.with(axisProperty, Direction.Axis.X).customBlockState().minecraftState();
-                        default -> blockState.customBlockState().minecraftState();
-                    };
-                    default -> blockState.customBlockState().minecraftState();
-                };
-            };
-        });
-        HARD_CODED_PROPERTY_DATA.put("facing", (behavior, property) -> {
-            if (property.valueClass() == Direction.class) {
-                @SuppressWarnings("unchecked")
-                Property<Direction> directionProperty = (Property<Direction>) property;
-                behavior.rotateFunction = (blockState, rotation) ->
-                        blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty)))
-                                .customBlockState().minecraftState();
-                behavior.mirrorFunction = (blockState, mirror) -> {
-                    Rotation rotation = mirror.getRotation(blockState.get(directionProperty));
-                    return behavior.rotateFunction.rotate(blockState, rotation);
-                };
-            }
-        });
-        HARD_CODED_PROPERTY_DATA.put("facing_clockwise", (behavior, property) -> {
-            if (property.valueClass() == Direction.class) {
-                @SuppressWarnings("unchecked")
-                Property<Direction> directionProperty = (Property<Direction>) property;
-                behavior.rotateFunction = (blockState, rotation) ->
-                        blockState.with(directionProperty, rotation.rotate(blockState.get(directionProperty)))
-                                .customBlockState().minecraftState();
-                behavior.mirrorFunction = (blockState, mirror) -> {
-                    Rotation rotation = mirror.getRotation(blockState.get(directionProperty));
-                    return behavior.rotateFunction.rotate(blockState, rotation);
-                };
-            }
-        });
-    }
-
-    @Nullable
-    private MirrorFunction mirrorFunction;
-    @Nullable
-    private RotateFunction rotateFunction;
-    @Nullable
-    protected final Property<Boolean> waterloggedProperty;
-
-    @SuppressWarnings("unchecked")
     public BukkitBlockBehavior(BlockDefinition blockDefinition) {
         super(blockDefinition);
-        for (Property<?> property : blockDefinition.properties()) {
-            Optional.ofNullable(HARD_CODED_PROPERTY_DATA.get(property.name())).ifPresent(c -> c.accept(this, property));
-        }
-        this.waterloggedProperty = (Property<Boolean>) blockDefinition.getProperty("waterlogged");
-    }
-
-    @Override
-    public Object mirror(Object thisBlock, Object[] args) {
-        if (this.mirrorFunction != null) {
-            Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
-            if (optionalCustomState.isEmpty()) return args[0];
-            return this.mirrorFunction.mirror(optionalCustomState.get(), MirrorUtils.fromNMSMirror(args[1]));
-        }
-        return super.mirror(thisBlock, args);
-    }
-
-    @Override
-    public Object rotate(Object thisBlock, Object[] args) {
-        if (this.rotateFunction != null) {
-            Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(args[0]);
-            if (optionalCustomState.isEmpty()) return args[0];
-            return this.rotateFunction.rotate(optionalCustomState.get(), RotationUtils.fromNMSRotation(args[1]));
-        }
-        return super.rotate(thisBlock, args);
-    }
-
-    @FunctionalInterface
-    interface MirrorFunction {
-
-        Object mirror(ImmutableBlockState state, Mirror mirror);
-    }
-
-    @FunctionalInterface
-    interface RotateFunction {
-
-        Object rotate(ImmutableBlockState state, Rotation rotation);
-    }
-
-    private static final int pickupBlock$world = VersionHelper.isOrAbove1_20_2() ? 1 : 0;
-    private static final int pickupBlock$pos = VersionHelper.isOrAbove1_20_2() ? 2 : 1;
-    private static final int pickupBlock$blockState = VersionHelper.isOrAbove1_20_2() ? 3 : 2;
-
-    @Override
-    public Object pickupBlock(Object thisBlock, Object[] args) {
-        if (this.waterloggedProperty == null) return ItemStackProxy.EMPTY;
-        Object blockState = args[pickupBlock$blockState];
-        Object world = args[pickupBlock$world];
-        Object pos = args[pickupBlock$pos];
-        Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        if (optionalCustomState.isEmpty()) return ItemStackProxy.EMPTY;
-        ImmutableBlockState immutableBlockState = optionalCustomState.get();
-        if (immutableBlockState.get(this.waterloggedProperty)) {
-            LevelWriterProxy.INSTANCE.setBlock(world, pos, immutableBlockState.with(this.waterloggedProperty, false).customBlockState().minecraftState(), 3);
-            return ItemStackProxy.INSTANCE.newInstance(ItemsProxy.WATER_BUCKET, 1);
-        }
-        return ItemStackProxy.EMPTY;
-    }
-
-    @Override
-    public boolean placeLiquid(Object thisBlock, Object[] args) {
-        if (this.waterloggedProperty == null) return false;
-        Object blockState = args[2];
-        Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        if (optionalCustomState.isEmpty()) return false;
-        ImmutableBlockState immutableBlockState = optionalCustomState.get();
-        Object fluidType = FluidStateProxy.INSTANCE.getType(args[3]);
-        if (!immutableBlockState.get(this.waterloggedProperty) && fluidType == FluidsProxy.WATER) {
-            LevelWriterProxy.INSTANCE.setBlock(args[0], args[1], immutableBlockState.with(this.waterloggedProperty, true).customBlockState().minecraftState(), 3);
-            LevelUtils.scheduleFluidTick(args[0], args[1], fluidType, 5);
-            return true;
-        }
-        return false;
-    }
-
-    private static final int canPlaceLiquid$liquid = VersionHelper.isOrAbove1_20_2() ? 4 : 3;
-
-    @Override
-    public boolean canPlaceLiquid(Object thisBlock, Object[] args) {
-        if (this.waterloggedProperty == null) return false;
-        return args[canPlaceLiquid$liquid] == FluidsProxy.WATER;
     }
 
     protected static final int updateShape$level = VersionHelper.isOrAbove1_21_2() ? 1 : 3;
