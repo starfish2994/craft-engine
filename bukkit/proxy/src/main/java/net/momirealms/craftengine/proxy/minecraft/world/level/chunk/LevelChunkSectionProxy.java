@@ -75,4 +75,10 @@ public interface LevelChunkSectionProxy {
 
     @FieldSetter(name = "knownBlockCollisionData", activeIf = "max_version=1.20.1")
     void setKnownBlockCollisionData(Object target, long[] knownBlockCollisionData);
+
+    @FieldGetter(name = "fluidCount", activeIf = "min_version=26.1")
+    short getFluidCount(Object target);
+
+    @FieldSetter(name = "fluidCount", activeIf = "min_version=26.1")
+    void setFluidCount(Object target, short fluidCount);
 }
