@@ -24,6 +24,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.PositionMoveRotat
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class ProjectilePacketHandler implements EntityPacketHandler {
@@ -103,13 +104,18 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         List<Object> itemDisplayValues = new ArrayList<>();
         Item displayedItem = BukkitItemManager.instance().createWrappedItem(this.projectile.metadata().item(), player);
         if (displayedItem == null) return itemDisplayValues;
+        displayedItem = BukkitItemManager.instance().s2c(displayedItem, player).orElse(displayedItem);
+
         ProjectileMeta meta = this.projectile.metadata();
 
         // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承.
         Item item = this.projectile.item();
         item.enchantments().ifPresent(displayedItem::setEnchantments);
         if (VersionHelper.isOrAbove1_20_5()) {
-            displayedItem.glint(item.glint().orElse(false));
+            Optional<Boolean> glint = item.glint();
+            if (glint.isPresent()) {
+                displayedItem.glint(glint.get());
+            }
         }
 
         ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);
@@ -123,8 +129,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
             ItemDisplayEntityData.InterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
         }
 
-        Object literalItem = displayedItem.minecraftItem();
-        ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(literalItem, itemDisplayValues);
+        ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(displayedItem.minecraftItem(), itemDisplayValues);
         ItemDisplayEntityData.DisplayType.addEntityDataIfNotDefaultValue(meta.displayType().id(), itemDisplayValues);
         ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(meta.billboard().id(), itemDisplayValues);
         return itemDisplayValues;
