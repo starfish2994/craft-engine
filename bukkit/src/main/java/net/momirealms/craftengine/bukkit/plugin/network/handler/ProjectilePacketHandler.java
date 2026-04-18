@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.plugin.network.NetworkManager;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
@@ -50,24 +51,34 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
     @Override
     public void handleSyncEntityPosition(NetWorkUser user, NMSPacketEvent event, Object packet) {
         Object positionMoveRotation = ClientboundEntityPositionSyncPacketProxy.INSTANCE.getValues(packet);
-        float xRot = PositionMoveRotationProxy.INSTANCE.getXRot(positionMoveRotation);
-        float yRot = PositionMoveRotationProxy.INSTANCE.getYRot(positionMoveRotation);
-        PositionMoveRotationProxy.INSTANCE.setXRot(positionMoveRotation, Math.clamp(-xRot, -90.0F, 90.0F));
-        PositionMoveRotationProxy.INSTANCE.setYRot(positionMoveRotation, -yRot);
+        event.replacePacket(ClientboundEntityPositionSyncPacketProxy.INSTANCE.newInstance(
+                ClientboundEntityPositionSyncPacketProxy.INSTANCE.getId(packet),
+                PositionMoveRotationProxy.INSTANCE.newInstance(
+                        PositionMoveRotationProxy.INSTANCE.getPosition(positionMoveRotation),
+                        PositionMoveRotationProxy.INSTANCE.getDeltaMovement(positionMoveRotation),
+                        -PositionMoveRotationProxy.INSTANCE.getYRot(positionMoveRotation),
+                        Math.clamp(-PositionMoveRotationProxy.INSTANCE.getXRot(positionMoveRotation), -90.0F, 90.0F)
+                ),
+                ClientboundEntityPositionSyncPacketProxy.INSTANCE.getOnGround(packet)
+        ));
     }
 
     @Override
     public void handleMoveAndRotate(NetWorkUser user, NMSPacketEvent event, Object packet) {
         float xRot = MiscUtils.unpackDegrees(ClientboundMoveEntityPacketProxy.INSTANCE.getXRot(packet));
         float yRot = MiscUtils.unpackDegrees(ClientboundMoveEntityPacketProxy.INSTANCE.getYRot(packet));
-        ClientboundMoveEntityPacketProxy.INSTANCE.setXRot(packet, MiscUtils.packDegrees(MiscUtils.clamp(-xRot, -90.0F, 90.0F)));
-        ClientboundMoveEntityPacketProxy.INSTANCE.setYRot(packet, MiscUtils.packDegrees(-yRot));
-        int entityId = ClientboundMoveEntityPacketProxy.INSTANCE.getEntityId(packet);
-        Object setEntityDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(entityId, this.createCustomProjectileEntityDataValues((Player) user));
-        event.replacePacket(ClientboundBundlePacketProxy.INSTANCE.newInstance(List.of(packet, setEntityDataPacket)));
+        event.replacePacket(ClientboundMoveEntityPacketProxy.PosRotProxy.INSTANCE.newInstance(
+                ClientboundMoveEntityPacketProxy.INSTANCE.getEntityId(packet),
+                ClientboundMoveEntityPacketProxy.INSTANCE.getXa(packet),
+                ClientboundMoveEntityPacketProxy.INSTANCE.getYa(packet),
+                ClientboundMoveEntityPacketProxy.INSTANCE.getZa(packet),
+                MiscUtils.packDegrees(-yRot),
+                MiscUtils.packDegrees(MiscUtils.clamp(-xRot, -90.0F, 90.0F)),
+                ClientboundMoveEntityPacketProxy.INSTANCE.getOnGround(packet)
+        ));
     }
 
-    public void convertAddCustomProjectilePacket(FriendlyByteBuf buf, ByteBufPacketEvent event) {
+    public void convertAddCustomProjectilePacket(FriendlyByteBuf buf, ByteBufPacketEvent event, NetWorkUser user) {
         UUID uuid = buf.readUUID();
         buf.readVarInt(); // type
         double x = buf.readDouble();
@@ -98,6 +109,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(xa);
         if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(ya);
         if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(za);
+        user.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(entityId, this.createCustomProjectileEntityDataValues((Player) user)), false);
     }
 
     public List<Object> createCustomProjectileEntityDataValues(Player player) {

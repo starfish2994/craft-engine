@@ -4569,7 +4569,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 int id = buf.readVarInt();
                 BukkitProjectileManager.instance().projectileByEntityId(id).ifPresentOrElse(customProjectile -> {
                     ProjectilePacketHandler handler = new ProjectilePacketHandler(customProjectile, id);
-                    handler.convertAddCustomProjectilePacket(buf, event);
+                    handler.convertAddCustomProjectilePacket(buf, event, user);
                     user.entityPacketHandlers().put(id, handler);
                 }, () -> {
                     if (fallback) {

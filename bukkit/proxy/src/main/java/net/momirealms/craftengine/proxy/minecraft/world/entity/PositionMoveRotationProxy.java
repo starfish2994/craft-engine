@@ -17,9 +17,9 @@ public interface PositionMoveRotationProxy {
     @FieldGetter(name = "xRot")
     float getXRot(Object target);
 
-    @FieldSetter(name = "yRot")
-    void setYRot(Object target, float yRot);
+    @FieldGetter(name = "position")
+    Object getPosition(Object target);
 
-    @FieldSetter(name = "xRot")
-    void setXRot(Object target, float xRot);
+    @FieldGetter(name = "deltaMovement")
+    Object getDeltaMovement(Object target);
 }

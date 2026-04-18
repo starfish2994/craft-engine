@@ -20,6 +20,9 @@ public interface ClientboundEntityPositionSyncPacketProxy extends PacketProxy {
     @FieldGetter(name = "id")
     int getId(Object target);
 
+    @FieldGetter(name = "onGround")
+    boolean getOnGround(Object target);
+
     @FieldGetter(name = "values")
     Object getValues(Object target);
 }
