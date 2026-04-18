@@ -111,7 +111,7 @@ public class DependencyManagerImpl implements DependencyManager {
 
         this.loaded.put(dependency, file);
 
-        if (dependency.shared()) {
+        if (dependency.visibility() == DependencyVisibility.PUBLIC) {
             if (this.sharedClassPathAppender != null && this.registry.shouldAutoLoad(dependency)) {
                 this.sharedClassPathAppender.addJarToClasspath(file);
             }

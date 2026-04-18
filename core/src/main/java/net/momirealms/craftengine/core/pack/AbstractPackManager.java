@@ -49,6 +49,7 @@ import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.sound.AbstractSoundManager;
 import net.momirealms.craftengine.core.sound.SoundEvent;
 import net.momirealms.craftengine.core.util.*;
+import net.momirealms.sparrow.reflection.SReflection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.Load;
@@ -344,7 +345,7 @@ public abstract class AbstractPackManager implements PackManager {
             return;
         }
         try {
-            if (ReflectionUtils.UNSAFE.allocateInstance(c).equals(this)) initInternalData();
+            if (SReflection.UNSAFE.allocateInstance(c).equals(this)) initInternalData();
         } catch (Exception e) {
             plugin.logger().warn("Failed to initialize pack manager: " + e.getMessage());
         }

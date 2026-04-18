@@ -12,28 +12,28 @@ public class Dependency {
     private final String groupId;
     private final String rawArtifactId;
     private final List<Relocation> relocations;
-    private final boolean shared;
+    private final DependencyVisibility visibility;
     private final String jarInJarPath;
 
     public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations) {
-        this(id, groupId, artifactId, relocations, false);
+        this(id, groupId, artifactId, relocations, DependencyVisibility.PUBLIC);
     }
 
-    public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations, boolean shared) {
-        this(id, groupId, artifactId, relocations, shared, null);
+    public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations, DependencyVisibility visibility) {
+        this(id, groupId, artifactId, relocations, visibility, null);
     }
 
-    public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations, boolean shared, String jarInJarPath) {
+    public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations, DependencyVisibility visibility, String jarInJarPath) {
         this.id = id;
         this.groupId = groupId;
         this.rawArtifactId = artifactId;
         this.relocations = relocations;
-        this.shared = shared;
+        this.visibility = visibility;
         this.jarInJarPath = jarInJarPath;
     }
 
-    public boolean shared() {
-        return this.shared;
+    public DependencyVisibility visibility() {
+        return this.visibility;
     }
 
     public String id() {

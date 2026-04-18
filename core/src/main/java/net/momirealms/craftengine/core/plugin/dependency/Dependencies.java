@@ -34,7 +34,7 @@ public final class Dependencies {
             "net.momirealms",
             "craft-engine-bukkit-proxy",
             Collections.emptyList(),
-            true,
+            DependencyVisibility.PUBLIC,
             "proxy.jarinjar"
     );
 
@@ -196,7 +196,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     );
 
     public static final Dependency ADVENTURE_API = new Dependency(
@@ -206,7 +206,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     );
 
     public static final Dependency ADVENTURE_NBT = new Dependency(
@@ -216,7 +216,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
@@ -231,7 +231,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
@@ -246,7 +246,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     );
 
     public static final Dependency EXAMINATION_STRING = new Dependency(
@@ -256,7 +256,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
@@ -271,7 +271,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
@@ -286,7 +286,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
@@ -301,7 +301,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
@@ -316,7 +316,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
@@ -331,7 +331,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
@@ -346,7 +346,7 @@ public final class Dependencies {
             List.of(Relocation.of("option", "net{}kyori{}option"),
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
-            true
+            DependencyVisibility.PUBLIC
     ) {
         @Override
         public String getVersion() {
