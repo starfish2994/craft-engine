@@ -43,25 +43,25 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
+    protected boolean canSurvive(Object thisBlock, Object state, Object level, Object blockPos) {
         int x = Vec3iProxy.INSTANCE.getX(blockPos) + this.direction.stepX();
         int y = Vec3iProxy.INSTANCE.getY(blockPos) + this.direction.stepY();
         int z = Vec3iProxy.INSTANCE.getZ(blockPos) + this.direction.stepZ();
         Object targetPos = BlockPosProxy.INSTANCE.newInstance(x, y, z);
-        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(world, targetPos);
+        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(level, targetPos);
 
         // Full
         if (this.checkFull && BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(
-                blockState, world, targetPos, DirectionUtils.toNMSDirection(this.direction.opposite()), SupportTypeProxy.FULL
+                blockState, level, targetPos, DirectionUtils.toNMSDirection(this.direction.opposite()), SupportTypeProxy.FULL
         )) {
             return true;
         }
         // Rigid
-        if (this.checkRigid && BlockProxy.INSTANCE.canSupportRigidBlock(world, targetPos)) {
+        if (this.checkRigid && BlockProxy.INSTANCE.canSupportRigidBlock(level, targetPos)) {
             return true;
         }
         // Center
-        if (this.checkCenter && BlockProxy.INSTANCE.canSupportCenter(world, targetPos, DirectionUtils.toNMSDirection(this.direction.opposite()))) {
+        if (this.checkCenter && BlockProxy.INSTANCE.canSupportCenter(level, targetPos, DirectionUtils.toNMSDirection(this.direction.opposite()))) {
             return true;
         }
         // 如果不允许堆叠, 则直接损坏.
@@ -85,7 +85,7 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
             y += this.direction.stepY();
             z += this.direction.stepZ();
             targetPos = BlockPosProxy.INSTANCE.newInstance(x, y, z);
-            blockState = BlockGetterProxy.INSTANCE.getBlockState(world, targetPos);
+            blockState = BlockGetterProxy.INSTANCE.getBlockState(level, targetPos);
 
             boolean isCurrentSame = BlockStateUtils.getOptionalCustomBlockState(blockState)
                     .map(immutableBlockState -> immutableBlockState.owner().value() == super.blockDefinition)

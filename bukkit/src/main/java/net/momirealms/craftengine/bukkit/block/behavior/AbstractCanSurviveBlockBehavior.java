@@ -83,7 +83,7 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
         return state;
     }
 
-    protected abstract boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos);
+    protected abstract boolean canSurvive(Object thisBlock, Object state, Object level, Object blockPos);
 
     protected static TagsAndState readTagsAndState(ConfigSection section, String prefix) {
         List<Object> mcTags = section.getList(new String[] {prefix + "_block_tags", prefix.replace("_", "-") + "-block-tags"}, v -> BlockTags.getOrCreate(v.getAsIdentifier()));

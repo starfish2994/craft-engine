@@ -346,20 +346,20 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     @Override
-    public boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
+    public boolean canSurvive(Object thisBlock, Object state, Object level, Object blockPos) {
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(state);
         if (optionalCustomState.isEmpty()) return false;
         int x = Vec3iProxy.INSTANCE.getX(blockPos);
         int y = Vec3iProxy.INSTANCE.getY(blockPos) - 1;
         int z = Vec3iProxy.INSTANCE.getZ(blockPos);
         Object belowPos = BlockPosProxy.INSTANCE.newInstance(x, y, z);
-        Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
+        Object belowState = BlockGetterProxy.INSTANCE.getBlockState(level, belowPos);
         if (optionalCustomState.get().get(this.halfProperty) == DoubleBlockHalf.UPPER) {
             Optional<ImmutableBlockState> belowCustomState = BlockStateUtils.getOptionalCustomBlockState(belowState);
             return belowCustomState.filter(immutableBlockState -> immutableBlockState.owner().value() == super.blockDefinition).isPresent();
         } else {
             return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isFaceSturdy(
-                    belowState, world, belowPos, DirectionProxy.UP,
+                    belowState, level, belowPos, DirectionProxy.UP,
                     SupportTypeProxy.FULL
             );
         }
