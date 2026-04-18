@@ -1,19 +1,17 @@
 package net.momirealms.craftengine.core.util;
 
+import cn.gtemc.reflection.ImplLookupGetter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.misc.Unsafe;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.lang.reflect.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public final class ReflectionUtils {
-    public static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
+    public static final MethodHandles.Lookup LOOKUP = ImplLookupGetter.IMPL_LOOKUP;
 
     private ReflectionUtils() {}
 
@@ -123,8 +121,12 @@ public final class ReflectionUtils {
 
     @NotNull
     public static <T extends AccessibleObject> T setAccessible(@NotNull final T o) {
-        o.setAccessible(true);
-        return o;
+        try {
+            o.setAccessible(true);
+            return o;
+        } catch (Throwable e) {
+            return o;
+        }
     }
 
     @Nullable
@@ -149,12 +151,21 @@ public final class ReflectionUtils {
         }
     }
 
-    public static MethodHandle unreflectConstructor(Constructor<?> constructor) throws IllegalAccessException {
+    @Nullable
+    public static MethodHandle unreflectGetter(Field field) {
+        try {
+            return LOOKUP.unreflectGetter(field);
+        } catch (IllegalAccessException e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    public static MethodHandle unreflectConstructor(Constructor<?> constructor) {
         try {
             return LOOKUP.unreflectConstructor(constructor);
         } catch (IllegalAccessException e) {
-            constructor.setAccessible(true);
-            return LOOKUP.unreflectConstructor(constructor);
+            return null;
         }
     }
 }
