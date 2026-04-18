@@ -345,7 +345,7 @@ public abstract class AbstractPackManager implements PackManager {
             return;
         }
         try {
-            if (SReflection.UNSAFE.allocateInstance(c).equals(this)) initInternalData();
+            if (SReflection.allocateInstance(c).equals(this)) initInternalData();
         } catch (Exception e) {
             plugin.logger().warn("Failed to initialize pack manager: " + e.getMessage());
         }

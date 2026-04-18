@@ -24,7 +24,7 @@ public final class MobEffectUtils {
 
     public static Object createPacket(Object mobEffect, int entityId, byte amplifier, int duration, boolean isAmbient, boolean isVisible, boolean showIcon) {
         try {
-            Object packet = SReflection.UNSAFE.allocateInstance(ClientboundUpdateMobEffectPacketProxy.CLASS);
+            Object packet = SReflection.getUnsafe().allocateInstance(ClientboundUpdateMobEffectPacketProxy.CLASS);
             ClientboundUpdateMobEffectPacketProxy.INSTANCE.setEntityId(packet, entityId);
             ClientboundUpdateMobEffectPacketProxy.INSTANCE.setEffectDurationTicks(packet, duration);
             if (VersionHelper.isOrAbove1_20_5()) {

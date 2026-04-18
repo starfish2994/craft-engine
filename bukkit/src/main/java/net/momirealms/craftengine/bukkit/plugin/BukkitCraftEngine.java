@@ -278,7 +278,7 @@ public final class BukkitCraftEngine extends CraftEngine {
 
     @Override
     public void setupProxy() {
-        BukkitProxy.init(VersionHelper.MINECRAFT_VERSION.version(), getPatches());
+        BukkitProxy.init(VersionHelper.MINECRAFT_VERSION.version(), getPatches(), ReflectionUtils.LOOKUP);
     }
 
     private void initASMProxies() {
