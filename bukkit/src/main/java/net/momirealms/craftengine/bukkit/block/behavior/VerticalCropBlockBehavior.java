@@ -74,10 +74,10 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior impleme
             if (currentHeight < this.maxHeight) {
                 // 计算更新之后的 Age
                 int age = currentState.get(ageProperty) + baseGrowth;
-                if (age < this.ageProperty.max && RandomUtils.generateRandomFloat(0, 1) < this.extraGrowChance) {
+                if (age < this.ageProperty.max && this.extraGrowChance > 0 && RandomUtils.generateRandomFloat(0, 1) < this.extraGrowChance) {
                     age++;
                 }
-                // 检查是否生长
+                // 检查是否需要生长
                 if (age >= this.ageProperty.max) {
                     Object nextPos = this.direction ? LocationUtils.above(blockPos) : LocationUtils.below(blockPos);
                     boolean success = VersionHelper.isOrAbove1_21_5()
