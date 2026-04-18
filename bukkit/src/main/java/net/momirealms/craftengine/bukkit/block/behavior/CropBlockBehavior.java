@@ -47,6 +47,8 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
     public static final BlockBehaviorFactory<CropBlockBehavior> FACTORY = new Factory();
     public final IntegerProperty ageProperty;
     public final float growSpeed;
+    public final int baseGrowth;
+    public final float extraGrowChance;
     public final int minGrowLight;
     public final boolean isBoneMealTarget;
     public final NumberProvider boneMealBonus;
@@ -55,6 +57,8 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         super(block);
         this.ageProperty = (IntegerProperty) ageProperty;
         this.growSpeed = growSpeed;
+        this.baseGrowth = (int) growSpeed;
+        this.extraGrowChance = growSpeed - baseGrowth;
         this.minGrowLight = minGrowLight;
         this.isBoneMealTarget = isBoneMealTarget;
         this.boneMealBonus = boneMealBonus;
@@ -88,9 +92,12 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         Object pos = args[2];
         if (getRawBrightness(level, pos) >= this.minGrowLight) {
             BlockStateUtils.getOptionalCustomBlockState(state).ifPresent(customState -> {
-                int age = this.getAge(customState);
-                if (age < this.ageProperty.max && RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
-                    LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
+                int age = this.getAge(customState) + baseGrowth;
+                if (age < this.ageProperty.max && this.extraGrowChance > 0 && RandomUtils.generateRandomFloat(0, 1) < this.extraGrowChance) {
+                    age++;
+                }
+                if (age < this.ageProperty.max) {
+                    LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(this.ageProperty, age).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
                 }
             });
         }
