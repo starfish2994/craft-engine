@@ -4,7 +4,7 @@ import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
-@ReflectionProxy(name = "net{}kyori{}adventure{}text{}Component", ignoreRelocation = true)
+@ReflectionProxy(name = "net{}kyori{}adventure{}text{}Component", ignoreRelocation = true, activeIf = "has_patch=paper")
 public interface ComponentProxy {
     ComponentProxy INSTANCE = ASMProxyFactory.create(ComponentProxy.class);
     Class<?> CLASS = SparrowClass.find("net{}kyori{}adventure{}text{}Component".replace("{}", "."));

@@ -5,7 +5,7 @@ import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
-@ReflectionProxy(name = {"io.papermc.paper.chunk.system.RegionizedPlayerChunkLoader", "ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader"})
+@ReflectionProxy(name = {"io.papermc.paper.chunk.system.RegionizedPlayerChunkLoader", "ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader"}, activeIf = "has_patch=paper")
 public interface RegionizedPlayerChunkLoaderProxy {
     RegionizedPlayerChunkLoaderProxy INSTANCE = ASMProxyFactory.create(RegionizedPlayerChunkLoaderProxy.class);
 

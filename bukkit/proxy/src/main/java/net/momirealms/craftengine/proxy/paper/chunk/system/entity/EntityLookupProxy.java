@@ -6,7 +6,7 @@ import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
-@ReflectionProxy(name = {"io.papermc.paper.chunk.system.entity.EntityLookup", "ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup"})
+@ReflectionProxy(name = {"io.papermc.paper.chunk.system.entity.EntityLookup", "ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup"}, activeIf = "has_patch=paper")
 public interface EntityLookupProxy {
     EntityLookupProxy INSTANCE = ASMProxyFactory.create(EntityLookupProxy.class);
 

@@ -16,6 +16,8 @@ import net.momirealms.craftengine.proxy.minecraft.util.datafix.fixes.ReferencesP
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
+import net.momirealms.craftengine.proxy.spottedleaf.dataconverter.minecraft.MCDataConverterProxy;
+import net.momirealms.craftengine.proxy.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistryProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.Tag;
@@ -102,8 +104,14 @@ public final class ItemStackUtils {
         Tag itemTag = tag;
         int currentVersion = VersionHelper.WORLD_VERSION;
         if (Config.enableItemDataFixerUpper() && dataVersion != currentVersion) {
-            Dynamic<Tag> input = new Dynamic<>(RegistryOps.SPARROW_NBT, itemTag);
-            itemTag = DataFixersProxy.INSTANCE.getDataFixer().update(ReferencesProxy.ITEM_STACK, input, dataVersion, currentVersion).getValue();
+            if (VersionHelper.isPaper()) {
+                Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, itemTag);
+                Object converted = MCDataConverterProxy.INSTANCE.convertTag(MCTypeRegistryProxy.ITEM_STACK, nmsTag, dataVersion, currentVersion);
+                itemTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, converted);
+            } else {
+                Dynamic<Tag> input = new Dynamic<>(RegistryOps.SPARROW_NBT, itemTag);
+                itemTag = DataFixersProxy.INSTANCE.getDataFixer().update(ReferencesProxy.ITEM_STACK, input, dataVersion, currentVersion).getValue();
+            }
         }
         final Tag finalItemTag = itemTag;
         if (VersionHelper.COMPONENT_RELEASE) {
