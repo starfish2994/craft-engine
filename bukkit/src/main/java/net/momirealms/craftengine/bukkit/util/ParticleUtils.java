@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.util;
 
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -45,7 +44,7 @@ public final class ParticleUtils {
             case ColorData data -> ColorUtils.toBukkit(data.color());
             case DustData data -> new Particle.DustOptions(ColorUtils.toBukkit(data.color()), data.size());
             case DustTransitionData data -> new Particle.DustTransition(ColorUtils.toBukkit(data.from()), ColorUtils.toBukkit(data.to()), data.size());
-            case ItemStackData data -> ItemStackUtils.getBukkitStack(BukkitItemManager.instance().s2c(data.item(), null).orElseGet(data::item));
+            case ItemStackData data -> ItemStackUtils.getBukkitStack(data.item());
             case JavaTypeData data -> data.data();
             case VibrationData data -> new Vibration(new Vibration.Destination.BlockDestination(new Location(world, x + data.destinationX().getDouble(context), y + data.destinationY().getDouble(context), y + data.destinationZ().getDouble(context))), data.arrivalTime().getInt(context));
             case TrailData data -> new Particle.Trail(new Location(world, x + data.targetX().getDouble(context), y + data.targetZ().getDouble(context), z + data.targetZ().getDouble(context)), ColorUtils.toBukkit(data.color()), data.duration().getInt(context));

@@ -123,10 +123,7 @@ import net.momirealms.craftengine.proxy.minecraft.core.IdMapProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.Vec3iProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.component.DataComponentExactPredicateProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.particles.BlockParticleOptionProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.particles.ParticleOptionsProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.particles.ParticleTypeProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.particles.ParticleTypesProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.particles.*;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.RegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
@@ -172,6 +169,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProx
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.trading.ItemCostProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
@@ -2649,13 +2647,26 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             int count = buf.readInt();
             Object option = StreamDecoderProxy.INSTANCE.decode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()));
             if (option == null) return;
-            if (!BlockParticleOptionProxy.CLASS.isInstance(option)) return;
-            Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
-            int id = BlockStateUtils.blockStateToId(blockState);
-            int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
-            if (remapped == id) return;
-            Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
-            Object remappedOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
+            Object newOption;
+            if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
+                Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
+                int id = BlockStateUtils.blockStateToId(blockState);
+                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
+                if (remapped == id) return;
+                Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
+                newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
+            } else if (ItemParticleOptionProxy.CLASS.isInstance(option)) {
+                BukkitItemManager itemManager = BukkitItemManager.instance();
+                Object itemStack = ItemParticleOptionProxy.INSTANCE.getItemStack(option);
+                if (VersionHelper.isOrAbove26_1()) {
+                    itemStack = ItemStackTemplateProxy.INSTANCE.create(itemStack);
+                }
+                Item item = itemManager.wrap(itemStack);
+                item = itemManager.s2c(item, (net.momirealms.craftengine.core.entity.player.Player) user).orElse(null);
+                if (item == null) return;
+                Object type = ItemParticleOptionProxy.INSTANCE.getType(option);
+                newOption = ItemParticleOptionProxy.INSTANCE.newInstance(type, item.minecraftItem());
+            } else return;
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
@@ -2669,7 +2680,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             buf.writeFloat(zDist);
             buf.writeFloat(maxSpeed);
             buf.writeInt(count);
-            StreamEncoderProxy.INSTANCE.encode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()), remappedOption);
+            StreamEncoderProxy.INSTANCE.encode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()), newOption);
         }
     }
 
@@ -2696,13 +2707,23 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             int count = buf.readInt();
             Object option = StreamDecoderProxy.INSTANCE.decode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()));
             if (option == null) return;
-            if (!BlockParticleOptionProxy.CLASS.isInstance(option)) return;
-            Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
-            int id = BlockStateUtils.blockStateToId(blockState);
-            int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
-            if (remapped == id) return;
-            Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
-            Object remappedOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
+            Object newOption;
+            if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
+                Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
+                int id = BlockStateUtils.blockStateToId(blockState);
+                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
+                if (remapped == id) return;
+                Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
+                newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
+            } else if (ItemParticleOptionProxy.CLASS.isInstance(option)) {
+                BukkitItemManager itemManager = BukkitItemManager.instance();
+                Object itemStack = ItemParticleOptionProxy.INSTANCE.getItemStack(option);
+                Item item = itemManager.wrap(itemStack);
+                item = itemManager.s2c(item, (net.momirealms.craftengine.core.entity.player.Player) user).orElse(null);
+                if (item == null) return;
+                Object type = ItemParticleOptionProxy.INSTANCE.getType(option);
+                newOption = ItemParticleOptionProxy.INSTANCE.newInstance(type, item.minecraftItem());
+            } else return;
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
@@ -2715,7 +2736,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             buf.writeFloat(zDist);
             buf.writeFloat(maxSpeed);
             buf.writeInt(count);
-            StreamEncoderProxy.INSTANCE.encode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()), remappedOption);
+            StreamEncoderProxy.INSTANCE.encode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()), newOption);
         }
     }
 
@@ -2744,13 +2765,22 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             Object deserializer = ParticleTypeProxy.INSTANCE.getDeserializer(particleType);
             Object option = ParticleOptionsProxy.DeserializerProxy.INSTANCE.fromNetwork(deserializer, particleType, PacketUtils.ensureNMSFriendlyByteBuf(buf));
             if (option == null) return;
-            if (!BlockParticleOptionProxy.CLASS.isInstance(option)) return;
-            Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
-            int id = BlockStateUtils.blockStateToId(blockState);
-            int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
-            if (remapped == id) return;
-            Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
-            Object remappedOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
+            Object type = ParticleOptionsProxy.INSTANCE.getType(option);
+            Object newOption;
+            if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
+                Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
+                int id = BlockStateUtils.blockStateToId(blockState);
+                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
+                if (remapped == id) return;
+                newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
+            } else if (ItemParticleOptionProxy.CLASS.isInstance(option)) {
+                BukkitItemManager itemManager = BukkitItemManager.instance();
+                Object itemStack = ItemParticleOptionProxy.INSTANCE.getItemStack(option);
+                Item item = itemManager.wrap(itemStack);
+                item = itemManager.s2c(item, (net.momirealms.craftengine.core.entity.player.Player) user).orElse(null);
+                if (item == null) return;
+                newOption = ItemParticleOptionProxy.INSTANCE.newInstance(type, item.minecraftItem());
+            } else return;
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
@@ -2764,7 +2794,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             buf.writeFloat(zDist);
             buf.writeFloat(maxSpeed);
             buf.writeInt(count);
-            ParticleOptionsProxy.INSTANCE.writeToNetwork(remappedOption, PacketUtils.ensureNMSFriendlyByteBuf(buf));
+            ParticleOptionsProxy.INSTANCE.writeToNetwork(newOption, PacketUtils.ensureNMSFriendlyByteBuf(buf));
         }
     }
 
