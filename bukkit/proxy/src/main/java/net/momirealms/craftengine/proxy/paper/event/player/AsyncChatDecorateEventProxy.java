@@ -7,7 +7,7 @@ import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
 @SuppressWarnings("UnstableApiUsage")
-@ReflectionProxy(clazz = AsyncChatDecorateEvent.class)
+@ReflectionProxy(clazz = AsyncChatDecorateEvent.class, activeIf = "has_patch=paper")
 public interface AsyncChatDecorateEventProxy {
     AsyncChatDecorateEventProxy INSTANCE = ASMProxyFactory.create(AsyncChatDecorateEventProxy.class);
 

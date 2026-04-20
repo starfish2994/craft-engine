@@ -5,7 +5,7 @@ import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
-@ReflectionProxy(name = "net{}kyori{}adventure{}text{}serializer{}gson{}GsonComponentSerializer", ignoreRelocation = true)
+@ReflectionProxy(name = "net{}kyori{}adventure{}text{}serializer{}gson{}GsonComponentSerializer", ignoreRelocation = true, activeIf = "has_patch=paper")
 public interface GsonComponentSerializerProxy {
     GsonComponentSerializerProxy INSTANCE = ASMProxyFactory.create(GsonComponentSerializerProxy.class);
     Gson GSON = INSTANCE.serializer(INSTANCE.gson());

@@ -4,7 +4,7 @@ import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
-@ReflectionProxy(name = {"io.papermc.paper.world.ChunkEntitySlices", "ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices"})
+@ReflectionProxy(name = {"io.papermc.paper.world.ChunkEntitySlices", "ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices"}, activeIf = "has_patch=paper")
 public interface ChunkEntitySlicesProxy {
     ChunkEntitySlicesProxy INSTANCE = ASMProxyFactory.create(ChunkEntitySlicesProxy.class);
 
