@@ -2665,7 +2665,11 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 item = itemManager.s2c(item, (net.momirealms.craftengine.core.entity.player.Player) user).orElse(null);
                 if (item == null) return;
                 Object type = ItemParticleOptionProxy.INSTANCE.getType(option);
-                newOption = ItemParticleOptionProxy.INSTANCE.newInstance(type, item.minecraftItem());
+                Object stack = item.minecraftItem();
+                if (VersionHelper.isOrAbove26_1()) {
+                    stack = ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(stack);
+                }
+                newOption = ItemParticleOptionProxy.INSTANCE.newInstance(type, stack);
             } else return;
             event.setChanged(true);
             buf.clear();
