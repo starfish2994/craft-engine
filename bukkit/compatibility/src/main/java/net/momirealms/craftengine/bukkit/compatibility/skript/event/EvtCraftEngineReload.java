@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.event;
 
-import ch.njol.skript.Skript;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
@@ -10,6 +9,7 @@ import ch.njol.skript.lang.SkriptParser;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.bukkit.registration.BukkitSyntaxInfos;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
@@ -18,13 +18,13 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 @Since("1.0")
 public final class EvtCraftEngineReload extends SkriptEvent {
 
-    public static void register() {
+    public static void register(SkriptAddon addon) {
         BukkitSyntaxInfos.Event<EvtCraftEngineReload> reloadEvent = BukkitSyntaxInfos.Event.builder(EvtCraftEngineReload.class, "CraftEngine Loaded")
                 .addPattern("(ce|craft(engine|-engine)) [first] (load[ed]|reload)")
                 .addDescription("Called when Craft-Engine resource loaded.")
                 .addEvent(CraftEngineReloadEvent.class)
                 .build();
-        Skript.instance().registry(SyntaxRegistry.class).register(BukkitSyntaxInfos.Event.KEY, reloadEvent);
+        addon.registry(SyntaxRegistry.class).register(BukkitSyntaxInfos.Event.KEY, reloadEvent);
     }
 
     private boolean onlyCheckFirstCall;

@@ -39,8 +39,7 @@ public final class EvtCustomClick extends SkriptEvent {
     public final static ClickEventTracker INTERACT_TRACKER = new ClickEventTracker(Skript.getInstance());
 
     @SuppressWarnings("unchecked")
-    public static void register() {
-        SkriptAddon addon = Skript.instance();
+    public static void register(SkriptAddon addon) {
         SyntaxRegistry syntaxRegistry = addon.registry(SyntaxRegistry.class);
         EventValueRegistry valueRegistry = addon.registry(EventValueRegistry.class);
 
@@ -59,7 +58,7 @@ public final class EvtCustomClick extends SkriptEvent {
 
         valueRegistry.register(EventValue.builder(FurnitureInteractEvent.class, Location.class).getter(FurnitureInteractEvent::location).time(EventValue.Time.NOW).build());
         valueRegistry.register(EventValue.builder(FurnitureInteractEvent.class, Player.class).getter(FurnitureInteractEvent::player).time(EventValue.Time.NOW).build());
-        valueRegistry.register(EventValue.builder(CustomBlockInteractEvent.class, Block.class).getter(e -> null).time(EventValue.Time.NOW).build());
+        valueRegistry.register(EventValue.builder(FurnitureInteractEvent.class, Block.class).getter(e -> null).time(EventValue.Time.NOW).build());
         valueRegistry.register(EventValue.builder(FurnitureInteractEvent.class, Entity.class).getter(e -> e.furniture().bukkitEntity()).time(EventValue.Time.NOW).build());
         valueRegistry.register(EventValue.builder(FurnitureInteractEvent.class, World.class).getter(e -> e.location().getWorld()).time(EventValue.Time.NOW).build());
     }

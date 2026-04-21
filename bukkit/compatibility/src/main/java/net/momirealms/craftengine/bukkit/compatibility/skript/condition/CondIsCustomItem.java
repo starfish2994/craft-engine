@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.condition;
 
-import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.conditions.base.PropertyCondition;
 import ch.njol.skript.doc.Description;
@@ -15,6 +14,7 @@ import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
@@ -23,12 +23,12 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 @Since("1.0")
 public final class CondIsCustomItem extends Condition {
 
-    public static void register() {
+    public static void register(SkriptAddon addon) {
         SyntaxInfo<CondIsCustomItem> condition = SyntaxInfo.builder(CondIsCustomItem.class)
                 .addPattern("%itemstack/itemtype/slot% (is [a[n]]|are) (custom|ce|craft-engine) item[s]")
                 .addPattern("%itemstack/itemtype/slot% (isn't|is not|aren't|are not) [a[n]] (custom|ce|craft-engine) item[s]")
                 .build();
-        Skript.instance().registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
+        addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
 
     private Expression<?> item;

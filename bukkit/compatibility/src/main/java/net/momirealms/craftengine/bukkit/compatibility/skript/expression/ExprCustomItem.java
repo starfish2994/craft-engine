@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 
-import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Name;
@@ -18,6 +17,7 @@ import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.registration.DefaultSyntaxInfos;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
@@ -30,12 +30,12 @@ import java.util.List;
 @Since("1.0")
 public final class ExprCustomItem extends SimpleExpression<ItemType> {
 
-    public static void register() {
+    public static void register(SkriptAddon addon) {
         DefaultSyntaxInfos.Expression<ExprCustomItem, ItemType> expression = DefaultSyntaxInfos.Expression.builder(ExprCustomItem.class, ItemType.class)
                 .priority(SyntaxInfo.SIMPLE)
                 .addPattern("[(the|a)] (custom|ce|craft-engine) item [with [namespace] id] %strings%")
                 .build();
-        Skript.instance().registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
+        addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
 
     private Expression<?> itemIds;
