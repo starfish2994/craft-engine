@@ -5,11 +5,20 @@ import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager
 import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.addon.SkriptAddon;
+import org.skriptlang.skript.registration.DefaultSyntaxInfos;
+import org.skriptlang.skript.registration.SyntaxRegistry;
 
 public final class ExprEntityFurnitureID extends SimplePropertyExpression<Object, String> {
 
-    public static void register() {
-        infoBuilder(ExprEntityFurnitureID.class, String.class, "[(custom|ce|craft-engine)] furniture [namespace] id", "entities", false);
+    public static void register(SkriptAddon addon) {
+        DefaultSyntaxInfos.Expression<ExprEntityFurnitureID, String> expression = infoBuilder(
+                ExprEntityFurnitureID.class, String.class,
+                "[(custom|ce|craft-engine)] furniture [namespace] id",
+                "entities",
+                false
+        ).build();
+        addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
 
     @Override

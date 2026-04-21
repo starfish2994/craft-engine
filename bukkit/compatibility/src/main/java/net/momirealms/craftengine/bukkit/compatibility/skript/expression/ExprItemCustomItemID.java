@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 
-import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.classes.Changer;
 import ch.njol.skript.doc.Description;
@@ -17,6 +16,7 @@ import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.registration.DefaultSyntaxInfos;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
@@ -27,13 +27,13 @@ import java.util.Optional;
 @Since("1.0")
 public final class ExprItemCustomItemID extends SimpleExpression<String> {
 
-    public static void register() {
+    public static void register(SkriptAddon addon) {
         DefaultSyntaxInfos.Expression<ExprItemCustomItemID, String> expression = DefaultSyntaxInfos.Expression.builder(ExprItemCustomItemID.class, String.class)
                 .priority(PropertyExpression.DEFAULT_PRIORITY)
                 .addPattern("(custom|ce|craft-engine) item [namespace] id of %itemstack/itemtype/slot%")
                 .addPattern("%itemstack/itemtype/slot%'[s] (custom|ce|craft-engine) item [namespace] id")
                 .build();
-        Skript.instance().registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
+        addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
 
     private Expression<?> itemStackExpr;

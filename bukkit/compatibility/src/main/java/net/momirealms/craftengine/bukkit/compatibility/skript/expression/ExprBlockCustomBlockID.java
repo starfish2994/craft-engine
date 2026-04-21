@@ -7,13 +7,21 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.addon.SkriptAddon;
+import org.skriptlang.skript.registration.DefaultSyntaxInfos;
+import org.skriptlang.skript.registration.SyntaxRegistry;
 
 import java.util.Optional;
 
 public final class ExprBlockCustomBlockID extends SimplePropertyExpression<Object, String> {
 
-    public static void register() {
-        infoBuilder(ExprBlockCustomBlockID.class, String.class, "(custom|ce|craft-engine) block [namespace] id", "blocks/blockdata/customblockstates", false);
+    public static void register(SkriptAddon addon) {
+        DefaultSyntaxInfos.Expression<ExprBlockCustomBlockID, String> expression = infoBuilder(
+                ExprBlockCustomBlockID.class, String.class,
+                "(custom|ce|craft-engine) block [namespace] id", "blocks/blockdata/customblockstates",
+                false
+        ).build();
+        addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
 
     @Override

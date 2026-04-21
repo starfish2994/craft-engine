@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.event;
 
-import ch.njol.skript.Skript;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
@@ -30,8 +29,7 @@ import java.util.List;
 @Since("1.0")
 public final class EvtCustomFurniture extends SkriptEvent {
 
-    public static void register() {
-        SkriptAddon addon = Skript.instance();
+    public static void register(SkriptAddon addon) {
         SyntaxRegistry syntaxRegistry = addon.registry(SyntaxRegistry.class);
         EventValueRegistry valueRegistry = addon.registry(EventValueRegistry.class);
 
