@@ -71,8 +71,8 @@ public final class SkriptHook {
                 CraftEngine.instance().logger().error("[兼容性] 插件需要更新 Skript 到 2.15.0 或更高版本。(当前版本: " + version + ")");
                 CraftEngine.instance().logger().error("[兼容性] 请前往 https://modrinth.com/plugin/skript 下载最新版本");
             } else {
-                CraftEngine.instance().logger().error("[Compatibility] Update Skript to v2.15.0+ (Current: " + version + ")");
-                CraftEngine.instance().logger().error("[Compatibility] Download latest version: https://modrinth.com/plugin/skript");
+                CraftEngine.instance().logger().error("[Compatibility] Update Skript to v2.15.0 or newer to enable additional features (Current version: " + version + ")");
+                CraftEngine.instance().logger().error("[Compatibility] Download latest version on: https://modrinth.com/plugin/skript");
             }
         }
         return isSupport;
