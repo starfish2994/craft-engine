@@ -1,24 +1,21 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
-import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
+import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
 import org.bukkit.entity.Entity;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Optional;
 
 public final class ExprEntityFurnitureID extends SimplePropertyExpression<Object, String> {
 
     public static void register() {
-        register(ExprEntityFurnitureID.class, String.class, "[(custom|ce|craft-engine)] furniture [namespace] id", "entities");
+        infoBuilder(ExprEntityFurnitureID.class, String.class, "[(custom|ce|craft-engine)] furniture [namespace] id", "entities", false);
     }
 
     @Override
     public @Nullable String convert(Object object) {
         if (object instanceof Entity entity) {
-            return Optional.ofNullable(CraftEngineFurniture.getLoadedFurnitureByMetaEntity(entity))
-                    .map(it -> it.id().toString())
-                    .orElse(null);
+            return entity.getPersistentDataContainer().get(BukkitFurnitureManager.FURNITURE_KEY, PersistentDataType.STRING);
         }
         return null;
     }

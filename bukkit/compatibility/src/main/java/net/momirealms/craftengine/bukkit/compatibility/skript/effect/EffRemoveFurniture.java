@@ -10,11 +10,16 @@ import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.registration.SyntaxInfo;
+import org.skriptlang.skript.registration.SyntaxRegistry;
 
 public final class EffRemoveFurniture extends Effect {
 
     public static void register() {
-        Skript.registerEffect(EffRemoveFurniture.class, "remove [(custom|ce|craft-engine)] furniture %entities%");
+        SyntaxInfo<EffRemoveFurniture> syntaxInfo = SyntaxInfo.builder(EffRemoveFurniture.class)
+                .addPattern("remove [(custom|ce|craft-engine)] furniture %entities%")
+                .build();
+        Skript.instance().syntaxRegistry().register(SyntaxRegistry.EFFECT, syntaxInfo);
     }
 
     private Expression<Entity> entities;

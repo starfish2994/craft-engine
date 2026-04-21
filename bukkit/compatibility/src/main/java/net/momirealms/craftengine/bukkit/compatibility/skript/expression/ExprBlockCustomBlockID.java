@@ -13,7 +13,7 @@ import java.util.Optional;
 public final class ExprBlockCustomBlockID extends SimplePropertyExpression<Object, String> {
 
     public static void register() {
-        register(ExprBlockCustomBlockID.class, String.class, "(custom|ce|craft-engine) block [namespace] id", "blocks/blockdata/customblockstates");
+        infoBuilder(ExprBlockCustomBlockID.class, String.class, "(custom|ce|craft-engine) block [namespace] id", "blocks/blockdata/customblockstates", false);
     }
 
     @Override

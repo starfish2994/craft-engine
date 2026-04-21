@@ -15,6 +15,8 @@ import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.registration.SyntaxInfo;
+import org.skriptlang.skript.registration.SyntaxRegistry;
 
 @Name("Is CraftEngine Item")
 @Description({"Checks if the Item is CraftEngine item."})
@@ -22,10 +24,11 @@ import org.jetbrains.annotations.Nullable;
 public final class CondIsCustomItem extends Condition {
 
     public static void register() {
-        Skript.registerCondition(CondIsCustomItem.class,
-                "%itemstack/itemtype/slot% (is [a[n]]|are) (custom|ce|craft-engine) item[s]",
-                "%itemstack/itemtype/slot% (isn't|is not|aren't|are not) [a[n]] (custom|ce|craft-engine) item[s]"
-        );
+        SyntaxInfo<CondIsCustomItem> condition = SyntaxInfo.builder(CondIsCustomItem.class)
+                .addPattern("%itemstack/itemtype/slot% (is [a[n]]|are) (custom|ce|craft-engine) item[s]")
+                .addPattern("%itemstack/itemtype/slot% (isn't|is not|aren't|are not) [a[n]] (custom|ce|craft-engine) item[s]")
+                .build();
+        Skript.instance().registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
 
     private Expression<?> item;
@@ -50,11 +53,7 @@ public final class CondIsCustomItem extends Condition {
             checkItemStack = slot.getItem();
         }
 
-        if (checkItemStack == null) return isNegated() ? true : false;
-
-        boolean exists = CraftEngineItems.isCustomItem(checkItemStack);
-        if (!exists) return isNegated() ? true : false;
-        return isNegated() ? false : true;
+        return isNegated() ^ (checkItemStack != null && CraftEngineItems.isCustomItem(checkItemStack));
     }
 
     @Override

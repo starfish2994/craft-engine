@@ -47,7 +47,7 @@ dependencies {
     compileOnly("com.viaversion:viaversion-api:5.5.1")
     compileOnly("com.viaversion:viaversion-bukkit:5.5.1")
     // Skript
-    compileOnly("com.github.SkriptLang:Skript:2.11.0")
+    compileOnly("com.github.SkriptLang:Skript:2.15.0")
     // FAWE
     compileOnly(platform("com.intellectualsites.bom:bom-newest:1.52"))
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")

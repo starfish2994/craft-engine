@@ -7,27 +7,27 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.util.Kleenean;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
-import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.registration.SyntaxInfo;
+import org.skriptlang.skript.registration.SyntaxRegistry;
 
 public final class CondIsFurniture extends Condition {
 
     public static void register() {
-        Skript.registerCondition(CondIsFurniture.class,
-                "%entities% (is|are) [a[n]] [(custom|ce|craft-engine)] furniture[s]",
-                "%entities% (is|are) (n't| not) [a[n]] [(custom|ce|craft-engine)] furniture[s]");
+        SyntaxInfo<CondIsFurniture> condition = SyntaxInfo.builder(CondIsFurniture.class)
+                .addPattern("%entities% (is|are) [a[n]] [(custom|ce|craft-engine)] furniture[s]")
+                .addPattern("%entities% (is|are) (n't| not) [a[n]] [(custom|ce|craft-engine)] furniture[s]")
+                .build();
+        Skript.instance().registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
 
     private Expression<Entity> entities;
 
     @Override
     public boolean check(Event event) {
-        return entities.check(event, entity -> {
-            BukkitFurniture baseEntity = CraftEngineFurniture.getLoadedFurnitureByMetaEntity(entity);
-            return baseEntity != null;
-        }, isNegated());
+        return entities.check(event, CraftEngineFurniture::isFurniture, isNegated());
     }
 
     @Override
