@@ -11,6 +11,6 @@ import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 public interface MCDataConverterProxy {
     MCDataConverterProxy INSTANCE = ASMProxyFactory.create(MCDataConverterProxy.class);
 
-    @MethodInvoker(name = "convertTag")
+    @MethodInvoker(name = "convertTag", isStatic = true)
     Object convertTag(@Type(clazz = MCDataTypeProxy.class) Object type, @Type(clazz = CompoundTagProxy.class) Object data, int fromVersion, int toVersion);
 }
