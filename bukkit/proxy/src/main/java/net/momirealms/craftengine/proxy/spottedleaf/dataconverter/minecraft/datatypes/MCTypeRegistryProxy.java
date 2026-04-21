@@ -9,6 +9,6 @@ public interface MCTypeRegistryProxy {
     MCTypeRegistryProxy INSTANCE = ASMProxyFactory.create(MCTypeRegistryProxy.class);
     Object ITEM_STACK = INSTANCE.getItemStack();
 
-    @FieldGetter(name = "ITEM_STACK")
+    @FieldGetter(name = "ITEM_STACK", isStatic = true)
     Object getItemStack();
 }
