@@ -10,13 +10,17 @@ import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import org.bukkit.block.Block;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.registration.SyntaxInfo;
+import org.skriptlang.skript.registration.SyntaxRegistry;
 
 public final class CondIsCustomBlock extends Condition {
 
     public static void register() {
-        Skript.registerCondition(CondIsCustomBlock.class,
-                "%blocks% (is|are) [a[n]] (custom|ce|craft-engine) block[s]",
-                "%blocks% (is|are) (n't| not) [a[n]] (custom|ce|craft-engine) block[s]");
+        SyntaxInfo<CondIsCustomBlock> condition = SyntaxInfo.builder(CondIsCustomBlock.class)
+                .addPattern("%blocks% (is|are) [a[n]] (custom|ce|craft-engine) block[s]")
+                .addPattern("%blocks% (is|are) (n't| not) [a[n]] (custom|ce|craft-engine) block[s]")
+                .build();
+        Skript.instance().registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
 
     private Expression<Block> blocks;

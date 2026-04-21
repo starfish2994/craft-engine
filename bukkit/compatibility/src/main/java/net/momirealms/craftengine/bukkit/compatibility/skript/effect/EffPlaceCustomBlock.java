@@ -11,11 +11,16 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.registration.SyntaxInfo;
+import org.skriptlang.skript.registration.SyntaxRegistry;
 
 public final class EffPlaceCustomBlock extends Effect {
 
     public static void register() {
-        Skript.registerEffect(EffPlaceCustomBlock.class, "place (custom|ce|craft-engine) block %customblockstates% [at] [%directions% %locations%]");
+        SyntaxInfo<EffPlaceCustomBlock> syntaxInfo = SyntaxInfo.builder(EffPlaceCustomBlock.class)
+                .addPattern("place (custom|ce|craft-engine) block %customblockstates% [at] [%directions% %locations%]")
+                .build();
+        Skript.instance().syntaxRegistry().register(SyntaxRegistry.EFFECT, syntaxInfo);
     }
 
     private Expression<ImmutableBlockState> blocks;
@@ -23,10 +28,10 @@ public final class EffPlaceCustomBlock extends Effect {
 
     @Override
     protected void execute(Event e) {
-        ImmutableBlockState[] os = blocks.getArray(e);
-        for (Location l : locations.getArray(e)) {
-            for (ImmutableBlockState o : os) {
-                CraftEngineBlocks.place(l, o, false);
+        ImmutableBlockState[] states = blocks.getArray(e);
+        for (Location location : locations.getArray(e)) {
+            for (ImmutableBlockState state : states) {
+                CraftEngineBlocks.place(location, state, false);
             }
         }
     }

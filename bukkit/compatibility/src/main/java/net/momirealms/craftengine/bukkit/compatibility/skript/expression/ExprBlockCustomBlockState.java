@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 public final class ExprBlockCustomBlockState extends SimplePropertyExpression<Object, ImmutableBlockState> {
 
     public static void register() {
-        register(ExprBlockCustomBlockState.class, ImmutableBlockState.class, "(custom|ce|craft-engine) block[ ]state", "blocks/blockdata");
+        infoBuilder(ExprBlockCustomBlockState.class, ImmutableBlockState.class, "(custom|ce|craft-engine) block[ ]state", "blocks/blockdata", false);
     }
 
     @Override
