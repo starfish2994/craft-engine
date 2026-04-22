@@ -33,7 +33,7 @@ dependencies {
     implementation("net.momirealms:craft-engine-nms-helper-mojmap:${rootProject.properties["nms_helper_version"]}")
     implementation("cn.gtemc:itembridge:${rootProject.properties["itembridge_version"]}")
     implementation("cn.gtemc:levelerbridge:${rootProject.properties["levelerbridge_version"]}")
-    implementation(files("${rootProject.rootDir}/libs/jni-internal-lookup.jar"))
+    implementation(files("${rootProject.rootDir}/libs/jni-internal-lookup-1.6.jar"))
 }
 
 paper {

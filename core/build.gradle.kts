@@ -25,7 +25,7 @@ dependencies {
     compileOnly("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     // Reflection
     compileOnly("net.momirealms:sparrow-reflection:${rootProject.properties["sparrow_reflection_version"]}")
-    compileOnly(files("${rootProject.rootDir}/libs/jni-internal-lookup.jar"))
+    compileOnly(files("${rootProject.rootDir}/libs/jni-internal-lookup-1.6.jar"))
 }
 
 tasks.shadowJar {
