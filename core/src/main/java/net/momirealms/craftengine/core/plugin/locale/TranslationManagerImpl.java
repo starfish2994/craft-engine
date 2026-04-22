@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.plugin.locale;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.craftengine.core.pack.Pack;
@@ -15,10 +14,8 @@ import net.momirealms.craftengine.core.plugin.config.yaml.TranslationConfigConst
 import net.momirealms.craftengine.core.plugin.text.minimessage.ImageTag;
 import net.momirealms.craftengine.core.plugin.text.minimessage.IndexedArgumentTag;
 import net.momirealms.craftengine.core.plugin.text.minimessage.ShiftTag;
-import net.momirealms.craftengine.core.util.AdventureHelper;
-import net.momirealms.craftengine.core.util.FileUtils;
-import net.momirealms.craftengine.core.util.GsonHelper;
-import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.util.*;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.Dump;
@@ -38,6 +35,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public final class TranslationManagerImpl implements TranslationManager {
     private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
@@ -53,6 +51,9 @@ public final class TranslationManagerImpl implements TranslationManager {
     private final Map<String, ServerLangData> serverLangData = new HashMap<>();
     private final LangParser langParser;
     private final TranslationParser translationParser;
+    private final Set<String> allLang;
+    private final List<Suggestion> allLangSuggestions;
+    private final Map<String, List<String>> locale2Countries;
     private Map<Locale, CachedTranslation> cachedTranslations = Map.of();
 
     public TranslationManagerImpl(Plugin plugin) {
@@ -80,6 +81,25 @@ public final class TranslationManagerImpl implements TranslationManager {
         } catch (Exception e) {
             CraftEngine.instance().logger().error("YAML syntax error in default translation file", e);
         }
+        Set<String> allLang = new HashSet<>();
+        try (InputStream inputStream = CraftEngine.instance().resourceStream("internal/lang/processed.json")) {
+            Objects.requireNonNull(inputStream);
+            JsonArray listJson = JsonParser.parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).getAsJsonArray();
+            for (JsonElement element : listJson) {
+                allLang.add(element.getAsString());
+            }
+        } catch (Exception e) {
+            CraftEngine.instance().logger().warn("Failed to load internal/lang/processed.json", e);
+        }
+        this.allLang = Collections.unmodifiableSet(allLang);
+        this.allLangSuggestions = this.allLang.stream().map(Suggestion::suggestion).toList();
+        this.locale2Countries = this.allLang.stream()
+                .map(lang -> lang.split("_"))
+                .filter(split -> split.length >= 2)
+                .collect(Collectors.groupingBy(
+                        split -> split[0],
+                        Collectors.mapping(split -> split[1], Collectors.toUnmodifiableList())
+                ));
     }
 
     private Set<String> getSupportedLanguages() {
@@ -326,22 +346,37 @@ public final class TranslationManagerImpl implements TranslationManager {
     @Override
     public void addClientTranslation(String langId, Map<String, String> translations) {
         if ("all".equals(langId)) {
-            ALL_LANG.forEach(lang -> this.clientLangData.computeIfAbsent(lang, k -> new ClientLangData())
+            this.allLang.forEach(lang -> this.clientLangData.computeIfAbsent(lang, k -> new ClientLangData())
                     .addTranslations(translations));
             return;
         }
 
-        if (ALL_LANG.contains(langId)) {
+        if (this.allLang.contains(langId)) {
             this.clientLangData.computeIfAbsent(langId, k -> new ClientLangData())
                     .addTranslations(translations);
             return;
         }
 
-        List<String> langCountries = LOCALE_2_COUNTRIES.getOrDefault(langId, Collections.emptyList());
+        List<String> langCountries = this.locale2Countries.getOrDefault(langId, Collections.emptyList());
         for (String lang : langCountries) {
             this.clientLangData.computeIfAbsent(langId + "_" + lang, k -> new ClientLangData())
                     .addTranslations(translations);
         }
+    }
+
+    @Override
+    public Set<String> allLang() {
+        return this.allLang;
+    }
+
+    @Override
+    public List<Suggestion> allLangSuggestions() {
+        return this.allLangSuggestions;
+    }
+
+    @Override
+    public Map<String, List<String>> locale2Countries() {
+        return this.locale2Countries;
     }
 
     // 为了解决如下的格式兼容 a.b.c

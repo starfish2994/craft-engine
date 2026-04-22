@@ -37,7 +37,7 @@ public final class SetLocaleCommand extends BukkitCommandFeature<CommandSender> 
                 .required("locale", StringParser.stringComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
-                        return CompletableFuture.completedFuture(TranslationManager.ALL_LANG_SUGGESTIONS);
+                        return CompletableFuture.completedFuture(TranslationManager.instance().allLangSuggestions());
                     }
                 }))
                 .handler(context -> {
