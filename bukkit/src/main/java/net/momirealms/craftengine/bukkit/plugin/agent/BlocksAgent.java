@@ -16,6 +16,7 @@ public final class BlocksAgent {
     public static void agentmain(String args, Instrumentation instrumentation) {
         transformer = new AgentBuilder.Default()
                 .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                .with(AgentBuilder.RedefinitionStrategy.REDEFINITION)
                 .type(ElementMatchers.named("net.minecraft.server.Bootstrap")
                         .or(ElementMatchers.named("net.minecraft.server.DispenserRegistry")))
                 .transform((builder, typeDescription, classLoader, module, protectionDomain) ->
