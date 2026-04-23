@@ -114,7 +114,6 @@ public final class BukkitCraftEngine extends CraftEngine {
 
     // 这个方法应该尽早被执行，最好是boostrap阶段
     public void injectRegistries() {
-        new Throwable("触发").printStackTrace();
         if (super.blockManager != null) return;
         try {
             BlockGenerator.init();
