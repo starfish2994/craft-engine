@@ -35,13 +35,13 @@ public final class ModernItemModel {
     @NotNull
     public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
-        if (this.oversizedInGui && max.isAtOrAbove(MinecraftVersion.V1_21_6)) {
+        if (this.oversizedInGui) { // 1.21.6
             json.addProperty("oversized_in_gui", true);
         }
         if (!this.handAnimationOnSwap) {
             json.addProperty("hand_animation_on_swap", false);
         }
-        if (this.swapAnimationScale != 1.0f && max.isAtOrAbove(MinecraftVersion.V1_21_11)) {
+        if (this.swapAnimationScale != 1.0f) { // 1.21.11
             json.addProperty("swap_animation_scale", this.swapAnimationScale);
         }
         json.add("model", this.model.toJson(min, max));

@@ -1,5 +1,8 @@
 package net.momirealms.craftengine.core.util;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentIteratorType;
@@ -21,6 +24,7 @@ import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.field.matcher.FieldMatcher;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -30,6 +34,9 @@ import java.util.stream.Collectors;
  */
 public final class AdventureHelper {
     public static final String EMPTY_COMPONENT = componentToJson(Component.empty());
+    private static final Cache<String, Pattern> PATTERN_CACHE = Caffeine.newBuilder()
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build();
     private final MiniMessage miniMessage;
     private final MiniMessage miniMessageStrict;
     private final MiniMessage miniMessageCustom;
@@ -349,15 +356,25 @@ public final class AdventureHelper {
     }
 
     public static Component replaceText(Component text, Map<String, ComponentProvider> replacements, Context context) {
-        if (replacements.isEmpty()) return text;
-        String patternString = replacements.keySet().stream()
-                .map(Pattern::quote)
-                .collect(Collectors.joining("|"));
-        return text.replaceText(builder ->
-                builder.match(Pattern.compile(patternString))
-                        .replacement((result, b) ->
-                                Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'")).apply(context)
-                        )
-        );
+        int size = replacements.size();
+        if (size == 0) return text;
+        if (size == 1) {
+            return text.replaceText(builder ->
+                    builder.matchLiteral(replacements.keySet().iterator().next())
+                            .replacement((result, b) ->
+                                    Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'")).apply(context)
+                            )
+            );
+        } else {
+            String patternString = replacements.keySet().stream()
+                    .map(Pattern::quote)
+                    .collect(Collectors.joining("|"));
+            return text.replaceText(builder ->
+                    builder.match(Objects.requireNonNull(PATTERN_CACHE.get(patternString, Pattern::compile)))
+                            .replacement((result, b) ->
+                                    Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'")).apply(context)
+                            )
+            );
+        }
     }
 }
