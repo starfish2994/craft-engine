@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    adventure(project, true)
+    adventure(project, JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 }
 
 tasks.shadowJar {
