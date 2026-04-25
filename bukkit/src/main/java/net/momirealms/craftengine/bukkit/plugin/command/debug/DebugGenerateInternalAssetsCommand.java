@@ -123,7 +123,24 @@ public final class DebugGenerateInternalAssetsCommand extends BukkitCommandFeatu
                         Files.createDirectories(resolve.getParent());
                         GsonHelper.writeJsonFile(allSounds, resolve);
                     } catch (IOException e) {
-                        plugin().logger().warn("Failed to collect textures", e);
+                        plugin().logger().warn("Failed to collect sounds", e);
+                    }
+
+                    // 收集lang
+                    JsonArray allLang = new JsonArray();
+                    try {
+                        Path allPath = minecraftNamespacePath.resolve("lang/_list.json");
+                        JsonObject langJson = GsonHelper.readJsonFile(allPath).getAsJsonObject();
+                        for (JsonElement file : langJson.getAsJsonArray("files")) {
+                            String string = file.getAsString();
+                            if ("deprecated.json".equals(string)) continue;
+                            allLang.add(string.substring(0, string.length() - ".json".length()));
+                        }
+                        Path resolve = internalPath.resolve("lang/processed.json");
+                        Files.createDirectories(resolve.getParent());
+                        GsonHelper.writeJsonFile(allLang, resolve);
+                    } catch (Exception e) {
+                        plugin().logger().warn("Failed to collect lang", e);
                     }
 
                     context.sender().sendMessage("Done");
