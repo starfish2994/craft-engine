@@ -1,80 +1,79 @@
 package net.momirealms
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 import org.gradle.kotlin.dsl.exclude
 
-fun DependencyHandlerScope.nbt(project: org.gradle.api.Project, impl : Boolean = false) {
-    fun v(key: String) = project.rootProject.property(key).toString()
-    val name = if (impl) "implementation" else "compileOnly"
-    add(name, "net.momirealms:sparrow-nbt:${v("sparrow_nbt_version")}")
-    add(name, "net.momirealms:sparrow-nbt-adventure:${v("sparrow_nbt_version")}")
-    add(name, "net.momirealms:sparrow-nbt-codec:${v("sparrow_nbt_version")}")
-    add(name, "net.momirealms:sparrow-nbt-legacy-codec:${v("sparrow_nbt_version")}")
+/**
+ * 获取依赖版本
+ */
+fun Project.ver(key: String): String {
+    return rootProject.properties[key].toString()
 }
 
-fun DependencyHandlerScope.common(project: org.gradle.api.Project) {
-    fun v(key: String) = project.rootProject.property(key).toString()
-    add("compileOnly", project.files("${project.rootProject.rootDir}/libs/boosted-yaml-${v("boosted_yaml_version")}.jar"))
-    add("compileOnly", "com.google.guava:guava:${v("guava_version")}")
-    add("compileOnly", "com.google.code.gson:gson:${v("gson_version")}")
-    add("compileOnly", "it.unimi.dsi:fastutil:${v("fastutil_version")}")
-    add("compileOnly", "org.joml:joml:${v("joml_version")}")
-    add("compileOnly", "org.snakeyaml:snakeyaml-engine:${v("snake_yaml_version")}")
-    add("compileOnly", "org.slf4j:slf4j-api:${v("slf4j_version")}")
-    add("compileOnly", "org.apache.logging.log4j:log4j-core:${v("log4j_version")}")
-    add("compileOnly", "com.github.ben-manes.caffeine:caffeine:${v("caffeine_version")}")
-    add("compileOnly", "commons-io:commons-io:${v("commons_io_version")}")
-    add("compileOnly", "com.mojang:datafixerupper:${v("datafixerupper_version")}")
-    add("compileOnly", "com.mojang:authlib:${v("authlib_version")}")
-    add("compileOnly", "ca.spottedleaf:concurrentutil:${v("concurrent_util_version")}")
-    add("compileOnly", "org.ahocorasick:ahocorasick:${v("ahocorasick_version")}")
-    add("compileOnly", "com.bucket4j:bucket4j_jdk17-core:${v("bucket4j_version")}")
-    add("compileOnly", "com.ezylang:EvalEx:${v("evalex_version")}")
-    add("compileOnly", "com.google.jimfs:jimfs:${v("jimfs_version")}")
+fun DependencyHandlerScope.nbt(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
+    configuration("net.momirealms:sparrow-nbt:${project.ver("sparrow_nbt_version")}")
+    configuration("net.momirealms:sparrow-nbt-adventure:${project.ver("sparrow_nbt_version")}")
+    configuration("net.momirealms:sparrow-nbt-codec:${project.ver("sparrow_nbt_version")}")
+    configuration("net.momirealms:sparrow-nbt-legacy-codec:${project.ver("sparrow_nbt_version")}")
 }
 
-fun DependencyHandlerScope.netty(project: org.gradle.api.Project) {
+fun DependencyHandlerScope.common(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
     fun v(key: String) = project.rootProject.property(key).toString()
-    add("compileOnly", "io.netty:netty-all:${v("netty_version")}")
-    add("compileOnly", "io.netty:netty-codec-http:${v("netty_version")}")
+    configuration(project.files("${project.rootProject.rootDir}/libs/boosted-yaml-${v("boosted_yaml_version")}.jar"))
+    configuration("com.google.guava:guava:${v("guava_version")}")
+    configuration("com.google.code.gson:gson:${v("gson_version")}")
+    configuration("it.unimi.dsi:fastutil:${v("fastutil_version")}")
+    configuration("org.joml:joml:${v("joml_version")}")
+    configuration("org.snakeyaml:snakeyaml-engine:${v("snake_yaml_version")}")
+    configuration("org.slf4j:slf4j-api:${v("slf4j_version")}")
+    configuration("org.apache.logging.log4j:log4j-core:${v("log4j_version")}")
+    configuration("com.github.ben-manes.caffeine:caffeine:${v("caffeine_version")}")
+    configuration("commons-io:commons-io:${v("commons_io_version")}")
+    configuration("com.mojang:datafixerupper:${v("datafixerupper_version")}")
+    configuration("com.mojang:authlib:${v("authlib_version")}")
+    configuration("ca.spottedleaf:concurrentutil:${v("concurrent_util_version")}")
+    configuration("org.ahocorasick:ahocorasick:${v("ahocorasick_version")}")
+    configuration("com.bucket4j:bucket4j_jdk17-core:${v("bucket4j_version")}")
+    configuration("com.ezylang:EvalEx:${v("evalex_version")}")
+    configuration("com.google.jimfs:jimfs:${v("jimfs_version")}")
 }
 
-fun DependencyHandlerScope.compression(project: org.gradle.api.Project) {
-    fun v(key: String) = project.rootProject.property(key).toString()
-    add("compileOnly", "com.github.luben:zstd-jni:${v("zstd_version")}")
-    add("compileOnly", "at.yawk.lz4:lz4-java:${v("lz4_version")}")
+fun DependencyHandlerScope.netty(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
+    configuration("io.netty:netty-all:${project.ver("netty_version")}")
+    configuration("io.netty:netty-codec-http:${project.ver("netty_version")}")
 }
 
-fun DependencyHandlerScope.cloud(project: org.gradle.api.Project) {
-    fun v(key: String) = project.rootProject.property(key).toString()
-    add("compileOnly", "com.mojang:brigadier:${v("mojang_brigadier_version")}")
-    add("compileOnly", "org.incendo:cloud-core:${v("cloud_core_version")}")
-    add("compileOnly", "org.incendo:cloud-minecraft-extras:${v("cloud_minecraft_extras_version")}")
-    add("compileOnly", "org.incendo:cloud-paper:${v("cloud_paper_version")}")
+fun DependencyHandlerScope.compression(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
+    configuration("com.github.luben:zstd-jni:${project.ver("zstd_version")}")
+    configuration("at.yawk.lz4:lz4-java:${project.ver("lz4_version")}")
 }
 
-fun DependencyHandlerScope.paperServer(project: org.gradle.api.Project) {
-    fun v(key: String) = project.rootProject.property(key).toString()
-    add("compileOnly", "io.papermc.paper:paper-api:${v("paper_version")}-R0.1-SNAPSHOT")
+fun DependencyHandlerScope.cloud(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
+    configuration("com.mojang:brigadier:${project.ver("mojang_brigadier_version")}")
+    configuration("org.incendo:cloud-core:${project.ver("cloud_core_version")}")
+    configuration("org.incendo:cloud-minecraft-extras:${project.ver("cloud_minecraft_extras_version")}")
+    configuration("org.incendo:cloud-paper:${project.ver("cloud_paper_version")}")
 }
 
-fun DependencyHandlerScope.asm(project: org.gradle.api.Project) {
-    fun v(key: String) = project.rootProject.property(key).toString()
-    add("compileOnly", "org.ow2.asm:asm:${v("asm_version")}")
-    add("compileOnly", "net.bytebuddy:byte-buddy:${v("byte_buddy_version")}")
-    add("compileOnly", "net.bytebuddy:byte-buddy-agent:${v("byte_buddy_version")}")
+fun DependencyHandlerScope.paperServer(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
+    configuration("io.papermc.paper:paper-api:${project.ver("paper_version")}-R0.1-SNAPSHOT")
 }
 
-fun DependencyHandlerScope.adventure(project: org.gradle.api.Project, impl : Boolean = false) {
-    fun v(key: String) = project.rootProject.property(key).toString()
-    val name = if (impl) "implementation" else "compileOnly"
-    add(name, "net.kyori:adventure-api:${v("adventure_bundle_version")}")
-    add(name, "net.kyori:adventure-text-minimessage:${v("adventure_bundle_version")}")
-    add(name, "net.kyori:adventure-text-serializer-json-legacy-impl:${v("adventure_bundle_version")}")
-    add(name, "net.kyori:adventure-text-serializer-legacy:${v("adventure_bundle_version")}")
-    val gsonSerializer = add(name, "net.kyori:adventure-text-serializer-gson:${v("adventure_bundle_version")}")
-    (gsonSerializer as? ExternalModuleDependency)?.apply {
-        exclude("com.google.code.gson", "gson")
+fun DependencyHandlerScope.asm(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
+    configuration("org.ow2.asm:asm:${project.ver("asm_version")}")
+    configuration("net.bytebuddy:byte-buddy:${project.ver("byte_buddy_version")}")
+    configuration("net.bytebuddy:byte-buddy-agent:${project.ver("byte_buddy_version")}")
+}
+
+fun DependencyHandlerScope.adventure(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
+    configuration("net.kyori:adventure-api:${project.ver("adventure_bundle_version")}")
+    configuration("net.kyori:adventure-text-minimessage:${project.ver("adventure_bundle_version")}")
+    configuration("net.kyori:adventure-text-serializer-json-legacy-impl:${project.ver("adventure_bundle_version")}")
+    configuration("net.kyori:adventure-text-serializer-legacy:${project.ver("adventure_bundle_version")}")
+    configuration("net.kyori:adventure-text-serializer-gson:${project.ver("adventure_bundle_version")}").apply {
+        (this as? ExternalModuleDependency)?.exclude("com.google.code.gson", "gson")
     }
 }

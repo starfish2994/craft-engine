@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    nbt(project, true)
+    nbt(project, JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
     netty(project)
     common(project)
     cloud(project)
