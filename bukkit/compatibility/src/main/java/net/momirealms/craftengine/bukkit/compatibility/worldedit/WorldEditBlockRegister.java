@@ -14,15 +14,19 @@ import net.momirealms.craftengine.core.block.parser.BlockStateParser;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.field.SField;
+import net.momirealms.sparrow.reflection.field.SparrowField;
 import net.momirealms.sparrow.reflection.field.matcher.FieldMatcher;
 import org.bukkit.Material;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 public final class WorldEditBlockRegister {
-    private static final SField field$BlockType$blockMaterial = SparrowClass.of(BlockType.class).getDeclaredSparrowField(FieldMatcher.named("blockMaterial")).mh();
+    @Nullable
+    private static final SField field$BlockType$blockMaterial = Optional.ofNullable(SparrowClass.of(BlockType.class).getDeclaredSparrowField(FieldMatcher.named("blockMaterial"))).map(SparrowField::mh).orElse(null);
     private static boolean init = false;
     private WorldEditBlockRegister() {}
 
