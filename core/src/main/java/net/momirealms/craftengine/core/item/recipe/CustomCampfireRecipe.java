@@ -51,7 +51,7 @@ public final class CustomCampfireRecipe extends CustomCookingRecipe {
                     section.getNonNullValue(INGREDIENTS, ConfigConstants.ARGUMENT_LIST, super::parseIngredient),
                     section.getInt("time", 80),
                     section.getFloat(EXP),
-                    MiscUtils.allOf(section.getList(CONDITIONS, CommonConditions::fromConfig))
+                    section.containsKey(CONDITIONS) ? MiscUtils.allOf(section.getList(CONDITIONS, CommonConditions::fromConfig)) : null
             );
         }
 
