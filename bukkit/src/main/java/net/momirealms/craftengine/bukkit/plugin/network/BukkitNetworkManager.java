@@ -259,7 +259,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     private static final String PACKET_ENCODER = "craftengine_encoder";
     private static final String PACKET_DECODER = "craftengine_decoder";
 
-    private final boolean hasModelEngine;
     private final boolean hasViaVersion;
     private final boolean hasAntiPopup;
 
@@ -269,8 +268,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     public BukkitNetworkManager(BukkitCraftEngine plugin) {
         super(plugin);
         instance = this;
-        Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
-        this.hasModelEngine = modelEngine != null && modelEngine.getPluginMeta().getVersion().startsWith("R4");
         this.hasViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         this.hasAntiPopup = Bukkit.getPluginManager().getPlugin("AntiPopup") != null;
         this.plugin = plugin;
@@ -739,10 +736,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 this.packetsConsumer.accept(player.connection(), packet, sendListener != null ? PacketSendListenerProxy.INSTANCE.thenRun(sendListener) : null);
             }
         }
-    }
-
-    public boolean hasModelEngine() {
-        return hasModelEngine;
     }
 
     public void simulatePacket(@NotNull NetWorkUser player, Object packet) {
