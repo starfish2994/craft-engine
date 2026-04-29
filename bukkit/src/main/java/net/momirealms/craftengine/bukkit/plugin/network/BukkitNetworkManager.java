@@ -591,6 +591,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 user.sendPacket(packet, false);
             }
             Channel channel = user.nettyChannel();
+            relocateChannel(channel);
             if (this.hasAntiPopup && Config.disableChatReport() && channel != null) {
                 if (Locale.getDefault() == Locale.SIMPLIFIED_CHINESE) {
                     plugin.logger().warn("CraftEngine 的禁用聊天举报功能和 AntiPopup 冲突，可能会导致 Emoji 解析异常，请卸载 AntiPopup 或关闭禁用聊天举报功能");
@@ -867,6 +868,21 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         addToPipeline(pipeline, new PluginChannelEncoder(user), new PluginChannelDecoder(user));
         channel.closeFuture().addListener((ChannelFutureListener) future -> handleDisconnection(user.nettyChannel()));
         setUser(channel, user);
+    }
+
+    // 再次进行重定位保证和 packetevents 的相对位置
+    public void relocateChannel(Channel channel) {
+        if (isFakeChannel(channel)) {
+            return;
+        }
+
+        ChannelPipeline pipeline = channel.pipeline();
+        int encoderIndex = pipeline.names().indexOf(PACKET_ENCODER);
+        if (encoderIndex == -1) return;
+
+        PluginChannelEncoder encoder = (PluginChannelEncoder) pipeline.remove(PACKET_ENCODER);
+        PluginChannelDecoder decoder = (PluginChannelDecoder) pipeline.remove(PACKET_DECODER);
+        addToPipeline(pipeline, new PluginChannelEncoder(encoder), new PluginChannelDecoder(decoder));
     }
 
     private void addToPipeline(ChannelPipeline pipeline, PluginChannelEncoder encoder, PluginChannelDecoder decoder) {
