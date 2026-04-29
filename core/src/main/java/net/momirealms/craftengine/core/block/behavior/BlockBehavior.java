@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldAccessor;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -38,7 +39,7 @@ public abstract class BlockBehavior {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getFirst(Class<T> tClass) {
+    public <T> @Nullable T getFirst(Class<T> tClass) {
         if (tClass.isInstance(this)) {
             return (T) this;
         }
