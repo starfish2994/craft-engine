@@ -78,7 +78,7 @@ public final class StairsBlockBehavior extends WaterloggedBlockBehavior {
         if (optionalCustomState1.isPresent()) {
             ImmutableBlockState anotherCustomState = optionalCustomState1.get();
             StairsBlockBehavior stairsBlockBehavior = anotherCustomState.behavior().getFirst(StairsBlockBehavior.class);
-            if (state.get(this.halfProperty) == anotherCustomState.get(stairsBlockBehavior.halfProperty)) {
+            if (stairsBlockBehavior != null && state.get(this.halfProperty) == anotherCustomState.get(stairsBlockBehavior.halfProperty)) {
                 Direction direction1 = anotherCustomState.get(stairsBlockBehavior.facingProperty);
                 if (direction1.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction1.opposite())) {
                     if (direction1 == direction.counterClockWise()) {
@@ -93,7 +93,7 @@ public final class StairsBlockBehavior extends WaterloggedBlockBehavior {
         if (optionalCustomState2.isPresent()) {
             ImmutableBlockState anotherCustomState = optionalCustomState2.get();
             StairsBlockBehavior stairsBlockBehavior = anotherCustomState.behavior().getFirst(StairsBlockBehavior.class);
-            if (state.get(this.halfProperty) == anotherCustomState.get(stairsBlockBehavior.halfProperty)) {
+            if (stairsBlockBehavior != null && state.get(this.halfProperty) == anotherCustomState.get(stairsBlockBehavior.halfProperty)) {
                 Direction direction2 = anotherCustomState.get(stairsBlockBehavior.facingProperty);
                 if (direction2.axis() != state.get(this.facingProperty).axis() && canTakeShape(state, level, pos, direction2)) {
                     if (direction2 == direction.counterClockWise()) {

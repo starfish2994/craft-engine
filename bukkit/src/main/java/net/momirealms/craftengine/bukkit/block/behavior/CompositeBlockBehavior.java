@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.world.WorldAccessor;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getFirst(Class<T> tClass) {
+    public <T> @Nullable T getFirst(Class<T> tClass) {
         for (BlockBehavior behavior : this.behaviors) {
             if (tClass.isInstance(behavior)) {
                 return (T) behavior;
