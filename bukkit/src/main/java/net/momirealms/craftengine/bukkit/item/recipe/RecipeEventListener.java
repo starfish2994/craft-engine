@@ -40,6 +40,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.CraftingContai
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.*;
+import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
@@ -355,7 +356,7 @@ public final class RecipeEventListener implements Listener {
             // 清理 QuickCache 的缓存.
             Chunk chunk = furnace.getBlock().getChunk();
             Object chunkAccess = WorldUtils.getMinecraftChunk(chunk);
-            Object blockEntity = ChunkAccessProxy.INSTANCE.getBlockEntities(chunkAccess).get(BlockPosProxy.INSTANCE.newInstance(furnace.getX(), furnace.getY(), furnace.getZ()));
+            Object blockEntity = BlockGetterProxy.INSTANCE.getBlockEntity(chunkAccess, LocationUtils.toBlockPos(furnace.getX(), furnace.getY(), furnace.getZ()));
             if (AbstractFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
                 Object quickCheck = AbstractFurnaceBlockEntityProxy.INSTANCE.getQuickCheck(blockEntity);
                 if (quickCheck instanceof Clearable clearable) {

@@ -717,14 +717,21 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private static void injectBlockEntities(Object levelChunk) {
-        Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
-        if (!(blockEntities instanceof MapListener<?,?>)) {
-            // <BlockPos, BlockEntity>
-            MapListener<Object, Object> mapListener = new MapListener<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
-            ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
-            // 修改当前区块存在的
-            for (Object blockEntity : blockEntities.values()) {
+        if (VersionHelper.isOrAbove1_21_11() && VersionHelper.isCanvas()) {
+            Object[] blockEntities = ChunkAccessProxy.INSTANCE.canvas$getAllBlockEntities(levelChunk);
+            for (Object blockEntity : blockEntities) {
                 BukkitRecipeManager.injectFurnaceBlockEntity(blockEntity);
+            }
+        } else {
+            Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
+            if (!(blockEntities instanceof MapListener<?,?>)) {
+                // <BlockPos, BlockEntity>
+                MapListener<Object, Object> mapListener = new MapListener<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
+                ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
+                // 修改当前区块存在的
+                for (Object blockEntity : blockEntities.values()) {
+                    BukkitRecipeManager.injectFurnaceBlockEntity(blockEntity);
+                }
             }
         }
     }

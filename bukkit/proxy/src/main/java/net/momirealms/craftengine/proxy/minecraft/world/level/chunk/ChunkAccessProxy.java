@@ -13,11 +13,14 @@ import java.util.Map;
 public interface ChunkAccessProxy {
     ChunkAccessProxy INSTANCE = ASMProxyFactory.create(ChunkAccessProxy.class);
 
-    @FieldGetter(name = "blockEntities")
+    @FieldGetter(name = "blockEntities", activeIf = "max_version=1.21.10 || !has_patch=canvas")
     Map<Object, Object> getBlockEntities(Object target);
 
-    @FieldSetter(name = "blockEntities")
+    @FieldSetter(name = "blockEntities", activeIf = "max_version=1.21.10 || !has_patch=canvas")
     void setBlockEntities(Object target, Map<Object, Object> value);
+
+    @MethodInvoker(name = "canvas$getAllBlockEntities", activeIf = "min_version=1.21.11 && has_patch=canvas")
+    Object[] canvas$getAllBlockEntities(Object target);
 
     @MethodInvoker(name = "isUnsaved")
     boolean isUnsaved(Object target);
