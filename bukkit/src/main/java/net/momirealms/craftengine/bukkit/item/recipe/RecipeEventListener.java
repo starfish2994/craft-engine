@@ -361,6 +361,8 @@ public final class RecipeEventListener implements Listener {
                 Object quickCheck = AbstractFurnaceBlockEntityProxy.INSTANCE.getQuickCheck(blockEntity);
                 if (quickCheck instanceof Clearable clearable) {
                     clearable.clear();
+                } else {
+                    BukkitRecipeManager.injectFurnaceBlockEntity(blockEntity);
                 }
             }
             // 检查旧的数据是否和当前要写入的一致, 一致就不写入了.
