@@ -117,6 +117,25 @@ public final class FileUtils {
         return files;
     }
 
+    public static void deleteEmptyParentDirectories(Path dir, Path stopPath) {
+        try {
+            if (Files.isDirectory(dir) && isDirectoryEmpty(dir)) {
+                Files.delete(dir);
+                Path parent = dir.getParent();
+                if (parent != null && !parent.equals(stopPath)) {
+                    deleteEmptyParentDirectories(parent, stopPath);
+                }
+            }
+        } catch (IOException ignored) {
+        }
+    }
+
+    private static boolean isDirectoryEmpty(Path dir) throws IOException {
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)) {
+            return !dirStream.iterator().hasNext();
+        }
+    }
+
     public static boolean isJsonFile(Path filePath) {
         return filePath.getFileName().toString().endsWith(".json");
     }

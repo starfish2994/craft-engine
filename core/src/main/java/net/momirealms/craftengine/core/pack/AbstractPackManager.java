@@ -311,14 +311,14 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public void uploadResourcePack() {
-        long time1 = System.currentTimeMillis();
+        Timestamp timestamp = new Timestamp();
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_started"));
         resourcePackHost().upload(Config.fileToUpload()).whenComplete((d, e) -> {
             if (e != null) {
                 this.plugin.logger().warn(TranslationManager.instance().plainTranslation("host.upload_failed"), e);
                 return;
             }
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_finished", String.valueOf(System.currentTimeMillis() - time1)));
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_finished", String.valueOf(timestamp.deltaMillis())));
             if (!Config.sendPackOnUpload()) return;
             for (Player player : this.plugin.networkManager().onlineUsers()) {
                 sendResourcePack(player);
@@ -658,7 +658,7 @@ public abstract class AbstractPackManager implements PackManager {
     @Override
     public void generateResourcePack() {
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_started"));
-        long time1 = System.currentTimeMillis();
+        Timestamp timestamp = new Timestamp();
 
         // Create cache data
         PackCacheData cacheData = new PackCacheData(this.plugin);
@@ -688,7 +688,6 @@ public abstract class AbstractPackManager implements PackManager {
             this.generateFonts(generatedPackPath);
             this.generateModels(generatedPackPath, this.plugin.itemManager());
             this.generateModels(generatedPackPath, this.plugin.blockManager());
-            this.generateBlockOverrides(generatedPackPath, true, Config.generateModAssets());
             this.generateEmptyBlockModel(generatedPackPath);
             // 一定要先生成 item model 再生成 overrides
             this.generateModernItemModels1_21_2(generatedPackPath);
@@ -700,6 +699,14 @@ public abstract class AbstractPackManager implements PackManager {
             this.generateClientLang(generatedPackPath);
             this.generateEquipments(generatedPackPath, revisions::add);
             this.generateParticle(generatedPackPath);
+
+            // 有地图兼容的情况下，先生成一半
+            boolean mapCompatibility = Config.enableMapPluginCompatibility();
+            if (mapCompatibility) {
+                this.generateBlockOverrides(generatedPackPath, false, true);
+            } else {
+                this.generateBlockOverrides(generatedPackPath, true, Config.generateModAssets());
+            }
 
             Path packMcMetaPath = generatedPackPath.resolve("pack.mcmeta");
             JsonObject packMcMeta;
@@ -716,16 +723,28 @@ public abstract class AbstractPackManager implements PackManager {
             if (Config.excludeShaders()) {
                 this.removeAllShaders(generatedPackPath);
             }
-            long time2 = System.currentTimeMillis();
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_finished", String.valueOf(time2 - time1)));
+
+            // 如果开启地图兼容，先校验一遍 mcmeta
+            if (mapCompatibility) {
+                this.validatePackMetadata(generatedPackPath.resolve("pack.mcmeta"), packMcMeta);
+                try {
+                    ZipUtils.compress(generatedPackPath, Config.mapPluginCompatibilityPath());
+                } catch (IOException e) {
+                    this.plugin.logger().error("Error creating map plugin resource pack", e);
+                }
+                // 再生成覆写原版的overrides
+                this.generateBlockOverrides(generatedPackPath, true, false);
+                if (!Config.generateModAssets()) {
+                    this.deleteModAssets(generatedPackPath);
+                }
+            }
+
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_finished", String.valueOf(timestamp.deltaMillis())));
 
             // 校验资源包
             if (Config.validateResourcePack()) {
                 this.validateResourcePack(generatedPackPath, packMcMeta);
-            }
-            long time3 = System.currentTimeMillis();
-            if (Config.validateResourcePack()) {
-                this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.validation_finished", String.valueOf(time3 - time2)));
+                this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.validation_finished", String.valueOf(timestamp.deltaMillis())));
             }
 
             // 验证完成后，应该重新校验pack.mcmeta并写入
@@ -734,29 +753,28 @@ public abstract class AbstractPackManager implements PackManager {
             // 优化资源包
             if (Config.optimizeResourcePack()) {
                 this.optimizeResourcePack(generatedPackPath);
+                this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_finished", String.valueOf(timestamp.deltaMillis())));
             }
-            long time4 = System.currentTimeMillis();
-            if (Config.optimizeResourcePack()) {
-                this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_finished", String.valueOf(time4 - time3)));
-            }
+
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_started"));
             Path finalPath = resourcePackPath();
             Files.createDirectories(finalPath.getParent());
+
+            // 生成无保护资源包
             if (VersionHelper.PREMIUM && Config.createUnprotectedCopy()) {
-                Path newPath = finalPath.resolveSibling("unprotected_" + finalPath.getFileName());
                 try {
-                    ZipUtils.compress(generatedPackPath, newPath);
+                    ZipUtils.compress(generatedPackPath, Config.unprotectedCopyPath());
                 } catch (IOException e) {
                     this.plugin.logger().error("Error creating unprotected resource pack", e);
                 }
             }
+            // 生成资源包
             try {
                 this.zipGenerator.accept(generatedPackPath, finalPath);
             } catch (Exception e) {
                 this.plugin.logger().error("Error creating resource pack", e);
             }
-            long time5 = System.currentTimeMillis();
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_finished", String.valueOf(time5 - time4)));
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_finished", String.valueOf(timestamp.deltaMillis())));
             this.generationEventDispatcher.accept(generatedPackPath, finalPath);
             if (Config.autoUpload() && resourcePackHost().canUpload()) {
                 uploadResourcePack();
@@ -2907,20 +2925,33 @@ public abstract class AbstractPackManager implements PackManager {
 
         // 生成模组资源，例如 craftengine:custom_0.json
         if (generateModAsset) {
-            for (Map.Entry<Key, JsonElement> entry : this.plugin.blockManager().modBlockStates().entrySet()) {
-                Key key = entry.getKey();
-                Path overridedBlockPath = generatedPackPath
-                        .resolve("assets")
-                        .resolve(key.namespace())
-                        .resolve("blockstates")
-                        .resolve(key.value() + ".json");
+            Path statesPath = generatedPackPath
+                    .resolve("assets")
+                    .resolve(Key.CRAFTENGINE_NAMESPACE)
+                    .resolve("blockstates");
+            for (Map.Entry<Integer, JsonElement> entry : this.plugin.blockManager().modBlockStates().entrySet()) {
                 JsonObject stateJson = new JsonObject();
                 JsonObject variants = new JsonObject();
                 stateJson.add("variants", variants);
                 variants.add("", entry.getValue());
-                writeJsonSafely(stateJson, overridedBlockPath);
+                writeJsonSafely(stateJson, statesPath.resolve("custom_" + entry.getKey() + ".json"));
             }
         }
+    }
+
+    private void deleteModAssets(Path generatedPackPath) {
+        Path assetPath = generatedPackPath.resolve("assets");
+        Path blockStatePath = assetPath.resolve(Key.CRAFTENGINE_NAMESPACE).resolve("blockstates");
+        for (Map.Entry<Integer, JsonElement> entry : this.plugin.blockManager().modBlockStates().entrySet()) {
+            Path overridedBlockPath = blockStatePath.resolve("custom_" + entry.getKey() + ".json");
+            if (Files.exists(overridedBlockPath)) {
+                try {
+                    Files.delete(overridedBlockPath);
+                } catch (IOException ignored) {
+                }
+            }
+        }
+        FileUtils.deleteEmptyParentDirectories(blockStatePath, assetPath);
     }
 
     private void generateModernItemModels1_21_2(Path generatedPackPath) {

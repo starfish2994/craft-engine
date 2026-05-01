@@ -71,12 +71,19 @@ resource-pack:
       enable: true
       exclude: []
 
+  # Enabling this option generates a resource pack that is compatible with other map plugins, such as BlueMap.
+  map-plugin-compatibility:
+    enable: false
+    path: "./generated/resource_pack_map.zip"
+
   # [Premium Exclusive]
   # Protect your resource pack from being cracked by others
   protection:
     # Create a copy without any protection applied. This copy is entirely created using the standard Java library
     # and maintains good compatibility with other programs (such as bedrock resource pack converters).
-    unprotected-copy: false
+    unprotected-copy:
+      enable: false
+      path: "./generated/resource_pack_unprotected.zip"
     # Prevent thieves from extracting your resource pack. These options will crash their software.
     # Some of these options may impact your resource pack size.
     crash-tools:

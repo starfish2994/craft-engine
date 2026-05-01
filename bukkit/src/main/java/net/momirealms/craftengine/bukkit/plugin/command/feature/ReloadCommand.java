@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.locale.MessageConstants;
+import net.momirealms.craftengine.core.util.Timestamp;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -52,11 +53,9 @@ public final class ReloadCommand extends BukkitCommandFeature<CommandSender> {
                     } else if (argument == ReloadArgument.PACK) {
                         plugin().scheduler().executeAsync(() -> {
                             try {
-                                long time1 = System.currentTimeMillis();
+                                Timestamp timestamp = new Timestamp();
                                 plugin().packManager().generateResourcePack();
-                                long time2 = System.currentTimeMillis();
-                                long packTime = time2 - time1;
-                                handleFeedback(context, MessageConstants.COMMAND_RELOAD_PACK_SUCCESS, Component.text(packTime));
+                                handleFeedback(context, MessageConstants.COMMAND_RELOAD_PACK_SUCCESS, Component.text(timestamp.deltaMillis()));
                             } catch (Throwable e) {
                                 plugin().logger().warn("Failed to generate resource pack", e);
                                 handleFeedback(context, MessageConstants.COMMAND_RELOAD_PACK_FAILURE);
@@ -75,11 +74,9 @@ public final class ReloadCommand extends BukkitCommandFeature<CommandSender> {
                                     handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_ISSUES, Component.text(reloadResult.issues()));
                                 }
                                 try {
-                                    long time1 = System.currentTimeMillis();
+                                    Timestamp timestamp = new Timestamp();
                                     plugin().packManager().generateResourcePack();
-                                    long time2 = System.currentTimeMillis();
-                                    long packTime = time2 - time1;
-                                    handleFeedback(context, MessageConstants.COMMAND_RELOAD_PACK_SUCCESS, Component.text(packTime));
+                                    handleFeedback(context, MessageConstants.COMMAND_RELOAD_PACK_SUCCESS, Component.text(timestamp.deltaMillis()));
                                 } catch (Throwable e) {
                                     plugin().logger().warn("Failed to generate resource pack", e);
                                     handleFeedback(context, MessageConstants.COMMAND_RELOAD_PACK_FAILURE);

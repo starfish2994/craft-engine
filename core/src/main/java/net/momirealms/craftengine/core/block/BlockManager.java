@@ -20,7 +20,7 @@ public interface BlockManager extends Manageable, ModelGenerator {
 
     Map<Key, Map<String, JsonElement>> blockOverrides();
 
-    Map<Key, JsonElement> modBlockStates();
+    Map<Integer, JsonElement> modBlockStates();
 
     boolean isTransparentModelInUse();
 

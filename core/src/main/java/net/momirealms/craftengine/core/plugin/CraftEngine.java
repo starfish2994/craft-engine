@@ -46,6 +46,7 @@ import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.sound.SoundManager;
 import net.momirealms.craftengine.core.util.CompletableFutures;
 import net.momirealms.craftengine.core.util.GsonHelper;
+import net.momirealms.craftengine.core.util.Timestamp;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldManager;
 import net.momirealms.craftengine.core.world.score.TeamManager;
@@ -224,7 +225,7 @@ public abstract class CraftEngine implements Plugin {
                     return;
                 }
                 this.isReloading = true;
-                long time1 = System.currentTimeMillis();
+                Timestamp timestamp = new Timestamp();
                 // 重载config
                 this.config.load();
                 // 重载翻译
@@ -253,8 +254,7 @@ public abstract class CraftEngine implements Plugin {
                 this.runDelayTasks(reloadRecipe);
                 // 重新发送tags，需要等待tags更新完成
                 this.networkManager.delayedLoad();
-                long time2 = System.currentTimeMillis();
-                asyncTime = time2 - time1;
+                asyncTime = timestamp.deltaMillis();
             } catch (Throwable e) {
                 this.logger().warn("Failed to reload", e);
                 future.complete(ReloadResult.failure());
@@ -263,7 +263,7 @@ public abstract class CraftEngine implements Plugin {
                 int finalIssues = issues;
                 syncExecutor.execute(() -> {
                     try {
-                        long time3 = System.currentTimeMillis();
+                        Timestamp timestamp = new Timestamp();
                         // 注册唱片机音乐
                         this.soundManager.runDelayedSyncTasks();
                         // 同步注册配方
@@ -272,8 +272,7 @@ public abstract class CraftEngine implements Plugin {
                         }
                         // 同步修改进度
                         this.advancementManager.runDelayedSyncTasks();
-                        long time4 = System.currentTimeMillis();
-                        long syncTime = time4 - time3;
+                        long syncTime = timestamp.deltaMillis();
                         this.reloadEventDispatcher.accept(this);
                         future.complete(ReloadResult.success(finalAsyncTime, syncTime, finalIssues));
                     } catch (Throwable e) {

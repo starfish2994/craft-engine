@@ -67,7 +67,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     // Map<方块类型, Map<方块状态NBT,模型>>，用于生成block state json
     protected final Map<Key, Map<String, JsonElement>> blockStateOverrides = new ConcurrentHashMap<>(128);
     // 用于生成mod使用的block state json
-    protected final Map<Key, JsonElement> modBlockStateOverrides = new ConcurrentHashMap<>(128);
+    protected final Map<Integer, JsonElement> modBlockStateOverrides = new ConcurrentHashMap<>(128);
     // 根据外观查找真实状态，用于debug指令
     protected final Map<Integer, List<Integer>> appearanceToRealState = Collections.synchronizedMap(new Int2ObjectOpenHashMap<>());
     // 用于note_block:0这样格式的自动分配
@@ -198,7 +198,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     }
 
     @Override
-    public Map<Key, JsonElement> modBlockStates() {
+    public Map<Integer, JsonElement> modBlockStates() {
         return Collections.unmodifiableMap(this.modBlockStateOverrides);
     }
 
@@ -763,19 +763,14 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                         AbstractBlockManager.this.tempVisualBlockStatesInUse.add(visualState);
                         AbstractBlockManager.this.tempVisualBlocksInUse.add(getBlockOwnerId(visualState));
                         AbstractBlockManager.this.applyPlatformSettings(customBlock, state);
-                        // generate mod assets
-                        if (Config.generateModAssets()) {
-                            JsonElement model = AbstractBlockManager.this.tempVanillaBlockStateModels[appearanceId];
-                            // 如果未指定模型，说明复用原版模型？但是插件目前无法得知其原版变体模型，且部分模型是多部位模型，无法使用变体解决问题
-                            if (model == null) {
-                                model = EMPTY_VARIANT_MODEL;
-                                AbstractBlockManager.this.isTransparentModelInUse = true;
-                            }
-                            AbstractBlockManager.this.modBlockStateOverrides.put(
-                                    BlockManager.createCustomBlockKey(index),
-                                    model
-                            );
+                        // 生成 mod 资产
+                        JsonElement model = AbstractBlockManager.this.tempVanillaBlockStateModels[appearanceId];
+                        // 如果未指定模型，说明复用原版模型？但是插件目前无法得知其原版变体模型，且部分模型是多部位模型，无法使用变体解决问题
+                        if (model == null) {
+                            model = EMPTY_VARIANT_MODEL;
+                            AbstractBlockManager.this.isTransparentModelInUse = true;
                         }
+                        AbstractBlockManager.this.modBlockStateOverrides.put(index, model);
                     }
 
                     // 一定要到最后再绑定
