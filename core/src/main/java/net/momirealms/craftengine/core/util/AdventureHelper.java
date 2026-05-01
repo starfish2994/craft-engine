@@ -9,6 +9,7 @@ import net.kyori.adventure.text.ComponentIteratorType;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -50,7 +51,20 @@ public final class AdventureHelper {
     }
 
     private AdventureHelper() {
-        this.miniMessage = MiniMessage.builder().build();
+        this.miniMessage = MiniMessage.builder()
+                .tags(
+                        TagResolver.resolver(
+                                TagResolver.standard(),
+                                // TODO 等 adventure 修复后移除这些
+                                TagResolver.resolver("!i", net.kyori.adventure.text.minimessage.tag.Tag.styling(TextDecoration.ITALIC.withState(false))),
+                                TagResolver.resolver("!em", net.kyori.adventure.text.minimessage.tag.Tag.styling(TextDecoration.ITALIC.withState(false))),
+                                TagResolver.resolver("!u", net.kyori.adventure.text.minimessage.tag.Tag.styling(TextDecoration.UNDERLINED.withState(false))),
+                                TagResolver.resolver("!st", net.kyori.adventure.text.minimessage.tag.Tag.styling(TextDecoration.STRIKETHROUGH.withState(false))),
+                                TagResolver.resolver("!obf", net.kyori.adventure.text.minimessage.tag.Tag.styling(TextDecoration.OBFUSCATED.withState(false))),
+                                TagResolver.resolver("!b", net.kyori.adventure.text.minimessage.tag.Tag.styling(TextDecoration.BOLD.withState(false)))
+                        )
+                )
+                .build();
         this.miniMessageStrict = MiniMessage.builder().strict(true).build();
         this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.empty()).build();
         GsonComponentSerializer.Builder gsonBuilder = GsonComponentSerializer.builder();
