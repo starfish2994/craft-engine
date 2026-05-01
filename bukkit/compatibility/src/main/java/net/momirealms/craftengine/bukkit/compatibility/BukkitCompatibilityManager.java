@@ -3,6 +3,8 @@ package net.momirealms.craftengine.bukkit.compatibility;
 import cn.gtemc.itembridge.api.Provider;
 import cn.gtemc.itembridge.core.BukkitItemBridge;
 import cn.gtemc.levelerbridge.core.BukkitLevelerBridge;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.BukkitBlockEntityElementConfigs;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.FloodgateUtils;
@@ -34,7 +36,9 @@ import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockR
 import net.momirealms.craftengine.bukkit.compatibility.worldguard.WorldGuardRegionCondition;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.BlockManager;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.compatibility.*;
@@ -46,6 +50,7 @@ import net.momirealms.craftengine.core.plugin.context.condition.AlwaysFalseCondi
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.text.minimessage.FormattedLine;
+import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldManager;
@@ -53,7 +58,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.NoSuchFileException;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @SuppressWarnings("unused")
 public final class BukkitCompatibilityManager implements CompatibilityManager {
@@ -65,6 +76,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     private final Map<String, EntityProvider> entityProviders;
     private ModelProvider[] modelProviderArray;
     private TagResolverProvider[] tagResolverProviderArray = null;
+    private JsonObject blueMapBlockColors = new JsonObject();
     private boolean hasPlaceholderAPI;
     private boolean hasGeyser;
     private boolean hasFloodgate;
@@ -241,6 +253,9 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         for (Provider<ItemStack, org.bukkit.entity.Player> provider : itemBridge.providers()) {
             this.registerItemSource(new ItemBridgeSource(provider));
         }
+        if (this.isPluginEnabled("BlueMap")) {
+            runCatchingHook(this::initBlueMapHook, "BlueMap");
+        }
     }
 
     private void runCatchingHook(ThrowableRunnable runnable, String plugin) {
@@ -346,6 +361,22 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         }
     }
 
+    private void initBlueMapHook() throws Throwable {
+        Plugin blueMap = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("BlueMap"));
+        try (InputStream is = blueMap.getResource("de/bluecolored/bluemap/resourceExtensions.zip")) {
+            Objects.requireNonNull(is, "de/bluecolored/bluemap/resourceExtensions.zip");
+            try (ZipInputStream zis = new ZipInputStream(is)) {
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    if (!"assets/minecraft/blockColors.json".equals(entry.getName())) continue;
+                    this.blueMapBlockColors = GsonHelper.parseJsonToJsonObject(new String(zis.readAllBytes(), StandardCharsets.UTF_8));
+                    return;
+                }
+            }
+        }
+        throw new NoSuchFileException("de/bluecolored/bluemap/resourceExtensions.zip/assets/minecraft/blockColors.json");
+    }
+
     private Plugin getPlugin(String name) {
         return Bukkit.getPluginManager().getPlugin(name);
     }
@@ -414,5 +445,14 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
             return LuckPermsUtils.hasPermission(user, permission);
         }
         return false;
+    }
+
+    @Override
+    public void blueMapBlockColors(ImmutableBlockState state, BiConsumer<String, JsonElement> callback) {
+        if (this.blueMapBlockColors.isEmpty() || state == null || state.isEmpty()) return;
+        String visualId = state.visualBlockState().ownerId().asString();
+        JsonElement value = this.blueMapBlockColors.get(visualId);
+        if (value == null) return;
+        callback.accept(BlockStateUtils.getBlockOwnerIdFromState(state.customBlockState().minecraftState()).asString(), value);
     }
 }
