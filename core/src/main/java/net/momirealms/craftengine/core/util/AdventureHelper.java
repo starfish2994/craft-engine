@@ -70,13 +70,15 @@ public final class AdventureHelper {
         this.nbtComponentSerializer = NBTComponentSerializer.builder()
                 .editOptions((b) -> {
                     if (!VersionHelper.isOrAbove1_21_5()) {
-                        b.value(NBTSerializerOptions.EMIT_CLICK_EVENT_TYPE, false);
-                        b.value(NBTSerializerOptions.EMIT_HOVER_EVENT_TYPE, false);
+                        b.value(NBTSerializerOptions.MODERN_EVENT_TYPE, false);
                     }
                     if (!VersionHelper.isOrAbove1_20_5()) {
                         b.value(NBTSerializerOptions.DATA_COMPONENT_RELEASE, false);
                     }
-                    b.value(NBTSerializerOptions.SERIALIZE_COMPONENT_TYPES, false);
+                    if (!VersionHelper.isOrAbove1_20_3()) {
+                        b.value(NBTSerializerOptions.INT_ARRAY_UUID, false);
+                    }
+                    b.value(NBTSerializerOptions.SERIALIZE_COMPONENT_TYPE, false);
                 }).build();
     }
 
