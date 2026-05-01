@@ -1102,11 +1102,11 @@ public abstract class AbstractPackManager implements PackManager {
             long originalSize = previousBytes.get();
             long optimizedSize = afterBytes.get();
             double compressionRatio = ((double) optimizedSize / originalSize) * 100;
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("info.resource_pack.optimize.result", formatSize(originalSize), formatSize(optimizedSize), String.format("%.2f%%", compressionRatio)));
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_result", formatSize(originalSize), formatSize(optimizedSize), String.format("%.2f%%", compressionRatio)));
         }
 
         if (Config.optimizeTexture()) {
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("info.resource_pack.optimize.texture"));
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.texture_optimization_started"));
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
             List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -1148,7 +1148,7 @@ public abstract class AbstractPackManager implements PackManager {
             long originalSize = previousBytes.get();
             long optimizedSize = afterBytes.get();
             double compressionRatio = ((double) optimizedSize / originalSize) * 100;
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("info.resource_pack.optimize.result", formatSize(originalSize), formatSize(optimizedSize), String.format("%.2f%%", compressionRatio)));
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_result", formatSize(originalSize), formatSize(optimizedSize), String.format("%.2f%%", compressionRatio)));
         }
     }
 
