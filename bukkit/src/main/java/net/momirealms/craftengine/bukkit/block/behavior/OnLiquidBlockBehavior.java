@@ -48,13 +48,13 @@ public final class OnLiquidBlockBehavior extends AbstractCanSurviveBlockBehavior
 
     @SuppressWarnings("DuplicatedCode")
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
+    protected boolean canSurvive(Object thisBlock, Object state, Object level, Object blockPos) {
         int x = Vec3iProxy.INSTANCE.getX(blockPos);
         int y = Vec3iProxy.INSTANCE.getY(blockPos);
         int z = Vec3iProxy.INSTANCE.getZ(blockPos);
         Object belowPos = BlockPosProxy.INSTANCE.newInstance(x, y - 1, z);
-        Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
-        return mayPlaceOn(belowState, world, belowPos);
+        Object belowState = BlockGetterProxy.INSTANCE.getBlockState(level, belowPos);
+        return mayPlaceOn(belowState, level, belowPos);
     }
 
     private boolean mayPlaceOn(Object belowState, Object world, Object belowPos) {

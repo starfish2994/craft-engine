@@ -704,7 +704,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 }
 
                                 // 绑定方块外观
-                                String appearanceName = variantSection.getString("appearance");
+                                String appearanceName = variantSection.getString(APPEARANCE);
                                 if (appearanceName != null) {
                                     BlockStateAppearance appearance = appearances.get(appearanceName);
                                     if (appearance == null) {

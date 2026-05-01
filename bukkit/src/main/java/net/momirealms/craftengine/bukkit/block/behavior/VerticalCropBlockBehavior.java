@@ -24,6 +24,8 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior impleme
     public final int maxHeight;
     public final IntegerProperty ageProperty;
     public final float growSpeed;
+    public final int baseGrowth;
+    public final float extraGrowChance;
     public final boolean direction;
 
     private VerticalCropBlockBehavior(BlockDefinition blockDefinition,
@@ -35,6 +37,8 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior impleme
         this.maxHeight = maxHeight;
         this.ageProperty = ageProperty;
         this.growSpeed = growSpeed;
+        this.baseGrowth = (int) growSpeed;
+        this.extraGrowChance = growSpeed - baseGrowth;
         this.direction = direction;
     }
 
@@ -68,20 +72,22 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior impleme
                 }
             }
             if (currentHeight < this.maxHeight) {
-                int age = currentState.get(ageProperty);
-                if (age >= this.ageProperty.max || RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
+                // 计算更新之后的 Age
+                int age = currentState.get(ageProperty) + baseGrowth;
+                if (age < this.ageProperty.max && this.extraGrowChance > 0 && RandomUtils.generateRandomFloat(0, 1) < this.extraGrowChance) {
+                    age++;
+                }
+                // 检查是否需要生长
+                if (age >= this.ageProperty.max) {
                     Object nextPos = this.direction ? LocationUtils.above(blockPos) : LocationUtils.below(blockPos);
-                    boolean success;
-                    if (VersionHelper.isOrAbove1_21_5()) {
-                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
-                    } else {
-                        success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().minecraftState());
-                    }
+                    boolean success = VersionHelper.isOrAbove1_21_5()
+                            ? CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL)
+                            : CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().minecraftState());
                     if (success) {
                         LevelWriterProxy.INSTANCE.setBlock(level, blockPos, currentState.with(this.ageProperty, this.ageProperty.min).customBlockState().minecraftState(), UpdateFlags.UPDATE_NONE);
                     }
-                } else if (RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
-                    LevelWriterProxy.INSTANCE.setBlock(level, blockPos, currentState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_NONE);
+                } else {
+                    LevelWriterProxy.INSTANCE.setBlock(level, blockPos, currentState.with(this.ageProperty, age).customBlockState().minecraftState(), UpdateFlags.UPDATE_NONE);
                 }
             }
         }

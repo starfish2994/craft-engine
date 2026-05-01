@@ -104,7 +104,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
+    protected boolean canSurvive(Object thisBlock, Object state, Object level, Object blockPos) {
         ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (customState == null || customState.isEmpty()) return false;
         if (customState.get(this.halfProperty) == DoubleBlockHalf.UPPER) {
@@ -112,7 +112,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
             int y = Vec3iProxy.INSTANCE.getY(blockPos) - 1;
             int z = Vec3iProxy.INSTANCE.getZ(blockPos);
             Object belowPos = BlockPosProxy.INSTANCE.newInstance(x, y, z);
-            Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
+            Object belowState = BlockGetterProxy.INSTANCE.getBlockState(level, belowPos);
             Optional<ImmutableBlockState> belowCustomState = BlockStateUtils.getOptionalCustomBlockState(belowState);
             return belowCustomState.filter(immutableBlockState -> immutableBlockState.owner().value() == super.blockDefinition).isPresent();
         }

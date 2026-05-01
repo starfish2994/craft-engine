@@ -27,10 +27,10 @@ public final class HangingBlockBehavior extends BushBlockBehavior {
     }
 
     @Override
-    protected boolean canSurvive(Object thisBlock, Object state, Object world, Object blockPos) {
+    protected boolean canSurvive(Object thisBlock, Object state, Object level, Object blockPos) {
         Object belowPos = LocationUtils.above(blockPos);
-        Object belowState = BlockGetterProxy.INSTANCE.getBlockState(world, belowPos);
-        return mayPlaceOn(belowState, world, belowPos);
+        Object belowState = BlockGetterProxy.INSTANCE.getBlockState(level, belowPos);
+        return mayPlaceOn(belowState, level, belowPos);
     }
 
     protected boolean mayStackOn(Object world, Object abovePos) {
