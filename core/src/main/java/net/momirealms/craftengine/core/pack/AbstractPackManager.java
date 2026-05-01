@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.gson.*;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.font.BitmapImage;
 import net.momirealms.craftengine.core.font.Font;
@@ -732,6 +733,7 @@ public abstract class AbstractPackManager implements PackManager {
                 } catch (IOException e) {
                     this.plugin.logger().error("Error creating map plugin resource pack", e);
                 }
+                this.deleteMapCompatibilityAssets(generatedPackPath);
                 // 再生成覆写原版的overrides
                 this.generateBlockOverrides(generatedPackPath, true, false);
                 if (!Config.generateModAssets()) {
@@ -2929,12 +2931,30 @@ public abstract class AbstractPackManager implements PackManager {
                     .resolve("assets")
                     .resolve(Key.CRAFTENGINE_NAMESPACE)
                     .resolve("blockstates");
+            JsonObject blueMapBlockStates = new JsonObject();
+            int vanillaBlockStateCount = this.plugin.blockManager().vanillaBlockStateCount();
             for (Map.Entry<Integer, JsonElement> entry : this.plugin.blockManager().modBlockStates().entrySet()) {
                 JsonObject stateJson = new JsonObject();
                 JsonObject variants = new JsonObject();
                 stateJson.add("variants", variants);
                 variants.add("", entry.getValue());
                 writeJsonSafely(stateJson, statesPath.resolve("custom_" + entry.getKey() + ".json"));
+                ImmutableBlockState state = this.plugin.blockManager().getImmutableBlockStateUnsafe(entry.getKey() + vanillaBlockStateCount);
+                this.plugin.compatibilityManager().blueMapBlockColors(state, blueMapBlockStates::add);
+            }
+            if (!blueMapBlockStates.isEmpty()) {
+                writeJsonSafely(blueMapBlockStates, generatedPackPath.resolve("assets").resolve(Key.CRAFTENGINE_NAMESPACE).resolve("blockColors.json"));
+            }
+        }
+    }
+
+    private void deleteMapCompatibilityAssets(Path generatedPackPath) {
+        Path assetPath = generatedPackPath.resolve("assets");
+        Path blueMapblockColorsFile = assetPath.resolve(Key.CRAFTENGINE_NAMESPACE).resolve("blockColors.json");
+        if (Files.exists(blueMapblockColorsFile)) {
+            try {
+                Files.delete(blueMapblockColorsFile);
+            } catch (IOException ignored) {
             }
         }
     }
