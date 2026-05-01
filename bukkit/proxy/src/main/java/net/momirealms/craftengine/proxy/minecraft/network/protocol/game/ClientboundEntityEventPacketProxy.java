@@ -3,6 +3,7 @@ package net.momirealms.craftengine.proxy.minecraft.network.protocol.game;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
+import net.momirealms.sparrow.reflection.proxy.annotation.ConstructorInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
@@ -18,5 +19,6 @@ public interface ClientboundEntityEventPacketProxy {
     @FieldGetter(name = "eventId")
     byte getEventId(Object target);
 
+    @ConstructorInvoker
     Object newInstance(@Type(clazz = EntityProxy.class) Object entity, byte eventId);
 }
