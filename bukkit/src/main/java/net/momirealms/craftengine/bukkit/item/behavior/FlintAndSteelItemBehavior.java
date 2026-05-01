@@ -36,7 +36,6 @@ public final class FlintAndSteelItemBehavior extends ItemBehavior {
 
     private FlintAndSteelItemBehavior() {}
 
-    @SuppressWarnings("unchecked")
     @Override
     public InteractionResult useOnBlock(UseOnContext context) {
         net.momirealms.craftengine.core.entity.player.Player player = context.getPlayer();

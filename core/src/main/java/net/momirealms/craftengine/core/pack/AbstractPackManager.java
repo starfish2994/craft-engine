@@ -686,11 +686,11 @@ public abstract class AbstractPackManager implements PackManager {
 
             HashSet<Revision> revisions = new HashSet<>();
             this.generateFonts(generatedPackPath);
-            this.generateItemModels(generatedPackPath, this.plugin.itemManager());
-            this.generateItemModels(generatedPackPath, this.plugin.blockManager());
-            this.generateBlockOverrides(generatedPackPath);
+            this.generateModels(generatedPackPath, this.plugin.itemManager());
+            this.generateModels(generatedPackPath, this.plugin.blockManager());
+            this.generateBlockOverrides(generatedPackPath, true, Config.generateModAssets());
             this.generateEmptyBlockModel(generatedPackPath);
-            // 一定要先生成item-model再生成overrides
+            // 一定要先生成 item model 再生成 overrides
             this.generateModernItemModels1_21_2(generatedPackPath);
             this.generateModernItemModels1_21_4(generatedPackPath, revisions::add);
             this.generateLegacyItemOverrides(generatedPackPath);
@@ -712,6 +712,7 @@ public abstract class AbstractPackManager implements PackManager {
             // 生成revision overlay
             this.generateRevisionOverlays(packMcMeta, revisions);
 
+            // 排除shaders
             if (Config.excludeShaders()) {
                 this.removeAllShaders(generatedPackPath);
             }
@@ -855,7 +856,7 @@ public abstract class AbstractPackManager implements PackManager {
         try {
             rootPaths = MiscUtils.init(FileUtils.collectOverlays(path), a -> a.addFirst(path));
         } catch (IOException e) {
-            plugin.logger().warn("Failed to collect overlays for " + path.toAbsolutePath(), e);
+            this.plugin.logger().warn("Failed to collect overlays for " + path.toAbsolutePath(), e);
             return;
         }
         for (Path rootPath : rootPaths) {
@@ -863,7 +864,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 FileUtils.deleteDirectory(shadersPath);
             } catch (IOException e) {
-                plugin.logger().warn("Failed to delete shaders directory for " + shadersPath.toAbsolutePath(), e);
+                this.plugin.logger().warn("Failed to delete shaders directory for " + shadersPath.toAbsolutePath(), e);
             }
         }
     }
@@ -2456,25 +2457,11 @@ public abstract class AbstractPackManager implements PackManager {
                     this.plugin.logger().warn("Failed to write empty vanilla armor texture file", e);
                 }
             }
-            // 创建atlas文件夹
-            try {
-                Files.createDirectories(atlasPath.getParent());
-            } catch (IOException e) {
-                this.plugin.logger().error("Error creating " + atlasPath.toAbsolutePath(), e);
-                return;
-            }
-            // 写入atlas文件
-            try (BufferedWriter writer = Files.newBufferedWriter(atlasPath)) {
-                JsonObject selected = needLegacyCompatibility ? legacyTrimAtlasJson : modernTrimAtlasJson;
-                // 优先写入旧版
-                GsonHelper.get().toJson(selected, writer);
-            } catch (IOException e) {
-                this.plugin.logger().error("Error writing " + atlasPath.toAbsolutePath(), e);
-            }
+            // 写入atlas文件, 优先写入旧版
+            writeJsonSafely(needLegacyCompatibility ? legacyTrimAtlasJson : modernTrimAtlasJson, atlasPath);
             // 既要又要，那么需要overlay
             if (needLegacyCompatibility && needModernCompatibility) {
                 Revision revision = Revisions.SINCE_1_21_2;
-                callback.accept(revision);
                 Path overlayAtlasPath = generatedPackPath
                         .resolve(Config.createOverlayFolderName(revision.versionString()))
                         .resolve("assets")
@@ -2482,19 +2469,8 @@ public abstract class AbstractPackManager implements PackManager {
                         .resolve("atlases")
                         .resolve("armor_trims.json");
                 // 创建atlas文件夹
-                try {
-                    Files.createDirectories(overlayAtlasPath.getParent());
-                } catch (IOException e) {
-                    this.plugin.logger().error("Error creating " + overlayAtlasPath.toAbsolutePath(), e);
-                    return;
-                }
-                // 写入atlas文件
-                try (BufferedWriter writer = Files.newBufferedWriter(overlayAtlasPath)) {
-                    GsonHelper.get().toJson(modernTrimAtlasJson, writer);
-                    callback.accept(revision);
-                } catch (IOException e) {
-                    this.plugin.logger().error("Error writing " + overlayAtlasPath.toAbsolutePath(), e);
-                }
+                writeJsonSafely(modernTrimAtlasJson, overlayAtlasPath);
+                callback.accept(revision);
             }
         }
     }
@@ -2528,7 +2504,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.createDirectories(correctPath.getParent());
                         Files.move(badPath, correctPath);
                     } catch (IOException e) {
-                        plugin.logger().error("Error creating " + correctPath.toAbsolutePath());
+                        this.plugin.logger().error("Error creating " + correctPath.toAbsolutePath());
                         return;
                     }
                 }
@@ -2547,7 +2523,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try (BufferedReader reader = Files.newBufferedReader(equipmentPath)) {
                     equipmentJson = JsonParser.parseReader(reader).getAsJsonObject();
                 } catch (IOException | IllegalStateException e) {
-                    plugin.logger().warn("Failed to load existing sounds.json", e);
+                    this.plugin.logger().warn("Failed to load existing sounds.json", e);
                     return;
                 }
             }
@@ -2559,7 +2535,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(equipmentPath.getParent());
             } catch (IOException e) {
-                plugin.logger().error("Error creating " + equipmentPath.toAbsolutePath());
+                this.plugin.logger().error("Error creating " + equipmentPath.toAbsolutePath());
                 return;
             }
             try {
@@ -2581,7 +2557,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try (BufferedReader reader = Files.newBufferedReader(equipmentPath)) {
                     equipmentJson = JsonParser.parseReader(reader).getAsJsonObject();
                 } catch (IOException | IllegalStateException e) {
-                    plugin.logger().warn("Failed to load existing sounds.json", e);
+                    this.plugin.logger().warn("Failed to load existing sounds.json", e);
                     return;
                 }
             }
@@ -2593,7 +2569,7 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(equipmentPath.getParent());
             } catch (IOException e) {
-                plugin.logger().error("Error creating " + equipmentPath.toAbsolutePath());
+                this.plugin.logger().error("Error creating " + equipmentPath.toAbsolutePath());
                 return;
             }
             try {
@@ -2638,7 +2614,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.createDirectories(legacyTarget.getParent());
                         Files.copy(texture, legacyTarget, StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        plugin.logger().error("Error writing armor texture file from " + texture + " to " + legacyTarget, e);
+                        this.plugin.logger().error("Error writing armor texture file from " + texture + " to " + legacyTarget, e);
                     }
                 } else {
                     shouldPreserve = true;
@@ -2658,7 +2634,7 @@ public abstract class AbstractPackManager implements PackManager {
                         Files.createDirectories(modernTarget.getParent());
                         Files.copy(texture, modernTarget, StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        plugin.logger().error("Error writing armor texture file from " + texture + " to " + modernTarget, e);
+                        this.plugin.logger().error("Error writing armor texture file from " + texture + " to " + modernTarget, e);
                     }
                 } else {
                     shouldPreserve = true;
@@ -2783,22 +2759,12 @@ public abstract class AbstractPackManager implements PackManager {
             for (Map.Entry<String, String> pair : entry.getValue().translations.entrySet()) {
                 json.addProperty(pair.getKey(), pair.getValue());
             }
-            try {
-                Files.createDirectories(langPath.getParent());
-            } catch (IOException e) {
-                plugin.logger().error("Error creating " + langPath.toAbsolutePath());
-                return;
-            }
-            try {
-                GsonHelper.writeJsonFile(json, langPath);
-            } catch (IOException e) {
-                this.plugin.logger().error("Error writing language file", e);
-            }
+            writeJsonSafely(json, langPath);
         }
     }
 
     private void generateCustomSounds(Path generatedPackPath) {
-        AbstractSoundManager soundManager = (AbstractSoundManager) plugin.soundManager();
+        AbstractSoundManager soundManager = (AbstractSoundManager) this.plugin.soundManager();
         for (Map.Entry<String, List<SoundEvent>> entry : soundManager.soundsByNamespace().entrySet()) {
             Path soundPath = generatedPackPath
                     .resolve("assets")
@@ -2809,7 +2775,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try (BufferedReader reader = Files.newBufferedReader(soundPath)) {
                     soundJson = JsonParser.parseReader(reader).getAsJsonObject();
                 } catch (IOException | IllegalStateException e) {
-                    plugin.logger().warn("Failed to load existing sounds.json", e);
+                    this.plugin.logger().warn("Failed to load existing sounds.json", e);
                     return;
                 }
             } else {
@@ -2818,17 +2784,7 @@ public abstract class AbstractPackManager implements PackManager {
             for (SoundEvent soundEvent : entry.getValue()) {
                 soundJson.add(soundEvent.id().value(), soundEvent.get());
             }
-            try {
-                Files.createDirectories(soundPath.getParent());
-            } catch (IOException e) {
-                plugin.logger().error("Error creating " + soundPath.toAbsolutePath());
-                return;
-            }
-            try (BufferedWriter writer = Files.newBufferedWriter(soundPath)) {
-                GsonHelper.get().toJson(soundJson, writer);
-            } catch (IOException e) {
-                plugin.logger().warn("Failed to generate sounds.json: " + soundPath.toAbsolutePath(), e);
-            }
+            writeJsonSafely(soundJson, soundPath);
         }
     }
 
@@ -2841,14 +2797,14 @@ public abstract class AbstractPackManager implements PackManager {
                 .resolve("sounds.json");
 
         JsonObject soundTemplate;
-        try (InputStream inputStream = plugin.resourceStream("internal/sounds.json")) {
+        try (InputStream inputStream = this.plugin.resourceStream("internal/sounds.json")) {
             if (inputStream == null) {
-                plugin.logger().warn("Failed to load internal/sounds.json");
+                this.plugin.logger().warn("Failed to load internal/sounds.json");
                 return;
             }
             soundTemplate = JsonParser.parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).getAsJsonObject();
         } catch (IOException | IllegalStateException e) {
-            plugin.logger().warn("Failed to load internal/sounds.json", e);
+            this.plugin.logger().warn("Failed to load internal/sounds.json", e);
             return;
         }
 
@@ -2857,14 +2813,14 @@ public abstract class AbstractPackManager implements PackManager {
             try (BufferedReader reader = Files.newBufferedReader(soundPath)) {
                 soundJson = JsonParser.parseReader(reader).getAsJsonObject();
             } catch (IOException | IllegalStateException e) {
-                plugin.logger().warn("Failed to load existing sounds.json", e);
+                this.plugin.logger().warn("Failed to load existing sounds.json", e);
                 return;
             }
         } else {
             soundJson = new JsonObject();
         }
 
-        for (Map.Entry<Key, Key> mapper : plugin.blockManager().soundReplacements().entrySet()) {
+        for (Map.Entry<Key, Key> mapper : this.plugin.blockManager().soundReplacements().entrySet()) {
             Key originalKey = mapper.getKey();
             JsonObject empty = new JsonObject();
             empty.add("sounds", new JsonArray());
@@ -2875,27 +2831,19 @@ public abstract class AbstractPackManager implements PackManager {
                 if (originalSounds != null) {
                     soundJson.add(mapper.getValue().value(), originalSounds);
                 } else {
-                    plugin.logger().warn("Cannot find " + originalKey.value() + " in sound template");
+                    this.plugin.logger().warn("Cannot find " + originalKey.value() + " in sound template");
                 }
             } catch (ClassCastException e) {
-                plugin.logger().warn("Failed to load existing sounds.json", e);
+                this.plugin.logger().warn("Failed to load existing sounds.json", e);
                 return;
             }
         }
-        try {
-            Files.createDirectories(soundPath.getParent());
-        } catch (IOException e) {
-            plugin.logger().error("Error creating " + soundPath.toAbsolutePath());
-            return;
-        }
-        try (BufferedWriter writer = Files.newBufferedWriter(soundPath)) {
-            GsonHelper.get().toJson(soundJson, writer);
-        } catch (IOException e) {
-            plugin.logger().warn("Failed to generate sounds.json: " + soundPath.toAbsolutePath(), e);
-        }
+
+        writeJsonSafely(soundJson, soundPath);
     }
 
-    private void generateItemModels(Path generatedPackPath, ModelGenerator generator) {
+    // 生成 json 模型文件
+    private void generateModels(Path generatedPackPath, ModelGenerator generator) {
         for (Map.Entry<Key, ModelGeneration> entry : generator.modelsToGenerate().entrySet()) {
             Path modelPath = generatedPackPath
                     .resolve("assets")
@@ -2903,98 +2851,74 @@ public abstract class AbstractPackManager implements PackManager {
                     .resolve("models")
                     .resolve(entry.getKey().value() + ".json");
             if (Files.exists(modelPath)) {
-                TranslationManager.instance().log("warning.config.resource_pack.model.generation.already_exist", modelPath.toAbsolutePath().toString());
+                this.plugin.logger().warn(TranslationManager.instance().plainTranslation("resource_pack.model_generation.conflict", modelPath.toAbsolutePath().toString()));
                 continue;
             }
-            try {
-                Files.createDirectories(modelPath.getParent());
-            } catch (IOException e) {
-                plugin.logger().error("Error creating " + modelPath.toAbsolutePath(), e);
-                continue;
-            }
-            try (BufferedWriter writer = Files.newBufferedWriter(modelPath)) {
-                GsonHelper.get().toJson(entry.getValue().get(), writer);
-            } catch (IOException e) {
-                plugin.logger().warn("Failed to generate model: " + modelPath.toAbsolutePath(), e);
-            }
+            writeJsonSafely(entry.getValue().get(), modelPath);
         }
     }
 
-    private void generateBlockOverrides(Path generatedPackPath) {
-        for (Map.Entry<Key, Map<String, JsonElement>> entry : this.plugin.blockManager().blockOverrides().entrySet()) {
-            Key key = entry.getKey();
-            Path overridedBlockPath = generatedPackPath
-                    .resolve("assets")
-                    .resolve(key.namespace())
-                    .resolve("blockstates")
-                    .resolve(key.value() + ".json");
+    private void generateBlockOverrides(Path generatedPackPath, boolean generateVanillaAsset, boolean generateModAsset) {
+        // 生成覆写原版方块状态的文件
+        if (generateVanillaAsset) {
+            for (Map.Entry<Key, Map<String, JsonElement>> entry : this.plugin.blockManager().blockOverrides().entrySet()) {
+                Key key = entry.getKey();
+                Path overridedBlockPath = generatedPackPath
+                        .resolve("assets")
+                        .resolve(key.namespace())
+                        .resolve("blockstates")
+                        .resolve(key.value() + ".json");
 
-            JsonObject stateJson;
-            JsonObject previousVariants = null;
-            if (Files.exists(overridedBlockPath)) {
-                try {
-                    stateJson = GsonHelper.readJsonFile(overridedBlockPath).getAsJsonObject();
-                    if (stateJson.has("variants")) {
-                        previousVariants = stateJson.get("variants").getAsJsonObject();
+                JsonObject stateJson = null;
+                JsonObject previousVariants = null;
+                if (Files.exists(overridedBlockPath)) {
+                    try {
+                        stateJson = GsonHelper.readJsonFile(overridedBlockPath).getAsJsonObject();
+                        if (stateJson.has("variants")) {
+                            previousVariants = stateJson.get("variants").getAsJsonObject();
+                        }
+                        if (stateJson.has("multipart")) {
+                            stateJson.remove("multipart");
+                        }
+                    } catch (Exception e) {
+                        this.plugin.logger().warn("Unexpected error when reading block state json " + overridedBlockPath, e);
                     }
-                    if (stateJson.has("multipart")) {
-                        stateJson.remove("multipart");
-                    }
-                } catch (IOException | IllegalStateException e) {
+                }
+                if (stateJson == null) {
                     stateJson = new JsonObject();
                 }
-            } else {
-                stateJson = new JsonObject();
-            }
 
-            JsonObject newVariants = new JsonObject();
-            if (previousVariants != null) {
-                for (Map.Entry<String, JsonElement> variantEntry : previousVariants.entrySet()) {
-                    String variantName = variantEntry.getKey();
-                    if (!newVariants.has(variantName)) {
-                        newVariants.add(variantName, variantEntry.getValue());
+                JsonObject newVariants = new JsonObject();
+                if (previousVariants != null) {
+                    for (Map.Entry<String, JsonElement> variantEntry : previousVariants.entrySet()) {
+                        String variantName = variantEntry.getKey();
+                        if (!newVariants.has(variantName)) {
+                            newVariants.add(variantName, variantEntry.getValue());
+                        }
                     }
                 }
-            }
-            for (Map.Entry<String, JsonElement> resourcePathEntry : entry.getValue().entrySet()) {
-                newVariants.add(resourcePathEntry.getKey(), resourcePathEntry.getValue());
-            }
-            stateJson.add("variants", newVariants);
-            try {
-                Files.createDirectories(overridedBlockPath.getParent());
-            } catch (IOException e) {
-                plugin.logger().error("Error creating " + overridedBlockPath.toAbsolutePath(), e);
-                continue;
-            }
-            try (BufferedWriter writer = Files.newBufferedWriter(overridedBlockPath)) {
-                GsonHelper.get().toJson(stateJson, writer);
-            } catch (IOException e) {
-                plugin.logger().warn("Failed to create block states for " + key, e);
+                for (Map.Entry<String, JsonElement> resourcePathEntry : entry.getValue().entrySet()) {
+                    newVariants.add(resourcePathEntry.getKey(), resourcePathEntry.getValue());
+                }
+                stateJson.add("variants", newVariants);
+                writeJsonSafely(stateJson, overridedBlockPath);
             }
         }
 
-        if (!Config.generateModAssets()) return;
-        for (Map.Entry<Key, JsonElement> entry : plugin.blockManager().modBlockStates().entrySet()) {
-            Key key = entry.getKey();
-            Path overridedBlockPath = generatedPackPath
-                    .resolve("assets")
-                    .resolve(key.namespace())
-                    .resolve("blockstates")
-                    .resolve(key.value() + ".json");
-            JsonObject stateJson = new JsonObject();
-            JsonObject variants = new JsonObject();
-            stateJson.add("variants", variants);
-            variants.add("", entry.getValue());
-            try {
-                Files.createDirectories(overridedBlockPath.getParent());
-            } catch (IOException e) {
-                plugin.logger().error("Error creating " + overridedBlockPath.toAbsolutePath(), e);
-                continue;
-            }
-            try (BufferedWriter writer = Files.newBufferedWriter(overridedBlockPath)) {
-                GsonHelper.get().toJson(stateJson, writer);
-            } catch (IOException e) {
-                plugin.logger().warn("Failed to create block states for " + key, e);
+        // 生成模组资源，例如 craftengine:custom_0.json
+        if (generateModAsset) {
+            for (Map.Entry<Key, JsonElement> entry : this.plugin.blockManager().modBlockStates().entrySet()) {
+                Key key = entry.getKey();
+                Path overridedBlockPath = generatedPackPath
+                        .resolve("assets")
+                        .resolve(key.namespace())
+                        .resolve("blockstates")
+                        .resolve(key.value() + ".json");
+                JsonObject stateJson = new JsonObject();
+                JsonObject variants = new JsonObject();
+                stateJson.add("variants", variants);
+                variants.add("", entry.getValue());
+                writeJsonSafely(stateJson, overridedBlockPath);
             }
         }
     }
@@ -3068,17 +2992,8 @@ public abstract class AbstractPackManager implements PackManager {
                     itemJson.add("overrides", overrides);
                 }
             }
-            try {
-                Files.createDirectories(itemPath.getParent());
-            } catch (IOException e) {
-                plugin.logger().error("Error creating " + itemPath.toAbsolutePath(), e);
-                continue;
-            }
-            try (BufferedWriter writer = Files.newBufferedWriter(itemPath)) {
-                GsonHelper.get().toJson(itemJson, writer);
-            } catch (IOException e) {
-                plugin.logger().warn("Failed to save item model for " + itemModelPath, e);
-            }
+
+            writeJsonSafely(itemJson, itemPath);
         }
     }
 
@@ -3092,22 +3007,12 @@ public abstract class AbstractPackManager implements PackManager {
                     .resolve("items")
                     .resolve(key.value() + ".json");
             if (Files.exists(itemPath)) {
-                TranslationManager.instance().log("warning.config.resource_pack.item_model.already_exist", key.asString(), itemPath.toAbsolutePath().toString());
+                this.plugin.logger().warn(TranslationManager.instance().plainTranslation("resource_pack.item_model.conflict", key.asString(), itemPath.toAbsolutePath().toString()));
                 continue;
             }
-            try {
-                Files.createDirectories(itemPath.getParent());
-            } catch (IOException e) {
-                this.plugin.logger().error("Error creating " + itemPath.toAbsolutePath(), e);
-                continue;
-            }
+
             ModernItemModel modernItemModel = entry.getValue();
-            try (BufferedWriter writer = Files.newBufferedWriter(itemPath)) {
-                // todo 修改
-                GsonHelper.get().toJson(modernItemModel.toJson(Config.packMinVersion(), Config.packMaxVersion()), writer);
-            } catch (IOException e) {
-                this.plugin.logger().warn("Failed to save item model for " + key, e);
-            }
+            writeJsonSafely(modernItemModel.toJson(Config.packMinVersion()), itemPath);
 
             List<Revision> revisions = modernItemModel.revisions();
             if (!revisions.isEmpty()) {
@@ -3119,18 +3024,8 @@ public abstract class AbstractPackManager implements PackManager {
                                 .resolve(key.namespace())
                                 .resolve("items")
                                 .resolve(key.value() + ".json");
-                        try {
-                            Files.createDirectories(overlayItemPath.getParent());
-                        } catch (IOException e) {
-                            this.plugin.logger().error("Error creating " + overlayItemPath.toAbsolutePath(), e);
-                            continue;
-                        }
-                        try (BufferedWriter writer = Files.newBufferedWriter(overlayItemPath)) {
-                            GsonHelper.get().toJson(modernItemModel.toJson(revision.minVersion(), revision.maxVersion()), writer);
-                            callback.accept(revision);
-                        } catch (IOException e) {
-                            this.plugin.logger().warn("Failed to save item model for " + key, e);
-                        }
+                        writeJsonSafely(modernItemModel.toJson(revision.minVersion(), revision.maxVersion()), overlayItemPath);
+                        callback.accept(revision);
                     }
                 }
             }
@@ -3180,24 +3075,11 @@ public abstract class AbstractPackManager implements PackManager {
             }
 
             RangeDispatchItemModel rangeDispatch = new RangeDispatchItemModel(
-                new CustomModelDataRangeDispatchProperty(0),
-                1f,
-                    entries, originalItemModel.model()
+                new CustomModelDataRangeDispatchProperty(0), 1f, entries, originalItemModel.model()
             );
 
             ModernItemModel newItemModel = new ModernItemModel(rangeDispatch, handAnimationOnSwap, oversizedInGui, swapAnimationScale);
-            try {
-                Files.createDirectories(overridedItemPath.getParent());
-            } catch (IOException e) {
-                this.plugin.logger().error("Error creating " + overridedItemPath.toAbsolutePath(), e);
-                continue;
-            }
-
-            try (BufferedWriter writer = Files.newBufferedWriter(overridedItemPath)) {
-                GsonHelper.get().toJson(newItemModel.toJson(Config.packMinVersion(), Config.packMaxVersion()), writer);
-            } catch (IOException e) {
-                this.plugin.logger().warn("Failed to save item model for " + vanillaItemModel, e);
-            }
+            writeJsonSafely(newItemModel.toJson(Config.packMinVersion()), overridedItemPath);
 
             List<Revision> revisions = newItemModel.revisions();
             if (!revisions.isEmpty()) {
@@ -3209,18 +3091,8 @@ public abstract class AbstractPackManager implements PackManager {
                                 .resolve(vanillaItemModel.namespace())
                                 .resolve("items")
                                 .resolve(vanillaItemModel.value() + ".json");
-                        try {
-                            Files.createDirectories(overlayItemPath.getParent());
-                        } catch (IOException e) {
-                            this.plugin.logger().error("Error creating " + overlayItemPath.toAbsolutePath(), e);
-                            continue;
-                        }
-                        try (BufferedWriter writer = Files.newBufferedWriter(overlayItemPath)) {
-                            GsonHelper.get().toJson(newItemModel.toJson(revision.minVersion(), revision.maxVersion()), writer);
-                            callback.accept(revision);
-                        } catch (IOException e) {
-                            this.plugin.logger().warn("Failed to save item model for " + vanillaItemModel, e);
-                        }
+                        writeJsonSafely(newItemModel.toJson(revision.minVersion(), revision.maxVersion()), overlayItemPath);
+                        callback.accept(revision);
                     }
                 }
             }
@@ -3269,17 +3141,7 @@ public abstract class AbstractPackManager implements PackManager {
                 newOverrides.add(model.toLegacyPredicateElement());
             }
             originalItemModel.add("overrides", newOverrides);
-            try {
-                Files.createDirectories(overridedItemPath.getParent());
-            } catch (IOException e) {
-                plugin.logger().error("Error creating " + overridedItemPath.toAbsolutePath(), e);
-                continue;
-            }
-            try (BufferedWriter writer = Files.newBufferedWriter(overridedItemPath)) {
-                GsonHelper.get().toJson(originalItemModel, writer);
-            } catch (IOException e) {
-                plugin.logger().warn("Failed to save item model for " + vanillaLegacyModel, e);
-            }
+            writeJsonSafely(originalItemModel, overridedItemPath);
         }
     }
 
@@ -3470,6 +3332,20 @@ public abstract class AbstractPackManager implements PackManager {
                     // just ignore it if it has many conflict files
                 }
             }
+        }
+    }
+
+    private void writeJsonSafely(JsonElement json, Path path) {
+        try {
+            Files.createDirectories(path.getParent());
+        } catch (IOException e) {
+            this.plugin.logger().error("Error creating " + path.toAbsolutePath(), e);
+            return;
+        }
+        try (BufferedWriter writer = Files.newBufferedWriter(path)) {
+            GsonHelper.get().toJson(json, writer);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to write json file " + json.toString() + " to " + path, e);
         }
     }
 

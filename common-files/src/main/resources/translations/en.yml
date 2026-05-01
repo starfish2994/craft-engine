@@ -151,6 +151,8 @@ resource_pack.compression_finished: Compressed resource pack in <arg:0>ms
 resource_pack.duplicated_files: Duplicated files Found. Please resolve them through config.yml 'resource-pack.duplicated-files-handler' section
 resource_pack.malformatted_json: Json file '<arg:0>' is malformatted
 resource_pack.conflict_resolution.unknown_type: Unknown conflict resolution type '<arg:0>'
+resource_pack.model_generation.conflict: Failed to generate model because the model file '<arg:0>' already exists
+resource_pack.item_model.conflict: Failed to generate item model '<arg:0>' because the file '<arg:1>' already exists
 resource.argument.type.section: Configuration Section
 resource.argument.type.boolean: Boolean
 resource.argument.type.int: Integer

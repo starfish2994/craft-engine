@@ -33,6 +33,11 @@ public final class ModernItemModel {
     }
 
     @NotNull
+    public JsonObject toJson(MinecraftVersion version) {
+        return toJson(version, version);
+    }
+
+    @NotNull
     public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
         if (this.oversizedInGui) { // 1.21.6
