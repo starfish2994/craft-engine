@@ -297,6 +297,18 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             Object bundle = ClientboundBundlePacketProxy.INSTANCE.newInstance(packets);
             this.immediatePacketConsumer.accept(channel, bundle, sendListener);
         };
+        // Inject Leaves bot list
+        if (VersionHelper.isLeaves()) {
+            this.injectLeavesBotList();
+        }
+    }
+
+    public static BukkitNetworkManager instance() {
+        return instance;
+    }
+
+    @Override
+    public void init() {
         // Inject server channel
         {
             Object server = MinecraftServerProxy.INSTANCE.getServer();
@@ -310,14 +322,22 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             });
             ServerConnectionListenerProxy.INSTANCE.setChannels(serverConnection, monitor);
         }
-        // Inject Leaves bot list
-        if (VersionHelper.isLeaves()) {
-            this.injectLeavesBotList();
+        Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+        if (Config.disableChatReport()) {
+            updateEnforceSecureProfile();
         }
     }
 
-    public static BukkitNetworkManager instance() {
-        return instance;
+    @Override
+    public void disable() {
+        HandlerList.unregisterAll(this);
+        for (Channel channel : this.injectedChannels) {
+            uninjectServerChannel(channel);
+        }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            handleDisconnection(getChannel(player));
+        }
+        this.injectedChannels.clear();
     }
 
     @Override
@@ -588,7 +608,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 user.sendPacket(packet, false);
             }
             Channel channel = user.nettyChannel();
-            relocateChannel(channel);
             if (this.hasAntiPopup && Config.disableChatReport() && channel != null) {
                 if (Locale.getDefault() == Locale.SIMPLIFIED_CHINESE) {
                     plugin.logger().warn("CraftEngine 的禁用聊天举报功能和 AntiPopup 冲突，可能会导致 Emoji 解析异常，请卸载 AntiPopup 或关闭禁用聊天举报功能");
@@ -642,26 +661,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         if (blockStateId == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) return 1;
         else if (blockStateId == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) return 2;
         else return 0;
-    }
-
-    @Override
-    public void init() {
-        Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
-        if (Config.disableChatReport()) {
-            updateEnforceSecureProfile();
-        }
-    }
-
-    @Override
-    public void disable() {
-        HandlerList.unregisterAll(this);
-        for (Channel channel : this.injectedChannels) {
-            uninjectServerChannel(channel);
-        }
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            handleDisconnection(getChannel(player));
-        }
-        this.injectedChannels.clear();
     }
 
     @Override
@@ -1157,7 +1156,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         if (packetID >= listener.length) {
             Debugger.PACKET.debug(() -> "Failed to convert the packet " + packetID + " for player " + user.name() +
                     ". Packet Flow: C->S, Decoder State: " + user.decoderState() + ", " +
-                    "Server version: " + VersionHelper.MINECRAFT_VERSION.version() + ", Bytes: " + Arrays.toString(event.getBuffer().array()));
+                    "Server version: " + VersionHelper.MINECRAFT_VERSION.version() + ", Bytes: " + event.getBuffer());
             return;
         }
         ByteBufferPacketListenerHolder holder = listener[packetID];
