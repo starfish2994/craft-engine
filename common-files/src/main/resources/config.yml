@@ -104,6 +104,8 @@ resource-pack:
     fake-directory: false
     # Break the texture file to prevent thieves from opening it
     break-texture: false
+    # Prevent straightforward unzip
+    anti-unzip: false
     # Obfuscate your resource pack to prevent thieves from restoring its original structure
     obfuscation:
       enable: false
@@ -114,13 +116,17 @@ resource-pack:
       # Determines the number and length of obfuscated namespaces
       namespace:
         amount: 32  # 0 = disable
-        length: 2
+        length: 2~6
       # Determines the depth and length of the obfuscated path
       path:
-        depth: 4
-        length: 2
-        # Prevent straightforward unzip
-        anti-unzip: false
+        depth: 2~6
+        length: 1~4
+      # This only works if you enable client bound model
+      # Determines the depth and length of the obfuscated item model
+      item-model:
+        enable: false
+        depth: 2~6
+        length: 1~4
       # Assemble multiple textures into one giant texture atlas to make it more difficult for thieves to directly extract the individual textures.
       # A larger atlas will result in slower generation speed, but it will also lead to a smaller resource pack size.
       atlas:

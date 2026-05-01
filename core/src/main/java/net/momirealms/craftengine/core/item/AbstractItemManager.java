@@ -573,7 +573,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     else itemBuilder.dataProcessor(new CustomModelDataProcessor(ConstantNumberProvider.constant(customModelData)));
                 }
                 if (itemModel != null && (hasModelSection || forceItemModel)) {
-                    if (clientBoundModel) itemBuilder.clientBoundProcessor(new OverwritableItemModelProcessor(itemModel));
+                    if (clientBoundModel) itemBuilder.clientBoundProcessor(Config.obfuscateItemModel() ? new ObfuscatedItemModelProcessor(itemModel) : new OverwritableItemModelProcessor(itemModel));
                     else itemBuilder.dataProcessor(new ItemModelProcessor(itemModel));
                 }
 
