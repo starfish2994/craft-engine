@@ -197,7 +197,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -297,18 +296,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             Object bundle = ClientboundBundlePacketProxy.INSTANCE.newInstance(packets);
             this.immediatePacketConsumer.accept(channel, bundle, sendListener);
         };
-        // Inject Leaves bot list
-        if (VersionHelper.isLeaves()) {
-            this.injectLeavesBotList();
-        }
-    }
-
-    public static BukkitNetworkManager instance() {
-        return instance;
-    }
-
-    @Override
-    public void init() {
         // Inject server channel
         {
             Object server = MinecraftServerProxy.INSTANCE.getServer();
@@ -322,6 +309,18 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             });
             ServerConnectionListenerProxy.INSTANCE.setChannels(serverConnection, monitor);
         }
+        // Inject Leaves bot list
+        if (VersionHelper.isLeaves()) {
+            this.injectLeavesBotList();
+        }
+    }
+
+    public static BukkitNetworkManager instance() {
+        return instance;
+    }
+
+    @Override
+    public void init() {
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
         if (Config.disableChatReport()) {
             updateEnforceSecureProfile();
@@ -864,9 +863,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
     // 再次进行重定位保证和 packetevents 的相对位置
     public void relocateChannel(Channel channel) {
-        if (isFakeChannel(channel)) {
-            return;
-        }
+        if (channel == null || isFakeChannel(channel)) return;
 
         ChannelPipeline pipeline = channel.pipeline();
         int encoderIndex = pipeline.names().indexOf(PACKET_ENCODER);
@@ -874,7 +871,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
         PluginChannelEncoder encoder = (PluginChannelEncoder) pipeline.remove(PACKET_ENCODER);
         PluginChannelDecoder decoder = (PluginChannelDecoder) pipeline.remove(PACKET_DECODER);
-        addToPipeline(pipeline, new PluginChannelEncoder(encoder), new PluginChannelDecoder(decoder));
+        addToPipeline(pipeline, encoder, decoder);
     }
 
     private void addToPipeline(ChannelPipeline pipeline, PluginChannelEncoder encoder, PluginChannelDecoder decoder) {
@@ -950,17 +947,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
     }
 
+    @ChannelHandler.Sharable
     public class PluginChannelEncoder extends MessageToMessageEncoder<ByteBuf> {
         private final NetWorkUser player;
         private boolean handledCompression = false;
 
         public PluginChannelEncoder(NetWorkUser player) {
             this.player = player;
-        }
-
-        public PluginChannelEncoder(PluginChannelEncoder encoder) {
-            this.player = encoder.player;
-            this.handledCompression = encoder.handledCompression;
         }
 
         @Override
@@ -1003,7 +996,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 }
                 PluginChannelEncoder encoder = (PluginChannelEncoder) pipeline.remove(PACKET_ENCODER);
                 decoder = (PluginChannelDecoder) ctx.pipeline().remove(PACKET_DECODER);
-                addToPipeline(ctx.pipeline(), new PluginChannelEncoder(encoder), new PluginChannelDecoder(decoder));
+                addToPipeline(ctx.pipeline(), encoder, decoder);
                 return true;
             }
             return false;
@@ -1032,17 +1025,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
     }
 
+    @ChannelHandler.Sharable
     public class PluginChannelDecoder extends MessageToMessageDecoder<ByteBuf> {
         private final NetWorkUser player;
         public boolean relocated = false;
 
         public PluginChannelDecoder(NetWorkUser player) {
             this.player = player;
-        }
-
-        public PluginChannelDecoder(PluginChannelDecoder decoder) {
-            this.player = decoder.player;
-            this.relocated = decoder.relocated;
         }
 
         @Override
@@ -2155,6 +2144,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 user.kick(null);
                 return;
             }
+            BukkitNetworkManager.instance.relocateChannel(user.nettyChannel());
             if (BukkitNetworkManager.instance.hasViaVersion) {
                 int viaVersionProtocolVersion = CraftEngine.instance().compatibilityManager().getViaVersionProtocolVersion(user);
                 if (viaVersionProtocolVersion != -1) {
@@ -2196,7 +2186,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     }
 
     public static class LevelChunkWithLightListener implements ByteBufferPacketListener {
-        private static BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> biomeRemapper = null;
+        public static BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> biomeRemapper = null;
 
         public static void setBiomeRemapper(BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> remapper) {
             biomeRemapper = remapper;
@@ -3659,9 +3649,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                         FriendlyByteBuf::writeKey,
                         (b, c) -> b.writeCollection(c, FriendlyByteBuf::writeVarInt)
                 );
-                buf.writeCollection(displays, (b, d) -> {
-                    d.write(b, ($, item) -> PacketUtils.writeItem(buf, item));
-                });
+                buf.writeCollection(displays, (b, d) ->
+                        d.write(b, ($, item) -> PacketUtils.writeItem(buf, item)));
             }
         }
     }
@@ -4736,7 +4725,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
                     PacketUtils.writeItem(buf, offer.cost1());
                     PacketUtils.writeItem(buf, offer.result());
-                    PacketUtils.writeItem(buf, offer.cost2().get());
+                    PacketUtils.writeItem(buf, offer.cost2().orElseThrow());
                     byteBuf.writeBoolean(offer.outOfStock());
                     byteBuf.writeInt(offer.uses());
                     byteBuf.writeInt(offer.maxUses());
