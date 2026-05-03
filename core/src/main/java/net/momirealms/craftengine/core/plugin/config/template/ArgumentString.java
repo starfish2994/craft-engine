@@ -70,7 +70,11 @@ public interface ArgumentString {
                 String defaultValueString = placeholderContent.substring(separatorIndex + 2);
                 try {
                     Object parsed = TagParser.parseObjectFully(defaultValueString);
-                    this.defaultValue = ((TemplateManagerImpl) TemplateManager.INSTANCE).preprocessUnknownValue(ConfigValue.of(node, parsed));
+                    if (parsed == null) {
+                        this.defaultValue = null;
+                    } else {
+                        this.defaultValue = ((TemplateManagerImpl) TemplateManager.INSTANCE).preprocessUnknownValue(ConfigValue.of(node, parsed));
+                    }
                     this.hasDefaultValue = true;
                 } catch (Throwable e) {
                     throw new KnownResourceException("resource.argument.parser.snbt", node, defaultValueString, e.getMessage());
