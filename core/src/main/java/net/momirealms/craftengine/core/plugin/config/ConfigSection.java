@@ -110,6 +110,10 @@ public final class ConfigSection {
         return this.value.keySet();
     }
 
+    public int size() {
+        return this.value.size();
+    }
+
     // 获取 config value
 
     public ConfigValue getValue(String key) {

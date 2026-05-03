@@ -118,7 +118,7 @@ public final class MerchantTradeFunction<CTX extends Context> extends AbstractCo
                 } else {
                     ConfigSection nbt = section.getSection(NBT);
                     if (nbt != null) {
-                        tagsProcessor = new TagsProcessor(nbt.values());
+                        tagsProcessor = new TagsProcessor(nbt);
                     }
                 }
                 return new TempItem(itemId, count, componentsProcessor, tagsProcessor);

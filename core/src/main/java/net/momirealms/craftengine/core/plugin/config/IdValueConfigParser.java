@@ -10,7 +10,6 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
@@ -28,8 +27,7 @@ public abstract class IdValueConfigParser extends IdConfigParser {
         for (int i = 0, size = this.configStorage.size(); i < size; i++) {
             CachedConfigSection cachedMajorSection = (CachedConfigSection) elements[i];
             ConfigSection config = cachedMajorSection.config();
-            for (Map.Entry<String, Object> entry : config.values().entrySet()) {
-                String key = entry.getKey();
+            for (String key : config.keySet()) {
                 Key id = Key.withDefaultNamespace(key, cachedMajorSection.pack().namespace());
                 Path filePath = cachedMajorSection.path();
                 String currentNode = config.assemblePath(key);
@@ -37,7 +35,7 @@ public abstract class IdValueConfigParser extends IdConfigParser {
                     continue;
                 }
                 try {
-                    ConfigValue configValue = new ConfigValue(currentNode, createConfigValue(id, entry.getValue(), currentNode));
+                    ConfigValue configValue = new ConfigValue(currentNode, createConfigValue(id, config.getValue(key)));
                     this.pendingConfigValues.add(new PendingConfigValue(cachedMajorSection.pack(), filePath, id, configValue));
                 } catch (KnownResourceException e) {
                     error(e, filePath);
@@ -71,8 +69,8 @@ public abstract class IdValueConfigParser extends IdConfigParser {
         }
     }
 
-    protected Object createConfigValue(final Key id, final Object value, final String node) {
-        return TemplateManager.INSTANCE.applyTemplates(id, value, node);
+    protected Object createConfigValue(final Key id, final ConfigValue value) {
+        return TemplateManager.INSTANCE.applyTemplates(id, value);
     }
 
     @Override

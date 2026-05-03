@@ -4,8 +4,8 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
+import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
-import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
@@ -19,16 +19,18 @@ public final class TagsProcessor implements ItemProcessor {
     public static final ItemProcessorFactory<TagsProcessor> FACTORY = new Factory();
     private final Map<String, Object> arguments;
 
-    public TagsProcessor(Map<String, Object> arguments) {
+    public TagsProcessor(ConfigSection section) {
         this.arguments = new LinkedHashMap<>();
-        for (Map.Entry<String, Object> entry : arguments.entrySet()) {
-            if (entry.getKey().charAt(0) == '@') {
-                this.arguments.put(entry.getKey().substring(1), entry.getValue());
+        for (String key : section.keySet()) {
+            if (key.charAt(0) == '@') {
+                this.arguments.put(key.substring(1), section.get(key));
             } else {
-                if (entry.getValue() instanceof Map<?,?> innerMap) {
-                    processTags(entry.getKey(), MiscUtils.castToMap(innerMap), this.arguments::put);
+                ConfigValue value = section.getValue(key);
+                if (value == null) continue;
+                if (value.is(Map.class)) {
+                    processTags(key, value.getAsSection(), this.arguments::put);
                 } else {
-                    this.arguments.put(entry.getKey(), entry.getValue());
+                    this.arguments.put(key, value.value());
                 }
             }
         }
@@ -38,15 +40,17 @@ public final class TagsProcessor implements ItemProcessor {
         return this.arguments;
     }
 
-    private void processTags(String path, Map<String, Object> arguments, BiConsumer<String, Object> callback) {
-        for (Map.Entry<String, Object> entry : arguments.entrySet()) {
-            if (entry.getKey().charAt(0) == '@') {
-                callback.accept(path + "." + entry.getKey().substring(1), entry.getValue());
+    private void processTags(String path, ConfigSection section, BiConsumer<String, Object> callback) {
+        for (String key : section.keySet()) {
+            if (key.charAt(0) == '@') {
+                callback.accept(path + "." + key.substring(1), section.get(key));
             } else {
-                if (entry.getValue() instanceof Map<?,?> innerMap) {
-                    processTags(path + "." + entry.getKey(), MiscUtils.castToMap(innerMap), callback);
+                ConfigValue value = section.getValue(key);
+                if (value == null) continue;
+                if (value.is(Map.class)) {
+                    processTags(path + "." + key, value.getAsSection(), callback);
                 } else {
-                    callback.accept(path + "." + entry.getKey(), entry.getValue());
+                    callback.accept(path + "." + key, value.value());
                 }
             }
         }
@@ -91,7 +95,7 @@ public final class TagsProcessor implements ItemProcessor {
 
         @Override
         public TagsProcessor create(ConfigValue value) {
-            return new TagsProcessor(value.getAsMap());
+            return new TagsProcessor(value.getAsSection());
         }
     }
 }

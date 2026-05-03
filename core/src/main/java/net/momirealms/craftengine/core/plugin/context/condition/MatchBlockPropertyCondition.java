@@ -22,7 +22,7 @@ public final class MatchBlockPropertyCondition<CTX extends Context> implements C
 
     @Override
     public boolean test(CTX ctx) {
-        ImmutableBlockState customBlockState = null;
+        ImmutableBlockState customBlockState;
         StatePropertyAccessor vanillaStatePropertyAccessor = null;
         // 优先使用自定义状态，其主要应用于自定义方块掉落物
         Optional<ImmutableBlockState> optionalCustomState = ctx.getOptionalParameter(DirectContextParameters.CUSTOM_BLOCK_STATE);
@@ -77,8 +77,8 @@ public final class MatchBlockPropertyCondition<CTX extends Context> implements C
         public MatchBlockPropertyCondition<CTX> create(ConfigSection section) {
             ConfigSection properties = section.getNonNullSection("properties");
             List<Pair<String, String>> propertyList = new ArrayList<>();
-            for (Map.Entry<String, Object> entry : properties.values().entrySet()) {
-                propertyList.add(Pair.of(entry.getKey(), entry.getValue().toString()));
+            for (String key : properties.keySet()) {
+                propertyList.add(Pair.of(key, properties.getNonEmptyString(key)));
             }
             return new MatchBlockPropertyCondition<>(propertyList);
         }

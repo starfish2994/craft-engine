@@ -59,7 +59,7 @@ public final class TemplateManagerImpl implements TemplateManager {
 
         @Override
         public void parseValue(Pack pack, Path filePath, Key id, ConfigValue value) {
-            TemplateManagerImpl.this.templates.put(id, preprocessUnknownValue(value.path(), value.value()));
+            TemplateManagerImpl.this.templates.put(id, preprocessUnknownValue(value));
         }
 
         @Override
@@ -69,43 +69,35 @@ public final class TemplateManagerImpl implements TemplateManager {
 
         // 覆写父类逻辑，禁止应用模板
         @Override
-        protected Object createConfigValue(Key id, Object value, String node) {
-            return value;
+        protected Object createConfigValue(Key id, ConfigValue value) {
+            return value.value();
         }
     }
 
     @Override
-    public Object applyTemplates(Key id, Object input, String node) {
-        Object preprocessedInput = preprocessUnknownValue(node, input);
-        return processUnknownValue(node, preprocessedInput, Map.of(
+    public Object applyTemplates(Key id, ConfigValue input) {
+        Object preprocessedInput = preprocessUnknownValue(input);
+        return processUnknownValue(input.path(), preprocessedInput, Map.of(
                 "__NAMESPACE__", PlainStringTemplateArgument.plain(id.namespace()),
                 "__ID__", PlainStringTemplateArgument.plain(id.value())
         ));
     }
 
-    public Object preprocessUnknownValue(String node, Object value) {
-        switch (value) {
-            case Map<?, ?> map -> {
-                Map<String, Object> in = MiscUtils.castToMap(map);
-                Map<ArgumentString, Object> out = new LinkedHashMap<>(MiscUtils.ceil(map.size() * 1.5));
-                for (Map.Entry<String, Object> entry : in.entrySet()) {
-                    out.put(ArgumentString.preParse(node, entry.getKey()), preprocessUnknownValue(node + "." + entry.getKey(), entry.getValue()));
-                }
-                return out;
+    public Object preprocessUnknownValue(ConfigValue value) {
+        if (value == null) return null;
+        if (value.is(Map.class)) {
+            ConfigSection in = value.getAsSection();
+            Map<ArgumentString, Object> out = new LinkedHashMap<>(MiscUtils.ceil(in.size() * 1.5));
+            for (String key : in.keySet()) {
+                out.put(ArgumentString.preParse(value.path(), key), preprocessUnknownValue(in.getValue(key)));
             }
-            case List<?> list -> {
-                List<Object> objList = new ObjectArrayList<>(list.size());
-                for (int i = 0, size = list.size(); i < size; i++) {
-                    objList.add(preprocessUnknownValue(node + "[" + i + "]", list.get(i)));
-                }
-                return objList;
-            }
-            case String string -> {
-                return ArgumentString.preParse(node, string);
-            }
-            case null, default -> {
-                return value;
-            }
+            return out;
+        } else if (value.is(List.class)) {
+            return value.getAsList(this::preprocessUnknownValue);
+        } else if (value.is(String.class)) {
+            return ArgumentString.preParse(value.path(), value.getAsString());
+        } else {
+            return value.value();
         }
     }
 

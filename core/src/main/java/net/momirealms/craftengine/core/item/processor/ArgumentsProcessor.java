@@ -5,7 +5,6 @@ import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.text.TextProvider;
-import net.momirealms.craftengine.core.plugin.context.text.TextProviders;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -40,8 +39,8 @@ public final class ArgumentsProcessor implements ItemProcessor {
         public ArgumentsProcessor create(ConfigValue value) {
             Map<String, TextProvider> arguments = new LinkedHashMap<>();
             ConfigSection section = value.getAsSection();
-            for (Map.Entry<String, Object> entry : section.values().entrySet()) {
-                arguments.put(entry.getKey(), TextProviders.fromString(entry.getValue().toString()));
+            for (String key : section.keySet()) {
+                arguments.put(key, section.getValue(key, ConfigValue::getAsText));
             }
             return new ArgumentsProcessor(arguments);
         }

@@ -84,8 +84,8 @@ public final class TransformBlockFunction<CTX extends Context> extends AbstractC
             CompoundTag properties = new CompoundTag();
             ConfigSection propertiesSection = section.getSection("properties");
             if (propertiesSection != null) {
-                for (Map.Entry<String, Object> entry : propertiesSection.values().entrySet()) {
-                    properties.putString(entry.getKey(), String.valueOf(entry.getValue()));
+                for (String key : propertiesSection.keySet()) {
+                    properties.putString(key, propertiesSection.getNonEmptyString(key));
                 }
             }
             return new TransformBlockFunction<>(

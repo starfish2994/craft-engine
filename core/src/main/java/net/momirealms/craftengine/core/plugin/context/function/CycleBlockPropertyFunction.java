@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
-import com.google.common.collect.Maps;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
@@ -15,10 +14,7 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public final class CycleBlockPropertyFunction<CTX extends Context> extends AbstractConditionalFunction<CTX> {
     private final String property;
@@ -93,7 +89,10 @@ public final class CycleBlockPropertyFunction<CTX extends Context> extends Abstr
             ConfigSection rulesSection = section.getSection("rules");
             Map<String, String> rules = null;
             if (rulesSection != null) {
-                rules = Maps.transformValues(rulesSection.values(), Object::toString);
+                rules = new HashMap<>();
+                for (String key : rulesSection.keySet()) {
+                    rules.put(key, rulesSection.getNonEmptyString(key));
+                }
             }
             return new CycleBlockPropertyFunction<>(
                     getPredicates(section),
