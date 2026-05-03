@@ -304,10 +304,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
         @Override
         public void parseSection(Pack pack, Path path, ConfigSection section) {
-            Map<String, Object> values = section.values();
-            for (Map.Entry<String, Object> entry : values.entrySet()) {
-                String before = entry.getKey();
-                String after = entry.getValue().toString();
+            for (String before : section.keySet()) {
+                String after = section.getNonEmptyString(before);
                 BlockStateWrapper beforeState = createVanillaBlockState(before);
                 BlockStateWrapper afterState = createVanillaBlockState(after);
                 if (beforeState == null) {

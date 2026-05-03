@@ -14,7 +14,6 @@ import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.sparrow.nbt.CompoundTag;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public final class UpdateBlockPropertyFunction<CTX extends Context> extends AbstractConditionalFunction<CTX> {
@@ -62,8 +61,8 @@ public final class UpdateBlockPropertyFunction<CTX extends Context> extends Abst
         public UpdateBlockPropertyFunction<CTX> create(ConfigSection section) {
             ConfigSection propertiesSection = section.getNonNullSection("properties");
             CompoundTag properties = new CompoundTag();
-            for (Map.Entry<String, Object> entry : propertiesSection.values().entrySet()) {
-                properties.putString(entry.getKey(), String.valueOf(entry.getValue()));
+            for (String key : propertiesSection.keySet()) {
+                properties.putString(key, propertiesSection.getNonEmptyString(key));
             }
             return new UpdateBlockPropertyFunction<>(
                     getPredicates(section),

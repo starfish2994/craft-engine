@@ -383,18 +383,20 @@ public final class TranslationManagerImpl implements TranslationManager {
     // a:
     //  b:
     //   c: xxx
-    private static void loadLangKeyDeeply(String prefix, Map<String, Object> data, BiConsumer<String, String> collector) {
-        for (Map.Entry<String, Object> entry : data.entrySet()) {
-            if (entry.getValue() instanceof Map<?,?> map) {
-                loadLangKeyDeeply(assembleLangKey(prefix, entry.getKey()), MiscUtils.castToMap(map, false), collector);
+    private static void loadLangKeyDeeply(@Nullable String prefix, ConfigSection section, BiConsumer<String, String> collector) {
+        for (String key : section.keySet()) {
+            ConfigValue value = section.getValue(key);
+            if (value == null) continue;
+            if (value.is(Map.class)) {
+                loadLangKeyDeeply(assembleLangKey(prefix, key), value.getAsSection(), collector);
             } else {
-                collector.accept(assembleLangKey(prefix, entry.getKey()), String.valueOf(entry.getValue()));
+                collector.accept(assembleLangKey(prefix, key), value.getAsString());
             }
         }
     }
 
-    private static String assembleLangKey(String prefix, String lang) {
-        if (prefix.isEmpty()) {
+    private static String assembleLangKey(@Nullable String prefix, String lang) {
+        if (prefix == null) {
             return lang;
         }
         return prefix + "." + lang;
@@ -443,7 +445,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                 }
                 ConfigSection dataSection = section.getNonNullSection(langId);
                 Map<String, String> bundle = new HashMap<>();
-                loadLangKeyDeeply("", dataSection.values(), bundle::put);
+                loadLangKeyDeeply(null, dataSection, bundle::put);
                 this.count += bundle.size();
                 if (locale.getCountry().isEmpty()) {
                     this.withoutCountry.computeIfAbsent(locale, k -> new ArrayList<>()).add(bundle);
@@ -506,11 +508,10 @@ public final class TranslationManagerImpl implements TranslationManager {
 
         @Override
         protected void parseSection(Pack pack, Path path, ConfigSection section) {
-            Map<String, Object> locales = section.values();
-            for (String langId : locales.keySet()) {
+            for (String langId : section.keySet()) {
                 ConfigSection langSection = section.getNonNullSection(langId);
                 Map<String, String> sectionData = new HashMap<>();
-                loadLangKeyDeeply("", langSection.values(), (key, value) -> sectionData.put(key, LANG_FORMATTER.apply(value)));
+                loadLangKeyDeeply(null, langSection, (key, value) -> sectionData.put(key, LANG_FORMATTER.apply(value)));
                 this.count += sectionData.size();
                 TranslationManagerImpl.this.addClientTranslation(langId, sectionData);
             }

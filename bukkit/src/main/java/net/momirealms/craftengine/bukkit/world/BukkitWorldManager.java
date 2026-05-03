@@ -750,7 +750,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection rawSection) {
-            ConfigSection section = rawSection.withSamePath(processFeatureSection(rawSection.values()));
+            ConfigSection section = rawSection.withSamePath(processFeatureSection(rawSection));
             Object feature;
             JsonElement json = GsonHelper.get().toJsonTree(section.values());
             if (VersionHelper.isOrAbove1_20_5()) {
@@ -836,7 +836,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection rawSection) {
-            ConfigSection section = rawSection.withSamePath(processFeatureSection(rawSection.values()));
+            ConfigSection section = rawSection.withSamePath(processFeatureSection(rawSection));
 
             // 自定义筛选条件
             Predicate<Key> biomeFilter = parseFilter(section.getStringList(BIOME).stream(), Key::of);
@@ -936,13 +936,13 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     //简单地处理一下，将feature转换
     @SuppressWarnings({"DuplicatedCode"})
-    private Map<String, Object> processFeatureSection(Map<String, Object> map) {
+    private Map<String, Object> processFeatureSection(ConfigSection section) {
         Map<String, Object> result = new LinkedHashMap<>();
         // 使用 snake 命名法
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            Object value = entry.getValue();
+        for (String key : section.keySet()) {
+            ConfigValue value = section.getValue(key);
             if (value == null) continue;
-            result.put(entry.getKey().replace("-", "_"), processFeatureValue(value));
+            result.put(key.replace('-', '_'), processFeatureValue(value));
         }
         // 处理方块状态
         Object rawName = result.get("Name");
@@ -1004,17 +1004,12 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     @SuppressWarnings({"DuplicatedCode"})
-    private Object processFeatureValue(Object value) {
-        if (value instanceof Map) {
-            return processFeatureSection(MiscUtils.castToMap(value));
+    private Object processFeatureValue(@NotNull ConfigValue value) {
+        if (value.is(Map.class)) {
+            return processFeatureSection(value.getAsSection());
+        } else if (value.is(List.class)) {
+            return value.getAsList(this::processFeatureValue);
         }
-        if (value instanceof List<?> originalList) {
-            List<Object> processedList = new ArrayList<>(originalList.size());
-            for (Object item : originalList) {
-                processedList.add(processFeatureValue(item));
-            }
-            return processedList;
-        }
-        return value;
+        return value.value();
     }
 }

@@ -8,6 +8,8 @@ import net.momirealms.craftengine.core.pack.Identifier;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProviders;
+import net.momirealms.craftengine.core.plugin.context.text.TextProvider;
+import net.momirealms.craftengine.core.plugin.context.text.TextProviders;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.Vec3i;
 import net.momirealms.craftengine.core.world.collision.AABB;
@@ -710,5 +712,9 @@ public final class ConfigValue {
         } else {
             return CraftEngine.instance().lootManager().createReference(this.getAsIdentifier());
         }
+    }
+
+    public TextProvider getAsText() {
+        return TextProviders.fromString(this.getAsString());
     }
 }

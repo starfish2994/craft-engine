@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config.template;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArgument;
 import net.momirealms.craftengine.core.util.TagParser;
@@ -69,7 +70,7 @@ public interface ArgumentString {
                 String defaultValueString = placeholderContent.substring(separatorIndex + 2);
                 try {
                     Object parsed = TagParser.parseObjectFully(defaultValueString);
-                    this.defaultValue = ((TemplateManagerImpl) TemplateManager.INSTANCE).preprocessUnknownValue(node, parsed);
+                    this.defaultValue = ((TemplateManagerImpl) TemplateManager.INSTANCE).preprocessUnknownValue(ConfigValue.of(node, parsed));
                     this.hasDefaultValue = true;
                 } catch (Throwable e) {
                     throw new KnownResourceException("resource.argument.parser.snbt", node, defaultValueString, e.getMessage());

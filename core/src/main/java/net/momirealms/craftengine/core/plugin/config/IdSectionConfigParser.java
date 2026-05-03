@@ -31,8 +31,7 @@ public abstract class IdSectionConfigParser extends IdConfigParser {
         for (int i = 0, size = this.configStorage.size(); i < size; i++) {
             CachedConfigSection cachedMajorSection = (CachedConfigSection) elements[i];
             ConfigSection config = cachedMajorSection.config;
-            for (Map.Entry<String, Object> entry : config.values().entrySet()) {
-                String key = entry.getKey();
+            for (String key : config.keySet()) {
                 Key id = Key.withDefaultNamespace(key, cachedMajorSection.pack.namespace());
                 Path filePath = cachedMajorSection.path();
                 String currentNode = config.assemblePath(key);
@@ -41,7 +40,7 @@ public abstract class IdSectionConfigParser extends IdConfigParser {
                 }
                 Object value;
                 try {
-                    value = TemplateManager.INSTANCE.applyTemplates(id, entry.getValue(), currentNode);
+                    value = TemplateManager.INSTANCE.applyTemplates(id, config.getValue(key));
                 } catch (KnownResourceException e) {
                     error(e, filePath);
                     continue;

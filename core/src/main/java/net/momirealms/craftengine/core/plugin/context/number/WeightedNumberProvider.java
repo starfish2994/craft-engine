@@ -68,9 +68,9 @@ public final class WeightedNumberProvider implements NumberProvider {
             //   "5.0": 20
             ConfigSection weights = section.getNonNullSection("weights");
             Map<Double, Double> processedWeights = new HashMap<>();
-            for (Map.Entry<String, Object> entry : weights.values().entrySet()) {
-                double value = Double.parseDouble(entry.getKey());
-                double weight = Double.parseDouble(String.valueOf(entry.getValue()));
+            for (String key : weights.keySet()) {
+                double value = Double.parseDouble(key);
+                double weight = weights.getNonNullDouble(key);
                 processedWeights.put(value, weight);
             }
             if (processedWeights.isEmpty()) {
