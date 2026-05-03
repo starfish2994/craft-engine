@@ -130,7 +130,7 @@ resource-pack:
       # Assemble multiple textures into one giant texture atlas to make it more difficult for thieves to directly extract the individual textures.
       # A larger atlas will result in slower generation speed, but it will also lead to a smaller resource pack size.
       atlas:
-        prefix: atlas # The prefix of the folder where the generated atlas will be located
+        prefix: "" # The prefix of the folder where the generated atlas will be located, it is recommended to leave this empty to avoid creating identifiable patterns
         images-per-canvas: 256 # -1 = disable
       # Sometimes, some vanilla files that have been overwritten might be mistakenly obfuscated
       # Please add the ignored textures/models/sounds here if that happens
