@@ -113,7 +113,7 @@ public final class MerchantTradeFunction<CTX extends Context> extends AbstractCo
                 if (VersionHelper.COMPONENT_RELEASE) {
                     ConfigSection components = section.getSection(COMPONENT);
                     if (components != null) {
-                        componentsProcessor = new ComponentsProcessor(components.values());
+                        componentsProcessor = new ComponentsProcessor(components);
                     }
                 } else {
                     ConfigSection nbt = section.getSection(NBT);

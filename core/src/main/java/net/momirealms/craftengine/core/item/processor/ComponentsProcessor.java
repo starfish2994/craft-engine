@@ -6,8 +6,10 @@ import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.plugin.context.text.TextProvider;
 import net.momirealms.craftengine.core.plugin.context.text.TextProviders;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -19,6 +21,7 @@ import net.momirealms.sparrow.nbt.Tag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public final class ComponentsProcessor implements ItemProcessor {
@@ -26,14 +29,17 @@ public final class ComponentsProcessor implements ItemProcessor {
     private final List<DynamicComponentProvider> arguments;
     private DynamicComponentProvider customData = null;
 
-    public ComponentsProcessor(Map<String, Object> map) {
-        List<DynamicComponentProvider> arguments = new ArrayList<>(map.size());
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            Key key = Key.of(entry.getKey());
-            if (key.equals(DataComponentKeys.CUSTOM_DATA)) {
-                this.customData = getProvider(key, entry.getValue());
+    public ComponentsProcessor(ConfigSection section) {
+        Set<String> keys = section.keySet();
+        List<DynamicComponentProvider> arguments = new ArrayList<>(keys.size());
+        for (String key : keys) {
+            Key id = Key.of(key);
+            ConfigValue value = section.getValue(key);
+            if (value == null) continue;
+            if (DataComponentKeys.CUSTOM_DATA.equals(id)) {
+                this.customData = getProvider(id, value);
             } else {
-                arguments.add(getProvider(key, entry.getValue()));
+                arguments.add(getProvider(id, value));
             }
         }
         this.arguments = arguments;
@@ -81,8 +87,9 @@ public final class ComponentsProcessor implements ItemProcessor {
     }
 
     // todo 未来需要支持普通yaml格式使用 <>，最好先重构textprovider与Item
-    static DynamicComponentProvider getProvider(Key key, Object value) {
-        if (value instanceof String stringValue) {
+    private static DynamicComponentProvider getProvider(Key key, ConfigValue value) {
+        if (value.is(String.class)) {
+            String stringValue = value.getAsString();
             if (stringValue.startsWith("(json) ")) {
                 // todo 需要未来先 tokenized 后再判断，而不是使用 < > 作为依据
                 if (stringValue.contains("<") && stringValue.contains(">")) {
@@ -97,16 +104,27 @@ public final class ComponentsProcessor implements ItemProcessor {
                     return new DynamicComponentProvider(key, c -> tag);
                 }
             } else if (stringValue.startsWith("(snbt) ")) {
+                String snbt = stringValue.substring("(snbt) ".length());
                 if (stringValue.contains("<") && stringValue.contains(">")) {
-                    TextProvider provider = TextProviders.fromString(stringValue.substring("(snbt) ".length()));
-                    return new DynamicComponentProvider(key, c -> TagParser.parseTagFully(provider.get(c)));
+                    TextProvider provider = TextProviders.fromString(snbt);
+                    return new DynamicComponentProvider(key, c -> {
+                        try {
+                            return TagParser.parseTagFully(provider.get(c));
+                        } catch (Exception e) {
+                            throw new KnownResourceException(ConfigConstants.PARSE_SNBT_FAILED, value.path(), snbt, e.getMessage());
+                        }
+                    });
                 } else {
-                    Tag tag = TagParser.parseTagFully(stringValue.substring("(snbt) ".length()));
-                    return new DynamicComponentProvider(key, c -> tag);
+                    try {
+                        Tag tag = TagParser.parseTagFully(snbt);
+                        return new DynamicComponentProvider(key, c -> tag);
+                    } catch (Exception e) {
+                        throw new KnownResourceException(ConfigConstants.PARSE_SNBT_FAILED, value.path(), snbt, e.getMessage());
+                    }
                 }
             }
         }
-        Tag tag = CraftEngine.instance().platform().javaToSparrowNBT(value);
+        Tag tag = CraftEngine.instance().platform().javaToSparrowNBT(value.value());
         return new DynamicComponentProvider(key, c -> tag);
     }
 
@@ -117,13 +135,14 @@ public final class ComponentsProcessor implements ItemProcessor {
             ConfigSection componentsSection = value.getAsSection();
             DynamicComponentProvider customData = null;
             List<DynamicComponentProvider> arguments = new ArrayList<>();
-            for (Map.Entry<String, Object> componentEntry : componentsSection.values().entrySet()) {
-                Key key = Key.of(componentEntry.getKey());
-                Object componentValue = componentEntry.getValue();
-                if (key.equals(DataComponentKeys.CUSTOM_DATA)) {
-                    customData = getProvider(key, componentValue);
+            for (String key : componentsSection.keySet()) {
+                Key id = Key.of(key);
+                ConfigValue componentValue = componentsSection.getValue(key);
+                if (componentValue == null) continue;
+                if (DataComponentKeys.CUSTOM_DATA.equals(id)) {
+                    customData = getProvider(id, componentValue);
                 } else {
-                    arguments.add(getProvider(key, componentValue));
+                    arguments.add(getProvider(id, componentValue));
                 }
             }
             return new ComponentsProcessor(customData, arguments);
