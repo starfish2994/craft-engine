@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config.yaml;
 
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.yaml.constructor.*;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -106,8 +107,6 @@ public final class StringKeyConstructor extends StandardConstructor {
             if (valueNode instanceof MappingNode mappingNode) {
                 Map<Object, Object> versionedMap = constructMapping(mappingNode);
                 mergeMap(targetMap, versionedMap, "", valueNode);
-            } else {
-                logWarning("versioned_key_not_a_map", key, valueNode);
             }
         }
     }
@@ -225,9 +224,10 @@ public final class StringKeyConstructor extends StandardConstructor {
     private void logWarning(String keyInLocale, String configKey, Node node) {
         if (this.path == null) return;
         int line = node.getStartMark().map(m -> m.getLine() + 1).orElse(-1);
-        TranslationManager.instance().log("warning.config.yaml." + keyInLocale,
+        CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("yaml." + keyInLocale,
                 this.path.toAbsolutePath().toString(),
                 configKey,
-                String.valueOf(line));
+                String.valueOf(line)
+        ));
     }
 }

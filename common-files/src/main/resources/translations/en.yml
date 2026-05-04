@@ -112,6 +112,8 @@ snbt.parser.empty_key: Key cannot be empty
 snbt.parser.leading_zero_not_allowed: Decimal numbers can't start with 0
 snbt.parser.infinity_not_allowed: Non-finite numbers are not allowed
 snbt.parser.incorrect: Expected literal <arg:0>
+yaml.duplicated_key: "Found duplicated key '<arg:1>' at line <arg:2> in file <arg:0>"
+yaml.inconsistent_value_type: "Found duplicated key '<arg:1>' at line <arg:2> with different value types in file <arg:0>"
 plugin.compatibility: "[Compatibility] <arg:0> hooked"
 number.unknown_type: Unknown number type '<arg:0>'
 number.fixed.invalid_expression: Invalid expression '<arg:0>'. https://ezylang.github.io/EvalEx/references/references.html
