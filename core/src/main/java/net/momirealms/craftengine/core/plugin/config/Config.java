@@ -450,9 +450,15 @@ public final class Config {
         this.resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);
         this.resource_pack$overlay_format = config.getString("resource-pack.overlay-format", "overlay_{version}");
         if (!this.resource_pack$overlay_format.contains("{version}")) {
-            TranslationManager.instance().log("warning.config.resource_pack.invalid_overlay_format", this.resource_pack$overlay_format);
+            this.plugin.logger().warn(TranslationManager.instance().plainTranslation(
+                    "config.errors_detected",
+                    TranslationManager.instance().plainTranslation(
+                            "resource_pack.invalid_overlay_format",
+                            this.resource_pack$overlay_format
+                    )
+            ));
+            this.resource_pack$overlay_format = "overlay_{version}";
         }
-
         try {
             List<?> list = config.getList("resource-pack.duplicated-files-handler");
             List<ConditionalResolution> resolutions = new ArrayList<>();
@@ -524,7 +530,13 @@ public final class Config {
         // equipment
         this. equipment$sacrificed_vanilla_armor$type = config.getString("equipment.sacrificed-vanilla-armor.type", "chainmail").toLowerCase(Locale.ENGLISH);
         if (!AbstractPackManager.ALLOWED_VANILLA_EQUIPMENT.contains(this.equipment$sacrificed_vanilla_armor$type)) {
-            TranslationManager.instance().log("warning.config.equipment.invalid_sacrificed_armor", this.equipment$sacrificed_vanilla_armor$type);
+            this.plugin.logger().warn(TranslationManager.instance().plainTranslation(
+                    "config.errors_detected",
+                    TranslationManager.instance().plainTranslation(
+                            "resource.equipment.invalid_sacrificed_armor",
+                            this.equipment$sacrificed_vanilla_armor$type
+                    )
+            ));
             this.equipment$sacrificed_vanilla_armor$type = "chainmail";
         }
 

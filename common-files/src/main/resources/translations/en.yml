@@ -140,6 +140,7 @@ host.self.http_server_started: "Netty HTTP server started on port: <arg:0>"
 config.errors_detected: Error found in config.yml - <arg:0>
 update.available: 'New version <arg:0> is available: <arg:1>'
 update.is_latest: You're running the latest version
+resource_pack.invalid_overlay_format: Invalid overlay format '<arg:0>'. Overlay format must contain the placeholder '{version}'
 resource_pack.generation_started: Generating resource pack...
 resource_pack.generation_finished: Generated resource pack in <arg:0>ms
 resource_pack.validation_started: 'Validating resource pack... (Progress: <arg:0>/<arg:1> | Pack Format: <arg:2>~<arg:3> | Overlays: <arg:4>)'
@@ -216,6 +217,7 @@ resource.emoji.invalid_image_format: Invalid image format '<arg:0>'
 resource.emoji.unknown_image: Unknown image '<arg:0>'
 resource.equipment.unknown_type: Unknown equipment type '<arg:0>'
 resource.equipment.unknown_layer_type: Unknown equipment layer type '<arg:0>'
+resource.equipment.invalid_sacrificed_armor: Invalid vanilla armor type '<arg:0>'
 resource.furniture.element.unknown_type: Unknown furniture element type '<arg:0>'
 resource.furniture.element.tint_source.unknown_type: Unknown furniture tint source type '<arg:0>'
 resource.furniture.hitbox.unknown_type: Unknown furniture hitbox type '<arg:0>'
