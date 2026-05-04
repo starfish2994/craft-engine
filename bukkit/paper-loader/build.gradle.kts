@@ -86,7 +86,9 @@ paper {
 
         // external items
         register("AzureFlow") { required = false }
+        register("Baikiruto") { required = false }
         register("CustomFishing") { required = false }
+        register("DragonArmourers") { required = false }
         register("EcoArmor") { required = false }
         register("EcoCrates") { required = false }
         register("EcoItems") { required = false }
