@@ -28,6 +28,7 @@ dependencies {
     compileOnly("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
     // Reflection
     compileOnly("net.momirealms:sparrow-reflection:${rootProject.properties["sparrow_reflection_version"]}")
+    compileOnly(files("${rootProject.rootDir}/libs/jni-internal-lookup-1.9.jar"))
     // Util
     compileOnly("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     // NMS
