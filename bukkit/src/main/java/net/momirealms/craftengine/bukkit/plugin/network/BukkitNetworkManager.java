@@ -862,7 +862,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     }
 
     // 再次进行重定位保证和 packetevents 的相对位置
-    public void relocateChannel(Channel channel) {
+    public void relocateChannelHandler(Channel channel) {
         if (channel == null || isFakeChannel(channel)) return;
 
         ChannelPipeline pipeline = channel.pipeline();
@@ -2144,7 +2144,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 user.kick(null);
                 return;
             }
-            BukkitNetworkManager.instance.relocateChannel(user.nettyChannel());
+            if (nextState == ConnectionState.LOGIN) { // 重定位一下 channel handler，确保在pe后处理
+                BukkitNetworkManager.instance.relocateChannelHandler(user.nettyChannel());
+            }
             if (BukkitNetworkManager.instance.hasViaVersion) {
                 int viaVersionProtocolVersion = CraftEngine.instance().compatibilityManager().getViaVersionProtocolVersion(user);
                 if (viaVersionProtocolVersion != -1) {
