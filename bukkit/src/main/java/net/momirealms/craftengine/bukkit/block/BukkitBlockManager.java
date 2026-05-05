@@ -72,8 +72,8 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private Map<Object, Integer> igniteOdds;
     private Map<Object, Integer> burnOdds;
     // 自定义客户端侧原版方块标签
-    private Map<Integer, List<String>> clientBoundTags = Map.of();
-    private Map<Integer, List<String>> previousClientBoundTags = Map.of();
+    private Map<Integer, List<Key>> clientBoundTags = Map.of();
+    private Map<Integer, List<Key>> previousClientBoundTags = Map.of();
     // 缓存的原版方块tag包
     private List<TagUtils.TagEntry> cachedUpdateTags = List.of();
     // 被移除声音的原版方块
@@ -203,7 +203,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         // if there's no change
         if (this.clientBoundTags.equals(this.previousClientBoundTags)) return;
         List<TagUtils.TagEntry> list = new ArrayList<>();
-        for (Map.Entry<Integer, List<String>> entry : this.clientBoundTags.entrySet()) {
+        for (Map.Entry<Integer, List<Key>> entry : this.clientBoundTags.entrySet()) {
             list.add(new TagUtils.TagEntry(entry.getKey(), entry.getValue()));
         }
         this.cachedUpdateTags = list;
@@ -453,7 +453,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     }
 
     @Override
-    protected void setVanillaBlockTags(Key id, List<String> tags) {
+    protected void setVanillaBlockTags(Key id, List<Key> tags) {
         Object block = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.BLOCK, KeyUtils.toIdentifier(id));
         int blockId = IdMapProxy.INSTANCE.getId(BuiltInRegistriesProxy.BLOCK, block);
         if (blockId == -1) {

@@ -660,6 +660,16 @@ public class FriendlyByteBuf extends ByteBuf {
         }
     }
 
+    public Vec3d readVec3() {
+        return new Vec3d(this.readDouble(), this.readDouble(), this.readDouble());
+    }
+
+    public void writeVec3(Vec3d vec3) {
+        this.writeDouble(vec3.x);
+        this.writeDouble(vec3.y);
+        this.writeDouble(vec3.z);
+    }
+
     @FunctionalInterface
     public interface Writer<T> extends BiConsumer<FriendlyByteBuf, T> {
 

@@ -9,19 +9,13 @@ import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
-import net.momirealms.craftengine.core.plugin.network.NetworkManager;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
-import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundBundlePacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundMoveEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.PositionMoveRotationProxy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,33 +43,39 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
     }
 
     @Override
-    public void handleSyncEntityPosition(NetWorkUser user, NMSPacketEvent event, Object packet) {
-        Object positionMoveRotation = ClientboundEntityPositionSyncPacketProxy.INSTANCE.getValues(packet);
-        event.replacePacket(ClientboundEntityPositionSyncPacketProxy.INSTANCE.newInstance(
-                ClientboundEntityPositionSyncPacketProxy.INSTANCE.getId(packet),
-                PositionMoveRotationProxy.INSTANCE.newInstance(
-                        PositionMoveRotationProxy.INSTANCE.getPosition(positionMoveRotation),
-                        PositionMoveRotationProxy.INSTANCE.getDeltaMovement(positionMoveRotation),
-                        -PositionMoveRotationProxy.INSTANCE.getYRot(positionMoveRotation),
-                        Math.clamp(-PositionMoveRotationProxy.INSTANCE.getXRot(positionMoveRotation), -90.0F, 90.0F)
-                ),
-                ClientboundEntityPositionSyncPacketProxy.INSTANCE.getOnGround(packet)
-        ));
+    public void handleSyncEntityPosition(NetWorkUser user, ByteBufPacketEvent event, int entityId, FriendlyByteBuf buf) {
+        Vec3d position = buf.readVec3();
+        Vec3d deltaMovement = buf.readVec3();
+        float yRot = buf.readFloat();
+        float xRot = buf.readFloat();
+        boolean onGround = buf.readBoolean();
+        buf.clear();
+        buf.writeVarInt(event.packetID());
+        buf.writeVarInt(entityId);
+        buf.writeVec3(position);
+        buf.writeVec3(deltaMovement);
+        buf.writeFloat(-yRot);
+        buf.writeFloat(MiscUtils.clamp(-xRot, -90.0F, 90.0F));
+        buf.writeBoolean(onGround);
     }
 
     @Override
-    public void handleMoveAndRotate(NetWorkUser user, NMSPacketEvent event, Object packet) {
-        float xRot = MiscUtils.unpackDegrees(ClientboundMoveEntityPacketProxy.INSTANCE.getXRot(packet));
-        float yRot = MiscUtils.unpackDegrees(ClientboundMoveEntityPacketProxy.INSTANCE.getYRot(packet));
-        event.replacePacket(ClientboundMoveEntityPacketProxy.PosRotProxy.INSTANCE.newInstance(
-                ClientboundMoveEntityPacketProxy.INSTANCE.getEntityId(packet),
-                ClientboundMoveEntityPacketProxy.INSTANCE.getXa(packet),
-                ClientboundMoveEntityPacketProxy.INSTANCE.getYa(packet),
-                ClientboundMoveEntityPacketProxy.INSTANCE.getZa(packet),
-                MiscUtils.packDegrees(-yRot),
-                MiscUtils.packDegrees(MiscUtils.clamp(-xRot, -90.0F, 90.0F)),
-                ClientboundMoveEntityPacketProxy.INSTANCE.getOnGround(packet)
-        ));
+    public void handleMoveAndRotate(NetWorkUser user, ByteBufPacketEvent event, int entityId, FriendlyByteBuf buf) {
+        short xa = buf.readShort();
+        short ya = buf.readShort();
+        short za = buf.readShort();
+        float yRot = MiscUtils.unpackDegrees(buf.readByte());
+        float xRot = MiscUtils.unpackDegrees(buf.readByte());
+        boolean onGround = buf.readBoolean();
+        buf.clear();
+        buf.writeVarInt(event.packetID());
+        buf.writeVarInt(entityId);
+        buf.writeShort(xa);
+        buf.writeShort(ya);
+        buf.writeShort(za);
+        buf.writeByte(MiscUtils.packDegrees(-yRot));
+        buf.writeByte(MiscUtils.packDegrees(MiscUtils.clamp(-xRot, -90.0F, 90.0F)));
+        buf.writeBoolean(onGround);
     }
 
     public void convertAddCustomProjectilePacket(FriendlyByteBuf buf, ByteBufPacketEvent event, NetWorkUser user) {

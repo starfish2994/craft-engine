@@ -45,7 +45,7 @@ public final class LuckPermsEventListeners {
     private void onUserPermissionChange(UserDataRecalculateEvent event) {
         UUID uniqueId = event.getUser().getUniqueId();
         CraftEngine.instance().scheduler().async().execute(() -> {
-            Player player = (Player) BukkitNetworkManager.instance().getOnlineUser(uniqueId);
+            Player player = CraftEngine.instance().platform().getPlayer(uniqueId);
             if (player == null) return;
             this.playerCallback.accept(player);
         });

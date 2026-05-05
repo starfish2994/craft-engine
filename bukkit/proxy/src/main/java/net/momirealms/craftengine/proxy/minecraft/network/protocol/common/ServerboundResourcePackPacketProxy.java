@@ -3,9 +3,7 @@ package net.momirealms.craftengine.proxy.minecraft.network.protocol.common;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.PacketProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
-import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
-import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
-import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
+import net.momirealms.sparrow.reflection.proxy.annotation.*;
 
 import java.util.UUID;
 
@@ -13,6 +11,12 @@ import java.util.UUID;
 public interface ServerboundResourcePackPacketProxy extends PacketProxy {
     ServerboundResourcePackPacketProxy INSTANCE = ASMProxyFactory.create(ServerboundResourcePackPacketProxy.class);
     Class<?> CLASS = SparrowClass.find("net.minecraft.network.protocol.common.ServerboundResourcePackPacket", "net.minecraft.network.protocol.game.ServerboundResourcePackPacket");
+
+    @ConstructorInvoker(activeIf = "max_version=1.20.2")
+    Object newInstance(@Type(clazz = ActionProxy.class) Object action);
+
+    @ConstructorInvoker(activeIf = "min_version=1.20.3")
+    Object newInstance(UUID id, @Type(clazz = ActionProxy.class) Object action);
 
     @FieldGetter(name = "id", activeIf = "min_version=1.20.3")
     UUID getId(Object target);

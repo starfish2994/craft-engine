@@ -21,7 +21,10 @@ public interface ModPacket {
                 + location.value;
     }
 
-    default void handle(NetWorkUser user) {
+    default void receive(NetWorkUser user) {
+    }
+
+    default void send(NetWorkUser user) {
     }
 
     static <B extends ByteBuf, T extends ModPacket> NetworkCodec<B, T> codec(NetworkMemberEncoder<B, T> networkMemberEncoder, NetworkDecoder<B, T> networkDecoder) {

@@ -32,7 +32,7 @@ public record ClientBlockStateSizePacket(int blockStateSize) implements ModPacke
     }
 
     @Override
-    public void handle(NetWorkUser user) {
+    public void receive(NetWorkUser user) {
         user.setClientBlockList(new IntIdentityList(this.blockStateSize));
     }
 }

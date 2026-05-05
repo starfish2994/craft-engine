@@ -32,7 +32,7 @@ public record CancelBlockUpdatePacket(boolean enabled) implements ModPacket {
     }
 
     @Override
-    public void handle(NetWorkUser user) {
+    public void receive(NetWorkUser user) {
         if (!this.enabled) return;
         ModPackets.sendPacket(user, this);
     }

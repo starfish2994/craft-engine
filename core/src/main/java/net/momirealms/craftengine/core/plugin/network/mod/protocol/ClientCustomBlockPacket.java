@@ -35,7 +35,7 @@ public record ClientCustomBlockPacket(int vanillaSize, int currentSize) implemen
     }
 
     @Override
-    public void handle(NetWorkUser user) {
+    public void receive(NetWorkUser user) {
         if (user.clientModEnabled()) return; // 防止滥用
         int vanillaBlockRegistrySize = CraftEngine.instance().blockManager().vanillaBlockStateCount();
         if (this.vanillaSize != vanillaBlockRegistrySize) {
