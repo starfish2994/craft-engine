@@ -226,7 +226,7 @@ public final class Config {
     private boolean item$default_drop_display$enable = false;
     private String item$default_drop_display$format = null;
     private boolean item$data_fixer_upper$enable = true;
-    private int item$data_fixer_upper$fallback_version = 3463;
+    private int item$data_fixer_upper$fallback_version = VersionHelper.WORLD_VERSION;
 
     private String equipment$sacrificed_vanilla_armor$type;
     private Key equipment$sacrificed_vanilla_armor$asset_id;
@@ -559,7 +559,12 @@ public final class Config {
         this.item$default_drop_display$enable = config.getBoolean("item.default-drop-display.enable", false);
         this.item$default_drop_display$format = this.item$default_drop_display$enable ? config.getString("item.default-drop-display.format", "<arg:count>x <name>"): null;
         this.item$data_fixer_upper$enable = config.getBoolean("item.data-fixer-upper.enable", true);
-        this.item$data_fixer_upper$fallback_version = config.getInt("item.data-fixer-upper.fallback-version", 3463);
+        String fallbackVersion = config.getString("item.data-fixer-upper.fallback-version");
+        if (fallbackVersion == null || fallbackVersion.isEmpty() || fallbackVersion.equalsIgnoreCase("server")) {
+            this.item$data_fixer_upper$fallback_version = VersionHelper.WORLD_VERSION;
+        } else {
+            this.item$data_fixer_upper$fallback_version = Integer.parseInt(fallbackVersion);
+        }
 
         Section customModelDataOverridesSection = config.getSection("item.custom-model-data-starting-value.overrides");
         if (customModelDataOverridesSection != null) {
