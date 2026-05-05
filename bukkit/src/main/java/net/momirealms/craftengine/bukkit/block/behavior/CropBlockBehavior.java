@@ -32,6 +32,7 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.Vec3i;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.event.CraftEventFactoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.Vec3iProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
@@ -92,12 +93,19 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         Object pos = args[2];
         if (getRawBrightness(level, pos) >= this.minGrowLight) {
             BlockStateUtils.getOptionalCustomBlockState(state).ifPresent(customState -> {
-                int age = this.getAge(customState) + baseGrowth;
-                if (age < this.ageProperty.max && this.extraGrowChance > 0 && RandomUtils.generateRandomFloat(0, 1) < this.extraGrowChance) {
-                    age++;
-                }
-                if (age < this.ageProperty.max) {
-                    LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(this.ageProperty, age).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
+                int before = this.getAge(customState);
+                if (before < this.ageProperty.max) {
+                    int after = before + baseGrowth;
+                    if (after < this.ageProperty.max && this.extraGrowChance > 0 && RandomUtils.generateRandomFloat(0, 1) < this.extraGrowChance) {
+                        after++;
+                    }
+                    if (after > before) {
+                        if (VersionHelper.isOrAbove1_21_5()) {
+                            CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, pos, customState.with(this.ageProperty, after).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
+                        } else {
+                            CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, pos, customState.with(this.ageProperty, after).customBlockState().minecraftState());
+                        }
+                    }
                 }
             });
         }
@@ -190,19 +198,27 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         int x = Vec3iProxy.INSTANCE.getX(pos);
         int y = Vec3iProxy.INSTANCE.getY(pos);
         int z = Vec3iProxy.INSTANCE.getZ(pos);
-        int i = this.getAge(customState) + this.boneMealBonus.getInt(
+        int before = this.getAge(customState);
+        int after = before + this.boneMealBonus.getInt(
                 SimpleContext.of(ContextHolder.builder()
                         .withParameter(DirectContextParameters.CUSTOM_BLOCK_STATE, customState)
                         .withParameter(DirectContextParameters.POSITION, new WorldPosition(BukkitAdaptor.adapt(world), Vec3d.atCenterOf(new Vec3i(x, y, z))))
                         .build())
         );
         int maxAge = this.ageProperty.max;
-        if (i > maxAge) {
-            i = maxAge;
+        if (after > maxAge) {
+            after = maxAge;
         }
-        LevelWriterProxy.INSTANCE.setBlock(level, pos, customState.with(this.ageProperty, i).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
-        if (sendParticles) {
-            world.spawnParticle(ParticleUtils.HAPPY_VILLAGER, x + 0.5, y + 0.5, z + 0.5, 15, 0.25, 0.25, 0.25);
+        if (after > before) {
+            boolean success;
+            if (VersionHelper.isOrAbove1_21_5()) {
+                success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, pos, customState.with(this.ageProperty, after).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
+            } else {
+                success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, pos, customState.with(this.ageProperty, after).customBlockState().minecraftState());
+            }
+            if (sendParticles && success) {
+                world.spawnParticle(ParticleUtils.HAPPY_VILLAGER, x + 0.5, y + 0.5, z + 0.5, 15, 0.25, 0.25, 0.25);
+            }
         }
     }
 
