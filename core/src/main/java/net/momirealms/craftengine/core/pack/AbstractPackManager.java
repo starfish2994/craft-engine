@@ -2025,17 +2025,11 @@ public abstract class AbstractPackManager implements PackManager {
             Key sourceTexturePath = entry.getKey();
             if (!VANILLA_TEXTURES.contains(sourceTexturePath)) {
                 String texturePath = "assets/" + sourceTexturePath.namespace() + "/textures/" + sourceTexturePath.value() + ".png";
-                outer: {
-                    for (Path rootPath : rootPaths) {
-                        if (Files.exists(rootPath.resolve(texturePath))) {
-                            break outer;
-                        }
-                    }
-                    this.plugin.logger().warn(TranslationManager.instance().plainTranslation(
-                            "resource_pack.missing_model_texture",
-                            entry.getValue().toString(), texturePath
-                    ));
-                }
+                if (rpView.exists(texturePath)) continue;
+                this.plugin.logger().warn(TranslationManager.instance().plainTranslation(
+                        "resource_pack.missing_model_texture",
+                        entry.getValue().toString(), texturePath
+                ));
             }
         }
 
@@ -2043,7 +2037,6 @@ public abstract class AbstractPackManager implements PackManager {
             result = new ValidationResult(null, lastItemAtlas, null, lastBlocksAtlas);
         }
 
-        // todo 验证 unstitch 和 paletted permutations
         return result;
     }
 
@@ -2958,11 +2951,24 @@ public abstract class AbstractPackManager implements PackManager {
             soundJson = new JsonObject();
         }
 
+        JsonObject empty = new JsonObject();
+        JsonArray sounds = new JsonArray();
+        if (!Config.silentSoundPath().isEmpty()) {
+            sounds.add(Config.silentSoundPath());
+            try (InputStream is = this.plugin.resourceStream("silence.ogg")) {
+                Path finalSoundPath = generatedPackPath.resolve("assets").resolve("minecraft").resolve("sounds").resolve(Config.silentSoundPath() + ".ogg");
+                Files.createDirectories(finalSoundPath.getParent());
+                Files.copy(is, finalSoundPath);
+            } catch (IOException e) {
+                this.plugin.logger().warn("Failed to load silence.ogg", e);
+            }
+        }
+        empty.add("sounds", sounds);
+        empty.addProperty("replace", true);
+
         for (Map.Entry<Key, Key> mapper : this.plugin.blockManager().soundReplacements().entrySet()) {
             Key originalKey = mapper.getKey();
-            JsonObject empty = new JsonObject();
-            empty.add("sounds", new JsonArray());
-            empty.addProperty("replace", true);
+
             soundJson.add(originalKey.value(), empty);
             try {
                 JsonObject originalSounds = soundTemplate.getAsJsonObject(originalKey.value());

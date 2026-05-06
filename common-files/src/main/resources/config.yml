@@ -334,6 +334,9 @@ block:
     process-cancelled-events:
       step: true
       break: true
+    # If set to non-empty, the plugin will save an empty sound
+    # If set to empty, the plugin will set an empty sound list, but at the cost of some warning logs appearing on the client side
+    silent-sound-path: "internal/silence.ogg"
 
   # Adventure mode requires correct tools to break custom blocks.
   # Vanilla clients cannot recognize custom block IDs (e.g., craftengine:custom_100).

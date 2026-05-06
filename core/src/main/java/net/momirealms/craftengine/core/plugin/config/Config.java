@@ -163,6 +163,7 @@ public final class Config {
     private boolean block$sound_system$enable;
     private boolean block$sound_system$process_cancelled_events$step;
     private boolean block$sound_system$process_cancelled_events$break;
+    private String block$sound_system$silent_sound_path;
     private boolean block$simplify_adventure_break_check;
     private boolean block$simplify_adventure_place_check;
     private boolean block$predict_breaking;
@@ -589,6 +590,7 @@ public final class Config {
         this.block$sound_system$enable = config.getBoolean("block.sound-system.enable", true);
         this.block$sound_system$process_cancelled_events$step = config.getBoolean("block.sound-system.process-cancelled-events.step", true);
         this.block$sound_system$process_cancelled_events$break = config.getBoolean("block.sound-system.process-cancelled-events.break", true);
+        this.block$sound_system$silent_sound_path = FileUtils.pathWithoutExtension(config.getString("block.sound-system.silent-sound-path", "internal/silence.ogg"));
         this.block$simplify_adventure_break_check = config.getBoolean("block.simplify-adventure-break-check", false);
         this.block$simplify_adventure_place_check = config.getBoolean("block.simplify-adventure-place-check", false);
         this.block$predict_breaking = config.getBoolean("block.predict-breaking.enable", true);
@@ -844,6 +846,10 @@ public final class Config {
 
     public static boolean processCancelledBreak() {
         return instance.block$sound_system$process_cancelled_events$break;
+    }
+
+    public static String silentSoundPath() {
+        return instance.block$sound_system$silent_sound_path;
     }
 
     public static boolean simplifyAdventureBreakCheck() {
