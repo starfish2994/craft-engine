@@ -79,7 +79,7 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
 
     String[] SPLIT_LINES = new String[] {"split_lines", "split-lines"};
 
-    private static @NotNull List<LoreModificationHolder> getLoreModificationHolders(ConfigValue configValue) {
+    static @NotNull List<LoreModificationHolder> getLoreModificationHolders(ConfigValue configValue) {
         MutableInt lastPriority = new MutableInt(0);
         List<LoreModificationHolder> modifications = new ArrayList<>();
         configValue.forEach(v -> {
@@ -100,7 +100,7 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
                 ));
                 lastPriority.set(priority);
             } else {
-                new LoreModificationHolder(
+                modifications.add(new LoreModificationHolder(
                         new LoreModification(
                                 LoreModification.Operation.APPEND,
                                 false,
@@ -108,7 +108,7 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
                                 (c) -> true
                         ),
                         lastPriority.intValue()
-                );
+                ));
             }
         });
         return modifications;

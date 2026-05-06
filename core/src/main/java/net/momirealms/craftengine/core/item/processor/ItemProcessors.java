@@ -1,8 +1,6 @@
 package net.momirealms.craftengine.core.item.processor;
 
-import net.momirealms.craftengine.core.item.processor.lore.DynamicLoreProcessor;
-import net.momirealms.craftengine.core.item.processor.lore.LoreProcessor;
-import net.momirealms.craftengine.core.item.processor.lore.OverwritableLoreProcessor;
+import net.momirealms.craftengine.core.item.processor.lore.*;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
@@ -50,6 +48,8 @@ public final class ItemProcessors {
     public static final ItemProcessorType<LoreProcessor> LORE = register(Key.ce("lore"), LoreProcessor.FACTORY);
     public static final ItemProcessorType<UnbreakableProcessor> UNBREAKABLE = register(Key.ce("unbreakable"), UnbreakableProcessor.FACTORY);
     public static final ItemProcessorType<DynamicLoreProcessor> DYNAMIC_LORE = register(Key.ce("dynamic_lore"), DynamicLoreProcessor.FACTORY);
+    public static final ItemProcessorType<InsertLoreProcessor> INSERT_LORE = register(Key.ce("insert_lore"), InsertLoreProcessor.FACTORY);
+    public static final ItemProcessorType<RemoveLoreProcessor> REMOVE_LORE = register(Key.ce("remove_lore"), RemoveLoreProcessor.FACTORY);
     public static final ItemProcessorType<OverwritableLoreProcessor> OVERWRITABLE_LORE = register(Key.ce("overwritable_lore"), OverwritableLoreProcessor.FACTORY);
     public static final ItemProcessorType<MaxDamageProcessor> MAX_DAMAGE = register(Key.ce("max_damage"), MaxDamageProcessor.FACTORY, VersionHelper.isOrAbove1_20_5());
     public static final ItemProcessorType<BlockStateProcessor> BLOCK_STATE = register(Key.ce("block_state"), BlockStateProcessor.FACTORY);
