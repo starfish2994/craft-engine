@@ -89,6 +89,8 @@ public final class Config {
     private boolean resource_pack$validation$enable;
     private boolean resource_pack$validation$fix_atlas;
     private boolean resource_pack$validation$fix_missing_texture;
+    private boolean resource_pack$validation$fallback_models$fix_textures_format;
+    private boolean resource_pack$validation$fallback_models$fix_element_rotation_angle;
     private boolean resource_pack$exclude_core_shaders;
 
     private boolean resource_pack$protection$obfuscation$enable;
@@ -447,6 +449,8 @@ public final class Config {
         this.resource_pack$validation$enable = config.getBoolean("resource-pack.validation.enable", true);
         this.resource_pack$validation$fix_atlas = config.getBoolean("resource-pack.validation.fix-atlas", true);
         this.resource_pack$validation$fix_missing_texture = config.getBoolean("resource-pack.validation.fix-missing-texture", true);
+        this.resource_pack$validation$fallback_models$fix_textures_format = config.getBoolean("resource-pack.validation.fallback-models.fix-textures-format", true);
+        this.resource_pack$validation$fallback_models$fix_element_rotation_angle = config.getBoolean("resource-pack.validation.fallback-models.fix-element-rotation-angle", true);
         this.resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);
         this.resource_pack$overlay_format = config.getString("resource-pack.overlay-format", "overlay_{version}");
         if (!this.resource_pack$overlay_format.contains("{version}")) {
@@ -1253,6 +1257,14 @@ public final class Config {
 
     public static boolean fixMissingTexture() {
         return instance.resource_pack$validation$fix_missing_texture;
+    }
+
+    public static boolean fixTexturesFormat() {
+        return instance.resource_pack$validation$fallback_models$fix_textures_format;
+    }
+
+    public static boolean fixRotationAngle() {
+        return instance.resource_pack$validation$fallback_models$fix_element_rotation_angle;
     }
 
     public static boolean excludeShaders() {

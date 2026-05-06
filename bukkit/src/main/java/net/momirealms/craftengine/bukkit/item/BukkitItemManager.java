@@ -259,7 +259,7 @@ public final class BukkitItemManager extends AbstractItemManager {
                 .resolve("trim_patterns.json");
         if (Files.exists(persistTrimPatternPath) && Files.isRegularFile(persistTrimPatternPath)) {
             try {
-                JsonObject cache = GsonHelper.readJsonFile(persistTrimPatternPath).getAsJsonObject();
+                JsonObject cache = GsonHelper.readJsonFromFile(persistTrimPatternPath).getAsJsonObject();
                 JsonArray patterns = cache.getAsJsonArray("patterns");
                 Set<Key> trims = new HashSet<>();
                 for (JsonElement element : patterns) {

@@ -21,8 +21,8 @@ public final class MergeLegacyModelResolution implements Resolution {
     @Override
     public void run(PathContext existing, PathContext conflict) {
         try {
-            JsonObject j1 = GsonHelper.readJsonFile(existing.path()).getAsJsonObject();
-            JsonObject j2 = GsonHelper.readJsonFile(conflict.path()).getAsJsonObject();
+            JsonObject j1 = GsonHelper.readJsonFromFile(existing.path()).getAsJsonObject();
+            JsonObject j2 = GsonHelper.readJsonFromFile(conflict.path()).getAsJsonObject();
 
             if (!isJsonArray(j2.get("overrides"))) {
                 return;

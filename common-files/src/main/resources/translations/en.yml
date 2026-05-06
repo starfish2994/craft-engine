@@ -153,9 +153,22 @@ resource_pack.compression_started: Compressing resource pack...(This progress mi
 resource_pack.compression_finished: Compressed resource pack in <arg:0>ms
 resource_pack.duplicated_files: Duplicated files Found. Please resolve them through config.yml 'resource-pack.duplicated-files-handler' section
 resource_pack.malformatted_json: Json file '<arg:0>' is malformatted
+resource_pack.not_a_json_object: Json file '<arg:0>' is not a json object
 resource_pack.conflict_resolution.unknown_type: Unknown conflict resolution type '<arg:0>'
 resource_pack.model_generation.conflict: Failed to generate model because the model file '<arg:0>' already exists
 resource_pack.item_model.conflict: Failed to generate item model '<arg:0>' because the file '<arg:1>' already exists
+resource_pack.missing_font_texture: "Font '<arg:0>' is missing texture: '<arg:1>'"
+resource_pack.missing_model_texture: "Model '<arg:0>' is missing texture '<arg:1>'"
+resource_pack.missing_equipment_texture: "Equipment '<arg:0>' is missing texture '<arg:1>'"
+resource_pack.missing_atlas_texture: "Atlas '<arg:0>' is missing texture '<arg:1>'"
+resource_pack.missing_item_model: "Item '<arg:0>' is missing model file '<arg:1>'"
+resource_pack.missing_block_model: "Block state '<arg:0>' is missing model file '<arg:1>'"
+resource_pack.missing_parent_model: "Model '<arg:0>' cannot find parent model '<arg:1>'"
+resource_pack.missing_sound: "Sound event '<arg:0>' is missing ogg file '<arg:1>'"
+resource_pack.texture_not_in_atlas: "Texture '<arg:0>' is not defined in the atlas. You need to add the texture path to the atlas or enable 'fix-atlas' option in config.yml"
+resource_pack.multiple_atlases: "Model '<arg:0>' uses multiple atlases: expected '<arg:1>', but found '<arg:2>'. Ensure all model textures come from the same atlas"
+resource_pack.duplicated_sprite: "Unable to load model '<arg:0>'. Duplicated sprite '<arg:1>' from atlas '<arg:2>', already defined in atlas '<arg:3>'"
+resource_pack.bad_atlas: "Failed to load model '<arg:0>'. Sprite '<arg:1>' should be from atlas '<arg:2>', but is actually from atlas '<arg:3>'"
 resource.argument.type.section: Configuration Section
 resource.argument.type.boolean: Boolean
 resource.argument.type.int: Integer

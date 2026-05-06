@@ -288,13 +288,6 @@ public final class TranslationManagerImpl implements TranslationManager {
         }
     }
 
-    @Override
-    public void log(String id, String... args) {
-        String translation = miniMessageTranslation(id);
-        if (translation == null || translation.isEmpty()) translation = id;
-        this.plugin.senderFactory().console().sendMessage(AdventureHelper.miniMessage().deserialize(translation, new IndexedArgumentTag(Arrays.stream(args).map(Component::text).toList())));
-    }
-
     private Map<String, String> updateLangFile(Map<String, String> previous, Path translationFile) throws IOException {
         String fileName = translationFile.getFileName().toString();
 
