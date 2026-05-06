@@ -2196,29 +2196,33 @@ public abstract class AbstractPackManager implements PackManager {
                                     Vector3f to = VectorUtils.vector3f(element.getAsJsonArray("to"));
                                     Vector3f origin = VectorUtils.vector3f(rotation.getAsJsonArray("origin"));
                                     String axis = rotation.getAsJsonPrimitive("axis").getAsString();
-                                    CubeRotationProcessor.RotationResult rotationResult = CubeRotationProcessor.process(from, to, origin, axis, angleValue);
-                                    element.add("from", VectorUtils.toJson(rotationResult.from()));
-                                    element.add("to", VectorUtils.toJson(rotationResult.to()));
-                                    rotation.add("origin", VectorUtils.toJson(rotationResult.origin()));
-                                    rotation.addProperty("angle", rotationResult.angle());
 
-                                    if (element.get("faces") instanceof JsonObject oldFaces) {
+                                    CubeRotationProcessor.RotationResult result = CubeRotationProcessor.process(from, to, origin, axis, angleValue);
+
+                                    element.add("from", VectorUtils.toJson(result.from()));
+                                    element.add("to", VectorUtils.toJson(result.to()));
+                                    rotation.add("origin", VectorUtils.toJson(result.origin()));
+                                    rotation.addProperty("angle", result.angle());
+
+                                    if (element.has("faces")) {
+                                        JsonObject oldFaces = element.getAsJsonObject("faces");
                                         JsonObject newFaces = new JsonObject();
 
                                         for (CubeRotationProcessor.Face sourceFace : CubeRotationProcessor.Face.values()) {
-                                            String sourceName = sourceFace.name();
-                                            if (oldFaces.has(sourceName)) {
-                                                JsonObject faceData = oldFaces.getAsJsonObject(sourceName).deepCopy();
-                                                CubeRotationProcessor.FaceData mapping = rotationResult.faceChanges().get(sourceFace);
-                                                String targetName = mapping.targetFace().name();
-                                                int oldRotation = faceData.has("rotation") ? faceData.get("rotation").getAsInt() : 0;
-                                                int newRotation = (oldRotation + mapping.uvRotation()) % 360;
-                                                if (newRotation != 0) {
-                                                    faceData.addProperty("rotation", newRotation);
+                                            if (oldFaces.has(sourceFace.name())) {
+                                                JsonObject faceObj = oldFaces.getAsJsonObject(sourceFace.name()).deepCopy();
+                                                CubeRotationProcessor.FaceData mappingData = result.faceChanges().get(sourceFace);
+
+                                                int oldRot = faceObj.has("rotation") ? faceObj.get("rotation").getAsInt() : 0;
+                                                int finalRot = (oldRot + mappingData.uvRotation()) % 360;
+
+                                                if (finalRot != 0) {
+                                                    faceObj.addProperty("rotation", finalRot);
                                                 } else {
-                                                    faceData.remove("rotation");
+                                                    faceObj.remove("rotation");
                                                 }
-                                                newFaces.add(targetName, faceData);
+
+                                                newFaces.add(mappingData.targetFace().name(), faceObj);
                                             }
                                         }
                                         element.add("faces", newFaces);
