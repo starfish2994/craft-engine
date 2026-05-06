@@ -270,7 +270,7 @@ resource.item.missing_model_id: Missing 'custom_model_data' or 'item_model' for 
 resource.item.occupied_vanilla_item_model: Item model '<arg:0>' has been occupied by a vanilla item
 resource.item.invalid_material: Invalid material type '<arg:0>'
 resource.model.generation.conflict: Failed to generate model for '<arg:0>' as two or more configurations attempt to generate different json models with the same path
-resource.recipe.smithing_transform.post_processor.unknown_type: Unknown smithing transform post processor type '<arg:0>'
+resource.recipe.transform_processor.unknown_type: Unknown smithing transform post processor type '<arg:0>'
 resource.recipe.ingredient.invalid_tag: Item tag '<arg:0>' doesn't contain any item
 resource.recipe.ingredient.item_not_exist: Ingredient item '<arg:0>' doesn't exist
 resource.recipe.result.item_not_exist: Result item '<arg:0>' doesn't exist

@@ -36,6 +36,7 @@ import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainder;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainderType;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessor;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessorType;
+import net.momirealms.craftengine.core.item.recipe.transform.ItemTransformDataProcessor;
 import net.momirealms.craftengine.core.item.setting.ItemSettingsModifier;
 import net.momirealms.craftengine.core.item.setting.ItemSettingsModifierType;
 import net.momirealms.craftengine.core.item.updater.ItemUpdater;
@@ -100,7 +101,7 @@ public final class BuiltInRegistries {
     public static final Registry<FormulaType<? extends Formula>> FORMULA_TYPE = createConstantBoundRegistry(Registries.FORMULA_TYPE, 16);
     public static final Registry<PathMatcherType<? extends Condition<PathContext>>> PATH_MATCHER_TYPE = createConstantBoundRegistry(Registries.PATH_MATCHER_TYPE, 16);
     public static final Registry<ResolutionType<? extends Resolution>> RESOLUTION_TYPE = createConstantBoundRegistry(Registries.RESOLUTION_TYPE, 16);
-    public static final Registry<CustomSmithingTransformRecipe.ItemDataProcessor.Type<? extends CustomSmithingTransformRecipe.ItemDataProcessor>> SMITHING_RESULT_PROCESSOR_TYPE = createConstantBoundRegistry(Registries.SMITHING_RESULT_PROCESSOR_TYPE, 16);
+    public static final Registry<ItemTransformDataProcessor.Type<? extends ItemTransformDataProcessor>> TRANSFORM_PROCESSOR_TYPE = createConstantBoundRegistry(Registries.TRANSFORM_PROCESSOR_TYPE, 16);
     public static final Registry<ResourcePackHostType<? extends ResourcePackHost>> RESOURCE_PACK_HOST_TYPE = createConstantBoundRegistry(Registries.RESOURCE_PACK_HOST_TYPE, 16);
     public static final Registry<CommonFunctionType<? extends Function<Context>>> COMMON_FUNCTION_TYPE = createConstantBoundRegistry(Registries.COMMON_FUNCTION_TYPE, 128);
     public static final Registry<CommonConditionType<? extends Condition<Context>>> COMMON_CONDITION_TYPE = createConstantBoundRegistry(Registries.COMMON_CONDITION_TYPE, 128);

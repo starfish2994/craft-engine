@@ -36,6 +36,7 @@ import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainder;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainderType;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessor;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessorType;
+import net.momirealms.craftengine.core.item.recipe.transform.ItemTransformDataProcessor;
 import net.momirealms.craftengine.core.item.setting.ItemSettingsModifier;
 import net.momirealms.craftengine.core.item.setting.ItemSettingsModifierType;
 import net.momirealms.craftengine.core.item.updater.ItemUpdater;
@@ -102,7 +103,7 @@ public final class Registries {
     public static final ResourceKey<Registry<FormulaType<? extends Formula>>> FORMULA_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("formula_type"));
     public static final ResourceKey<Registry<PathMatcherType<? extends Condition<PathContext>>>> PATH_MATCHER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("path_matcher_type"));
     public static final ResourceKey<Registry<ResolutionType<? extends Resolution>>> RESOLUTION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("resolution_type"));
-    public static final ResourceKey<Registry<CustomSmithingTransformRecipe.ItemDataProcessor.Type<? extends CustomSmithingTransformRecipe.ItemDataProcessor>>> SMITHING_RESULT_PROCESSOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("smithing_result_processor_type"));
+    public static final ResourceKey<Registry<ItemTransformDataProcessor.Type<? extends ItemTransformDataProcessor>>> TRANSFORM_PROCESSOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("transform_processor_type"));
     public static final ResourceKey<Registry<ResourcePackHostType<? extends ResourcePackHost>>> RESOURCE_PACK_HOST_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("resource_pack_host_type"));
     public static final ResourceKey<Registry<CommonFunctionType<? extends Function<Context>>>> COMMON_FUNCTION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("common_function_type"));
     public static final ResourceKey<Registry<CommonConditionType<? extends Condition<Context>>>> COMMON_CONDITION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("common_condition_type"));
