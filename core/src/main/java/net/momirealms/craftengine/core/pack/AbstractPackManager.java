@@ -2196,11 +2196,33 @@ public abstract class AbstractPackManager implements PackManager {
                                     Vector3f to = VectorUtils.vector3f(element.getAsJsonArray("to"));
                                     Vector3f origin = VectorUtils.vector3f(rotation.getAsJsonArray("origin"));
                                     String axis = rotation.getAsJsonPrimitive("axis").getAsString();
-                                    CubeRotationProcessor.RotationResult rotationResult = CubeRotationProcessor.processWithOriginShift(from, to, origin, axis, angleValue);
+                                    CubeRotationProcessor.RotationResult rotationResult = CubeRotationProcessor.process(from, to, origin, axis, angleValue);
                                     element.add("from", VectorUtils.toJson(rotationResult.from()));
                                     element.add("to", VectorUtils.toJson(rotationResult.to()));
                                     rotation.add("origin", VectorUtils.toJson(rotationResult.origin()));
                                     rotation.addProperty("angle", rotationResult.angle());
+
+                                    if (element.get("faces") instanceof JsonObject oldFaces) {
+                                        JsonObject newFaces = new JsonObject();
+
+                                        for (CubeRotationProcessor.Face sourceFace : CubeRotationProcessor.Face.values()) {
+                                            String sourceName = sourceFace.name();
+                                            if (oldFaces.has(sourceName)) {
+                                                JsonObject faceData = oldFaces.getAsJsonObject(sourceName).deepCopy();
+                                                CubeRotationProcessor.FaceData mapping = rotationResult.faceChanges().get(sourceFace);
+                                                String targetName = mapping.targetFace().name();
+                                                int oldRotation = faceData.has("rotation") ? faceData.get("rotation").getAsInt() : 0;
+                                                int newRotation = (oldRotation + mapping.uvRotation()) % 360;
+                                                if (newRotation != 0) {
+                                                    faceData.addProperty("rotation", newRotation);
+                                                } else {
+                                                    faceData.remove("rotation");
+                                                }
+                                                newFaces.add(targetName, faceData);
+                                            }
+                                        }
+                                        element.add("faces", newFaces);
+                                    }
                                 }
                             }
                         }
