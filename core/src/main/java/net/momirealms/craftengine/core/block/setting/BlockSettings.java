@@ -31,6 +31,7 @@ public final class BlockSettings {
     Tristate isViewBlocking = Tristate.UNDEFINED;
     Tristate useShapeForLightOcclusion = Tristate.UNDEFINED;
     Tristate propagatesSkylightDown = Tristate.UNDEFINED;
+    boolean isRaytraceBlocking = false;
     MapColor mapColor = MapColor.CLEAR;
     PushReaction pushReaction = PushReaction.NORMAL;
     int luminance;
@@ -117,6 +118,7 @@ public final class BlockSettings {
         newSettings.speedFactor = settings.speedFactor;
         newSettings.jumpFactor = settings.jumpFactor;
         newSettings.friction = settings.friction;
+        newSettings.isRaytraceBlocking = settings.isRaytraceBlocking;
         newSettings.customData = new IdentityHashMap<>(settings.customData);
         return newSettings;
     }
@@ -262,6 +264,15 @@ public final class BlockSettings {
 
     public Tristate useShapeForLightOcclusion() {
         return useShapeForLightOcclusion;
+    }
+
+    public boolean isRaytraceBlocking() {
+        return isRaytraceBlocking;
+    }
+
+    public BlockSettings isRaytraceBlocking(boolean value) {
+        this.isRaytraceBlocking = value;
+        return this;
     }
 
     public BlockSettings correctTools(LazyReference<Set<Key>> correctTools) {

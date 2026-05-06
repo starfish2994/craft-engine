@@ -36,7 +36,6 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.event.CraftEventFacto
 import net.momirealms.craftengine.proxy.minecraft.core.Vec3iProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BonemealableBlockProxy;
 import org.bukkit.Location;
 import org.bukkit.World;

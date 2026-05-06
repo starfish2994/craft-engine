@@ -11,7 +11,10 @@ import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextPar
 import net.momirealms.craftengine.core.util.Pair;
 import net.momirealms.craftengine.core.world.ExistingBlock;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 public final class MatchBlockPropertyCondition<CTX extends Context> implements Condition<CTX> {
     private final List<Pair<String, String>> properties;

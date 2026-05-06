@@ -2,10 +2,8 @@ package net.momirealms.craftengine.core.util;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentIteratorType;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.HoverEvent;
