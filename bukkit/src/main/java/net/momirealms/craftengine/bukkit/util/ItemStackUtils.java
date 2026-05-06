@@ -104,7 +104,7 @@ public final class ItemStackUtils {
         Tag itemTag = tag;
         int currentVersion = VersionHelper.WORLD_VERSION;
         if (Config.enableItemDataFixerUpper() && dataVersion != currentVersion) {
-            if (VersionHelper.isPaper()) {
+            if (VersionHelper.isPaper() && VersionHelper.isOrAbove1_21_5() && !VersionHelper.isOrAbove1_21_6()) {
                 Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, itemTag);
                 Object converted = MCDataConverterProxy.INSTANCE.convertTag(MCTypeRegistryProxy.ITEM_STACK, nmsTag, dataVersion, currentVersion);
                 itemTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, converted);

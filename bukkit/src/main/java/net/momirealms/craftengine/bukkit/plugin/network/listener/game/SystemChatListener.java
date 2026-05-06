@@ -91,7 +91,7 @@ public final class SystemChatListener {
                 }
             }
             if (!Config.disableItemOperations()) {
-                component = AdventureHelper.replaceShowItem(component, s -> SystemChatListener.replaceShowItem(s, (BukkitServerPlayer) user));
+                component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
             }
             buf.writeNbt(AdventureHelper.componentToTag(component), false);
             buf.writeBoolean(overlay);

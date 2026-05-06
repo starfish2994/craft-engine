@@ -7,7 +7,7 @@ import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 
-@ReflectionProxy(name = "ca.spottedleaf.dataconverter.minecraft.MCDataConverter", activeIf = "has_patch=paper")
+@ReflectionProxy(name = "ca.spottedleaf.dataconverter.minecraft.MCDataConverter", activeIf = "has_patch=paper && !version=1.21.5")
 public interface MCDataConverterProxy {
     MCDataConverterProxy INSTANCE = ASMProxyFactory.create(MCDataConverterProxy.class);
 

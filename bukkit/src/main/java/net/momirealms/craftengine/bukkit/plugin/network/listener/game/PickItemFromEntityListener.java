@@ -20,7 +20,6 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerGamePacketListenerImplProxy;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
 
 public final class PickItemFromEntityListener implements ByteBufferPacketListener {
     public static final ByteBufferPacketListener INSTANCE = new PickItemFromEntityListener();
@@ -59,12 +58,12 @@ public final class PickItemFromEntityListener implements ByteBufferPacketListene
         } else {
             itemStack = item.minecraftItem();
         }
-        tryPickItem(player.platformPlayer(), itemStack, null, CraftEntityProxy.INSTANCE.getEntity(furniture.bukkitEntity()));
+        tryPickItem(player.platformPlayer(), itemStack, CraftEntityProxy.INSTANCE.getEntity(furniture.bukkitEntity()));
     }
 
-    private static void tryPickItem(Player player, Object itemStack, @Nullable Object blockPos, @Nullable Object entity) {
+    private static void tryPickItem(Player player, Object itemStack, Object entity) {
         if (VersionHelper.isOrAbove1_21_5()) {
-            ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack, blockPos, entity, true);
+            ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack, null, entity, true);
         } else if (VersionHelper.isOrAbove1_21_4()) {
             ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack);
         }
