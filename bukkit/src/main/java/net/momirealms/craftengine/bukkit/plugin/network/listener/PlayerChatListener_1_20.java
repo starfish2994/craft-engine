@@ -1,20 +1,29 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener;
 
 import com.google.gson.JsonElement;
+import io.netty.buffer.ByteBuf;
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.ComponentUtils;
+import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryOps;
+import net.momirealms.craftengine.bukkit.util.RegistryUtils;
+import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.font.EmojiTextProcessResult;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
-import net.momirealms.craftengine.core.util.AdventureHelper;
-import net.momirealms.craftengine.core.util.FriendlyByteBuf;
-import net.momirealms.craftengine.core.util.GsonHelper;
-import net.momirealms.craftengine.core.util.Pair;
+import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.proxy.minecraft.network.chat.ChatTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamCodecProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSystemChatPacketProxy;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +39,11 @@ public class PlayerChatListener_1_20 implements ByteBufferPacketListener {
     private PlayerChatListener_1_20() {}
 
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-        if (!Config.interceptPlayerChat() || Config.disableChatReport()) return;
+        if (Config.disableChatReport()) {
+            convertToSystemChat(user, event);
+            return;
+        }
+        if (!Config.interceptPlayerChat()) return;
         FriendlyByteBuf buf = event.getBuffer();
         boolean changed = false;
         UUID sender = buf.readUUID();
@@ -119,5 +132,44 @@ public class PlayerChatListener_1_20 implements ByteBufferPacketListener {
             buf.writeUtf(name);
             buf.writeNullable(targetName, FriendlyByteBuf::writeUtf);
         }
+    }
+
+    public static void convertToSystemChat(NetWorkUser user, ByteBufPacketEvent event) {
+        event.setCancelled(true);
+        FriendlyByteBuf buf = event.getBuffer();
+        /*globalIndex*/ if (VersionHelper.isOrAbove1_21_5()) buf.readVarInt();
+        UUID sender = buf.readUUID();
+        /*index*/ buf.readVarInt();
+        /*signature*/ buf.readFixedBytes(256);
+        String bodyContent = buf.readUtf(256);
+        /*bodyTimeStamp*/ buf.readInstant();
+        /*bodySalt*/ buf.readLong();
+        /*bodyLastSeen*/ buf.readCollection(FriendlyByteBuf.limitValue(ArrayList::new, 20), it -> it.readFixedBytes(256));
+        Component unsignedContent = buf.readNullable(FriendlyByteBuf::readComponent);
+        int filterMaskType = buf.readVarInt();
+        /*filterMaskMask*/ if (filterMaskType == 2 /*PARTIALLY_FILTERED*/) buf.readBitSet();
+        Object chatType; // 这里需要和注册表交互，太复杂了直接用 nms 解决
+        ByteBuf nmsFriendlyByteBuf = PacketUtils.ensureNMSFriendlyByteBuf(buf);
+        if (VersionHelper.isOrAbove1_20_5()) {
+            chatType = StreamCodecProxy.INSTANCE.decode(ChatTypeProxy.BoundProxy.STREAM_CODEC, nmsFriendlyByteBuf);
+        } else {
+            chatType = ChatTypeProxy.BoundNetworkProxy.INSTANCE.resolve(
+                    ChatTypeProxy.BoundNetworkProxy.INSTANCE.newInstance(nmsFriendlyByteBuf),
+                    RegistryUtils.getRegistryAccess()
+            ).orElseThrow();
+        }
+        // 过滤非法字符在 BukkitFontManager#processChatEvent 完成
+        Object content = unsignedContent != null ? ComponentUtils.adventureToMinecraft(unsignedContent) : ComponentProxy.INSTANCE.literal(bodyContent);
+        Object decorate = ChatTypeProxy.BoundProxy.INSTANCE.decorate(chatType, content);
+        if (Config.allowEmojiChat()) {
+            String rawJsonMessage = ComponentUtils.minecraftToJson(decorate);
+            @javax.annotation.Nullable Player chatSender = CraftEngine.instance().platform().getPlayer(sender);
+            EmojiTextProcessResult result = BukkitFontManager.instance().replaceJsonEmoji(rawJsonMessage, chatSender);
+            if (result.replaced()) {
+                decorate = ComponentUtils.jsonToMinecraft(result.text());
+            }
+        }
+        Object systemChatPacket = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(decorate, false);
+        user.sendPacket(systemChatPacket, false);
     }
 }

@@ -2,10 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.id;
 
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.PacketFlow;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ClientboundCustomPayloadPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ClientboundUpdateTagsPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ServerboundCustomPayloadPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ServerboundResourcePackPacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.*;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ServerboundFinishConfigurationPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
@@ -371,5 +368,20 @@ final class PacketIds1_20 implements PacketIds {
     @Override
     public int clientboundMoveEntityPacket$Pos() {
         return PacketIdHelper.byClazz(ClientboundMoveEntityPacketProxy.PosProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
+    public int clientboundRespawnPacket() {
+        return PacketIdHelper.byClazz(ClientboundRespawnPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
+    public int serverboundClientInformationPacket$play() {
+        return PacketIdHelper.byClazz(ServerboundClientInformationPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+    }
+
+    @Override
+    public int serverboundClientInformationPacket$configuration() {
+        return PacketIdHelper.byClazz(ServerboundClientInformationPacketProxy.CLASS, ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
     }
 }

@@ -2,37 +2,36 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
-import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
-import net.momirealms.craftengine.core.plugin.network.listener.NMSPacketListener;
+import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
+import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
+import net.momirealms.craftengine.core.util.FriendlyByteBuf;
+import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRespawnPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.CommonPlayerSpawnInfoProxy;
-import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 
-import java.util.Objects;
-
-public class RespawnListener implements NMSPacketListener {
+public class RespawnListener implements ByteBufferPacketListener {
     public static final RespawnListener INSTANCE = new RespawnListener();
 
     private RespawnListener() {}
 
     @Override
-    public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
+    public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
         BukkitServerPlayer player = (BukkitServerPlayer) user;
         player.clearView();
-        Object dimensionKey;
-        if (VersionHelper.isOrAbove1_20_2()) {
-            Object commonInfo = ClientboundRespawnPacketProxy.INSTANCE.getCommonPlayerSpawnInfo(packet);
-            dimensionKey = CommonPlayerSpawnInfoProxy.INSTANCE.getDimension(commonInfo);
-        } else {
-            dimensionKey = ClientboundRespawnPacketProxy.INSTANCE.getDimension(packet);
+        FriendlyByteBuf buf = event.getBuffer();
+        World world;
+        if (VersionHelper.isOrAbove1_20_5()) {
+            /*dimensionType*/ buf.readVarInt();
+            Key dimension = buf.readKey();
+            world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+        } else { // 1.20~1.20.4
+            /*dimensionType*/ buf.readKey();
+            Key dimension = buf.readKey();
+            world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
         }
-        Object identifier = ResourceKeyProxy.INSTANCE.getIdentifier(dimensionKey);
-        World world = Bukkit.getWorld(Objects.requireNonNull(NamespacedKey.fromString(identifier.toString())));
         if (world != null) {
             player.setClientSideWorld(BukkitAdaptor.adapt(world));
             player.clearTrackedChunks();

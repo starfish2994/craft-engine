@@ -29,6 +29,7 @@ public class OpenScreenListener1_20_3 implements ByteBufferPacketListener {
         if (nbt == null) return;
         Map<String, ComponentProvider> tokens = BukkitNetworkManager.instance().matchNetworkTags(nbt.getAsString());
         if (tokens.isEmpty()) return;
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeVarInt(containerId);

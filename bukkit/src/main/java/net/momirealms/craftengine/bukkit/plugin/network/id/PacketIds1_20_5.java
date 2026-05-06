@@ -361,4 +361,19 @@ final class PacketIds1_20_5 implements PacketIds {
     public int clientboundMoveEntityPacket$Pos() {
         return PacketIdHelper.byName("minecraft:move_entity_pos", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
+
+    @Override
+    public int clientboundRespawnPacket() {
+        return PacketIdHelper.byName("minecraft:respawn", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
+    public int serverboundClientInformationPacket$play() {
+        return PacketIdHelper.byName("minecraft:client_information", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+    }
+
+    @Override
+    public int serverboundClientInformationPacket$configuration() {
+        return PacketIdHelper.byName("minecraft:client_information", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
+    }
 }

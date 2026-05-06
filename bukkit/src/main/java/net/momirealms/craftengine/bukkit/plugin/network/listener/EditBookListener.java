@@ -55,6 +55,7 @@ public class EditBookListener implements ByteBufferPacketListener {
         }
 
         if (changed) {
+            event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
             buf.writeVarInt(slot);

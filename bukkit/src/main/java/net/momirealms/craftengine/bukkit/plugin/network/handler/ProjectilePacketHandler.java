@@ -49,6 +49,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         float yRot = buf.readFloat();
         float xRot = buf.readFloat();
         boolean onGround = buf.readBoolean();
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeVarInt(entityId);
@@ -67,6 +68,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         float yRot = MiscUtils.unpackDegrees(buf.readByte());
         float xRot = MiscUtils.unpackDegrees(buf.readByte());
         boolean onGround = buf.readBoolean();
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeVarInt(entityId);

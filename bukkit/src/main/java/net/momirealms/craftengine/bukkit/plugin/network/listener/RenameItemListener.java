@@ -30,6 +30,7 @@ public class RenameItemListener implements ByteBufferPacketListener {
             // check bypass
             IllegalCharacterProcessResult result = BukkitNetworkManager.instance().processIllegalCharacters(message);
             if (result.has()) {
+                event.setChanged(true);
                 buf.clear();
                 buf.writeVarInt(event.packetID());
                 buf.writeUtf(result.text());

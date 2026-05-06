@@ -20,6 +20,7 @@ public class CustomChatCompletionsListener implements ByteBufferPacketListener {
         if (action != 2/*SET*/) return;
         List<String> entries = buf.readStringList();
         entries.addAll(BukkitFontManager.instance().getEmojiSuggestions((net.momirealms.craftengine.core.entity.player.Player) user));
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeVarInt(action);

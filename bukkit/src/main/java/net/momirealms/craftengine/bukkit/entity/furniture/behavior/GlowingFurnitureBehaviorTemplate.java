@@ -305,6 +305,7 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
         }
 
         // 重写入发出
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(BLOCK_UPDATE_PACKET_ID);
         buf.writeBlockPos(pos);

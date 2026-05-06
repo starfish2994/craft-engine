@@ -302,19 +302,20 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         // 状态切换相关监听器 - 开始
         // fixme 因为会比 packetevents 在同一秒慢半拍切换，所以说会出现一下下的错误提示，只需要推迟 1 tick 发送即可
         registerByteBufferPacketListener(C2SFinishConfigurationListener.INSTANCE, PacketIds.INSTANCE.serverboundFinishConfigurationPacket(), "ServerboundFinishConfigurationPacket", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND); // 1.20.2+ s2c to play (configuration)
-        registerByteBufferPacketListener(ByteBufferLoginListener.INSTANCE, PacketIds.INSTANCE.clientboundLoginPacket(), "ClientboundLoginPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND); // 1.20.2+ c2s to play (configuration -> play)
+        registerByteBufferPacketListener(LoginListener.INSTANCE, PacketIds.INSTANCE.clientboundLoginPacket(), "ClientboundLoginPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND); // 1.20.2+ c2s to play (configuration -> play)
         registerByteBufferPacketListener(LoginAcknowledgedListener.INSTANCE, PacketIds.INSTANCE.serverboundLoginAcknowledgedPacket(), "ServerboundLoginAcknowledgedPacket", ConnectionState.LOGIN, PacketFlow.SERVERBOUND); // 1.20.2+ to configuration (login)
         registerByteBufferPacketListener(LoginFinishedListener.INSTANCE, PacketIds.INSTANCE.clientboundLoginFinishedPacket(), "ClientboundLoginFinishedPacket", ConnectionState.LOGIN, PacketFlow.CLIENTBOUND); // 1.20.1 to play (login)
         registerByteBufferPacketListener(StartConfigurationListener.INSTANCE, PacketIds.INSTANCE.clientboundStartConfigurationPacket(), "ClientboundStartConfigurationPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND); // 1.20.2+ s2c to configuration (play)
         registerByteBufferPacketListener(ConfigurationAcknowledgedListener.INSTANCE, PacketIds.INSTANCE.serverboundConfigurationAcknowledgedPacket(), "ServerboundConfigurationAcknowledgedPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND); // 1.20.2+ c2s to configuration (play)
         registerByteBufferPacketListener(IntentionListener.INSTANCE, PacketIds.INSTANCE.clientIntentionPacket(), "ClientIntentionPacket", ConnectionState.HANDSHAKING, PacketFlow.SERVERBOUND); // to status or login (handshaking)
         // 状态切换相关监听器 - 结束
-        registerNMSPacketConsumer(PlayerInfoUpdateListener.INSTANCE, ClientboundPlayerInfoUpdatePacketProxy.CLASS);
-        registerNMSPacketConsumer(LoginListener.INSTANCE, ClientboundLoginPacketProxy.CLASS);
-        registerNMSPacketConsumer(RespawnListener.INSTANCE, ClientboundRespawnPacketProxy.CLASS);
-        registerNMSPacketConsumer(ClientInformationListener.INSTANCE, ServerboundClientInformationPacketProxy.CLASS);
-        registerNMSPacketConsumer(PlayerChatListener.INSTANCE, ClientboundPlayerChatPacketProxy.CLASS);
+        // nms
         registerNMSPacketConsumer(ContainerClickListener1_21_5.INSTANCE, VersionHelper.isOrAbove1_21_5() ? ServerboundContainerClickPacketProxy.CLASS : null);
+        // bytebuffer
+        registerByteBufferPacketListener(PlayerInfoUpdateListener.INSTANCE, PacketIds.INSTANCE.clientboundPlayerInfoUpdatePacket(), "ClientboundPlayerInfoUpdatePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(ClientInformationListener.INSTANCE, PacketIds.INSTANCE.serverboundClientInformationPacket$play(), "ServerboundClientInformationPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(ClientInformationListener.INSTANCE, PacketIds.INSTANCE.serverboundClientInformationPacket$configuration(), "ServerboundClientInformationPacket", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(RespawnListener.INSTANCE, PacketIds.INSTANCE.clientboundRespawnPacket(), "ClientboundRespawnPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(SyncEntityPositionListener.INSTANCE, PacketIds.INSTANCE.clientboundEntityPositionSyncPacket(), "ClientboundEntityPositionSyncPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(MovePosAndRotateEntityListener.INSTANCE, PacketIds.INSTANCE.clientboundMoveEntityPacket$PosRot(), "ClientboundMoveEntityPacket$PosRot", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(MovePosEntityListener.INSTANCE, PacketIds.INSTANCE.clientboundMoveEntityPacket$Pos(), "ClientboundMoveEntityPacket$Pos", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);

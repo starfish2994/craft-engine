@@ -21,6 +21,7 @@ public class ServerDataListener implements ByteBufferPacketListener {
         Component motd = buf.readComponent();
         Optional<byte[]> icon = buf.readOptional(FriendlyByteBuf::readByteArray);
         boolean enforcesSecureChat = true; // 去弹窗警告
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeComponent(motd);

@@ -46,6 +46,7 @@ public class SignUpdateListener implements ByteBufferPacketListener {
             }
         }
         if (changed) {
+            event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
             buf.writeBlockPos(pos);

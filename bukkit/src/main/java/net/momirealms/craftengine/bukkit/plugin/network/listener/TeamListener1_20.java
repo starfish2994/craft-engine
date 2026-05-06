@@ -44,6 +44,7 @@ public class TeamListener1_20 implements ByteBufferPacketListener {
         NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
 
         List<String> entities = method == 0 ? buf.readStringList() : null;
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeUtf(name);

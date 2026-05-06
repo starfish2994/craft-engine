@@ -28,7 +28,11 @@ public class PlayerChatListener_1_20_3 implements ByteBufferPacketListener {
     private PlayerChatListener_1_20_3() {}
 
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-        if (!Config.interceptPlayerChat() || Config.disableChatReport()) return;
+        if (Config.disableChatReport()) {
+            PlayerChatListener_1_20.convertToSystemChat(user, event);
+            return;
+        }
+        if (!Config.interceptPlayerChat()) return;
         FriendlyByteBuf buf = event.getBuffer();
         boolean changed = false;
         int globalIndex = VersionHelper.isOrAbove1_21_5() ? buf.readVarInt() : -1;

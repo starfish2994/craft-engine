@@ -48,6 +48,7 @@ public class UpdateTagsListener implements ByteBufferPacketListener {
             }
         }
         tags.put(BLOCK, processedTags);
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeMap(tags, FriendlyByteBuf::writeKey, (b, m) -> b.writeMap(m, FriendlyByteBuf::writeKey, FriendlyByteBuf::writeIntIdList));

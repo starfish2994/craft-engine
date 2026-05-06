@@ -91,6 +91,7 @@ public class SectionBlockUpdateListener implements ByteBufferPacketListener {
             }
         }
 
+        event.setChanged(true);
         buf.clear();
         buf.writeVarInt(event.packetID());
         buf.writeLong(sPos);

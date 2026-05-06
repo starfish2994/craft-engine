@@ -1,10 +1,6 @@
 package net.momirealms.craftengine.bukkit.plugin.network.id;
 
 import net.momirealms.craftengine.core.util.VersionHelper;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundMoveEntityPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ServerboundEditBookPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ServerboundRenameItemPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ServerboundSignUpdatePacketProxy;
 
 public interface PacketIds {
     PacketIds INSTANCE = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
@@ -150,4 +146,10 @@ public interface PacketIds {
     int clientboundMoveEntityPacket$PosRot();
 
     int clientboundMoveEntityPacket$Pos();
+
+    int clientboundRespawnPacket();
+
+    int serverboundClientInformationPacket$play();
+
+    int serverboundClientInformationPacket$configuration();
 }
