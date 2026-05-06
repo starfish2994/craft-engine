@@ -44,7 +44,7 @@ public enum Debugger {
         }
     }
 
-    public void warn(Supplier<String> message, Supplier<Throwable> e) {
+    public void warnLazy(Supplier<String> message, Supplier<Throwable> e) {
         if (this.condition.get()) {
             String s = message.get();
             Throwable t = e.get();

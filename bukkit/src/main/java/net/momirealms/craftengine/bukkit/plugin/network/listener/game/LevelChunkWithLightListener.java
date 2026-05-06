@@ -314,7 +314,7 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
     }
 
     public static void addBiomeRemapper(BiomeRemapper remapper) {
-        Debugger.PACKET.warn(() -> "Added biome remapper", Throwable::new);
+        Debugger.PACKET.warnLazy(() -> "Added biome remapper", Throwable::new);
         if (biomeRemapper == BiomeRemapper.DUMMY) {
             biomeRemapper = remapper;
         } else if (biomeRemapper instanceof DualBiomeRemapper(BiomeRemapper first, BiomeRemapper second)) {
@@ -333,7 +333,7 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
     }
 
     public static void clearBiomeRemappers() {
-        Debugger.PACKET.warn(() -> "Cleared biome remappers", Throwable::new);
+        Debugger.PACKET.warnLazy(() -> "Cleared biome remappers", Throwable::new);
         biomeRemapper = BiomeRemapper.DUMMY;
     }
 
