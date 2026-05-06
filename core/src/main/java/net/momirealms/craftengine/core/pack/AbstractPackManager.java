@@ -748,7 +748,7 @@ public abstract class AbstractPackManager implements PackManager {
 
             // 校验资源包
             if (Config.validateResourcePack()) {
-                this.validateResourcePack(generatedPackPath, packMcMeta, overlays);
+                this.validateResourcePack(generatedPackPath, overlays);
                 this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.validation_finished", String.valueOf(timestamp.deltaMillis())));
             }
 
@@ -1221,12 +1221,11 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private void validateResourcePack(Path path, JsonObject packMetaJson, Overlays packOverlays) {
-        Overlays packMeta = new Overlays(packMetaJson);
+    private void validateResourcePack(Path path, Overlays packOverlays) {
         List<OverlayCombination.Segment> segments = new ArrayList<>();
         // 完全小于1.21.11或完全大于1.21.11
         if (Config.packMaxVersion().isBelow(MinecraftVersion.V1_21_11) || Config.packMinVersion().isAtOrAbove(MinecraftVersion.V1_21_11)) {
-            OverlayCombination combination = new OverlayCombination(packMeta.overlays(), Config.packMinVersion().majorPackFormat(), Config.packMaxVersion().majorPackFormat());
+            OverlayCombination combination = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().majorPackFormat(), Config.packMaxVersion().majorPackFormat());
             while (combination.hasNext()) {
                 OverlayCombination.Segment segment = combination.nextSegment();
                 if (segment != null) {
@@ -1238,7 +1237,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
         // 混合版本
         else {
-            OverlayCombination combinationLegacy = new OverlayCombination(packMeta.overlays(), Config.packMinVersion().majorPackFormat(), 72 /* 25w44a */);
+            OverlayCombination combinationLegacy = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().majorPackFormat(), 72 /* 25w44a */);
             while (combinationLegacy.hasNext()) {
                 OverlayCombination.Segment segment = combinationLegacy.nextSegment();
                 if (segment != null) {
@@ -1247,7 +1246,7 @@ public abstract class AbstractPackManager implements PackManager {
                     break;
                 }
             }
-            OverlayCombination combinationModern = new OverlayCombination(packMeta.overlays(), 73 /* 25w45a */, Config.packMaxVersion().majorPackFormat());
+            OverlayCombination combinationModern = new OverlayCombination(packOverlays.overlays(), 73 /* 25w45a */, Config.packMaxVersion().majorPackFormat());
             while (combinationModern.hasNext()) {
                 OverlayCombination.Segment segment = combinationModern.nextSegment();
                 if (segment != null) {
@@ -1274,7 +1273,7 @@ public abstract class AbstractPackManager implements PackManager {
             List<Path> rootPathList = new ArrayList<>();
             rootPathList.add(path);
             List<Overlay> overlayInOrder = new ArrayList<>(segment.overlays().size());
-            for (Overlay overlay : packMeta.overlays()) {
+            for (Overlay overlay : packOverlays.overlays()) {
                 if (segment.overlays().contains(overlay)) {
                     Path overlayDir = path.resolve(overlay.directory());
                     if (Files.isDirectory(overlayDir)) {
@@ -1290,7 +1289,7 @@ public abstract class AbstractPackManager implements PackManager {
             ));
 
             Set<Path> fixedModels = new HashSet<>();
-            ValidationResult result = validateResourcePackOverlays(
+            ValidationResult result = validateResourcePackWithOverlays(
                     path,
                     rootPathList.toArray(new Path[0]),
                     fixedModels,
@@ -1373,7 +1372,7 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     @SuppressWarnings("DuplicatedCode")
-    private ValidationResult validateResourcePackOverlays(
+    private ValidationResult validateResourcePackWithOverlays(
             Path resourcePackPath,
             Path[] rootPaths,
             Set<Path> checkedModels,
