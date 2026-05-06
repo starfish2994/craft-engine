@@ -332,12 +332,12 @@ final class PacketIds1_20 implements PacketIds {
 
     @Override
     public int serverboundResourcePackPacket$play() {
-        return PacketIdHelper.byClazz(ServerboundResourcePackPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        return PacketIdHelper.byClazz(ServerboundResourcePackPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.SERVERBOUND);
     }
 
     @Override
     public int serverboundResourcePackPacket$configuration() {
-        return PacketIdHelper.byClazz(ServerboundResourcePackPacketProxy.CLASS, ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
+        return PacketIdHelper.byClazz(ServerboundResourcePackPacketProxy.CLASS, ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
     }
 
     @Override

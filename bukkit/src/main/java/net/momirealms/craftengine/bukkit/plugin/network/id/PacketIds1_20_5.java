@@ -324,12 +324,12 @@ final class PacketIds1_20_5 implements PacketIds {
 
     @Override
     public int serverboundResourcePackPacket$play() {
-        return PacketIdHelper.byName("minecraft:resource_pack", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        return PacketIdHelper.byName("minecraft:resource_pack", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
     }
 
     @Override
     public int serverboundResourcePackPacket$configuration() {
-        return PacketIdHelper.byName("minecraft:resource_pack", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
+        return PacketIdHelper.byName("minecraft:resource_pack", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
     }
 
     @Override

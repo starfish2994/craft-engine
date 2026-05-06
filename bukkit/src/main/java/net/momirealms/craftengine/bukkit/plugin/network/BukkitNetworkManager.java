@@ -13,9 +13,10 @@ import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.common.ClientInformationListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.common.CustomPayloadListener;
-import net.momirealms.craftengine.bukkit.plugin.network.listener.common.ResourcePackListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.common.NMSResourcePackListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.common.UpdateTagsListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.FinishConfigurationListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.NMSFinishConfigurationListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.game.*;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.handshake.IntentionListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.login.HelloListener;
@@ -49,6 +50,8 @@ import net.momirealms.craftengine.proxy.minecraft.core.registries.RegistriesProx
 import net.momirealms.craftengine.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.PacketSendListenerProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.BundlePacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ServerboundResourcePackPacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundBundlePacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ServerboundContainerClickPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.MinecraftServerProxy;
@@ -177,7 +180,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         return instance;
     }
 
-    @SuppressWarnings("SameParameterValue")
     private static void registerNMSPacketConsumer(@Nullable NMSPacketListener listener, @Nullable Class<?> packet) {
         if (listener == null || packet == null) return;
         nmsPacketListeners.put(packet, listener);
@@ -406,8 +408,10 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     }
 
     private void registerPacketListeners() {
-        // nms
+        // nms - 需要在服务器处理前处理的请放这里
         registerNMSPacketConsumer(NMSContainerClickListener.INSTANCE, ServerboundContainerClickPacketProxy.CLASS);
+        registerNMSPacketConsumer(NMSFinishConfigurationListener.INSTANCE, ClientboundFinishConfigurationPacketProxy.CLASS);
+        registerNMSPacketConsumer(NMSResourcePackListener.INSTANCE, ServerboundResourcePackPacketProxy.CLASS);
         // bytebuffer
         // 状态切换相关监听器 - 开始
         // fixme 因为会比 packetevents 在同一秒慢半拍切换，所以说会出现一下下的错误提示，只需要推迟 1 tick 发送即可
@@ -429,8 +433,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(RenameItemListener.INSTANCE, PacketIds.INSTANCE.serverboundRenameItemPacket(), "ServerboundRenameItemPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
         registerByteBufferPacketListener(SignUpdateListener.INSTANCE, PacketIds.INSTANCE.serverboundSignUpdatePacket(), "ServerboundSignUpdatePacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
         registerByteBufferPacketListener(EditBookListener.INSTANCE, PacketIds.INSTANCE.serverboundEditBookPacket(), "ServerboundEditBookPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(ResourcePackListener.INSTANCE, PacketIds.INSTANCE.serverboundResourcePackPacket$play(), "ServerboundResourcePackPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(ResourcePackListener.INSTANCE, PacketIds.INSTANCE.serverboundResourcePackPacket$configuration(), "ServerboundResourcePackPacket", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
         registerByteBufferPacketListener(EntityEventListener.INSTANCE, PacketIds.INSTANCE.clientboundEntityEventPacket(), "ClientboundEntityEventPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(UpdateTagsListener.INSTANCE, PacketIds.INSTANCE.clientboundUpdateTagsPacket$play(), "ClientboundUpdateTagsPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(UpdateTagsListener.INSTANCE, PacketIds.INSTANCE.clientboundupdatetagspacket$configuration(), "ClientboundUpdateTagsPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
@@ -442,7 +444,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(PickItemFromEntityListener.INSTANCE, PacketIds.INSTANCE.serverboundPickItemFromEntityPacket(), "ServerboundPickItemFromEntityPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
         registerByteBufferPacketListener(ServerDataListener.INSTANCE, PacketIds.INSTANCE.clientboundServerDataPacket(), "ClientboundServerDataPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(ChatSessionUpdateListener.INSTANCE, PacketIds.INSTANCE.serverboundChatSessionUpdatePacket(), "ServerboundChatSessionUpdatePacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(FinishConfigurationListener.INSTANCE, PacketIds.INSTANCE.clientboundFinishConfigurationPacket(), "ClientboundFinishConfigurationPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(CustomChatCompletionsListener.INSTANCE, PacketIds.INSTANCE.clientboundCustomChatCompletionsPacket(), "ClientboundCustomChatCompletionsPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(StatusResponseListener.INSTANCE, PacketIds.INSTANCE.clientboundStatusResponsePacket(), "ClientboundStatusResponsePacket", ConnectionState.STATUS, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(ForgetLevelChunkListener.INSTANCE, PacketIds.INSTANCE.clientboundForgetLevelChunkPacket(), "ClientboundForgetLevelChunkPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);

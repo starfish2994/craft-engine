@@ -68,6 +68,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerConfigurationPacketListenerImplProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerGamePacketListenerImplProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.network.config.JoinWorldTaskProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerResourcePackConfigurationTaskProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.thread.BlockableEventLoopProxy;
@@ -1787,13 +1788,18 @@ public class BukkitServerPlayer extends Player {
             Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(connection);
             if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return;
             Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
+            boolean removed = tasks.removeIf(JoinWorldTaskProxy.CLASS::isInstance);
             if (VersionHelper.isOrAbove1_20_3()) {
                 for (ResourcePackDownloadData data : dataList) {
                     tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+                    addResourcePackUUID(data.uuid());
                 }
             } else {
                 ResourcePackDownloadData data = dataList.getFirst();
                 tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
+            }
+            if (removed) {
+                tasks.add(JoinWorldTaskProxy.INSTANCE.newInstance());
             }
         } else {
             ResourcePackDownloadData data = dataList.getFirst();
