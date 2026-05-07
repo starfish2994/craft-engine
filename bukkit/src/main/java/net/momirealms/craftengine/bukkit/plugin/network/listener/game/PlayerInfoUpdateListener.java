@@ -16,7 +16,9 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacketProxy;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
 public final class PlayerInfoUpdateListener implements ByteBufferPacketListener {
     public static final ByteBufferPacketListener INSTANCE = new PlayerInfoUpdateListener();
