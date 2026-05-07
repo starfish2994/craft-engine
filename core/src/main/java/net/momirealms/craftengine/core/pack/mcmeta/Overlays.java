@@ -7,10 +7,10 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class PackMcMeta {
+public final class Overlays {
     private final List<Overlay> overlays;
 
-    public PackMcMeta(JsonObject mcmeta) {
+    public Overlays(JsonObject mcmeta) {
         this.overlays = getOverlays(mcmeta);
     }
 
@@ -32,5 +32,12 @@ public final class PackMcMeta {
 
     public List<Overlay> overlays() {
         return this.overlays;
+    }
+
+    public boolean addOverlay(Overlay overlay) {
+        if (this.overlays.contains(overlay)) {
+            return false;
+        }
+        return this.overlays.add(overlay);
     }
 }

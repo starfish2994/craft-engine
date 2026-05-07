@@ -66,8 +66,6 @@ public interface TranslationManager extends Manageable {
 
     Set<String> translationKeys();
 
-    void log(String id, String... args);
-
     Map<String, ClientLangData> clientLangData();
 
     void addClientTranslation(String langId, Map<String, String> translations);

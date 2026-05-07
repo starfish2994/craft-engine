@@ -44,6 +44,14 @@ public final class BlockSettingsModifiers {
         int blockLight = value.getAsInt();
         return settings -> settings.blockLight(blockLight);
     });
+    public static final BlockSettingsModifierType<BlockSettingsModifier> LIGHT_BLOCK = register(Key.ce("light_block"), value -> {
+        int blockLight = value.getAsInt();
+        return settings -> settings.blockLight(blockLight);
+    });
+    public static final BlockSettingsModifierType<BlockSettingsModifier> LIGHT_DAMPENING = register(Key.ce("light_dampening"), value -> {
+        int blockLight = value.getAsInt();
+        return settings -> settings.blockLight(blockLight);
+    });
     public static final BlockSettingsModifierType<BlockSettingsModifier> HARDNESS = register(Key.ce("hardness"), value -> {
         float hardness = value.getAsFloat();
         return settings -> settings.hardness(hardness);
@@ -150,6 +158,10 @@ public final class BlockSettingsModifiers {
             return ids;
         });
         return settings -> settings.correctTools(correctTools);
+    });
+    public static final BlockSettingsModifierType<BlockSettingsModifier> IS_RAYTRACE_BLOCKING = register(Key.ce("block_raytrace"), value -> {
+        boolean block = value.getAsBoolean();
+        return settings -> settings.isRaytraceBlocking(block);
     });
 
     private BlockSettingsModifiers() {}

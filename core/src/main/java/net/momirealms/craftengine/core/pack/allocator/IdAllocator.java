@@ -244,7 +244,7 @@ public final class IdAllocator {
         if (lastTime != this.lastModified) {
             this.lastModified = lastTime;
             this.cachedIdMap.clear();
-            JsonElement element = GsonHelper.readJsonFile(this.cacheFilePath);
+            JsonElement element = GsonHelper.readJsonFromFile(this.cacheFilePath);
             if (element instanceof JsonObject jsonObject) {
                 for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
                     if (entry.getValue() instanceof JsonPrimitive primitive) {

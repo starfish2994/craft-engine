@@ -19,8 +19,8 @@ public final class MergeFontResolution implements Resolution {
     @Override
     public void run(PathContext existing, PathContext conflict) {
         try {
-            JsonObject j1 = GsonHelper.readJsonFile(existing.path()).getAsJsonObject();
-            JsonObject j2 = GsonHelper.readJsonFile(conflict.path()).getAsJsonObject();
+            JsonObject j1 = GsonHelper.readJsonFromFile(existing.path()).getAsJsonObject();
+            JsonObject j2 = GsonHelper.readJsonFromFile(conflict.path()).getAsJsonObject();
             JsonObject j3 = new JsonObject();
             JsonArray ja1 = j1.getAsJsonArray("providers");
             JsonArray ja2 = j2.getAsJsonArray("providers");

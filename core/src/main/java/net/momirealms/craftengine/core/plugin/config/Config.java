@@ -89,6 +89,8 @@ public final class Config {
     private boolean resource_pack$validation$enable;
     private boolean resource_pack$validation$fix_atlas;
     private boolean resource_pack$validation$fix_missing_texture;
+    private boolean resource_pack$validation$fallback_models$fix_textures_format;
+    private boolean resource_pack$validation$fallback_models$fix_element_rotation_angle;
     private boolean resource_pack$exclude_core_shaders;
 
     private boolean resource_pack$protection$obfuscation$enable;
@@ -161,6 +163,7 @@ public final class Config {
     private boolean block$sound_system$enable;
     private boolean block$sound_system$process_cancelled_events$step;
     private boolean block$sound_system$process_cancelled_events$break;
+    private String block$sound_system$silent_sound_path;
     private boolean block$simplify_adventure_break_check;
     private boolean block$simplify_adventure_place_check;
     private boolean block$predict_breaking;
@@ -226,7 +229,7 @@ public final class Config {
     private boolean item$default_drop_display$enable = false;
     private String item$default_drop_display$format = null;
     private boolean item$data_fixer_upper$enable = true;
-    private int item$data_fixer_upper$fallback_version = 3463;
+    private int item$data_fixer_upper$fallback_version = VersionHelper.WORLD_VERSION;
 
     private String equipment$sacrificed_vanilla_armor$type;
     private Key equipment$sacrificed_vanilla_armor$asset_id;
@@ -447,6 +450,8 @@ public final class Config {
         this.resource_pack$validation$enable = config.getBoolean("resource-pack.validation.enable", true);
         this.resource_pack$validation$fix_atlas = config.getBoolean("resource-pack.validation.fix-atlas", true);
         this.resource_pack$validation$fix_missing_texture = config.getBoolean("resource-pack.validation.fix-missing-texture", true);
+        this.resource_pack$validation$fallback_models$fix_textures_format = config.getBoolean("resource-pack.validation.fallback-models.fix-textures-format", true);
+        this.resource_pack$validation$fallback_models$fix_element_rotation_angle = config.getBoolean("resource-pack.validation.fallback-models.fix-element-rotation-angle", true);
         this.resource_pack$exclude_core_shaders = config.getBoolean("resource-pack.exclude-core-shaders", false);
         this.resource_pack$overlay_format = config.getString("resource-pack.overlay-format", "overlay_{version}");
         if (!this.resource_pack$overlay_format.contains("{version}")) {
@@ -559,7 +564,12 @@ public final class Config {
         this.item$default_drop_display$enable = config.getBoolean("item.default-drop-display.enable", false);
         this.item$default_drop_display$format = this.item$default_drop_display$enable ? config.getString("item.default-drop-display.format", "<arg:count>x <name>"): null;
         this.item$data_fixer_upper$enable = config.getBoolean("item.data-fixer-upper.enable", true);
-        this.item$data_fixer_upper$fallback_version = config.getInt("item.data-fixer-upper.fallback-version", 3463);
+        String fallbackVersion = config.getString("item.data-fixer-upper.fallback-version");
+        if (fallbackVersion == null || fallbackVersion.isEmpty() || fallbackVersion.equalsIgnoreCase("server")) {
+            this.item$data_fixer_upper$fallback_version = VersionHelper.WORLD_VERSION;
+        } else {
+            this.item$data_fixer_upper$fallback_version = Integer.parseInt(fallbackVersion);
+        }
 
         Section customModelDataOverridesSection = config.getSection("item.custom-model-data-starting-value.overrides");
         if (customModelDataOverridesSection != null) {
@@ -580,6 +590,7 @@ public final class Config {
         this.block$sound_system$enable = config.getBoolean("block.sound-system.enable", true);
         this.block$sound_system$process_cancelled_events$step = config.getBoolean("block.sound-system.process-cancelled-events.step", true);
         this.block$sound_system$process_cancelled_events$break = config.getBoolean("block.sound-system.process-cancelled-events.break", true);
+        this.block$sound_system$silent_sound_path = FileUtils.pathWithoutExtension(config.getString("block.sound-system.silent-sound-path", "internal/silence.ogg"));
         this.block$simplify_adventure_break_check = config.getBoolean("block.simplify-adventure-break-check", false);
         this.block$simplify_adventure_place_check = config.getBoolean("block.simplify-adventure-place-check", false);
         this.block$predict_breaking = config.getBoolean("block.predict-breaking.enable", true);
@@ -835,6 +846,10 @@ public final class Config {
 
     public static boolean processCancelledBreak() {
         return instance.block$sound_system$process_cancelled_events$break;
+    }
+
+    public static String silentSoundPath() {
+        return instance.block$sound_system$silent_sound_path;
     }
 
     public static boolean simplifyAdventureBreakCheck() {
@@ -1248,6 +1263,14 @@ public final class Config {
 
     public static boolean fixMissingTexture() {
         return instance.resource_pack$validation$fix_missing_texture;
+    }
+
+    public static boolean fixTexturesFormat() {
+        return instance.resource_pack$validation$fallback_models$fix_textures_format;
+    }
+
+    public static boolean fixRotationAngle() {
+        return instance.resource_pack$validation$fallback_models$fix_element_rotation_angle;
     }
 
     public static boolean excludeShaders() {

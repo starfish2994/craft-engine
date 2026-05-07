@@ -74,7 +74,7 @@ public final class BukkitSoundManager extends AbstractSoundManager {
         if (Files.exists(persistSongPath) && Files.isRegularFile(persistSongPath)) {
             try {
                 Map<Key, JukeboxSong> songs = new HashMap<>();
-                JsonObject cache = GsonHelper.readJsonFile(persistSongPath).getAsJsonObject();
+                JsonObject cache = GsonHelper.readJsonFromFile(persistSongPath).getAsJsonObject();
                 for (Map.Entry<String, JsonElement> songEntry : cache.entrySet()) {
                     Key id = Key.of(songEntry.getKey());
                     if (songEntry.getValue() instanceof JsonObject jo) {

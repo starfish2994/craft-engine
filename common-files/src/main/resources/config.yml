@@ -51,8 +51,15 @@ resource-pack:
     # Fix textures that are not within the atlas. It is unreasonable to always rely on plugins to fix your mistakes.
     # You should strive to make your resource pack more standardized after gaining some experience with resource packs.
     fix-atlas: true
-    # Fixing model errors in the atlas caused by #missing.
+    # Fixing model errors caused by #missing.
     fix-missing-texture: true
+    # Automatically creating overlays to fix high-version model formats that need to function on lower client versions
+    fallback-models:
+      # The format of the textures map has been updated since 26.1
+      fix-textures-format: true
+      # The restriction of element rotation angle has been removed since 1.21.6 (remove multiples of 22.5 limit) & 1.21.11 (remove [-45, 45] limit)
+      # Once enabled, the plugin will replace it with the nearest value
+      fix-element-rotation-angle: true
 
   # Optimize your resource pack by reducing its size without any quality loss.
   optimization:
@@ -302,7 +309,7 @@ item:
     format: "<arg:count>x <name>"
   data-fixer-upper:
     enable: true
-    fallback-version: 3463 # https://minecraft.wiki/w/Data_version#Java_Edition
+    fallback-version: server # https://minecraft.wiki/w/Data_version#Java_Edition
 
 equipment:
   # The sacrificed-vanilla-armor argument determines which vanilla armor gets completely removed (loses all its trims)
@@ -327,6 +334,9 @@ block:
     process-cancelled-events:
       step: true
       break: true
+    # If set to non-empty, the plugin will save an empty sound
+    # If set to empty, the plugin will set an empty sound list, but at the cost of some warning logs appearing on the client side
+    silent-sound-path: "internal/silence.ogg"
 
   # Adventure mode requires correct tools to break custom blocks.
   # Vanilla clients cannot recognize custom block IDs (e.g., craftengine:custom_100).

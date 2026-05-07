@@ -30,7 +30,6 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftComple
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryAnvilProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryViewProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
 import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.ContainerProxy;
@@ -44,7 +43,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.entity.AbstractFurnaceBlockEntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkAccessProxy;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.*;

@@ -28,14 +28,14 @@ public final class MergePackMcMetaResolution implements Resolution {
         // 第一步，解析全部的mcmeta文件为json对象
         JsonObject mcmeta1;
         try {
-            mcmeta1 = GsonHelper.readJsonFile(file1).getAsJsonObject();
+            mcmeta1 = GsonHelper.readJsonFromFile(file1).getAsJsonObject();
         } catch (Exception e) {
             CraftEngine.instance().logger().error("Failed to parse mcmeta from " + file1);
             return;
         }
         JsonObject mcmeta2;
         try {
-            mcmeta2 = GsonHelper.readJsonFile(file2).getAsJsonObject();
+            mcmeta2 = GsonHelper.readJsonFromFile(file2).getAsJsonObject();
         } catch (Exception e) {
             CraftEngine.instance().logger().error("Failed to parse mcmeta from " + file2);
             return;

@@ -14,8 +14,8 @@ public record MergeJsonResolution(boolean deeply) implements Resolution {
     @Override
     public void run(PathContext existing, PathContext conflict) {
         try {
-            JsonObject j1 = GsonHelper.readJsonFile(existing.path()).getAsJsonObject();
-            JsonObject j2 = GsonHelper.readJsonFile(conflict.path()).getAsJsonObject();
+            JsonObject j1 = GsonHelper.readJsonFromFile(existing.path()).getAsJsonObject();
+            JsonObject j2 = GsonHelper.readJsonFromFile(conflict.path()).getAsJsonObject();
             JsonObject j3;
             if (deeply) {
                 j3 = GsonHelper.deepMerge(j1, j2);

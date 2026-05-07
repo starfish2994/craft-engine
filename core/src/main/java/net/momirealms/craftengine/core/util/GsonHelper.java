@@ -32,9 +32,19 @@ public final class GsonHelper {
         }
     }
 
-    public static JsonElement readJsonFile(Path path) throws IOException, JsonParseException {
+    public static JsonElement readJsonFromFile(Path path) throws IOException, JsonParseException {
         try (BufferedReader reader = Files.newBufferedReader(path)) {
             return JsonParser.parseReader(reader);
+        }
+    }
+
+    public static JsonObject readJsonObjectFromFile(Path path) throws IOException, JsonParseException {
+        try (BufferedReader reader = Files.newBufferedReader(path)) {
+            JsonElement element = JsonParser.parseReader(reader);
+            if (element instanceof JsonObject jsonObject) {
+                return jsonObject;
+            }
+            return null;
         }
     }
 

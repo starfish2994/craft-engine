@@ -130,7 +130,7 @@ public final class DebugGenerateInternalAssetsCommand extends BukkitCommandFeatu
                     JsonArray allLang = new JsonArray();
                     try {
                         Path allPath = minecraftNamespacePath.resolve("lang/_list.json");
-                        JsonObject langJson = GsonHelper.readJsonFile(allPath).getAsJsonObject();
+                        JsonObject langJson = GsonHelper.readJsonFromFile(allPath).getAsJsonObject();
                         for (JsonElement file : langJson.getAsJsonArray("files")) {
                             String string = file.getAsString();
                             if ("deprecated.json".equals(string)) continue;

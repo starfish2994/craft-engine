@@ -362,7 +362,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
                 state.setRestoreBlockState(state.visualBlockState());
             }
             // 根据客户端的状态决定其是否阻挡视线
-            super.viewBlockingBlocks[state.customBlockState().registryId()] = canBlockView(state.visualBlockState());
+            if (settings.isRaytraceBlocking()) {
+                super.viewBlockingBlocks[state.customBlockState().registryId()] = true;
+            } else {
+                super.viewBlockingBlocks[state.customBlockState().registryId()] = canBlockView(state.visualBlockState());
+            }
         } catch (Throwable e) {
             this.plugin.logger().warn("Failed to apply platform block settings for block state " + state, e);
         }

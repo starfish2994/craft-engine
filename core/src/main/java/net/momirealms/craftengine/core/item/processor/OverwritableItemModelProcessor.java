@@ -6,9 +6,6 @@ import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public final class OverwritableItemModelProcessor implements SimpleNetworkItemProcessor {
     public static final ItemProcessorFactory<OverwritableItemModelProcessor> FACTORY = new Factory();
     private final Key data;
