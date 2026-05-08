@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public final class MiscUtils {
     private MiscUtils() {
@@ -407,12 +408,6 @@ public final class MiscUtils {
             List<T> removed
     ) {}
 
-    /**
-     * 计算两个列表中新加和丢失的元素。
-     * @param previousCollection 可能为null的旧列表
-     * @param newCollection 可能为null的新列表
-     * @return DiffResult,  "added" 对应新列表中独有元素，"removed" 对应旧列表中独有元素
-     */
     public static <T> DiffResult<T> diff(@Nullable Collection<T> previousCollection, @Nullable Collection<T> newCollection) {
         Set<T> previousSet = previousCollection == null ? Collections.emptySet() : new HashSet<>(previousCollection);
         Set<T> newSet = newCollection == null ? Collections.emptySet() : new HashSet<>(newCollection);
@@ -428,5 +423,9 @@ public final class MiscUtils {
         }
 
         return new DiffResult<>(added, removed);
+    }
+
+    public static <T> T get(Supplier<T> supplier) {
+        return supplier.get();
     }
 }

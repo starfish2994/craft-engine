@@ -119,7 +119,7 @@ public final class AddEntityListener implements ByteBufferPacketListener {
                     event.setCancelled(true);
                 }
             } else {
-                user.entityPacketHandlers().put(id, ItemDisplayPacketHandler.INSTANCE);
+                user.entityPacketHandlers().putIfAbsent(id, ItemDisplayPacketHandler.INSTANCE);
             }
         };
         this.handlers[EntityTypeProxy.INTERACTION$registryId] = (user, event) -> {
