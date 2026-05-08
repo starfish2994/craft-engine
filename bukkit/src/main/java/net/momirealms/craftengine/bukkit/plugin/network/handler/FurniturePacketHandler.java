@@ -6,7 +6,8 @@ import net.momirealms.craftengine.core.entity.furniture.FurnitureSnapshotState;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
-import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
+import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
+import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 
 public final class FurniturePacketHandler implements EntityPacketHandler {
     public final Furniture furniture;
@@ -27,12 +28,12 @@ public final class FurniturePacketHandler implements EntityPacketHandler {
     }
 
     @Override
-    public void handleSyncEntityPosition(NetWorkUser user, NMSPacketEvent event, Object packet) {
+    public void handleSyncEntityPosition(NetWorkUser user, ByteBufPacketEvent event, int entityId, FriendlyByteBuf buf) {
         event.setCancelled(true);
     }
 
     @Override
-    public void handleMove(NetWorkUser user, NMSPacketEvent event, Object packet) {
+    public void handleMove(NetWorkUser user, ByteBufPacketEvent event, int entityId, FriendlyByteBuf buf) {
         event.setCancelled(true);
     }
 }

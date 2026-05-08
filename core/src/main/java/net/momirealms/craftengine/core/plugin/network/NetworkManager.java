@@ -49,6 +49,8 @@ public interface NetworkManager extends Manageable {
 
     void sendPackets(@NotNull NetWorkUser player, List<Object> packet, boolean immediately, Runnable sendListener);
 
+    void simulatePacket(@NotNull NetWorkUser player, Object packet);
+
     Map<String, ComponentProvider> matchNetworkTags(String text);
 
     default Map<String, ComponentProvider> matchNetworkTags(Tag nbt) {

@@ -1,6 +1,9 @@
-package net.momirealms.craftengine.bukkit.plugin.network;
+package net.momirealms.craftengine.bukkit.plugin.network.id;
+
+import net.momirealms.craftengine.core.util.VersionHelper;
 
 public interface PacketIds {
+    PacketIds INSTANCE = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
 
     int clientboundBlockUpdatePacket();
 
@@ -74,7 +77,9 @@ public interface PacketIds {
 
     int clientboundForgetLevelChunkPacket();
 
-    int serverboundCustomPayloadPacket();
+    int serverboundCustomPayloadPacket$play();
+
+    int serverboundCustomPayloadPacket$configuration();
 
     int clientboundPlayerChatPacket();
 
@@ -94,7 +99,57 @@ public interface PacketIds {
 
     int serverboundConfigurationAcknowledgedPacket();
 
-    int clientboundCustomPayloadPacket();
+    int clientboundCustomPayloadPacket$play();
+
+    int clientboundCustomPayloadPacket$configuration();
 
     int serverboundAttackPacket();
+
+    int clientboundCustomChatCompletionsPacket();
+
+    int clientboundFinishConfigurationPacket();
+
+    int serverboundChatSessionUpdatePacket();
+
+    int clientboundServerDataPacket();
+
+    int serverboundHelloPacket();
+
+    int serverboundSwingPacket();
+
+    int serverboundPlayerActionPacket();
+
+    int serverboundUseItemOnPacket();
+
+    int serverboundPickItemFromBlockPacket();
+
+    int serverboundPickItemFromEntityPacket();
+
+    int clientboundUpdateTagsPacket$play();
+
+    int clientboundupdatetagspacket$configuration();
+
+    int clientboundEntityEventPacket();
+
+    int serverboundResourcePackPacket$play();
+
+    int serverboundResourcePackPacket$configuration();
+
+    int serverboundRenameItemPacket();
+
+    int serverboundSignUpdatePacket();
+
+    int serverboundEditBookPacket();
+
+    int clientboundEntityPositionSyncPacket();
+
+    int clientboundMoveEntityPacket$PosRot();
+
+    int clientboundMoveEntityPacket$Pos();
+
+    int clientboundRespawnPacket();
+
+    int serverboundClientInformationPacket$play();
+
+    int serverboundClientInformationPacket$configuration();
 }

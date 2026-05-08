@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.proxy.minecraft.network.protocol.game;
 
 import com.mojang.authlib.GameProfile;
+import net.momirealms.craftengine.proxy.minecraft.network.FriendlyByteBufProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.RegistryFriendlyByteBufProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.RemoteChatSessionProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.PacketProxy;
@@ -73,11 +75,15 @@ public interface ClientboundPlayerInfoUpdatePacketProxy extends PacketProxy {
 
         @FieldSetter(name = "displayName")
         void setDisplayName(Object target, Object displayName);
+
+        @FieldGetter(name = "profileId")
+        UUID getProfileId(Object target);
     }
 
     @ReflectionProxy(name = "net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket$Action")
     interface ActionProxy {
         ActionProxy INSTANCE = ASMProxyFactory.create(ActionProxy.class);
+        Class<?> CLASS = SparrowClass.find("net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket$Action");
         Enum<?>[] VALUES = INSTANCE.values();
         Enum<?> ADD_PLAYER = VALUES[0];
         Enum<?> INITIALIZE_CHAT = VALUES[1];
@@ -88,5 +94,44 @@ public interface ClientboundPlayerInfoUpdatePacketProxy extends PacketProxy {
 
         @MethodInvoker(name = "values", isStatic = true)
         Enum<?>[] values();
+
+        @FieldGetter(name = "reader")
+        Object getReader(Object target);
+
+        @FieldGetter(name = "writer")
+        Object getWriter(Object target);
+
+        @ReflectionProxy(name = "net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket$Action$Reader")
+        interface ReaderProxy {
+            ReaderProxy INSTANCE = ASMProxyFactory.create(ReaderProxy.class);
+
+            @MethodInvoker(name = "read", activeIf = "max_version=1.20.4")
+            void read$0(Object target, @Type(clazz = EntryBuilderProxy.class) Object builder, @Type(clazz = FriendlyByteBufProxy.class) Object buf);
+
+            @MethodInvoker(name = "read", activeIf = "min_version=1.20.5")
+            void read$1(Object target, @Type(clazz = EntryBuilderProxy.class) Object builder, @Type(clazz = RegistryFriendlyByteBufProxy.class) Object buf);
+        }
+
+        @ReflectionProxy(name = "net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket$Action$Writer")
+        interface WriterProxy {
+            WriterProxy INSTANCE = ASMProxyFactory.create(WriterProxy.class);
+
+            @MethodInvoker(name = "write", activeIf = "max_version=1.20.4")
+            void write$0(Object target, @Type(clazz = FriendlyByteBufProxy.class) Object buf, @Type(clazz = EntryProxy.class) Object entry);
+
+            @MethodInvoker(name = "write", activeIf = "min_version=1.20.5")
+            void write$1(Object target, @Type(clazz = RegistryFriendlyByteBufProxy.class) Object buf, @Type(clazz = EntryProxy.class) Object entry);
+        }
+    }
+
+    @ReflectionProxy(name = "net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket$EntryBuilder")
+    interface EntryBuilderProxy {
+        EntryBuilderProxy INSTANCE = ASMProxyFactory.create(EntryBuilderProxy.class);
+
+        @ConstructorInvoker
+        Object newInstance(UUID profileId);
+
+        @MethodInvoker(name = "build")
+        Object build(Object target);
     }
 }

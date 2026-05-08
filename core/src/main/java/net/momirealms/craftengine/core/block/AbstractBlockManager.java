@@ -269,7 +269,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     protected abstract Key getBlockOwnerId(int id);
 
-    protected abstract void setVanillaBlockTags(Key id, List<String> tags);
+    protected abstract void setVanillaBlockTags(Key id, List<Key> tags);
 
     protected abstract void processSounds();
 
@@ -441,7 +441,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             if (settingsSection != null) {
                 ConfigValue configValue = settingsSection.getValue(CLIENT_BOUND_TAGS);
                 if (configValue != null) {
-                    List<String> tags = configValue.getAsList(v -> v.getAsIdentifier().asString());
+                    List<Key> tags = configValue.getAsList(ConfigValue::getAsIdentifier);
                     AbstractBlockManager.this.setVanillaBlockTags(id, tags);
                 }
             }

@@ -1,192 +1,72 @@
 package net.momirealms.craftengine.bukkit.plugin.network;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.datafixers.util.Either;
-import com.mojang.serialization.DataResult;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntList;
-import net.kyori.adventure.nbt.api.BinaryTagHolder;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.DataComponentValue;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.momirealms.antigrieflib.Flag;
-import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
-import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
-import net.momirealms.craftengine.bukkit.api.event.FurnitureBreakEvent;
-import net.momirealms.craftengine.bukkit.api.event.FurnitureHitEvent;
-import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
-import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
-import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
-import net.momirealms.craftengine.bukkit.entity.furniture.behavior.GlowingFurnitureBehaviorTemplate;
-import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManager;
-import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
-import net.momirealms.craftengine.bukkit.item.BukkitItem;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCommand;
-import net.momirealms.craftengine.bukkit.plugin.network.handler.*;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
-import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
-import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
-import net.momirealms.craftengine.bukkit.plugin.network.mod.DiscardedPayload;
-import net.momirealms.craftengine.bukkit.plugin.network.mod.UnknownPayload;
+import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.common.ClientInformationListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.common.CustomPayloadListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.common.NMSResourcePackListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.common.UpdateTagsListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.FinishConfigurationListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.NMSFinishConfigurationListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.game.*;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.handshake.IntentionListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.login.HelloListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.login.LoginAcknowledgedListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.login.LoginFinishedListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.status.StatusResponseListener;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.plugin.user.FakeBukkitServerPlayer;
-import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
+import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.bukkit.util.RegistryUtils;
+import net.momirealms.craftengine.bukkit.util.TagUtils;
 import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
-import net.momirealms.craftengine.core.advancement.network.AdvancementHolder;
-import net.momirealms.craftengine.core.advancement.network.AdvancementProgress;
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.UpdateFlags;
-import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
-import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
-import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
-import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureHitData;
-import net.momirealms.craftengine.core.entity.player.InteractionHand;
-import net.momirealms.craftengine.core.entity.player.InteractionResult;
-import net.momirealms.craftengine.core.entity.seat.Seat;
-import net.momirealms.craftengine.core.font.EmojiTextProcessResult;
-import net.momirealms.craftengine.core.font.FontManager;
-import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.behavior.FurnitureItem;
-import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
-import net.momirealms.craftengine.core.item.recipe.network.legacy.LegacyRecipeHolder;
-import net.momirealms.craftengine.core.item.recipe.network.modern.RecipeBookEntry;
-import net.momirealms.craftengine.core.item.recipe.network.modern.SingleInputButtonDisplay;
-import net.momirealms.craftengine.core.item.recipe.network.modern.display.RecipeDisplay;
-import net.momirealms.craftengine.core.item.trade.MerchantOffer;
-import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
-import net.momirealms.craftengine.core.pack.host.ResourcePackHost;
-import net.momirealms.craftengine.core.pack.host.ResourcePackResponseAction;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.context.*;
-import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
-import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
+import net.momirealms.craftengine.core.plugin.context.CooldownData;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
-import net.momirealms.craftengine.core.plugin.network.*;
+import net.momirealms.craftengine.core.plugin.network.AbstractNetworkManager;
+import net.momirealms.craftengine.core.plugin.network.ConnectionState;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.plugin.network.PacketFlow;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListenerHolder;
 import net.momirealms.craftengine.core.plugin.network.listener.NMSPacketListener;
-import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
-import net.momirealms.craftengine.core.plugin.network.mod.Payload;
-import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
-import net.momirealms.craftengine.core.sound.SoundData;
-import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.*;
-import net.momirealms.craftengine.core.util.random.RandomUtils;
-import net.momirealms.craftengine.core.world.*;
-import net.momirealms.craftengine.core.world.chunk.CEChunk;
-import net.momirealms.craftengine.core.world.chunk.Palette;
-import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
-import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
-import net.momirealms.craftengine.core.world.chunk.client.light.LightSection;
-import net.momirealms.craftengine.core.world.chunk.client.light.PackedLightStorage;
-import net.momirealms.craftengine.core.world.chunk.client.light.UniformLightStorage;
-import net.momirealms.craftengine.core.world.chunk.client.occlusion.OccludingSection;
-import net.momirealms.craftengine.core.world.chunk.client.occlusion.PackedOcclusionStorage;
-import net.momirealms.craftengine.core.world.chunk.client.occlusion.UniformOcclusionStorage;
-import net.momirealms.craftengine.core.world.chunk.packet.BlockEntityData;
-import net.momirealms.craftengine.core.world.chunk.packet.MCSection;
-import net.momirealms.craftengine.core.world.context.InteractEntityContext;
-import net.momirealms.craftengine.core.world.context.UseOnContext;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.leaves.bot.BotListProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.IdMapProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.Vec3iProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.component.DataComponentExactPredicateProxy;
-import net.momirealms.craftengine.proxy.minecraft.core.particles.*;
-import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.RegistriesProxy;
-import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
-import net.momirealms.craftengine.proxy.minecraft.nbt.IntTagProxy;
-import net.momirealms.craftengine.proxy.minecraft.nbt.StringTagProxy;
-import net.momirealms.craftengine.proxy.minecraft.nbt.TagParserProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.PacketSendListenerProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.chat.ChatTypeProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.chat.SignedMessageBodyProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamDecoderProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamEncoderProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.BundlePacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.*;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.custom.DiscardedPayloadProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ServerboundResourcePackPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.ServerboundHelloPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.syncher.SynchedEntityDataProxy;
-import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundBundlePacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ServerboundContainerClickPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.MinecraftServerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.dedicated.DedicatedServerPropertiesProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.dedicated.DedicatedServerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.dedicated.DedicatedServerSettingsProxy;
-import net.momirealms.craftengine.proxy.minecraft.server.level.ClientInformationProxy;
-import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
-import net.momirealms.craftengine.proxy.minecraft.server.network.ServerConfigurationPacketListenerImplProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerConnectionListenerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerGamePacketListenerImplProxy;
-import net.momirealms.craftengine.proxy.minecraft.server.network.config.JoinWorldTaskProxy;
-import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerResourcePackConfigurationTaskProxy;
-import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
-import net.momirealms.craftengine.proxy.minecraft.sounds.SoundSourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.tags.TagNetworkSerializationProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.trading.ItemCostProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.phys.BlockHitResultProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.craftengine.proxy.netty.handler.codec.ByteToMessageDecoderProxy;
 import net.momirealms.craftengine.proxy.netty.handler.codec.MessageToByteEncoderProxy;
-import net.momirealms.sparrow.nbt.CompoundTag;
-import net.momirealms.sparrow.nbt.ListTag;
-import net.momirealms.sparrow.nbt.Tag;
-import net.momirealms.sparrow.nbt.adventure.NBTDataComponentValue;
-import org.bukkit.*;
-import org.bukkit.World;
-import org.bukkit.block.Block;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -194,27 +74,17 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 public final class BukkitNetworkManager extends AbstractNetworkManager implements Listener {
-    private static BukkitNetworkManager instance;
-    private final BukkitCraftEngine plugin;
-    private final Map<Class<?>, NMSPacketListener> nmsPacketListeners = new IdentityHashMap<>(128);
-
+    private static final Map<Class<?>, NMSPacketListener> nmsPacketListeners = new IdentityHashMap<>(128);
     private static final ByteBufferPacketListenerHolder[] s2cHandshakingPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.CLIENTBOUND, ConnectionState.HANDSHAKING)];
     private static final ByteBufferPacketListenerHolder[] c2sHandshakingPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.SERVERBOUND, ConnectionState.HANDSHAKING)];
     private static final ByteBufferPacketListenerHolder[] s2cStatusPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.CLIENTBOUND, ConnectionState.STATUS)];
@@ -225,53 +95,44 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     private static final ByteBufferPacketListenerHolder[] c2sPlayPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.SERVERBOUND, ConnectionState.PLAY)];
     private static final ByteBufferPacketListenerHolder[] s2cConfigurationPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.CLIENTBOUND, ConnectionState.CONFIGURATION)];
     private static final ByteBufferPacketListenerHolder[] c2sConfigurationPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.SERVERBOUND, ConnectionState.CONFIGURATION)];
-    private final ByteBufferPacketListenerHolder[][] s2cPacketListeners = new ByteBufferPacketListenerHolder[][]{
+    private static final ByteBufferPacketListenerHolder[][] s2cPacketListeners = new ByteBufferPacketListenerHolder[][]{
             s2cHandshakingPacketListeners,
             s2cStatusPacketListeners,
             s2cLoginPacketListeners,
             s2cPlayPacketListeners,
             s2cConfigurationPacketListeners
     };
-    private final ByteBufferPacketListenerHolder[][] c2sPacketListeners = new ByteBufferPacketListenerHolder[][]{
+    private static final ByteBufferPacketListenerHolder[][] c2sPacketListeners = new ByteBufferPacketListenerHolder[][]{
             c2sHandshakingPacketListeners,
             c2sStatusPacketListeners,
             c2sLoginPacketListeners,
             c2sPlayPacketListeners,
             c2sConfigurationPacketListeners
     };
-
-    private final TriConsumer<ChannelHandler, Object, Object> packetConsumer;
-    private final TriConsumer<ChannelHandler, List<Object>, Object> packetsConsumer;
-    private final TriConsumer<Channel, Object, Runnable> immediatePacketConsumer;
-    private final TriConsumer<Channel, List<Object>, Runnable> immediatePacketsConsumer;
-
-    private final Map<ChannelPipeline, BukkitServerPlayer> users = new ConcurrentHashMap<>();
-    private final Map<UUID, BukkitServerPlayer> onlineUsers = new ConcurrentHashMap<>();
-    private final HashSet<Channel> injectedChannels = new HashSet<>();
-    private BukkitServerPlayer[] onlineUserArray = new BukkitServerPlayer[0];
-
-    private final PacketIds packetIds;
-
     private static final String CONNECTION_HANDLER_NAME = "craftengine_connection_handler";
     private static final String SERVER_CHANNEL_HANDLER_NAME = "craftengine_server_channel_handler";
     private static final String PLAYER_CHANNEL_HANDLER_NAME = "craftengine_player_channel_handler";
     private static final String PACKET_ENCODER = "craftengine_encoder";
     private static final String PACKET_DECODER = "craftengine_decoder";
-
-    private final boolean hasViaVersion;
+    private static BukkitNetworkManager instance;
+    private final BukkitCraftEngine plugin;
+    private final TriConsumer<ChannelHandler, Object, Object> packetConsumer;
+    private final TriConsumer<ChannelHandler, List<Object>, Object> packetsConsumer;
+    private final TriConsumer<Channel, Object, Runnable> immediatePacketConsumer;
+    private final TriConsumer<Channel, List<Object>, Runnable> immediatePacketsConsumer;
+    private final Map<ChannelPipeline, BukkitServerPlayer> users = new ConcurrentHashMap<>();
+    private final Map<UUID, BukkitServerPlayer> onlineUsers = new ConcurrentHashMap<>();
+    private final HashSet<Channel> injectedChannels = new HashSet<>();
     private final boolean hasAntiPopup;
-
+    private BukkitServerPlayer[] onlineUserArray = new BukkitServerPlayer[0];
     private int[] blockStateRemapper;
     private int[] modBlockStateRemapper;
 
     public BukkitNetworkManager(BukkitCraftEngine plugin) {
         super(plugin);
         instance = this;
-        this.hasViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         this.hasAntiPopup = Bukkit.getPluginManager().getPlugin("AntiPopup") != null;
         this.plugin = plugin;
-        // set up packet id
-        this.packetIds = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
         // register packet handlers
         this.registerPacketListeners();
         // set up packet senders
@@ -319,6 +180,109 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         return instance;
     }
 
+    private static void registerNMSPacketConsumer(@Nullable NMSPacketListener listener, @Nullable Class<?> packet) {
+        if (listener == null || packet == null) return;
+        nmsPacketListeners.put(packet, listener);
+    }
+
+    private static void registerByteBufferPacketListener(@Nullable ByteBufferPacketListener listener, int id, String name, ConnectionState state, PacketFlow direction) {
+        if (listener == null || id == -1) return;
+        ByteBufferPacketListenerHolder[] listeners = direction == PacketFlow.SERVERBOUND ? c2sPacketListeners[state.ordinal()] : s2cPacketListeners[state.ordinal()];
+        if (id < 0 || id >= listeners.length) {
+            throw new IllegalArgumentException("Invalid packet id: " + id);
+        }
+        listeners[id] = new ByteBufferPacketListenerHolder(name, listener);
+    }
+
+    private static void uninjectServerChannel(Channel channel) {
+        if (channel.pipeline().get(CONNECTION_HANDLER_NAME) != null) {
+            channel.pipeline().remove(CONNECTION_HANDLER_NAME);
+        }
+    }
+
+    // 再次进行重定位保证和 packetevents 的相对位置
+    public static void relocateChannelHandler(Channel channel) {
+        if (channel == null || isFakeChannel(channel)) return;
+
+        ChannelPipeline pipeline = channel.pipeline();
+        int encoderIndex = pipeline.names().indexOf(PACKET_ENCODER);
+        if (encoderIndex == -1) return;
+
+        PluginChannelEncoder encoder = (PluginChannelEncoder) pipeline.remove(PACKET_ENCODER);
+        PluginChannelDecoder decoder = (PluginChannelDecoder) pipeline.remove(PACKET_DECODER);
+        addToPipeline(pipeline, encoder, decoder);
+    }
+
+    private static void addToPipeline(ChannelPipeline pipeline, PluginChannelEncoder encoder, PluginChannelDecoder decoder) {
+        boolean addedDecoder = false;
+        String lastPEEncoderName = null;
+        List<String> names = pipeline.names();
+        for (String name : names) {
+            if (!addedDecoder) {
+                if (name.startsWith("pe-decoder-")) {
+                    pipeline.addBefore(name, PACKET_DECODER, decoder);
+                    addedDecoder = true;
+                } else if (name.equals("inbound_config") || name.equals("decoder")) {
+                    pipeline.addBefore(name, PACKET_DECODER, decoder);
+                    addedDecoder = true;
+                }
+            } else {
+                if (name.startsWith("pe-encoder-")) {
+                    lastPEEncoderName = name;
+                }
+            }
+        }
+
+        if (lastPEEncoderName != null) {
+            pipeline.addAfter(lastPEEncoderName, PACKET_ENCODER, encoder);
+        } else {
+            String encoderName = pipeline.names().contains("outbound_config") ? "outbound_config" : "encoder";
+            pipeline.addBefore(encoderName, PACKET_ENCODER, encoder);
+        }
+
+        Debugger.PACKET.debug(() -> "pipelines: " + pipeline.names());
+    }
+
+    private static boolean isFakeChannel(Object channel) {
+        return channel.getClass().getSimpleName().equals("FakeChannel")
+                || channel.getClass().getSimpleName().equals("SpoofedChannel");
+    }
+
+    private static void compress(ChannelHandlerContext ctx, ByteBuf input) {
+        ChannelHandler compressor = ctx.pipeline().get("compress");
+        ByteBuf temp = ctx.alloc().buffer();
+        try {
+            if (compressor != null) {
+                callEncode(compressor, ctx, input, temp);
+            }
+        } finally {
+            input.clear().writeBytes(temp);
+            temp.release();
+        }
+    }
+
+    private static void decompress(ChannelHandlerContext ctx, ByteBuf input, ByteBuf output) {
+        ChannelHandler decompressor = ctx.pipeline().get("decompress");
+        if (decompressor != null) {
+            ByteBuf temp = (ByteBuf) callDecode(decompressor, ctx, input).getFirst();
+            try {
+                output.clear().writeBytes(temp);
+            } finally {
+                temp.release();
+            }
+        }
+    }
+
+    private static void callEncode(Object encoder, ChannelHandlerContext ctx, ByteBuf msg, ByteBuf output) {
+        MessageToByteEncoderProxy.INSTANCE.encode(encoder, ctx, msg, output);
+    }
+
+    private static List<Object> callDecode(Object decoder, ChannelHandlerContext ctx, ByteBuf input) {
+        List<Object> output = new ArrayList<>();
+        ByteToMessageDecoderProxy.INSTANCE.decode(decoder, ctx, input, output);
+        return output;
+    }
+
     @Override
     public void init() {
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
@@ -342,20 +306,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     @Override
     public int remapBlockState(int stateId, boolean enableMod) {
         return enableMod ? this.modBlockStateRemapper[stateId] : this.blockStateRemapper[stateId];
-    }
-
-    private void registerNMSPacketConsumer(final NMSPacketListener listener, @Nullable Class<?> packet) {
-        if (packet == null) return;
-        this.nmsPacketListeners.put(packet, listener);
-    }
-
-    private void registerByteBufferPacketListener(final ByteBufferPacketListener listener, int id, String name, ConnectionState state, PacketFlow direction) {
-        if (id == -1) return;
-        ByteBufferPacketListenerHolder[] listeners = direction == PacketFlow.SERVERBOUND ? c2sPacketListeners[state.ordinal()] : s2cPacketListeners[state.ordinal()];
-        if (id < 0 || id >= listeners.length) {
-            throw new IllegalArgumentException("Invalid packet id: " + id);
-        }
-        listeners[id] = new ByteBufferPacketListenerHolder(name, listener);
     }
 
     @Override
@@ -382,6 +332,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         this.resetUserArray();
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean removeFakePlayer(Player player) {
         BukkitServerPlayer fakePlayer = this.onlineUsers.get(player.getUniqueId());
         if (!(fakePlayer instanceof FakeBukkitServerPlayer)) {
@@ -435,156 +386,101 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 newMappings.length,
                 RegistryUtils.currentBiomeRegistrySize(),
                 occlusionPredicate
-        ), this.packetIds.clientboundLevelChunkWithLightPacket(), "ClientboundLevelChunkWithLightPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new SectionBlockUpdateListener(newMappings, newMappingsMOD, occlusionPredicate), this.packetIds.clientboundSectionBlocksUpdatePacket(), "ClientboundSectionBlocksUpdatePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new BlockUpdateListener(newMappings, newMappingsMOD, occlusionPredicate), this.packetIds.clientboundBlockUpdatePacket(), "ClientboundBlockUpdatePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_21_4() ?
-                new LevelParticleListener1_21_4(newMappings, newMappingsMOD) :
-                (VersionHelper.isOrAbove1_20_5() ?
-                new LevelParticleListener1_20_5(newMappings, newMappingsMOD) :
-                new LevelParticleListener1_20(newMappings, newMappingsMOD)),
-                this.packetIds.clientboundLevelParticlesPacket(), "ClientboundLevelParticlesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(new LevelEventListener(newMappings, newMappingsMOD), this.packetIds.clientboundLevelEventPacket(), "ClientboundLevelEventPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        ), PacketIds.INSTANCE.clientboundLevelChunkWithLightPacket(), "ClientboundLevelChunkWithLightPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(new SectionBlocksUpdateListener(
+                newMappings,
+                newMappingsMOD,
+                occlusionPredicate
+        ), PacketIds.INSTANCE.clientboundSectionBlocksUpdatePacket(), "ClientboundSectionBlocksUpdatePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(new BlockUpdateListener(
+                newMappings,
+                newMappingsMOD,
+                occlusionPredicate
+        ), PacketIds.INSTANCE.clientboundBlockUpdatePacket(), "ClientboundBlockUpdatePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(new LevelParticleListener(
+                newMappings,
+                newMappingsMOD
+        ), PacketIds.INSTANCE.clientboundLevelParticlesPacket(), "ClientboundLevelParticlesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(new LevelEventListener(
+                newMappings,
+                newMappingsMOD
+        ), PacketIds.INSTANCE.clientboundLevelEventPacket(), "ClientboundLevelEventPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
 
     private void registerPacketListeners() {
-        registerNMSPacketConsumer(new PlayerInfoUpdateListener(), ClientboundPlayerInfoUpdatePacketProxy.CLASS);
-        registerNMSPacketConsumer(new PlayerActionListener(), ServerboundPlayerActionPacketProxy.CLASS);
-        registerNMSPacketConsumer(new SwingListener(), ServerboundSwingPacketProxy.CLASS);
-        registerNMSPacketConsumer(new HelloListener(), ServerboundHelloPacketProxy.CLASS);
-        registerNMSPacketConsumer(new UseItemOnListener(), ServerboundUseItemOnPacketProxy.CLASS);
-        registerNMSPacketConsumer(new PickItemFromBlockListener(), ServerboundPickItemFromBlockPacketProxy.CLASS);
-        registerNMSPacketConsumer(new PickItemFromEntityListener(), ServerboundPickItemFromEntityPacketProxy.CLASS);
-        registerNMSPacketConsumer(new SetCreativeSlotListener(), ServerboundSetCreativeModeSlotPacketProxy.CLASS);
-        registerNMSPacketConsumer(new LoginListener(), ClientboundLoginPacketProxy.CLASS);
-        registerNMSPacketConsumer(new RespawnListener(), ClientboundRespawnPacketProxy.CLASS);
-        registerNMSPacketConsumer(new SyncEntityPositionListener(), ClientboundEntityPositionSyncPacketProxy.CLASS);
-        registerNMSPacketConsumer(new RenameItemListener(), ServerboundRenameItemPacketProxy.CLASS);
-        registerNMSPacketConsumer(new SignUpdateListener(), ServerboundSignUpdatePacketProxy.CLASS);
-        registerNMSPacketConsumer(new EditBookListener(), ServerboundEditBookPacketProxy.CLASS);
-        registerNMSPacketConsumer(new CustomPayloadListener1_20_2(), VersionHelper.isOrAbove1_20_2() ? ServerboundCustomPayloadPacketProxy.CLASS : null);
-        registerNMSPacketConsumer(new ResourcePackResponseListener(), ServerboundResourcePackPacketProxy.CLASS);
-        registerNMSPacketConsumer(new EntityEventListener(), ClientboundEntityEventPacketProxy.CLASS);
-        registerNMSPacketConsumer(new MovePosAndRotateEntityListener(), ClientboundMoveEntityPacketProxy.PosRotProxy.CLASS);
-        registerNMSPacketConsumer(new MovePosEntityListener(), ClientboundMoveEntityPacketProxy.PosProxy.CLASS);
-        registerNMSPacketConsumer(new UpdateTagsListener(), ClientboundUpdateTagsPacketProxy.CLASS);
-        registerNMSPacketConsumer(new ClientInformationListener(), ServerboundClientInformationPacketProxy.CLASS);
-        registerNMSPacketConsumer(new ContainerClickListener1_21_5(), VersionHelper.isOrAbove1_21_5() ? ServerboundContainerClickPacketProxy.CLASS : null);
-        registerNMSPacketConsumer(new ServerDataListener(), ClientboundServerDataPacketProxy.CLASS);
-        registerNMSPacketConsumer(new ChatSessionUpdateListener(), ServerboundChatSessionUpdatePacketProxy.CLASS);
-        registerNMSPacketConsumer(new PlayerChatListener(), ClientboundPlayerChatPacketProxy.CLASS);
-        registerNMSPacketConsumer(new S2CFinishConfigurationListener(), ClientboundFinishConfigurationPacketProxy.CLASS);
-        registerNMSPacketConsumer(new CustomChatCompletionsListener(), ClientboundCustomChatCompletionsPacketProxy.CLASS);
+        // nms - 需要在服务器处理前处理的请放这里
+        registerNMSPacketConsumer(NMSContainerClickListener.INSTANCE, ServerboundContainerClickPacketProxy.CLASS);
+        registerNMSPacketConsumer(NMSFinishConfigurationListener.INSTANCE, ClientboundFinishConfigurationPacketProxy.CLASS);
+        registerNMSPacketConsumer(NMSResourcePackListener.INSTANCE, ServerboundResourcePackPacketProxy.CLASS);
+        // bytebuffer
         // 状态切换相关监听器 - 开始
         // fixme 因为会比 packetevents 在同一秒慢半拍切换，所以说会出现一下下的错误提示，只需要推迟 1 tick 发送即可
-        registerByteBufferPacketListener(new C2SFinishConfigurationListener(), this.packetIds.serverboundFinishConfigurationPacket(), "ServerboundFinishConfigurationPacket", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND); // 1.20.2+ s2c to play (configuration)
-        registerByteBufferPacketListener(new ByteBufferLoginListener(), this.packetIds.clientboundLoginPacket(), "ClientboundLoginPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND); // 1.20.2+ c2s to play (configuration -> play)
-        registerByteBufferPacketListener(new LoginAcknowledgedListener(), this.packetIds.serverboundLoginAcknowledgedPacket(), "ServerboundLoginAcknowledgedPacket", ConnectionState.LOGIN, PacketFlow.SERVERBOUND); // 1.20.2+ to configuration (login)
-        registerByteBufferPacketListener(new LoginFinishedListener(), this.packetIds.clientboundLoginFinishedPacket(), "ClientboundLoginFinishedPacket", ConnectionState.LOGIN, PacketFlow.CLIENTBOUND); // 1.20.1 to play (login)
-        registerByteBufferPacketListener(new StartConfigurationListener(), this.packetIds.clientboundStartConfigurationPacket(), "ClientboundStartConfigurationPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND); // 1.20.2+ s2c to configuration (play)
-        registerByteBufferPacketListener(new ConfigurationAcknowledgedListener(), this.packetIds.serverboundConfigurationAcknowledgedPacket(), "ServerboundConfigurationAcknowledgedPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND); // 1.20.2+ c2s to configuration (play)
-        registerByteBufferPacketListener(new IntentionListener(), this.packetIds.clientIntentionPacket(), "ClientIntentionPacket", ConnectionState.HANDSHAKING, PacketFlow.SERVERBOUND); // to status or login (handshaking)
+        registerByteBufferPacketListener(FinishConfigurationListener.INSTANCE, PacketIds.INSTANCE.serverboundFinishConfigurationPacket(), "ServerboundFinishConfigurationPacket", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND); // 1.20.2+ s2c to play (configuration)
+        registerByteBufferPacketListener(LoginListener.INSTANCE, PacketIds.INSTANCE.clientboundLoginPacket(), "ClientboundLoginPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND); // 1.20.2+ c2s to play (configuration -> play)
+        registerByteBufferPacketListener(LoginAcknowledgedListener.INSTANCE, PacketIds.INSTANCE.serverboundLoginAcknowledgedPacket(), "ServerboundLoginAcknowledgedPacket", ConnectionState.LOGIN, PacketFlow.SERVERBOUND); // 1.20.2+ to configuration (login)
+        registerByteBufferPacketListener(LoginFinishedListener.INSTANCE, PacketIds.INSTANCE.clientboundLoginFinishedPacket(), "ClientboundLoginFinishedPacket", ConnectionState.LOGIN, PacketFlow.CLIENTBOUND); // 1.20.1 to play (login)
+        registerByteBufferPacketListener(StartConfigurationListener.INSTANCE, PacketIds.INSTANCE.clientboundStartConfigurationPacket(), "ClientboundStartConfigurationPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND); // 1.20.2+ s2c to configuration (play)
+        registerByteBufferPacketListener(ConfigurationAcknowledgedListener.INSTANCE, PacketIds.INSTANCE.serverboundConfigurationAcknowledgedPacket(), "ServerboundConfigurationAcknowledgedPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND); // 1.20.2+ c2s to configuration (play)
+        registerByteBufferPacketListener(IntentionListener.INSTANCE, PacketIds.INSTANCE.clientIntentionPacket(), "ClientIntentionPacket", ConnectionState.HANDSHAKING, PacketFlow.SERVERBOUND); // to status or login (handshaking)
         // 状态切换相关监听器 - 结束
-        registerByteBufferPacketListener(new StatusResponseListener(), this.packetIds.clientboundStatusResponsePacket(), "ClientboundStatusResponsePacket", ConnectionState.STATUS, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new ForgetLevelChunkListener(), this.packetIds.clientboundForgetLevelChunkPacket(), "ClientboundForgetLevelChunkPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new SetScoreListener1_20_3(), VersionHelper.isOrAbove1_20_3() ? this.packetIds.clientboundSetScorePacket() : -1, "ClientboundSetScorePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new AddRecipeBookListener(), this.packetIds.clientboundRecipeBookAddPacket(), "ClientboundRecipeBookAddPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new PlaceGhostRecipeListener(), this.packetIds.clientboundPlaceGhostRecipePacket(), "ClientboundPlaceGhostRecipePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(VersionHelper.isOrAbove1_21_2() ? new UpdateRecipesListener1_21_2() : new UpdateRecipesListener1_20(), this.packetIds.clientboundUpdateRecipesPacket(), "ClientboundUpdateRecipesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new UpdateAdvancementsListener(), this.packetIds.clientboundUpdateAdvancementsPacket(), "ClientboundUpdateAdvancementsPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new RemoveEntityListener(), this.packetIds.clientboundRemoveEntitiesPacket(), "ClientboundRemoveEntitiesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new SoundListener(), this.packetIds.clientboundSoundPacket(), "ClientboundSoundPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new ContainerSetContentListener(), this.packetIds.clientboundContainerSetContentPacket(), "ClientboundContainerSetContentPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new ContainerSetSlotListener(), this.packetIds.clientboundContainerSetSlotPacket(), "ClientboundContainerSetSlotPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new SetCursorItemListener(), this.packetIds.clientboundSetCursorItemPacket(), "ClientboundSetCursorItemPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new SetEquipmentListener(), this.packetIds.clientboundSetEquipmentPacket(), "ClientboundSetEquipmentPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new SetPlayerInventoryListener1_21_2(), VersionHelper.isOrAbove1_21_2() ? this.packetIds.clientboundSetPlayerInventoryPacket() : -1, "ClientboundSetPlayerInventoryPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new SetEntityDataListener(), this.packetIds.clientboundSetEntityDataPacket(), "ClientboundSetEntityDataPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new SetCreativeModeSlotListener(), this.packetIds.serverboundSetCreativeModeSlotPacket(), "ServerboundSetCreativeModeSlotPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(new ContainerClick1_20(), VersionHelper.isOrAbove1_21_5() ? -1 : this.packetIds.serverboundContainerClickPacket(), "ServerboundContainerClickPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(VersionHelper.isOrAbove26_1() ? new InteractEntityListener26_1() : new InteractEntityListener1_20(), this.packetIds.serverboundInteractPacket(), "ServerboundInteractPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(new AttackListener(), this.packetIds.serverboundAttackPacket(), "ServerboundAttackPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(new CustomPayloadListener1_20(), VersionHelper.isOrAbove1_20_2() ? -1 : this.packetIds.serverboundCustomPayloadPacket(), "ServerboundCustomPayloadPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
-        registerByteBufferPacketListener(VersionHelper.isOrAbove1_20_5() ? new MerchantOffersListener1_20_5() : new MerchantOffersListener1_20(), this.packetIds.clientBoundMerchantOffersPacket(), "ClientboundMerchantOffersPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new AddEntityListener(RegistryUtils.currentEntityTypeRegistrySize()), this.packetIds.clientboundAddEntityPacket(), "ClientboundAddEntityPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(new BlockEntityDataListener(), this.packetIds.clientboundBlockEntityDataPacket(), "ClientboundBlockEntityDataPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new OpenScreenListener1_20_3() :
-                new OpenScreenListener1_20(),
-                this.packetIds.clientboundOpenScreenPacket(), "ClientboundOpenScreenPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new SystemChatListener1_20_3() :
-                new SystemChatListener1_20(),
-                this.packetIds.clientboundSystemChatPacket(), "ClientboundSystemChatPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new SetActionBarListener1_20_3() :
-                new SetActionBarListener1_20(),
-                this.packetIds.clientboundSetActionBarTextPacket(), "ClientboundSetActionBarTextPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new TabListListener1_20_3() :
-                new TabListListener1_20(),
-                this.packetIds.clientboundTabListPacket(), "ClientboundTabListPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new SetTitleListener1_20_3() :
-                new SetTitleListener1_20(),
-                this.packetIds.clientboundSetTitleTextPacket(), "ClientboundSetTitleTextPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new SetSubtitleListener1_20_3() :
-                new SetSubtitleListener1_20(),
-                this.packetIds.clientboundSetSubtitleTextPacket(), "ClientboundSetSubtitleTextPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new BossEventListener1_20_3() :
-                new BossEventListener1_20(),
-                this.packetIds.clientboundBossEventPacket(), "ClientboundBossEventPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new TeamListener1_20_3() :
-                new TeamListener1_20(),
-                this.packetIds.clientboundSetPlayerTeamPacket(), "ClientboundSetPlayerTeamPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                new SetObjectiveListener1_20_3() :
-                new SetObjectiveListener1_20(),
-                this.packetIds.clientboundSetObjectivePacket(), "ClientboundSetObjectivePacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                VersionHelper.isOrAbove1_20_3() ?
-                        new PlayerChatListener_1_20_3() :
-                        new PlayerChatListener_1_20(),
-                this.packetIds.clientboundPlayerChatPacket(), "ClientboundPlayerChatPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
-        registerByteBufferPacketListener(
-                new CustomPayloadListener(),
-                this.packetIds.clientboundCustomPayloadPacket(), "ClientboundCustomPayloadPacket",
-                ConnectionState.PLAY, PacketFlow.CLIENTBOUND
-        );
+        registerByteBufferPacketListener(PlayerInfoUpdateListener.INSTANCE, PacketIds.INSTANCE.clientboundPlayerInfoUpdatePacket(), "ClientboundPlayerInfoUpdatePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(ClientInformationListener.INSTANCE, PacketIds.INSTANCE.serverboundClientInformationPacket$play(), "ServerboundClientInformationPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(ClientInformationListener.INSTANCE, PacketIds.INSTANCE.serverboundClientInformationPacket$configuration(), "ServerboundClientInformationPacket", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(RespawnListener.INSTANCE, PacketIds.INSTANCE.clientboundRespawnPacket(), "ClientboundRespawnPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(EntityPositionSyncListener.INSTANCE, PacketIds.INSTANCE.clientboundEntityPositionSyncPacket(), "ClientboundEntityPositionSyncPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(MoveEntityPosRotListener.INSTANCE, PacketIds.INSTANCE.clientboundMoveEntityPacket$PosRot(), "ClientboundMoveEntityPacket$PosRot", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(MoveEntityPosListener.INSTANCE, PacketIds.INSTANCE.clientboundMoveEntityPacket$Pos(), "ClientboundMoveEntityPacket$Pos", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(RenameItemListener.INSTANCE, PacketIds.INSTANCE.serverboundRenameItemPacket(), "ServerboundRenameItemPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(SignUpdateListener.INSTANCE, PacketIds.INSTANCE.serverboundSignUpdatePacket(), "ServerboundSignUpdatePacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(EditBookListener.INSTANCE, PacketIds.INSTANCE.serverboundEditBookPacket(), "ServerboundEditBookPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(EntityEventListener.INSTANCE, PacketIds.INSTANCE.clientboundEntityEventPacket(), "ClientboundEntityEventPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(UpdateTagsListener.INSTANCE, PacketIds.INSTANCE.clientboundUpdateTagsPacket$play(), "ClientboundUpdateTagsPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(UpdateTagsListener.INSTANCE, PacketIds.INSTANCE.clientboundupdatetagspacket$configuration(), "ClientboundUpdateTagsPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(PlayerActionListener.INSTANCE, PacketIds.INSTANCE.serverboundPlayerActionPacket(), "ServerboundPlayerActionPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(SwingListener.INSTANCE, PacketIds.INSTANCE.serverboundSwingPacket(), "ServerboundSwingPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(HelloListener.INSTANCE, PacketIds.INSTANCE.serverboundHelloPacket(), "ServerboundHelloPacket", ConnectionState.LOGIN, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(UseItemOnListener.INSTANCE, PacketIds.INSTANCE.serverboundUseItemOnPacket(), "ServerboundUseItemOnPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(PickItemFromBlockListener.INSTANCE, PacketIds.INSTANCE.serverboundPickItemFromBlockPacket(), "ServerboundPickItemFromBlockPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(PickItemFromEntityListener.INSTANCE, PacketIds.INSTANCE.serverboundPickItemFromEntityPacket(), "ServerboundPickItemFromEntityPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(ServerDataListener.INSTANCE, PacketIds.INSTANCE.clientboundServerDataPacket(), "ClientboundServerDataPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(ChatSessionUpdateListener.INSTANCE, PacketIds.INSTANCE.serverboundChatSessionUpdatePacket(), "ServerboundChatSessionUpdatePacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(CustomChatCompletionsListener.INSTANCE, PacketIds.INSTANCE.clientboundCustomChatCompletionsPacket(), "ClientboundCustomChatCompletionsPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(StatusResponseListener.INSTANCE, PacketIds.INSTANCE.clientboundStatusResponsePacket(), "ClientboundStatusResponsePacket", ConnectionState.STATUS, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(ForgetLevelChunkListener.INSTANCE, PacketIds.INSTANCE.clientboundForgetLevelChunkPacket(), "ClientboundForgetLevelChunkPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetScoreListener.INSTANCE, PacketIds.INSTANCE.clientboundSetScorePacket(), "ClientboundSetScorePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(RecipeBookAddListener.INSTANCE, PacketIds.INSTANCE.clientboundRecipeBookAddPacket(), "ClientboundRecipeBookAddPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(PlaceGhostRecipeListener.INSTANCE, PacketIds.INSTANCE.clientboundPlaceGhostRecipePacket(), "ClientboundPlaceGhostRecipePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(UpdateAdvancementsListener.INSTANCE, PacketIds.INSTANCE.clientboundUpdateAdvancementsPacket(), "ClientboundUpdateAdvancementsPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(RemoveEntitiesListener.INSTANCE, PacketIds.INSTANCE.clientboundRemoveEntitiesPacket(), "ClientboundRemoveEntitiesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SoundListener.INSTANCE, PacketIds.INSTANCE.clientboundSoundPacket(), "ClientboundSoundPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(ContainerSetContentListener.INSTANCE, PacketIds.INSTANCE.clientboundContainerSetContentPacket(), "ClientboundContainerSetContentPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(ContainerSetSlotListener.INSTANCE, PacketIds.INSTANCE.clientboundContainerSetSlotPacket(), "ClientboundContainerSetSlotPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetCursorItemListener.INSTANCE, PacketIds.INSTANCE.clientboundSetCursorItemPacket(), "ClientboundSetCursorItemPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetEquipmentListener.INSTANCE, PacketIds.INSTANCE.clientboundSetEquipmentPacket(), "ClientboundSetEquipmentPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetPlayerInventoryListener.INSTANCE, PacketIds.INSTANCE.clientboundSetPlayerInventoryPacket(), "ClientboundSetPlayerInventoryPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetEntityDataListener.INSTANCE, PacketIds.INSTANCE.clientboundSetEntityDataPacket(), "ClientboundSetEntityDataPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetCreativeModeSlotListener.INSTANCE, PacketIds.INSTANCE.serverboundSetCreativeModeSlotPacket(), "ServerboundSetCreativeModeSlotPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(ContainerClickListener.INSTANCE, PacketIds.INSTANCE.serverboundContainerClickPacket(), "ServerboundContainerClickPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(AttackListener.INSTANCE, PacketIds.INSTANCE.serverboundAttackPacket(), "ServerboundAttackPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(AddEntityListener.INSTANCE, PacketIds.INSTANCE.clientboundAddEntityPacket(), "ClientboundAddEntityPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(BlockEntityDataListener.INSTANCE, PacketIds.INSTANCE.clientboundBlockEntityDataPacket(), "ClientboundBlockEntityDataPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(CustomPayloadListener.INSTANCE, PacketIds.INSTANCE.serverboundCustomPayloadPacket$play(), "ServerboundCustomPayloadPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(CustomPayloadListener.INSTANCE, PacketIds.INSTANCE.serverboundCustomPayloadPacket$configuration(), "ServerboundCustomPayloadPacket", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(CustomPayloadListener.INSTANCE, PacketIds.INSTANCE.clientboundCustomPayloadPacket$play(), "ClientboundCustomPayloadPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(CustomPayloadListener.INSTANCE, PacketIds.INSTANCE.clientboundCustomPayloadPacket$configuration(), "ClientboundCustomPayloadPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(InteractListener.INSTANCE, PacketIds.INSTANCE.serverboundInteractPacket(), "ServerboundInteractPacket", ConnectionState.PLAY, PacketFlow.SERVERBOUND);
+        registerByteBufferPacketListener(UpdateRecipesListener.INSTANCE, PacketIds.INSTANCE.clientboundUpdateRecipesPacket(), "ClientboundUpdateRecipesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(MerchantOffersListener.INSTANCE, PacketIds.INSTANCE.clientBoundMerchantOffersPacket(), "ClientboundMerchantOffersPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(OpenScreenListener.INSTANCE, PacketIds.INSTANCE.clientboundOpenScreenPacket(), "ClientboundOpenScreenPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SystemChatListener.INSTANCE, PacketIds.INSTANCE.clientboundSystemChatPacket(), "ClientboundSystemChatPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetActionBarTextListener.INSTANCE, PacketIds.INSTANCE.clientboundSetActionBarTextPacket(), "ClientboundSetActionBarTextPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(TabListListener.INSTANCE, PacketIds.INSTANCE.clientboundTabListPacket(), "ClientboundTabListPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetTitleTextListener.INSTANCE, PacketIds.INSTANCE.clientboundSetTitleTextPacket(), "ClientboundSetTitleTextPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetSubtitleTextListener.INSTANCE, PacketIds.INSTANCE.clientboundSetSubtitleTextPacket(), "ClientboundSetSubtitleTextPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(BossEventListener.INSTANCE, PacketIds.INSTANCE.clientboundBossEventPacket(), "ClientboundBossEventPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetPlayerTeamListener.INSTANCE, PacketIds.INSTANCE.clientboundSetPlayerTeamPacket(), "ClientboundSetPlayerTeamPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetObjectiveListener.INSTANCE, PacketIds.INSTANCE.clientboundSetObjectivePacket(), "ClientboundSetObjectivePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(PlayerChatListener.INSTANCE, PacketIds.INSTANCE.clientboundPlayerChatPacket(), "ClientboundPlayerChatPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -598,7 +494,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             // folia在此tick每个玩家
             if (VersionHelper.isFolia()) {
                 player.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> user.tick(),
-                        () -> {}, 1, 1);
+                        () -> {
+                        }, 1, 1);
             }
             // 发送修复图腾音效
             user.sendPacket(TotemAnimationCommand.FIX_TOTEM_SOUND_PACKET, false);
@@ -654,12 +551,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         Object settings = DedicatedServerProxy.INSTANCE.getSettings(MinecraftServerProxy.INSTANCE.getServer());
         Object properties = DedicatedServerSettingsProxy.INSTANCE.getProperties(settings);
         DedicatedServerPropertiesProxy.INSTANCE.setEnforceSecureProfile(properties, false);
-    }
-
-    private static int getLightBlockType(int blockStateId) {
-        if (blockStateId == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) return 1;
-        else if (blockStateId == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) return 2;
-        else return 0;
     }
 
     @Override
@@ -736,6 +627,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
     }
 
+    @Override
     public void simulatePacket(@NotNull NetWorkUser player, Object packet) {
         Channel channel = player.nettyChannel();
         if (channel != null && channel.isOpen()) {
@@ -775,13 +667,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
     }
 
-    private void uninjectServerChannel(Channel channel) {
-        if (channel.pipeline().get(CONNECTION_HANDLER_NAME) != null) {
-            channel.pipeline().remove(CONNECTION_HANDLER_NAME);
-        }
-    }
-
-    public void handleDisconnection(Channel channel) {
+    private void handleDisconnection(Channel channel) {
         NetWorkUser user = removeUser(channel);
         if (user == null) return;
         if (channel.pipeline().get(PLAYER_CHANNEL_HANDLER_NAME) != null) {
@@ -792,6 +678,129 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
         if (channel.pipeline().get(PACKET_DECODER) != null) {
             channel.pipeline().remove(PACKET_DECODER);
+        }
+    }
+
+    public void injectChannel(Channel channel) {
+        if (isFakeChannel(channel)) {
+            return;
+        }
+
+        BukkitServerPlayer user = new BukkitServerPlayer(plugin, channel);
+        if (channel.pipeline().get("splitter") == null) {
+            channel.close();
+            return;
+        }
+
+        ChannelPipeline pipeline = channel.pipeline();
+        if (pipeline.get(PACKET_ENCODER) != null) {
+            pipeline.remove(PACKET_ENCODER);
+        }
+        if (pipeline.get(PACKET_DECODER) != null) {
+            pipeline.remove(PACKET_DECODER);
+        }
+        for (Map.Entry<String, ChannelHandler> entry : pipeline.toMap().entrySet()) {
+            if (ConnectionProxy.CLASS.isAssignableFrom(entry.getValue().getClass())) {
+                pipeline.addBefore(entry.getKey(), PLAYER_CHANNEL_HANDLER_NAME, new PluginChannelHandler(user));
+                break;
+            }
+        }
+
+        addToPipeline(pipeline, new PluginChannelEncoder(user), new PluginChannelDecoder(user));
+        channel.closeFuture().addListener((ChannelFutureListener) future -> handleDisconnection(user.nettyChannel()));
+        setUser(channel, user);
+    }
+
+    private void onNMSPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
+        if (VersionHelper.IS_RUNNING_IN_DEV) {
+            Debugger.PACKET.debug(() -> {
+                if (Config.isPacketIgnored(packet.getClass())) {
+                    return null;
+                }
+                return "[C->S]" + packet.getClass();
+            });
+        }
+        handleReceiveNMSPacket(user, event, packet);
+    }
+
+    private void onNMSPacketSend(NetWorkUser player, NMSPacketEvent event, Object packet) {
+        if (ClientboundBundlePacketProxy.CLASS.isInstance(packet)) {
+            Iterable<Object> packets = BundlePacketProxy.INSTANCE.getPackets(packet);
+            for (Object p : packets) {
+                onNMSPacketSend(player, event, p);
+            }
+        } else {
+            if (VersionHelper.IS_RUNNING_IN_DEV) {
+                Debugger.PACKET.debug(() -> {
+                    if (Config.isPacketIgnored(packet.getClass())) {
+                        return null;
+                    }
+                    return "[S->C]" + packet.getClass();
+                });
+            }
+            handleSendNMSPacket(player, event, packet);
+        }
+    }
+
+    private void handleReceiveNMSPacket(NetWorkUser user, NMSPacketEvent event, Object packet) {
+        NMSPacketListener nmsPacketListener = nmsPacketListeners.get(packet.getClass());
+        if (nmsPacketListener != null) {
+            try {
+                nmsPacketListener.onPacketReceive(user, event, packet);
+            } catch (Throwable t) {
+                this.plugin.logger().warn("An error occurred when handling packet " + packet.getClass(), t);
+            }
+        }
+    }
+
+    private void handleSendNMSPacket(NetWorkUser user, NMSPacketEvent event, Object packet) {
+        NMSPacketListener nmsPacketListener = nmsPacketListeners.get(packet.getClass());
+        if (nmsPacketListener != null) {
+            try {
+                nmsPacketListener.onPacketSend(user, event, packet);
+            } catch (Throwable t) {
+                this.plugin.logger().warn("An error occurred when handling packet " + packet.getClass(), t);
+            }
+        }
+    }
+
+    // outbound(encode|s2c)
+    private void handleS2CByteBufPacket(NetWorkUser user, ByteBufPacketEvent event) {
+        int packetID = event.packetID();
+        ByteBufferPacketListenerHolder[] listener = s2cPacketListeners[user.encoderState().ordinal()];
+        if (packetID >= listener.length) {
+            Debugger.PACKET.debug(() -> "Failed to convert the packet " + packetID + " for player " + user.name() +
+                    ". Packet Flow: S->C, Encoder State: " + user.decoderState() + ", " +
+                    "Server version: " + VersionHelper.MINECRAFT_VERSION.version() + ", Bytes: " + Arrays.toString(event.getBuffer().array()));
+            return;
+        }
+        ByteBufferPacketListenerHolder holder = listener[packetID];
+        if (holder != null) {
+            try {
+                holder.listener().onPacketSend(user, event);
+            } catch (Throwable t) {
+                this.plugin.logger().warn("An error occurred when handling packet " + holder.id(), t);
+            }
+        }
+    }
+
+    // inbound(decode|c2s)
+    private void handleC2SByteBufPacket(NetWorkUser user, ByteBufPacketEvent event) {
+        int packetID = event.packetID();
+        ByteBufferPacketListenerHolder[] listener = c2sPacketListeners[user.decoderState().ordinal()];
+        if (packetID >= listener.length) {
+            Debugger.PACKET.debug(() -> "Failed to convert the packet " + packetID + " for player " + user.name() +
+                    ". Packet Flow: C->S, Decoder State: " + user.decoderState() + ", " +
+                    "Server version: " + VersionHelper.MINECRAFT_VERSION.version() + ", Bytes: " + event.getBuffer());
+            return;
+        }
+        ByteBufferPacketListenerHolder holder = listener[packetID];
+        if (holder != null) {
+            try {
+                holder.listener().onPacketReceive(user, event);
+            } catch (Throwable t) {
+                this.plugin.logger().warn("An error occurred when handling packet " + holder.id(), t);
+            }
         }
     }
 
@@ -829,84 +838,6 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             PreChannelInitializer.logger.warn("Failed to inject channel: " + context.channel(), t);
             context.close();
         }
-    }
-
-    public void injectChannel(Channel channel) {
-        if (isFakeChannel(channel)) {
-            return;
-        }
-
-        BukkitServerPlayer user = new BukkitServerPlayer(plugin, channel);
-        if (channel.pipeline().get("splitter") == null) {
-            channel.close();
-            return;
-        }
-
-        ChannelPipeline pipeline = channel.pipeline();
-        if (pipeline.get(PACKET_ENCODER) != null) {
-            pipeline.remove(PACKET_ENCODER);
-        }
-        if (pipeline.get(PACKET_DECODER) != null) {
-            pipeline.remove(PACKET_DECODER);
-        }
-        for (Map.Entry<String, ChannelHandler> entry : pipeline.toMap().entrySet()) {
-            if (ConnectionProxy.CLASS.isAssignableFrom(entry.getValue().getClass())) {
-                pipeline.addBefore(entry.getKey(), PLAYER_CHANNEL_HANDLER_NAME, new PluginChannelHandler(user));
-                break;
-            }
-        }
-
-        addToPipeline(pipeline, new PluginChannelEncoder(user), new PluginChannelDecoder(user));
-        channel.closeFuture().addListener((ChannelFutureListener) future -> handleDisconnection(user.nettyChannel()));
-        setUser(channel, user);
-    }
-
-    // 再次进行重定位保证和 packetevents 的相对位置
-    public void relocateChannelHandler(Channel channel) {
-        if (channel == null || isFakeChannel(channel)) return;
-
-        ChannelPipeline pipeline = channel.pipeline();
-        int encoderIndex = pipeline.names().indexOf(PACKET_ENCODER);
-        if (encoderIndex == -1) return;
-
-        PluginChannelEncoder encoder = (PluginChannelEncoder) pipeline.remove(PACKET_ENCODER);
-        PluginChannelDecoder decoder = (PluginChannelDecoder) pipeline.remove(PACKET_DECODER);
-        addToPipeline(pipeline, encoder, decoder);
-    }
-
-    private void addToPipeline(ChannelPipeline pipeline, PluginChannelEncoder encoder, PluginChannelDecoder decoder) {
-        boolean addedDecoder = false;
-        String lastPEEncoderName = null;
-        List<String> names = pipeline.names();
-        for (String name : names) {
-            if (!addedDecoder) {
-                if (name.startsWith("pe-decoder-")) {
-                    pipeline.addBefore(name, PACKET_DECODER, decoder);
-                    addedDecoder = true;
-                } else if (name.equals("inbound_config") || name.equals("decoder")) {
-                    pipeline.addBefore(name, PACKET_DECODER, decoder);
-                    addedDecoder = true;
-                }
-            } else {
-                if (name.startsWith("pe-encoder-")) {
-                    lastPEEncoderName = name;
-                }
-            }
-        }
-
-        if (lastPEEncoderName != null) {
-            pipeline.addAfter(lastPEEncoderName, PACKET_ENCODER, encoder);
-        } else {
-            String encoderName = pipeline.names().contains("outbound_config") ? "outbound_config" : "encoder";
-            pipeline.addBefore(encoderName, PACKET_ENCODER, encoder);
-        }
-
-        Debugger.PACKET.debug(() -> "pipelines: " + pipeline.names());
-    }
-
-    public static boolean isFakeChannel(Object channel) {
-        return channel.getClass().getSimpleName().equals("FakeChannel")
-                || channel.getClass().getSimpleName().equals("SpoofedChannel");
     }
 
     public class PluginChannelHandler extends ChannelDuplexHandler {
@@ -1065,4086 +996,4 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
     }
 
-    private void onNMSPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-        if (VersionHelper.IS_RUNNING_IN_DEV) {
-            Debugger.PACKET.debug(() -> {
-                if (Config.isPacketIgnored(packet.getClass())) {
-                    return null;
-                }
-                return "[C->S]" + packet.getClass();
-            });
-        }
-        handleReceiveNMSPacket(user, event, packet);
-    }
-
-    private void onNMSPacketSend(NetWorkUser player, NMSPacketEvent event, Object packet) {
-        if (ClientboundBundlePacketProxy.CLASS.isInstance(packet)) {
-            Iterable<Object> packets = BundlePacketProxy.INSTANCE.getPackets(packet);
-            for (Object p : packets) {
-                onNMSPacketSend(player, event, p);
-            }
-        } else {
-            if (VersionHelper.IS_RUNNING_IN_DEV) {
-                Debugger.PACKET.debug(() -> {
-                    if (Config.isPacketIgnored(packet.getClass())) {
-                        return null;
-                    }
-                    return "[S->C]" + packet.getClass();
-                });
-            }
-            handleSendNMSPacket(player, event, packet);
-        }
-    }
-
-    private void handleReceiveNMSPacket(NetWorkUser user, NMSPacketEvent event, Object packet) {
-        NMSPacketListener nmsPacketListener = this.nmsPacketListeners.get(packet.getClass());
-        if (nmsPacketListener != null) {
-            try {
-                nmsPacketListener.onPacketReceive(user, event, packet);
-            } catch (Throwable t) {
-                this.plugin.logger().warn("An error occurred when handling packet " + packet.getClass(), t);
-            }
-        }
-    }
-
-    private void handleSendNMSPacket(NetWorkUser user, NMSPacketEvent event, Object packet) {
-        NMSPacketListener nmsPacketListener = this.nmsPacketListeners.get(packet.getClass());
-        if (nmsPacketListener != null) {
-            try {
-                nmsPacketListener.onPacketSend(user, event, packet);
-            } catch (Throwable t) {
-                this.plugin.logger().warn("An error occurred when handling packet " + packet.getClass(), t);
-            }
-        }
-    }
-
-    // outbound(encode|s2c)
-    private void handleS2CByteBufPacket(NetWorkUser user, ByteBufPacketEvent event) {
-        int packetID = event.packetID();
-        ByteBufferPacketListenerHolder[] listener = s2cPacketListeners[user.encoderState().ordinal()];
-        if (packetID >= listener.length) {
-            Debugger.PACKET.debug(() -> "Failed to convert the packet " + packetID + " for player " + user.name() +
-                    ". Packet Flow: S->C, Encoder State: " + user.decoderState() + ", " +
-                    "Server version: " + VersionHelper.MINECRAFT_VERSION.version() + ", Bytes: " + Arrays.toString(event.getBuffer().array()));
-            return;
-        }
-        ByteBufferPacketListenerHolder holder = listener[packetID];
-        if (holder != null) {
-            try {
-                holder.listener().onPacketSend(user, event);
-            } catch (Throwable t) {
-                this.plugin.logger().warn("An error occurred when handling packet " + holder.id(), t);
-            }
-        }
-    }
-
-    // inbound(decode|c2s)
-    private void handleC2SByteBufPacket(NetWorkUser user, ByteBufPacketEvent event) {
-        int packetID = event.packetID();
-        ByteBufferPacketListenerHolder[] listener = c2sPacketListeners[user.decoderState().ordinal()];
-        if (packetID >= listener.length) {
-            Debugger.PACKET.debug(() -> "Failed to convert the packet " + packetID + " for player " + user.name() +
-                    ". Packet Flow: C->S, Decoder State: " + user.decoderState() + ", " +
-                    "Server version: " + VersionHelper.MINECRAFT_VERSION.version() + ", Bytes: " + event.getBuffer());
-            return;
-        }
-        ByteBufferPacketListenerHolder holder = listener[packetID];
-        if (holder != null) {
-            try {
-                holder.listener().onPacketReceive(user, event);
-            } catch (Throwable t) {
-                this.plugin.logger().warn("An error occurred when handling packet " + holder.id(), t);
-            }
-        }
-    }
-
-    private void compress(ChannelHandlerContext ctx, ByteBuf input) {
-        ChannelHandler compressor = ctx.pipeline().get("compress");
-        ByteBuf temp = ctx.alloc().buffer();
-        try {
-            if (compressor != null) {
-                callEncode(compressor, ctx, input, temp);
-            }
-        } finally {
-            input.clear().writeBytes(temp);
-            temp.release();
-        }
-    }
-
-    private void decompress(ChannelHandlerContext ctx, ByteBuf input, ByteBuf output) {
-        ChannelHandler decompressor = ctx.pipeline().get("decompress");
-        if (decompressor != null) {
-            ByteBuf temp = (ByteBuf) callDecode(decompressor, ctx, input).getFirst();
-            try {
-                output.clear().writeBytes(temp);
-            } finally {
-                temp.release();
-            }
-        }
-    }
-
-    private static void callEncode(Object encoder, ChannelHandlerContext ctx, ByteBuf msg, ByteBuf output) {
-        MessageToByteEncoderProxy.INSTANCE.encode(encoder, ctx, msg, output);
-    }
-
-    public static List<Object> callDecode(Object decoder, ChannelHandlerContext ctx, ByteBuf input) {
-        List<Object> output = new ArrayList<>();
-        ByteToMessageDecoderProxy.INSTANCE.decode(decoder, ctx, input, output);
-        return output;
-    }
-
-    /*
-     *
-     *
-     *  Packet Listener Implementations
-     *
-     *
-     */
-    public static class HelloListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            String name = ServerboundHelloPacketProxy.INSTANCE.getName(packet);
-            player.setUnverifiedName(name);
-            if (VersionHelper.isOrAbove1_20_2()) {
-                UUID uuid = ServerboundHelloPacketProxy.INSTANCE.getProfileId(packet);
-                player.setUnverifiedUUID(uuid);
-            } else {
-                Optional<UUID> uuid = ServerboundHelloPacketProxy.INSTANCE.getProfileId$legacy(packet);
-                if (uuid.isPresent()) {
-                    player.setUnverifiedUUID(uuid.get());
-                } else {
-                    player.setUnverifiedUUID(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8)));
-                }
-            }
-        }
-    }
-
-    public class PlayerActionListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            Player platformPlayer = player.platformPlayer();
-            World world = platformPlayer.getWorld();
-            Object blockPos = ServerboundPlayerActionPacketProxy.INSTANCE.getPos(packet);
-            BlockPos pos = LocationUtils.fromBlockPos(blockPos);
-            if (!player.canInteractPoint(new Vec3d(pos.x, pos.y, pos.z), 4)) {
-                return;
-            }
-            BukkitNetworkManager.this.plugin.scheduler().sync().run(
-                    () -> handlePlayerActionPacketOnMainThread(player, world, pos, packet),
-                    world, pos.x >> 4, pos.z >> 4
-            );
-        }
-
-        private static void handlePlayerActionPacketOnMainThread(BukkitServerPlayer player, World world, BlockPos pos, Object packet) {
-            Object action = ServerboundPlayerActionPacketProxy.INSTANCE.getAction(packet);
-            if (action == ServerboundPlayerActionPacketProxy.ActionProxy.START_DESTROY_BLOCK) {
-                Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(world);
-                Object blockState = BlockGetterProxy.INSTANCE.getBlockState(serverLevel, LocationUtils.toBlockPos(pos));
-                int stateId = BlockStateUtils.blockStateToId(blockState);
-                // not a custom block
-                if (BlockStateUtils.isVanillaBlock(stateId)) {
-                    if (Config.enableSoundSystem()) {
-                        Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(blockState);
-                        Object soundEvent = SoundTypeProxy.INSTANCE.getHitSound(soundType);
-                        Object soundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
-                        if (BukkitBlockManager.instance().isHitSoundMissing(soundId)) {
-                            player.startMiningBlock(pos, blockState, null);
-                            return;
-                        }
-                    }
-                    if (player.isMiningBlock()) {
-                        player.finishMiningBlock();
-                    } else {
-                        player.setClientSideCanBreakBlock(true);
-                    }
-                    return;
-                }
-                if (player.isAdventureMode()) {
-                    if (Config.simplifyAdventureBreakCheck()) {
-                        ImmutableBlockState state = BukkitBlockManager.instance().getImmutableBlockStateUnsafe(stateId);
-                        if (!player.canBreak(pos, state.visualBlockState().minecraftState())) {
-                            player.preventMiningBlock();
-                            return;
-                        }
-                    } else {
-                        if (!player.canBreak(pos, null)) {
-                            player.preventMiningBlock();
-                            return;
-                        }
-                    }
-                }
-                player.startMiningBlock(pos, blockState, BukkitBlockManager.instance().getImmutableBlockStateUnsafe(stateId));
-            } else if (action == ServerboundPlayerActionPacketProxy.ActionProxy.ABORT_DESTROY_BLOCK) {
-                if (player.isMiningBlock()) {
-                    player.abortMiningBlock();
-                }
-            } else if (action == ServerboundPlayerActionPacketProxy.ActionProxy.STOP_DESTROY_BLOCK) {
-                if (player.isMiningBlock()) {
-                    player.finishMiningBlock();
-                }
-            }
-        }
-    }
-
-    public static class SwingListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            Object hand = ServerboundSwingPacketProxy.INSTANCE.getHand(packet);
-            if (hand == InteractionHandProxy.MAIN_HAND) {
-                player.onSwingHand();
-            }
-        }
-    }
-
-    public static class UseItemOnListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            player.stopMiningBlock();
-        }
-    }
-
-    public class PlayerInfoUpdateListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (!Config.interceptPlayerInfo()) return;
-            List<Object> entries = ClientboundPlayerInfoUpdatePacketProxy.INSTANCE.getEntries(packet);
-            EnumSet<? extends Enum<?>> enums = ClientboundPlayerInfoUpdatePacketProxy.INSTANCE.getActions(packet);
-            if (!enums.contains(ClientboundPlayerInfoUpdatePacketProxy.ActionProxy.UPDATE_DISPLAY_NAME)) return;
-            for (Object entry : entries) {
-                Object mcComponent = ClientboundPlayerInfoUpdatePacketProxy.EntryProxy.INSTANCE.getDisplayName(entry);
-                if (mcComponent == null) continue;
-                String json = ComponentUtils.minecraftToJson(mcComponent);
-                Map<String, ComponentProvider> tokens = matchNetworkTags(json);
-                if (tokens.isEmpty()) continue;
-                ClientboundPlayerInfoUpdatePacketProxy.EntryProxy.INSTANCE.setDisplayName(
-                        entry,
-                        ComponentUtils.adventureToMinecraft(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user)))
-                );
-            }
-        }
-    }
-
-    public class PickItemFromBlockListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            if (player == null) return;
-            Object pos = ServerboundPickItemFromBlockPacketProxy.INSTANCE.getPos(packet);
-            int x = Vec3iProxy.INSTANCE.getX(pos);
-            int y = Vec3iProxy.INSTANCE.getY(pos);
-            int z = Vec3iProxy.INSTANCE.getZ(pos);
-            // 太远了，有挂
-            if (!player.canInteractPoint(new Vec3d(x, y, z), 4)) {
-                return;
-            }
-            BukkitNetworkManager.this.plugin.scheduler().sync().run(
-                    () -> handlePickItemFromBlockPacketOnMainThread((BukkitServerPlayer) user, pos),
-                    player.platformPlayer().getWorld(), x >> 4, z >> 4
-            );
-        }
-
-        private static void handlePickItemFromBlockPacketOnMainThread(BukkitServerPlayer player, Object pos) {
-            Object serverLevel = player.world().minecraftWorld();
-            Object blockState = BlockGetterProxy.INSTANCE.getBlockState(serverLevel, pos);
-            Optional<ImmutableBlockState> optionalState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-            if (optionalState.isEmpty()) return;
-            ImmutableBlockState customBlockState = optionalState.get();
-            Item item = customBlockState.behavior().itemToPickup(player.world(), LocationUtils.fromBlockPos(pos), customBlockState, player);
-            Object itemStack;
-            if (item == null) {
-                Key itemId = customBlockState.settings().itemId();
-                if (itemId == null) return;
-                BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
-                if (wrappedItem == null) return;
-                itemStack = wrappedItem.minecraftItem();
-            } else {
-                itemStack = item.minecraftItem();
-            }
-            tryPickItem(player.platformPlayer(), itemStack, pos, null);
-        }
-    }
-
-    public class PickItemFromEntityListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            if (player == null) return;
-            int entityId = ServerboundPickItemFromEntityPacketProxy.INSTANCE.getId(packet);
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
-            if (furniture == null) {
-                return;
-            }
-            Location location = furniture.location();
-            if (!player.canInteractPoint(LocationUtils.toVec3d(location), 16)) {
-                return;
-            }
-            BukkitNetworkManager.this.plugin.scheduler().sync().run(
-                    () -> handlePickItemFromEntityOnMainThread((BukkitServerPlayer) user, furniture, furniture.hitboxByEntityId(entityId)),
-                    location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4
-            );
-        }
-
-        private static void handlePickItemFromEntityOnMainThread(BukkitServerPlayer player, BukkitFurniture furniture, FurnitureHitBox hitbox) {
-            Item item = furniture.controller.getItemToPickup(player, hitbox);
-            Object itemStack;
-            if (item == null) {
-                Key itemId = furniture.config().settings().itemId();
-                if (itemId == null) return;
-                BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
-                if (wrappedItem == null) return;
-                itemStack = wrappedItem.minecraftItem();
-            } else {
-                itemStack = item.minecraftItem();
-            }
-            tryPickItem(player.platformPlayer(), itemStack, null, CraftEntityProxy.INSTANCE.getEntity(furniture.bukkitEntity()));
-        }
-    }
-
-    private static void tryPickItem(Player player, Object itemStack, @Nullable Object blockPos, @Nullable Object entity) {
-        if (VersionHelper.isOrAbove1_21_5()) {
-            ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack, blockPos, entity, true);
-        } else if (VersionHelper.isOrAbove1_21_4()) {
-            ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack);
-        }
-    }
-
-    public static class ClientInformationListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (VersionHelper.isOrAbove1_20_2()) {
-                Object clientInfo = ServerboundClientInformationPacketProxy.INSTANCE.getInformation(packet);
-                if (clientInfo == null) return;
-                String locale = ClientInformationProxy.INSTANCE.getLanguage(clientInfo);
-                if (locale == null) return;
-                ((BukkitServerPlayer) user).setClientLocale(TranslationManager.parseLocale(locale));
-            } else {
-                String locale = ServerboundClientInformationPacketProxy.INSTANCE.getLanguage(packet);
-                if (locale == null) return;
-                ((BukkitServerPlayer) user).setClientLocale(TranslationManager.parseLocale(locale));
-            }
-        }
-    }
-
-    public static class SetCreativeSlotListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_21_4)) return;
-            if (!user.isOnline()) return;
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            if (VersionHelper.isFolia()) {
-                player.platformPlayer().getScheduler().run(
-                        BukkitCraftEngine.instance().javaPlugin(),
-                        t -> handleSetCreativeSlotPacketOnMainThread(player, packet),
-                        () -> {}
-                );
-            } else {
-                handleSetCreativeSlotPacketOnMainThread(player, packet);
-            }
-        }
-
-        private static void handleSetCreativeSlotPacketOnMainThread(BukkitServerPlayer player, Object packet) {
-            Player bukkitPlayer = player.platformPlayer();
-            if (bukkitPlayer == null) return;
-            if (bukkitPlayer.getGameMode() != GameMode.CREATIVE) return;
-            int slot = VersionHelper.isOrAbove1_20_5() ?
-                    ServerboundSetCreativeModeSlotPacketProxy.INSTANCE.getSlotNum(packet) :
-                    ServerboundSetCreativeModeSlotPacketProxy.INSTANCE.getSlotNum$legacy(packet);
-            if (slot < 36 || slot > 44) return;
-            ItemStack item = ItemStackUtils.getBukkitStack(ServerboundSetCreativeModeSlotPacketProxy.INSTANCE.getItemStack(packet));
-            if (ItemStackUtils.isEmpty(item)) return;
-            if (slot - 36 != bukkitPlayer.getInventory().getHeldItemSlot()) {
-                return;
-            }
-            double interactionRange = player.getCachedInteractionRange();
-            // do ray trace to get current block
-            RayTraceResult result = bukkitPlayer.rayTraceBlocks(interactionRange, FluidCollisionMode.NEVER);
-            if (result == null) return;
-            Block hitBlock = result.getHitBlock();
-            if (hitBlock == null) return;
-            ImmutableBlockState state = CraftEngineBlocks.getCustomBlockState(hitBlock);
-            // not a custom block
-            if (state == null || state.isEmpty()) return;
-            Key itemId = state.settings().itemId();
-            // no item available
-            if (itemId == null) return;
-            Object vanillaBlock = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getBlock(state.visualBlockState().minecraftState());
-            Object vanillaBlockItem = BlockProxy.INSTANCE.asItem(vanillaBlock);
-            if (vanillaBlockItem == null) return;
-            Key addItemId = KeyUtils.namespacedKeyToKey(item.getType().getKey());
-            Key blockItemId = KeyUtils.identifierToKey(RegistryProxy.INSTANCE.getKey(BuiltInRegistriesProxy.ITEM, vanillaBlockItem));
-            if (!addItemId.equals(blockItemId)) return;
-            BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
-            if (wrappedItem == null || wrappedItem.isEmpty()) {
-                CraftEngine.instance().logger().warn("Item: " + itemId + " is not a valid item");
-                return;
-            }
-            ItemStack itemStack = wrappedItem.getBukkitItem();
-            PlayerInventory inventory = bukkitPlayer.getInventory();
-            int sameItemSlot = -1;
-            int emptySlot = -1;
-            for (int i = 0; i < 9 + 27; i++) {
-                ItemStack invItem = inventory.getItem(i);
-                if (ItemStackUtils.isEmpty(invItem)) {
-                    if (emptySlot == -1 && i < 9) emptySlot = i;
-                    continue;
-                }
-                if (invItem.getType().equals(itemStack.getType()) && invItem.getItemMeta().equals(itemStack.getItemMeta())) {
-                    if (sameItemSlot == -1) sameItemSlot = i;
-                }
-            }
-            if (sameItemSlot != -1) {
-                if (sameItemSlot < 9) {
-                    inventory.setHeldItemSlot(sameItemSlot);
-                    ItemStack previousItem = inventory.getItem(slot - 36);
-                    BukkitCraftEngine.instance().scheduler().sync().runDelayed(() -> inventory.setItem(slot - 36, previousItem));
-                } else {
-                    ItemStack sameItem = inventory.getItem(sameItemSlot);
-                    int finalSameItemSlot = sameItemSlot;
-                    BukkitCraftEngine.instance().scheduler().sync().runDelayed(() -> {
-                        inventory.setItem(finalSameItemSlot, new ItemStack(Material.AIR));
-                        inventory.setItem(slot - 36, sameItem);
-                    });
-                }
-            } else {
-                if (item.getAmount() == 1) {
-                    if (ItemStackUtils.isEmpty(inventory.getItem(slot - 36))) {
-                        BukkitCraftEngine.instance().scheduler().sync().runDelayed(() -> inventory.setItem(slot - 36, itemStack));
-                        return;
-                    }
-                    if (emptySlot != -1) {
-                        inventory.setHeldItemSlot(emptySlot);
-                        inventory.setItem(emptySlot, itemStack);
-                    } else {
-                        BukkitCraftEngine.instance().scheduler().sync().runDelayed(() -> inventory.setItem(slot - 36, itemStack));
-                    }
-                }
-            }
-        }
-    }
-
-    public static class LoginListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            Object dimensionKey;
-            if (VersionHelper.isOrAbove1_20_2()) {
-                Object commonInfo = ClientboundLoginPacketProxy.INSTANCE.getCommonPlayerSpawnInfo(packet);
-                dimensionKey = CommonPlayerSpawnInfoProxy.INSTANCE.getDimension(commonInfo);
-            } else {
-                dimensionKey = ClientboundLoginPacketProxy.INSTANCE.getDimension(packet);
-            }
-            Object identifier = ResourceKeyProxy.INSTANCE.getIdentifier(dimensionKey);
-            World world = Bukkit.getWorld(Objects.requireNonNull(NamespacedKey.fromString(identifier.toString())));
-            if (world != null) {
-                player.setClientSideWorld(BukkitAdaptor.adapt(world));
-            }
-            if (VersionHelper.isOrAbove1_20_5() && Config.disableChatReport()) {
-                // 去除弹窗警告
-                ClientboundLoginPacketProxy.INSTANCE.setEnforcesSecureChat(packet, true);
-            }
-        }
-    }
-
-    public static class ServerDataListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (VersionHelper.isOrAbove1_20_5() || !Config.disableChatReport()) {
-                return;
-            }
-            // 去弹窗警告
-            ClientboundServerDataPacketProxy.INSTANCE.setEnforcesSecureChat(packet, true);
-        }
-    }
-
-    public static class ChatSessionUpdateListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (Config.disableChatReport()) {
-                event.setCancelled(true);
-            }
-        }
-    }
-
-    public static class PlayerChatListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (!Config.disableChatReport()) {
-                return;
-            }
-            event.setCancelled(true);
-            Object content = ClientboundPlayerChatPacketProxy.INSTANCE.getUnsignedContent(packet);
-            if (content == null) {
-                content = ComponentProxy.INSTANCE.literal(
-                        SignedMessageBodyProxy.PackedProxy.INSTANCE.getContent(
-                                ClientboundPlayerChatPacketProxy.INSTANCE.getBody(packet)
-                        )
-                );
-            }
-            Object chatType = ClientboundPlayerChatPacketProxy.INSTANCE.getChatType(packet);
-            if (!VersionHelper.isOrAbove1_20_5()) {
-                Object registryAccess = RegistryUtils.getRegistryAccess();
-                chatType = ChatTypeProxy.BoundNetworkProxy.INSTANCE.resolve(chatType, registryAccess).orElseThrow();
-            }
-            Object decorate = ChatTypeProxy.BoundProxy.INSTANCE.decorate(chatType, content);
-            if (Config.allowEmojiChat()) {
-                String rawJsonMessage = ComponentUtils.minecraftToJson(decorate);
-                UUID sender = ClientboundPlayerChatPacketProxy.INSTANCE.getSender(packet);
-                @Nullable BukkitServerPlayer chatSender = BukkitNetworkManager.instance.onlineUsers.get(sender);
-                EmojiTextProcessResult result = BukkitFontManager.instance().replaceJsonEmoji(rawJsonMessage, chatSender);
-                if (result.replaced()) {
-                    decorate = ComponentUtils.jsonToMinecraft(result.text());
-                }
-            }
-            Object systemChatPacket = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(decorate, false);
-            user.sendPacket(systemChatPacket, false);
-        }
-    }
-
-    public static class RespawnListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            player.clearView();
-            Object dimensionKey;
-            if (VersionHelper.isOrAbove1_20_2()) {
-                Object commonInfo = ClientboundRespawnPacketProxy.INSTANCE.getCommonPlayerSpawnInfo(packet);
-                dimensionKey = CommonPlayerSpawnInfoProxy.INSTANCE.getDimension(commonInfo);
-            } else {
-                dimensionKey = ClientboundRespawnPacketProxy.INSTANCE.getDimension(packet);
-            }
-            Object identifier = ResourceKeyProxy.INSTANCE.getIdentifier(dimensionKey);
-            World world = Bukkit.getWorld(Objects.requireNonNull(NamespacedKey.fromString(identifier.toString())));
-            if (world != null) {
-                player.setClientSideWorld(BukkitAdaptor.adapt(world));
-                player.clearTrackedChunks();
-                player.furnitureLightData().clearLightData();
-                player.clearTrackedBlockEntities();
-                player.clearTrackedEntities();
-            }
-        }
-    }
-
-    // 1.21.2+
-    public static class SyncEntityPositionListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            int entityId = ClientboundEntityPositionSyncPacketProxy.INSTANCE.getId(packet);
-            EntityPacketHandler handler = user.entityPacketHandlers().get(entityId);
-            if (handler != null) {
-                handler.handleSyncEntityPosition(user, event, packet);
-            }
-        }
-    }
-
-    public class RenameItemListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (!Config.filterAnvil()) return;
-            if (((BukkitServerPlayer) user).hasPermission(FontManager.BYPASS_ANVIL)) {
-                return;
-            }
-            String message = ServerboundRenameItemPacketProxy.INSTANCE.getName(packet);
-            if (message != null && !message.isEmpty()) {
-                // check bypass
-                IllegalCharacterProcessResult result = processIllegalCharacters(message);
-                if (result.has()) {
-                    ServerboundRenameItemPacketProxy.INSTANCE.setName(packet, result.text());
-                }
-            }
-        }
-    }
-
-    public class SignUpdateListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (!Config.filterSign()) return;
-            // check bypass
-            if (((BukkitServerPlayer) user).hasPermission(FontManager.BYPASS_SIGN)) {
-                return;
-            }
-            String[] lines = ServerboundSignUpdatePacketProxy.INSTANCE.getLines(packet);
-            FontManager manager = CraftEngine.instance().fontManager();
-            if (!manager.isDefaultFontInUse()) return;
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i];
-                if (line != null && !line.isEmpty()) {
-                    IllegalCharacterProcessResult result = processIllegalCharacters(line);
-                    if (result.has()) {
-                        lines[i] = result.text();
-                    }
-                }
-            }
-        }
-    }
-
-    public static class EditBookListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (!Config.filterBook()) return;
-            FontManager manager = CraftEngine.instance().fontManager();
-            if (!manager.isDefaultFontInUse()) return;
-            // check bypass
-            if (((BukkitServerPlayer) user).hasPermission(FontManager.BYPASS_BOOK)) {
-                return;
-            }
-
-            boolean changed = false;
-
-            List<String> pages = ServerboundEditBookPacketProxy.INSTANCE.getPages(packet);
-            List<String> newPages = new ArrayList<>(pages.size());
-            Optional<String> title = ServerboundEditBookPacketProxy.INSTANCE.getTitle(packet);
-            Optional<String> newTitle;
-
-            if (title.isPresent()) {
-                String titleStr = title.get();
-                Pair<Boolean, String> result = processClientString(titleStr, manager);
-                newTitle = Optional.of(result.right());
-                if (result.left()) {
-                    changed = true;
-                }
-            } else {
-                newTitle = Optional.empty();
-            }
-
-            for (String page : pages) {
-                Pair<Boolean, String> result = processClientString(page, manager);
-                newPages.add(result.right());
-                if (result.left()) {
-                    changed = true;
-                }
-            }
-
-            if (changed) {
-                Object newPacket = ServerboundEditBookPacketProxy.INSTANCE.newInstance(
-                        ServerboundEditBookPacketProxy.INSTANCE.getSlot(packet),
-                        newPages,
-                        newTitle
-                );
-                event.replacePacket(newPacket);
-            }
-        }
-
-        private static Pair<Boolean, String> processClientString(String original, FontManager manager) {
-            if (original.isEmpty()) {
-                return Pair.of(false, original);
-            }
-            int[] codepoints = CharacterUtils.charsToCodePoints(original.toCharArray());
-            int[] newCodepoints = new int[codepoints.length];
-            boolean hasIllegal = false;
-            for (int i = 0; i < codepoints.length; i++) {
-                int codepoint = codepoints[i];
-                if (manager.isIllegalCodepoint(codepoint)) {
-                    newCodepoints[i] = '*';
-                    hasIllegal = true;
-                } else {
-                    newCodepoints[i] = codepoint;
-                }
-            }
-            return hasIllegal ? Pair.of(true, new String(newCodepoints, 0, newCodepoints.length)) : Pair.of(false, original);
-        }
-    }
-
-    public static class CustomPayloadListener1_20_2 implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            Object payload = ServerboundCustomPayloadPacketProxy.INSTANCE.getPayload(packet);
-            Payload clientPayload;
-            if (VersionHelper.isOrAbove1_20_5() && DiscardedPayloadProxy.CLASS.isInstance(payload)) {
-                clientPayload = DiscardedPayload.from(payload);
-            } else if (!VersionHelper.isOrAbove1_20_5() && ServerboundCustomPayloadPacketProxy.UnknownPayloadProxy.CLASS.isInstance(payload)) {
-                clientPayload = UnknownPayload.from(payload);
-            } else {
-                return;
-            }
-            ModPackets.handlePayload(user, clientPayload);
-        }
-    }
-
-    public static class ResourcePackResponseListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            Enum<?> nmsAction = ServerboundResourcePackPacketProxy.INSTANCE.getAction(packet);
-
-            if (VersionHelper.isOrAbove1_20_3()) {
-                UUID uuid = ServerboundResourcePackPacketProxy.INSTANCE.getId(packet);
-                if (!user.isResourcePackLoading(uuid)) {
-                    // 不是CraftEngine发送的资源包,不管
-                    return;
-                }
-            }
-
-            if (nmsAction == null) {
-                user.kick(Component.text("Corrupted ResourcePackResponse Packet"));
-                return;
-            }
-
-            ResourcePackHost host = CraftEngine.instance().packManager().resourcePackHost();
-            host.response(user, ResourcePackResponseAction.byOrdinal(nmsAction.ordinal())).whenComplete((action, t) -> {
-                if (t != null) {
-                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.handle_response_failed", user.name()), t);
-                    return;
-                }
-                // 响应不是最终的或者没有配置阶段就不处理后续
-                if (action.intermediate() || !VersionHelper.isOrAbove1_20_2()) return;
-                event.setCancelled(true);
-                Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(user.connection());
-                if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return; // 不是配置阶段不处理
-                Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
-                // 主线程上处理这个包
-                CraftEngine.instance().scheduler().executeSync(() -> {
-                    try {
-                        // 当客户端发出多次成功包的时候，finish会报错，我们忽略他
-                        ServerCommonPacketListenerProxy.INSTANCE.handleResourcePackResponse(packetListener, packet);
-                        if (VersionHelper.isPaper() && VersionHelper.isOrAbove1_21_7()) { // paper在1.21.7+增加了判断不会主动结束任务
-                            ServerConfigurationPacketListenerImplProxy.INSTANCE.finishCurrentTask(packetListener, ServerResourcePackConfigurationTaskProxy.TYPE);
-                        }
-                    } catch (Throwable e) {
-                        Debugger.RESOURCE_PACK.warn(() -> "Cannot finish current task", e);
-                    } finally { // 无论如何如果全部资源包任务处理完成就加入并执行JoinWorldTask
-                        if (tasks.isEmpty()) {
-                            S2CFinishConfigurationListener.returnToWorld(tasks, packetListener);
-                        }
-                    }
-                });
-            });
-        }
-    }
-
-    public static class EntityEventListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            Object player = user.serverPlayer();
-            if (player == null) return;
-            int entityId = ClientboundEntityEventPacketProxy.INSTANCE.getEntityId(packet);
-            if (entityId != EntityProxy.INSTANCE.getId(player)) return;
-            byte eventId = ClientboundEntityEventPacketProxy.INSTANCE.getEventId(packet);
-            if (eventId >= 24 && eventId <= 28) {
-                CraftEngine.instance().fontManager().refreshEmojiSuggestions((BukkitServerPlayer) user);
-            }
-        }
-    }
-
-    public static class MovePosAndRotateEntityListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            int entityId = ClientboundMoveEntityPacketProxy.INSTANCE.getEntityId(packet);
-            EntityPacketHandler handler = user.entityPacketHandlers().get(entityId);
-            if (handler != null) {
-                handler.handleMoveAndRotate(user, event, packet);
-            }
-        }
-    }
-
-    public static class MovePosEntityListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            int entityId = ClientboundMoveEntityPacketProxy.INSTANCE.getEntityId(packet);
-            EntityPacketHandler handler = user.entityPacketHandlers().get(entityId);
-            if (handler != null) {
-                handler.handleMove(user, event, packet);
-            }
-        }
-    }
-
-    public static class S2CFinishConfigurationListener implements NMSPacketListener {
-
-        private static void returnToWorld(Queue<Object> tasks, Object packetListener) {
-            tasks.add(JoinWorldTaskProxy.INSTANCE.newInstance());
-            ServerConfigurationPacketListenerImplProxy.INSTANCE.startNextTask(packetListener);
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (!VersionHelper.isOrAbove1_20_2() || !Config.sendPackOnJoin()) {
-                // 防止后期调试进配置阶段造成问题
-                user.setShouldProcessFinishConfiguration(false);
-                return;
-            }
-
-            if (!user.shouldProcessFinishConfiguration()) {
-                return;
-            }
-            Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(user.connection());
-            if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) {
-                return;
-            }
-
-            // 防止后续加入的JoinWorldTask再次处理
-            user.setShouldProcessFinishConfiguration(false);
-
-            // 检查用户UUID是否已经校验
-            if (!user.isUUIDVerified()) {
-                if (Config.strictPlayerUuidValidation()) {
-                    user.kick(Component.translatable("disconnect.loginFailedInfo").arguments(Component.translatable("argument.uuid.invalid")));
-                    return;
-                }
-            }
-
-            // 取消 ClientboundFinishConfigurationPacket，让客户端发呆，并结束掉当前的进入世界任务
-            event.setCancelled(true);
-            try {
-                ServerConfigurationPacketListenerImplProxy.INSTANCE.finishCurrentTask(packetListener, JoinWorldTaskProxy.TYPE);
-            } catch (Throwable e) {
-                CraftEngine.instance().logger().warn("Failed to finish current task for " + user.name(), e);
-            }
-
-            if (VersionHelper.isOrAbove1_20_5()) {
-                // 1.20.5+开始会检查是否结束需要重新设置回去，不然不会发keepAlive包
-                ServerCommonPacketListenerImplProxy.INSTANCE.setClosed(packetListener, false);
-            }
-
-            // 请求资源包
-            ResourcePackHost host = CraftEngine.instance().packManager().resourcePackHost();
-            host.requestResourcePackDownloadLink(user).whenComplete((dataList, t) -> {
-                Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
-                if (t != null) {
-                    CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation("host.get_url_failed", user.name()), t);
-                    returnToWorld(tasks, packetListener);
-                    return;
-                }
-                if (dataList.isEmpty()) {
-                    returnToWorld(tasks, packetListener);
-                    return;
-                }
-                // 向配置阶段连接的任务重加入资源包的任务
-                if (VersionHelper.isOrAbove1_20_3()) {
-                    for (ResourcePackDownloadData data : dataList) {
-                        tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
-                        user.addResourcePackUUID(data.uuid());
-                    }
-                } else { // 1.20.2 只支持一个服务器资源包
-                    ResourcePackDownloadData data = dataList.getFirst();
-                    tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
-                    user.addResourcePackUUID(data.uuid());
-                }
-                // 直接开始资源包任务，JoinWorldTask任务在资源包响应中处理
-                ServerConfigurationPacketListenerImplProxy.INSTANCE.startNextTask(packetListener);
-            });
-        }
-    }
-
-    public static class LoginFinishedListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!VersionHelper.isOrAbove1_20_2()) {
-                /*
-                发送这个包以后在1.20.1会从login切换到play
-                1. send ClientboundGameProfilePacket
-                2. placeNewPlayer 在 ServerLoginPacketListenerImpl
-                3. new ServerGamePacketListenerImpl 在 PlayerList 的 placeNewPlayer
-                 */
-                user.setConnectionState(ConnectionState.PLAY);
-            }
-            FriendlyByteBuf buffer = event.getBuffer();
-            user.setVerifiedUUID(buffer.readUUID());
-            user.setVerifiedName(buffer.readUtf(16));
-            int count = buffer.readVarInt();
-            PropertyMap propertyMap;
-            if (VersionHelper.isOrAbove1_21_9()) {
-                ImmutableMultimap.Builder<String, Property> builder = ImmutableMultimap.builder();
-                for (int i = 0; i < count; ++i) {
-                    String name = buffer.readUtf(64);
-                    String value = buffer.readUtf();
-                    String signature = buffer.readNullable(buf -> buf.readUtf(1024));
-                    Property property = new Property(name, value, signature);
-                    builder.put(name, property);
-                }
-                propertyMap = new PropertyMap(builder.build());
-            } else {
-                propertyMap = LegacyAuthLibUtils.constructor$PropertyMap();
-                for (int i = 0; i < count; ++i) {
-                    String name = buffer.readUtf(64);
-                    String value = buffer.readUtf();
-                    String signature = buffer.readNullable(buf -> buf.readUtf(1024));
-                    Property property = new Property(name, value, signature);
-                    propertyMap.put(name, property);
-                }
-            }
-            user.setPropertyMap(propertyMap);
-        }
-    }
-
-    public static class UpdateTagsListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            List<TagUtils.TagEntry> cachedUpdateTags = BukkitBlockManager.instance().cachedUpdateTags();
-            if (cachedUpdateTags.isEmpty()) return;
-            Map<Object, Object> tags = ClientboundUpdateTagsPacketProxy.INSTANCE.getTags(packet);
-            // 已经替换过了
-            if (tags instanceof MarkedHashMap<Object, Object>) return;
-            // 需要虚假的block
-            if (tags.get(RegistriesProxy.BLOCK) == null) return;
-            event.replacePacket(TagUtils.createUpdateTagsPacket(Map.of(RegistriesProxy.BLOCK, cachedUpdateTags), tags));
-        }
-    }
-
-    public static class ContainerClickListener1_21_5 implements NMSPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            if (Config.disableItemOperations()) return;
-            if (!VersionHelper.PREMIUM && !Config.interceptItem()) return;
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            Int2ObjectMap<Object> changedSlots = ServerboundContainerClickPacketProxy.INSTANCE.getChangedSlots(packet);
-            Int2ObjectMap<Object> newChangedSlots = new Int2ObjectOpenHashMap<>(changedSlots.size());
-            for (Int2ObjectMap.Entry<Object> entry : changedSlots.int2ObjectEntrySet()) {
-                newChangedSlots.put(entry.getIntKey(), FastNMS.INSTANCE.createInjectedHashedStack(entry.getValue(), player));
-            }
-            Object carriedItem = FastNMS.INSTANCE.createInjectedHashedStack(ServerboundContainerClickPacketProxy.INSTANCE.getCarriedItem(packet), player);
-            ServerboundContainerClickPacketProxy.INSTANCE.setCarriedItem(packet, carriedItem);
-            ServerboundContainerClickPacketProxy.INSTANCE.setChangedSlots(packet, Int2ObjectMaps.unmodifiable(newChangedSlots));
-        }
-    }
-
-    public static class LoginAcknowledgedListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            /*
-            1.20.2+
-            1. receive ServerboundLoginAcknowledgedPacket
-            2. new ServerConfigurationPacketListenerImpl 然后直接 startConfiguration
-            3. send ClientboundCustomPayloadPacket(BrandPayload) to client
-
-            1.20.5+
-            1. receive ServerboundLoginAcknowledgedPacket
-            2. set outbound(encode|s2c) to configuration
-            3. set inbound(decode|c2s) to configuration
-            4. startConfiguration
-            5. send ClientboundCustomPayloadPacket(BrandPayload) to client
-             */
-            user.setConnectionState(ConnectionState.CONFIGURATION);
-        }
-    }
-
-    public static class C2SFinishConfigurationListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            /*
-            1.20.2+
-            1. receive ServerboundFinishConfigurationPacket
-            2. placeNewPlayer
-            3. new ServerGamePacketListenerImpl 在 PlayerList
-            4. send ClientboundLoginPacket to client
-
-            1.20.5+
-            1. receive ServerboundFinishConfigurationPacket
-            2. set outbound(encode|s2c) to play
-            3. placeNewPlayer
-            4. set inbound(decode|c2s) to play
-            5. send ClientboundLoginPacket to client
-             */
-            user.setEncoderState(ConnectionState.PLAY);
-        }
-    }
-
-    public static class ByteBufferLoginListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (VersionHelper.isOrAbove1_20_2()) {
-                /*
-                1.20.2+
-                1. send ClientboundLoginPacket to client
-
-                1.20.5+
-                1. set inbound(decode|c2s) to play
-                2. send ClientboundLoginPacket to client
-                 */
-                user.setDecoderState(ConnectionState.PLAY);
-            }
-        }
-    }
-
-    public static class ConfigurationAcknowledgedListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            /*
-            1.20.2+
-            1. receive ServerboundConfigurationAcknowledgedPacket
-            2. setListener ServerConfigurationPacketListenerImpl
-
-            1.20.5+
-            1. receive ServerboundConfigurationAcknowledgedPacket
-            2. set inbound(decode|c2s) to configuration
-             */
-            user.setDecoderState(ConnectionState.CONFIGURATION); // in
-        }
-    }
-
-    public static class StartConfigurationListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            /*
-            1.20.2+
-            1. send ClientboundStartConfigurationPacket
-
-            1.20.5+
-            1. send ClientboundStartConfigurationPacket
-            2. set outbound(encode|s2c) to configuration
-             */
-            user.setEncoderState(ConnectionState.CONFIGURATION); // out
-        }
-    }
-
-    public static class IntentionListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            int protocolVersion;
-            ConnectionState nextState;
-            try {
-                protocolVersion = buf.readVarInt();
-                buf.readUtf(); // serverAddress
-                buf.readUnsignedShort(); // serverPort
-                nextState = switch (buf.readVarInt()) {
-                    case 1 -> ConnectionState.STATUS;
-                    case 2, 3 -> ConnectionState.LOGIN;
-                    default -> null;
-                };
-            } catch (Throwable e) { // 客户端乱发包
-                Debugger.COMMON.warn(() -> "Failed to read intention packet", e);
-                user.kick(null);
-                return;
-            }
-            if (nextState == null) { // 如果乱发包直接强行断开连接
-                user.kick(null);
-                return;
-            }
-            if (nextState == ConnectionState.LOGIN) { // 重定位一下 channel handler，确保在pe后处理
-                BukkitNetworkManager.instance.relocateChannelHandler(user.nettyChannel());
-            }
-            if (BukkitNetworkManager.instance.hasViaVersion) {
-                int viaVersionProtocolVersion = CraftEngine.instance().compatibilityManager().getViaVersionProtocolVersion(user);
-                if (viaVersionProtocolVersion != -1) {
-                    protocolVersion = viaVersionProtocolVersion;
-                }
-            }
-            user.setProtocolVersion(ProtocolVersion.getById(protocolVersion));
-            /*
-            1.20+ 直接切换
-             */
-            user.setConnectionState(nextState);
-        }
-    }
-
-    public static class ForgetLevelChunkListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            FriendlyByteBuf buf = event.getBuffer();
-            CEWorld ceWorld = BukkitWorldManager.instance().getWorld(player.world().uuid());
-            if (VersionHelper.isOrAbove1_20_2()) {
-                long chunkPos = buf.readLong();
-                user.removeTrackedChunk(chunkPos);
-                CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkPos);
-                if (ceChunk != null) {
-                    ceChunk.despawnBlockEntities(player);
-                }
-            } else {
-                int x = buf.readInt();
-                int y = buf.readInt();
-                user.removeTrackedChunk(ChunkPos.asLong(x, y));
-                CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(x, y);
-                if (ceChunk != null) {
-                    ceChunk.despawnBlockEntities(player);
-                }
-            }
-        }
-    }
-
-    public static class LevelChunkWithLightListener implements ByteBufferPacketListener {
-        public static BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> biomeRemapper = null;
-
-        public static void setBiomeRemapper(BiFunction<NetWorkUser, PalettedContainer<Integer>, Boolean> remapper) {
-            biomeRemapper = remapper;
-        }
-
-        public static boolean remapBiomes(NetWorkUser user, PalettedContainer<Integer> biomes) {
-            if (biomeRemapper != null) {
-                return biomeRemapper.apply(user, biomes);
-            }
-            return false;
-        }
-
-        private final int[] blockStateMapper;
-        private final int[] modBlockStateMapper;
-        private final IntIdentityList biomeList;
-        private final IntIdentityList blockList;
-        private final boolean needsDowngrade;
-        private final Predicate<Integer> occlusionPredicate;
-        public LevelChunkWithLightListener(int[] blockStateMapper, int[] modBlockStateMapper, int blockRegistrySize, int biomeRegistrySize, Predicate<Integer> occlusionPredicate) {
-            this.blockStateMapper = blockStateMapper;
-            this.modBlockStateMapper = modBlockStateMapper;
-            this.biomeList = new IntIdentityList(biomeRegistrySize);
-            this.blockList = new IntIdentityList(blockRegistrySize);
-            this.needsDowngrade = MiscUtils.ceilLog2(BlockStateUtils.vanillaBlockStateCount()) != MiscUtils.ceilLog2(blockRegistrySize);
-            this.occlusionPredicate = occlusionPredicate;
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            FriendlyByteBuf buf = event.getBuffer();
-            int chunkX = buf.readInt();
-            int chunkZ = buf.readInt();
-            ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
-            boolean named = !VersionHelper.isOrAbove1_20_2();
-
-            int[] remapper = user.clientModEnabled() ? this.modBlockStateMapper : this.blockStateMapper;
-
-            // 读取区块数据
-            int heightmapsCount = 0;
-            Map<Integer, long[]> heightmapsMap = null;
-            Tag heightmaps = null;
-            if (VersionHelper.isOrAbove1_21_5()) {
-                heightmapsMap = new HashMap<>();
-                heightmapsCount = buf.readVarInt();
-                for (int i = 0; i < heightmapsCount; i++) {
-                    int key = buf.readVarInt();
-                    long[] value = buf.readLongArray();
-                    heightmapsMap.put(key, value);
-                }
-            } else {
-                heightmaps = buf.readNbt(named);
-            }
-
-            int chunkDataBufferSize = buf.readVarInt();
-            byte[] chunkDataBytes = new byte[chunkDataBufferSize];
-            buf.readBytes(chunkDataBytes);
-
-            // 客户端侧section数量很重要，不能读取此时玩家所在的真实世界，包具有滞后性
-            net.momirealms.craftengine.core.world.World clientSideWorld = player.clientSideWorld();
-            WorldHeight worldHeight = clientSideWorld.worldHeight();
-            int count = worldHeight.getSectionsCount();
-            MCSection[] sections = new MCSection[count];
-            FriendlyByteBuf chunkDataByteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(chunkDataBytes));
-
-            boolean hasChangedAnyBlock = false;
-            boolean hasGlobalPalette = false;
-
-            // 创建客户端侧遮挡世界, 只在开启光线追踪情况下创建.
-            OccludingSection[] occludingSections = Config.entityCullingRayTracing() ? new OccludingSection[count] : null;
-            // 创建客户侧光照世界, 只在家具中存在 GlowingFurnitureBehavior 行为时创建.
-            LightSection[] lightSections = Config.enableFurnitureLightSystem() ? new LightSection[count] : null;
-
-            for (int i = 0; i < count; i++) {
-                MCSection mcSection = new MCSection(user.clientBlockList(), this.blockList, this.biomeList);
-                mcSection.readPacket(chunkDataByteBuf);
-
-                PalettedContainer<Integer> container = mcSection.blockStateContainer();
-                // 重定向生物群系
-                if (remapBiomes(user, mcSection.biomeContainer())) {
-                    hasChangedAnyBlock = true;
-                }
-
-                Palette<Integer> palette = container.data().palette();
-                if (palette.canRemap()) {
-
-                    // 重定向方块
-                    if (palette.remapAndCheck(s -> remapper[s])) {
-                        hasChangedAnyBlock = true;
-                    }
-
-                    // 处理客户端侧哪些方块有阻挡
-                    if (occludingSections != null) {
-                        int size = palette.getSize();
-                        // 单个元素的情况下，使用优化的存储方案
-                        if (size == 1) {
-                            occludingSections[i] = new OccludingSection(UniformOcclusionStorage.fromTest(this.occlusionPredicate.test(palette.get(0))));
-                        } else {
-                            boolean hasOcclusions = false;
-                            boolean hasNoOcclusions = false;
-                            for (int h = 0; h < size; h++) {
-                                if (this.occlusionPredicate.test(palette.get(h))) {
-                                    hasOcclusions = true;
-                                } else {
-                                    hasNoOcclusions = true;
-                                }
-                                if (hasOcclusions && hasNoOcclusions) {
-                                    break;
-                                }
-                            }
-                            // 两种情况都有，那么需要一个个遍历处理视线遮挡数据
-                            if (hasOcclusions && hasNoOcclusions) {
-                                PackedOcclusionStorage storage = new PackedOcclusionStorage(false);
-                                occludingSections[i] = new OccludingSection(storage);
-                                for (int j = 0; j < 4096; j++) {
-                                    int state = container.get(j);
-                                    storage.set(j, this.occlusionPredicate.test(state));
-                                }
-                            }
-                            // 全遮蔽或全透视则使用优化存储方案
-                            else {
-                                occludingSections[i] = new OccludingSection(UniformOcclusionStorage.fromTest(hasOcclusions));
-                            }
-                        }
-                    }
-
-                    // 处理客户端侧光照方块
-                    if (lightSections != null) {
-                        int size = palette.getSize();
-                        // 单个元素的情况下，使用优化的存储方案
-                        if (size == 1) {
-                            int result = getLightBlockType(palette.get(0));
-                            lightSections[i] = new LightSection(UniformLightStorage.fromLightPredicate(result));
-                        }
-                        // 多元素情况, 遍历检查
-                        else {
-                            boolean hasReplaceable = false;
-                            boolean hasSolid = false;
-
-                            // 遍历调色盘的元素
-                            for (int h = 0; h < size; h++) {
-                                int result = getLightBlockType(palette.get(h));
-                                if (result == 0) {
-                                    hasSolid = true;
-                                } else {
-                                    hasReplaceable = true;
-                                }
-                                if (hasReplaceable && hasSolid) {
-                                    break;
-                                }
-                            }
-
-                            // 如果全实心, 则使用优化存储
-                            if (hasSolid && !hasReplaceable) {
-                                lightSections[i] = new LightSection(UniformLightStorage.SOLID);
-                                sections[i] = mcSection;
-                                continue;
-                            }
-
-                            // 需要一个个遍历处理
-                            PackedLightStorage storage = new PackedLightStorage();
-                            lightSections[i] = new LightSection(storage);
-                            for (int j = 0; j < 4096; j++) {
-                                int state = container.get(j);
-                                storage.set(j, getLightBlockType(state));
-                            }
-                        }
-                    }
-                } else {
-                    hasGlobalPalette = true;
-
-                    PackedOcclusionStorage occlusionStorage = null;
-                    if (occludingSections != null) {
-                        occlusionStorage = new PackedOcclusionStorage(false);
-                        occludingSections[i] = new OccludingSection(occlusionStorage);
-                    }
-
-                    PackedLightStorage lightStorage = null;
-                    if (lightSections != null) {
-                        lightStorage = new PackedLightStorage();
-                        lightSections[i] = new LightSection(lightStorage);
-                    }
-
-                    for (int j = 0; j < 4096; j++) {
-                        int state = container.get(j);
-
-                        // 重定向方块
-                        int newState = remapper[state];
-                        if (newState != state) {
-                            container.set(j, newState);
-                            hasChangedAnyBlock = true;
-                        }
-
-                        // 写入视线遮挡数据
-                        if (occlusionStorage != null) {
-                            occlusionStorage.set(j, this.occlusionPredicate.test(state));
-                        }
-
-                        // 写入光照数据
-                        if (lightStorage != null) {
-                            lightStorage.set(j, getLightBlockType(state));
-                        }
-                    }
-                }
-
-                sections[i] = mcSection;
-            }
-
-            // 只有被修改了，才读后续内容，并改写
-            if (hasChangedAnyBlock || (this.needsDowngrade && hasGlobalPalette)) {
-                // 读取其他非必要信息
-                int blockEntitiesDataCount = buf.readVarInt();
-                List<BlockEntityData> blockEntitiesData = new ArrayList<>();
-                for (int i = 0; i < blockEntitiesDataCount; i++) {
-                    byte packedXZ = buf.readByte();
-                    short y = buf.readShort();
-                    int type = buf.readVarInt();
-                    Tag tag = buf.readNbt(named);
-                    BlockEntityData blockEntityData = new BlockEntityData(packedXZ, y, type, tag);
-                    blockEntitiesData.add(blockEntityData);
-                }
-                // 光照信息
-                BitSet skyYMask = buf.readBitSet();
-                BitSet blockYMask = buf.readBitSet();
-                BitSet emptySkyYMask = buf.readBitSet();
-                BitSet emptyBlockYMask = buf.readBitSet();
-                List<byte[]> skyUpdates = buf.readByteArrayList(2048);
-                List<byte[]> blockUpdates = buf.readByteArrayList(2048);
-
-                // 预分配容量
-                FriendlyByteBuf newChunkDataBuf = new FriendlyByteBuf(Unpooled.buffer(chunkDataBufferSize + 16));
-                for (int i = 0; i < count; i++) {
-                    sections[i].writePacket(newChunkDataBuf);
-                }
-                chunkDataBytes = newChunkDataBuf.array();
-
-                // 开始修改
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeInt(chunkX);
-                buf.writeInt(chunkZ);
-                if (VersionHelper.isOrAbove1_21_5()) {
-                    buf.writeVarInt(heightmapsCount);
-                    for (Map.Entry<Integer, long[]> entry : heightmapsMap.entrySet()) {
-                        buf.writeVarInt(entry.getKey());
-                        buf.writeLongArray(entry.getValue());
-                    }
-                } else {
-                    buf.writeNbt(heightmaps, named);
-                }
-                buf.writeVarInt(chunkDataBytes.length);
-                buf.writeBytes(chunkDataBytes);
-                buf.writeVarInt(blockEntitiesDataCount);
-                for (BlockEntityData blockEntityData : blockEntitiesData) {
-                    buf.writeByte(blockEntityData.packedXZ());
-                    buf.writeShort(blockEntityData.y());
-                    buf.writeVarInt(blockEntityData.type());
-                    buf.writeNbt(blockEntityData.tag(), named);
-                }
-                buf.writeBitSet(skyYMask);
-                buf.writeBitSet(blockYMask);
-                buf.writeBitSet(emptySkyYMask);
-                buf.writeBitSet(emptyBlockYMask);
-                buf.writeByteArrayList(skyUpdates);
-                buf.writeByteArrayList(blockUpdates);
-            }
-
-            // 记录加载的区块
-            player.addTrackedChunk(chunkPos.longKey, new ClientChunk(occludingSections, lightSections, worldHeight));
-
-            // 生成方块实体
-            CEWorld ceWorld = clientSideWorld.storageWorld();
-            // 世界可能被卸载，因为包滞后
-            if (ceWorld != null) {
-                CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);
-                if (ceChunk != null) {
-                    // 生成方块实体
-                    ceChunk.spawnBlockEntities(player);
-                }
-            }
-        }
-    }
-
-    public static class SectionBlockUpdateListener implements ByteBufferPacketListener {
-        private final int[] blockStateMapper;
-        private final int[] modBlockStateMapper;
-        private final Predicate<Integer> occlusionPredicate;
-        private final boolean cullingRayTracing;
-        private final boolean glowingFurniture;
-        private final boolean handleClientChunk;
-
-        public SectionBlockUpdateListener(int[] blockStateMapper, int[] modBlockStateMapper, Predicate<Integer> occlusionPredicate) {
-            this.blockStateMapper = blockStateMapper;
-            this.modBlockStateMapper = modBlockStateMapper;
-            this.occlusionPredicate = occlusionPredicate;
-            this.cullingRayTracing = Config.entityCullingRayTracing();
-            this.glowingFurniture = Config.enableFurnitureLightSystem();
-            this.handleClientChunk = this.cullingRayTracing || this.glowingFurniture;
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            int[] remapper = user.clientModEnabled() ? this.modBlockStateMapper : this.blockStateMapper;
-            FriendlyByteBuf buf = event.getBuffer();
-            long sPos = buf.readLong();
-            int blocks = buf.readVarInt();
-            short[] positions = new short[blocks];
-            int[] beforeStates = new int[blocks];
-            int[] afterStates = new int[blocks];
-
-            for (int i = 0; i < blocks; i++) {
-                long k = buf.readVarLong();
-                short posIndex = (short) ((int) (k & 4095L));
-                positions[i] = posIndex;
-                int beforeState = ((int) (k >>> 12));
-                beforeStates[i] = beforeState;
-                afterStates[i] = remapper[beforeState];
-            }
-
-            // 获取客户端侧区域
-            LightSection lightSection;
-            if (this.handleClientChunk) {
-                SectionPos sectionPos = SectionPos.of(sPos);
-                ClientChunk trackedChunk = user.getTrackedChunk(sectionPos.asChunkPos().longKey);
-                if (trackedChunk != null) {
-                    if (this.cullingRayTracing) {
-                        OccludingSection occludingSection = trackedChunk.occludingSectionById(sectionPos.y);
-                        if (occludingSection != null) {
-                            for (int i = 0; i < blocks; i++) {
-                                BlockPos pos = SectionPos.unpackSectionRelativePos(positions[i]);
-                                occludingSection.setOccluding(pos.x, pos.y, pos.z, this.occlusionPredicate.test(beforeStates[i]));
-                            }
-                        }
-                    }
-                    if (this.glowingFurniture) {
-                        lightSection = trackedChunk.lightSectionById(sectionPos.y);
-                        if (lightSection != null) {
-                            for (int i = 0; i < blocks; i++) {
-                                BlockPos pos = SectionPos.unpackSectionRelativePos(positions[i]);
-                                int beforeState = beforeStates[i];
-                                lightSection.setBlockType(pos.x, pos.y, pos.z, getLightBlockType(beforeState));
-                                if (beforeState == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) {
-                                    int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(new BlockPos(sectionPos.x * 16 + pos.x, sectionPos.y * 16 + pos.y, sectionPos.z * 16 + pos.z));
-                                    if (lightPower != 0) {
-                                        afterStates[i] = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.LIGHT_BLOCK_STATES[lightPower]);
-                                    }
-                                } else if (beforeState == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) {
-                                    int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(new BlockPos(sectionPos.x * 16 + pos.x, sectionPos.y * 16 + pos.y, sectionPos.z * 16 + pos.z));
-                                    if (lightPower != 0) {
-                                        afterStates[i] = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.WATERLOGGED_LIGHT_BLOCK_STATES[lightPower]);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeLong(sPos);
-            buf.writeVarInt(blocks);
-            for (int i = 0; i < blocks; i++) {
-                buf.writeVarLong((long) afterStates[i] << 12 | positions[i]);
-            }
-            event.setChanged(true);
-        }
-    }
-
-    public static class BlockUpdateListener implements ByteBufferPacketListener {
-        private final int[] blockStateMapper;
-        private final int[] modBlockStateMapper;
-        private final Predicate<Integer> occlusionPredicate;
-        private final boolean cullingRayTracing;
-        private final boolean glowingFurniture;
-        private final boolean handleClientChunk;
-
-        public BlockUpdateListener(int[] blockStateMapper, int[] modBlockStateMapper, Predicate<Integer> occlusionPredicate) {
-            this.blockStateMapper = blockStateMapper;
-            this.modBlockStateMapper = modBlockStateMapper;
-            this.occlusionPredicate = occlusionPredicate;
-            this.cullingRayTracing = Config.entityCullingRayTracing();
-            this.glowingFurniture = Config.enableFurnitureLightSystem();
-            this.handleClientChunk = this.cullingRayTracing || this.glowingFurniture;
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            BlockPos pos = buf.readBlockPos();
-            int before = buf.readVarInt();
-            int state = user.clientModEnabled() ? modBlockStateMapper[before] : blockStateMapper[before];
-
-            if (this.handleClientChunk) {
-                ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(pos.x >> 4, pos.z >> 4));
-                if (trackedChunk != null) {
-                    if (this.cullingRayTracing) {
-                        trackedChunk.setOccluding(pos.x, pos.y, pos.z, this.occlusionPredicate.test(before));
-                    }
-                    // 记录到客户侧世界
-                    if (this.glowingFurniture) {
-                        trackedChunk.setLightBlockType(pos.x, pos.y, pos.z, getLightBlockType(before));
-                        if (before == GlowingFurnitureBehaviorTemplate.AIR_BLOCK_STATE_ID) {
-                            int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(pos);
-                            if (lightPower != 0) {
-                                state = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.LIGHT_BLOCK_STATES[lightPower]);
-                            }
-                        } else if (before == GlowingFurnitureBehaviorTemplate.WATER_BLOCK_STATE_ID) {
-                            int lightPower = ((BukkitServerPlayer) user).furnitureLightData().getLightPower(pos);
-                            if (lightPower != 0) {
-                                state = BlockStateUtils.blockStateToId(GlowingFurnitureBehaviorTemplate.WATERLOGGED_LIGHT_BLOCK_STATES[lightPower]);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 未修改则忽略
-            if (state == before) {
-                return;
-            }
-            // 如果客户端有mod，且发送的是自定义方块，则忽略
-            if (user.clientModEnabled() && !BlockStateUtils.isVanillaBlock(before)) {
-                return;
-            }
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeBlockPos(pos);
-            buf.writeVarInt(state);
-        }
-    }
-
-    public static class LevelParticleListener1_21_4 implements ByteBufferPacketListener {
-        private final int[] blockStateMapper;
-        private final int[] modBlockStateMapper;
-
-        public LevelParticleListener1_21_4(int[] blockStateMapper, int[] modBlockStateMapper) {
-            this.blockStateMapper = blockStateMapper;
-            this.modBlockStateMapper = modBlockStateMapper;
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            boolean overrideLimiter = buf.readBoolean();
-            boolean alwaysShow = buf.readBoolean();
-            double x = buf.readDouble();
-            double y = buf.readDouble();
-            double z = buf.readDouble();
-            float xDist = buf.readFloat();
-            float yDist = buf.readFloat();
-            float zDist = buf.readFloat();
-            float maxSpeed = buf.readFloat();
-            int count = buf.readInt();
-            Object option = StreamDecoderProxy.INSTANCE.decode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()));
-            if (option == null) return;
-            Object newOption;
-            if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
-                Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
-                int id = BlockStateUtils.blockStateToId(blockState);
-                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
-                if (remapped == id) return;
-                Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
-                newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
-            } else if (ItemParticleOptionProxy.CLASS.isInstance(option)) {
-                BukkitItemManager itemManager = BukkitItemManager.instance();
-                Object itemStack = ItemParticleOptionProxy.INSTANCE.getItemStack(option);
-                if (VersionHelper.isOrAbove26_1()) {
-                    itemStack = ItemStackTemplateProxy.INSTANCE.create(itemStack);
-                }
-                Item item = itemManager.wrap(itemStack);
-                item = itemManager.s2c(item, (net.momirealms.craftengine.core.entity.player.Player) user).orElse(null);
-                if (item == null) return;
-                Object type = ItemParticleOptionProxy.INSTANCE.getType(option);
-                Object stack = item.minecraftItem();
-                if (VersionHelper.isOrAbove26_1()) {
-                    Object template = ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(stack);
-                    newOption = ItemParticleOptionProxy.INSTANCE.newInstance$1(type, template);
-                } else {
-                    newOption = ItemParticleOptionProxy.INSTANCE.newInstance$0(type, stack);
-                }
-            } else return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeBoolean(overrideLimiter);
-            buf.writeBoolean(alwaysShow);
-            buf.writeDouble(x);
-            buf.writeDouble(y);
-            buf.writeDouble(z);
-            buf.writeFloat(xDist);
-            buf.writeFloat(yDist);
-            buf.writeFloat(zDist);
-            buf.writeFloat(maxSpeed);
-            buf.writeInt(count);
-            StreamEncoderProxy.INSTANCE.encode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()), newOption);
-        }
-    }
-
-    public static class LevelParticleListener1_20_5 implements ByteBufferPacketListener {
-        private final int[] blockStateMapper;
-        private final int[] modBlockStateMapper;
-
-        public LevelParticleListener1_20_5(int[] blockStateMapper, int[] modBlockStateMapper) {
-            this.blockStateMapper = blockStateMapper;
-            this.modBlockStateMapper = modBlockStateMapper;
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            boolean overrideLimiter = buf.readBoolean();
-            double x = buf.readDouble();
-            double y = buf.readDouble();
-            double z = buf.readDouble();
-            float xDist = buf.readFloat();
-            float yDist = buf.readFloat();
-            float zDist = buf.readFloat();
-            float maxSpeed = buf.readFloat();
-            int count = buf.readInt();
-            Object option = StreamDecoderProxy.INSTANCE.decode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()));
-            if (option == null) return;
-            Object newOption;
-            if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
-                Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
-                int id = BlockStateUtils.blockStateToId(blockState);
-                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
-                if (remapped == id) return;
-                Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
-                newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
-            } else if (ItemParticleOptionProxy.CLASS.isInstance(option)) {
-                BukkitItemManager itemManager = BukkitItemManager.instance();
-                Object itemStack = ItemParticleOptionProxy.INSTANCE.getItemStack(option);
-                Item item = itemManager.wrap(itemStack);
-                item = itemManager.s2c(item, (net.momirealms.craftengine.core.entity.player.Player) user).orElse(null);
-                if (item == null) return;
-                Object type = ItemParticleOptionProxy.INSTANCE.getType(option);
-                newOption = ItemParticleOptionProxy.INSTANCE.newInstance$0(type, item.minecraftItem());
-            } else return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeBoolean(overrideLimiter);
-            buf.writeDouble(x);
-            buf.writeDouble(y);
-            buf.writeDouble(z);
-            buf.writeFloat(xDist);
-            buf.writeFloat(yDist);
-            buf.writeFloat(zDist);
-            buf.writeFloat(maxSpeed);
-            buf.writeInt(count);
-            StreamEncoderProxy.INSTANCE.encode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()), newOption);
-        }
-    }
-
-    public static class LevelParticleListener1_20 implements ByteBufferPacketListener {
-        private final int[] blockStateMapper;
-        private final int[] modBlockStateMapper;
-
-        public LevelParticleListener1_20(int[] blockStateMapper, int[] modBlockStateMapper) {
-            this.blockStateMapper = blockStateMapper;
-            this.modBlockStateMapper = modBlockStateMapper;
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            Object particleType = IdMapProxy.INSTANCE.byId(BuiltInRegistriesProxy.PARTICLE_TYPE, buf.readVarInt());
-            boolean overrideLimiter = buf.readBoolean();
-            double x = buf.readDouble();
-            double y = buf.readDouble();
-            double z = buf.readDouble();
-            float xDist = buf.readFloat();
-            float yDist = buf.readFloat();
-            float zDist = buf.readFloat();
-            float maxSpeed = buf.readFloat();
-            int count = buf.readInt();
-            Object deserializer = ParticleTypeProxy.INSTANCE.getDeserializer(particleType);
-            Object option = ParticleOptionsProxy.DeserializerProxy.INSTANCE.fromNetwork(deserializer, particleType, PacketUtils.ensureNMSFriendlyByteBuf(buf));
-            if (option == null) return;
-            Object type = ParticleOptionsProxy.INSTANCE.getType(option);
-            Object newOption;
-            if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
-                Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
-                int id = BlockStateUtils.blockStateToId(blockState);
-                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
-                if (remapped == id) return;
-                newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
-            } else if (ItemParticleOptionProxy.CLASS.isInstance(option)) {
-                BukkitItemManager itemManager = BukkitItemManager.instance();
-                Object itemStack = ItemParticleOptionProxy.INSTANCE.getItemStack(option);
-                Item item = itemManager.wrap(itemStack);
-                item = itemManager.s2c(item, (net.momirealms.craftengine.core.entity.player.Player) user).orElse(null);
-                if (item == null) return;
-                newOption = ItemParticleOptionProxy.INSTANCE.newInstance$0(type, item.minecraftItem());
-            } else return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeVarInt(RegistryProxy.INSTANCE.getId(BuiltInRegistriesProxy.PARTICLE_TYPE, type));
-            buf.writeBoolean(overrideLimiter);
-            buf.writeDouble(x);
-            buf.writeDouble(y);
-            buf.writeDouble(z);
-            buf.writeFloat(xDist);
-            buf.writeFloat(yDist);
-            buf.writeFloat(zDist);
-            buf.writeFloat(maxSpeed);
-            buf.writeInt(count);
-            ParticleOptionsProxy.INSTANCE.writeToNetwork(newOption, PacketUtils.ensureNMSFriendlyByteBuf(buf));
-        }
-    }
-
-    public static class LevelEventListener implements ByteBufferPacketListener {
-        private final int[] blockStateMapper;
-        private final int[] modBlockStateMapper;
-
-        public LevelEventListener(int[] blockStateMapper, int[] modBlockStateMapper) {
-            this.blockStateMapper = blockStateMapper;
-            this.modBlockStateMapper = modBlockStateMapper;
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            int eventId = buf.readInt();
-            if (eventId != WorldEvents.BLOCK_BREAK_EFFECT) return;
-            BlockPos blockPos = buf.readBlockPos();
-            int state = buf.readInt();
-            // 移除不透明设置
-            if (Config.entityCullingRayTracing()) {
-                ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(blockPos.x >> 4, blockPos.z >> 4));
-                if (trackedChunk != null) {
-                    trackedChunk.setOccluding(blockPos.x, blockPos.y, blockPos.z, false);
-                }
-            }
-            boolean global = buf.readBoolean();
-            int newState = user.clientModEnabled() ? modBlockStateMapper[state] : blockStateMapper[state];
-            Object blockState = BlockStateUtils.idToBlockState(state);
-            Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(blockState);
-            Object soundEvent = SoundTypeProxy.INSTANCE.getBreakSound(soundType);
-            Object rawSoundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
-            if (BlockStateUtils.isVanillaBlock(state)) {
-                if (BukkitBlockManager.instance().isBreakSoundMissing(rawSoundId)) {
-                    Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(KeyUtils.identifierToKey(rawSoundId));
-                    if (mappedSoundId != null) {
-                        Object packet = ClientboundSoundPacketProxy.INSTANCE.newInstance(
-                                HolderProxy.INSTANCE.direct(SoundEventProxy.INSTANCE.create(KeyUtils.toIdentifier(mappedSoundId), Optional.empty())),
-                                SoundSourceProxy.BLOCKS,
-                                blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
-                                RandomUtils.generateRandomLong()
-                        );
-                        user.sendPacket(packet, true);
-                    }
-                }
-            } else {
-                Key soundId = KeyUtils.identifierToKey(rawSoundId);
-                Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
-                Object finalSoundId = KeyUtils.toIdentifier(mappedSoundId == null ? soundId : mappedSoundId);
-                Object packet = ClientboundSoundPacketProxy.INSTANCE.newInstance(
-                        HolderProxy.INSTANCE.direct(SoundEventProxy.INSTANCE.create(finalSoundId, Optional.empty())),
-                        SoundSourceProxy.BLOCKS,
-                        blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
-                        RandomUtils.generateRandomLong()
-                );
-                user.sendPacket(packet, true);
-            }
-            if (newState == state) {
-                return;
-            }
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeInt(eventId);
-            buf.writeBlockPos(blockPos);
-            buf.writeInt(newState);
-            buf.writeBoolean(global);
-        }
-    }
-
-    public class OpenScreenListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptContainer()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            int containerId = buf.readVarInt();
-            int type = buf.readVarInt();
-            String json = buf.readUtf();
-            Map<String, ComponentProvider> tokens = matchNetworkTags(json);
-            if (tokens.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeVarInt(containerId);
-            buf.writeVarInt(type);
-            buf.writeUtf(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))));
-        }
-    }
-
-    public class OpenScreenListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptContainer()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            int containerId = buf.readVarInt();
-            int type = buf.readVarInt();
-            Tag nbt = buf.readNbt(false);
-            if (nbt == null) return;
-            Map<String, ComponentProvider> tokens = matchNetworkTags(nbt.getAsString());
-            if (tokens.isEmpty()) return;
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeVarInt(containerId);
-            buf.writeVarInt(type);
-            buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-        }
-    }
-
-    @SuppressWarnings({"deprecation", "all"})
-    public HoverEvent.ShowItem replaceShowItem(HoverEvent.ShowItem showItem, BukkitServerPlayer player) {
-        Object nmsItemStack;
-        if (VersionHelper.COMPONENT_RELEASE) {
-            CompoundTag itemTag = new CompoundTag();
-            itemTag.putInt("count", showItem.count());
-            itemTag.putString("id", showItem.item().asMinimalString());
-            Map<net.kyori.adventure.key.Key, DataComponentValue> components = showItem.dataComponents();
-            if (!components.isEmpty()) {
-                CompoundTag componentsTag = new CompoundTag();
-                Map<net.kyori.adventure.key.Key, NBTDataComponentValue> componentsMap = showItem.dataComponentsAs(NBTDataComponentValue.class);
-                for (Map.Entry<net.kyori.adventure.key.Key, NBTDataComponentValue> entry : componentsMap.entrySet()) {
-                    componentsTag.put(entry.getKey().asMinimalString(), entry.getValue().tag());
-                }
-                itemTag.put("components", componentsTag);
-            }
-            DataResult<Object> nmsItemStackResult = ItemStackProxy.INSTANCE.getCodec().parse(RegistryOps.SPARROW_NBT, itemTag);
-            Optional<Object> result = nmsItemStackResult.result();
-            if (result.isEmpty()) {
-                return showItem;
-            }
-            nmsItemStack = result.get();
-        } else {
-            Object compoundTag = CompoundTagProxy.INSTANCE.newInstance();
-            CompoundTagProxy.INSTANCE.put(compoundTag, "Count", IntTagProxy.INSTANCE.valueOf(showItem.count()));
-            CompoundTagProxy.INSTANCE.put(compoundTag, "id", StringTagProxy.INSTANCE.valueOf(showItem.item().asMinimalString()));
-            BinaryTagHolder nbt = showItem.nbt();
-            if (nbt != null) {
-                try {
-                    Object nmsTag = TagParserProxy.INSTANCE.parseCompoundFully(nbt.string());
-                    CompoundTagProxy.INSTANCE.put(compoundTag, "tag", nmsTag);
-                } catch (CommandSyntaxException ignored) {
-                    return showItem;
-                }
-            }
-            nmsItemStack = ItemStackProxy.INSTANCE.of(compoundTag);
-        }
-
-        Item wrap = this.plugin.itemManager().wrap(ItemStackUtils.getBukkitStack(nmsItemStack));
-        Optional<Item> remapped = this.plugin.itemManager().s2c(wrap, player);
-        if (remapped.isEmpty()) {
-            return showItem;
-        }
-
-        Item clientBoundItem = remapped.get();
-        net.kyori.adventure.key.Key id = KeyUtils.toAdventureKey(clientBoundItem.vanillaId());
-        int count = clientBoundItem.count();
-        if (VersionHelper.COMPONENT_RELEASE) {
-            DataResult<Tag> tagDataResult = ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, clientBoundItem.minecraftItem());
-            Optional<Tag> result = tagDataResult.result();
-            if (result.isEmpty()) {
-                return showItem;
-            }
-            CompoundTag itemTag = (CompoundTag) result.get();
-            CompoundTag componentsTag = itemTag.getCompound("components");
-            if (componentsTag != null) {
-                Map<net.kyori.adventure.key.Key, NBTDataComponentValue> componentsMap = new HashMap<>();
-                for (Map.Entry<String, Tag> entry : componentsTag.entrySet()) {
-                    componentsMap.put(net.kyori.adventure.key.Key.key(entry.getKey()), NBTDataComponentValue.of(entry.getValue()));
-                }
-                return HoverEvent.ShowItem.showItem(id, count, componentsMap);
-            } else {
-                return HoverEvent.ShowItem.showItem(id, count);
-            }
-        } else {
-            Object tag = ItemStackProxy.INSTANCE.getTag(clientBoundItem.minecraftItem());
-            if (tag != null) {
-                return HoverEvent.ShowItem.showItem(id, count, BinaryTagHolder.binaryTagHolder(tag.toString()));
-            } else {
-                return HoverEvent.ShowItem.showItem(id, count);
-            }
-        }
-    }
-
-    public class SystemChatListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptSystemChat() && Config.disableItemOperations()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String jsonOrPlainString = buf.readUtf();
-            Tag tag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, GsonHelper.get().fromJson(jsonOrPlainString, JsonElement.class));
-            Component component = AdventureHelper.nbtToComponent(tag);
-            boolean overlay = buf.readBoolean();
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            if (Config.interceptSystemChat()) {
-                Map<String, ComponentProvider> tokens = matchNetworkTags(jsonOrPlainString);
-                if (!tokens.isEmpty()) {
-                    component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
-                }
-            }
-            if (!Config.disableItemOperations()) {
-                component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
-            }
-            buf.writeUtf(RegistryOps.SPARROW_NBT.convertTo(RegistryOps.JSON, AdventureHelper.componentToNbt(component)).toString());
-            buf.writeBoolean(overlay);
-        }
-    }
-
-    public class SystemChatListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptSystemChat() && Config.disableItemOperations()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            Tag nbt = buf.readNbt(false);
-            if (nbt == null) return;
-            boolean overlay = buf.readBoolean();
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            Component component = AdventureHelper.tagToComponent(nbt);
-            if (Config.interceptSystemChat()) {
-                Map<String, ComponentProvider> tokens = matchNetworkTags(nbt);
-                if (!tokens.isEmpty()) {
-                    component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
-                }
-            }
-            if (!Config.disableItemOperations()) {
-                component = AdventureHelper.replaceShowItem(component, s -> replaceShowItem(s, (BukkitServerPlayer) user));
-            }
-            buf.writeNbt(AdventureHelper.componentToTag(component), false);
-            buf.writeBoolean(overlay);
-        }
-    }
-
-    public class TabListListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptTabList()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String json1 = buf.readUtf();
-            String json2 = buf.readUtf();
-            Map<String, ComponentProvider> tokens1 = matchNetworkTags(json1);
-            Map<String, ComponentProvider> tokens2 = matchNetworkTags(json2);
-            if (tokens1.isEmpty() && tokens2.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
-            buf.writeUtf(tokens1.isEmpty() ? json1 : AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json1), tokens1, context)));
-            buf.writeUtf(tokens2.isEmpty() ? json2 : AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json2), tokens2, context)));
-        }
-    }
-
-    public class TabListListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptTabList()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            Tag nbt1 = buf.readNbt(false);
-            if (nbt1 == null) return;
-            Tag nbt2 = buf.readNbt(false);
-            if (nbt2 == null) return;
-            Map<String, ComponentProvider> tokens1 = matchNetworkTags(nbt1);
-            Map<String, ComponentProvider> tokens2 = matchNetworkTags(nbt2);
-            if (tokens1.isEmpty() && tokens2.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
-            buf.writeNbt(tokens1.isEmpty() ? nbt1 : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt1), tokens1, context)), false);
-            buf.writeNbt(tokens2.isEmpty() ? nbt2 : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt2), tokens2, context)), false);
-        }
-    }
-
-    public class SetActionBarListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptActionBar()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String json = buf.readUtf();
-            Map<String, ComponentProvider> tokens = matchNetworkTags(json);
-            if (tokens.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeUtf(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))));
-        }
-    }
-
-    public class SetActionBarListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptActionBar()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            Tag nbt = buf.readNbt(false);
-            if (nbt == null) return;
-            Map<String, ComponentProvider> tokens = matchNetworkTags(nbt);
-            if (tokens.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-        }
-    }
-
-    public class SetTitleListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptTitle()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String json = buf.readUtf();
-            Map<String, ComponentProvider> tokens = matchNetworkTags(json);
-            if (tokens.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeUtf(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))));
-        }
-    }
-
-    public class SetTitleListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptTitle()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            Tag nbt = buf.readNbt(false);
-            if (nbt == null) return;
-            Map<String, ComponentProvider> tokens = matchNetworkTags(nbt);
-            if (tokens.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-        }
-    }
-
-    public class SetSubtitleListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptTitle()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String json = buf.readUtf();
-            Map<String, ComponentProvider> tokens = matchNetworkTags(json);
-            if (tokens.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeUtf(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))));
-        }
-    }
-
-    public class SetSubtitleListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptTitle()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            Tag nbt = buf.readNbt(false);
-            if (nbt == null) return;
-            Map<String, ComponentProvider> tokens = matchNetworkTags(nbt);
-            if (tokens.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-        }
-    }
-
-    public class BossEventListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptBossBar()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            UUID uuid = buf.readUUID();
-            int actionType = buf.readVarInt();
-            if (actionType == 0) {
-                String json = buf.readUtf();
-                Map<String, ComponentProvider> tokens = matchNetworkTags(json);
-                if (tokens.isEmpty()) return;
-                float health = buf.readFloat();
-                int color = buf.readVarInt();
-                int division = buf.readVarInt();
-                byte flag = buf.readByte();
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeUUID(uuid);
-                buf.writeVarInt(actionType);
-                buf.writeUtf(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))));
-                buf.writeFloat(health);
-                buf.writeVarInt(color);
-                buf.writeVarInt(division);
-                buf.writeByte(flag);
-            } else if (actionType == 3) {
-                String json = buf.readUtf();
-                Map<String, ComponentProvider> tokens = matchNetworkTags(json);
-                if (tokens.isEmpty()) return;
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeUUID(uuid);
-                buf.writeVarInt(actionType);
-                buf.writeUtf(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(json), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))));
-            }
-        }
-    }
-
-    public class BossEventListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptBossBar()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            UUID uuid = buf.readUUID();
-            int actionType = buf.readVarInt();
-            if (actionType == 0) {
-                Tag nbt = buf.readNbt(false);
-                if (nbt == null) return;
-                Map<String, ComponentProvider> tokens = matchNetworkTags(nbt);
-                if (tokens.isEmpty()) return;
-                float health = buf.readFloat();
-                int color = buf.readVarInt();
-                int division = buf.readVarInt();
-                byte flag = buf.readByte();
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeUUID(uuid);
-                buf.writeVarInt(actionType);
-                buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-                buf.writeFloat(health);
-                buf.writeVarInt(color);
-                buf.writeVarInt(division);
-                buf.writeByte(flag);
-            } else if (actionType == 3) {
-                Tag nbt = buf.readNbt(false);
-                if (nbt == null) return;
-                Map<String, ComponentProvider> tokens = matchNetworkTags(nbt);
-                if (tokens.isEmpty()) return;
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeUUID(uuid);
-                buf.writeVarInt(actionType);
-                buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(nbt), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-            }
-        }
-    }
-
-    public class TeamListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptTeam()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String name = buf.readUtf();
-            byte method = buf.readByte();
-            if (method != 2 && method != 0)
-                return;
-            String displayName = buf.readUtf();
-            byte friendlyFlags = buf.readByte();
-            String nameTagVisibility = buf.readUtf(40);
-            String collisionRule = buf.readUtf(40);
-            int color = buf.readVarInt();
-            String prefix = buf.readUtf();
-            String suffix = buf.readUtf();
-
-            Map<String, ComponentProvider> tokens1 = matchNetworkTags(displayName);
-            Map<String, ComponentProvider> tokens2 = matchNetworkTags(prefix);
-            Map<String, ComponentProvider> tokens3 = matchNetworkTags(suffix);
-            if (tokens1.isEmpty() && tokens2.isEmpty() && tokens3.isEmpty()) return;
-            event.setChanged(true);
-            NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
-
-            List<String> entities = method == 0 ? buf.readStringList() : null;
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeUtf(name);
-            buf.writeByte(method);
-            buf.writeUtf(tokens1.isEmpty() ? displayName : AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(displayName), tokens1, context)));
-            buf.writeByte(friendlyFlags);
-            buf.writeUtf(nameTagVisibility);
-            buf.writeUtf(collisionRule);
-            buf.writeVarInt(color);
-            buf.writeUtf(tokens2.isEmpty() ? prefix : AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(prefix), tokens2, context)));
-            buf.writeUtf(tokens3.isEmpty() ? suffix : AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(suffix), tokens3, context)));
-            if (entities != null) {
-                buf.writeStringList(entities);
-            }
-        }
-    }
-
-    public class TeamListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptTeam()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String name = buf.readUtf();
-            byte method = buf.readByte();
-            if (method != 2 && method != 0) return;
-            Tag displayName = buf.readNbt(false);
-            if (displayName == null) return;
-            byte friendlyFlags = buf.readByte();
-            Either<String, Integer> eitherVisibility = VersionHelper.isOrAbove1_21_5() ? Either.right(buf.readVarInt()) : Either.left(buf.readUtf(40));
-            Either<String, Integer> eitherCollisionRule = VersionHelper.isOrAbove1_21_5() ? Either.right(buf.readVarInt()) : Either.left(buf.readUtf(40));
-            int color = buf.readVarInt();
-            Tag prefix = buf.readNbt(false);
-            if (prefix == null) return;
-            Tag suffix = buf.readNbt(false);
-            if (suffix == null) return;
-            Map<String, ComponentProvider> tokens1 = matchNetworkTags(displayName);
-            Map<String, ComponentProvider> tokens2 = matchNetworkTags(prefix);
-            Map<String, ComponentProvider> tokens3 = matchNetworkTags(suffix);
-            if (tokens1.isEmpty() && tokens2.isEmpty() && tokens3.isEmpty()) return;
-            NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
-            List<String> entities = method == 0 ? buf.readStringList() : null;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeUtf(name);
-            buf.writeByte(method);
-            buf.writeNbt(tokens1.isEmpty() ? displayName : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(displayName), tokens1, context)), false);
-            buf.writeByte(friendlyFlags);
-            eitherVisibility.ifLeft(buf::writeUtf).ifRight(buf::writeVarInt);
-            eitherCollisionRule.ifLeft(buf::writeUtf).ifRight(buf::writeVarInt);
-            buf.writeVarInt(color);
-            buf.writeNbt(tokens2.isEmpty() ? prefix : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(prefix), tokens2, context)), false);
-            buf.writeNbt(tokens3.isEmpty() ? suffix : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(suffix), tokens3, context)), false);
-            if (entities != null) {
-                buf.writeStringList(entities);
-            }
-        }
-    }
-
-    public class SetObjectiveListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptScoreboard()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String objective = buf.readUtf();
-            byte mode = buf.readByte();
-            if (mode != 0 && mode != 2) return;
-            String displayName = buf.readUtf();
-            int renderType = buf.readVarInt();
-            Map<String, ComponentProvider> tokens = matchNetworkTags(displayName);
-            if (tokens.isEmpty()) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeUtf(objective);
-            buf.writeByte(mode);
-            buf.writeUtf(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(displayName), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))));
-            buf.writeVarInt(renderType);
-        }
-    }
-
-    public class SetObjectiveListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptScoreboard()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            String objective = buf.readUtf();
-            byte mode = buf.readByte();
-            if (mode != 0 && mode != 2) return;
-            Tag displayName = buf.readNbt(false);
-            if (displayName == null) return;
-            int renderType = buf.readVarInt();
-            boolean optionalNumberFormat = buf.readBoolean();
-            if (optionalNumberFormat) {
-                int format = buf.readVarInt();
-                if (format == 0) {
-                    Map<String, ComponentProvider> tokens = matchNetworkTags(displayName);
-                    if (tokens.isEmpty()) return;
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeUtf(objective);
-                    buf.writeByte(mode);
-                    buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(displayName), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-                    buf.writeVarInt(renderType);
-                    buf.writeBoolean(true);
-                    buf.writeVarInt(0);
-                } else if (format == 1) {
-                    Map<String, ComponentProvider> tokens = matchNetworkTags(displayName);
-                    if (tokens.isEmpty()) return;
-                    Tag style = buf.readNbt(false);
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeUtf(objective);
-                    buf.writeByte(mode);
-                    buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(displayName), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-                    buf.writeVarInt(renderType);
-                    buf.writeBoolean(true);
-                    buf.writeVarInt(1);
-                    buf.writeNbt(style, false);
-                } else if (format == 2) {
-                    Tag fixed = buf.readNbt(false);
-                    if (fixed == null) return;
-                    Map<String, ComponentProvider> tokens1 = matchNetworkTags(displayName);
-                    Map<String, ComponentProvider> tokens2 = matchNetworkTags(fixed);
-                    if (tokens1.isEmpty() && tokens2.isEmpty()) return;
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeUtf(objective);
-                    buf.writeByte(mode);
-                    buf.writeNbt(tokens1.isEmpty() ? displayName : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(displayName), tokens1, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-                    buf.writeVarInt(renderType);
-                    buf.writeBoolean(true);
-                    buf.writeVarInt(2);
-                    buf.writeNbt(tokens2.isEmpty() ? fixed : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(fixed), tokens2, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-                }
-            } else {
-                Map<String, ComponentProvider> tokens = matchNetworkTags(displayName);
-                if (tokens.isEmpty()) return;
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeUtf(objective);
-                buf.writeByte(mode);
-                buf.writeNbt(AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(displayName), tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user))), false);
-                buf.writeVarInt(renderType);
-                buf.writeBoolean(false);
-            }
-        }
-    }
-
-    public class SetScoreListener1_20_3 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptSetScore()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            boolean isChanged = false;
-            FriendlyByteBuf buf = event.getBuffer();
-            String owner = buf.readUtf();
-            String objectiveName = buf.readUtf();
-            int score = buf.readVarInt();
-            boolean hasDisplay = buf.readBoolean();
-            Tag displayName = null;
-            if (hasDisplay) {
-                displayName = buf.readNbt(false);
-            }
-            outside:
-            if (displayName != null) {
-                Map<String, ComponentProvider> tokens = matchNetworkTags(displayName);
-                if (tokens.isEmpty()) break outside;
-                Component component = AdventureHelper.tagToComponent(displayName);
-                component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of(serverPlayer));
-                displayName = AdventureHelper.componentToTag(component);
-                isChanged = true;
-            }
-            boolean hasNumberFormat = buf.readBoolean();
-            int format = -1;
-            Tag style = null;
-            Tag fixed = null;
-            if (hasNumberFormat) {
-                format = buf.readVarInt();
-                if (format == 0) {
-                    if (displayName == null) return;
-                } else if (format == 1) {
-                    if (displayName == null) return;
-                    style = buf.readNbt(false);
-                } else if (format == 2) {
-                    fixed = buf.readNbt(false);
-                    if (fixed == null) return;
-                    Map<String, ComponentProvider> tokens = matchNetworkTags(fixed);
-                    if (tokens.isEmpty() && !isChanged) return;
-                    if (!tokens.isEmpty()) {
-                        Component component = AdventureHelper.tagToComponent(fixed);
-                        component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of(serverPlayer));
-                        fixed = AdventureHelper.componentToTag(component);
-                        isChanged = true;
-                    }
-                }
-            }
-            if (isChanged) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeUtf(owner);
-                buf.writeUtf(objectiveName);
-                buf.writeVarInt(score);
-                if (hasDisplay) {
-                    buf.writeBoolean(true);
-                    buf.writeNbt(displayName, false);
-                } else {
-                    buf.writeBoolean(false);
-                }
-                if (hasNumberFormat) {
-                    buf.writeBoolean(true);
-                    buf.writeVarInt(format);
-                    if (format == 1) {
-                        buf.writeNbt(style, false);
-                    } else if (format == 2) {
-                        buf.writeNbt(fixed, false);
-                    }
-                } else {
-                    buf.writeBoolean(false);
-                }
-            }
-        }
-    }
-
-    public static class AddRecipeBookListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            if (!player.isOnline()) return;
-            MutableBoolean changed = new MutableBoolean(false);
-            FriendlyByteBuf buf = event.getBuffer();
-            BukkitItemManager itemManager = BukkitItemManager.instance();
-            List<RecipeBookEntry> entries = buf.readCollection(ArrayList::new, byteBuf -> {
-                RecipeBookEntry entry = RecipeBookEntry.read(byteBuf, $ -> PacketUtils.readItem(buf));
-                entry.applyClientboundData(item -> {
-                    Optional<Item> remapped = itemManager.s2c(item, player);
-                    if (remapped.isEmpty()) {
-                        return item;
-                    }
-                    changed.set(true);
-                    return remapped.get();
-                });
-                return entry;
-            });
-            boolean replace = buf.readBoolean();
-            if (changed.booleanValue()) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeCollection(entries, ((byteBuf, recipeBookEntry) -> recipeBookEntry.write(byteBuf,
-                        ($, item) -> PacketUtils.writeItem(buf, item))));
-                buf.writeBoolean(replace);
-            }
-        }
-    }
-
-    public static class PlaceGhostRecipeListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!VersionHelper.isOrAbove1_21_2()) return;
-            MutableBoolean changed = new MutableBoolean(false);
-            FriendlyByteBuf buf = event.getBuffer();
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            BukkitItemManager itemManager = BukkitItemManager.instance();
-            int containerId = buf.readContainerId();
-            RecipeDisplay display = RecipeDisplay.read(buf, $ -> PacketUtils.readItem(buf));
-            display.applyClientboundData(item -> {
-                Optional<Item> remapped = itemManager.s2c(item, player);
-                if (remapped.isEmpty()) {
-                    return item;
-                }
-                changed.set(true);
-                return remapped.get();
-            });
-
-            if (changed.booleanValue()) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeContainerId(containerId);
-                display.write(buf, ($, item) -> PacketUtils.writeItem(buf, item));
-            }
-        }
-    }
-
-    public static class UpdateRecipesListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            MutableBoolean changed = new MutableBoolean(false);
-            FriendlyByteBuf buf = event.getBuffer();
-            BukkitItemManager itemManager = BukkitItemManager.instance();
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            List<LegacyRecipeHolder> holders = buf.readCollection(ArrayList::new, byteBuf -> {
-                LegacyRecipeHolder holder = LegacyRecipeHolder.read(byteBuf, $ -> PacketUtils.readItem(buf));
-                holder.recipe().applyClientboundData(item -> {
-                    Optional<Item> remapped = itemManager.s2c(item, player);
-                    if (remapped.isEmpty()) {
-                        return item;
-                    }
-                    changed.set(true);
-                    return remapped.get();
-                });
-                return holder;
-            });
-            if (changed.booleanValue()) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeCollection(holders, ((byteBuf, recipeHolder)
-                        -> recipeHolder.write(byteBuf,
-                        ($, item) -> PacketUtils.writeItem(buf, item))));
-            }
-        }
-    }
-
-    public static class UpdateRecipesListener1_21_2 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            MutableBoolean changed = new MutableBoolean(false);
-            FriendlyByteBuf buf = event.getBuffer();
-            BukkitItemManager itemManager = BukkitItemManager.instance();
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            Map<Key, List<Integer>> itemSets = buf.readMap(
-                    FriendlyByteBuf::readKey,
-                    b -> b.readCollection(ArrayList::new, FriendlyByteBuf::readVarInt)
-            );
-            List<SingleInputButtonDisplay> displays = buf.readCollection(ArrayList::new, b -> {
-                SingleInputButtonDisplay display = SingleInputButtonDisplay.read(b, $ -> PacketUtils.readItem(buf));
-                display.applyClientboundData(item -> {
-                    Optional<Item> remapped = itemManager.s2c(item, player);
-                    if (remapped.isEmpty()) {
-                        return item;
-                    }
-                    changed.set(true);
-                    return remapped.get();
-                });
-                return display;
-            });
-            if (changed.booleanValue()) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeMap(itemSets,
-                        FriendlyByteBuf::writeKey,
-                        (b, c) -> b.writeCollection(c, FriendlyByteBuf::writeVarInt)
-                );
-                buf.writeCollection(displays, (b, d) ->
-                        d.write(b, ($, item) -> PacketUtils.writeItem(buf, item)));
-            }
-        }
-    }
-
-    public class UpdateAdvancementsListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations() && !Config.interceptAdvancement()) return;
-            MutableBoolean changed = new MutableBoolean(false);
-            FriendlyByteBuf buf = event.getBuffer();
-            BukkitItemManager itemManager = BukkitItemManager.instance();
-            BukkitServerPlayer player = (BukkitServerPlayer) user;
-            boolean reset = buf.readBoolean();
-            List<AdvancementHolder> added = buf.readCollection(ArrayList::new, byteBuf -> {
-                AdvancementHolder holder = AdvancementHolder.read(byteBuf, $ -> PacketUtils.readItem(buf));
-                if (!Config.disableItemOperations()) {
-                    holder.applyClientboundData(item -> {
-                        Optional<Item> remapped = itemManager.s2c(item, player);
-                        if (remapped.isEmpty()) {
-                            return item;
-                        }
-                        changed.set(true);
-                        return remapped.get();
-                    });
-                }
-                if (Config.interceptAdvancement()) {
-                    holder.replaceNetworkTags(component -> {
-                        Map<String, ComponentProvider> tokens = matchNetworkTags(AdventureHelper.componentToJson(component));
-                        if (tokens.isEmpty()) return component;
-                        changed.set(true);
-                        return AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of(player));
-                    });
-                }
-                return holder;
-            });
-
-            if (changed.booleanValue()) {
-                Set<Key> removed = buf.readCollection(Sets::newLinkedHashSetWithExpectedSize, FriendlyByteBuf::readKey);
-                Map<Key, AdvancementProgress> progress = buf.readMap(FriendlyByteBuf::readKey, AdvancementProgress::read);
-
-                boolean showAdvancement = false;
-                if (VersionHelper.isOrAbove1_21_5()) {
-                    showAdvancement = buf.readBoolean();
-                }
-
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-
-                buf.writeBoolean(reset);
-                buf.writeCollection(added, (byteBuf, advancementHolder) -> advancementHolder.write(byteBuf,
-                        ($, item) -> PacketUtils.writeItem(buf, item)));
-                buf.writeCollection(removed, FriendlyByteBuf::writeKey);
-                buf.writeMap(progress, FriendlyByteBuf::writeKey, (byteBuf, advancementProgress) -> advancementProgress.write(byteBuf));
-                if (VersionHelper.isOrAbove1_21_5()) {
-                    buf.writeBoolean(showAdvancement);
-                }
-            }
-        }
-    }
-
-    public static class RemoveEntityListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            boolean changed = false;
-            IntList intList = buf.readIntIdList();
-            for (int i = 0, size = intList.size(); i < size; i++) {
-                int entityId = intList.getInt(i);
-                EntityPacketHandler handler = user.entityPacketHandlers().remove(entityId);
-                if (handler != null && handler.handleEntitiesRemove(user, intList)) {
-                    changed = true;
-                }
-            }
-            if (changed) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeIntIdList(intList);
-            }
-        }
-    }
-
-    public static class SoundListener implements ByteBufferPacketListener {
-        public static final Object SoundEvent$DIRECT_STREAM_CODEC = VersionHelper.isOrAbove1_20_5() ? SoundEventProxy.INSTANCE.getDirectStreamCodec() : null;
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            int id = buf.readVarInt();
-            if (id == 0) {
-                Key soundId = buf.readKey();
-                Float range = null;
-                if (buf.readBoolean()) {
-                    range = buf.readFloat();
-                }
-                int source = buf.readVarInt();
-                int x = buf.readInt();
-                int y = buf.readInt();
-                int z = buf.readInt();
-                float volume = buf.readFloat();
-                float pitch = buf.readFloat();
-                long seed = buf.readLong();
-                Key mapped = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
-                if (mapped != null) {
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeVarInt(0);
-                    buf.writeKey(mapped);
-                    if (range != null) {
-                        buf.writeBoolean(true);
-                        buf.writeFloat(range);
-                    } else {
-                        buf.writeBoolean(false);
-                    }
-                    buf.writeVarInt(source);
-                    buf.writeInt(x);
-                    buf.writeInt(y);
-                    buf.writeInt(z);
-                    buf.writeFloat(volume);
-                    buf.writeFloat(pitch);
-                    buf.writeLong(seed);
-                }
-            } else {
-                Object soundEvent = IdMapProxy.INSTANCE.byId(BuiltInRegistriesProxy.SOUND_EVENT, id - 1);
-                if (soundEvent == null) return;
-                Key soundId = KeyUtils.identifierToKey(SoundEventProxy.INSTANCE.getLocation(soundEvent));
-                int source = buf.readVarInt();
-                int x = buf.readInt();
-                int y = buf.readInt();
-                int z = buf.readInt();
-                float volume = buf.readFloat();
-                float pitch = buf.readFloat();
-                long seed = buf.readLong();
-                Key mapped = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
-                if (mapped != null) {
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeVarInt(0);
-                    Object newId = KeyUtils.toIdentifier(mapped);
-                    Object newSoundEvent = SoundEventProxy.INSTANCE.create(newId, SoundEventProxy.INSTANCE.fixedRange(soundEvent));
-                    if (VersionHelper.isOrAbove1_20_5()) {
-                        StreamEncoderProxy.INSTANCE.encode(SoundEvent$DIRECT_STREAM_CODEC, buf, newSoundEvent);
-                    } else {
-                        SoundEventProxy.INSTANCE.writeToNetwork(newSoundEvent, PacketUtils.ensureNMSFriendlyByteBuf(buf));
-                    }
-                    buf.writeVarInt(source);
-                    buf.writeInt(x);
-                    buf.writeInt(y);
-                    buf.writeInt(z);
-                    buf.writeFloat(volume);
-                    buf.writeFloat(pitch);
-                    buf.writeLong(seed);
-                }
-            }
-        }
-    }
-
-    public static class ContainerSetContentListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            int containerId = buf.readContainerId();
-            int stateId = buf.readVarInt();
-            int listSize = buf.readVarInt();
-            List<Item> items = new ArrayList<>(listSize);
-            boolean changed = false;
-            for (int i = 0; i < listSize; i++) {
-                Item item = PacketUtils.readItem(buf);
-                Optional<Item> optional = BukkitItemManager.instance().s2c(item, serverPlayer);
-                if (optional.isPresent()) {
-                    items.add(optional.get());
-                    changed = true;
-                } else {
-                    items.add(item);
-                }
-            }
-            Item carriedItem = PacketUtils.readItem(buf);
-            Item newCarriedItem = carriedItem;
-            Optional<Item> optional = BukkitItemManager.instance().s2c(carriedItem, serverPlayer);
-            if (optional.isPresent()) {
-                changed = true;
-                newCarriedItem = optional.get();
-            }
-            if (!changed) return;
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeContainerId(containerId);
-            buf.writeVarInt(stateId);
-            buf.writeVarInt(listSize);
-            for (Item itemStack : items) {
-                PacketUtils.writeItem(buf, itemStack);
-            }
-            PacketUtils.writeItem(buf, newCarriedItem);
-        }
-    }
-
-    public static class ContainerSetSlotListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            int containerId = buf.readContainerId();
-            int stateId = buf.readVarInt();
-            int slot = buf.readShort();
-            Item itemStack;
-            try {
-                itemStack = PacketUtils.readItem(buf);
-            } catch (Exception e) {
-                // 其他插件干的，发送了非法的物品
-                return;
-            }
-            BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeContainerId(containerId);
-                buf.writeVarInt(stateId);
-                buf.writeShort(slot);
-                PacketUtils.writeItem(buf, newItemStack);
-            });
-        }
-    }
-
-    public static class SetCursorItemListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            Item item = PacketUtils.readItem(buf);
-
-            // 为了避免其他插件造成的手感冲突
-            if (VersionHelper.isOrAbove1_21_5()) {
-                // 发出来的是非空物品
-                if (!item.isEmpty()) {
-                    Object containerMenu = PlayerProxy.INSTANCE.getContainerMenu(serverPlayer.serverPlayer());
-                    if (containerMenu != null) {
-                        Item carried = ItemStackUtils.wrap(AbstractContainerMenuProxy.INSTANCE.getCarried(containerMenu));
-                        // 但服务端上实际确是空气，就把它写成空气，避免因为其他插件导致手感问题
-                        if (carried.isEmpty()) {
-                            event.setChanged(true);
-                            buf.clear();
-                            buf.writeVarInt(event.packetID());
-                            PacketUtils.writeItem(buf, carried);
-                            return;
-                        }
-                    }
-                }
-            }
-
-            BukkitItemManager.instance().s2c(item, serverPlayer).ifPresent((newItemStack) -> {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                PacketUtils.writeItem(buf, newItemStack);
-            });
-        }
-    }
-
-    public static class SetEquipmentListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            boolean changed = false;
-            int entity = buf.readVarInt();
-            List<com.mojang.datafixers.util.Pair<Object, Item>> slots = Lists.newArrayList();
-            int slotMask;
-            do {
-                slotMask = buf.readByte();
-                Object equipmentSlot = EquipmentSlotProxy.VALUES[slotMask & 127];
-                Item itemStack = PacketUtils.readItem(buf);
-                Optional<Item> optional = BukkitItemManager.instance().s2c(itemStack, serverPlayer);
-                if (optional.isPresent()) {
-                    changed = true;
-                    itemStack = optional.get();
-                }
-                slots.add(com.mojang.datafixers.util.Pair.of(equipmentSlot, itemStack));
-            } while ((slotMask & -128) != 0);
-            if (changed) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeVarInt(entity);
-                int i = slots.size();
-                for (int j = 0; j < i; ++j) {
-                    com.mojang.datafixers.util.Pair<Object, Item> pair = slots.get(j);
-                    Enum<?> equipmentSlot = (Enum<?>) pair.getFirst();
-                    boolean bl = j != i - 1;
-                    int k = equipmentSlot.ordinal();
-                    buf.writeByte(bl ? k | -128 : k);
-                    PacketUtils.writeItem(buf, pair.getSecond());
-                }
-            }
-        }
-    }
-
-    public static class SetPlayerInventoryListener1_21_2 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            int slot = buf.readVarInt();
-            Item itemStack = PacketUtils.readItem(buf);
-            BukkitItemManager.instance().s2c(itemStack, serverPlayer).ifPresent((newItemStack) -> {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeVarInt(slot);
-                PacketUtils.writeItem(buf, newItemStack);
-            });
-        }
-    }
-
-    public static class SetCreativeModeSlotListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            if (!serverPlayer.isCreativeMode()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            short slotNum = buf.readShort();
-            Item item;
-            try {
-                item = VersionHelper.isOrAbove1_20_5() ? PacketUtils.readUntrustedItem(buf) : PacketUtils.readItem(buf);
-            } catch (Exception e) {
-                return;
-            }
-            BukkitItemManager.instance().c2s(item).ifPresent((newItem) -> {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeShort(slotNum);
-                if (VersionHelper.isOrAbove1_20_5()) {
-                    PacketUtils.writeUntrustedItem(buf, newItem);
-                } else {
-                    PacketUtils.writeItem(buf, newItem);
-                }
-            });
-        }
-    }
-
-    public static class ContainerClick1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!VersionHelper.PREMIUM && !Config.interceptItem()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            boolean changed = false;
-            int containerId = buf.readContainerId();
-            int stateId = buf.readVarInt();
-            short slotNum = buf.readShort();
-            byte buttonNum = buf.readByte();
-            int clickType = buf.readVarInt();
-            int i = buf.readVarInt();
-            Int2ObjectMap<Item> changedSlots = new Int2ObjectOpenHashMap<>(i);
-            for (int j = 0; j < i; ++j) {
-                int k = buf.readShort();
-                Item item = PacketUtils.readItem(buf);
-                Optional<Item> optional = BukkitItemManager.instance().c2s(item);
-                if (optional.isPresent()) {
-                    changed = true;
-                    item = optional.get();
-                }
-                changedSlots.put(k, item);
-            }
-            Item carriedItem = PacketUtils.readItem(buf);
-            Optional<Item> optional = BukkitItemManager.instance().c2s(carriedItem);
-            if (optional.isPresent()) {
-                changed = true;
-                carriedItem = optional.get();
-            }
-            if (changed) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeContainerId(containerId);
-                buf.writeVarInt(stateId);
-                buf.writeShort(slotNum);
-                buf.writeByte(buttonNum);
-                buf.writeVarInt(clickType);
-                buf.writeVarInt(changedSlots.size());
-                for (Map.Entry<Integer, Item> entry : changedSlots.int2ObjectEntrySet()) {
-                    buf.writeShort(entry.getKey());
-                    PacketUtils.writeItem(buf, entry.getValue());
-                }
-                PacketUtils.writeItem(buf, carriedItem);
-            }
-        }
-    }
-
-    private void performAttackFurniture(BukkitFurniture furniture, int entityId, BukkitServerPlayer serverPlayer) {
-        Location location = furniture.location();
-
-        Runnable mainThreadTask = () -> {
-            if (!furniture.isValid()) {
-                return;
-            }
-
-            FurnitureDefinition config = furniture.config;
-            if (serverPlayer.isAdventureMode() && !config.settings().allowBreakingInAdventureMode()) {
-                return;
-            }
-
-            // 先检查碰撞箱部分是否存在
-            FurnitureHitBox hitBox = furniture.hitboxByEntityId(entityId);
-            if (hitBox == null) return;
-
-            Player platformPlayer = serverPlayer.platformPlayer();
-            if (platformPlayer == null) return;
-
-            if (!BukkitCraftEngine.instance().antiGriefProvider().test(platformPlayer, Flag.BREAK, location))
-                return;
-
-            FurnitureHitboxPart part = null;
-            for (FurnitureHitboxPart p : hitBox.parts()) {
-                if (p.entityId() == entityId) {
-                    part = p;
-                    break;
-                }
-            }
-            if (part == null) {
-                return;
-            }
-
-            Location eyeLocation = platformPlayer.getEyeLocation();
-            Vector direction = eyeLocation.getDirection();
-            Location endLocation = eyeLocation.clone();
-            endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
-            Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
-            if (optionalHitResult.isEmpty()) {
-                return;
-            }
-            EntityHitResult hitResult = optionalHitResult.get();
-            Vec3d hitLocation = hitResult.hitLocation();
-            // 获取正确的交互点
-            Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
-
-            ContextHolder.Builder contextBuilder = ContextHolder.builder()
-                    .withParameter(DirectContextParameters.FURNITURE, furniture)
-                    .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
-                    .withParameter(DirectContextParameters.ITEM_IN_HAND, serverPlayer.getItemInHand(InteractionHand.MAIN_HAND))
-                    .withParameter(DirectContextParameters.POSITION, furniture.position());
-            FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, interactionPoint, hitBox, contextBuilder);
-            if (EventUtils.fireAndCheckCancel(hitEvent))
-                return;
-
-            int hitTimes = config.settings().hitTimes();
-            if (hitTimes > 1 && !serverPlayer.isCreativeMode()) {
-                FurnitureHitData furnitureHitData = serverPlayer.furnitureHitData();
-                int previousTimes = furnitureHitData.times(furniture.entityId());
-                int alreadyHit = furnitureHitData.hit(furniture.entityId());
-
-                // execute functions
-                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                        contextBuilder
-                                .withParameter(DirectContextParameters.EVENT, Cancellable.of(hitEvent::isCancelled, hitEvent::setCancelled))
-                                .withParameter(DirectContextParameters.HIT_TIMES, alreadyHit)
-                );
-                config.execute(context, EventTrigger.LEFT_CLICK);
-                if (hitEvent.isCancelled()) {
-                    furnitureHitData.setTimes(previousTimes);
-                    return;
-                }
-
-                if (alreadyHit < hitTimes) {
-                    SoundData soundData = config.settings().sounds().hitSound();
-                    serverPlayer.world().playSound(furniture.position(), soundData.id(), soundData.volume().get(), soundData.pitch().get(), SoundSource.PLAYER);
-                    return;
-                } else {
-                    serverPlayer.furnitureHitData().reset();
-                }
-            }
-
-            FurnitureBreakEvent breakEvent = new FurnitureBreakEvent(serverPlayer.platformPlayer(), furniture, contextBuilder);
-            breakEvent.setDropItems(!serverPlayer.isCreativeMode());
-            if (EventUtils.fireAndCheckCancel(breakEvent))
-                return;
-
-            // execute functions
-            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                    contextBuilder.withParameter(DirectContextParameters.EVENT, Cancellable.of(breakEvent::isCancelled, breakEvent::setCancelled)));
-            config.execute(context, EventTrigger.BREAK);
-            if (breakEvent.isCancelled()) {
-                return;
-            }
-            CraftEngineFurniture.remove(furniture, serverPlayer, breakEvent.dropItems(), true);
-        };
-
-        if (VersionHelper.isFolia()) {
-            this.plugin.scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
-        } else {
-            this.plugin.scheduler().executeSync(mainThreadTask);
-        }
-    }
-
-    private void performInteractFurniture(BukkitFurniture furniture,
-                                          int entityId,
-                                          BukkitServerPlayer serverPlayer,
-                                          InteractionHand hand,
-                                          boolean usingSecondaryAction) {
-        Location location = furniture.location();
-
-        Runnable mainThreadTask = () -> {
-            if (!furniture.isValid()) {
-                return;
-            }
-
-            // 先检查碰撞箱部分是否存在
-            FurnitureHitBox hitBox = furniture.hitboxByEntityId(entityId);
-            if (hitBox == null) return;
-            FurnitureHitboxPart part = null;
-            for (FurnitureHitboxPart p : hitBox.parts()) {
-                if (p.entityId() == entityId) {
-                    part = p;
-                    break;
-                }
-            }
-            if (part == null) {
-                return;
-            }
-
-            Player platformPlayer = serverPlayer.platformPlayer();
-            if (platformPlayer == null) return;
-            // 检测能否交互碰撞箱
-            Location eyeLocation = platformPlayer.getEyeLocation();
-            Vector direction = eyeLocation.getDirection();
-            Location endLocation = eyeLocation.clone();
-            endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
-            Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
-            if (optionalHitResult.isEmpty()) {
-                return;
-            }
-            EntityHitResult hitResult = optionalHitResult.get();
-            Vec3d hitLocation = hitResult.hitLocation();
-
-            // 获取正确的交互点
-            Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
-            // 触发事件
-            ContextHolder.Builder contextBuilder = ContextHolder.builder();
-            FurnitureInteractEvent interactEvent = new FurnitureInteractEvent(serverPlayer.platformPlayer(), furniture, hand, interactionPoint, hitBox, contextBuilder);
-            if (EventUtils.fireAndCheckCancel(interactEvent)) {
-                return;
-            }
-
-            // 执行家具行为
-            InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
-            InteractionResult result = furniture.controller.useOnFurniture(hitBox, interactEntityContext);
-            if (result.success()) {
-                serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
-                return;
-            }
-            if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
-                result = furniture.controller.useWithoutItem(interactEntityContext);
-                if (result.success()) {
-                    serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
-                    return;
-                }
-            }
-            if (result == InteractionResult.FAIL) {
-                return;
-            }
-
-            // 执行事件动作
-            Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
-            Cancellable cancellable = Cancellable.of(interactEvent::isCancelled, interactEvent::setCancelled);
-            // execute functions
-            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                    contextBuilder
-                            .withParameter(DirectContextParameters.EVENT, cancellable)
-                            .withParameter(DirectContextParameters.FURNITURE, furniture)
-                            .withParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
-                            .withParameter(DirectContextParameters.HAND, hand)
-                            .withParameter(DirectContextParameters.POSITION, furniture.position())
-            );
-            furniture.config().execute(context, EventTrigger.RIGHT_CLICK);
-            if (cancellable.isCancelled()) {
-                return;
-            }
-            // 不处理调试棒
-            if (BukkitItemUtils.isDebugStick(itemInHand)) {
-                return;
-            }
-            // 已经有过交互了
-            if (serverPlayer.lastSuccessfulInteractionTick() == serverPlayer.gameTicks()) {
-                return;
-            }
-            // 必须从网络包层面处理，否则无法获取交互的具体实体
-            if (usingSecondaryAction && !itemInHand.isEmpty() && hitBox.config().canUseItemOn()) {
-                Optional<ItemDefinition> optionalItemDefinition = itemInHand.getDefinition();
-                if (optionalItemDefinition.isPresent()) {
-                    ItemDefinition itemDefinition = optionalItemDefinition.get();
-                    FurnitureItem firstFurniture = itemDefinition.behavior().getFirst(FurnitureItem.class);
-                    if (firstFurniture != null) {
-                        ((ItemBehavior) firstFurniture).useOnBlock(new UseOnContext(serverPlayer, InteractionHand.MAIN_HAND, new BlockHitResult(hitResult.hitLocation(), hitResult.direction(), BlockPos.fromVec3d(hitResult.hitLocation()), false)));
-                        return;
-                    }
-                }
-
-                // 模拟原版物品交互行为
-                serverPlayer.setResendSound();
-
-                {
-                    Object nmsPlayer = serverPlayer.serverPlayer();
-                    Object serverLevel = ServerPlayerProxy.INSTANCE.getLevel(nmsPlayer);
-                    Object blockPos = LocationUtils.toBlockPos(hitResult.blockPos());
-                    Object previousBlockState = ServerLevelProxy.INSTANCE.getBlockStateIfLoaded(serverLevel, blockPos);
-                    if (previousBlockState != null) {
-                        Object clickedPoint = Vec3Proxy.INSTANCE.newInstance(hitResult.hitLocation().x, hitResult.hitLocation().y, hitResult.hitLocation().z);
-                        Object nmsDirection = DirectionUtils.toNMSDirection(hitResult.direction());
-                        Object useItemPacket = ServerboundUseItemOnPacketProxy.INSTANCE.newInstance(
-                                InteractionHandProxy.MAIN_HAND,
-                                BlockHitResultProxy.INSTANCE.newInstance(clickedPoint, nmsDirection, blockPos, false),
-                                0
-                        );
-                        try {
-                            ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, BlockProxy.INSTANCE.getDefaultBlockState(BlocksProxy.COBWEB), UpdateFlags.UPDATE_INVISIBLE);
-                            ServerboundUseItemOnPacketProxy.INSTANCE.setTimestamp(useItemPacket, System.currentTimeMillis());
-                            ServerGamePacketListenerImplProxy.INSTANCE.handleUseItemOn(ServerPlayerProxy.INSTANCE.getConnection(nmsPlayer), useItemPacket);
-                        } finally {
-                            ServerLevelProxy.INSTANCE.setBlock(serverLevel, blockPos, previousBlockState, UpdateFlags.UPDATE_INVISIBLE);
-                            serverPlayer.sendPacket(ClientboundBlockUpdatePacketProxy.INSTANCE.newInstance$1(serverLevel, blockPos), false);
-                        }
-                    }
-                }
-
-                if (!part.interactive()) {
-                    serverPlayer.swingHand(InteractionHand.MAIN_HAND);
-                }
-            } else {
-                if (!usingSecondaryAction) {
-                    for (Seat<FurnitureHitBox> seat : hitBox.seats()) {
-                        if (!seat.isOccupied()) {
-                            if (seat.spawnSeat(serverPlayer, furniture.position())) {
-                                if (!part.interactive()) {
-                                    serverPlayer.swingHand(InteractionHand.MAIN_HAND);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        if (VersionHelper.isFolia()) {
-            this.plugin.scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
-        } else {
-            this.plugin.scheduler().executeSync(mainThreadTask);
-        }
-    }
-
-    // 26.1+
-    public class AttackListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
-            if (serverPlayer.isSpectatorMode()) return;
-            // 交互实体的时候，应该取消挖掘
-            serverPlayer.stopMiningBlock();
-
-            FriendlyByteBuf buf = event.getBuffer();
-            int rawId = buf.readVarInt();
-            int entityId = BukkitNetworkManager.this.plugin.compatibilityManager().remapEntityId(rawId);
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
-            if (furniture == null) return;
-
-            if (entityId != furniture.entityId()) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeVarInt(furniture.entityId());
-            }
-
-            if (!furniture.canInteract(serverPlayer)) return;
-
-            performAttackFurniture(furniture, entityId, serverPlayer);
-        }
-    }
-
-    public class InteractEntityListener26_1 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
-            if (serverPlayer.isSpectatorMode()) return;
-            // 交互实体的时候，应该取消挖掘
-            serverPlayer.stopMiningBlock();
-
-            FriendlyByteBuf buf = event.getBuffer();
-            int rawId = buf.readVarInt();
-            int entityId = BukkitNetworkManager.this.plugin.compatibilityManager().remapEntityId(rawId);
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
-            if (furniture == null) return;
-            // 太远就是挂
-            if (!furniture.canInteract(serverPlayer)) return;
-
-            InteractionHand hand = buf.readVarInt() == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-            Vec3d vec3d = buf.readLpVec3();
-            boolean usingSecondaryAction = buf.readBoolean();
-
-            if (entityId != furniture.entityId()) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeVarInt(furniture.entityId());
-                buf.writeVarInt(hand == InteractionHand.MAIN_HAND ? 0 : 1);
-                buf.writeLpVec3(vec3d);
-                buf.writeBoolean(usingSecondaryAction);
-            }
-
-            performInteractFurniture(furniture, entityId, serverPlayer, hand, usingSecondaryAction);
-        }
-    }
-
-    // 1.20-1.21.11
-    public class InteractEntityListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
-            if (serverPlayer.isSpectatorMode()) return;
-            // 交互实体的时候，应该取消挖掘
-            serverPlayer.stopMiningBlock();
-
-            FriendlyByteBuf buf = event.getBuffer();
-            int rawId = buf.readVarInt();
-            int entityId = BukkitNetworkManager.this.plugin.compatibilityManager().remapEntityId(rawId);
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByInteractableEntityId(entityId);
-            if (furniture == null) return;
-            int actionType = buf.readVarInt();
-            // 太远就是挂
-            if (!furniture.canInteract(serverPlayer)) return;
-
-            if (actionType == 1) {
-                // ATTACK
-                boolean usingSecondaryAction = buf.readBoolean();
-                if (entityId != furniture.entityId()) {
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeVarInt(furniture.entityId());
-                    buf.writeVarInt(actionType);
-                    buf.writeBoolean(usingSecondaryAction);
-                }
-
-                performAttackFurniture(furniture, entityId, serverPlayer);
-            } else if (actionType == 2) {
-                // INTERACT_AT
-                float x = buf.readFloat();
-                float y = buf.readFloat();
-                float z = buf.readFloat();
-                InteractionHand hand = buf.readVarInt() == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-                boolean usingSecondaryAction = buf.readBoolean();
-                if (entityId != furniture.entityId()) {
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeVarInt(furniture.entityId());
-                    buf.writeVarInt(actionType);
-                    buf.writeFloat(x).writeFloat(y).writeFloat(z);
-                    buf.writeVarInt(hand == InteractionHand.MAIN_HAND ? 0 : 1);
-                    buf.writeBoolean(usingSecondaryAction);
-                }
-
-                performInteractFurniture(furniture, entityId, serverPlayer, hand, usingSecondaryAction);
-            } else if (actionType == 0) {
-                // INTERACT
-                int hand = buf.readVarInt();
-                boolean usingSecondaryAction = buf.readBoolean();
-                if (entityId != furniture.entityId()) {
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeVarInt(furniture.entityId());
-                    buf.writeVarInt(actionType);
-                    buf.writeVarInt(hand);
-                    buf.writeBoolean(usingSecondaryAction);
-                }
-            }
-        }
-    }
-
-    public static class CustomPayloadListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
-            if (VersionHelper.isOrAbove1_20_2()) return;
-            FriendlyByteBuf byteBuf = event.getBuffer();
-            Key key = byteBuf.readKey();
-            ModPackets.handlePayload(user, new UnknownPayload(key, byteBuf.readBytes(byteBuf.readableBytes())));
-        }
-    }
-
-    public class AddEntityListener implements ByteBufferPacketListener {
-        private final EntityTypeHandler[] handlers;
-
-        public AddEntityListener(int entityTypes) {
-            this.handlers = new EntityTypeHandler[entityTypes];
-            Arrays.fill(this.handlers, EntityTypeHandler.DoNothing.INSTANCE);
-            this.handlers[EntityTypeProxy.BLOCK_DISPLAY$registryId] = simpleAddEntityHandler(BlockDisplayPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.TEXT_DISPLAY$registryId] = simpleAddEntityHandler(TextDisplayPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.ARMOR_STAND$registryId] = simpleAddEntityHandler(ArmorStandPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.ITEM$registryId] = simpleAddEntityHandler(ItemPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.ITEM_FRAME$registryId] = simpleAddEntityHandler(ItemFramePacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.GLOW_ITEM_FRAME$registryId] = simpleAddEntityHandler(ItemFramePacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.ENDERMAN$registryId] = simpleAddEntityHandler(EndermanPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.CHEST_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.COMMAND_BLOCK_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.FURNACE_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.HOPPER_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.SPAWNER_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.TNT_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-            this.handlers[EntityTypeProxy.FIREBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.EYE_OF_ENDER$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.FIREWORK_ROCKET$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.SMALL_FIREBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.EGG$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.ENDER_PEARL$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.EXPERIENCE_BOTTLE$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.SNOWBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.POTION$registryId] = createOptionalCustomProjectileEntityHandler(true);
-            this.handlers[EntityTypeProxy.TRIDENT$registryId] = createOptionalCustomProjectileEntityHandler(false);
-            this.handlers[EntityTypeProxy.ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
-            this.handlers[EntityTypeProxy.SPECTRAL_ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
-            if (VersionHelper.isOrAbove1_20_3()) {
-                this.handlers[EntityTypeProxy.TNT$registryId] = simpleAddEntityHandler(PrimedTNTPacketHandler.INSTANCE);
-            }
-            if (VersionHelper.isOrAbove1_20_5()) {
-                this.handlers[EntityTypeProxy.OMINOUS_ITEM_SPAWNER$registryId] = simpleAddEntityHandler(ItemPacketHandler.INSTANCE);
-            }
-            this.handlers[EntityTypeProxy.FALLING_BLOCK$registryId] = (user, event) -> {
-                FriendlyByteBuf buf = event.getBuffer();
-                int id = buf.readVarInt();
-                UUID uuid = buf.readUUID();
-                int type = buf.readVarInt();
-                double x = buf.readDouble();
-                double y = buf.readDouble();
-                double z = buf.readDouble();
-                Vec3d movement = VersionHelper.isOrAbove1_21_9() ? buf.readLpVec3() : null;
-                byte xRot = buf.readByte();
-                byte yRot = buf.readByte();
-                byte yHeadRot = buf.readByte();
-                int data = buf.readVarInt();
-                // Falling blocks
-                int remapped = remapBlockState(data, user.clientModEnabled());
-                if (remapped != data) {
-                    int xa = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
-                    int ya = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
-                    int za = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeVarInt(id);
-                    buf.writeUUID(uuid);
-                    buf.writeVarInt(type);
-                    buf.writeDouble(x);
-                    buf.writeDouble(y);
-                    buf.writeDouble(z);
-                    if (VersionHelper.isOrAbove1_21_9()) buf.writeLpVec3(movement);
-                    buf.writeByte(xRot);
-                    buf.writeByte(yRot);
-                    buf.writeByte(yHeadRot);
-                    buf.writeVarInt(remapped);
-                    if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(xa);
-                    if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(ya);
-                    if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(za);
-                }
-            };
-            this.handlers[EntityTypeProxy.ITEM_DISPLAY$registryId] = (user, event) -> {
-                FriendlyByteBuf buf = event.getBuffer();
-                int id = buf.readVarInt();
-                BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
-                BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(id);
-                if (furniture != null) {
-                    FurniturePacketHandler furniturePacketHandler = new FurniturePacketHandler(furniture);
-                    EntityPacketHandler previous = serverPlayer.entityPacketHandlers().put(id, furniturePacketHandler);
-                    if (Config.enableEntityCulling()) {
-                        serverPlayer.addTrackedEntity(id, furniture);
-                        furniture.controller.onAsyncPlayerTrack(serverPlayer, furniturePacketHandler.snapshotState);
-                    } else {
-                        // 修复addEntityToWorld，包比事件先发的问题 (WE)
-                        if (previous == null || previous instanceof ItemDisplayPacketHandler) {
-                            furniture.show(serverPlayer);
-                            furniture.controller.onAsyncPlayerTrack(serverPlayer, furniturePacketHandler.snapshotState);
-                        }
-                    }
-                    if (Config.hideBaseEntity() && !furniture.hasExternalModel()) {
-                        event.setCancelled(true);
-                    }
-                } else {
-                    user.entityPacketHandlers().put(id, ItemDisplayPacketHandler.INSTANCE);
-                }
-            };
-            this.handlers[EntityTypeProxy.INTERACTION$registryId] = (user, event) -> {
-                if (BukkitFurnitureManager.NMS_COLLISION_ENTITY_TYPE != EntityTypeProxy.INTERACTION) return;
-                FriendlyByteBuf buf = event.getBuffer();
-                int id = buf.readVarInt();
-                // Cancel collider entity packet
-                BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByColliderEntityId(id);
-                if (furniture != null) {
-                    event.setCancelled(true);
-                    user.entityPacketHandlers().put(id, FurnitureCollisionPacketHandler.INSTANCE);
-                }
-            };
-            this.handlers[EntityTypeProxy.OAK_BOAT$registryId] = (user, event) -> {
-                if (BukkitFurnitureManager.NMS_COLLISION_ENTITY_TYPE != EntityTypeProxy.OAK_BOAT) return;
-                FriendlyByteBuf buf = event.getBuffer();
-                int id = buf.readVarInt();
-                // Cancel collider entity packet
-                BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByColliderEntityId(id);
-                if (furniture != null) {
-                    event.setCancelled(true);
-                    user.entityPacketHandlers().put(id, FurnitureCollisionPacketHandler.INSTANCE);
-                }
-            };
-        }
-
-        private static EntityTypeHandler simpleAddEntityHandler(EntityPacketHandler handler) {
-            return (user, event) -> {
-                FriendlyByteBuf buf = event.getBuffer();
-                user.entityPacketHandlers().put(buf.readVarInt(), handler);
-            };
-        }
-
-        private static EntityTypeHandler createOptionalCustomProjectileEntityHandler(boolean fallback) {
-            return (user, event) -> {
-                FriendlyByteBuf buf = event.getBuffer();
-                int id = buf.readVarInt();
-                BukkitProjectileManager.instance().projectileByEntityId(id).ifPresentOrElse(customProjectile -> {
-                    ProjectilePacketHandler handler = new ProjectilePacketHandler(customProjectile, id);
-                    handler.convertAddCustomProjectilePacket(buf, event, user);
-                    user.entityPacketHandlers().put(id, handler);
-                }, () -> {
-                    if (fallback) {
-                        user.entityPacketHandlers().put(id, CommonItemPacketHandler.INSTANCE);
-                    }
-                });
-            };
-        }
-
-        public interface EntityTypeHandler {
-
-            void handle(NetWorkUser user, ByteBufPacketEvent event);
-
-            class DoNothing implements EntityTypeHandler {
-                public static final DoNothing INSTANCE = new DoNothing();
-
-                @Override
-                public void handle(NetWorkUser user, ByteBufPacketEvent event) {
-                }
-            }
-        }
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buf = event.getBuffer();
-            buf.readVarInt();
-            buf.readUUID();
-            int type = buf.readVarInt();
-            this.handlers[type].handle(user, event);
-        }
-    }
-
-    public class SetEntityDataListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            int id = buf.readVarInt();
-            EntityPacketHandler handler = user.entityPacketHandlers().get(id);
-            if (handler != null) {
-                handler.handleSetEntityData(serverPlayer, event);
-                return;
-            }
-            if (Config.interceptEntityName()) {
-                boolean isChanged = false;
-                List<Object> packedItems = PacketUtils.clientboundSetEntityDataPacket$unpack(buf);
-                for (int i = packedItems.size() - 1; i >= 0; i--) {
-                    Object packedItem = packedItems.get(i);
-                    int entityDataId = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getId(packedItem);
-                    if (entityDataId != BaseEntityData.CustomName.id()) continue;
-                    Optional<Object> optionalTextComponent = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getValue(packedItem);
-                    if (optionalTextComponent.isEmpty()) continue;
-                    Object textComponent = optionalTextComponent.get();
-                    String json = ComponentUtils.minecraftToJson(textComponent);
-                    Map<String, ComponentProvider> tokens = matchNetworkTags(json);
-                    if (tokens.isEmpty()) continue;
-                    Component component = AdventureHelper.jsonToComponent(json);
-                    component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of(serverPlayer));
-                    SynchedEntityDataProxy.DataValueProxy.INSTANCE.setValue(packedItem, Optional.of(ComponentUtils.adventureToMinecraft(component)));
-                    isChanged = true;
-                    break;
-                }
-                if (isChanged) {
-                    event.setChanged(true);
-                    buf.clear();
-                    buf.writeVarInt(event.packetID());
-                    buf.writeVarInt(id);
-                    PacketUtils.clientboundSetEntityDataPacket$pack(packedItems, buf);
-                }
-            }
-        }
-    }
-
-    public static class MerchantOffersListener1_20 implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            int containerId = buf.readContainerId();
-            BukkitItemManager manager = BukkitItemManager.instance();
-            List<MerchantOffer> merchantOffers = buf.readCollection(ArrayList::new, byteBuf -> {
-                Item cost1 = PacketUtils.readItem(buf);
-                Item result = PacketUtils.readItem(buf);
-                Item cost2 = PacketUtils.readItem(buf);
-                boolean outOfStock = byteBuf.readBoolean();
-                int uses = byteBuf.readInt();
-                int maxUses = byteBuf.readInt();
-                int xp = byteBuf.readInt();
-                int specialPrice = byteBuf.readInt();
-                float priceMultiplier = byteBuf.readFloat();
-                int demand = byteBuf.readInt();
-                return new MerchantOffer(cost1, Optional.of(cost2), result, outOfStock, uses, maxUses, xp, specialPrice, priceMultiplier, demand);
-            });
-
-            MutableBoolean changed = new MutableBoolean(false);
-            for (MerchantOffer offer : merchantOffers) {
-                offer.applyClientboundData(item -> {
-                    Optional<Item> remapped = manager.s2c(item, serverPlayer);
-                    if (remapped.isEmpty()) {
-                        return item;
-                    }
-                    changed.set(true);
-                    return remapped.get();
-                });
-            }
-
-            if (changed.booleanValue()) {
-                int villagerLevel = buf.readVarInt();
-                int villagerXp = buf.readVarInt();
-                boolean showProgress = buf.readBoolean();
-                boolean canRestock = buf.readBoolean();
-
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeContainerId(containerId);
-                buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
-                    PacketUtils.writeItem(buf, offer.cost1());
-                    PacketUtils.writeItem(buf, offer.result());
-                    PacketUtils.writeItem(buf, offer.cost2().orElseThrow());
-                    byteBuf.writeBoolean(offer.outOfStock());
-                    byteBuf.writeInt(offer.uses());
-                    byteBuf.writeInt(offer.maxUses());
-                    byteBuf.writeInt(offer.xp());
-                    byteBuf.writeInt(offer.specialPrice());
-                    byteBuf.writeFloat(offer.priceMultiplier());
-                    byteBuf.writeInt(offer.demand());
-                });
-
-                buf.writeVarInt(villagerLevel);
-                buf.writeVarInt(villagerXp);
-                buf.writeBoolean(showProgress);
-                buf.writeBoolean(canRestock);
-            }
-        }
-    }
-
-    public static class MerchantOffersListener1_20_5 implements ByteBufferPacketListener {
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (Config.disableItemOperations()) return;
-            if (!(user instanceof BukkitServerPlayer serverPlayer)) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            int containerId = buf.readContainerId();
-            BukkitItemManager manager = BukkitItemManager.instance();
-            ByteBuf friendlyBuf = PacketUtils.ensureNMSFriendlyByteBuf(buf.source());
-            List<MerchantOffer> merchantOffers = buf.readCollection(ArrayList::new, byteBuf -> {
-                Item cost1 = ItemStackUtils.wrap(ItemCostProxy.INSTANCE.getItemStack(StreamDecoderProxy.INSTANCE.decode(ItemCostProxy.STREAM_CODEC, friendlyBuf)));
-                Item result = PacketUtils.readItem(friendlyBuf);
-                Optional<Item> cost2 = ((Optional<Object>) StreamDecoderProxy.INSTANCE.decode(ItemCostProxy.OPTIONAL_STREAM_CODEC, friendlyBuf))
-                        .map(cost -> ItemStackUtils.wrap(ItemCostProxy.INSTANCE.getItemStack(cost)));
-                boolean outOfStock = byteBuf.readBoolean();
-                int uses = byteBuf.readInt();
-                int maxUses = byteBuf.readInt();
-                int xp = byteBuf.readInt();
-                int specialPrice = byteBuf.readInt();
-                float priceMultiplier = byteBuf.readFloat();
-                int demand = byteBuf.readInt();
-                return new MerchantOffer(cost1, cost2, result, outOfStock, uses, maxUses, xp, specialPrice, priceMultiplier, demand);
-            });
-
-            MutableBoolean changed = new MutableBoolean(false);
-            for (MerchantOffer offer : merchantOffers) {
-                offer.applyClientboundData(item -> {
-                    Optional<Item> remapped = manager.s2c(item, serverPlayer);
-                    if (remapped.isEmpty()) {
-                        return item;
-                    }
-                    changed.set(true);
-                    return remapped.get();
-                });
-            }
-
-            if (changed.booleanValue()) {
-                int villagerLevel = buf.readVarInt();
-                int villagerXp = buf.readVarInt();
-                boolean showProgress = buf.readBoolean();
-                boolean canRestock = buf.readBoolean();
-
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeContainerId(containerId);
-                buf.writeCollection(merchantOffers, (byteBuf, offer) -> {
-                    StreamEncoderProxy.INSTANCE.encode(ItemCostProxy.STREAM_CODEC, friendlyBuf, itemStackToItemCost(offer.cost1().minecraftItem(), offer.cost1().count()));
-                    PacketUtils.writeItem(friendlyBuf, offer.result());
-                    StreamEncoderProxy.INSTANCE.encode(ItemCostProxy.OPTIONAL_STREAM_CODEC, friendlyBuf, offer.cost2().map(it -> itemStackToItemCost(it.minecraftItem(), it.count())));
-                    byteBuf.writeBoolean(offer.outOfStock());
-                    byteBuf.writeInt(offer.uses());
-                    byteBuf.writeInt(offer.maxUses());
-                    byteBuf.writeInt(offer.xp());
-                    byteBuf.writeInt(offer.specialPrice());
-                    byteBuf.writeFloat(offer.priceMultiplier());
-                    byteBuf.writeInt(offer.demand());
-                });
-
-                buf.writeVarInt(villagerLevel);
-                buf.writeVarInt(villagerXp);
-                buf.writeBoolean(showProgress);
-                buf.writeBoolean(canRestock);
-            }
-        }
-
-        private Object itemStackToItemCost(Object itemStack, int count) {
-            return ItemCostProxy.INSTANCE.newInstance(
-                    ItemProxy.INSTANCE.getBuiltInRegistryHolder(ItemStackProxy.INSTANCE.getItem(itemStack)),
-                    count,
-                    DataComponentExactPredicateProxy.INSTANCE.allOf(ItemStackProxy.INSTANCE.getComponents(itemStack))
-            );
-        }
-    }
-
-    public static class BlockEntityDataListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptItem()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            boolean changed = false;
-            BlockPos pos = buf.readBlockPos();
-            int entityType = buf.readVarInt();
-            boolean named = !VersionHelper.isOrAbove1_20_2();
-            CompoundTag tag = (CompoundTag) buf.readNbt(named);
-            // todo 刷怪笼里的物品？
-
-            // 通用方块实体存储的物品
-            if (tag != null && tag.containsKey("Items")) {
-                BukkitItemManager itemManager = BukkitItemManager.instance();
-                ListTag itemsTag = tag.getList("Items");
-                List<Pair<Byte, Item>> items = new ArrayList<>();
-                for (Tag itemTag : itemsTag) {
-                    if (itemTag instanceof CompoundTag itemCompoundTag) {
-                        byte slot = itemCompoundTag.getByte("Slot");
-                        Object nmsStack;
-                        if (VersionHelper.isOrAbove1_20_5()) {
-                            nmsStack = ItemStackProxy.INSTANCE.getCodec().parse(RegistryOps.SPARROW_NBT, itemCompoundTag)
-                                    .resultOrPartial((error) -> CraftEngine.instance().logger().error("Tried to parse invalid item: '" + error + "'")).orElse(null);
-                        } else {
-                            Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, itemTag);
-                            nmsStack = ItemStackProxy.INSTANCE.of(nmsTag);
-                        }
-                        Item item = ItemStackUtils.wrap(nmsStack);
-                        Optional<Item> optional = itemManager.s2c(item, (BukkitServerPlayer) user);
-                        if (optional.isPresent()) {
-                            changed = true;
-                            items.add(new Pair<>(slot, optional.get()));
-                        } else {
-                            items.add(Pair.of(slot, item));
-                        }
-                    }
-                }
-                if (changed) {
-                    ListTag newItemsTag = new ListTag();
-                    for (Pair<Byte, Item> pair : items) {
-                        CompoundTag newItemCompoundTag;
-                        if (VersionHelper.isOrAbove1_20_5()) {
-                            newItemCompoundTag = (CompoundTag) ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, pair.right().minecraftItem())
-                                    .resultOrPartial((error) -> CraftEngine.instance().logger().error("Tried to encode invalid item: '" + error + "'")).orElse(null);
-                        } else {
-                            Object nmsTag = ItemStackProxy.INSTANCE.save(pair.right().minecraftItem(), CompoundTagProxy.INSTANCE.newInstance());
-                            newItemCompoundTag = (CompoundTag) RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, nmsTag);
-                        }
-                        if (newItemCompoundTag != null) {
-                            newItemCompoundTag.putByte("Slot", pair.left());
-                            newItemsTag.add(newItemCompoundTag);
-                        }
-                    }
-                    tag.put("Items", newItemsTag);
-                }
-            }
-            if (changed) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeBlockPos(pos);
-                buf.writeVarInt(entityType);
-                buf.writeNbt(tag, named);
-            }
-        }
-    }
-
-    public class PlayerChatListener_1_20 implements ByteBufferPacketListener {
-
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptPlayerChat() || Config.disableChatReport()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            boolean changed = false;
-            UUID sender = buf.readUUID();
-            int index = buf.readVarInt();
-            byte @Nullable [] messageSignature = buf.readNullable(b -> {
-                byte[] bs = new byte[256];
-                buf.readBytes(bs);
-                return bs;
-            });
-            // SignedMessageBody.Packed start
-            String content = buf.readUtf(256);
-            Instant timeStamp = buf.readInstant();
-            long salt = buf.readLong();
-            // LastSeenMessages.Packed start
-            ArrayList<Pair<Integer, byte[]>> lastSeen = buf.readCollection(FriendlyByteBuf.limitValue(ArrayList::new, 20), b -> {
-                int i = b.readVarInt() - 1;
-                if (i == -1) {
-                    byte[] bs = new byte[256];
-                    buf.readBytes(bs);
-                    return Pair.of(-1, bs);
-                } else {
-                    return Pair.of(i, null);
-                }
-            });
-            // LastSeenMessages.Packed end
-            // SignedMessageBody.Packed end
-            @Nullable String unsignedContent = buf.readNullable(FriendlyByteBuf::readUtf);
-            if (unsignedContent != null) {
-                Map<String, ComponentProvider> unsignedContentTokens = matchNetworkTags(unsignedContent);
-                if (!unsignedContentTokens.isEmpty()) {
-                    Tag tag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, GsonHelper.get().fromJson(unsignedContent, JsonElement.class));
-                    Component component = AdventureHelper.nbtToComponent(tag);
-                    component = AdventureHelper.replaceText(component, unsignedContentTokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
-                    unsignedContent = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.JSON, AdventureHelper.componentToNbt(component)).toString();
-                    changed = true;
-                }
-            }
-            // FilterMask start
-            int type = buf.readVarInt();
-            BitSet mask = type == 2 /* PARTIALLY_FILTERED */ ? buf.readBitSet() : null;
-            // FilterMask end
-            // ChatType.BoundNetwork start
-            int chatType = buf.readVarInt();
-            String name = buf.readUtf();
-            Map<String, ComponentProvider> nameTokens = matchNetworkTags(name);
-            if (!nameTokens.isEmpty()) {
-                Tag tag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, GsonHelper.get().fromJson(name, JsonElement.class));
-                Component component = AdventureHelper.nbtToComponent(tag);
-                component = AdventureHelper.replaceText(component, nameTokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
-                name = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.JSON, AdventureHelper.componentToNbt(component)).toString();
-                changed = true;
-            }
-            @Nullable String targetName = buf.readNullable(FriendlyByteBuf::readUtf);
-            if (targetName != null) {
-                Map<String, ComponentProvider> targetNameTokens = matchNetworkTags(targetName);
-                if (!targetNameTokens.isEmpty()) {
-                    Tag tag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, GsonHelper.get().fromJson(targetName, JsonElement.class));
-                    Component component = AdventureHelper.nbtToComponent(tag);
-                    component = AdventureHelper.replaceText(component, targetNameTokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
-                    targetName = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.JSON, AdventureHelper.componentToNbt(component)).toString();
-                    changed = true;
-                }
-            }
-            // ChatType.BoundNetwork end
-            if (changed) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                buf.writeUUID(sender);
-                buf.writeVarInt(index);
-                buf.writeNullable(messageSignature, (b, bs) -> buf.writeBytes(bs));
-                buf.writeUtf(content);
-                buf.writeInstant(timeStamp);
-                buf.writeLong(salt);
-                buf.writeCollection(lastSeen, (b, pair) -> {
-                    b.writeVarInt(pair.left() + 1);
-                    if (pair.right() != null) {
-                        b.writeBytes(pair.right());
-                    }
-                });
-                buf.writeNullable(unsignedContent, FriendlyByteBuf::writeUtf);
-                buf.writeVarInt(type);
-                if (type == 2) buf.writeBitSet(mask);
-                buf.writeVarInt(chatType);
-                buf.writeUtf(name);
-                buf.writeNullable(targetName, FriendlyByteBuf::writeUtf);
-            }
-        }
-    }
-
-    public class PlayerChatListener_1_20_3 implements ByteBufferPacketListener {
-
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptPlayerChat() || Config.disableChatReport()) return;
-            FriendlyByteBuf buf = event.getBuffer();
-            boolean changed = false;
-            int globalIndex = VersionHelper.isOrAbove1_21_5() ? buf.readVarInt() : -1;
-            UUID sender = buf.readUUID();
-            int index = buf.readVarInt();
-            byte @Nullable [] messageSignature = buf.readNullable(b -> {
-                byte[] bs = new byte[256];
-                buf.readBytes(bs);
-                return bs;
-            });
-            // SignedMessageBody.Packed start
-            String content = buf.readUtf(256);
-            Instant timeStamp = buf.readInstant();
-            long salt = buf.readLong();
-            // LastSeenMessages.Packed start
-            ArrayList<Pair<Integer, byte[]>> lastSeen = buf.readCollection(FriendlyByteBuf.limitValue(ArrayList::new, 20), b -> {
-                int i = b.readVarInt() - 1;
-                if (i == -1) {
-                    byte[] bs = new byte[256];
-                    buf.readBytes(bs);
-                    return Pair.of(-1, bs);
-                } else {
-                    return Pair.of(i, null);
-                }
-            });
-            // LastSeenMessages.Packed end
-            // SignedMessageBody.Packed end
-            @Nullable Tag unsignedContent = buf.readNullable(b -> b.readNbt(false));
-            if (unsignedContent != null) {
-                Map<String, ComponentProvider> tokens = matchNetworkTags(unsignedContent);
-                if (!tokens.isEmpty()) {
-                    Component component = AdventureHelper.tagToComponent(unsignedContent);
-                    component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
-                    unsignedContent = AdventureHelper.componentToTag(component);
-                    changed = true;
-                }
-            }
-            // FilterMask start
-            int type = buf.readVarInt();
-            BitSet mask = type == 2 /* PARTIALLY_FILTERED */ ? buf.readBitSet() : null;
-            // FilterMask end
-            // ChatType.Bound start
-            int chatType = buf.readVarInt();
-            Tag name = buf.readNbt(false);
-            if (name != null) {
-                Map<String, ComponentProvider> tokens = matchNetworkTags(name);
-                if (!tokens.isEmpty()) {
-                    Component component = AdventureHelper.tagToComponent(name);
-                    component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
-                    name = AdventureHelper.componentToTag(component);
-                    changed = true;
-                }
-            }
-            @Nullable Tag targetName = buf.readNullable(b -> b.readNbt(false));
-            if (targetName != null) {
-                Map<String, ComponentProvider> tokens = matchNetworkTags(targetName);
-                if (!tokens.isEmpty()) {
-                    Component component = AdventureHelper.tagToComponent(targetName);
-                    component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
-                    targetName = AdventureHelper.componentToTag(component);
-                    changed = true;
-                }
-            }
-            // ChatType.Bound end
-            if (changed) {
-                event.setChanged(true);
-                buf.clear();
-                buf.writeVarInt(event.packetID());
-                if (VersionHelper.isOrAbove1_21_5()) buf.writeVarInt(globalIndex);
-                buf.writeUUID(sender);
-                buf.writeVarInt(index);
-                buf.writeNullable(messageSignature, (b, bs) -> buf.writeBytes(bs));
-                buf.writeUtf(content);
-                buf.writeInstant(timeStamp);
-                buf.writeLong(salt);
-                buf.writeCollection(lastSeen, (b, pair) -> {
-                    b.writeVarInt(pair.left() + 1);
-                    if (pair.right() != null) {
-                        b.writeBytes(pair.right());
-                    }
-                });
-                buf.writeNullable(unsignedContent, (b, tag) -> b.writeNbt(tag, false));
-                buf.writeVarInt(type);
-                if (type == 2) buf.writeBitSet(mask);
-                buf.writeVarInt(chatType);
-                buf.writeNbt(name, false);
-                buf.writeNullable(targetName, (b, tag) -> b.writeNbt(tag, false));
-            }
-        }
-    }
-
-    public static class StatusResponseListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.disableChatReport()) {
-                return;
-            }
-            FriendlyByteBuf buf = event.getBuffer();
-            JsonObject jsonObject = JsonParser.parseString(buf.readUtf()).getAsJsonObject();
-            jsonObject.addProperty("preventsChatReports", true);
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeUtf(jsonObject.toString());
-        }
-    }
-
-    public static class CustomChatCompletionsListener implements NMSPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, NMSPacketEvent event, Object packet) {
-            Object action = ClientboundCustomChatCompletionsPacketProxy.INSTANCE.getAction(packet);
-            if (action != ClientboundCustomChatCompletionsPacketProxy.ActionProxy.SET) return;
-            List<String> rawEntries = ClientboundCustomChatCompletionsPacketProxy.INSTANCE.getEntries(packet);
-            if (rawEntries instanceof MarkedArrayList<?>) return;
-            List<String> markedEntries = new MarkedArrayList<>(rawEntries);
-            markedEntries.addAll(BukkitFontManager.instance().getEmojiSuggestions((net.momirealms.craftengine.core.entity.player.Player) user));
-            ClientboundCustomChatCompletionsPacketProxy.INSTANCE.setEntries(packet, markedEntries);
-        }
-    }
-
-    public class CustomPayloadListener implements ByteBufferPacketListener {
-
-        @Override
-        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            FriendlyByteBuf buffer = event.getBuffer();
-            Key key = buffer.readKey();
-            if (key.equals(GlowingFurnitureBehaviorTemplate.PAYLOAD_ID)) {
-                // 读取
-                int x = buffer.readInt();
-                int y = buffer.readInt();
-                int z = buffer.readInt();
-                byte lightPower = buffer.readByte();
-
-                // 检查发来的方块是不是自定义光源方块, 是就替换成真实的光源方块, 并且不记录到客户端侧世界;
-                ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(x >> 4, z >> 4));
-                if (trackedChunk != null) {
-                    int targetState;
-                    int blockType = trackedChunk.lightBlockType(x, y, z);
-                    if (blockType == 0) {
-                        event.setCancelled(true);
-                        return;
-                    } else if (blockType == 1) {
-                        targetState = GlowingFurnitureBehaviorTemplate.LIGHT_BLOCK_STATES_ID[lightPower];
-                    } else {
-                        targetState = GlowingFurnitureBehaviorTemplate.WATERLOGGED_LIGHT_BLOCK_STATES_ID[lightPower];
-                    }
-
-                    // 重写入发出
-                    buffer.clear();
-                    buffer.writeVarInt(packetIds.clientboundBlockUpdatePacket());
-                    buffer.writeBlockPos(new BlockPos(x, y, z));
-                    buffer.writeVarInt(targetState);
-                }
-            }
-        }
-    }
 }

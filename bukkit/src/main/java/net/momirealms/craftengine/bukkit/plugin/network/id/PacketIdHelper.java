@@ -23,11 +23,11 @@ public final class PacketIdHelper {
         }
     }
 
-    public static int byName(String packetName, PacketFlow direction, ConnectionState state) {
+    public static int byName(String packetName, ConnectionState state, PacketFlow direction) {
         return byName.getOrDefault(state, Map.of()).getOrDefault(direction, Map.of()).getOrDefault(packetName, -1);
     }
 
-    public static int byClazz(Class<?> clazz, PacketFlow direction, ConnectionState state) {
+    public static int byClazz(Class<?> clazz, ConnectionState state, PacketFlow direction) {
         if (clazz == null) {
             return -1;
         }

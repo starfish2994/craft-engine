@@ -43,4 +43,20 @@ public enum Debugger {
             }
         }
     }
+
+    public void warnLazy(Supplier<String> message, Supplier<Throwable> e) {
+        if (this.condition.get()) {
+            String s = message.get();
+            Throwable t = e.get();
+            if (t != null) {
+                if (s != null) {
+                    CraftEngine.instance().logger().warn("[DEBUG] " + s, t);
+                }
+            } else {
+                if (s != null) {
+                    CraftEngine.instance().logger().warn("[DEBUG] " + s);
+                }
+            }
+        }
+    }
 }

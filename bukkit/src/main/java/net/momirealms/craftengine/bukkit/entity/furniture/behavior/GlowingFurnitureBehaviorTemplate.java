@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.behavior;
 
+import io.netty.buffer.Unpooled;
+import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.BlockKeys;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
@@ -17,9 +19,14 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.util.CustomDataType;
+import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.ChunkPos;
+import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +48,7 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
     public static final int AIR_BLOCK_STATE_ID;
     public static final int WATER_BLOCK_STATE_ID;
     public static final Map<UUID, FurnitureLightData> LIGHT_DATA = new ConcurrentHashMap<>();
+    private static final int BLOCK_UPDATE_PACKET_ID = PacketIds.INSTANCE.clientboundBlockUpdatePacket();
 
     static {
         LIGHT_BLOCK_STATES[0] = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData("minecraft:air"));
@@ -224,30 +232,10 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
         }
 
         private void updateLightBlock(Player player, BlockPos blockPos, int lightPower) {
-            int x = blockPos.x();
-            int y = blockPos.y();
-            int z = blockPos.z();
-
-            byte[] data = new byte[13];
-
-            data[0] = (byte) (x >> 24);
-            data[1] = (byte) (x >> 16);
-            data[2] = (byte) (x >> 8);
-            data[3] = (byte) x;
-
-            data[4] = (byte) (y >> 24);
-            data[5] = (byte) (y >> 16);
-            data[6] = (byte) (y >> 8);
-            data[7] = (byte) y;
-
-            data[8] = (byte) (z >> 24);
-            data[9] = (byte) (z >> 16);
-            data[10] = (byte) (z >> 8);
-            data[11] = (byte) z;
-
-            data[12] = (byte) (lightPower & 0x0F);
-
-            player.sendCustomPayload(PAYLOAD_ID, data);
+            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer(9));
+            buf.writeBlockPos(blockPos);
+            buf.writeByte(lightPower);
+            player.sendCustomPayload(PAYLOAD_ID, buf.array());
         }
     }
 
@@ -303,4 +291,29 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
             BlockPos blockPos,
             int light
     ) {}
+
+    public static void handleLightPacket(NetWorkUser user, ByteBufPacketEvent event, FriendlyByteBuf buf) {
+        BlockPos pos = buf.readBlockPos();
+        byte lightPower = buf.readByte();
+
+        ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(pos.x >> 4, pos.z >> 4));
+        if (trackedChunk == null) return;
+        int blockType = trackedChunk.lightBlockType(pos.x, pos.y, pos.z);
+        if (blockType == 0) { // 不替换固体方块
+            event.setCancelled(true);
+            return;
+        }
+
+        // 重写入发出
+        event.setChanged(true);
+        buf.clear();
+        buf.writeVarInt(BLOCK_UPDATE_PACKET_ID);
+        buf.writeBlockPos(pos);
+        if (blockType == 1) { // 替换空气
+            buf.writeVarInt(LIGHT_BLOCK_STATES_ID[lightPower]);
+        } else { // 替换水
+            buf.writeVarInt(WATERLOGGED_LIGHT_BLOCK_STATES_ID[lightPower]);
+        }
+
+    }
 }

@@ -15,7 +15,10 @@ import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockSt
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
+import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
+
+import java.util.function.Supplier;
 
 public final class ModPackets {
     public static final ModPacketType<ClientCustomBlockPacket> CLIENT_CUSTOM_BLOCK = register(ClientCustomBlockPacket.TYPE, ClientCustomBlockPacket.CODEC);
@@ -56,39 +59,33 @@ public final class ModPackets {
         user.sendCustomPayload(ModChannelKeys.CRAFTENGINE_CHANNEL, buf.array());
     }
 
-    public static void handlePayload(NetWorkUser user, Payload payload) {
-        if (!Config.enableModChannel()) return;
+    public static void handleReceive(NetWorkUser user, Key channel, Supplier<FriendlyByteBuf> buf) {
+        if (!Config.enableModChannel() || !ModChannelKeys.CRAFTENGINE_CHANNEL.equals(channel)) return;
         try {
-            if (payload.channel().equals(ModChannelKeys.CRAFTENGINE_CHANNEL)) {
-                handleCraftEnginePayload(user, payload);
+            FriendlyByteBuf byteBuf = buf.get();
+            byte type = byteBuf.readByte();
+            @SuppressWarnings("unchecked")
+            NetworkCodec<FriendlyByteBuf, ModPacket> codec = (NetworkCodec<FriendlyByteBuf, ModPacket>) BuiltInRegistries.MOD_PACKET.getValue(type);
+            if (codec == null) {
+                Debugger.COMMON.debug(() -> "Unknown data type received: " + type);
+                return;
             }
+            ModPacket packet = codec.decode(byteBuf);
+            if (Config.modChannelRequiresPermission()) {
+                String permission = packet.permission(PacketFlow.SERVERBOUND);
+                if (permission != null && !CraftEngine.instance().compatibilityManager().hasPermission(user, permission)) {
+                    Debugger.COMMON.debug(() -> "Player " + user.name() + " does not have " + permission + " permission to send " + packet.type().location());
+                    return;
+                }
+            }
+            packet.handle(user);
         } catch (Throwable e) {
             // 乱发包我给你踹了
             user.kick(Component.translatable(
                     "disconnect.craftengine.invalid_payload",
                     "Connection terminated due to transmission of invalid payload. \n Please ensure that the client mod and server plugin are the latest version."
             ));
-            Debugger.COMMON.warn(() -> "Failed to handle payload", e);
+            Debugger.PACKET.warn(() -> "Failed to handle receive", e);
         }
-    }
-
-    private static void handleCraftEnginePayload(NetWorkUser user, Payload payload) {
-        FriendlyByteBuf buf = payload.toBuffer();
-        byte type = buf.readByte();
-        @SuppressWarnings("unchecked")
-        NetworkCodec<FriendlyByteBuf, ModPacket> codec = (NetworkCodec<FriendlyByteBuf, ModPacket>) BuiltInRegistries.MOD_PACKET.getValue(type);
-        if (codec == null) {
-            Debugger.COMMON.debug(() -> "Unknown data type received: " + type);
-            return;
-        }
-        ModPacket networkData = codec.decode(buf);
-        if (Config.modChannelRequiresPermission()) {
-            String permission = networkData.permission(PacketFlow.SERVERBOUND);
-            if (permission != null && !CraftEngine.instance().compatibilityManager().hasPermission(user, permission)) {
-                Debugger.COMMON.debug(() -> "Player " + user.name() + " does not have " + permission + " permission to send " + networkData.type().location());
-                return;
-            }
-        }
-        networkData.handle(user);
     }
 }
