@@ -9,6 +9,8 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.StringJoiner;
+
 public interface SimpleNetworkItemProcessor extends ItemProcessor {
 
     @Override
@@ -50,9 +52,9 @@ public interface SimpleNetworkItemProcessor extends ItemProcessor {
     default String nbtPathString(Item item, ItemBuildContext context) {
         Object[] path = nbtPath(item, context);
         if (path != null && path.length > 0) {
-            StringBuilder builder = new StringBuilder();
+            StringJoiner builder = new StringJoiner(".");
             for (Object object : path) {
-                builder.append(object.toString());
+                builder.add(object.toString());
             }
             return builder.toString();
         }

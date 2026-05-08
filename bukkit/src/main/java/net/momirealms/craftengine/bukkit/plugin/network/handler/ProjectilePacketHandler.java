@@ -97,23 +97,6 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         int ya = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
         int za = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
         event.setCancelled(true);
-
-        buf.writeVarInt(event.packetID());
-        buf.writeVarInt(this.entityId);
-        buf.writeUUID(uuid);
-        buf.writeVarInt(EntityTypeProxy.ITEM_DISPLAY$registryId);
-        buf.writeDouble(x);
-        buf.writeDouble(y);
-        buf.writeDouble(z);
-        if (VersionHelper.isOrAbove1_21_9()) buf.writeLpVec3(movement);
-        buf.writeByte(MiscUtils.packDegrees(MiscUtils.clamp(-MiscUtils.unpackDegrees(xRot), -90.0F, 90.0F)));
-        buf.writeByte(MiscUtils.packDegrees(-MiscUtils.unpackDegrees(yRot)));
-        buf.writeByte(yHeadRot);
-        buf.writeVarInt(data);
-        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(xa);
-        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(ya);
-        if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(za);
-
         user.sendPackets(List.of(
                 ClientboundAddEntityPacketProxy.INSTANCE.newInstance(this.entityId, uuid, x, y, z,
                         MiscUtils.clamp(-MiscUtils.unpackDegrees(xRot), -90.0F, 90.0F),
