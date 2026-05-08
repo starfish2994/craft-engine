@@ -510,6 +510,12 @@ network:
     enable: true
     requires-permission: false
 
+  # Encrypt the raw component information before sending it to the client. This option requires a restart to apply.
+  item-crypto:
+    enable: false
+    algorithm: AES/GCM/NoPadding
+    key: ""  # empty = random key
+
 recipe:
   # Master switch for custom recipes
   enable: true

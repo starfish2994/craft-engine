@@ -31,6 +31,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -213,6 +214,9 @@ public final class Config {
     private boolean network$disable_chat_report;
     private boolean network$mod_channel$enable;
     private boolean network$mod_channel$requires_permission;
+    private boolean network$item_crypto$enable;
+    private String network$item_crypto$algorithm;
+    private String network$item_crypto$key;
 
     private boolean item$client_bound_model;
     private boolean item$non_italic_tag;
@@ -680,6 +684,17 @@ public final class Config {
         this.network$intercept_packets$player_chat = config.getBoolean("network.intercept-packets.player-chat", true);
         this.network$mod_channel$enable = config.getBoolean("network.mod-channel.enable", true);
         this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
+        if (this.firstTime) {
+            this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
+            this.network$item_crypto$algorithm = config.getString("network.item-crypto.algorithm", "AES/GCM/NoPadding");
+            this.network$item_crypto$key = config.getString("network.item-crypto.key", "");
+            // 如果密钥为空则生成随机密钥
+            if (this.network$item_crypto$key.isEmpty() && this.network$item_crypto$enable) {
+                byte[] rawKey = new byte[16];
+                new SecureRandom().nextBytes(rawKey);
+                this.network$item_crypto$key = Base64.getEncoder().encodeToString(rawKey);
+            }
+        }
 
         // emoji
         this.emoji$contexts$chat = config.getBoolean("emoji.contexts.chat", true);
