@@ -24,6 +24,8 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorType;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.equipment.EquipmentType;
+import net.momirealms.craftengine.core.item.network.encrypt.Encryption;
+import net.momirealms.craftengine.core.item.network.encrypt.NetworkEncryptionType;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessorType;
 import net.momirealms.craftengine.core.item.recipe.Recipe;
@@ -122,6 +124,7 @@ public final class BuiltInRegistries {
     public static final Registry<ItemSettingsModifierType<? extends ItemSettingsModifier>> ITEM_SETTINGS_TYPE = createConstantBoundRegistry(Registries.ITEM_SETTINGS_TYPE, 16);
     public static final Registry<LootFunctionType<? extends LootFunction>> LOOT_FUNCTION_TYPE = createConstantBoundRegistry(Registries.LOOT_FUNCTION_TYPE, 32);
     public static final Registry<LootEntryContainerType<? extends LootEntryContainer>> LOOT_ENTRY_CONTAINER_TYPE = createConstantBoundRegistry(Registries.LOOT_ENTRY_CONTAINER_TYPE, 16);
+    public static final Registry<NetworkEncryptionType<? extends Encryption>> NETWORK_ENCRYPTION_TYPE = createConstantBoundRegistry(Registries.NETWORK_ENCRYPTION_TYPE, 16);
     // todo 修改
     public static final Registry<PlayerSelectorType<? extends Context>> PLAYER_SELECTOR_TYPE = createConstantBoundRegistry(Registries.PLAYER_SELECTOR_TYPE, 16);
 

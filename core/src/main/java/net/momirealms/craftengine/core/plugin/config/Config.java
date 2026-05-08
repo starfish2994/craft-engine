@@ -14,6 +14,7 @@ import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.item.network.encrypt.NetworkEncryption;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ConditionalResolution;
 import net.momirealms.craftengine.core.pack.host.HttpClientManager;
@@ -234,6 +235,7 @@ public final class Config {
     private String item$default_drop_display$format = null;
     private boolean item$data_fixer_upper$enable = true;
     private int item$data_fixer_upper$fallback_version = VersionHelper.WORLD_VERSION;
+    private boolean item$network_data_protection$enable = true;
 
     private String equipment$sacrificed_vanilla_armor$type;
     private Key equipment$sacrificed_vanilla_armor$asset_id;
@@ -573,6 +575,18 @@ public final class Config {
             this.item$data_fixer_upper$fallback_version = VersionHelper.WORLD_VERSION;
         } else {
             this.item$data_fixer_upper$fallback_version = Integer.parseInt(fallbackVersion);
+        }
+
+        if (this.firstTime) {
+            this.item$network_data_protection$enable = config.getBoolean("item.network-data-protection.enable", true);
+            String key = config.getString("item.network-data-protection.key");
+            if (key != null && !key.isEmpty()) {
+                NetworkEncryption.setKey(key);
+            }
+            String encryption = config.getString("item.network-data-protection.encryption", "xor");
+            if (encryption != null && !encryption.isEmpty()) {
+                NetworkEncryption.setEncryption(Key.ce(encryption.toLowerCase(Locale.ROOT)));
+            }
         }
 
         Section customModelDataOverridesSection = config.getSection("item.custom-model-data-starting-value.overrides");
@@ -1406,6 +1420,10 @@ public final class Config {
 
     public static int itemDataFixerUpperFallbackVersion() {
         return instance.item$data_fixer_upper$fallback_version;
+    }
+
+    public static boolean enableNetworkDataProtection() {
+        return instance.item$network_data_protection$enable;
     }
 
     public static boolean enableEntityCulling() {
