@@ -143,7 +143,7 @@ public final class PlayerChatListener {
 
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
             if (Config.disableChatReport()) {
-                PlayerChatListener.convertToSystemChat(user, event);
+                convertToSystemChat(user, event);
                 return;
             }
             if (!Config.interceptPlayerChat()) return;
@@ -245,11 +245,16 @@ public final class PlayerChatListener {
         /*globalIndex*/ if (VersionHelper.isOrAbove1_21_5()) buf.readVarInt();
         UUID sender = buf.readUUID();
         /*index*/ buf.readVarInt();
-        /*signature*/ buf.readFixedBytes(256);
+        /*signature*/ buf.readNullable(it -> it.readFixedBytes(256));
         String bodyContent = buf.readUtf(256);
         /*bodyTimeStamp*/ buf.readInstant();
         /*bodySalt*/ buf.readLong();
-        /*bodyLastSeen*/ buf.readCollection(FriendlyByteBuf.limitValue(ArrayList::new, 20), it -> it.readFixedBytes(256));
+        /*bodyLastSeen*/ buf.readCollection(FriendlyByteBuf.limitValue(ArrayList::new, 20), it -> {
+            if (it.readVarInt() == 0) {
+                it.readFixedBytes(256);
+            }
+            return null; // 我们只读取不在乎返回值
+        });
         Component unsignedContent = buf.readNullable(FriendlyByteBuf::readComponent);
         int filterMaskType = buf.readVarInt();
         /*filterMaskMask*/ if (filterMaskType == 2 /*PARTIALLY_FILTERED*/) buf.readBitSet();
@@ -266,7 +271,7 @@ public final class PlayerChatListener {
         // 过滤非法字符在 BukkitFontManager#processChatEvent 完成
         Object content = unsignedContent != null ? ComponentUtils.adventureToMinecraft(unsignedContent) : ComponentProxy.INSTANCE.literal(bodyContent);
         Object decorate = ChatTypeProxy.BoundProxy.INSTANCE.decorate(chatType, content);
-        if (Config.allowEmojiChat()) {
+        if (unsignedContent == null && Config.allowEmojiChat()) { // 如果不为 null 表明已经在 BukkitFontManager#processChatEvent 处理完成
             String rawJsonMessage = ComponentUtils.minecraftToJson(decorate);
             @javax.annotation.Nullable Player chatSender = CraftEngine.instance().platform().getPlayer(sender);
             EmojiTextProcessResult result = BukkitFontManager.instance().replaceJsonEmoji(rawJsonMessage, chatSender);
