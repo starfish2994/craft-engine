@@ -14,8 +14,8 @@ public interface IdDispatchCodecProxy extends StreamCodecProxy {
     List<Object> getById(Object target);
 
     @ReflectionProxy(name = "net.minecraft.network.codec.IdDispatchCodec$Entry", activeIf = "min_version=1.20.5")
-    interface Entry {
-        Entry INSTANCE = ASMProxyFactory.create(Entry.class);
+    interface EntryProxy {
+        EntryProxy INSTANCE = ASMProxyFactory.create(EntryProxy.class);
 
         @FieldGetter(name = "type")
         Object getType(Object target);
