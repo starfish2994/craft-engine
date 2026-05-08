@@ -1,12 +1,16 @@
 package net.momirealms.craftengine.core.item.network.encrypt;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public final class XOREncryption implements Encryption {
     public static final Encryption INSTANCE = new XOREncryption();
+    private static final VarHandle LONG_VIEW = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.nativeOrder());
     private byte[] keyBytes;
-    private int keyLength;
+    private long keyLong;
 
     static {
         INSTANCE.setKey(UUID.randomUUID().toString());
@@ -16,16 +20,17 @@ public final class XOREncryption implements Encryption {
 
     @Override
     public byte[] encrypt(byte[] data) {
-        int length = data.length;
-        byte[] result = new byte[length];
-        for (int i = 0, j = 0; i < length; i++) {
-            result[i] = (byte) (data[i] ^ keyBytes[j]);
-            j++;
-            if (j == keyLength) {
-                j = 0;
-            }
+        int len = data.length;
+        int i = 0;
+        int limit = len - 8;
+        for (; i <= limit; i += 8) {
+            long val = (long) LONG_VIEW.get(data, i);
+            LONG_VIEW.set(data, i, val ^ keyLong);
         }
-        return result;
+        for (; i < len; i++) {
+            data[i] = (byte) (data[i] ^ keyBytes[i % keyBytes.length]);
+        }
+        return data;
     }
 
     @Override
@@ -39,7 +44,11 @@ public final class XOREncryption implements Encryption {
             throw new IllegalArgumentException("Key cannot be null or empty");
         } else {
             this.keyBytes = key.getBytes(StandardCharsets.UTF_8);
-            this.keyLength = keyBytes.length;
+            byte[] paddedKey = new byte[8];
+            for (int i = 0; i < 8; i++) {
+                paddedKey[i] = keyBytes[i % keyBytes.length];
+            }
+            this.keyLong = (long) LONG_VIEW.get(paddedKey, 0);
         }
     }
 

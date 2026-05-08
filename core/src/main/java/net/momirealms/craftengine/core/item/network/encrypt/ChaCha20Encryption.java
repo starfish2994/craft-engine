@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.item.network.encrypt;
 
 import javax.crypto.Cipher;
-import javax.crypto.spec.ChaCha20ParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +18,7 @@ public final class ChaCha20Encryption implements Encryption {
     private static final ThreadLocal<Cipher> ENCRYPT_CIPHER =
             ThreadLocal.withInitial(() -> {
                 try {
-                    return Cipher.getInstance("ChaCha20");
+                    return Cipher.getInstance("ChaCha20-Poly1305");
                 } catch (GeneralSecurityException e) {
                     throw new RuntimeException(e);
                 }
@@ -27,12 +27,12 @@ public final class ChaCha20Encryption implements Encryption {
     private static final ThreadLocal<Cipher> DECRYPT_CIPHER =
             ThreadLocal.withInitial(() -> {
                 try {
-                    return Cipher.getInstance("ChaCha20");
+                    return Cipher.getInstance("ChaCha20-Poly1305");
                 } catch (GeneralSecurityException e) {
                     throw new RuntimeException(e);
                 }
             });
-    private static SecretKeySpec KEY_SPEC = new SecretKeySpec(INTERNAL_KEY, "ChaCha20");
+    private static SecretKeySpec KEY_SPEC = new SecretKeySpec(INTERNAL_KEY, "ChaCha20-Poly1305");
 
     private ChaCha20Encryption() {}
 
@@ -47,15 +47,9 @@ public final class ChaCha20Encryption implements Encryption {
         byte[] nonce = new byte[NONCE_LENGTH];
         RANDOM.nextBytes(nonce);
         Cipher cipher = ENCRYPT_CIPHER.get();
-        cipher.init(
-                Cipher.ENCRYPT_MODE,
-                KEY_SPEC,
-                new ChaCha20ParameterSpec(nonce, 1)
-        );
+        cipher.init(Cipher.ENCRYPT_MODE, KEY_SPEC, new IvParameterSpec(nonce));
         byte[] encrypted = cipher.doFinal(data);
-        ByteBuffer buffer = ByteBuffer.allocate(
-                NONCE_LENGTH + encrypted.length
-        );
+        ByteBuffer buffer = ByteBuffer.allocate(NONCE_LENGTH + encrypted.length);
         buffer.put(nonce);
         buffer.put(encrypted);
         return buffer.array();
@@ -72,11 +66,7 @@ public final class ChaCha20Encryption implements Encryption {
         byte[] cipherBytes = new byte[buffer.remaining()];
         buffer.get(cipherBytes);
         Cipher cipher = DECRYPT_CIPHER.get();
-        cipher.init(
-                Cipher.DECRYPT_MODE,
-                KEY_SPEC,
-                new ChaCha20ParameterSpec(nonce, 1)
-        );
+        cipher.init(Cipher.DECRYPT_MODE, KEY_SPEC, new IvParameterSpec(nonce));
         return cipher.doFinal(cipherBytes);
     }
 
@@ -88,7 +78,7 @@ public final class ChaCha20Encryption implements Encryption {
         try {
             MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
             byte[] hashed = sha256.digest(key.getBytes(StandardCharsets.UTF_8));
-            KEY_SPEC = new SecretKeySpec(hashed, "ChaCha20");
+            KEY_SPEC = new SecretKeySpec(hashed, "ChaCha20-Poly1305");
         } catch (Exception e) {
             throw new RuntimeException("Failed to set key", e);
         }

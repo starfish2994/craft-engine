@@ -16,9 +16,9 @@ public final class NetworkEncryption {
     private static Encryption encryption = NoEncryption.INSTANCE;
 
     static {
-        register(Key.ce("none"),NoEncryption.INSTANCE);
-        register(Key.ce("xor"),XOREncryption.INSTANCE);
-        register(Key.ce("chacha20"),ChaCha20Encryption.INSTANCE);
+        register(Key.ce("none"), NoEncryption.INSTANCE);
+        register(Key.ce("xor"), XOREncryption.INSTANCE);
+        register(Key.ce("chacha20"), ChaCha20Encryption.INSTANCE);
     }
 
     private NetworkEncryption() {}
