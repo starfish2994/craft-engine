@@ -112,7 +112,9 @@ snbt.parser.empty_key: 键不能为空
 snbt.parser.leading_zero_not_allowed: 十进制数不能以0开头
 snbt.parser.infinity_not_allowed: 不允许使用非有限数的数值
 snbt.parser.incorrect: 应为字面量<arg:0>
-plugin.compatibility: "[兼容性] 已挂钩 <arg:0>"
+yaml.duplicated_key: 在文件“<arg:0>”中的第“<arg:2>”行发现发现重复的键“<arg:1>”
+yaml.inconsistent_value_type: 在文件“<arg:0>”中的第“<arg:2>”行发现发现重复的键“<arg:1>”且值类型不同
+plugin.compatibility: '[兼容性] 已挂钩 <arg:0>'
 number.unknown_type: 未知的数字类型“<arg:0>”
 number.fixed.invalid_expression: 无效的表达式“<arg:0>”。https://ezylang.github.io/EvalEx/references/references.html
 number.greater_than: “<arg:0>”应大于“<arg:1>”
@@ -138,19 +140,35 @@ host.self.http_server_started: Netty HTTP服务器已在<arg:0>端口启动
 config.errors_detected: 在config.yml中发现错误 - <arg:0>
 update.available: 新版本<arg:0>已发布：<arg:1>
 update.is_latest: 你正在使用最新版本
+resource_pack.invalid_overlay_format: 无效的叠加资源包格式“<arg:0>”。叠加资源包格式必须包含占位符“{version}”
 resource_pack.generation_started: 正在生成资源包…
 resource_pack.generation_finished: 资源包生成完成，耗时<arg:0>毫秒
 resource_pack.validation_started: 正在验证资源包…（进度：<arg:0>/<arg:1> | 资源包格式：<arg:2>~<arg:3> | 叠加资源包：<arg:4>）
 resource_pack.validation_finished: 资源包验证完成，耗时<arg:0>毫秒
 resource_pack.json_optimization_started: '> 正在优化json文件…'
 resource_pack.texture_optimization_started: '> 正在优化纹理文件…'
-resource_pack.optimization_result: '> □ 优化前/优化后/比率：<arg:0>/<arg:1>/<arg:2>%'
+resource_pack.optimization_result: '> □ 优化前/优化后/比率：<arg:0>/<arg:1>/<arg:2>'
 resource_pack.optimization_finished: 资源包优化完成，耗时<arg:0>毫秒
 resource_pack.compression_started: 正在压缩资源包…（如果启用了混淆功能，此过程可能会比较慢）
 resource_pack.compression_finished: 资源包压缩完成，耗时<arg:0>毫秒
 resource_pack.duplicated_files: 发现重复文件。请通过config.yml文件中的“resource-pack.duplicated-files-handler”部分进行处理
 resource_pack.malformatted_json: Json文件“<arg:0>”的格式不正确
+resource_pack.not_a_json_object: Json文件“<arg:0>”不是一个json对象
 resource_pack.conflict_resolution.unknown_type: 未知的文件冲突解决方案类型“<arg:0>”
+resource_pack.model_generation.conflict: 无法生成模型，因为模型文件“<arg:0>”已存在
+resource_pack.item_model.conflict: 无法生成物品模型映射“<arg:0>”，因为文件“<arg:1>”已存在
+resource_pack.missing_font_texture: 字体“<arg:0>”缺少纹理“<arg:1>”
+resource_pack.missing_model_texture: 模型“<arg:0>”缺少纹理“<arg:1>”
+resource_pack.missing_equipment_texture: 装备“<arg:0>”缺少纹理“<arg:1>”
+resource_pack.missing_atlas_texture: 图集“<arg:0>”缺少纹理“<arg:1>”
+resource_pack.missing_item_model: 物品“<arg:0>”缺少模型文件“<arg:1>”
+resource_pack.missing_block_model: 方块状态“<arg:0>”缺少模型文件“<arg:1>”
+resource_pack.missing_parent_model: 模型“<arg:0>”找不到父模型“<arg:1>”
+resource_pack.missing_sound: 声音事件“<arg:0>”缺少ogg文件“<arg:1>”
+resource_pack.texture_not_in_atlas: 纹理“<arg:0>”未在图集中定义。你需要将纹理路径添加到图集，或在config.yml中启用“fix-atlas”选项
+resource_pack.multiple_atlases: 模型“<arg:0>”使用了多个图集：预期为“<arg:1>”，但发现“<arg:2>”。请确保所有模型纹理来自同一图集
+resource_pack.duplicated_sprite: 无法加载模型“<arg:0>”。图集“<arg:2>”中的精灵图“<arg:1>”重复，它已在图集“<arg:3>”中定义
+resource_pack.bad_atlas: 加载模型“<arg:0>”失败。精灵图“<arg:1>”应来自图集“<arg:2>”，但实际来自图集“<arg:3>”
 resource.argument.type.section: 配置部分
 resource.argument.type.boolean: 布尔值
 resource.argument.type.int: 整数
@@ -212,6 +230,7 @@ resource.emoji.invalid_image_format: 无效的图像格式“<arg:0>”
 resource.emoji.unknown_image: 未知的图像“<arg:0>”
 resource.equipment.unknown_type: 未知的装备类型“<arg:0>”
 resource.equipment.unknown_layer_type: 未知的预设模型类型“<arg:0>”
+resource.equipment.invalid_sacrificed_armor: 无效的原版盔甲类型“<arg:0>”
 resource.furniture.element.unknown_type: 未知的家具元素类型“<arg:0>”
 resource.furniture.element.tint_source.unknown_type: 未知的家具染色源类型“<arg:0>”
 resource.furniture.hitbox.unknown_type: 未知的家具判定箱类型“<arg:0>”
@@ -251,7 +270,7 @@ resource.item.missing_model_id: 缺少“custom_model_data”或“item_model”
 resource.item.occupied_vanilla_item_model: 物品模型“<arg:0>”已被原版物品占用
 resource.item.invalid_material: 无效的物品类型“<arg:0>”
 resource.model.generation.conflict: 无法为“<arg:0>”生成模型，因为有两个或多个配置试图使用相同的路径生成不同的json模型
-resource.recipe.smithing_transform.post_processor.unknown_type: 未知的锻造配方后处理器类型“<arg:0>”
+resource.recipe.transform_processor.unknown_type: 未知的锻造配方后处理器类型“<arg:0>”
 resource.recipe.ingredient.invalid_tag: 物品标签“<arg:0>”不包含任何物品
 resource.recipe.ingredient.item_not_exist: 原料物品“<arg:0>”不存在
 resource.recipe.result.item_not_exist: 结果物品“<arg:0>”不存在

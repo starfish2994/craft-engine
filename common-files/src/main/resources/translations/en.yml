@@ -147,7 +147,7 @@ resource_pack.validation_started: 'Validating resource pack... (Progress: <arg:0
 resource_pack.validation_finished: Validated resource pack in <arg:0>ms
 resource_pack.json_optimization_started: '> Optimizing json files...'
 resource_pack.texture_optimization_started: '> Optimizing texture files...'
-resource_pack.optimization_result: '> □ Before/After/Ratio: <arg:0>/<arg:1>/<arg:2>%'
+resource_pack.optimization_result: '> □ Before/After/Ratio: <arg:0>/<arg:1>/<arg:2>'
 resource_pack.optimization_finished: Optimized resource pack in <arg:0>ms
 resource_pack.compression_started: Compressing resource pack...(This progress might be slow if you have obfuscation enabled)
 resource_pack.compression_finished: Compressed resource pack in <arg:0>ms
@@ -157,7 +157,7 @@ resource_pack.not_a_json_object: Json file '<arg:0>' is not a json object
 resource_pack.conflict_resolution.unknown_type: Unknown conflict resolution type '<arg:0>'
 resource_pack.model_generation.conflict: Failed to generate model because the model file '<arg:0>' already exists
 resource_pack.item_model.conflict: Failed to generate item model '<arg:0>' because the file '<arg:1>' already exists
-resource_pack.missing_font_texture: "Font '<arg:0>' is missing texture: '<arg:1>'"
+resource_pack.missing_font_texture: "Font '<arg:0>' is missing texture '<arg:1>'"
 resource_pack.missing_model_texture: "Model '<arg:0>' is missing texture '<arg:1>'"
 resource_pack.missing_equipment_texture: "Equipment '<arg:0>' is missing texture '<arg:1>'"
 resource_pack.missing_atlas_texture: "Atlas '<arg:0>' is missing texture '<arg:1>'"
