@@ -710,8 +710,12 @@ public abstract class AbstractPackManager implements PackManager {
                 this.generateBlockOverrides(generatedPackPath, true, Config.generateModAssets());
             }
 
+            JsonObject packMcMeta = null;
             Path packMcMetaPath = generatedPackPath.resolve("pack.mcmeta");
-            JsonObject packMcMeta = readJsonObjectFromFileOrWarn(packMcMetaPath);
+            if (Files.exists(packMcMetaPath)) {
+                packMcMeta = readJsonObjectFromFileOrWarn(packMcMetaPath);
+            }
+
             if (packMcMeta == null) {
                 packMcMeta = new JsonObject();
             }

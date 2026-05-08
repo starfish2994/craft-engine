@@ -78,7 +78,7 @@ public final class ModPackets {
                     return;
                 }
             }
-            packet.receive(user);
+            packet.handle(user);
         } catch (Throwable e) {
             // 乱发包我给你踹了
             user.kick(Component.translatable(
