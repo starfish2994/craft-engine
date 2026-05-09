@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
+import net.momirealms.craftengine.core.item.processor.IdProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -15,6 +16,7 @@ import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.AdventureHelper;
+import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
@@ -117,37 +119,49 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             }
         }
 
-        // 先尝试恢复client-bound-material
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
-        if (optionalCustomItem.isPresent()) {
-            BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
+        CompoundTag networkData = null;
+
+        // 获取custom data
+        CompoundTag customData = (CompoundTag) wrapped.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA);
+        if (customData != null) {
+            // 先解密
+            networkData = ItemCrypto.decrypt(customData.get(NETWORK_ITEM_TAG));
+            if (networkData != null) {
+                CompoundTag rawCustomDataTag = networkData.getCompound(DataComponentIds.CUSTOM_DATA);
+                // 解密结果里可能有物品id，所以先还原 custom_data
+                if (rawCustomDataTag != null) {
+                    networkData.remove(DataComponentIds.CUSTOM_DATA);
+                    NetworkItemHandler.apply(DataComponentIds.CUSTOM_DATA, rawCustomDataTag, wrapped);
+                    customData = rawCustomDataTag.getCompound(NetworkItemHandler.NETWORK_VALUE);
+                }
+            }
+        }
+
+        Optional<ItemDefinition> itemDefinition = wrapped.getDefinition();
+        // 一定要先尝试恢复client-bound-material，再应用组件变化
+        if (itemDefinition.isPresent()) {
+            BukkitItemDefinition customItem = (BukkitItemDefinition) itemDefinition.get();
             if (customItem.item() != ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem())) {
                 wrapped = wrapped.unsafeTransmuteCopy(customItem.item(), wrapped.count());
                 forceReturn = true;
             }
         }
 
-        // 获取custom data
-        Tag customData = wrapped.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA);
-        if (customData instanceof CompoundTag compoundTag) {
-            CompoundTag networkData = ItemCrypto.decrypt(compoundTag.get(NETWORK_ITEM_TAG));
-            if (networkData != null) {
-                forceReturn = true;
-                // 移除此tag
-                compoundTag.remove(NETWORK_ITEM_TAG);
+        // 应用组件变化
+        if (networkData != null) {
+            forceReturn = true;
 
-                // 恢复物品
-                for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
-                    if (entry.getValue() instanceof CompoundTag tag) {
-                        NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
-                    }
+            // 恢复物品
+            for (Map.Entry<String, Tag> entry : networkData.entrySet()) {
+                if (entry.getValue() instanceof CompoundTag tag) {
+                    NetworkItemHandler.apply(entry.getKey(), tag, wrapped);
                 }
-
-                // 如果清空了，则直接移除这个组件
-                if (compoundTag.isEmpty()) wrapped.resetComponent(DataComponentTypes.CUSTOM_DATA);
-                // 否则设置为新的
-                else wrapped.setSparrowTagComponent(DataComponentTypes.CUSTOM_DATA, compoundTag);
             }
+
+            // 如果清空了，则直接移除这个组件
+            if (customData.isEmpty()) wrapped.resetComponent(DataComponentTypes.CUSTOM_DATA);
+            // 否则设置为新的
+            else wrapped.setSparrowTagComponent(DataComponentTypes.CUSTOM_DATA, customData);
         }
 
         return forceReturn ? Optional.of(wrapped) : Optional.empty();
