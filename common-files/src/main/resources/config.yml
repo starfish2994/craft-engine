@@ -512,7 +512,7 @@ network:
 
   # Encrypt the raw component information before sending it to the client. This option requires a restart to apply.
   item-crypto:
-    enable: false
+    enable: true
     algorithm: xor # xor/chacha20
     key: ""  # empty = random key
 
