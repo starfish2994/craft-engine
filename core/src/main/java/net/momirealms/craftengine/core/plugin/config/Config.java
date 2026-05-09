@@ -687,7 +687,7 @@ public final class Config {
         if (this.firstTime) {
             this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
             if (this.network$item_crypto$enable) {
-                String algorithm = config.getString("network.item-crypto.algorithm", "xor").toLowerCase(Locale.ROOT);
+                String algorithm = config.getString("network.item-crypto.algorithm", "xor").toLowerCase(Locale.ROOT).replace('_', '-');
                 String key = config.getString("network.item-crypto.key", "");
                 if (key.isEmpty()) {
                     key = UUID.randomUUID().toString();
