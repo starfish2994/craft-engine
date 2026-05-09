@@ -1,9 +1,9 @@
 package net.momirealms.craftengine.core.item.network.encrypt;
 
-public final class NoEncryption implements Encryption {
-    public static final Encryption INSTANCE = new NoEncryption();
+public final class NoAlgorithm implements Algorithm {
+    public static final Algorithm INSTANCE = new NoAlgorithm();
 
-    private NoEncryption() {}
+    private NoAlgorithm() {}
 
     @Override
     public byte[] encrypt(byte[] data) {

@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.network.encrypt;
 
-public interface Encryption {
+public interface Algorithm {
 
     byte[] encrypt(byte[] data) throws Exception;
 

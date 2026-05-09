@@ -6,8 +6,8 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-public final class XOREncryption implements Encryption {
-    public static final Encryption INSTANCE = new XOREncryption();
+public final class XORAlgorithm implements Algorithm {
+    public static final Algorithm INSTANCE = new XORAlgorithm();
     private static final VarHandle LONG_VIEW = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.nativeOrder());
     private byte[] keyBytes;
     private long keyLong;
@@ -16,7 +16,7 @@ public final class XOREncryption implements Encryption {
         INSTANCE.setKey(UUID.randomUUID().toString());
     }
 
-    private XOREncryption() {}
+    private XORAlgorithm() {}
 
     @Override
     public byte[] encrypt(byte[] data) {

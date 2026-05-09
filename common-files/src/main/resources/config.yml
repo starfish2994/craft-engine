@@ -310,10 +310,6 @@ item:
   data-fixer-upper:
     enable: true
     fallback-version: server # https://minecraft.wiki/w/Data_version#Java_Edition
-  network-data-protection:
-    enable: true
-    #key: ""
-    encryption: xor # none/xor/chacha20
 
 equipment:
   # The sacrificed-vanilla-armor argument determines which vanilla armor gets completely removed (loses all its trims)
@@ -517,7 +513,7 @@ network:
   # Encrypt the raw component information before sending it to the client. This option requires a restart to apply.
   item-crypto:
     enable: false
-    algorithm: AES/GCM/NoPadding
+    algorithm: xor # none/xor/chacha20
     key: ""  # empty = random key
 
 recipe:

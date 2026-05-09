@@ -6,7 +6,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
-import net.momirealms.craftengine.core.item.network.encrypt.NetworkEncryption;
+import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
 import net.momirealms.craftengine.core.item.processor.ArgumentsProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -111,7 +111,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
             }
         }
 
-        CompoundTag networkData = NetworkEncryption.decrypt(wrapped.getSparrowTag(NETWORK_ITEM_TAG));
+        CompoundTag networkData = ItemCrypto.decrypt(wrapped.getSparrowTag(NETWORK_ITEM_TAG));
         if (networkData != null) {
             forceReturn = true;
             // 移除tag
@@ -247,7 +247,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         }
         // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {
-            wrapped.setTag(NetworkEncryption.encrypt(tag), NETWORK_ITEM_TAG);
+            wrapped.setTag(ItemCrypto.encrypt(tag), NETWORK_ITEM_TAG);
             forceReturn = true;
         }
         return forceReturn ? Optional.of(wrapped) : Optional.empty();
@@ -314,7 +314,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
                 this.globalChanged = true;
             }
             if (this.globalChanged) {
-                this.item.setTag(NetworkEncryption.encrypt(this.networkTag), NETWORK_ITEM_TAG);
+                this.item.setTag(ItemCrypto.encrypt(this.networkTag), NETWORK_ITEM_TAG);
                 return Optional.of(this.item);
             } else if (this.forceReturn) {
                 return Optional.of(this.item);

@@ -9,8 +9,8 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
-public final class ChaCha20Encryption implements Encryption {
-    public static final Encryption INSTANCE = new ChaCha20Encryption();
+public final class ChaCha20Algorithm implements Algorithm {
+    public static final Algorithm INSTANCE = new ChaCha20Algorithm();
     private static final int KEY_LENGTH = 32;
     private static final int NONCE_LENGTH = 12;
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -34,7 +34,7 @@ public final class ChaCha20Encryption implements Encryption {
             });
     private static SecretKeySpec KEY_SPEC = new SecretKeySpec(INTERNAL_KEY, "ChaCha20-Poly1305");
 
-    private ChaCha20Encryption() {}
+    private ChaCha20Algorithm() {}
 
     private static byte[] generateKey() {
         byte[] key = new byte[KEY_LENGTH];

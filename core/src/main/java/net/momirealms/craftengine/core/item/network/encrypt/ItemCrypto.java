@@ -12,29 +12,29 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.NBT;
 import net.momirealms.sparrow.nbt.Tag;
 
-public final class NetworkEncryption {
-    private static Encryption encryption = NoEncryption.INSTANCE;
+public final class ItemCrypto {
+    private static Algorithm algorithm = NoAlgorithm.INSTANCE;
 
     static {
-        register(Key.ce("none"), NoEncryption.INSTANCE);
-        register(Key.ce("xor"), XOREncryption.INSTANCE);
-        register(Key.ce("chacha20"), ChaCha20Encryption.INSTANCE);
+        register(Key.ce("none"), NoAlgorithm.INSTANCE);
+        register(Key.ce("xor"), XORAlgorithm.INSTANCE);
+        register(Key.ce("chacha20"), ChaCha20Algorithm.INSTANCE);
     }
 
-    private NetworkEncryption() {}
+    private ItemCrypto() {}
 
-    public static <T extends Encryption> NetworkEncryptionType<T> register(Key key, T encryption) {
-        NetworkEncryptionType<T> type = new NetworkEncryptionType<>(key, encryption);
-        ((WritableRegistry<NetworkEncryptionType<? extends Encryption>>) BuiltInRegistries.NETWORK_ENCRYPTION_TYPE)
-                .register(ResourceKey.create(Registries.NETWORK_ENCRYPTION_TYPE.location(), key), type);
+    public static <T extends Algorithm> ItemCryptoAlgorithm<T> register(Key key, T algorithm) {
+        ItemCryptoAlgorithm<T> type = new ItemCryptoAlgorithm<>(key, algorithm);
+        ((WritableRegistry<ItemCryptoAlgorithm<? extends Algorithm>>) BuiltInRegistries.ITEM_CRYPTO_ALGORITHM)
+                .register(ResourceKey.create(Registries.ITEM_CRYPTO_ALGORITHM.location(), key), type);
         return type;
     }
 
     public static Tag encrypt(CompoundTag compoundTag) {
         if (compoundTag == null) return null;
-        if (!Config.enableNetworkDataProtection()) return compoundTag;
+        if (!Config.enableItemCrypto()) return compoundTag;
         try {
-            return new ByteArrayTag(encryption.encrypt(NBT.toBytes(compoundTag)));
+            return new ByteArrayTag(algorithm.encrypt(NBT.toBytes(compoundTag)));
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to encrypt NBT tag", e);
         }
@@ -42,7 +42,7 @@ public final class NetworkEncryption {
 
     public static CompoundTag decrypt(Tag tag) {
         if (tag == null) return null;
-        if (!Config.enableNetworkDataProtection()) return (CompoundTag) tag;
+        if (!Config.enableItemCrypto()) return (CompoundTag) tag;
         if (tag instanceof CompoundTag compoundTag) {
             return compoundTag;
         }
@@ -50,23 +50,23 @@ public final class NetworkEncryption {
             throw new IllegalArgumentException("Invalid NBT tag");
         }
         try {
-            return NBT.fromBytes(encryption.decrypt(byteArrayTag.getAsByteArray()));
+            return NBT.fromBytes(algorithm.decrypt(byteArrayTag.getAsByteArray()));
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to decrypt NBT tag", e);
         }
     }
 
     public static void setKey(String key) {
-        encryption.setKey(key);
+        algorithm.setKey(key);
     }
 
-    public static void setEncryption(Key id) {
-        NetworkEncryptionType<? extends Encryption> value = BuiltInRegistries.NETWORK_ENCRYPTION_TYPE.getValue(id);
+    public static void setAlgorithm(Key id) {
+        ItemCryptoAlgorithm<? extends Algorithm> value = BuiltInRegistries.ITEM_CRYPTO_ALGORITHM.getValue(id);
         if (value == null) {
-            encryption = NoEncryption.INSTANCE;
-            CraftEngine.instance().logger().warn("Unknown network encryption type: " + id);
+            algorithm = NoAlgorithm.INSTANCE;
+            CraftEngine.instance().logger().warn("Unknown item crypto algorithm: " + id);
         } else {
-            encryption = value.encryption();
+            algorithm = value.encryption();
         }
     }
 }
