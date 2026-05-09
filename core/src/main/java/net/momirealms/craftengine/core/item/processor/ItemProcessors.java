@@ -16,7 +16,9 @@ public final class ItemProcessors {
     private ItemProcessors() {}
 
     public static final ItemProcessorType<ItemModelProcessor> ITEM_MODEL = register(Key.ce("item_model"), ItemModelProcessor.FACTORY, VersionHelper.isOrAbove1_21_2());
-    public static final ItemProcessorType<ArgumentsProcessor> ARGUMENTS = register(Key.ce("arguments"), ArgumentsProcessor.FACTORY);
+    public static final ItemProcessorType<SetArgumentsProcessor> ARGUMENTS = register(Key.ce("arguments"), SetArgumentsProcessor.FACTORY);
+    public static final ItemProcessorType<SetArgumentsProcessor> SET_ARGUMENTS = register(Key.ce("set_arguments"), SetArgumentsProcessor.FACTORY);
+    public static final ItemProcessorType<GetArgumentsProcessor> GET_ARGUMENTS = register(Key.ce("get_arguments"), GetArgumentsProcessor.FACTORY);
     public static final ItemProcessorType<OverwritableItemModelProcessor> OVERWRITABLE_ITEM_MODEL = register(Key.ce("overwritable_item_model"), OverwritableItemModelProcessor.FACTORY, VersionHelper.isOrAbove1_21_2());
     public static final ItemProcessorType<IdProcessor> ID = register(Key.ce("id"), IdProcessor.FACTORY);
     public static final ItemProcessorType<HideTooltipProcessor> HIDE_TOOLTIP = register(Key.ce("hide_tooltip"), HideTooltipProcessor.FACTORY);

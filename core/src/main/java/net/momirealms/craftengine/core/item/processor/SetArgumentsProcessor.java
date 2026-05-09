@@ -10,12 +10,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class ArgumentsProcessor implements ItemProcessor {
-    public static final ItemProcessorFactory<ArgumentsProcessor> FACTORY = new Factory();
+public final class SetArgumentsProcessor implements ItemProcessor {
+    public static final ItemProcessorFactory<SetArgumentsProcessor> FACTORY = new Factory();
     public static final String ARGUMENTS_TAG = "craftengine:arguments";
     private final Map<String, TextProvider> arguments;
 
-    public ArgumentsProcessor(Map<String, TextProvider> arguments) {
+    public SetArgumentsProcessor(Map<String, TextProvider> arguments) {
         this.arguments = arguments;
     }
 
@@ -29,20 +29,20 @@ public final class ArgumentsProcessor implements ItemProcessor {
         for (Map.Entry<String, TextProvider> entry : this.arguments.entrySet()) {
             processed.put(entry.getKey(), entry.getValue().get(context));
         }
-        item.setTag(processed, ARGUMENTS_TAG);
+        item.setJavaTag(processed, ARGUMENTS_TAG);
         return item;
     }
 
-    private static class Factory implements ItemProcessorFactory<ArgumentsProcessor> {
+    private static class Factory implements ItemProcessorFactory<SetArgumentsProcessor> {
 
         @Override
-        public ArgumentsProcessor create(ConfigValue value) {
+        public SetArgumentsProcessor create(ConfigValue value) {
             Map<String, TextProvider> arguments = new LinkedHashMap<>();
             ConfigSection section = value.getAsSection();
             for (String key : section.keySet()) {
                 arguments.put(key, section.getValue(key, ConfigValue::getAsText));
             }
-            return new ArgumentsProcessor(arguments);
+            return new SetArgumentsProcessor(arguments);
         }
     }
 }

@@ -8,13 +8,10 @@ import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
-import net.momirealms.craftengine.core.item.processor.ArgumentsProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.Context;
-import net.momirealms.craftengine.core.plugin.context.ContextHolder;
-import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.AdventureHelper;
@@ -257,22 +254,8 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             }
             return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
         }
-        // 获取custom data
-        CompoundTag customData = Optional.ofNullable(wrapped.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA))
-                .map(CompoundTag.class::cast)
-                .orElseGet(CompoundTag::new);
-        CompoundTag arguments = customData.getCompound(ArgumentsProcessor.ARGUMENTS_TAG);
         // 创建context
-        NetworkItemBuildContext context;
-        if (arguments == null) {
-            context = NetworkItemBuildContext.of(player);
-        } else {
-            ContextHolder.Builder builder = ContextHolder.builder();
-            for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
-                builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
-            }
-            context = NetworkItemBuildContext.of(player, builder);
-        }
+        NetworkItemBuildContext context = NetworkItemBuildContext.of(player);
         // 准备阶段
         CompoundTag tag = new CompoundTag();
         for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
@@ -299,6 +282,9 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
         // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {
+            CompoundTag customData = Optional.ofNullable(wrapped.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA))
+                    .map(CompoundTag.class::cast)
+                    .orElseGet(CompoundTag::new);
             customData.put(NETWORK_ITEM_TAG, ItemCrypto.encrypt(tag));
             wrapped.setSparrowTagComponent(DataComponentTypes.CUSTOM_DATA, customData);
             forceReturn = true;

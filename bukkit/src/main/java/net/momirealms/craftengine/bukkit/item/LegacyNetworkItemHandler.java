@@ -7,7 +7,7 @@ import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
-import net.momirealms.craftengine.core.item.processor.ArgumentsProcessor;
+import net.momirealms.craftengine.core.item.processor.SetArgumentsProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -215,17 +215,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         // 应用client-bound-data
         CompoundTag tag = new CompoundTag();
         // 创建context
-        Tag argumentTag = wrapped.getSparrowTag(ArgumentsProcessor.ARGUMENTS_TAG);
-        NetworkItemBuildContext context;
-        if (argumentTag instanceof CompoundTag arguments) {
-            ContextHolder.Builder builder = ContextHolder.builder();
-            for (Map.Entry<String, Tag> entry : arguments.entrySet()) {
-                builder.withParameter(ContextKey.direct(entry.getKey()), entry.getValue().getAsString());
-            }
-            context = NetworkItemBuildContext.of(player, builder);
-        } else {
-            context = NetworkItemBuildContext.of(player);
-        }
+        NetworkItemBuildContext context = NetworkItemBuildContext.of(player);
         // 准备阶段
         for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
             modifier.prepareNetworkItem(wrapped, context, tag);
