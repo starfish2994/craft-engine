@@ -756,8 +756,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                                 }
                                 map.put(customModelData, new ModernItemModel(
                                         modernModel,
-                                        section.getBoolean(OVERSIZED_IN_GUI, true),
                                         section.getBoolean(HAND_ANIMATION_ON_SWAP, true),
+                                        section.getBoolean(OVERSIZED_IN_GUI, true),
                                         section.getFloat(SWAP_ANIMATION_SCALE, 1f)
                                 ));
                                 return map;
@@ -783,8 +783,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                         if (isModernFormatRequired() && hasModernModel) {
                             AbstractItemManager.this.modernItemModels1_21_4.put(itemModel, new ModernItemModel(
                                     modernModel,
-                                    section.getBoolean(OVERSIZED_IN_GUI, true),
                                     section.getBoolean(HAND_ANIMATION_ON_SWAP, true),
+                                    section.getBoolean(OVERSIZED_IN_GUI, true),
                                     section.getFloat(SWAP_ANIMATION_SCALE, 1f)
                             ));
                         }
@@ -804,8 +804,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     if (isModernFormatRequired()) {
                         AbstractItemManager.this.modernItemModels1_21_4.put(id, new ModernItemModel(
                                 modernModel,
-                                section.getBoolean(OVERSIZED_IN_GUI, true),
                                 section.getBoolean(HAND_ANIMATION_ON_SWAP, true),
+                                section.getBoolean(OVERSIZED_IN_GUI, true),
                                 section.getFloat(SWAP_ANIMATION_SCALE, 1f)
                         ));
                     }

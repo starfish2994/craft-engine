@@ -307,6 +307,8 @@ item:
   default-drop-display:
     enable: false
     format: "<arg:count>x <name>"
+
+  # When updating the server version, update existing items.
   data-fixer-upper:
     enable: true
     fallback-version: server # https://minecraft.wiki/w/Data_version#Java_Edition
@@ -513,6 +515,11 @@ network:
   # Encrypt the raw component information before sending it to the client. This option requires a restart to apply.
   item-crypto:
     enable: true
+    # Encryption algorithm for item data
+    # ID        |  Encryption Speed | Consistency |
+    # xor       |      Instant         Absolute   |
+    # aes-gcm   |       Fast            Random    |
+    # chacha20  |       Fast            Random    |
     algorithm: xor # xor/aes-gcm/chacha20
     key: ""  # empty = random key
 
