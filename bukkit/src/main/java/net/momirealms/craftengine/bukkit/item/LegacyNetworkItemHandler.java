@@ -188,8 +188,6 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
             }
         }
 
-        // todo 处理book
-
         Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         // 不是自定义物品或修改过的原版物品
         if (optionalCustomItem.isEmpty()) {

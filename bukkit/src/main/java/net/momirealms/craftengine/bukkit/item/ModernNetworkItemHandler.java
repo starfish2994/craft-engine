@@ -233,8 +233,6 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             }
         }
 
-        // todo 处理book
-
         // 不是自定义物品或修改过的原版物品
         Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
         if (optionalCustomItem.isEmpty()) {

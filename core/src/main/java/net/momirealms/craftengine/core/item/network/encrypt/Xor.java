@@ -4,19 +4,20 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
-public final class XORAlgorithm implements Algorithm {
-    public static final Algorithm INSTANCE = new XORAlgorithm();
+public final class Xor implements CryptoAlgorithm {
     private static final VarHandle LONG_VIEW = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.nativeOrder());
-    private byte[] keyBytes;
-    private long keyLong;
+    private final byte[] keyBytes;
+    private final long keyLong;
 
-    static {
-        INSTANCE.setKey(UUID.randomUUID().toString());
+    public Xor(String key) {
+        this.keyBytes = key.getBytes(StandardCharsets.UTF_8);
+        byte[] paddedKey = new byte[8];
+        for (int i = 0; i < 8; i++) {
+            paddedKey[i] = keyBytes[i % keyBytes.length];
+        }
+        this.keyLong = (long) LONG_VIEW.get(paddedKey, 0);
     }
-
-    private XORAlgorithm() {}
 
     @Override
     public byte[] encrypt(byte[] data) {
@@ -37,19 +38,4 @@ public final class XORAlgorithm implements Algorithm {
     public byte[] decrypt(byte[] data) {
         return encrypt(data);
     }
-
-    @Override
-    public void setKey(String key) {
-        if (key == null || key.isEmpty()) {
-            throw new IllegalArgumentException("Key cannot be null or empty");
-        } else {
-            this.keyBytes = key.getBytes(StandardCharsets.UTF_8);
-            byte[] paddedKey = new byte[8];
-            for (int i = 0; i < 8; i++) {
-                paddedKey[i] = keyBytes[i % keyBytes.length];
-            }
-            this.keyLong = (long) LONG_VIEW.get(paddedKey, 0);
-        }
-    }
-
 }

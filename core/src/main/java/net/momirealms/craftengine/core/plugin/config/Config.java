@@ -14,7 +14,9 @@ import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.item.network.encrypt.ChaCha20;
 import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
+import net.momirealms.craftengine.core.item.network.encrypt.Xor;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ConditionalResolution;
 import net.momirealms.craftengine.core.pack.host.HttpClientManager;
@@ -683,13 +685,17 @@ public final class Config {
         this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
         if (this.firstTime) {
             this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
-            String algorithm = config.getString("network.item-crypto.algorithm", "xor");
-            if (!algorithm.isEmpty()) {
-                ItemCrypto.setAlgorithm(Key.ce(algorithm.toLowerCase(Locale.ROOT)));
-            }
-            String key = config.getString("network.item-crypto.key", "");
-            if (!key.isEmpty()) {
-                ItemCrypto.setKey(key);
+            if (this.network$item_crypto$enable) {
+                String algorithm = config.getString("network.item-crypto.algorithm", "xor");
+                String key = config.getString("network.item-crypto.key", "");
+                if (key.isEmpty()) {
+                    key = UUID.randomUUID().toString();
+                }
+                switch (algorithm) {
+                    case "xor" -> ItemCrypto.setAlgorithm(new Xor(key));
+                    case "chacha20" -> ItemCrypto.setAlgorithm(new ChaCha20(key));
+                    case "none" -> {}
+                }
             }
         }
 

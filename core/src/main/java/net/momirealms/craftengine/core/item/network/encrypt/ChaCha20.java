@@ -9,12 +9,9 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
-public final class ChaCha20Algorithm implements Algorithm {
-    public static final Algorithm INSTANCE = new ChaCha20Algorithm();
-    private static final int KEY_LENGTH = 32;
+public final class ChaCha20 implements CryptoAlgorithm {
     private static final int NONCE_LENGTH = 12;
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final byte[] INTERNAL_KEY = generateKey();
     private static final ThreadLocal<Cipher> ENCRYPT_CIPHER =
             ThreadLocal.withInitial(() -> {
                 try {
@@ -32,14 +29,16 @@ public final class ChaCha20Algorithm implements Algorithm {
                     throw new RuntimeException(e);
                 }
             });
-    private static SecretKeySpec KEY_SPEC = new SecretKeySpec(INTERNAL_KEY, "ChaCha20-Poly1305");
+    private final SecretKeySpec keySpec;
 
-    private ChaCha20Algorithm() {}
-
-    private static byte[] generateKey() {
-        byte[] key = new byte[KEY_LENGTH];
-        RANDOM.nextBytes(key);
-        return key;
+    public ChaCha20(String key) {
+        try {
+            MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+            byte[] hashed = sha256.digest(key.getBytes(StandardCharsets.UTF_8));
+            this.keySpec = new SecretKeySpec(hashed, "ChaCha20-Poly1305");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set key", e);
+        }
     }
 
     @Override
@@ -47,7 +46,7 @@ public final class ChaCha20Algorithm implements Algorithm {
         byte[] nonce = new byte[NONCE_LENGTH];
         RANDOM.nextBytes(nonce);
         Cipher cipher = ENCRYPT_CIPHER.get();
-        cipher.init(Cipher.ENCRYPT_MODE, KEY_SPEC, new IvParameterSpec(nonce));
+        cipher.init(Cipher.ENCRYPT_MODE, this.keySpec, new IvParameterSpec(nonce));
         byte[] encrypted = cipher.doFinal(data);
         ByteBuffer buffer = ByteBuffer.allocate(NONCE_LENGTH + encrypted.length);
         buffer.put(nonce);
@@ -66,22 +65,7 @@ public final class ChaCha20Algorithm implements Algorithm {
         byte[] cipherBytes = new byte[buffer.remaining()];
         buffer.get(cipherBytes);
         Cipher cipher = DECRYPT_CIPHER.get();
-        cipher.init(Cipher.DECRYPT_MODE, KEY_SPEC, new IvParameterSpec(nonce));
+        cipher.init(Cipher.DECRYPT_MODE, this.keySpec, new IvParameterSpec(nonce));
         return cipher.doFinal(cipherBytes);
     }
-
-    @Override
-    public void setKey(String key) {
-        if (key == null || key.isEmpty()) {
-            throw new IllegalArgumentException("Key cannot be null or empty");
-        }
-        try {
-            MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = sha256.digest(key.getBytes(StandardCharsets.UTF_8));
-            KEY_SPEC = new SecretKeySpec(hashed, "ChaCha20-Poly1305");
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set key", e);
-        }
-    }
-
 }

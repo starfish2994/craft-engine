@@ -8,11 +8,13 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.RegistryOps;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.FlagKeys;
@@ -20,6 +22,8 @@ import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.Tag;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -28,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static net.momirealms.craftengine.core.item.network.NetworkItemHandler.NETWORK_ITEM_TAG;
 
 public final class DebugItemDataCommand extends BukkitCommandFeature<CommandSender> {
     private static final TextColor COLOR_TEXT = TextColor.color(0xF5F5F5);
@@ -51,6 +57,21 @@ public final class DebugItemDataCommand extends BukkitCommandFeature<CommandSend
                     boolean toClientSide = context.flags().hasFlag(FlagKeys.CLIENT_SIDE_FLAG);
                     if (toClientSide) {
                         itemInHand = BukkitItemManager.instance().s2c(itemInHand, serverPlayer).orElse(itemInHand);
+                        if (VersionHelper.COMPONENT_RELEASE) {
+                            Tag customData = itemInHand.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA);
+                            if (customData instanceof CompoundTag compoundTag) {
+                                Tag networkTag = compoundTag.get(NETWORK_ITEM_TAG);
+                                if (networkTag != null) {
+                                    compoundTag.put(NETWORK_ITEM_TAG, ItemCrypto.decrypt(networkTag));
+                                    itemInHand.setSparrowTagComponent(DataComponentTypes.CUSTOM_DATA, compoundTag);
+                                }
+                            }
+                        } else {
+                            Tag networkTag = itemInHand.getSparrowTag(NETWORK_ITEM_TAG);
+                            if (networkTag != null) {
+                                itemInHand.setSparrowTag(ItemCrypto.decrypt(networkTag), NETWORK_ITEM_TAG);
+                            }
+                        }
                     }
 
                     Map<String, Object> readableMap = toMap(itemInHand);
