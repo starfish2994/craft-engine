@@ -14,6 +14,7 @@ import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.item.network.encrypt.AESGCM;
 import net.momirealms.craftengine.core.item.network.encrypt.ChaCha20;
 import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
 import net.momirealms.craftengine.core.item.network.encrypt.Xor;
@@ -686,16 +687,17 @@ public final class Config {
         if (this.firstTime) {
             this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
             if (this.network$item_crypto$enable) {
-                String algorithm = config.getString("network.item-crypto.algorithm", "xor");
+                String algorithm = config.getString("network.item-crypto.algorithm", "xor").toLowerCase(Locale.ROOT);
                 String key = config.getString("network.item-crypto.key", "");
                 if (key.isEmpty()) {
                     key = UUID.randomUUID().toString();
                 }
-                switch (algorithm) {
-                    case "xor" -> ItemCrypto.setAlgorithm(new Xor(key));
-                    case "chacha20" -> ItemCrypto.setAlgorithm(new ChaCha20(key));
-                    case "none" -> {}
-                }
+                ItemCrypto.setAlgorithm(switch (algorithm) {
+                    case "xor" -> new Xor(key);
+                    case "aes-gcm" -> new AESGCM(key);
+                    case "chacha20" -> new ChaCha20(key);
+                    default -> null;
+                });
             }
         }
 
