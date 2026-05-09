@@ -560,9 +560,9 @@ public abstract class AbstractFontManager implements FontManager {
             int rows;
             int columns;
             List<CompletableFuture<Integer>> futureCodepoints = new ArrayList<>();
-            Object charsObj = section.get(CHAR);
+            ConfigValue charsValue = section.getValue(CHAR);
             // 没有设置 chars 自动分配
-            if (charsObj == null) {
+            if (charsValue == null) {
                 ConfigValue gridSizeValue = section.getValue(GRID_SIZE);
                 if (gridSizeValue != null) {
                     ConfigValue[] splitSize = gridSizeValue.splitValuesRestrict(",", 2);
@@ -584,8 +584,8 @@ public abstract class AbstractFontManager implements FontManager {
                 }
             }
             // 使用了list
-            else if (charsObj instanceof List<?> list) {
-                List<String> charsList = MiscUtils.getAsStringList(list);
+            else if (charsValue.is(List.class)) {
+                List<String> charsList = charsValue.getAsStringList();
                 // 阻止空列表和首个元素为空的类别
                 if (charsList.isEmpty() || charsList.getFirst().isEmpty()) {
                     throw new KnownResourceException("resource.image.empty_chars", section.assembleExistingPath("chars", "char"));
@@ -617,12 +617,12 @@ public abstract class AbstractFontManager implements FontManager {
             }
             // 使用了具体的值
             else {
-                if (charsObj instanceof Integer codepoint) {
-                    futureCodepoints.add(allocator.assignFixedId(id.asString(), codepoint));
+                if (charsValue.is(Number.class)) {
+                    futureCodepoints.add(allocator.assignFixedId(id.asString(), charsValue.getAsInt()));
                     rows = 1;
                     columns = 1;
                 } else {
-                    String character = charsObj.toString();
+                    String character = charsValue.getAsString();
                     if (character.isEmpty()) {
                         throw new KnownResourceException("resource.image.empty_chars", section.assembleExistingPath("char", "chars"));
                     }

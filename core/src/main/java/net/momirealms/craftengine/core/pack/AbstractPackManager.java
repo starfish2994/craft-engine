@@ -3567,7 +3567,7 @@ public abstract class AbstractPackManager implements PackManager {
         @Override
         protected void parseSection(Pack pack, Path path, ConfigSection section) {
             if (!Config.optimizeResourcePack()) return;
-            List<String> textures = MiscUtils.getAsStringList(section.get("texture"));
+            List<String> textures = section.getStringList("texture");
             if (!textures.isEmpty()) {
                 for (String texture : textures) {
                     if (texture.endsWith(".png") || texture.endsWith("/")) {
@@ -3577,7 +3577,7 @@ public abstract class AbstractPackManager implements PackManager {
                     }
                 }
             }
-            List<String> jsons = MiscUtils.getAsStringList(section.get("json"));
+            List<String> jsons = section.getStringList("json");
             if (!jsons.isEmpty()) {
                 for (String json : jsons) {
                     if (json.endsWith(".json") || json.endsWith(".mcmeta") || json.endsWith("/")) {

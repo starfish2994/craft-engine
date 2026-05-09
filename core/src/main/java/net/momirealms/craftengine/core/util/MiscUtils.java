@@ -300,63 +300,11 @@ public final class MiscUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> castToMap(Object obj, boolean allowNull) {
-        if (allowNull && obj == null) {
-            return null;
-        }
-        if (obj instanceof Map<?, ?> map) {
-            return (Map<String, Object>) map;
-        }
-        throw new IllegalArgumentException("Expected Map, got: " + (obj == null ? null : obj.getClass().getSimpleName()));
-    }
-
-    @SuppressWarnings("unchecked")
     public static Map<String, Object> castToMap(Object obj) {
         if (obj instanceof Map<?, ?> map) {
             return (Map<String, Object>) map;
         }
         throw new IllegalArgumentException("Expected Map, got: " + (obj == null ? null : obj.getClass().getSimpleName()));
-    }
-
-    @SuppressWarnings("unchecked")
-    public static List<Map<String, Object>> getAsMapList(Object obj) {
-        if (obj == null) return List.of();
-        if (obj instanceof List<?> list) {
-            return (List<Map<String, Object>>) list;
-        } else if (obj instanceof Map<?, ?>) {
-            return List.of((Map<String, Object>) obj);
-        }
-        throw new IllegalArgumentException("Expected MapList/Map, got: " + obj.getClass().getSimpleName());
-    }
-
-    public static List<String> getAsStringList(Object o) {
-        List<String> list = new ArrayList<>();
-        if (o instanceof List<?>) {
-            for (Object object : (List<?>) o) {
-                list.add(object.toString());
-            }
-        } else if (o instanceof String) {
-            list.add((String) o);
-        } else {
-            if (o != null) {
-                list.add(o.toString());
-            }
-        }
-        return list;
-    }
-
-    public static String[] getAsStringArray(Object o) {
-        if (o instanceof List<?> list) {
-            String[] array = new String[list.size()];
-            for (int i = 0; i < array.length; i++) {
-                array[i] = list.get(i).toString();
-            }
-            return array;
-        } else if (o != null) {
-            return new String[]{o.toString()};
-        } else {
-            return new String[0];
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -401,28 +349,6 @@ public final class MiscUtils {
 
     public static float toRadians(float degree) {
         return degree * DEG_TO_RAD;
-    }
-
-    public record DiffResult<T>(
-            List<T> added,
-            List<T> removed
-    ) {}
-
-    public static <T> DiffResult<T> diff(@Nullable Collection<T> previousCollection, @Nullable Collection<T> newCollection) {
-        Set<T> previousSet = previousCollection == null ? Collections.emptySet() : new HashSet<>(previousCollection);
-        Set<T> newSet = newCollection == null ? Collections.emptySet() : new HashSet<>(newCollection);
-
-        List<T> added = new ArrayList<>();
-        List<T> removed = new ArrayList<>(previousSet);
-        removed.removeAll(newSet);
-
-        for (T item : newSet) {
-            if (!previousSet.contains(item)) {
-                added.add(item);
-            }
-        }
-
-        return new DiffResult<>(added, removed);
     }
 
     public static <T> T get(Supplier<T> supplier) {

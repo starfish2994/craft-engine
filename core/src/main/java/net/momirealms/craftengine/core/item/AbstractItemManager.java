@@ -453,6 +453,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         private static final String[] OVERSIZED_IN_GUI = new String[] {"oversized_in_gui", "oversized-in-gui"};
         private static final String[] HAND_ANIMATION_ON_SWAP = new String[] {"hand_animation_on_swap", "hand-animation-on-swap"};
         private static final String[] SWAP_ANIMATION_SCALE = new String[] {"swap_animation_scale", "swap-animation-scale"};
+        private static final String[] CATEGORIES = new String[] {"category", "categories"};
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
@@ -667,7 +668,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
                 // 如果有类别，则添加
                 if (section.containsKey("category")) {
-                    AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, MiscUtils.getAsStringList(section.get("category")).stream().map(Key::of).toList());
+                    AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, section.getList(CATEGORIES, ConfigValue::getAsIdentifier));
                 }
 
                 if (!hasModelSection) {
