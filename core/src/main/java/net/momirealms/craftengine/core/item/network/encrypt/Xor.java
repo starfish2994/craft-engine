@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.core.item.network.encrypt;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
@@ -10,7 +12,7 @@ public final class Xor implements CryptoAlgorithm {
     private final byte[] keyBytes;
     private final long keyLong;
 
-    public Xor(String key) {
+    public Xor(@NotNull String key) {
         this.keyBytes = key.getBytes(StandardCharsets.UTF_8);
         byte[] paddedKey = new byte[8];
         for (int i = 0; i < 8; i++) {
@@ -19,6 +21,7 @@ public final class Xor implements CryptoAlgorithm {
         this.keyLong = (long) LONG_VIEW.get(paddedKey, 0);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public byte[] encrypt(byte[] data) {
         int len = data.length;
@@ -34,8 +37,19 @@ public final class Xor implements CryptoAlgorithm {
         return data;
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public byte[] decrypt(byte[] data) {
-        return encrypt(data);
+        int len = data.length;
+        int i = 0;
+        int limit = len - 8;
+        for (; i <= limit; i += 8) {
+            long val = (long) LONG_VIEW.get(data, i);
+            LONG_VIEW.set(data, i, val ^ keyLong);
+        }
+        for (; i < len; i++) {
+            data[i] = (byte) (data[i] ^ keyBytes[i % keyBytes.length]);
+        }
+        return data;
     }
 }
