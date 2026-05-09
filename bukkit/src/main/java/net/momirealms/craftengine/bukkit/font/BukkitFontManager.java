@@ -13,10 +13,7 @@ import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.util.InventoryUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LegacyInventoryUtils;
-import net.momirealms.craftengine.core.font.AbstractFontManager;
-import net.momirealms.craftengine.core.font.EmojiComponentProcessResult;
-import net.momirealms.craftengine.core.font.EmojiTextProcessResult;
-import net.momirealms.craftengine.core.font.FontManager;
+import net.momirealms.craftengine.core.font.*;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.IllegalCharacterProcessResult;
 import net.momirealms.craftengine.core.util.AdventureHelper;
@@ -101,14 +98,14 @@ public final class BukkitFontManager extends AbstractFontManager implements List
     @SuppressWarnings("UnstableApiUsage")
     public void onChat(AsyncChatDecorateEvent event) {
         if (!Config.filterChat()) return;
-        this.processChatEvent(event);
+        this.processChatEvent(event, EmojiUseCase.CHAT);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     @SuppressWarnings("UnstableApiUsage")
     public void onChatCommand(AsyncChatCommandDecorateEvent event) {
         if (!Config.filterChat()) return;
-        this.processChatEvent(event);
+        this.processChatEvent(event, EmojiUseCase.COMMAND);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -142,7 +139,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
 
         if (renameText == null || renameText.isEmpty()) return;
         Component itemName = Component.text(renameText);
-        EmojiComponentProcessResult replaceProcessResult = replaceComponentEmoji(itemName, BukkitAdaptor.adapt(player), renameText);
+        EmojiComponentProcessResult replaceProcessResult = replaceComponentEmoji(itemName, BukkitAdaptor.adapt(player), renameText, EmojiUseCase.ANVIL);
         if (replaceProcessResult.changed()) {
             BukkitItem wrapped = this.plugin.itemManager().wrap(result);
             wrapped.customNameJson(AdventureHelper.componentToJson(replaceProcessResult.newText()));
@@ -159,7 +156,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
             JsonElement json = ComponentUtils.paperAdventureToJsonElement(lines.get(i));
             if (json == null) continue;
             Component line = AdventureHelper.jsonElementToComponent(json);
-            EmojiComponentProcessResult result = replaceComponentEmoji(line, BukkitAdaptor.adapt(player));
+            EmojiComponentProcessResult result = replaceComponentEmoji(line, BukkitAdaptor.adapt(player), EmojiUseCase.SIGN);
             if (result.changed()) {
                 SignChangeEventProxy.INSTANCE.line(event, i, ComponentUtils.jsonElementToPaperAdventure(AdventureHelper.componentToJsonElement(result.newText())));
             } else if (AdventureHelper.isPureTextComponent(line)) {
@@ -182,7 +179,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
         for (int i = 0; i < pages.size(); i++) {
             JsonElement json = ComponentUtils.paperAdventureToJsonElement(pages.get(i));
             Component page = AdventureHelper.jsonElementToComponent(json);
-            EmojiComponentProcessResult result = replaceComponentEmoji(page, BukkitAdaptor.adapt(player));
+            EmojiComponentProcessResult result = replaceComponentEmoji(page, BukkitAdaptor.adapt(player), EmojiUseCase.BOOK);
             if (result.changed()) {
                 changed = true;
                 BookMetaProxy.INSTANCE.page(newBookMeta, i + 1, ComponentUtils.jsonElementToPaperAdventure(AdventureHelper.componentToJsonElement(result.newText())));
@@ -195,7 +192,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
 
     // fixme 这些做法其实是错误的，我们只应该修改字体为minecraft:default的部分
     @SuppressWarnings("UnstableApiUsage")
-    private void processChatEvent(AsyncChatDecorateEvent event) {
+    private void processChatEvent(AsyncChatDecorateEvent event, EmojiUseCase useCase) {
         Player player = event.player();
         if (player == null) return;
         Object originalMessage = AsyncChatDecorateEventProxy.INSTANCE.getResult(event);
@@ -209,7 +206,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
             }
         }
         if (Config.allowEmojiChat()/* && !Config.disableChatReport()*/) {
-            EmojiTextProcessResult result = replaceJsonEmoji(rawJsonMessage, BukkitAdaptor.adapt(player));
+            EmojiTextProcessResult result = replaceJsonEmoji(rawJsonMessage, BukkitAdaptor.adapt(player), useCase);
             if (result.replaced()) {
                 rawJsonMessage = result.text();
                 changed = true;

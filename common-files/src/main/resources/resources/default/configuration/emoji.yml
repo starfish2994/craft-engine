@@ -24,7 +24,11 @@ images:
 # https://xiao-momi.github.io/craft-engine-wiki/reference/template
 templates:
   default:emoji/basic:
-    content: <hover:show_text:'<l10n:emoji.tip:"<arg:keyword>":"<arg:emoji>">'><!shadow><white><arg:emoji></white></!shadow></hover>
+    content: <!shadow><white><arg:emoji></white></!shadow>
+    content_overrides:
+      chat: <hover:show_text:'<l10n:emoji.tip:"<arg:keyword>":"<arg:emoji>">'><!shadow><white><arg:emoji></white></!shadow></hover>
+      book: <hover:show_text:'<arg:keyword>'><!shadow><white><arg:emoji></white></!shadow></hover>
+      anvil: <!i><!shadow><white><arg:emoji></white></!shadow></!i>
 
 # Here are the specific configurations for the emoji.
 # However, I have used templates in this section. If you would like to see the complete configuration, please refer to the wiki.

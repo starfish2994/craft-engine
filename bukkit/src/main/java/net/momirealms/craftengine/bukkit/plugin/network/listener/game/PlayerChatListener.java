@@ -12,6 +12,7 @@ import net.momirealms.craftengine.bukkit.util.RegistryOps;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.font.EmojiTextProcessResult;
+import net.momirealms.craftengine.core.font.EmojiUseCase;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
@@ -274,7 +275,7 @@ public final class PlayerChatListener {
         if (unsignedContent == null && Config.allowEmojiChat()) { // 如果不为 null 表明已经在 BukkitFontManager#processChatEvent 处理完成
             String rawJsonMessage = ComponentUtils.minecraftToJson(decorate);
             @javax.annotation.Nullable Player chatSender = CraftEngine.instance().platform().getPlayer(sender);
-            EmojiTextProcessResult result = BukkitFontManager.instance().replaceJsonEmoji(rawJsonMessage, chatSender);
+            EmojiTextProcessResult result = BukkitFontManager.instance().replaceJsonEmoji(rawJsonMessage, chatSender, EmojiUseCase.CHAT);
             if (result.replaced()) {
                 decorate = ComponentUtils.jsonToMinecraft(result.text());
             }

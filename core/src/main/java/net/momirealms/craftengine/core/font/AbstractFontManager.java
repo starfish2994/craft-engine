@@ -17,6 +17,7 @@ import org.ahocorasick.trie.Token;
 import org.ahocorasick.trie.Trie;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -133,7 +134,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     @Override
-    public EmojiTextProcessResult replaceMiniMessageEmoji(@NotNull String miniMessage, Player player, int maxTimes) {
+    public EmojiTextProcessResult replaceMiniMessageEmoji(@NotNull String miniMessage, Player player, int maxTimes, @Nullable EmojiUseCase useCase) {
         if (this.emojiKeywordTrie == null || maxTimes <= 0) {
             return EmojiTextProcessResult.notReplaced(miniMessage);
         }
@@ -148,7 +149,7 @@ public abstract class AbstractFontManager implements FontManager {
             if (emoji == null || (player != null && emoji.permission() != null && !player.hasPermission(emoji.permission())))
                 continue;
             Component content = AdventureHelper.miniMessage().deserialize(
-                    emoji.content(),
+                    emoji.content(useCase),
                     PlayerOptionalContext.of(player, ContextHolder.builder()
                             .withOptionalParameter(EmojiParameters.EMOJI, emoji.emojiImage())
                             .withParameter(EmojiParameters.KEYWORD, emoji.keywords().get(0))
@@ -180,7 +181,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     @Override
-    public EmojiTextProcessResult replaceJsonEmoji(@NotNull String jsonText, Player player, int maxTimes) {
+    public EmojiTextProcessResult replaceJsonEmoji(@NotNull String jsonText, Player player, int maxTimes, @Nullable EmojiUseCase useCase) {
         if (this.emojiKeywordTrie == null) {
             return EmojiTextProcessResult.notReplaced(jsonText);
         }
@@ -194,7 +195,7 @@ public abstract class AbstractFontManager implements FontManager {
             if (emoji == null || (player != null && emoji.permission() != null && !player.hasPermission(emoji.permission())))
                 continue;
             emojis.put(fragment, AdventureHelper.miniMessage().deserialize(
-                    emoji.content(),
+                    emoji.content(useCase),
                     PlayerOptionalContext.of(player, ContextHolder.builder()
                             .withOptionalParameter(EmojiParameters.EMOJI, emoji.emojiImage())
                             .withParameter(EmojiParameters.KEYWORD, emoji.keywords().getFirst())
@@ -214,7 +215,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     @Override
-    public EmojiComponentProcessResult replaceComponentEmoji(@NotNull Component text, Player player, @NotNull String raw, int maxTimes) {
+    public EmojiComponentProcessResult replaceComponentEmoji(@NotNull Component text, Player player, @NotNull String raw, int maxTimes, @Nullable EmojiUseCase useCase) {
         Map<String, Component> emojis = new HashMap<>();
         for (Token token : this.emojiKeywordTrie.tokenize(raw)) {
             if (!token.isMatch())
@@ -226,10 +227,10 @@ public abstract class AbstractFontManager implements FontManager {
             if (emoji == null || (player != null && emoji.permission() != null && !player.hasPermission(Objects.requireNonNull(emoji.permission()))))
                 continue;
             emojis.put(fragment, AdventureHelper.miniMessage().deserialize(
-                    emoji.content(),
+                    emoji.content(useCase),
                     PlayerOptionalContext.of(player, ContextHolder.builder()
                             .withOptionalParameter(EmojiParameters.EMOJI, emoji.emojiImage())
-                            .withParameter(EmojiParameters.KEYWORD, emoji.keywords().get(0))
+                            .withParameter(EmojiParameters.KEYWORD, emoji.keywords().getFirst())
                     ).tagResolvers()
             ));
             if (emojis.size() >= maxTimes) break;
@@ -361,6 +362,7 @@ public abstract class AbstractFontManager implements FontManager {
 
         private static final String[] CONTENT = new String[] {"content", "format"};
         private static final String[] CHAT_COMPLETION = new String[] {"chat_completion", "chat-completion"};
+        private static final String[] CONTENT_OVERRIDES = new String[] {"content_overrides", "content-overrides"};
 
         @Override
         public boolean async() {
@@ -409,7 +411,15 @@ public abstract class AbstractFontManager implements FontManager {
                 }
             }
             boolean chatCompletion = section.getBoolean(CHAT_COMPLETION, true);
-            Emoji emoji = new Emoji(content, permission, image, keywords, chatCompletion);
+            Emoji emoji = new Emoji(content, permission, image, keywords, chatCompletion,
+                    Optional.ofNullable(section.getSection(CONTENT_OVERRIDES)).map(it -> {
+                        Map<String, String> overrides = new HashMap<>();
+                        for (Map.Entry<String, Object> entry : it.values().entrySet()) {
+                            overrides.put(entry.getKey(), entry.getValue().toString());
+                        }
+                        return overrides;
+                    }).orElse(Collections.emptyMap())
+            );
             AbstractFontManager.this.emojis.put(id, emoji);
         }
     }
