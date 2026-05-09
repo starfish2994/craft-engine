@@ -24,6 +24,8 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorType;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.equipment.EquipmentType;
+import net.momirealms.craftengine.core.item.network.encrypt.Algorithm;
+import net.momirealms.craftengine.core.item.network.encrypt.ItemCryptoAlgorithm;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessorType;
 import net.momirealms.craftengine.core.item.recipe.Recipe;
@@ -125,4 +127,5 @@ public final class Registries {
     public static final ResourceKey<Registry<ItemSettingsModifierType<? extends ItemSettingsModifier>>> ITEM_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_settings_type"));
     public static final ResourceKey<Registry<LootFunctionType<? extends LootFunction>>> LOOT_FUNCTION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_function_type"));
     public static final ResourceKey<Registry<LootEntryContainerType<? extends LootEntryContainer>>> LOOT_ENTRY_CONTAINER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_entry_container_type"));
+    public static final ResourceKey<Registry<ItemCryptoAlgorithm<? extends Algorithm>>> ITEM_CRYPTO_ALGORITHM = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_crypto_algorithm"));
 }

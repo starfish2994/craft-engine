@@ -14,6 +14,7 @@ import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ConditionalResolution;
 import net.momirealms.craftengine.core.pack.host.HttpClientManager;
@@ -31,7 +32,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -215,8 +215,6 @@ public final class Config {
     private boolean network$mod_channel$enable;
     private boolean network$mod_channel$requires_permission;
     private boolean network$item_crypto$enable;
-    private String network$item_crypto$algorithm;
-    private String network$item_crypto$key;
 
     private boolean item$client_bound_model;
     private boolean item$non_italic_tag;
@@ -574,7 +572,6 @@ public final class Config {
         } else {
             this.item$data_fixer_upper$fallback_version = Integer.parseInt(fallbackVersion);
         }
-
         Section customModelDataOverridesSection = config.getSection("item.custom-model-data-starting-value.overrides");
         if (customModelDataOverridesSection != null) {
             Map<Key, Integer> customModelDataOverrides = new HashMap<>();
@@ -686,13 +683,13 @@ public final class Config {
         this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
         if (this.firstTime) {
             this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
-            this.network$item_crypto$algorithm = config.getString("network.item-crypto.algorithm", "AES/GCM/NoPadding");
-            this.network$item_crypto$key = config.getString("network.item-crypto.key", "");
-            // 如果密钥为空则生成随机密钥
-            if (this.network$item_crypto$key.isEmpty() && this.network$item_crypto$enable) {
-                byte[] rawKey = new byte[16];
-                new SecureRandom().nextBytes(rawKey);
-                this.network$item_crypto$key = Base64.getEncoder().encodeToString(rawKey);
+            String algorithm = config.getString("network.item-crypto.algorithm", "xor");
+            if (!algorithm.isEmpty()) {
+                ItemCrypto.setAlgorithm(Key.ce(algorithm.toLowerCase(Locale.ROOT)));
+            }
+            String key = config.getString("network.item-crypto.key", "");
+            if (!key.isEmpty()) {
+                ItemCrypto.setKey(key);
             }
         }
 
@@ -1150,6 +1147,10 @@ public final class Config {
 
     public static boolean modChannelRequiresPermission() {
         return instance.network$mod_channel$requires_permission;
+    }
+
+    public static boolean enableItemCrypto() {
+        return instance.network$item_crypto$enable;
     }
 
     public static boolean disableItemOperations() {

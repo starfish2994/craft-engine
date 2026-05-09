@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.item.component.DataComponentIds;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
+import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
 import net.momirealms.craftengine.core.item.processor.ArgumentsProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -132,7 +133,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // 获取custom data
         Tag customData = wrapped.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA);
         if (customData instanceof CompoundTag compoundTag) {
-            CompoundTag networkData = compoundTag.getCompound(NETWORK_ITEM_TAG);
+            CompoundTag networkData = ItemCrypto.decrypt(compoundTag.get(NETWORK_ITEM_TAG));
             if (networkData != null) {
                 forceReturn = true;
                 // 移除此tag
@@ -300,7 +301,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
         // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {
-            customData.put(NETWORK_ITEM_TAG, tag);
+            customData.put(NETWORK_ITEM_TAG, ItemCrypto.encrypt(tag));
             wrapped.setSparrowTagComponent(DataComponentTypes.CUSTOM_DATA, customData);
             forceReturn = true;
         }
@@ -442,7 +443,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
                 CompoundTag customData = Optional.ofNullable(this.item.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_DATA))
                         .map(CompoundTag.class::cast)
                         .orElseGet(CompoundTag::new);
-                customData.put(NETWORK_ITEM_TAG, getOrCreateTag());
+                customData.put(NETWORK_ITEM_TAG, ItemCrypto.encrypt(getOrCreateTag()));
                 this.item.setSparrowTagComponent(DataComponentKeys.CUSTOM_DATA, customData);
                 return Optional.of(this.item);
             } else if (this.forceReturn) {
