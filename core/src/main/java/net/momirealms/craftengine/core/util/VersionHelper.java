@@ -193,7 +193,7 @@ public final class VersionHelper {
     }
 
     private static boolean checkCanvas() {
-        return exists("io.canvasmc.canvas.Config");
+        return exists("io.canvasmc.canvas.Config") || exists("io.canvasmc.canvas.GlobalConfiguration");
     }
 
     public static boolean isFolia() {
