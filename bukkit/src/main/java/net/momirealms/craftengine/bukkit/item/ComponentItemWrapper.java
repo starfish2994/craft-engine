@@ -99,7 +99,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
 
     private <T> Optional<T> getComponentInternal(Object type, DynamicOps<T> ops) {
         Object componentType = ensureDataComponentType(type);
-        Codec<T> codec = DataComponentTypeProxy.INSTANCE.codec(componentType);
+        Codec<T> codec = DataComponentTypeProxy.INSTANCE.codecOrThrow(componentType);
         try {
             T componentData = ItemStackProxy.INSTANCE.get(minecraftItem(), componentType);
             if (componentData == null) return Optional.empty();
@@ -157,7 +157,7 @@ public final class ComponentItemWrapper extends BukkitItemWrapper {
         if (componentType == null) {
             return;
         }
-        Codec<T> codec = DataComponentTypeProxy.INSTANCE.codec(componentType);
+        Codec<T> codec = DataComponentTypeProxy.INSTANCE.codecOrThrow(componentType);
         try {
             DataResult<T> result = codec.parse(ops, value);
             if (result.isError()) {

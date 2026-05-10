@@ -68,7 +68,7 @@ public final class ComponentItemType implements ItemType {
 
     private <T> Optional<T> getDefaultComponentInternal(Object type, DynamicOps<T> ops) {
         Object componentType = ensureDataComponentType(type);
-        Codec<T> codec = DataComponentTypeProxy.INSTANCE.codec(componentType);
+        Codec<T> codec = DataComponentTypeProxy.INSTANCE.codecOrThrow(componentType);
         try {
             T componentData = getDefaultComponentInternal(componentType);
             if (componentData == null) return Optional.empty();
