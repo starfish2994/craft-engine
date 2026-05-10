@@ -101,6 +101,7 @@ resource-pack:
       method-5: true # This will reduce the resource pack size, also it prevents some software from extracting it
       method-6: false # This will increase the resource pack size by a certain percentage
       method-7: false
+      method-8: false # This will increase the resource pack size by a certain percentage
     # Create incorrect crc data
     incorrect-crc: false
     # Spoof huge files
