@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.item.listener;
 
 import io.papermc.paper.event.block.CompostItemEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackGenerateEvent;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.entity.BukkitItemEntity;
@@ -50,6 +51,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.context.UseOnContextProxy;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -79,6 +81,26 @@ public final class ItemEventListener implements Listener {
     public ItemEventListener(BukkitCraftEngine plugin, BukkitItemManager itemManager) {
         this.plugin = plugin;
         this.itemManager = itemManager;
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onResourcePackGenerate(AsyncResourcePackGenerateEvent event) {
+        if (Config.obfuscateItemModel()) {
+            this.itemManager.persistItemModelMappings();
+            if (VersionHelper.isFolia()) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    player.getScheduler().run(this.plugin.javaPlugin(), (t) -> {
+                        player.updateInventory();
+                    }, null);
+                }
+            } else {
+                this.plugin.scheduler().sync().run(() -> {
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        player.updateInventory();
+                    }
+                });
+            }
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)

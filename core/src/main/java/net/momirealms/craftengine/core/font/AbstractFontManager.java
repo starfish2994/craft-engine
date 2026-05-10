@@ -490,7 +490,7 @@ public abstract class AbstractFontManager implements FontManager {
             });
         }
 
-        private static final String[] CHAR = new String[] {"char", "chars"};
+        private static final String[] CHAR = new String[] {"char", "chars", "unicode"};
         private static final String[] HEIGHT = new String[] {"height", "scale", "scale_ratio"};
         private static final String[] ASCENT = new String[] {"ascent", "y_position"};
         private static final String[] GRID_SIZE = new String[] {"grid_size", "grid-size"};

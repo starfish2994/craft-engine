@@ -350,6 +350,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             if (!this.futures.isEmpty()) {
                 this.futures.clear();
             }
+            ObfuscatedItemModelProcessor.CAN_OBF.clear();
         }
 
         @Override
@@ -421,7 +422,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         // 创建或获取已有的自动分配器
         private synchronized IdAllocator getOrCreateIdAllocator(Key key) {
             return this.idAllocators.computeIfAbsent(key, k -> {
-                IdAllocator newAllocator = new IdAllocator(AbstractItemManager.this.plugin.dataFolderPath().resolve("cache").resolve("custom-model-data").resolve(k.value() + ".json"));
+                IdAllocator newAllocator = new IdAllocator(AbstractItemManager.this.plugin.dataFolderPath().resolve("cache").resolve("custom_model_data").resolve(k.value() + ".json"));
                 newAllocator.reset(Config.customModelDataStartingValue(k), 16_777_216);
                 try {
                     newAllocator.loadFromCache();
@@ -447,6 +448,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         private static final String[] HAND_ANIMATION_ON_SWAP = new String[] {"hand_animation_on_swap", "hand-animation-on-swap"};
         private static final String[] SWAP_ANIMATION_SCALE = new String[] {"swap_animation_scale", "swap-animation-scale"};
         private static final String[] CATEGORIES = new String[] {"category", "categories"};
+        private static final String[] SKIP_OBFUSCATION = new String[] {"skip_obfuscation", "skip-obfuscation"};
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
@@ -567,7 +569,14 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     else itemBuilder.dataProcessor(new CustomModelDataProcessor(ConstantNumberProvider.constant(customModelData)));
                 }
                 if (itemModel != null && (hasModelSection || forceItemModel)) {
-                    if (clientBoundModel) itemBuilder.clientBoundProcessor(Config.obfuscateItemModel() ? new ObfuscatedItemModelProcessor(itemModel) : new OverwritableItemModelProcessor(itemModel));
+                    if (clientBoundModel) {
+                        if (Config.obfuscateItemModel() && !section.getBoolean(SKIP_OBFUSCATION, false)) {
+                            itemBuilder.clientBoundProcessor(new ObfuscatedItemModelProcessor(itemModel));
+                            ObfuscatedItemModelProcessor.CAN_OBF.add(itemModel);
+                        } else {
+                            itemBuilder.clientBoundProcessor(new OverwritableItemModelProcessor(itemModel));
+                        }
+                    }
                     else itemBuilder.dataProcessor(new ItemModelProcessor(itemModel));
                 }
 

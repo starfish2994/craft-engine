@@ -14,6 +14,10 @@ public final class Overlays {
         this.overlays = getOverlays(mcmeta);
     }
 
+    public Overlays(List<Overlay> overlays) {
+        this.overlays = overlays;
+    }
+
     private List<Overlay> getOverlays(JsonObject mcmeta) {
         List<Overlay> overlays = new ArrayList<>();
         JsonObject overlaysJson = mcmeta.getAsJsonObject("overlays");

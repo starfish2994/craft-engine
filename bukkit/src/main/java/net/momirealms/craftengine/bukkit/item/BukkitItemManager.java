@@ -22,6 +22,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
+import net.momirealms.craftengine.core.item.processor.ObfuscatedItemModelProcessor;
 import net.momirealms.craftengine.core.item.recipe.DatapackRecipeResult;
 import net.momirealms.craftengine.core.item.recipe.IngredientUnlockable;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
@@ -85,6 +86,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         this.bedrockItemHolder = Objects.requireNonNull(RegistryUtils.getHolder(BuiltInRegistriesProxy.ITEM, ResourceKeyProxy.INSTANCE.create(RegistriesProxy.ITEM, KeyUtils.toIdentifier(Key.of("minecraft:bedrock")))));
         this.registerCustomTrimMaterial();
         this.loadLastRegisteredPatterns();
+        this.loadItemModelMappings();
         this.emptyItem = wrap(ItemStackProxy.EMPTY);
     }
 
@@ -196,7 +198,6 @@ public final class BukkitItemManager extends AbstractItemManager {
         HandlerList.unregisterAll(this.itemEventListener);
         HandlerList.unregisterAll(this.armorEventListener);
         if (this.slotChangeListener != null) HandlerList.unregisterAll(this.slotChangeListener);
-        this.persistLastRegisteredPatterns();
     }
 
     @Override
@@ -220,6 +221,7 @@ public final class BukkitItemManager extends AbstractItemManager {
             }
         }
         MappedRegistryProxy.INSTANCE.setFrozen(registry, true);
+        this.persistLastRegisteredPatterns();
     }
 
     private void persistLastRegisteredPatterns() {
@@ -246,6 +248,43 @@ public final class BukkitItemManager extends AbstractItemManager {
         }
     }
 
+    public void persistItemModelMappings() {
+        Path itemModelObfPath = this.plugin.dataFolderPath()
+                .resolve("cache")
+                .resolve("item_model_obfuscation.json");
+        try {
+            Files.createDirectories(itemModelObfPath.getParent());
+            JsonObject json = new JsonObject();
+            for (Map.Entry<Key, Key> entry : ObfuscatedItemModelProcessor.getMappings().entrySet()) {
+                json.addProperty(entry.getKey().toString(), entry.getValue().toString());
+            }
+            GsonHelper.writeJsonFile(json, itemModelObfPath);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to persist item model obfuscation mappings.", e);
+        }
+    }
+
+    private void loadItemModelMappings() {
+        Path itemModelObfPath = this.plugin.dataFolderPath()
+                .resolve("cache")
+                .resolve("item_model_obfuscation.json");
+        if (Files.exists(itemModelObfPath) && Files.isRegularFile(itemModelObfPath)) {
+            try {
+                JsonObject cache = GsonHelper.readJsonObjectFromFile(itemModelObfPath);
+                if (cache == null) return;
+                Map<Key, Key> mappings = new HashMap<>();
+                for (Map.Entry<String, JsonElement> entry : cache.entrySet()) {
+                    if (entry.getValue() instanceof JsonPrimitive primitive) {
+                        mappings.put(Key.of(entry.getKey()), Key.of(primitive.getAsString()));
+                    }
+                }
+                ObfuscatedItemModelProcessor.setMappings(mappings);
+            } catch (IOException e) {
+                this.plugin.logger().warn("Failed to load item model obfuscation mappings.", e);
+            }
+        }
+    }
+
     // 需要持久化存储上一次注册的新trim类型，如果注册晚了，加载世界可能导致一些物品损坏
     private void loadLastRegisteredPatterns() {
         Path persistTrimPatternPath = this.plugin.dataFolderPath()
@@ -253,7 +292,8 @@ public final class BukkitItemManager extends AbstractItemManager {
                 .resolve("trim_patterns.json");
         if (Files.exists(persistTrimPatternPath) && Files.isRegularFile(persistTrimPatternPath)) {
             try {
-                JsonObject cache = GsonHelper.readJsonFromFile(persistTrimPatternPath).getAsJsonObject();
+                JsonObject cache = GsonHelper.readJsonObjectFromFile(persistTrimPatternPath);
+                if (cache == null) return;
                 JsonArray patterns = cache.getAsJsonArray("patterns");
                 Set<Key> trims = new HashSet<>();
                 for (JsonElement element : patterns) {

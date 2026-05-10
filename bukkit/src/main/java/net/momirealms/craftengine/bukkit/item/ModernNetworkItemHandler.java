@@ -150,6 +150,8 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // 应用组件变化
         if (networkData != null) {
             forceReturn = true;
+            // 移除网络 tag
+            customData.remove(NETWORK_ITEM_TAG);
 
             // 恢复物品
             for (Map.Entry<String, Tag> entry : networkData.entrySet()) {

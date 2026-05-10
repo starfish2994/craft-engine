@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.equipment.EquipmentLayerType;
 import net.momirealms.craftengine.core.item.equipment.TrimBasedEquipment;
+import net.momirealms.craftengine.core.item.processor.ObfuscatedItemModelProcessor;
 import net.momirealms.craftengine.core.pack.atlas.Atlas;
 import net.momirealms.craftengine.core.pack.atlas.SimplifiedModelFile;
 import net.momirealms.craftengine.core.pack.atlas.TextureStatus;
@@ -661,6 +662,7 @@ public abstract class AbstractPackManager implements PackManager {
     public void generateResourcePack() {
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_started"));
         Timestamp timestamp = new Timestamp();
+        ObfuscatedItemModelProcessor.resetMappings();
 
         // Create cache data
         PackCacheData cacheData = new PackCacheData(this.plugin);
@@ -794,7 +796,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private void validatePackMetadata(JsonObject rawMeta, Overlays packOverlays) throws IOException {
+    private void validatePackMetadata(JsonObject rawMeta, Overlays packOverlays) {
         // 获取设定的最大和最小值
         PackVersion minVersion = Config.packMinVersion().packFormat();
         PackVersion maxVersion = Config.packMaxVersion().packFormat();

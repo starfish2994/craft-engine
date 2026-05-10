@@ -55,11 +55,6 @@ public final class CraftEngineItems {
         }
     }
 
-    @NotNull
-    public static BukkitItem wrap(@NotNull final ItemStack item) {
-        return BukkitAdaptor.adapt(item);
-    }
-
     /**
      * Gets a custom item by existing item stack
      *

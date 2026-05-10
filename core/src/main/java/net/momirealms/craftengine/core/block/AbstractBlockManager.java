@@ -113,8 +113,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.tempVanillaBlockStateModels = new JsonElement[vanillaBlockStateCount];
         this.blockStateMappingParser = new BlockStateMappingParser();
         this.viewBlockingBlocks = new boolean[vanillaBlockStateCount + customBlockCount];
-        this.internalIdAllocator = new IdAllocator(AbstractBlockManager.this.plugin.dataFolderPath().resolve("cache").resolve("custom-block-states.json"));
-        this.visualBlockStateAllocator = new VisualBlockStateAllocator(AbstractBlockManager.this.plugin.dataFolderPath().resolve("cache").resolve("visual-block-states.json"), this.autoVisualBlockStateCandidates, AbstractBlockManager.this::createVanillaBlockState);
+        this.internalIdAllocator = new IdAllocator(AbstractBlockManager.this.plugin.dataFolderPath().resolve("cache").resolve("custom_block_states.json"));
+        this.visualBlockStateAllocator = new VisualBlockStateAllocator(AbstractBlockManager.this.plugin.dataFolderPath().resolve("cache").resolve("visual_block_states.json"), this.autoVisualBlockStateCandidates, AbstractBlockManager.this::createVanillaBlockState);
         Arrays.fill(this.blockStateMappings, -1);
     }
 

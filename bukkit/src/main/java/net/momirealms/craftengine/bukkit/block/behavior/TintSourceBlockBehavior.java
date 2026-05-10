@@ -2,17 +2,24 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.block.entity.TintSourceBlockEntityController;
 import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
+import net.momirealms.craftengine.core.entity.player.InteractionResult;
+import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.World;
 
 public final class TintSourceBlockBehavior extends BukkitBlockBehavior implements EntityBlock {
     public static final BlockBehaviorFactory<TintSourceBlockBehavior> FACTORY = new Factory();
     public final boolean dropItem;
     public final String customDataKey;
+    private int controllerId;
 
     public TintSourceBlockBehavior(BlockDefinition blockDefinition, boolean dropItem, String customDataKey) {
         super(blockDefinition);
@@ -27,6 +34,14 @@ public final class TintSourceBlockBehavior extends BukkitBlockBehavior implement
 
     @Override
     public void initControllerId(int id) {
+        this.controllerId = id;
+    }
+
+    @Override
+    public Item itemToPickup(World world, BlockPos pos, ImmutableBlockState state, Player player) {
+        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
+        if (blockEntity == null) return null;
+        return blockEntity.controller.let(TintSourceBlockEntityController.class, this.controllerId, TintSourceBlockEntityController::tintSource);
     }
 
     private static class Factory implements BlockBehaviorFactory<TintSourceBlockBehavior> {

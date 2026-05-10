@@ -7,8 +7,11 @@ import net.momirealms.craftengine.core.util.Key;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ObfuscatedItemModelProcessor implements SimpleNetworkItemProcessor {
+    public static final Set<Key> CAN_OBF = ConcurrentHashMap.newKeySet();
     private static Map<Key, Key> mappings = Map.of();
     private final Key data;
 
@@ -22,6 +25,10 @@ public final class ObfuscatedItemModelProcessor implements SimpleNetworkItemProc
 
     public static void resetMappings() {
         ObfuscatedItemModelProcessor.mappings = Map.of();
+    }
+
+    public static Map<Key, Key> getMappings() {
+        return mappings;
     }
 
     @Override

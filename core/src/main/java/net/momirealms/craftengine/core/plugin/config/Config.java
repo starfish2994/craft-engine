@@ -102,7 +102,7 @@ public final class Config {
     private boolean resource_pack$protection$fake_directory;
     private boolean resource_pack$protection$escape_json;
     private boolean resource_pack$protection$break_texture;
-    private boolean resource_pack$protection$anti_unzip;
+    private boolean resource_pack$protection$obfuscation$path$anti_unzip;
     private boolean resource_pack$protection$incorrect_crc;
     private boolean resource_pack$protection$fake_file_size;
     private NumberProvider resource_pack$protection$obfuscation$overlay$length;
@@ -112,15 +112,14 @@ public final class Config {
     private String resource_pack$protection$obfuscation$path$item_source;
     private NumberProvider resource_pack$protection$obfuscation$path$depth;
     private NumberProvider resource_pack$protection$obfuscation$path$length;
-    private boolean resource_pack$protection$obfuscation$item_model$enable;
-    private NumberProvider resource_pack$protection$obfuscation$item_model$depth;
-    private NumberProvider resource_pack$protection$obfuscation$item_model$length;
+    private boolean resource_pack$protection$obfuscation$obfuscate_item_model;
     private int resource_pack$protection$obfuscation$atlas$images_per_canvas;
     private String resource_pack$protection$obfuscation$atlas$prefix;
     private List<String> resource_pack$protection$obfuscation$bypass_textures;
     private List<String> resource_pack$protection$obfuscation$bypass_models;
     private List<String> resource_pack$protection$obfuscation$bypass_sounds;
     private List<String> resource_pack$protection$obfuscation$bypass_equipments;
+    private List<String> resource_pack$protection$obfuscation$bypass_item_models;
 
     private boolean resource_pack$optimization$enable;
     private boolean resource_pack$optimization$texture$enable;
@@ -416,7 +415,6 @@ public final class Config {
         this.resource_pack$protection$crash_tools$method_9 = config.getBoolean("resource-pack.protection.crash-tools.method-9", false);
         this.resource_pack$protection$obfuscation$enable = VersionHelper.PREMIUM && config.getBoolean("resource-pack.protection.obfuscation.enable", false);
         this.resource_pack$protection$obfuscation$seed = config.getLong("resource-pack.protection.obfuscation.seed", 0L);
-        this.resource_pack$protection$anti_unzip = config.getBoolean("resource-pack.protection.anti-unzip", false);
         this.resource_pack$protection$fake_directory = config.getBoolean("resource-pack.protection.fake-directory", false);
         this.resource_pack$protection$escape_json = config.getBoolean("resource-pack.protection.escape-json", false);
         this.resource_pack$protection$break_texture = config.getBoolean("resource-pack.protection.break-texture", false);
@@ -427,9 +425,8 @@ public final class Config {
         this.resource_pack$protection$obfuscation$overlay$length = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.overlay.length", config.get("resource-pack.protection.obfuscation.overlay.length", 4)));
         this.resource_pack$protection$obfuscation$path$depth = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.path.depth", config.get("resource-pack.protection.obfuscation.path.depth", 4)));
         this.resource_pack$protection$obfuscation$path$length = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.path.length", config.get("resource-pack.protection.obfuscation.path.length", 2)));
-        this.resource_pack$protection$obfuscation$item_model$enable = config.getBoolean("resource-pack.protection.obfuscation.item-model.enable", false) && this.resource_pack$protection$obfuscation$enable;
-        this.resource_pack$protection$obfuscation$item_model$depth = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.item-model.depth", config.get("resource-pack.protection.obfuscation.item-model.depth", 2)));
-        this.resource_pack$protection$obfuscation$item_model$length = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.item-model.length", config.get("resource-pack.protection.obfuscation.item-model.length", 4)));
+        this.resource_pack$protection$obfuscation$path$anti_unzip = config.getBoolean("resource-pack.protection.obfuscation.path.anti-unzip", false);
+        this.resource_pack$protection$obfuscation$obfuscate_item_model = config.getBoolean("resource-pack.protection.obfuscation.obfuscate-item-model", false) && this.resource_pack$protection$obfuscation$enable;
         this.resource_pack$protection$obfuscation$path$block_source = config.getString("resource-pack.protection.obfuscation.path.block-source", "obf_block");
         this.resource_pack$protection$obfuscation$path$item_source = config.getString("resource-pack.protection.obfuscation.path.block-source", "obf_item");
         this.resource_pack$protection$obfuscation$atlas$images_per_canvas = Math.max(0, config.getInt("resource-pack.protection.obfuscation.atlas.images-per-canvas", 256));
@@ -438,6 +435,7 @@ public final class Config {
         this.resource_pack$protection$obfuscation$bypass_models = config.getStringList("resource-pack.protection.obfuscation.bypass-models");
         this.resource_pack$protection$obfuscation$bypass_sounds = config.getStringList("resource-pack.protection.obfuscation.bypass-sounds");
         this.resource_pack$protection$obfuscation$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.bypass-equipments");
+        this.resource_pack$protection$obfuscation$bypass_item_models = config.getStringList("resource-pack.protection.obfuscation.bypass-item-models");
         this.resource_pack$optimization$enable = config.getBoolean("resource-pack.optimization.enable", false);
         this.resource_pack$optimization$texture$enable = config.getBoolean("resource-pack.optimization.texture.enable", true);
         this.resource_pack$optimization$texture$zopfli_iterations = config.getInt("resource-pack.optimization.texture.zopfli-iterations", 0);
@@ -1031,16 +1029,8 @@ public final class Config {
         return instance.resource_pack$protection$obfuscation$path$length;
     }
 
-    public static NumberProvider itemModelLength() {
-        return instance.resource_pack$protection$obfuscation$item_model$length;
-    }
-
-    public static NumberProvider itemModelDepth() {
-        return instance.resource_pack$protection$obfuscation$item_model$depth;
-    }
-
     public static boolean obfuscateItemModel() {
-        return instance.resource_pack$protection$obfuscation$item_model$enable;
+        return instance.resource_pack$protection$obfuscation$obfuscate_item_model;
     }
 
     public static NumberProvider overlayLength() {
@@ -1048,7 +1038,7 @@ public final class Config {
     }
 
     public static boolean antiUnzip() {
-        return instance.resource_pack$protection$anti_unzip;
+        return instance.resource_pack$protection$obfuscation$path$anti_unzip;
     }
 
     public static boolean incorrectCrc() {
@@ -1081,6 +1071,10 @@ public final class Config {
 
     public static List<String> bypassEquipments() {
         return instance.resource_pack$protection$obfuscation$bypass_equipments;
+    }
+
+    public static List<String> bypassItemModels() {
+        return instance.resource_pack$protection$obfuscation$bypass_item_models;
     }
 
     public static Key deceiveBukkitMaterial(int id) {

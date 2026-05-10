@@ -43,7 +43,7 @@ public final class CleanCacheCommand extends BukkitCommandFeature<CommandSender>
                 .optional("type", StringParser.stringComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
-                        return CompletableFuture.completedFuture(List.of(Suggestion.suggestion("custom-model-data"), Suggestion.suggestion("custom-block-states"), Suggestion.suggestion("visual-block-states"), Suggestion.suggestion("font"), Suggestion.suggestion("all")));
+                        return CompletableFuture.completedFuture(List.of(Suggestion.suggestion("custom_model_data"), Suggestion.suggestion("custom_block_states"), Suggestion.suggestion("visual_block_states"), Suggestion.suggestion("font"), Suggestion.suggestion("all")));
                     }
                 }))
                 .handler(context -> {
@@ -53,10 +53,10 @@ public final class CleanCacheCommand extends BukkitCommandFeature<CommandSender>
                     }
                     String type = context.getOrDefault("type", "all");
                     switch (type) {
-                        case "custom-model-data" -> handleCustomModelData(context);
+                        case "custom_model_data" -> handleCustomModelData(context);
                         case "font", "images" -> handleFont(context);
-                        case "custom-block-states" -> handleCustomBlockState(context);
-                        case "visual-block-states" -> handleVisualBlockState(context);
+                        case "custom_block_states" -> handleCustomBlockState(context);
+                        case "visual_block_states" -> handleVisualBlockState(context);
                         case "all" -> {
                             handleCustomModelData(context);
                             handleFont(context);
@@ -173,7 +173,7 @@ public final class CleanCacheCommand extends BukkitCommandFeature<CommandSender>
     }
 
     public Map<Key, IdAllocator> getAllCachedCustomModelData() {
-        Path cacheDir = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("custom-model-data");
+        Path cacheDir = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("custom_model_data");
         if (!Files.exists(cacheDir)) {
             return Map.of();
         }

@@ -144,6 +144,12 @@ public abstract class CraftEngine implements Plugin {
         this.itemBrowserManager = new ItemBrowserManagerImpl(this);
         // 初始化实体剔除器
         this.entityCullingManager = EntityCullingManager.INSTANCE;
+
+        try {
+            Migrator.run(this);
+        } catch (Exception e) {
+            this.logger.warn("Failed to run migrator", e);
+        }
     }
 
     public void setUpConfigAndLocale() {

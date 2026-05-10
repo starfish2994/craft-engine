@@ -111,15 +111,16 @@ resource-pack:
     fake-directory: false
     # Break the texture file to prevent thieves from opening it
     break-texture: false
-    # Prevent straightforward unzip
-    anti-unzip: false
     # Obfuscate your resource pack to prevent thieves from restoring its original structure
     obfuscation:
       enable: false
       seed: 0 # 0 = random seed
+      # Whether to obfuscate the item model component
+      # This only takes effect when you enable the client-bound-model.
+      obfuscate-item-model: false
       # Determines the length of obfuscated overlay directories
       overlay:
-        length: 4  # 0 = disable
+        length: 3~6 # 0 = disable
       # Determines the number and length of obfuscated namespaces
       namespace:
         amount: 32  # 0 = disable
@@ -128,12 +129,7 @@ resource-pack:
       path:
         depth: 2~6
         length: 1~4
-      # This only works if you enable client bound model
-      # Determines the depth and length of the obfuscated item model
-      item-model:
-        enable: false
-        depth: 2~6
-        length: 1~4
+        anti-unzip: false
       # Assemble multiple textures into one giant texture atlas to make it more difficult for thieves to directly extract the individual textures.
       # A larger atlas will result in slower generation speed, but it will also lead to a smaller resource pack size.
       atlas:
@@ -149,6 +145,8 @@ resource-pack:
         - "@vanilla_models"         # bypass vanilla models
       bypass-sounds:
         - "@vanilla_sounds"         # bypass vanilla sounds
+      bypass-item-models:
+        - "@vanilla_item_model"
       bypass-equipments: []
 
   # This section controls how to send the resource pack to players
