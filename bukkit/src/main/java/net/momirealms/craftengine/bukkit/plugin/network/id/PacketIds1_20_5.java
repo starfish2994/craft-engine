@@ -376,4 +376,9 @@ final class PacketIds1_20_5 implements PacketIds {
     public int serverboundClientInformationPacket$configuration() {
         return PacketIdHelper.byName("minecraft:client_information", ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
     }
+
+    @Override
+    public int clientboundRegistryDataPacket() {
+        return PacketIdHelper.byName("minecraft:registry_data", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
+    }
 }

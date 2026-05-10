@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.PacketFlow;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.*;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ClientboundRegistryDataPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ServerboundFinishConfigurationPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.handshake.ClientIntentionPacketProxy;
@@ -383,5 +384,10 @@ final class PacketIds1_20 implements PacketIds {
     @Override
     public int serverboundClientInformationPacket$configuration() {
         return PacketIdHelper.byClazz(ServerboundClientInformationPacketProxy.CLASS, ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
+    }
+
+    @Override
+    public int clientboundRegistryDataPacket() {
+        return PacketIdHelper.byClazz(ClientboundRegistryDataPacketProxy.CLASS, ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
     }
 }

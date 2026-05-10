@@ -18,6 +18,7 @@ import net.momirealms.craftengine.bukkit.plugin.network.listener.common.NMSResou
 import net.momirealms.craftengine.bukkit.plugin.network.listener.common.UpdateTagsListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.FinishConfigurationListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.NMSFinishConfigurationListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.RegistryDataListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.game.*;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.handshake.IntentionListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.login.HelloListener;
@@ -481,6 +482,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(SetPlayerTeamListener.INSTANCE, PacketIds.INSTANCE.clientboundSetPlayerTeamPacket(), "ClientboundSetPlayerTeamPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(SetObjectiveListener.INSTANCE, PacketIds.INSTANCE.clientboundSetObjectivePacket(), "ClientboundSetObjectivePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(PlayerChatListener.INSTANCE, PacketIds.INSTANCE.clientboundPlayerChatPacket(), "ClientboundPlayerChatPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(RegistryDataListener.INSTANCE, PacketIds.INSTANCE.clientboundRegistryDataPacket(), "ClientboundRegistryDataPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

@@ -152,4 +152,6 @@ public interface PacketIds {
     int serverboundClientInformationPacket$play();
 
     int serverboundClientInformationPacket$configuration();
+
+    int clientboundRegistryDataPacket();
 }
