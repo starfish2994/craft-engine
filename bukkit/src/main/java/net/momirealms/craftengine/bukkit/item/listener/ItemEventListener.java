@@ -517,8 +517,10 @@ public final class ItemEventListener implements Listener {
             Key replacement = itemDefinition.settings().consumeReplacement();
             if (wrapped.count() == 1) {
                 if (replacement != null) {
-                    ItemStack replacementItem = this.plugin.itemManager().buildItemStack(replacement, serverPlayer);
-                    event.setReplacement(replacementItem);
+                    BukkitItem replacementItem = this.plugin.itemManager().createWrappedItem(replacement, serverPlayer);
+                    if (replacementItem != null) {
+                        event.setReplacement(replacementItem.getBukkitItem());
+                    }
                 }
             } else {
                 // fixme 如何取消堆叠数量>1的物品的默认replacement

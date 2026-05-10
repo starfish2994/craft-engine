@@ -131,7 +131,6 @@ public final class BukkitItemManager extends AbstractItemManager {
         if (this.slotChangeListener != null) Bukkit.getPluginManager().registerEvents(this.slotChangeListener, this.plugin.javaPlugin());
     }
 
-    @Override
     public NetworkItemHandler networkItemHandler() {
         return this.networkItemHandler;
     }
@@ -189,11 +188,6 @@ public final class BukkitItemManager extends AbstractItemManager {
             return Optional.empty();
         }
         return Optional.of(CloneableItem.of(this.wrap(vanilla)));
-    }
-
-    @Override
-    public int getFuelTime(Key id) {
-        return getItemDefinition(id).map(it -> it.settings().fuelTime()).orElse(0);
     }
 
     @Override
@@ -318,26 +312,18 @@ public final class BukkitItemManager extends AbstractItemManager {
 
     @Override
     public BukkitItem createCustomWrappedItem(Key id, Player player) {
-        return Optional.ofNullable(customItemsById.get(id)).map(it -> (BukkitItem) it.buildItem(player)).orElse(null);
+        return Optional.ofNullable(itemDefinitionById.get(id)).map(it -> (BukkitItem) it.buildItem(player)).orElse(null);
     }
 
     @Override
     public BukkitItem createWrappedItem(Key id, @Nullable Player player) {
-        ItemDefinition itemDefinition = this.customItemsById.get(id);
+        ItemDefinition itemDefinition = this.itemDefinitionById.get(id);
         if (itemDefinition != null) {
             return (BukkitItem) itemDefinition.buildItem(player);
         }
         ItemStack itemStack = this.createVanillaItemStack(id);
         if (itemStack != null) {
             return wrap(itemStack);
-        }
-        return null;
-    }
-
-    public ItemStack buildItemStack(Key id, @Nullable Player player) {
-        BukkitItem wrappedItem = createWrappedItem(id, player);
-        if (wrappedItem != null) {
-            return wrappedItem.getBukkitItem();
         }
         return null;
     }

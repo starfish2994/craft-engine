@@ -54,8 +54,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     private final ItemParser itemParser;
     private final EquipmentParser equipmentParser;
     // 缓存
-    protected final Map<Key, ItemDefinition> customItemsById = new ConcurrentHashMap<>();
-    protected final Map<String, ItemDefinition> customItemsByPath = new ConcurrentHashMap<>();
+    protected final Map<Key, ItemDefinition> itemDefinitionById = new ConcurrentHashMap<>();
+    protected final Map<String, ItemDefinition> itemDefinitionByPath = new ConcurrentHashMap<>();
     protected final Map<Key, List<UniqueKey>> customItemTags = new HashMap<>();
     protected final Map<Key, ModernItemModel> modernItemModels1_21_4 = new ConcurrentHashMap<>();
     protected final Map<Key, TreeSet<LegacyOverridesModel>> modernItemModels1_21_2 = new ConcurrentHashMap<>();
@@ -97,8 +97,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     public void unload() {
         super.clearModelsToGenerate();
         this.clearFeatureFlags();
-        this.customItemsById.clear();
-        this.customItemsByPath.clear();
+        this.itemDefinitionById.clear();
+        this.itemDefinitionByPath.clear();
         this.cachedCustomItemSuggestions.clear();
         this.cachedTotemSuggestions.clear();
         this.legacyOverrides.clear();
@@ -129,12 +129,12 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public Optional<ItemDefinition> getItemDefinition(Key key) {
-        return Optional.ofNullable(this.customItemsById.get(key));
+        return Optional.ofNullable(this.itemDefinitionById.get(key));
     }
 
     @Override
-    public Optional<ItemDefinition> getCustomItemByPathOnly(String path) {
-        return Optional.ofNullable(this.customItemsByPath.get(path));
+    public Optional<ItemDefinition> getItemDefinitionByPath(String path) {
+        return Optional.ofNullable(this.itemDefinitionByPath.get(path));
     }
 
     @Override
@@ -170,13 +170,6 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     }
 
     @Override
-    public Collection<Key> itemTags() {
-        Set<Key> tags = new HashSet<>(VANILLA_ITEM_TAGS.keySet());
-        tags.addAll(this.customItemTags.keySet());
-        return tags;
-    }
-
-    @Override
     public Collection<Suggestion> cachedCustomItemSuggestions() {
         return Collections.unmodifiableCollection(this.cachedCustomItemSuggestions);
     }
@@ -194,7 +187,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public Map<Key, ItemDefinition> loadedItems() {
-        return Collections.unmodifiableMap(this.customItemsById);
+        return Collections.unmodifiableMap(this.itemDefinitionById);
     }
 
     public List<Key> orderedItemIds() {
@@ -310,7 +303,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
         @Override
         public int count() {
-            return AbstractItemManager.this.customItemsById.size();
+            return AbstractItemManager.this.itemDefinitionById.size();
         }
 
         private boolean isModernFormatRequired() {
@@ -387,7 +380,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             Object[] pendingElements = this.pendingConfigSections.elements();
             for (int i = 0; i < size; i++) {
                 PendingConfigSection pending = (PendingConfigSection) pendingElements[i];
-                ItemDefinition itemDefinition = AbstractItemManager.this.customItemsById.get(pending.id);
+                ItemDefinition itemDefinition = AbstractItemManager.this.itemDefinitionById.get(pending.id);
                 if (itemDefinition != null) {
                     Key id = itemDefinition.id();
                     AbstractItemManager.this.orderedItemIds.add(id);
@@ -660,8 +653,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                         .events(events)
                         .build();
 
-                AbstractItemManager.this.customItemsById.put(id, itemDefinition);
-                AbstractItemManager.this.customItemsByPath.put(id.value(), itemDefinition);
+                AbstractItemManager.this.itemDefinitionById.put(id, itemDefinition);
+                AbstractItemManager.this.itemDefinitionByPath.put(id.value(), itemDefinition);
                 if (VersionHelper.isOrAbove26_1() && settings.dyeable() == Tristate.TRUE) {
                     AbstractItemManager.this.dyeableItems.put(id, itemDefinition);
                 }

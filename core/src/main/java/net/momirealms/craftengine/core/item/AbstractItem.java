@@ -175,7 +175,8 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
 
     @Override
     public boolean isCustomItem() {
-        return factory.plugin.itemManager().getItemDefinition(id()).isPresent();
+        Optional<ItemDefinition> itemDefinition = this.factory.plugin.itemManager().getItemDefinition(id());
+        return itemDefinition.filter(definition -> !definition.isVanillaItem()).isPresent();
     }
 
     @Override

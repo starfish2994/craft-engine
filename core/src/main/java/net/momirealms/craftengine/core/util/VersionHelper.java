@@ -23,6 +23,7 @@ public final class VersionHelper {
     private static final boolean paper;
     private static final boolean leaves;
     private static final boolean canvas;
+    private static final boolean leaf;
     private static final boolean v1_20;
     private static final boolean v1_20_1;
     private static final boolean v1_20_2;
@@ -111,6 +112,7 @@ public final class VersionHelper {
             paper = checkPaper();
             leaves = checkLeaves();
             canvas = checkCanvas();
+            leaf = checkLeaf();
         } catch (Exception e) {
             throw new RuntimeException("Failed to init VersionHelper", e);
         }
@@ -196,6 +198,10 @@ public final class VersionHelper {
         return exists("io.canvasmc.canvas.Config") || exists("io.canvasmc.canvas.GlobalConfiguration");
     }
 
+    private static boolean checkLeaf() {
+        return exists("org.dreeam.leaf.config.LeafConfig");
+    }
+
     public static boolean isFolia() {
         return folia;
     }
@@ -210,6 +216,10 @@ public final class VersionHelper {
 
     public static boolean isLeaves() {
         return leaves;
+    }
+
+    public static boolean isLeaf() {
+        return leaf;
     }
 
     public static boolean isMojmap() {

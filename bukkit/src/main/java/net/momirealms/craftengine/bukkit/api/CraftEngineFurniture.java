@@ -59,6 +59,23 @@ public final class CraftEngineFurniture {
     }
 
     /**
+     * Performs ray tracing to find the furniture entity that the location is pointing
+     *
+     * @param location The starting location
+     * @param maxDistance Maximum ray trace distance (in blocks)
+     * @return The furniture being targeted, or null if no furniture is found
+     */
+    @Nullable
+    public static BukkitFurniture rayTrace(Location location, double maxDistance) {
+        RayTraceResult result = location.getWorld().rayTrace(location, location.getDirection(),
+                maxDistance, FluidCollisionMode.NEVER, true, 0d, CraftEngineFurniture::isCollisionEntity);
+        if (result == null) return null;
+        Entity hitEntity = result.getHitEntity();
+        if (hitEntity == null) return null;
+        return getLoadedFurnitureByCollider(hitEntity);
+    }
+
+    /**
      * Performs ray tracing to find the furniture entity that the player is currently targeting
      *
      * @param player The player performing the ray trace
@@ -70,12 +87,11 @@ public final class CraftEngineFurniture {
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return null;
         Location eyeLocation = serverPlayer.getEyeLocation();
-        RayTraceResult result = player.getWorld().rayTrace(eyeLocation, eyeLocation.getDirection(), maxDistance, FluidCollisionMode.NEVER, true, 0d, CraftEngineFurniture::isCollisionEntity);
-        if (result == null)
-            return null;
+        RayTraceResult result = player.getWorld().rayTrace(eyeLocation, eyeLocation.getDirection(),
+                maxDistance, FluidCollisionMode.NEVER, true, 0d, CraftEngineFurniture::isCollisionEntity);
+        if (result == null) return null;
         Entity hitEntity = result.getHitEntity();
-        if (hitEntity == null)
-            return null;
+        if (hitEntity == null) return null;
         return getLoadedFurnitureByCollider(hitEntity);
     }
 
@@ -91,11 +107,9 @@ public final class CraftEngineFurniture {
         if (serverPlayer == null) return null;
         Location eyeLocation = serverPlayer.getEyeLocation();
         RayTraceResult result = player.getWorld().rayTrace(eyeLocation, eyeLocation.getDirection(), serverPlayer.getCachedInteractionRange(), FluidCollisionMode.NEVER, true, 0d, CraftEngineFurniture::isCollisionEntity);
-        if (result == null)
-            return null;
+        if (result == null) return null;
         Entity hitEntity = result.getHitEntity();
-        if (hitEntity == null)
-            return null;
+        if (hitEntity == null) return null;
         return getLoadedFurnitureByCollider(hitEntity);
     }
 

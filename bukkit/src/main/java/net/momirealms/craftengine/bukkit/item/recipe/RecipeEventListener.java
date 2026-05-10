@@ -104,7 +104,7 @@ public final class RecipeEventListener implements Listener {
                     // The item is an ingredient, we should never consider it as fuel firstly
                     if (ceRecipe != null) return;
 
-                    int fuelTime = this.itemManager.getFuelTime(BukkitAdaptor.adapt(item).id());
+                    int fuelTime = getFuelTime(BukkitAdaptor.adapt(item).id());
                     if (fuelTime == 0) {
                         if (ItemStackUtils.isCustomItem(item) && item.getType().isFuel()) {
                             event.setCancelled(true);
@@ -171,7 +171,7 @@ public final class RecipeEventListener implements Listener {
                         item = player.getInventory().getItem(hotBarSlot);
                     }
                     if (ItemStackUtils.isEmpty(item)) return;
-                    int fuelTime = this.plugin.itemManager().getFuelTime(BukkitAdaptor.adapt(item).id());
+                    int fuelTime = getFuelTime(BukkitAdaptor.adapt(item).id());
                     // only handle custom items
                     if (fuelTime == 0) {
                         if (ItemStackUtils.isCustomItem(item) && item.getType().isFuel()) {
@@ -198,7 +198,7 @@ public final class RecipeEventListener implements Listener {
                     ItemStack itemOnCursor = event.getCursor();
                     // pick item
                     if (ItemStackUtils.isEmpty(itemOnCursor)) return;
-                    int fuelTime = this.plugin.itemManager().getFuelTime(BukkitAdaptor.adapt(itemOnCursor).id());
+                    int fuelTime = getFuelTime(BukkitAdaptor.adapt(itemOnCursor).id());
                     // only handle custom items
                     if (fuelTime == 0) {
                         if (ItemStackUtils.isCustomItem(itemOnCursor) && itemOnCursor.getType().isFuel()) {
@@ -263,6 +263,10 @@ public final class RecipeEventListener implements Listener {
                 }
             }
         }
+    }
+
+    private int getFuelTime(Key id) {
+        return this.itemManager.getItemDefinition(id).map(it -> it.settings().fuelTime()).orElse(0);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)

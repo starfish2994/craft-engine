@@ -316,18 +316,16 @@ public final class BukkitCraftEngine extends CraftEngine {
 
     private List<String> getPatches() {
         List<String> patches = new ObjectArrayList<>();
-        if (VersionHelper.isPaper()) {
+        if (VersionHelper.isPaper())
             patches.add("paper");
-        }
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.isFolia())
             patches.add("folia");
-        }
-        if (VersionHelper.isLeaves()) {
+        if (VersionHelper.isLeaves())
             patches.add("leaves");
-        }
-        if (VersionHelper.isCanvas()) {
+        if (VersionHelper.isCanvas())
             patches.add("canvas");
-        }
+        if (VersionHelper.isLeaf())
+            patches.add("leaf");
         return patches;
     }
 

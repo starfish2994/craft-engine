@@ -58,7 +58,7 @@ public final class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
                     Key itemId = Key.of(namespacedKey.namespace(), namespacedKey.value());
                     ItemDefinition itemDefinition = CraftEngineItems.byId(itemId);
                     if (itemDefinition == null) {
-                        itemDefinition = BukkitItemManager.instance().getCustomItemByPathOnly(itemId.value()).orElse(null);
+                        itemDefinition = BukkitItemManager.instance().getItemDefinitionByPath(itemId.value()).orElse(null);
                         if (itemDefinition == null) {
                             handleFeedback(context, MessageConstants.COMMAND_ITEM_GIVE_FAILURE_NOT_EXIST, Component.text(itemId.toString()));
                             return;
