@@ -9,8 +9,10 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.RecipeInjector;
+import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.BuildableItem;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
@@ -22,6 +24,8 @@ import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftServerProxy;
 import net.momirealms.craftengine.proxy.minecraft.resources.FileToIdConverterProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.MinecraftServerProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.PlayerAdvancementsProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.packs.PackTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.packs.repository.PackProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.packs.repository.PackRepositoryProxy;
@@ -270,6 +274,13 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
 
         // 重载资源
         if (VersionHelper.isOrAbove1_21_6() && !VersionHelper.isFolia()) {
+            for (BukkitServerPlayer player : this.plugin.networkManager().onlineUsers()) {
+                Object serverPlayer = player.serverPlayer();
+                Object advancements = ServerPlayerProxy.INSTANCE.getAdvancements(serverPlayer);
+                if (advancements != null) {
+                    PlayerAdvancementsProxy.INSTANCE.save(advancements);
+                }
+            }
             PlayerListProxy.INSTANCE.reloadResources(CraftServerProxy.INSTANCE.getPlayerList(Bukkit.getServer()));
         }
     }
