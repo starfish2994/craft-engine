@@ -45,7 +45,7 @@ public class BukkitEntityData<T> implements EntityData<T> {
 
     @Override
     public String toString() {
-        return "BukkitEntityData{" +
+        return this.getClass().getSimpleName() + "{" +
                 "id=" + id +
                 ", serializer=" + serializer +
                 ", defaultValue=" + defaultValue +
