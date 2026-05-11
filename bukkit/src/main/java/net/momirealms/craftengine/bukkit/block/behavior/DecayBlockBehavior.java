@@ -74,10 +74,10 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
         int age = blockState.get(this.ageProperty);
         if (age < this.ageProperty.max) {
             LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
         } else {
             LevelWriterProxy.INSTANCE.setBlock(level, pos, this.decayInto.get().minecraftState(), UpdateFlags.UPDATE_ALL);
         }
-        LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
     }
 
     @Override
