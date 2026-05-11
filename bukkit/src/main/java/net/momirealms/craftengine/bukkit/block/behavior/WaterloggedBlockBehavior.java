@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
@@ -50,7 +51,7 @@ public class WaterloggedBlockBehavior extends BukkitBlockBehavior implements Buk
         Object fluidType = FluidStateProxy.INSTANCE.getType(args[3]);
         if (!immutableBlockState.get(this.waterloggedProperty) && fluidType == FluidsProxy.WATER) {
             LevelWriterProxy.INSTANCE.setBlock(args[0], args[1], immutableBlockState.with(this.waterloggedProperty, true).customBlockState().minecraftState(), 3);
-            LevelUtils.scheduleFluidTick(args[0], args[1], fluidType, 5);
+            LevelAccessorProxy.INSTANCE.scheduleTick$1(args[0], args[1], fluidType, 5);
             return true;
         }
         return false;

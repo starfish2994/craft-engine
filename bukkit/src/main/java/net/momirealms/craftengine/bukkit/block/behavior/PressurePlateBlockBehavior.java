@@ -161,7 +161,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         }
 
         if (isActive) {
-            LevelUtils.scheduleBlockTick(level, pos, thisBlock, this.pressedTime);
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.pressedTime);
         }
     }
 

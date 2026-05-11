@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.DirectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
@@ -65,7 +66,7 @@ public final class HangableBlockBehavior extends BukkitBlockBehavior implements 
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) return BlocksProxy.AIR$defaultState;
         if (this.waterloggedProperty != null && state.get(this.waterloggedProperty)) {
-            LevelUtils.scheduleFluidTick(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
+            LevelAccessorProxy.INSTANCE.scheduleTick$1(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
         }
         if ((state.get(this.hangingProperty) ? DirectionProxy.UP : DirectionProxy.DOWN) == args[updateShape$direction]
                 && !BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(args[0], args[updateShape$level], args[updateShape$blockPos])) {

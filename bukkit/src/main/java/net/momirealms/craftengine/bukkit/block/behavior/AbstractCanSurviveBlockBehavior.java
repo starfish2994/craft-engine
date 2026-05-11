@@ -60,7 +60,7 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
     public void onPlace(Object thisBlock, Object[] args) {
         Object world = args[1];
         Object blockPos = args[2];
-        LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 2);
+        LevelAccessorProxy.INSTANCE.scheduleTick$0(world, blockPos, thisBlock, 2);
     }
 
     @Override
@@ -73,7 +73,7 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
             return state;
         }
         if (this.delay != 0) {
-            LevelUtils.scheduleBlockTick(level, blockPos, thisBlock, this.delay);
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, blockPos, thisBlock, this.delay);
             return state;
         }
         if (!BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state, level, blockPos)) {

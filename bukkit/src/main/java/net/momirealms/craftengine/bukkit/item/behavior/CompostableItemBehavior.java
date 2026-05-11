@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import org.bukkit.GameEvent;
 import org.bukkit.World;
@@ -65,7 +66,7 @@ public final class CompostableItemBehavior extends ItemBehavior {
         context.getLevel().levelEvent(WorldEvents.COMPOSTER_COMPOSTS, context.getClickedPos(), willRaise ? 1 : 0);
         ((World) context.getLevel().platformWorld()).sendGameEvent(player != null ? (Entity) player.platformPlayer() : null, GameEvent.BLOCK_CHANGE, new Vector(block.x() + 0.5, block.y() + 0.5, block.z() + 0.5));
         if (currentLevel + 1 == 7) {
-            LevelUtils.scheduleBlockTick(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(context.getClickedPos()), blockOwner, 20);
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(context.getClickedPos()), blockOwner, 20);
         }
         if (player != null) {
             if (!player.canInstabuild()) {

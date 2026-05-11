@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
@@ -55,7 +56,7 @@ public final class SofaBlockBehavior extends WaterloggedBlockBehavior {
         if (optionalCustomState.isEmpty()) return blockState;
         ImmutableBlockState customState = optionalCustomState.get();
         if (super.waterloggedProperty != null && customState.get(this.waterloggedProperty)) {
-            LevelUtils.scheduleFluidTick(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
+            LevelAccessorProxy.INSTANCE.scheduleTick$1(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
         }
         Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2() ? args[4] : args[1]);
         SofaShape sofaShape = getSofaShape(customState, level, LocationUtils.fromBlockPos(blockPos));

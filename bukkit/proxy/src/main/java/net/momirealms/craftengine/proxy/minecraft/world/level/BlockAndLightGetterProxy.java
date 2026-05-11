@@ -15,4 +15,7 @@ public interface BlockAndLightGetterProxy extends BlockGetterProxy {
 
     @MethodInvoker(name = "getRawBrightness")
     int getRawBrightness(Object target, @Type(clazz = BlockPosProxy.class) Object pos, int ambientDarkness);
+
+    @MethodInvoker(name = "getBrightness")
+    int getBrightness(Object target, @Type(clazz = LightLayerProxy.class) Object layer, @Type(clazz = BlockPosProxy.class) Object pos);
 }

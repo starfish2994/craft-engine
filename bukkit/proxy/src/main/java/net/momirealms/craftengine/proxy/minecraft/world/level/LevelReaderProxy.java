@@ -8,7 +8,7 @@ import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 
 @ReflectionProxy(name = "net.minecraft.world.level.LevelReader")
-public interface LevelReaderProxy extends CollisionGetterProxy, BlockGetterProxy {
+public interface LevelReaderProxy extends BlockAndLightGetterProxy, CollisionGetterProxy, SignalGetterProxy {
     LevelReaderProxy INSTANCE = ASMProxyFactory.create(LevelReaderProxy.class);
     Class<?> CLASS = SparrowClass.find("net.minecraft.world.level.LevelReader");
 
