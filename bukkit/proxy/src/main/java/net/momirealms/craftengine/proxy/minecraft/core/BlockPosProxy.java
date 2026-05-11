@@ -24,4 +24,18 @@ public interface BlockPosProxy extends Vec3iProxy {
 
     @MethodInvoker(name = "relative")
     Object relative(Object target, @Type(clazz = DirectionProxy.class) Object direction);
+
+    @ReflectionProxy(name = "net.minecraft.core.BlockPos$MutableBlockPos")
+    interface MutableBlockPosProxy extends BlockPosProxy {
+        MutableBlockPosProxy INSTANCE = ASMProxyFactory.create(MutableBlockPosProxy.class);
+
+        @ConstructorInvoker
+        Object newInstance();
+
+        @ConstructorInvoker
+        Object newInstance(int x, int y, int z);
+
+        @MethodInvoker(name = "setWithOffset")
+        Object setWithOffset(Object target, @Type(clazz = Vec3iProxy.class) Object pos, @Type(clazz = DirectionProxy.class) Object direction);
+    }
 }

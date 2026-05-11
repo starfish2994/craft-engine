@@ -17,6 +17,7 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.minecraft.core.DirectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.MutableBlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
@@ -76,7 +77,7 @@ public final class LeavesBlockBehavior extends BukkitBlockBehavior implements Ra
         optionalCustomState.ifPresent(state -> state.behavior().let(LeavesBlockBehavior.class, itsBehavior -> {
             int distance = itsBehavior.getDistanceAt(neighborState) + 1;
             if (distance != 1 || itsBehavior.getDistance(state) != distance) {
-                LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 1);
+                LevelAccessorProxy.INSTANCE.scheduleTick$0(world, blockPos, thisBlock, 1);
             }
         }));
         return blockState;

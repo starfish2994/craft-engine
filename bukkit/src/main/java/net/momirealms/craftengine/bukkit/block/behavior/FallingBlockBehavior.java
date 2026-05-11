@@ -19,6 +19,7 @@ import net.momirealms.craftengine.proxy.minecraft.core.Vec3iProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.item.FallingBlockEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelReaderProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.FallingBlockProxy;
@@ -49,14 +50,14 @@ public final class FallingBlockBehavior extends BukkitBlockBehavior implements B
     public void onPlace(Object thisBlock, Object[] args) {
         Object world = args[1];
         Object blockPos = args[2];
-        LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 2);
+        LevelAccessorProxy.INSTANCE.scheduleTick$0(world, blockPos, thisBlock, 2);
     }
 
     @Override
     public Object updateShape(Object thisBlock, Object[] args) {
         Object world = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
-        LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 2);
+        LevelAccessorProxy.INSTANCE.scheduleTick$0(world, blockPos, thisBlock, 2);
         return args[0];
     }
 

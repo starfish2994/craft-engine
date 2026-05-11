@@ -24,6 +24,7 @@ import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import org.bukkit.GameEvent;
@@ -92,7 +93,7 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
             if (!hasNoViewer(this.inventory.getViewers())) return;
             this.maxInteractionDistance = Math.max(player.getCachedInteractionRange(), this.maxInteractionDistance);
             this.setOpen(player);
-            LevelUtils.scheduleBlockTick(super.blockEntity.world.world().minecraftWorld(), LocationUtils.toBlockPos(super.blockEntity.pos), BlockStateUtils.getBlockOwner(super.blockEntity.blockState.customBlockState().minecraftState()), 5);
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(super.blockEntity.world.world().minecraftWorld(), LocationUtils.toBlockPos(super.blockEntity.pos), BlockStateUtils.getBlockOwner(super.blockEntity.blockState.customBlockState().minecraftState()), 5);
         }
     }
 
@@ -186,7 +187,7 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
 
         this.maxInteractionDistance = maxInteractionDistance;
         if (!viewers.isEmpty()) {
-            LevelUtils.scheduleBlockTick(level, pos, BlockStateUtils.getBlockOwner(blockState), 5);
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, BlockStateUtils.getBlockOwner(blockState), 5);
         }
     }
 

@@ -161,7 +161,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
             }
         }
         if (on) {
-            LevelUtils.scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.ticksToStayPressed);
         }
     }
 
@@ -205,7 +205,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
     private void press(Object thisBlock, ImmutableBlockState state, Object level, Object pos, @Nullable Object player) {
         LevelWriterProxy.INSTANCE.setBlock(level, pos, state.with(this.poweredProperty, true).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         this.updateNeighbours(thisBlock, state, level, pos);
-        LevelUtils.scheduleBlockTick(level, pos, thisBlock, this.ticksToStayPressed);
+        LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.ticksToStayPressed);
         playSound(level, pos, true);
         if (VersionHelper.isOrAbove1_20_5()) {
             LevelAccessorProxy.INSTANCE.gameEvent$0(level, player, GameEventProxy.BLOCK_ACTIVATE, pos);

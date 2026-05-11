@@ -25,6 +25,7 @@ import net.momirealms.craftengine.proxy.minecraft.tags.BlockTagsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.InteractionResultProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.LeadItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.FenceGateBlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.LeavesBlockProxy;
@@ -147,7 +148,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements Pat
         ImmutableBlockState state = optionalState.get();
         Property<Boolean> waterlogged = state.getProperty("waterlogged");
         if (waterlogged != null) {
-            LevelUtils.scheduleFluidTick(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
+            LevelAccessorProxy.INSTANCE.scheduleTick$1(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
         }
         Direction direction = DirectionUtils.fromNMSDirection(args[updateShape$direction]);
         if (direction.axis().isHorizontal()) {

@@ -76,6 +76,7 @@ public final class TemplateManagerImpl implements TemplateManager {
 
     @Override
     public Object applyTemplates(Key id, ConfigValue input) {
+        if (input == null) return null;
         Object preprocessedInput = preprocessUnknownValue(input);
         return processUnknownValue(input.path(), preprocessedInput, Map.of(
                 "__NAMESPACE__", PlainStringTemplateArgument.plain(id.namespace()),

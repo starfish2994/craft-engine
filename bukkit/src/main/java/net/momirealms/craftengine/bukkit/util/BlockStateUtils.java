@@ -129,6 +129,15 @@ public final class BlockStateUtils {
         }
     }
 
+    @Nullable
+    public static ImmutableBlockState getNullableCustomBlockState(Object state) {
+        if (state instanceof DelegatingBlockState holder) {
+            return holder.blockState();
+        } else {
+            return null;
+        }
+    }
+
     public static Object getBlockState(Block block) {
         return BlockGetterProxy.INSTANCE.getBlockState(CraftWorldProxy.INSTANCE.getWorld(block.getWorld()), LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ()));
     }

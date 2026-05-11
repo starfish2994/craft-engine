@@ -89,7 +89,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
         if (this.waterloggedProperty != null) {
             BlockStateUtils.getOptionalCustomBlockState(blockState).ifPresent(customState -> {
                 if (customState.get(this.waterloggedProperty)) {
-                    LevelUtils.scheduleFluidTick(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
+                    LevelAccessorProxy.INSTANCE.scheduleTick$1(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
                 }
             });
         }
@@ -215,7 +215,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
 
         LevelWriterProxy.INSTANCE.setBlock(level, blockPos, customState.with(this.poweredProperty, hasSignal).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
         if (this.waterloggedProperty != null && customState.get(this.waterloggedProperty)) {
-            LevelUtils.scheduleFluidTick(level, blockPos, FluidsProxy.WATER, 5);
+            LevelAccessorProxy.INSTANCE.scheduleTick$1(level, blockPos, FluidsProxy.WATER, 5);
         }
     }
 

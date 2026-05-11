@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.event.CraftEventFactoryProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.SignalGetterProxy;
 import org.bukkit.event.block.BlockRedstoneEvent;
@@ -67,7 +68,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
         boolean lit = customState.get(this.litProperty);
         if (lit != SignalGetterProxy.INSTANCE.hasNeighborSignal(world, blockPos)) {
             if (lit) {
-                LevelUtils.scheduleBlockTick(world, blockPos, thisBlock, 4);
+                LevelAccessorProxy.INSTANCE.scheduleTick$0(world, blockPos, thisBlock, 4);
             } else {
                 BlockRedstoneEvent event;
                 if (VersionHelper.isOrAbove1_21_9()) {
