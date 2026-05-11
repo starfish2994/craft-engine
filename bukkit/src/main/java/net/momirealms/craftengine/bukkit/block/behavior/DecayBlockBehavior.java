@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -52,20 +51,15 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
             LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
             return;
         }
-        DecayBlockBehavior behavior = blockState.behavior().getFirst(DecayBlockBehavior.class);
-        if (behavior == null) {
-            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
-            return;
-        }
         if (this.hasRequiredLight && LevelReaderProxy.INSTANCE.getMaxLocalRawBrightness(level, pos) < this.requiredLight) {
             LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
             return;
         }
-        int age = blockState.get(behavior.ageProperty);
-        if (age < behavior.ageProperty.max) {
-            LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(behavior.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
+        int age = blockState.get(this.ageProperty);
+        if (age < this.ageProperty.max) {
+            LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
         } else {
-            LevelWriterProxy.INSTANCE.setBlock(level, pos, behavior.decayInto.get().minecraftState(), UpdateFlags.UPDATE_ALL);
+            LevelWriterProxy.INSTANCE.setBlock(level, pos, this.decayInto.get().minecraftState(), UpdateFlags.UPDATE_ALL);
         }
         LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
     }
@@ -76,10 +70,8 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
         Object pos = args[2];
         ImmutableBlockState blockState = BlockStateUtils.getNullableCustomBlockState(args[0]);
         if (blockState == null || blockState.isEmpty()) return;
-        DecayBlockBehavior behavior = blockState.behavior().getFirst(DecayBlockBehavior.class);
-        if (behavior == null) return;
         if (this.hasRequiredLight && LevelReaderProxy.INSTANCE.getBrightness(level, LightLayerProxy.BLOCK, pos) < this.requiredLight) return;
-        LevelWriterProxy.INSTANCE.setBlock(level, pos, behavior.decayInto.get().minecraftState(), UpdateFlags.UPDATE_ALL);
+        LevelWriterProxy.INSTANCE.setBlock(level, pos, this.decayInto.get().minecraftState(), UpdateFlags.UPDATE_ALL);
     }
 
     @Override
