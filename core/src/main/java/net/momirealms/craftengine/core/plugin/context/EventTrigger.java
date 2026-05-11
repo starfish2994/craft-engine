@@ -15,7 +15,8 @@ public enum EventTrigger {
     PLACE("place", "build"),
     PICK_UP("pick_up", "pick"),
     STEP("step"),
-    FALL("fall"),;
+    FALL("fall"),
+    SHOOT("shoot");
 
     private static final Map<String, EventTrigger> BY_ID = new HashMap<>();
     private final String[] ids;

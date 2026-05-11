@@ -59,6 +59,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -861,5 +862,21 @@ public final class ItemEventListener implements Listener {
                 }
             }
         }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    public void onShootBow(EntityShootBowEvent event) {
+        LivingEntity shooter = event.getEntity();
+        ItemStack bow = event.getBow();
+        BukkitItem wrap = this.itemManager.wrap(bow);
+        wrap.getDefinition().ifPresent(definition -> {
+            definition.execute(PlayerOptionalContext.of(shooter instanceof Player player ? BukkitAdaptor.adapt(player) : null,
+                    ContextHolder.builder()
+                            .withParameter(DirectContextParameters.EVENT, Cancellable.of(event::isCancelled, event::setCancelled))
+                            .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(shooter))
+                            .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(shooter.getLocation()))
+                            .withParameter(DirectContextParameters.ITEM_IN_HAND, wrap)
+            ), EventTrigger.SHOOT);
+        });
     }
 }

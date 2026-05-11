@@ -41,6 +41,7 @@ public final class CommonFunctions {
     public static final CommonFunctionType<RemovePotionEffectFunction<Context>> REMOVE_POTION_EFFECT = register(Key.ce("remove_potion_effect"), RemovePotionEffectFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<LevelerExpFunction<Context>> LEVELER_EXP = register(Key.ce("leveler_exp"), LevelerExpFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<SetCooldownFunction<Context>> SET_COOLDOWN = register(Key.ce("set_cooldown"), SetCooldownFunction.factory(CommonConditions::fromConfig));
+    public static final CommonFunctionType<SetItemCooldownFunction<Context>> SET_ITEM_COOLDOWN = register(Key.ce("set_item_cooldown"), SetItemCooldownFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<RemoveCooldownFunction<Context>> REMOVE_COOLDOWN = register(Key.ce("remove_cooldown"), RemoveCooldownFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<SpawnFurnitureFunction<Context>> SPAWN_FURNITURE = register(Key.ce("spawn_furniture"), SpawnFurnitureFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<RemoveFurnitureFunction<Context>> REMOVE_FURNITURE = register(Key.ce("remove_furniture"), RemoveFurnitureFunction.factory(CommonConditions::fromConfig));

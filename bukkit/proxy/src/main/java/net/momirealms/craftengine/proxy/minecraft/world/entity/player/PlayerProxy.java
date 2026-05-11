@@ -40,4 +40,7 @@ public interface PlayerProxy extends LivingEntityProxy {
 
     @MethodInvoker(name = "drop")
     Object drop(Object target, @Type(clazz = ItemStackProxy.class) Object droppedItem, boolean retainOwnership);
+
+    @MethodInvoker(name = "getCooldowns")
+    Object getCooldowns(Object target);
 }

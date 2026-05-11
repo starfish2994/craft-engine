@@ -82,6 +82,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.player.AbilitiesP
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.InventoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.InventoryMenuProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemCooldownsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
@@ -95,6 +96,7 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -1805,5 +1807,28 @@ public class BukkitServerPlayer extends Player {
             ResourcePackDownloadData data = dataList.getFirst();
             sendPacket(ResourcePackUtils.createPacket(data.uuid(), data.url(), data.sha1()), true);
         }
+    }
+
+    @Override
+    public void setItemCooldown(Key id, int ticks) {
+        if (VersionHelper.isOrAbove1_21_2()) {
+            Object serverPlayer = serverPlayer();
+            Object cooldowns = PlayerProxy.INSTANCE.getCooldowns(serverPlayer);
+            ItemCooldownsProxy.INSTANCE.addCooldown(cooldowns, KeyUtils.toIdentifier(id), ticks);
+        }
+    }
+
+    @Override
+    public int getItemCooldown(Key id) {
+        if (VersionHelper.isOrAbove1_21_2()) {
+            Object serverPlayer = serverPlayer();
+            Object cooldowns = PlayerProxy.INSTANCE.getCooldowns(serverPlayer);
+            Map<Object, Object> instanceById = ItemCooldownsProxy.INSTANCE.getCooldowns(cooldowns);
+            Object instance = instanceById.get(KeyUtils.toIdentifier(id));
+            if (instance != null) {
+                return Math.max(0, ItemCooldownsProxy.CooldownInstanceProxy.INSTANCE.getEndTime(instance) - ItemCooldownsProxy.INSTANCE.getTickCount(cooldowns));
+            }
+        }
+        return 0;
     }
 }

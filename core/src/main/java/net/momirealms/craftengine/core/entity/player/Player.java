@@ -288,4 +288,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public boolean isValid() {
         return this.isOnline();
     }
+
+    public abstract void setItemCooldown(Key id, int ticks);
+
+    public abstract int getItemCooldown(Key id);
 }
