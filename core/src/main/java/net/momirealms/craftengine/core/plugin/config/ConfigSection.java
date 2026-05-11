@@ -206,7 +206,7 @@ public final class ConfigSection {
                 return new ConfigValue(assemblePath(key), value);
             }
         }
-        throw new KnownResourceException(ConfigConstants.MISSING_ARGUMENT, assemblePath(keys[0]), TranslationManager.instance().plainTranslation(argType));
+        throw new KnownResourceException(ConfigConstants.MISSING_ARGUMENT, assemblePath(keys[0]), keys[0], TranslationManager.instance().plainTranslation(argType));
     }
 
     // 获取非空 config value 进行基础转换
