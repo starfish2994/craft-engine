@@ -42,4 +42,14 @@ public class BukkitEntityData<T> implements EntityData<T> {
     public Object create(Object entityDataAccessor, T value) {
         return EntityDataValue.create(entityDataAccessor, value);
     }
+
+    @Override
+    public String toString() {
+        return "BukkitEntityData{" +
+                "id=" + id +
+                ", serializer=" + serializer +
+                ", defaultValue=" + defaultValue +
+                ", entityDataAccessor=" + entityDataAccessor +
+                '}';
+    }
 }

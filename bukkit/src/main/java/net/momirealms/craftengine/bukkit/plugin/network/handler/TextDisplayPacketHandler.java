@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.handler;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.entity.data.TextDisplayEntityData;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -35,7 +36,7 @@ public final class TextDisplayPacketHandler implements EntityPacketHandler {
             Object packedItem = packedItems.get(i);
             int entityDataId = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getId(packedItem);
             if (entityDataId != TextDisplayEntityData.Text.id()) continue;
-            Object textComponent = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getValue(packedItem);
+            Object textComponent = EntityUtils.getEntityDataValue(packedItem, TextDisplayEntityData.Text);
             if (textComponent == ComponentProxy.INSTANCE.empty()) break;
             String json = ComponentUtils.minecraftToJson(textComponent);
             Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(json);
