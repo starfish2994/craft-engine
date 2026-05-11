@@ -207,7 +207,12 @@ public final class Dependencies {
                     Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
-    );
+    ) {
+        @Override
+        public String classifier() {
+            return "patched";
+        }
+    };
 
     public static final Dependency ADVENTURE_NBT = new Dependency(
             "adventure-nbt",

@@ -44,8 +44,12 @@ public class Dependency {
         return this.groupId;
     }
 
-    public String rawArtifactId() {
+    public String artifactId() {
         return this.rawArtifactId;
+    }
+
+    public String classifier() {
+        return "";
     }
 
     public List<Relocation> relocations() {
@@ -64,20 +68,19 @@ public class Dependency {
         return jarInJarPath;
     }
 
-    private static final String MAVEN_FORMAT = "%s/%s/%s/%s-%s.jar";
+    private static final String MAVEN_FORMAT = "%s/%s/%s/%s.jar";
 
     public String mavenPath() {
         return String.format(MAVEN_FORMAT,
-                rewriteEscaping(this.groupId).replace(".", "/"),
-                rewriteEscaping(this.rawArtifactId),
+                rewriteEscaping(this.groupId()).replace(".", "/"),
+                rewriteEscaping(this.artifactId()),
                 getVersion(),
-                rewriteEscaping(this.rawArtifactId),
-                getVersion()
+                rewriteEscaping(this.artifactId()) + "-" + getVersion() + (classifier().isEmpty() ? "" : "-" + classifier())
         );
     }
 
     public String fileName(String classifier) {
-        String name = this.rawArtifactId.toLowerCase(Locale.ENGLISH).replace('_', '-');
+        String name = this.artifactId().toLowerCase(Locale.ENGLISH).replace('_', '-');
         String extra = classifier == null || classifier.isEmpty()
                 ? ""
                 : "-" + classifier;
