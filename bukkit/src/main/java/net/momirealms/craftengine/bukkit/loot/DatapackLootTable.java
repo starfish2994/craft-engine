@@ -37,7 +37,7 @@ public class DatapackLootTable implements Loot {
             // 1.20.5 +
             if (VersionHelper.isOrAbove1_20_5()) {
                 Object registryKey = ResourceKeyProxy.INSTANCE.create(
-                        RegistriesProxy.INSTANCE.getLootTable(),
+                        RegistriesProxy.LOOT_TABLE,
                         IdentifierProxy.INSTANCE.newInstance(identifier.namespace(), identifier.value())
                 );
                 // 非空, 至少会返回一个 LootTable.EMPTY.

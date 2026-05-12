@@ -19,6 +19,7 @@ import net.momirealms.craftengine.bukkit.item.behavior.BukkitItemBehaviors;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.loot.BukkitLootManager;
 import net.momirealms.craftengine.bukkit.pack.BukkitPackManager;
+import net.momirealms.craftengine.bukkit.painting.BukkitPaintingManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitSenderFactory;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitGuiManager;
@@ -189,6 +190,8 @@ public final class BukkitCraftEngine extends CraftEngine {
         super.furnitureManager = new BukkitFurnitureManager(this);
         // 初始化队伍管理器
         super.teamManager = new BukkitTeamManager(this);
+        // 初始化画管理器
+        super.paintingManager = new BukkitPaintingManager(this);
         // 初始化虚拟队伍
         super.teamManager.init();
         // 注册默认的parser

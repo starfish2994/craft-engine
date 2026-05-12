@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config;
 
+import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.block.AbstractBlockManager;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.loot.Loot;
@@ -716,5 +717,9 @@ public final class ConfigValue {
 
     public TextProvider getAsText() {
         return TextProviders.fromString(this.getAsString());
+    }
+
+    public Component getAsComponent() {
+        return AdventureHelper.miniMessage().deserialize(this.getAsString());
     }
 }

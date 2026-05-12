@@ -45,7 +45,7 @@ public interface HolderProxy {
         Set<Object> getTags(Object target);
 
         @FieldSetter(name = "tags")
-        void setTags(Object target, Set<Object> tags);
+        void setTags(Object target, Set<?> tags);
 
         @MethodInvoker(name = "bindValue")
         void bindValue(Object target, Object value);

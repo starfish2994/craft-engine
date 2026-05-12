@@ -1,9 +1,8 @@
 package net.momirealms.craftengine.proxy.minecraft.core;
 
+import net.momirealms.craftengine.proxy.minecraft.tags.TagKeyProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
-import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
-import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
-import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
+import net.momirealms.sparrow.reflection.proxy.annotation.*;
 
 import java.util.Map;
 
@@ -19,4 +18,7 @@ public interface MappedRegistryProxy {
 
     @FieldSetter(name = "unregisteredIntrusiveHolders")
     void setUnregisteredIntrusiveHolders(Object target, Map<Object, Object> intrusiveHolders);
+
+    @MethodInvoker(name = {"getOrCreateTagForRegistration", "getOrCreateTag"})
+    Iterable<Object> getOrCreateTagForRegistration(Object target, @Type(clazz = TagKeyProxy.class) Object key);
 }
