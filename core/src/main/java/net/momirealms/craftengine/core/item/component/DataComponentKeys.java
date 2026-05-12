@@ -83,4 +83,5 @@ public final class DataComponentKeys {
     public static final Key WEAPON = Key.of("minecraft", "weapon");
     public static final Key WRITABLE_BOOK_CONTENT = Key.of("minecraft", "writable_book_content");
     public static final Key WRITTEN_BOOK_CONTENT = Key.of("minecraft", "written_book_content");
+    public static final Key PAINTING_VARIANT = Key.of("minecraft", "painting/variant");
 }
