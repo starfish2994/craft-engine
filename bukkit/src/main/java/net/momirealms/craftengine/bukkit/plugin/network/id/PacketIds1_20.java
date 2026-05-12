@@ -390,4 +390,14 @@ final class PacketIds1_20 implements PacketIds {
     public int clientboundRegistryDataPacket() {
         return PacketIdHelper.byClazz(ClientboundRegistryDataPacketProxy.CLASS, ConnectionState.CONFIGURATION, PacketFlow.SERVERBOUND);
     }
+
+    @Override
+    public int clientboundShowDialogPacket$play() {
+        return -1;
+    }
+
+    @Override
+    public int clientboundShowDialogPacket$configuration() {
+        return -1;
+    }
 }

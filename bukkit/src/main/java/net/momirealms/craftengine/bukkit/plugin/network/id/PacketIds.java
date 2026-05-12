@@ -154,4 +154,8 @@ public interface PacketIds {
     int serverboundClientInformationPacket$configuration();
 
     int clientboundRegistryDataPacket();
+
+    int clientboundShowDialogPacket$play();
+
+    int clientboundShowDialogPacket$configuration();
 }

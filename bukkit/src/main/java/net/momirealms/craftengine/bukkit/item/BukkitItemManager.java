@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntityController;
 import net.momirealms.craftengine.bukkit.item.behavior.AxeItemBehavior;
 import net.momirealms.craftengine.bukkit.item.behavior.FlintAndSteelItemBehavior;
 import net.momirealms.craftengine.bukkit.item.factory.BukkitItemFactory;
@@ -41,6 +42,7 @@ import net.momirealms.craftengine.proxy.minecraft.tags.TagKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.equipment.trim.*;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.HandlerList;
@@ -346,8 +348,13 @@ public final class BukkitItemManager extends AbstractItemManager {
 
     @SuppressWarnings("deprecation")
     @Override
-    public BukkitItem fromByteArray(byte[] bytes) {
+    public BukkitItem fromBytes(byte[] bytes) {
         return wrap(Bukkit.getUnsafe().deserializeItem(bytes));
+    }
+
+    @Override
+    public Item fromNBT(CompoundTag tag) {
+        return wrap(ItemStackUtils.parseMinecraftItem(tag, VersionHelper.WORLD_VERSION));
     }
 
     @Override

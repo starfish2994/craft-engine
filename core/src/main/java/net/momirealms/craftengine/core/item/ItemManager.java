@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.UniqueKey;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,9 @@ public interface ItemManager extends Manageable, ModelGenerator {
     @NotNull
     Item wrap(Object itemStack);
 
-    Item fromByteArray(byte[] bytes);
+    Item fromBytes(byte[] bytes);
+
+    Item fromNBT(CompoundTag tag);
 
     Map<Key, ItemDefinition> loadedItems();
 

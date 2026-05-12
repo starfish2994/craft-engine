@@ -114,7 +114,7 @@ public final class FurniturePersistentData {
         }
         if (data == null) return Optional.empty();
         try {
-            return Optional.of(CraftEngine.instance().itemManager().fromByteArray(data));
+            return Optional.of(CraftEngine.instance().itemManager().fromBytes(data));
         } catch (Exception e) {
             Debugger.FURNITURE.warn(() -> "Failed to read furniture item data", e);
             return Optional.empty();
@@ -125,7 +125,7 @@ public final class FurniturePersistentData {
         if (item == null) {
             this.removeTag(ITEM);
         } else {
-            this.addTag(ITEM, NBT.createByteArray(item.toByteArray()));
+            this.addTag(ITEM, NBT.createByteArray(item.toBytes()));
         }
     }
 

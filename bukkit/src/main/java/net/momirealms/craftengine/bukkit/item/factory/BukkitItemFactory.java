@@ -2,6 +2,8 @@ package net.momirealms.craftengine.bukkit.item.factory;
 
 import com.google.gson.JsonElement;
 import net.momirealms.craftengine.bukkit.item.BukkitItemWrapper;
+import net.momirealms.craftengine.bukkit.item.LegacyItemWrapper;
+import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.ItemTags;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.Item;
@@ -16,6 +18,7 @@ import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.BlockItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.bukkit.Bukkit;
 
@@ -55,6 +58,11 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
     @Override
     protected byte[] toByteArray(W item) {
         return Bukkit.getUnsafe().serializeItem(ItemStackProxy.INSTANCE.getBukkitStack(item.minecraftItem()));
+    }
+
+    @Override
+    protected CompoundTag toNBT(W item) {
+        return (CompoundTag) ItemStackUtils.saveMinecraftItemStackAsTag(item.minecraftItem());
     }
 
     @Override

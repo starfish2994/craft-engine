@@ -73,6 +73,11 @@ import net.momirealms.craftengine.core.plugin.context.number.NumberProviderType;
 import net.momirealms.craftengine.core.plugin.context.selector.PlayerSelectorType;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
+import net.momirealms.craftengine.core.plugin.network.protocol.chat.ClickEvent;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.Dialog;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.action.DialogAction;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.body.DialogBody;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.input.DialogInputControl;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.legacy.LegacyRecipe;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.RecipeDisplay;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplay;
@@ -122,6 +127,12 @@ public final class BuiltInRegistries {
     public static final Registry<ItemSettingsModifierType<? extends ItemSettingsModifier>> ITEM_SETTINGS_TYPE = createConstantBoundRegistry(Registries.ITEM_SETTINGS_TYPE, 16);
     public static final Registry<LootFunctionType<? extends LootFunction>> LOOT_FUNCTION_TYPE = createConstantBoundRegistry(Registries.LOOT_FUNCTION_TYPE, 32);
     public static final Registry<LootEntryContainerType<? extends LootEntryContainer>> LOOT_ENTRY_CONTAINER_TYPE = createConstantBoundRegistry(Registries.LOOT_ENTRY_CONTAINER_TYPE, 16);
+    public static final Registry<Dialog.Type<? extends Dialog>> DIALOG_TYPE = createConstantBoundRegistry(Registries.DIALOG_TYPE, 16);
+    public static final Registry<DialogBody.Type<? extends DialogBody>> DIALOG_BODY_TYPE = createConstantBoundRegistry(Registries.DIALOG_BODY_TYPE, 8);
+    public static final Registry<DialogAction.Type<? extends DialogAction>> DIALOG_ACTION_TYPE = createConstantBoundRegistry(Registries.DIALOG_ACTION_TYPE, 8);
+    public static final Registry<DialogInputControl.Type<? extends DialogInputControl>> DIALOG_INPUT_CONTROL_TYPE = createConstantBoundRegistry(Registries.DIALOG_INPUT_CONTROL_TYPE, 8);
+    public static final Registry<ClickEvent.Type<? extends ClickEvent>> CLICK_EVENT_TYPE = createConstantBoundRegistry(Registries.CLICK_EVENT_TYPE, 16);
+
     // todo 修改
     public static final Registry<PlayerSelectorType<? extends Context>> PLAYER_SELECTOR_TYPE = createConstantBoundRegistry(Registries.PLAYER_SELECTOR_TYPE, 16);
 

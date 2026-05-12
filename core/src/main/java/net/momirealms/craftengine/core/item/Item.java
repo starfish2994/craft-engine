@@ -17,6 +17,7 @@ import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,14 @@ public interface Item {
 
     static Item empty() {
         return CraftEngine.instance().itemManager().emptyItem();
+    }
+
+    static Item fromNBT(final CompoundTag tag) {
+        return CraftEngine.instance().itemManager().fromNBT(tag);
+    }
+
+    static Item fromBytes(final byte[] bytes) {
+        return CraftEngine.instance().itemManager().fromBytes(bytes);
     }
 
     Object minecraftItem();
@@ -283,7 +292,9 @@ public interface Item {
         return modifier.apply(this, context);
     }
 
-    byte[] toByteArray();
+    byte[] toBytes();
+
+    CompoundTag toNBT();
 
     boolean isSimilar(Item another);
 

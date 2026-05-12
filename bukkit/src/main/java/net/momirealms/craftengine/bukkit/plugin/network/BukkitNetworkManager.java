@@ -11,10 +11,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCommand;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds;
-import net.momirealms.craftengine.bukkit.plugin.network.listener.common.ClientInformationListener;
-import net.momirealms.craftengine.bukkit.plugin.network.listener.common.CustomPayloadListener;
-import net.momirealms.craftengine.bukkit.plugin.network.listener.common.NMSResourcePackListener;
-import net.momirealms.craftengine.bukkit.plugin.network.listener.common.UpdateTagsListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.common.*;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.FinishConfigurationListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.NMSFinishConfigurationListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.RegistryDataListener;
@@ -482,6 +479,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(SetObjectiveListener.INSTANCE, PacketIds.INSTANCE.clientboundSetObjectivePacket(), "ClientboundSetObjectivePacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(PlayerChatListener.INSTANCE, PacketIds.INSTANCE.clientboundPlayerChatPacket(), "ClientboundPlayerChatPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(RegistryDataListener.INSTANCE, PacketIds.INSTANCE.clientboundRegistryDataPacket(), "ClientboundRegistryDataPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(ShowDialogListener.INSTANCE, PacketIds.INSTANCE.clientboundShowDialogPacket$play(), "ClientboundShowDialogPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(ShowDialogListener.INSTANCE, PacketIds.INSTANCE.clientboundShowDialogPacket$configuration(), "ClientboundShowDialogPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

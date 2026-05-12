@@ -97,6 +97,10 @@ public final class Config {
     private boolean resource_pack$validation$fallback_models$fix_element_rotation_angle;
     private boolean resource_pack$exclude_core_shaders;
 
+    public boolean resource_pack$pack_squash$enable;
+    public Path resource_pack$pack_squash$software_path;
+    public Path resource_pack$pack_squash$config_path;
+
     private boolean resource_pack$protection$obfuscation$enable;
     private long resource_pack$protection$obfuscation$seed;
     private boolean resource_pack$protection$fake_directory;
@@ -145,7 +149,7 @@ public final class Config {
     private String resource_pack$delivery$proxy$username;
     private String resource_pack$delivery$proxy$password;
     private String resource_pack$delivery$proxy$scheme;
-    private Component resource_pack$send$prompt;
+    private Component resource_pack$delivery$prompt;
 
     private int chunk_system$compression_method;
     private boolean chunk_system$restore_vanilla_blocks_on_chunk_unload;
@@ -401,7 +405,10 @@ public final class Config {
                 this.resource_pack$delivery$proxy$username,
                 this.resource_pack$delivery$proxy$password
         );
-        this.resource_pack$send$prompt = AdventureHelper.miniMessage().deserialize(config.getString("resource-pack.delivery.prompt", "<yellow>To fully experience our server, please accept our custom resource pack.</yellow>"));
+        this.resource_pack$delivery$prompt = AdventureHelper.miniMessage().deserialize(config.getString("resource-pack.delivery.prompt", "<yellow>To fully experience our server, please accept our custom resource pack.</yellow>"));
+        this.resource_pack$pack_squash$enable = config.getBoolean("resource-pack.pack-squash.enable", false);
+        this.resource_pack$pack_squash$software_path = resolvePath(config.getString("resource-pack.pack-squash.software-path", "./packsquash/packsquash.exe"));
+        this.resource_pack$pack_squash$config_path = resolvePath(config.getString("resource-pack.pack-squash.config-path", "./packsquash/config.toml"));
         this.resource_pack$protection$unprotected_copy$enable = config.getBoolean("resource-pack.protection.unprotected-copy.enable", false);
         this.resource_pack$protection$unprotected_copy$path = resolvePath(config.getString("resource-pack.protection.unprotected-copy.path", "./generated/unprotected_resource_pack.zip"));
         this.resource_pack$protection$crash_tools$method_1 = config.getBoolean("resource-pack.protection.crash-tools.method-1", false);
@@ -923,7 +930,7 @@ public final class Config {
     }
 
     public static Component resourcePackPrompt() {
-        return instance.resource_pack$send$prompt;
+        return instance.resource_pack$delivery$prompt;
     }
 
     public static boolean sendPackOnJoin() {
@@ -1495,12 +1502,16 @@ public final class Config {
         return instance.resource_pack$delivery$proxy$scheme;
     }
 
-    public YamlDocument loadOrCreateYamlData(String fileName) {
-        Path path = this.plugin.dataFolderPath().resolve(fileName);
-        if (!Files.exists(path)) {
-            this.plugin.saveResource(fileName);
-        }
-        return this.loadYamlData(path);
+    public static boolean enablePackSquash() {
+        return instance.resource_pack$pack_squash$enable;
+    }
+
+    public static Path packSquashPath() {
+        return instance.resource_pack$pack_squash$software_path;
+    }
+
+    public static Path packSquashConfigPath() {
+        return instance.resource_pack$pack_squash$config_path;
     }
 
     public YamlDocument loadYamlConfig(String filePath, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {

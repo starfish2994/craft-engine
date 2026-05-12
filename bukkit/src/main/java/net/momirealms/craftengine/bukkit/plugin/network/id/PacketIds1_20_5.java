@@ -381,4 +381,14 @@ final class PacketIds1_20_5 implements PacketIds {
     public int clientboundRegistryDataPacket() {
         return PacketIdHelper.byName("minecraft:registry_data", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
     }
+
+    @Override
+    public int clientboundShowDialogPacket$play() {
+        return PacketIdHelper.byName("minecraft:show_dialog", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
+    public int clientboundShowDialogPacket$configuration() {
+        return PacketIdHelper.byName("minecraft:show_dialog", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
+    }
 }

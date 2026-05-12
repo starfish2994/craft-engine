@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.item.component.value.Trim;
 import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -568,8 +569,13 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public byte[] toByteArray() {
+    public byte[] toBytes() {
         return this.factory.toByteArray(this.item);
+    }
+
+    @Override
+    public CompoundTag toNBT() {
+        return this.factory.toNBT(this.item);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

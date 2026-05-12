@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 
 import java.util.List;
@@ -220,6 +221,8 @@ public abstract class ItemFactory<W extends ItemWrapper> {
     protected abstract Optional<FireworkExplosion> fireworkExplosion(W item);
 
     protected abstract byte[] toByteArray(W item);
+
+    protected abstract CompoundTag toNBT(W item);
 
     protected abstract W transmuteCopy(W item, Key newItem, int amount);
 

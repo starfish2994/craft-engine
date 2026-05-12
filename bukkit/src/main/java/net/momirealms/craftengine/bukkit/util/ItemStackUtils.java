@@ -115,12 +115,17 @@ public final class ItemStackUtils {
             }
         }
         final Tag finalItemTag = itemTag;
+        return parseMinecraftItem(finalItemTag);
+    }
+
+    @Nullable
+    public static Object parseMinecraftItem(Tag tag) {
         if (VersionHelper.COMPONENT_RELEASE) {
-            return ItemStackProxy.INSTANCE.getCodec().parse(RegistryOps.SPARROW_NBT, finalItemTag)
-                    .resultOrPartial(error -> CraftEngine.instance().logger().error("Tried to load invalid item: '" + finalItemTag + "'. " + error))
+            return ItemStackProxy.INSTANCE.getCodec().parse(RegistryOps.SPARROW_NBT, tag)
+                    .resultOrPartial(error -> CraftEngine.instance().logger().error("Tried to load invalid item: '" + tag + "'. " + error))
                     .orElse(null);
         } else {
-            Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, finalItemTag);
+            Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, tag);
             return ItemStackProxy.INSTANCE.of(nmsTag);
         }
     }

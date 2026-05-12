@@ -73,6 +73,12 @@ import net.momirealms.craftengine.core.plugin.context.number.NumberProviderType;
 import net.momirealms.craftengine.core.plugin.context.selector.PlayerSelectorType;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
+import net.momirealms.craftengine.core.plugin.network.protocol.chat.ClickEvent;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.Dialog;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.action.DialogAction;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.action.DialogActionTypes;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.body.DialogBody;
+import net.momirealms.craftengine.core.plugin.network.protocol.dialog.input.DialogInputControl;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.legacy.LegacyRecipe;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.RecipeDisplay;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplay;
@@ -125,4 +131,9 @@ public final class Registries {
     public static final ResourceKey<Registry<ItemSettingsModifierType<? extends ItemSettingsModifier>>> ITEM_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_settings_type"));
     public static final ResourceKey<Registry<LootFunctionType<? extends LootFunction>>> LOOT_FUNCTION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_function_type"));
     public static final ResourceKey<Registry<LootEntryContainerType<? extends LootEntryContainer>>> LOOT_ENTRY_CONTAINER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_entry_container_type"));
+    public static final ResourceKey<Registry<Dialog.Type<? extends Dialog>>> DIALOG_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("dialog_type"));
+    public static final ResourceKey<Registry<DialogBody.Type<? extends DialogBody>>> DIALOG_BODY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("dialog_body_type"));
+    public static final ResourceKey<Registry<DialogAction.Type<? extends DialogAction>>> DIALOG_ACTION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("dialog_action_type"));
+    public static final ResourceKey<Registry<DialogInputControl.Type<? extends DialogInputControl>>> DIALOG_INPUT_CONTROL_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("dialog_input_control_type"));
+    public static final ResourceKey<Registry<ClickEvent.Type<? extends ClickEvent>>> CLICK_EVENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("click_event_type"));
 }

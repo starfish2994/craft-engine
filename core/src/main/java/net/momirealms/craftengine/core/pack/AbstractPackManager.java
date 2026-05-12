@@ -768,6 +768,10 @@ public abstract class AbstractPackManager implements PackManager {
                 this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_finished", String.valueOf(timestamp.deltaMillis())));
             }
 
+            if (Config.enablePackSquash()) {
+
+            }
+
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_started"));
             Path finalPath = resourcePackPath();
             Files.createDirectories(finalPath.getParent());
