@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.util;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.core.entity.data.EntityData;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -11,6 +12,7 @@ import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundTeleportEntityPacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.syncher.SynchedEntityDataProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.PoseProxy;
@@ -141,5 +143,13 @@ public final class EntityUtils {
 
     private static boolean isBlockFloorValid(double height) {
         return !Double.isInfinite(height) && height < (double) 1.0F;
+    }
+
+    public static <T> T getEntityDataValue(Object dataValue, EntityData<T> data) {
+        try {
+            return SynchedEntityDataProxy.DataValueProxy.INSTANCE.getValue(dataValue);
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("Expected " + data + ", but got " + dataValue, e);
+        }
     }
 }

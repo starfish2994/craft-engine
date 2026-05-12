@@ -6,6 +6,7 @@ import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
@@ -50,7 +51,7 @@ public final class ItemPacketHandler implements EntityPacketHandler {
             Object packedItem = packedItems.get(i);
             int entityDataId = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getId(packedItem);
             if (entityDataId == ItemEntityData.Item.id()) {
-                Object nmsItemStack = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getValue(packedItem);
+                Object nmsItemStack = EntityUtils.getEntityDataValue(packedItem, ItemEntityData.Item);
                 ItemStack itemStack = ItemStackUtils.getBukkitStack(nmsItemStack);
 
                 // 转换为客户端侧物品
@@ -109,7 +110,7 @@ public final class ItemPacketHandler implements EntityPacketHandler {
                         Object packedItem = packedItems.get(i);
                         int entityDataId = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getId(packedItem);
                         if (entityDataId == BaseEntityData.SharedFlags.id()) {
-                            byte flags = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getValue(packedItem);
+                            byte flags = EntityUtils.getEntityDataValue(packedItem, BaseEntityData.SharedFlags);
                             flags |= (byte) 0x40;
                             packedItems.set(i, BaseEntityData.SharedFlags.createEntityData(flags));
                             break outer;
