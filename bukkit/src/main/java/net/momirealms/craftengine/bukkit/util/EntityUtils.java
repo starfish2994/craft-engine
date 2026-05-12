@@ -149,7 +149,7 @@ public final class EntityUtils {
         try {
             return SynchedEntityDataProxy.DataValueProxy.INSTANCE.getValue(dataValue);
         } catch (ClassCastException e) {
-            throw new ClassCastException(e.getMessage() + " [expected " + data + ", but got " + dataValue + "]");
+            throw new IllegalArgumentException("Expected " + data + ", but got " + dataValue, e);
         }
     }
 }
