@@ -23,6 +23,8 @@ public final class ClickEventTypes {
     public static final ClickEvent.Type<CopyToClipboardClickEvent> COPY_TO_CLIPBOARD = register(Key.of("copy_to_clipboard"), CopyToClipboardClickEvent::read);
     public static final ClickEvent.Type<CustomClickEvent> CUSTOM = register(Key.of("custom"), CustomClickEvent::read);
 
+    public static void init() {}
+
     public static ClickEvent read(final CompoundTag tag) {
         String type = tag.getString("type");
         ClickEvent.Type<? extends ClickEvent> eventType = BuiltInRegistries.CLICK_EVENT_TYPE.getValue(Key.of(type));

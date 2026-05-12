@@ -76,7 +76,6 @@ import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
 import net.momirealms.craftengine.core.plugin.network.protocol.chat.ClickEvent;
 import net.momirealms.craftengine.core.plugin.network.protocol.dialog.Dialog;
 import net.momirealms.craftengine.core.plugin.network.protocol.dialog.action.DialogAction;
-import net.momirealms.craftengine.core.plugin.network.protocol.dialog.action.DialogActionTypes;
 import net.momirealms.craftengine.core.plugin.network.protocol.dialog.body.DialogBody;
 import net.momirealms.craftengine.core.plugin.network.protocol.dialog.input.DialogInputControl;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.legacy.LegacyRecipe;

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.network.protocol.dialog.action;
 
 import net.momirealms.craftengine.core.plugin.network.protocol.chat.ClickEvent;
+import net.momirealms.craftengine.core.plugin.network.protocol.chat.ClickEventTypes;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -16,6 +17,7 @@ public final class DialogActionTypes {
     private DialogActionTypes() {}
 
     static {
+        ClickEventTypes.init();
         for (Map.Entry<ResourceKey<ClickEvent.Type<?>>, ClickEvent.Type<?>> type : BuiltInRegistries.CLICK_EVENT_TYPE.entrySet()) {
             ClickEvent.Type<?> value = type.getValue();
             register(value.id(), StaticAction::read);

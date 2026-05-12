@@ -12,8 +12,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public final class RegistryUtils {
     private RegistryUtils() {}
 
