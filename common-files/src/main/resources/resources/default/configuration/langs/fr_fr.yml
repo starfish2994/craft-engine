@@ -113,3 +113,17 @@ lang#furniture:
     furniture.default.wooden_chair: Chaise en bois
     furniture.default.showcase: Vitrine
     furniture.default.candelabrum: Candélabre
+# Le terme "translation" fait ici spécifiquement référence à la localisation côté serveur.
+# Cela signifie que le contenu que vous écrivez ne sera pas directement inclus dans le pack de ressources côté client.
+# Le serveur traduira les clés que vous définissez, puis enverra le texte déjà localisé au client.
+# https://xiao-momi.github.io/craft-engine-wiki/configuration/i18n
+translations#categories:
+  fr_fr:
+    category.default.name: Ressources par Défaut
+    category.default.lore: Contient la configuration par défaut de CraftEngine
+    category.palm_tree: Palmier
+    category.topaz: Topaze
+    category.misc: Divers
+translations#emoji:
+  fr_fr:
+    emoji.tip: Utilisez <yellow>'<arg:0>'</yellow> pour envoyer l'emoji '<arg:1>'

@@ -113,3 +113,17 @@ lang#furniture:
     furniture.default.wooden_chair: 木椅
     furniture.default.showcase: 物品展示柜
     furniture.default.candelabrum: 烛台
+# 此处的 "translation" 特指服务端的本地化
+# 这意味着您编写的内容不会直接包含在客户端资源包中
+# 服务端会对您设置的键名进行翻译，然后将已本地化的文本发送给客户端
+# https://ce.gtemc.cn/zh-Hans/configuration/i18n
+translations#categories:
+  zh_cn:
+    category.default.name: 默认资产
+    category.default.lore: 包含了CraftEngine的默认配置
+    category.palm_tree: 棕榈树
+    category.topaz: 黄玉
+    category.misc: 杂项
+translations#emoji:
+  zh_cn:
+    emoji.tip: 使用<yellow>'<arg:0>'</yellow>来发送表情'<arg:1>'
