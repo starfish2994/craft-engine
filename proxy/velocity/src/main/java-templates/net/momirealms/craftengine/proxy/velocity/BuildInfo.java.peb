@@ -1,0 +1,8 @@
+package net.momirealms.craftengine.proxy.velocity;
+
+public final class BuildInfo {
+    private BuildInfo() {}
+
+    public static final String VERSION = "{{ version }}";
+
+}

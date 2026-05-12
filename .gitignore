@@ -33,3 +33,6 @@ build/
 /runPaper/
 /runFolia/
 /buildSrc/.kotlin/
+/velocity/run/
+/proxy/run/
+/proxy/velocity/run/

@@ -79,6 +79,26 @@ public final class ReflectionUtils {
         return null;
     }
 
+    @Nullable
+    public static Field getDeclaredField(final Object owner, final Class<?> type, int index) {
+        if (owner == null) {
+            return null;
+        }
+        int i = 0;
+        Class<?> clazz = owner.getClass();
+        while (clazz != null && clazz != Object.class) {
+            for (final Field field : clazz.getDeclaredFields()) {
+                if (field.getType() == type) {
+                    if (index == i) {
+                        return setAccessible(field);
+                    }
+                    i++;
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+        return null;
+    }
 
     @Nullable
     public static Field getDeclaredField(final Class<?> clazz, final Class<?> type, int index) {
