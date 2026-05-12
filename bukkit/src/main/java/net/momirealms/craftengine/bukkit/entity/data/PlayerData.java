@@ -2,22 +2,23 @@ package net.momirealms.craftengine.bukkit.entity.data;
 
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.syncher.EntityDataSerializersProxy;
 
 import java.util.OptionalInt;
 
 public class PlayerData<T> extends AvatarData<T> {
-    public static final PlayerData<Float> PLAYER_ABSORPTION = new PlayerData<>(PlayerData.class, EntityDataValue.Serializers$FLOAT, 0.0f);
-    public static final PlayerData<Integer> SCORE = new PlayerData<>(PlayerData.class, EntityDataValue.Serializers$INT, 0);
+    public static final PlayerData<Float> PLAYER_ABSORPTION = new PlayerData<>(PlayerData.class, EntityDataSerializersProxy.FLOAT, 0.0f);
+    public static final PlayerData<Integer> SCORE = new PlayerData<>(PlayerData.class, EntityDataSerializersProxy.INT, 0);
 
     // 1.20~1.21.8
-    public static final PlayerData<Byte> PLAYER_MODE_CUSTOMISATION = of(PlayerData.class, EntityDataValue.Serializers$BYTE, (byte) 0, !VersionHelper.isOrAbove1_21_9());
-    public static final PlayerData<Byte> PLAYER_MAIN_HAND = of(PlayerData.class, EntityDataValue.Serializers$BYTE, (byte) 1, !VersionHelper.isOrAbove1_21_9());
-    public static final PlayerData<Object> SHOULDER_LEFT = of(PlayerData.class, EntityDataValue.Serializers$COMPOUND_TAG, CompoundTagProxy.INSTANCE.newInstance(), !VersionHelper.isOrAbove1_21_9());
-    public static final PlayerData<Object> SHOULDER_RIGHT = of(PlayerData.class, EntityDataValue.Serializers$COMPOUND_TAG, CompoundTagProxy.INSTANCE.newInstance(), !VersionHelper.isOrAbove1_21_9());
+    public static final PlayerData<Byte> PLAYER_MODE_CUSTOMISATION = of(PlayerData.class, EntityDataSerializersProxy.BYTE, (byte) 0, !VersionHelper.isOrAbove1_21_9());
+    public static final PlayerData<Byte> PLAYER_MAIN_HAND = of(PlayerData.class, EntityDataSerializersProxy.BYTE, (byte) 1, !VersionHelper.isOrAbove1_21_9());
+    public static final PlayerData<Object> SHOULDER_LEFT = of(PlayerData.class, EntityDataSerializersProxy.COMPOUND_TAG, CompoundTagProxy.INSTANCE.newInstance(), !VersionHelper.isOrAbove1_21_9());
+    public static final PlayerData<Object> SHOULDER_RIGHT = of(PlayerData.class, EntityDataSerializersProxy.COMPOUND_TAG, CompoundTagProxy.INSTANCE.newInstance(), !VersionHelper.isOrAbove1_21_9());
 
     // 1.21.9+
-    public static final PlayerData<OptionalInt> SHOULDER_PARROT_LEFT = of(PlayerData.class, EntityDataValue.Serializers$OPTIONAL_UNSIGNED_INT, OptionalInt.empty(), VersionHelper.isOrAbove1_21_9());
-    public static final PlayerData<OptionalInt> SHOULDER_PARROT_RIGHT = of(PlayerData.class, EntityDataValue.Serializers$OPTIONAL_UNSIGNED_INT, OptionalInt.empty(), VersionHelper.isOrAbove1_21_9());
+    public static final PlayerData<OptionalInt> SHOULDER_PARROT_LEFT = of(PlayerData.class, EntityDataSerializersProxy.OPTIONAL_UNSIGNED_INT, OptionalInt.empty(), VersionHelper.isOrAbove1_21_9());
+    public static final PlayerData<OptionalInt> SHOULDER_PARROT_RIGHT = of(PlayerData.class, EntityDataSerializersProxy.OPTIONAL_UNSIGNED_INT, OptionalInt.empty(), VersionHelper.isOrAbove1_21_9());
 
     public static <T> PlayerData<T> of(final Class<?> clazz, final Object serializer, T defaultValue, boolean condition) {
         if (!condition) return null;

@@ -2,13 +2,14 @@ package net.momirealms.craftengine.bukkit.entity.data;
 
 import net.momirealms.craftengine.core.entity.display.TextDisplayAlignment;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.syncher.EntityDataSerializersProxy;
 
 public class TextDisplayEntityData<T> extends DisplayEntityData<T> {
-    public static final TextDisplayEntityData<Object> Text = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataValue.Serializers$COMPONENT, ComponentProxy.INSTANCE.empty());
-    public static final TextDisplayEntityData<Integer> LineWidth = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataValue.Serializers$INT, 200);
-    public static final TextDisplayEntityData<Integer> BackgroundColor = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataValue.Serializers$INT, 0x40000000);
-    public static final TextDisplayEntityData<Byte> TextOpacity = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataValue.Serializers$BYTE, (byte) -1);
-    public static final TextDisplayEntityData<Byte> TextDisplayMasks = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataValue.Serializers$BYTE, (byte) 0);
+    public static final TextDisplayEntityData<Object> Text = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataSerializersProxy.COMPONENT, ComponentProxy.INSTANCE.empty());
+    public static final TextDisplayEntityData<Integer> LineWidth = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataSerializersProxy.INT, 200);
+    public static final TextDisplayEntityData<Integer> BackgroundColor = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataSerializersProxy.INT, 0x40000000);
+    public static final TextDisplayEntityData<Byte> TextOpacity = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataSerializersProxy.BYTE, (byte) -1);
+    public static final TextDisplayEntityData<Byte> TextDisplayMasks = new TextDisplayEntityData<>(TextDisplayEntityData.class, EntityDataSerializersProxy.BYTE, (byte) 0);
 
     public TextDisplayEntityData(Class<?> clazz, Object serializer, T defaultValue) {
         super(clazz, serializer, defaultValue);

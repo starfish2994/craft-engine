@@ -1,10 +1,11 @@
 package net.momirealms.craftengine.bukkit.entity.data;
 
+import net.momirealms.craftengine.proxy.minecraft.network.syncher.EntityDataSerializersProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 
 public class ItemDisplayEntityData<T> extends DisplayEntityData<T> {
     // Item display only
-    public static final ItemDisplayEntityData<Object> DisplayedItem = new ItemDisplayEntityData<>(ItemDisplayEntityData.class, EntityDataValue.Serializers$ITEM_STACK, ItemStackProxy.EMPTY);
+    public static final ItemDisplayEntityData<Object> DisplayedItem = new ItemDisplayEntityData<>(ItemDisplayEntityData.class, EntityDataSerializersProxy.ITEM_STACK, ItemStackProxy.EMPTY);
     /**
      * Display type:
      * 0 = NONE
@@ -17,7 +18,7 @@ public class ItemDisplayEntityData<T> extends DisplayEntityData<T> {
      * 7 = GROUND
      * 8 = FIXED
      */
-    public static final ItemDisplayEntityData<Byte> DisplayType = new ItemDisplayEntityData<>(ItemDisplayEntityData.class, EntityDataValue.Serializers$BYTE, (byte) 0);
+    public static final ItemDisplayEntityData<Byte> DisplayType = new ItemDisplayEntityData<>(ItemDisplayEntityData.class, EntityDataSerializersProxy.BYTE, (byte) 0);
 
     public ItemDisplayEntityData(Class<?> clazz, Object serializer, T defaultValue) {
         super(clazz, serializer, defaultValue);
