@@ -17,6 +17,7 @@ import net.momirealms.craftengine.core.item.recipe.RecipeManager;
 import net.momirealms.craftengine.core.item.setting.ItemSettingsModifiers;
 import net.momirealms.craftengine.core.loot.LootManager;
 import net.momirealms.craftengine.core.pack.PackManager;
+import net.momirealms.craftengine.core.painting.PaintingManager;
 import net.momirealms.craftengine.core.plugin.classpath.ClassPathAppender;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.sender.SenderFactory;
@@ -99,6 +100,7 @@ public abstract class CraftEngine implements Plugin {
     protected SeatManager seatManager;
     protected EntityCullingManager entityCullingManager;
     protected TeamManager teamManager;
+    protected PaintingManager paintingManager;
 
     private final PluginTaskRegistry beforeEnableTaskRegistry = new PluginTaskRegistry();
     private final PluginTaskRegistry afterEnableTaskRegistry = new PluginTaskRegistry();
@@ -180,6 +182,7 @@ public abstract class CraftEngine implements Plugin {
         this.fontManager.reload();
         this.itemManager.reload();
         this.soundManager.reload();
+        this.paintingManager.reload();
         this.itemBrowserManager.reload();
         this.blockManager.reload();
         this.worldManager.reload();
@@ -272,6 +275,8 @@ public abstract class CraftEngine implements Plugin {
                         Timestamp timestamp = new Timestamp();
                         // 注册唱片机音乐
                         this.soundManager.runDelayedSyncTasks();
+                        // 注册画
+                        this.paintingManager.runDelayedSyncTasks();
                         // 同步注册配方
                         if (reloadRecipe) {
                             this.recipeManager.runDelayedSyncTasks();
@@ -359,6 +364,8 @@ public abstract class CraftEngine implements Plugin {
                 this.networkManager.delayedLoad();
                 // 注册唱片机音乐
                 this.soundManager.runDelayedSyncTasks();
+                // 注册画
+                this.paintingManager.runDelayedSyncTasks();
                 // 同步注册配方
                 this.recipeManager.runDelayedSyncTasks();
             } else {
@@ -482,6 +489,7 @@ public abstract class CraftEngine implements Plugin {
         if (this.itemBrowserManager != null) this.itemBrowserManager.disable();
         if (this.guiManager != null) this.guiManager.disable();
         if (this.soundManager != null) this.soundManager.disable();
+        if (this.paintingManager != null) this.paintingManager.disable();
         if (this.lootManager != null) this.lootManager.disable();
         if (this.seatManager != null) this.seatManager.disable();
         if (this.translationManager != null) this.translationManager.disable();
@@ -522,6 +530,8 @@ public abstract class CraftEngine implements Plugin {
         this.packManager.registerConfigSectionParser(this.packManager.parser());
         // register feature parser
         this.packManager.registerConfigSectionParsers(this.worldManager.parsers());
+        // register painting parser
+        this.packManager.registerConfigSectionParser(this.paintingManager.parser());
     }
 
     public void applyDependencies() {

@@ -46,7 +46,7 @@ public abstract class IdSectionConfigParser extends IdConfigParser {
                     continue;
                 }
                 if (!(value instanceof Map<?, ?> section)) {
-                    error(new KnownResourceException(filePath, ConfigConstants.PARSE_SECTION_FAILED, currentNode, value.getClass().getSimpleName()));
+                    error(new KnownResourceException(filePath, ConfigConstants.PARSE_SECTION_FAILED, currentNode, value != null ? value.getClass().getSimpleName() : "null"));
                     continue;
                 }
                 try {

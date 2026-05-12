@@ -12,6 +12,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public final class RegistryUtils {
     private RegistryUtils() {}
 
@@ -50,6 +52,17 @@ public final class RegistryUtils {
             return RegistryProxy.INSTANCE.get$1(registry, resourceKey).orElse(null);
         } else {
             return RegistryProxy.INSTANCE.getHolder$1(registry, resourceKey).orElse(null);
+        }
+    }
+
+    @Nullable
+    public static Object getHolderById(Object registry, Object id) {
+        if (VersionHelper.isOrAbove1_21_2()) {
+            return RegistryProxy.INSTANCE.get$0(registry, id).orElse(null);
+        } else if (VersionHelper.isOrAbove1_20_5()) {
+            return RegistryProxy.INSTANCE.getHolder$0(registry, id).orElse(null);
+        } else {
+            throw new UnsupportedOperationException();
         }
     }
 }

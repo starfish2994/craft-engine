@@ -20,5 +20,5 @@ public interface ResourceKeyProxy {
     void setIdentifier(Object target, Object identifier);
 
     @MethodInvoker(name = "create", isStatic = true)
-    Object create(@Type(clazz = ResourceKeyProxy.class) Object registry, @Type(clazz = IdentifierProxy.class) Object value);
+    Object create(@Type(clazz = ResourceKeyProxy.class) Object registryName, @Type(clazz = IdentifierProxy.class) Object value);
 }
