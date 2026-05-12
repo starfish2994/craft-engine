@@ -1,17 +1,18 @@
 package net.momirealms.craftengine.bukkit.entity.data;
 
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.proxy.minecraft.network.syncher.EntityDataSerializersProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.HumanoidArmProxy;
 
 // todo: 未测试
 public class AvatarData<T> extends LivingEntityData<T> {
     // 1.21.9~1.21.10
-    public static final AvatarData<Byte> PLAYER_MAIN_HAND_V1_21_9 = of(AvatarData.class, EntityDataValue.Serializers$BYTE, (byte) 1, VersionHelper.isOrAbove1_21_9() && !VersionHelper.isOrAbove1_21_11());
+    public static final AvatarData<Byte> PLAYER_MAIN_HAND_V1_21_9 = of(AvatarData.class, EntityDataSerializersProxy.BYTE, (byte) 1, VersionHelper.isOrAbove1_21_9() && !VersionHelper.isOrAbove1_21_11());
     // 1.21.11
-    public static final AvatarData<Object> PLAYER_MAIN_HAND_V1_21_11 = of(AvatarData.class, EntityDataValue.Serializers$HUMANOID_ARM, HumanoidArmProxy.RIGHT, VersionHelper.isOrAbove1_21_11());
+    public static final AvatarData<Object> PLAYER_MAIN_HAND_V1_21_11 = of(AvatarData.class, EntityDataSerializersProxy.HUMANOID_ARM, HumanoidArmProxy.RIGHT, VersionHelper.isOrAbove1_21_11());
 
     // 1.21.9+
-    public static final AvatarData<Byte> PLAYER_MODE_CUSTOMISATION_V1_21_9 = of(AvatarData.class, EntityDataValue.Serializers$BYTE, (byte) 0, VersionHelper.isOrAbove1_21_9());
+    public static final AvatarData<Byte> PLAYER_MODE_CUSTOMISATION_V1_21_9 = of(AvatarData.class, EntityDataSerializersProxy.BYTE, (byte) 0, VersionHelper.isOrAbove1_21_9());
 
 
     public static <T> AvatarData<T> of(final Class<?> clazz, final Object serializer, T defaultValue, boolean condition) {
