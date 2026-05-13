@@ -13,11 +13,11 @@ public class DisplayData<T> extends BaseEntityData<T> {
     public static final DisplayData<Integer> TransformationInterpolationDelay = of(DisplayData.class, EntityDataSerializersProxy.INT, 0, true);
 
     // 1.19.4-1.20.1
-    public static final DisplayData<Integer> InterpolationDuration = of(DisplayData.class, EntityDataSerializersProxy.INT, 0, !VersionHelper.isOrAbove1_20_2());
+    public static final DisplayData<Integer> InterpolationDuration = of(DisplayData.class, EntityDataSerializersProxy.INT, 0, !VersionHelper.isOrAbove1_20_2);
 
     // 1.20.2+
-    public static final DisplayData<Integer> TransformationInterpolationDuration = of(DisplayData.class, EntityDataSerializersProxy.INT, 0, VersionHelper.isOrAbove1_20_2());
-    public static final DisplayData<Integer> PosRotInterpolationDuration = of(DisplayData.class, EntityDataSerializersProxy.INT, 0, VersionHelper.isOrAbove1_20_2());
+    public static final DisplayData<Integer> TransformationInterpolationDuration = of(DisplayData.class, EntityDataSerializersProxy.INT, 0, VersionHelper.isOrAbove1_20_2);
+    public static final DisplayData<Integer> PosRotInterpolationDuration = of(DisplayData.class, EntityDataSerializersProxy.INT, 0, VersionHelper.isOrAbove1_20_2);
 
     public static final DisplayData<Vector3f> Translation = of(DisplayData.class, EntityDataSerializersProxy.VECTOR3, new Vector3f(0f), true);
     public static final DisplayData<Vector3f> Scale = of(DisplayData.class, EntityDataSerializersProxy.VECTOR3, new Vector3f(1f), true);

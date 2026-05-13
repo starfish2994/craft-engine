@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public final class BossEventListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3() ? new V1_20_3() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3 ? new V1_20_3() : new V1_20();
 
     private BossEventListener() {}
 

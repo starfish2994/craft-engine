@@ -237,7 +237,7 @@ public final class BlockGenerator {
         Object blockProperties = BlockBehaviourProxy.PropertiesProxy.INSTANCE.of();
         Object identifier = KeyUtils.toIdentifier(id);
         Object resourceKey = ResourceKeyProxy.INSTANCE.create(RegistriesProxy.BLOCK, identifier);
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             BlockBehaviourProxy.PropertiesProxy.INSTANCE.setId(blockProperties, resourceKey);
         }
         return blockProperties;
@@ -245,9 +245,9 @@ public final class BlockGenerator {
 
     public static class UpdateShapeInterceptor {
         public static final UpdateShapeInterceptor INSTANCE = new UpdateShapeInterceptor();
-        public static final int levelIndex = VersionHelper.isOrAbove1_21_2() ? 1 : 3;
-        public static final int directionIndex = VersionHelper.isOrAbove1_21_2() ? 4 : 1;
-        public static final int posIndex = VersionHelper.isOrAbove1_21_2() ? 3 : 4;
+        public static final int levelIndex = VersionHelper.isOrAbove1_21_2 ? 1 : 3;
+        public static final int directionIndex = VersionHelper.isOrAbove1_21_2 ? 4 : 1;
+        public static final int posIndex = VersionHelper.isOrAbove1_21_2 ? 3 : 4;
 
         @SuppressWarnings("deprecation")
         @RuntimeType

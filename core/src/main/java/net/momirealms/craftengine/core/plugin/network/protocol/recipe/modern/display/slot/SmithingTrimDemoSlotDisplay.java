@@ -33,7 +33,7 @@ public final class SmithingTrimDemoSlotDisplay implements SlotDisplay {
     public static SmithingTrimDemoSlotDisplay read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item> reader) {
         SlotDisplay base = SlotDisplay.read(buf, reader);
         SlotDisplay material = SlotDisplay.read(buf, reader);
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             Either<Integer, TrimPattern> either = buf.readHolder(byteBuf -> {
                 Key assetId = buf.readKey();
                 Component component = AdventureHelper.nbtToComponent(buf.readNbt(false));
@@ -52,7 +52,7 @@ public final class SmithingTrimDemoSlotDisplay implements SlotDisplay {
         buf.writeVarInt(BuiltInRegistries.SLOT_DISPLAY_TYPE.getId(SlotDisplayTypes.SMITHING_TRIM));
         this.base.write(buf, writer);
         this.material.write(buf, writer);
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             buf.writeHolder(this.either, (byteBuf, pattern) -> {
                 byteBuf.writeKey(pattern.assetId);
                 byteBuf.writeNbt(AdventureHelper.componentToNbt(pattern.description), false);

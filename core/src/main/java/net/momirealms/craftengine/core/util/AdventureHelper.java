@@ -52,11 +52,11 @@ public final class AdventureHelper {
         this.miniMessageStrict = MiniMessage.builder().strict(true).build();
         this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.empty()).build();
         GsonComponentSerializer.Builder gsonBuilder = GsonComponentSerializer.builder();
-        if (!VersionHelper.isOrAbove1_20_5()) {
+        if (!VersionHelper.isOrAbove1_20_5) {
             gsonBuilder.legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get());
             gsonBuilder.editOptions((b) -> b.value(JSONOptions.EMIT_HOVER_SHOW_ENTITY_ID_AS_INT_ARRAY, false));
         }
-        if (!VersionHelper.isOrAbove1_21_5()) {
+        if (!VersionHelper.isOrAbove1_21_5) {
             gsonBuilder.editOptions((b) -> {
                 b.value(JSONOptions.EMIT_CLICK_EVENT_TYPE, JSONOptions.ClickEventValueMode.CAMEL_CASE);
                 b.value(JSONOptions.EMIT_HOVER_EVENT_TYPE, JSONOptions.HoverEventValueMode.CAMEL_CASE);
@@ -67,13 +67,13 @@ public final class AdventureHelper {
         this.gsonComponentSerializer = gsonBuilder.build();
         this.nbtComponentSerializer = NBTComponentSerializer.builder()
                 .editOptions((b) -> {
-                    if (!VersionHelper.isOrAbove1_21_5()) {
+                    if (!VersionHelper.isOrAbove1_21_5) {
                         b.value(NBTSerializerOptions.MODERN_EVENT_TYPE, false);
                     }
-                    if (!VersionHelper.isOrAbove1_20_5()) {
+                    if (!VersionHelper.isOrAbove1_20_5) {
                         b.value(NBTSerializerOptions.DATA_COMPONENT_RELEASE, false);
                     }
-                    if (!VersionHelper.isOrAbove1_20_3()) {
+                    if (!VersionHelper.isOrAbove1_20_3) {
                         b.value(NBTSerializerOptions.INT_ARRAY_UUID, false);
                     }
                     b.value(NBTSerializerOptions.SERIALIZE_COMPONENT_TYPE, false);

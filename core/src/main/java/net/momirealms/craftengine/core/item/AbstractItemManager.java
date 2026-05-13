@@ -319,7 +319,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         }
 
         private boolean needsItemModelCompatibility() {
-            return Config.packMaxVersion().isAtOrAbove(MinecraftVersion.V1_21_2) && VersionHelper.isOrAbove1_21_2(); //todo 能否通过客户端包解决问题
+            return Config.packMaxVersion().isAtOrAbove(MinecraftVersion.V1_21_2) && VersionHelper.isOrAbove1_21_2; //todo 能否通过客户端包解决问题
         }
 
         @Override
@@ -389,7 +389,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     // cache command suggestions
                     AbstractItemManager.this.cachedCustomItemSuggestions.add(Suggestion.suggestion(id.asString()));
                     // totem animations
-                    if (VersionHelper.isOrAbove1_21_2()) {
+                    if (VersionHelper.isOrAbove1_21_2) {
                         AbstractItemManager.this.cachedTotemSuggestions.add(Suggestion.suggestion(id.asString()));
                     } else if (itemDefinition.material().equals(ItemKeys.TOTEM_OF_UNDYING)) {
                         AbstractItemManager.this.cachedTotemSuggestions.add(Suggestion.suggestion(id.asString()));
@@ -664,7 +664,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
                 AbstractItemManager.this.itemDefinitionById.put(id, itemDefinition);
                 AbstractItemManager.this.itemDefinitionByPath.put(id.value(), itemDefinition);
-                if (VersionHelper.isOrAbove26_1() && settings.dyeable() == Tristate.TRUE) {
+                if (VersionHelper.isOrAbove26_1 && settings.dyeable() == Tristate.TRUE) {
                     AbstractItemManager.this.dyeableItems.put(id, itemDefinition);
                 }
 

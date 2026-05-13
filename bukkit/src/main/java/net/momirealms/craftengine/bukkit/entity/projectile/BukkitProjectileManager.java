@@ -51,7 +51,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.isFolia) {
             for (World world : Bukkit.getWorlds()) {
                 List<Entity> entities = world.getEntities();
                 for (Entity entity : entities) {
@@ -144,7 +144,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         public ProjectileInjectTask(Projectile projectile, boolean checkInGround) {
             this.projectile = projectile;
             this.checkInGround = checkInGround;
-            if (VersionHelper.isFolia()) {
+            if (VersionHelper.isFolia) {
                 this.task = new FoliaTask(projectile.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> this.run(), () -> {}, 1, 1));
             } else {
                 this.task = plugin.scheduler().sync().runRepeating(this, 1, 1);
@@ -177,7 +177,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
                 }
             } else {
                 boolean inGround;
-                if (VersionHelper.isOrAbove1_21_2()) {
+                if (VersionHelper.isOrAbove1_21_2) {
                     inGround = AbstractArrowProxy.INSTANCE.isInGround$0(nmsEntity);
                 } else {
                     inGround = AbstractArrowProxy.INSTANCE.isInGround$1(nmsEntity);

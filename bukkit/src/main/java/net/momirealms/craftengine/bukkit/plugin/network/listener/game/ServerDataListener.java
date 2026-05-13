@@ -11,7 +11,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import java.util.Optional;
 
 public final class ServerDataListener implements ByteBufferPacketListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_5() ? null : new ServerDataListener();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_5 ? null : new ServerDataListener();
 
     private ServerDataListener() {}
 

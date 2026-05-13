@@ -6,7 +6,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.syncher.EntityDataSeri
 
 public class HangingEntityData<T> extends BlockAttachedEntityData<T> {
     // 1.21.6+
-    public static final HangingEntityData<Object> Direction = of(HangingEntityData.class, EntityDataSerializersProxy.DIRECTION, DirectionProxy.SOUTH, VersionHelper.isOrAbove1_21_6());
+    public static final HangingEntityData<Object> Direction = of(HangingEntityData.class, EntityDataSerializersProxy.DIRECTION, DirectionProxy.SOUTH, VersionHelper.isOrAbove1_21_6);
 
     private static <T> HangingEntityData<T> of(final Class<?> clazz, final Object serializer, T defaultValue, boolean condition) {
         if (!condition) return null;

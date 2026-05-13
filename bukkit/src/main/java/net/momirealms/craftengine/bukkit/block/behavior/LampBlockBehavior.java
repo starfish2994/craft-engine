@@ -44,7 +44,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
         ImmutableBlockState customState = optionalCustomState.get();
         if (customState.get(this.litProperty) && !SignalGetterProxy.INSTANCE.hasNeighborSignal(world, blockPos)) {
             BlockRedstoneEvent event;
-            if (VersionHelper.isOrAbove1_21_9()) {
+            if (VersionHelper.isOrAbove1_21_9) {
                 event = CraftEventFactoryProxy.INSTANCE.callRedstoneChange$0(world, blockPos, 0, 15);
             } else {
                 event = CraftEventFactoryProxy.INSTANCE.callRedstoneChange$1(world, blockPos, 0, 15);
@@ -70,7 +70,7 @@ public final class LampBlockBehavior extends BukkitBlockBehavior {
                 LevelAccessorProxy.INSTANCE.scheduleTick$0(world, blockPos, thisBlock, 4);
             } else {
                 BlockRedstoneEvent event;
-                if (VersionHelper.isOrAbove1_21_9()) {
+                if (VersionHelper.isOrAbove1_21_9) {
                     event = CraftEventFactoryProxy.INSTANCE.callRedstoneChange$0(world, blockPos, 0, 15);
                 } else {
                     event = CraftEventFactoryProxy.INSTANCE.callRedstoneChange$1(world, blockPos, 0, 15);

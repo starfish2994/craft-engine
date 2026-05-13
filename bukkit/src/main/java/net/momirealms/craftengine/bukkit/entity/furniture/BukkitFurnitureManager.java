@@ -115,7 +115,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         Bukkit.getPluginManager().registerEvents(this.furnitureEventListener, this.plugin.javaPlugin());
 
         // 对世界上已有实体的记录
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.isFolia) {
             BiConsumer<Entity, Runnable> taskExecutor = (entity, runnable) -> entity.getScheduler().run(this.plugin.javaPlugin(), (t) -> runnable.run(), () -> {});
             for (World world : Bukkit.getWorlds()) {
                 List<Entity> entities = world.getEntities();
@@ -260,7 +260,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         if (optionalFurniture.isEmpty()) return;
 
         // 只对1.20.2及以上生效，1.20.1比较特殊
-        if (!VersionHelper.isOrAbove1_20_2()) {
+        if (!VersionHelper.isOrAbove1_20_2) {
             return;
         }
 
@@ -289,7 +289,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
         // 这个区块还处于加载实体中，这个时候不处理（1.20.1需要特殊处理）
         Location location = entity.getLocation();
-        if (VersionHelper.isOrAbove1_20_2() && !isEntitiesLoaded(location)) {
+        if (VersionHelper.isOrAbove1_20_2 && !isEntitiesLoaded(location)) {
             return;
         }
 
@@ -392,7 +392,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             if (ticker != null) {
                 TickingFurnitureImpl<FurnitureController> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.syncTickers.put(entityId, tickingFurniture);
-                if (VersionHelper.isFolia()) {
+                if (VersionHelper.isFolia) {
                     furniture.bukkitEntity().getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> {
                         if (tickingFurniture.isValid()) {
                             tickingFurniture.tick();
@@ -433,7 +433,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     private void runSafeEntityOperation(Location location, Runnable action) {
         Object world = CraftWorldProxy.INSTANCE.getWorld(location.getWorld());
         Object entityLookup;
-        if (VersionHelper.isOrAbove1_21()) {
+        if (VersionHelper.isOrAbove1_21) {
             entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(world);
         } else {
             entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(world);

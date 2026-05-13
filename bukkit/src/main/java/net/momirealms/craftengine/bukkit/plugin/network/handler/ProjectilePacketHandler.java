@@ -88,14 +88,14 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         double x = buf.readDouble();
         double y = buf.readDouble();
         double z = buf.readDouble();
-        Vec3d movement = VersionHelper.isOrAbove1_21_9() ? buf.readLpVec3() : null;
+        Vec3d movement = VersionHelper.isOrAbove1_21_9 ? buf.readLpVec3() : null;
         byte xRot = buf.readByte();
         byte yRot = buf.readByte();
         byte yHeadRot = buf.readByte();
         int data = buf.readVarInt();
-        int xa = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
-        int ya = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
-        int za = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
+        int xa = VersionHelper.isOrAbove1_21_9 ? -1 : buf.readShort();
+        int ya = VersionHelper.isOrAbove1_21_9 ? -1 : buf.readShort();
+        int za = VersionHelper.isOrAbove1_21_9 ? -1 : buf.readShort();
         event.setCancelled(true);
         user.sendPackets(List.of(
                 ClientboundAddEntityPacketProxy.INSTANCE.newInstance(this.entityId, uuid, x, y, z,
@@ -121,7 +121,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承.
         Item item = this.projectile.item();
         item.enchantments().ifPresent(displayedItem::setEnchantments);
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             Optional<Boolean> glint = item.glint();
             if (glint.isPresent()) {
                 displayedItem.glint(glint.get());
@@ -132,7 +132,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         DisplayData.ItemDisplayData.Translation.addEntityDataIfNotDefaultValue(meta.translation(), itemDisplayValues);
         DisplayData.ItemDisplayData.Scale.addEntityDataIfNotDefaultValue(meta.scale(), itemDisplayValues);
         DisplayData.ItemDisplayData.LeftRotation.addEntityDataIfNotDefaultValue(meta.rotation(), itemDisplayValues);
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             DisplayData.ItemDisplayData.TransformationInterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
             DisplayData.ItemDisplayData.PosRotInterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
         } else {

@@ -32,7 +32,7 @@ public final class DebugIsSectionInjectedCommand extends BukkitCommandFeature<Co
                     Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
                     Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
                     Object levelChunk;
-                    if (VersionHelper.isOrAbove1_21()) {
+                    if (VersionHelper.isOrAbove1_21) {
                         levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunk.getX(), chunk.getZ());
                     } else {
                         levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());

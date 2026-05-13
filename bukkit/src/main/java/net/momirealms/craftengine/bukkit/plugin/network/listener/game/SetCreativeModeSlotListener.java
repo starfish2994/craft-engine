@@ -47,12 +47,12 @@ public final class SetCreativeModeSlotListener implements ByteBufferPacketListen
         short slotNum = buf.readShort();
         Item item;
         try {
-            item = VersionHelper.isOrAbove1_20_5() ? PacketUtils.readUntrustedItem(buf) : PacketUtils.readItem(buf);
+            item = VersionHelper.isOrAbove1_20_5 ? PacketUtils.readUntrustedItem(buf) : PacketUtils.readItem(buf);
         } catch (Exception e) {
             return;
         }
         if (!user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_21_4)) {
-            if (VersionHelper.isFolia()) {
+            if (VersionHelper.isFolia) {
                 serverPlayer.platformPlayer().getScheduler().run(
                         BukkitCraftEngine.instance().javaPlugin(),
                         t -> handleSetCreativeSlotPacketOnMainThread(serverPlayer, slotNum, item),
@@ -68,7 +68,7 @@ public final class SetCreativeModeSlotListener implements ByteBufferPacketListen
             buf.clear();
             buf.writeVarInt(event.packetID());
             buf.writeShort(slotNum);
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 PacketUtils.writeUntrustedItem(buf, newItem);
             } else {
                 PacketUtils.writeItem(buf, newItem);

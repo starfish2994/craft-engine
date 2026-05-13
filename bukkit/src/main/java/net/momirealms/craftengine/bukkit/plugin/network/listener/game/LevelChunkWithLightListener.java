@@ -58,7 +58,7 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
         int chunkX = buf.readInt();
         int chunkZ = buf.readInt();
         ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
-        boolean named = !VersionHelper.isOrAbove1_20_2();
+        boolean named = !VersionHelper.isOrAbove1_20_2;
 
         int[] remapper = user.clientModEnabled() ? this.modBlockStateMapper : this.blockStateMapper;
 
@@ -66,7 +66,7 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
         int heightmapsCount = 0;
         Map<Integer, long[]> heightmapsMap = null;
         Tag heightmaps = null;
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             heightmapsMap = new HashMap<>();
             heightmapsCount = buf.readVarInt();
             for (int i = 0; i < heightmapsCount; i++) {
@@ -266,7 +266,7 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
             buf.writeVarInt(event.packetID());
             buf.writeInt(chunkX);
             buf.writeInt(chunkZ);
-            if (VersionHelper.isOrAbove1_21_5()) {
+            if (VersionHelper.isOrAbove1_21_5) {
                 buf.writeVarInt(heightmapsCount);
                 for (Map.Entry<Integer, long[]> entry : heightmapsMap.entrySet()) {
                     buf.writeVarInt(entry.getKey());

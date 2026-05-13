@@ -53,7 +53,7 @@ public final class BukkitPackManager extends AbstractPackManager implements List
 
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (Config.sendPackOnJoin() && !VersionHelper.isOrAbove1_20_2()) {
+        if (Config.sendPackOnJoin() && !VersionHelper.isOrAbove1_20_2) {
             Player player = BukkitAdaptor.adapt(event.getPlayer());
             // 可能有假人
             if (player == null) return;
@@ -88,7 +88,7 @@ public final class BukkitPackManager extends AbstractPackManager implements List
                 if (dataList.isEmpty()) {
                     return;
                 }
-                if (dataList.size() == 1 || !VersionHelper.isOrAbove1_20_3()) { // 1.20~1.20.2 只支持一个服务器资源包
+                if (dataList.size() == 1 || !VersionHelper.isOrAbove1_20_3) { // 1.20~1.20.2 只支持一个服务器资源包
                     ResourcePackDownloadData data = dataList.getFirst();
                     player.sendPacket(ResourcePackUtils.createPacket(data.uuid(), data.url(), data.sha1()), true);
                     player.addResourcePackUUID(data.uuid());

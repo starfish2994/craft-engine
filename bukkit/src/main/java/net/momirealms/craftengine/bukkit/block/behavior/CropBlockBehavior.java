@@ -99,7 +99,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
                         after++;
                     }
                     if (after > before) {
-                        if (VersionHelper.isOrAbove1_21_5()) {
+                        if (VersionHelper.isOrAbove1_21_5) {
                             CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, pos, customState.with(this.ageProperty, after).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
                         } else {
                             CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, pos, customState.with(this.ageProperty, after).customBlockState().minecraftState());
@@ -154,7 +154,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
-            if (VersionHelper.isOrAbove1_20_2()) {
+            if (VersionHelper.isOrAbove1_20_2) {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState);
             } else {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState, true);
@@ -182,7 +182,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
-            if (VersionHelper.isOrAbove1_20_2()) {
+            if (VersionHelper.isOrAbove1_20_2) {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, level, pos, visualState);
             } else {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, level, pos, visualState, true);
@@ -210,7 +210,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         }
         if (after > before) {
             boolean success;
-            if (VersionHelper.isOrAbove1_21_5()) {
+            if (VersionHelper.isOrAbove1_21_5) {
                 success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, pos, customState.with(this.ageProperty, after).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
             } else {
                 success = CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, pos, customState.with(this.ageProperty, after).customBlockState().minecraftState());

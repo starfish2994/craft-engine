@@ -12,12 +12,12 @@ public final class ResourcePackUtils {
     private ResourcePackUtils() {}
 
     public static Object createPacket(UUID uuid, String url, String hash) {
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             return ClientboundResourcePackPushPacketProxy.INSTANCE.newInstance(
                     uuid, url, hash, Config.kickOnDeclined(),
                     Optional.ofNullable(ComponentUtils.adventureToMinecraft(Config.resourcePackPrompt()))
             );
-        } else if (VersionHelper.isOrAbove1_20_3()) {
+        } else if (VersionHelper.isOrAbove1_20_3) {
             return ClientboundResourcePackPushPacketProxy.INSTANCE.newInstance(
                     uuid, url, hash, Config.kickOnDeclined(),
                     ComponentUtils.adventureToMinecraft(Config.resourcePackPrompt())
@@ -31,7 +31,7 @@ public final class ResourcePackUtils {
     }
 
     public static Object createServerResourcePackInfo(UUID uuid, String url, String hash) {
-        if (VersionHelper.isOrAbove1_20_3()) {
+        if (VersionHelper.isOrAbove1_20_3) {
             return MinecraftServerProxy.ServerResourcePackInfoProxy.INSTANCE.newInstance(uuid, url, hash, Config.kickOnDeclined(), ComponentUtils.adventureToMinecraft(Config.resourcePackPrompt()));
         } else {
             return MinecraftServerProxy.ServerResourcePackInfoProxy.INSTANCE.newInstance(url, hash, Config.kickOnDeclined(), ComponentUtils.adventureToMinecraft(Config.resourcePackPrompt()));

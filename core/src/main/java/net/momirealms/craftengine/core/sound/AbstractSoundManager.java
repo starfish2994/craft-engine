@@ -69,7 +69,7 @@ public abstract class AbstractSoundManager implements SoundManager {
 
     @Override
     public void runDelayedSyncTasks() {
-        if (!VersionHelper.isOrAbove1_21()) return;
+        if (!VersionHelper.isOrAbove1_21) return;
 //        this.registerSounds(this.byId.keySet());
         this.registerSongs(this.songs);
     }

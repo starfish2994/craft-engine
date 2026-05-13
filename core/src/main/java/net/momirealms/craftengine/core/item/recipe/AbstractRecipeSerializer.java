@@ -19,11 +19,11 @@ import java.util.*;
 
 public abstract class AbstractRecipeSerializer<R extends Recipe> implements RecipeSerializer<R> {
     protected static final VanillaRecipeReader VANILLA_RECIPE_HELPER =
-            VersionHelper.isOrAbove26_1() ?
+            VersionHelper.isOrAbove26_1 ?
             new VanillaRecipeReader26_1() :
-            VersionHelper.isOrAbove1_21_2() ?
+            VersionHelper.isOrAbove1_21_2 ?
             new VanillaRecipeReader1_21_2() :
-            VersionHelper.isOrAbove1_20_5() ?
+            VersionHelper.isOrAbove1_20_5 ?
             new VanillaRecipeReader1_20_5() :
             new VanillaRecipeReader1_20();
     protected static final String[] SHOW_NOTIFICATIONS = new String[] {"show_notification", "show-notification"};

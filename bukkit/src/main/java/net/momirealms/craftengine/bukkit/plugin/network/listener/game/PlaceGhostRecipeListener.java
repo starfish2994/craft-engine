@@ -23,7 +23,7 @@ public final class PlaceGhostRecipeListener implements ByteBufferPacketListener 
     @Override
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
         if (Config.disableItemOperations()) return;
-        if (!VersionHelper.isOrAbove1_21_2()) return;
+        if (!VersionHelper.isOrAbove1_21_2) return;
         MutableBoolean changed = new MutableBoolean(false);
         FriendlyByteBuf buf = event.getBuffer();
         BukkitServerPlayer player = (BukkitServerPlayer) user;

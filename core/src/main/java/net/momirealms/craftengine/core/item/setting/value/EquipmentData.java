@@ -132,7 +132,7 @@ public final class EquipmentData {
         CompoundTag tag = new CompoundTag();
         tag.putString("slot", this.slot.toString().toLowerCase(Locale.ROOT));
         if (this.assetId != null) {
-            if (VersionHelper.isOrAbove1_21_4()) {
+            if (VersionHelper.isOrAbove1_21_4) {
                 tag.putString("asset_id", this.assetId.asString());
             } else {
                 tag.putString("model", this.assetId.asString());
@@ -141,9 +141,9 @@ public final class EquipmentData {
         tag.putBoolean("dispensable", this.dispensable);
         tag.putBoolean("swappable", this.swappable);
         tag.putBoolean("damage_on_hurt", this.damageOnHurt);
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             tag.putBoolean("equip_on_interact", this.equipOnInteract);
-            if (VersionHelper.isOrAbove1_21_6()) {
+            if (VersionHelper.isOrAbove1_21_6) {
                 tag.putBoolean("can_be_sheared", this.canBeSheared);
             }
         }

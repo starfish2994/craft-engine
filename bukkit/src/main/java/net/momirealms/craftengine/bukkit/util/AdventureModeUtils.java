@@ -26,7 +26,7 @@ public final class AdventureModeUtils {
         if (state != null) {
             BlockInWorldProxy.INSTANCE.setState(blockInWorld, state);
         }
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             return ItemStackProxy.INSTANCE.canBreakBlockInAdventureMode(CraftItemStackProxy.INSTANCE.unwrap(itemStack), blockInWorld);
         } else {
             return ItemStackProxy.INSTANCE.hasAdventureModeBreakTagForBlock(CraftItemStackProxy.INSTANCE.unwrap(itemStack), BuiltInRegistriesProxy.BLOCK, blockInWorld);
@@ -40,7 +40,7 @@ public final class AdventureModeUtils {
         if (state != null) {
             BlockInWorldProxy.INSTANCE.setState(blockInWorld, state);
         }
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             return ItemStackProxy.INSTANCE.canPlaceOnBlockInAdventureMode(item, blockInWorld);
         } else {
             return ItemStackProxy.INSTANCE.hasAdventureModePlaceTagForBlock(item, BuiltInRegistriesProxy.BLOCK, blockInWorld);
@@ -53,7 +53,7 @@ public final class AdventureModeUtils {
         if (state != null) {
             BlockInWorldProxy.INSTANCE.setState(blockInWorld, state);
         }
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             return ItemStackProxy.INSTANCE.canPlaceOnBlockInAdventureMode(CraftItemStackProxy.INSTANCE.unwrap(itemStack), blockInWorld);
         } else {
             return ItemStackProxy.INSTANCE.hasAdventureModePlaceTagForBlock(CraftItemStackProxy.INSTANCE.unwrap(itemStack), BuiltInRegistriesProxy.BLOCK, blockInWorld);

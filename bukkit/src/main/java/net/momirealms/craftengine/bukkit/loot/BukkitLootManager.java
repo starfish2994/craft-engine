@@ -95,7 +95,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
                     .withParameter(DirectContextParameters.POSITION, position);
             BukkitServerPlayer optionalPlayer = null;
             float luck = 1.0f;
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 if (event.getDamageSource().getCausingEntity() instanceof Player player) {
                     optionalPlayer = BukkitAdaptor.adapt(player);
                     builder.withOptionalParameter(DirectContextParameters.PLAYER, optionalPlayer);

@@ -22,9 +22,9 @@ public class WaterloggedBlockBehavior extends BukkitBlockBehavior implements Buk
         this.waterloggedProperty = waterloggedProperty;
     }
 
-    private static final int pickupBlock$world = VersionHelper.isOrAbove1_20_2() ? 1 : 0;
-    private static final int pickupBlock$pos = VersionHelper.isOrAbove1_20_2() ? 2 : 1;
-    private static final int pickupBlock$blockState = VersionHelper.isOrAbove1_20_2() ? 3 : 2;
+    private static final int pickupBlock$world = VersionHelper.isOrAbove1_20_2 ? 1 : 0;
+    private static final int pickupBlock$pos = VersionHelper.isOrAbove1_20_2 ? 2 : 1;
+    private static final int pickupBlock$blockState = VersionHelper.isOrAbove1_20_2 ? 3 : 2;
 
     @Override
     public Object pickupBlock(Object thisBlock, Object[] args) {
@@ -56,7 +56,7 @@ public class WaterloggedBlockBehavior extends BukkitBlockBehavior implements Buk
         return false;
     }
 
-    private static final int canPlaceLiquid$liquid = VersionHelper.isOrAbove1_20_2() ? 4 : 3;
+    private static final int canPlaceLiquid$liquid = VersionHelper.isOrAbove1_20_2 ? 4 : 3;
 
     @Override
     public boolean canPlaceLiquid(Object thisBlock, Object[] args) {

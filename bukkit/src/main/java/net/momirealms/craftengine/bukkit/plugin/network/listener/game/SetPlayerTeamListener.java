@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class SetPlayerTeamListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3() ? new V1_20_3() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3 ? new V1_20_3() : new V1_20();
 
     private SetPlayerTeamListener() {}
 
@@ -81,8 +81,8 @@ public final class SetPlayerTeamListener {
             Tag displayName = buf.readNbt(false);
             if (displayName == null) return;
             byte friendlyFlags = buf.readByte();
-            Either<String, Integer> eitherVisibility = VersionHelper.isOrAbove1_21_5() ? Either.right(buf.readVarInt()) : Either.left(buf.readUtf(40));
-            Either<String, Integer> eitherCollisionRule = VersionHelper.isOrAbove1_21_5() ? Either.right(buf.readVarInt()) : Either.left(buf.readUtf(40));
+            Either<String, Integer> eitherVisibility = VersionHelper.isOrAbove1_21_5 ? Either.right(buf.readVarInt()) : Either.left(buf.readUtf(40));
+            Either<String, Integer> eitherCollisionRule = VersionHelper.isOrAbove1_21_5 ? Either.right(buf.readVarInt()) : Either.left(buf.readUtf(40));
             int color = buf.readVarInt();
             Tag prefix = buf.readNbt(false);
             if (prefix == null) return;

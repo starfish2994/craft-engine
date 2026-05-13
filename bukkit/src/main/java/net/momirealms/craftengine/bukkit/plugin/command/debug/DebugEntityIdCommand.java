@@ -32,7 +32,7 @@ public final class DebugEntityIdCommand extends BukkitCommandFeature<CommandSend
                     int entityId = context.get("entityId");
                     Object level = CraftWorldProxy.INSTANCE.getWorld(world);
                     Object entityLookup;
-                    if (VersionHelper.isOrAbove1_21()) {
+                    if (VersionHelper.isOrAbove1_21) {
                         entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(level);
                     } else {
                         entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(level);

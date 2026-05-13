@@ -8,7 +8,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 public class PrimedTntData<T> extends BaseEntityData<T> {
     public static final PrimedTntData<Integer> Fuse = of(PrimedTntData.class, EntityDataSerializersProxy.INT, 80, true);
     // 1.20.3+
-    public static final PrimedTntData<Object> BlockState = of(PrimedTntData.class, EntityDataSerializersProxy.BLOCK_STATE, BlocksProxy.TNT$defaultState, VersionHelper.isOrAbove1_20_3());
+    public static final PrimedTntData<Object> BlockState = of(PrimedTntData.class, EntityDataSerializersProxy.BLOCK_STATE, BlocksProxy.TNT$defaultState, VersionHelper.isOrAbove1_20_3);
 
     private static <T> PrimedTntData<T> of(final Class<?> clazz, final Object serializer, T defaultValue, boolean condition) {
         if (!condition) return null;

@@ -17,7 +17,7 @@ public final class UpdateFlags {
     public static final int UPDATE_SKIP_ON_PLACE = 512;
     public static final int UPDATE_ALL = 3;
     public static final int UPDATE_ALL_IMMEDIATE = 11;
-    public static final int UPDATE_NONE = VersionHelper.isOrAbove1_21_5() ? 260 : 4;
+    public static final int UPDATE_NONE = VersionHelper.isOrAbove1_21_5 ? 260 : 4;
     public static final int UPDATE_SKIP_ALL_SIDEEFFECTS = 816; // 1.21.5
-    public static final int UPDATE_NO_PHYS = VersionHelper.isOrAbove1_21_5() ? 530 : 1042;
+    public static final int UPDATE_NO_PHYS = VersionHelper.isOrAbove1_21_5 ? 530 : 1042;
 }

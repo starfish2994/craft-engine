@@ -103,9 +103,9 @@ public final class PlayerUtils {
             AbstractContainerMenuProxy.INSTANCE.broadcastChanges(PlayerProxy.INSTANCE.getContainerMenu(serverPlayer));
         } else {
             Object droppedItem;
-            if (VersionHelper.isOrAbove1_21_4()) {
-                droppedItem = ServerPlayerProxy.INSTANCE.drop(serverPlayer, item.minecraftItem(), false, false, !VersionHelper.isOrAbove1_21_5(), null);
-            } else if (VersionHelper.isOrAbove1_20_3()) {
+            if (VersionHelper.isOrAbove1_21_4) {
+                droppedItem = ServerPlayerProxy.INSTANCE.drop(serverPlayer, item.minecraftItem(), false, false, !VersionHelper.isOrAbove1_21_5, null);
+            } else if (VersionHelper.isOrAbove1_20_3) {
                 droppedItem = ServerPlayerProxy.INSTANCE.drop$1(serverPlayer, item.minecraftItem(), false, false, true);
             } else {
                 droppedItem = PlayerProxy.INSTANCE.drop(serverPlayer, item.minecraftItem(), false, false, true);
@@ -122,7 +122,7 @@ public final class PlayerUtils {
         Object totemItem = totem.minecraftItem();
         Item previousMainHandItem = player.getItemInHand(InteractionHand.MAIN_HAND);
         boolean isMainHandTotem;
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             isMainHandTotem = previousMainHandItem.hasComponent(DataComponentTypes.DEATH_PROTECTION);
         } else {
             isMainHandTotem = previousMainHandItem.id().equals(ItemKeys.TOTEM_OF_UNDYING);

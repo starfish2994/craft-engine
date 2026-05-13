@@ -36,7 +36,7 @@ public final class EntityUtils {
     private EntityUtils() {}
 
     public static Object createUpdatePosPacket(int entityId, double x, double y, double z, float yRot, float xRot, boolean onGround) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             Object position = Vec3Proxy.INSTANCE.newInstance(x, y, z);
             Object values = PositionMoveRotationProxy.INSTANCE.newInstance(position, Vec3Proxy.ZERO, yRot, xRot);
             return ClientboundEntityPositionSyncPacketProxy.INSTANCE.newInstance(entityId, values, onGround);
@@ -54,11 +54,11 @@ public final class EntityUtils {
     }
 
     public static Vec3d getPassengerRidingPosition(Object nmsVehicle, Object nmsPassenger) {
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             Vec3d passengerRidingPosition = LocationUtils.fromVec(EntityProxy.INSTANCE.getPassengerRidingPosition(nmsVehicle, nmsPassenger));
             Vec3d vehicleAttachmentPoint = LocationUtils.fromVec(EntityProxy.INSTANCE.getVehicleAttachmentPoint(nmsVehicle, nmsPassenger));
             return passengerRidingPosition.subtract(vehicleAttachmentPoint);
-        } else if (VersionHelper.isOrAbove1_20_2()) {
+        } else if (VersionHelper.isOrAbove1_20_2) {
             Vec3d passengerRidingPosition = LocationUtils.fromVec(EntityProxy.INSTANCE.getPassengerRidingPosition(nmsVehicle, nmsPassenger));
             return passengerRidingPosition.add(0, EntityProxy.INSTANCE.getMyRidingOffset(nmsVehicle, nmsPassenger), 0);
         } else {
@@ -74,7 +74,7 @@ public final class EntityUtils {
     }
 
     public static Entity spawnEntity(World world, Location loc, EntityType type, Consumer<Entity> function) {
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             return world.spawnEntity(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function);
         } else {
             return LegacyEntityUtils.spawnEntity(world, loc, type, function);
@@ -117,7 +117,7 @@ public final class EntityUtils {
                 if (!CollisionUtils.test(serverLevel, List.of(newAABB), o -> true)) {
                     continue;
                 }
-                if (VersionHelper.isFolia()) {
+                if (VersionHelper.isFolia) {
                     player.teleportAsync(new Location(player.getWorld(), x, pos.y() + floorHeight, z, player.getYaw(), player.getPitch()));
                 } else {
                     player.teleport(new Location(player.getWorld(), x, pos.y() + floorHeight, z, player.getYaw(), player.getPitch()));

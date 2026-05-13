@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class UpdateRecipesListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_21_2() ? new V1_21_2() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_21_2 ? new V1_21_2() : new V1_20();
 
     private UpdateRecipesListener() {}
 

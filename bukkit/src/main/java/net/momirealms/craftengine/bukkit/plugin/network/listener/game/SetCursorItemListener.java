@@ -27,7 +27,7 @@ public final class SetCursorItemListener implements ByteBufferPacketListener {
         Item item = PacketUtils.readItem(buf);
 
         // 为了避免其他插件造成的手感冲突
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             // 发出来的是非空物品
             if (!item.isEmpty()) {
                 Object containerMenu = PlayerProxy.INSTANCE.getContainerMenu(serverPlayer.serverPlayer());

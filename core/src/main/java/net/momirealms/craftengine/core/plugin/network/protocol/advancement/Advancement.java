@@ -41,7 +41,7 @@ public final class Advancement {
     public static Advancement read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item> reader) {
         Optional<Key> parent = buf.readOptional(FriendlyByteBuf::readKey);
         Optional<AdvancementDisplay> displayInfo = buf.readOptional(byteBuf -> AdvancementDisplay.read(buf, reader));
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             AdvancementRequirements requirements = AdvancementRequirements.read(buf);
             boolean sendsTelemetryEvent = buf.readBoolean();
             return new Advancement(parent, displayInfo, requirements, sendsTelemetryEvent);
@@ -56,7 +56,7 @@ public final class Advancement {
     public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item> writer) {
         buf.writeOptional(this.parent, FriendlyByteBuf::writeKey);
         buf.writeOptional(this.displayInfo, (byteBuf, info) -> info.write(buf, writer));
-        if (!VersionHelper.isOrAbove1_20_2()) {
+        if (!VersionHelper.isOrAbove1_20_2) {
             buf.writeMap(this.criteria, FriendlyByteBuf::writeUtf, ((byteBuf, unused) -> {}));
         }
         this.requirements.write(buf);

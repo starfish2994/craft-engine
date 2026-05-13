@@ -54,7 +54,7 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));
         this.entityId = entityId;
         this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z, config.yRot(), config.xRot(), false) : null;
-        if (VersionHelper.isOrAbove1_20_5() && config.scale() != 1) {
+        if (VersionHelper.isOrAbove1_20_5 && config.scale() != 1) {
             Object attributeIns = AttributeInstanceProxy.INSTANCE.newInstance$0(AttributesProxy.SCALE, $ -> {});
             AttributeInstanceProxy.INSTANCE.setBaseValue(attributeIns, config.scale());
             this.cachedScalePacket = ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId, Collections.singletonList(attributeIns));

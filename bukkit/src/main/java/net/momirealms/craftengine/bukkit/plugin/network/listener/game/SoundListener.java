@@ -16,7 +16,7 @@ import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 
 public final class SoundListener implements ByteBufferPacketListener {
     public static final ByteBufferPacketListener INSTANCE = new SoundListener();
-    public static final Object SoundEvent$DIRECT_STREAM_CODEC = VersionHelper.isOrAbove1_20_5() ? SoundEventProxy.INSTANCE.getDirectStreamCodec() : null;
+    public static final Object SoundEvent$DIRECT_STREAM_CODEC = VersionHelper.isOrAbove1_20_5 ? SoundEventProxy.INSTANCE.getDirectStreamCodec() : null;
 
     private SoundListener() {}
 
@@ -77,7 +77,7 @@ public final class SoundListener implements ByteBufferPacketListener {
                 buf.writeVarInt(0);
                 Object newId = KeyUtils.toIdentifier(mapped);
                 Object newSoundEvent = SoundEventProxy.INSTANCE.create(newId, SoundEventProxy.INSTANCE.fixedRange(soundEvent));
-                if (VersionHelper.isOrAbove1_20_5()) {
+                if (VersionHelper.isOrAbove1_20_5) {
                     StreamEncoderProxy.INSTANCE.encode(SoundEvent$DIRECT_STREAM_CODEC, buf, newSoundEvent);
                 } else {
                     SoundEventProxy.INSTANCE.writeToNetwork(newSoundEvent, PacketUtils.ensureNMSFriendlyByteBuf(buf));

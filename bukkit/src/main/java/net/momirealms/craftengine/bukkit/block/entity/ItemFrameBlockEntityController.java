@@ -157,7 +157,7 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
         List<Object> metadataValues = new ArrayList<>();
         ItemFrameData.Item.addEntityData(this.itemStack, metadataValues);
         ItemFrameData.Rotation.addEntityData(this.rotation, metadataValues);
-        if (VersionHelper.isOrAbove1_21_6()) {
+        if (VersionHelper.isOrAbove1_21_6) {
             ItemFrameData.Direction.addEntityData(direction, metadataValues);
         }
         if (this.behavior.invisible) {
@@ -165,7 +165,7 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
         }
         this.cacheMetadata = metadataValues;
         if (this.behavior.renderMapItem) {
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 this.mapId = ItemStackProxy.INSTANCE.get(this.itemStack, DataComponentTypes.MAP_ID);
             } else {
                 this.mapId = MapItemProxy.INSTANCE.getMapId(this.itemStack);
@@ -174,7 +174,7 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
                 this.mapItemSavedData = null;
                 return;
             }
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 this.mapItemSavedData = MapItemProxy.INSTANCE.getSavedData$0(this.mapId, super.blockEntity.world.world.minecraftWorld());
             } else {
                 this.mapItemSavedData = MapItemProxy.INSTANCE.getSavedData$1((Integer) this.mapId, super.blockEntity.world.world.minecraftWorld());

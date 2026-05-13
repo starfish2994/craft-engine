@@ -66,7 +66,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
 
     @Override
     public boolean isPathFindable(Object thisBlock, Object[] args) {
-        return (VersionHelper.isOrAbove1_20_5() ? args[1] : args[3]).equals(PathComputationTypeProxy.AIR)
+        return (VersionHelper.isOrAbove1_20_5 ? args[1] : args[3]).equals(PathComputationTypeProxy.AIR)
                 && !BlockBehaviourProxy.INSTANCE.hasCollision(thisBlock) || super.isPathFindable(thisBlock, args);
     }
 

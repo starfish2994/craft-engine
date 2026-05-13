@@ -61,9 +61,9 @@ public final class PickItemFromBlockListener implements ByteBufferPacketListener
     }
 
     private static void tryPickItem(Player player, Object itemStack, Object blockPos) {
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack, blockPos, null, true);
-        } else if (VersionHelper.isOrAbove1_21_4()) {
+        } else if (VersionHelper.isOrAbove1_21_4) {
             ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack);
         }
     }

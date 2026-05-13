@@ -19,7 +19,7 @@ public final class LightUtils {
     private LightUtils() {}
 
     public static boolean hasDifferentLightProperties(Object oldState, Object newState) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             return LightEngineProxy.INSTANCE.hasDifferentLightProperties(oldState, newState);
         } else {
             return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getLightEmission(newState) != BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getLightEmission(oldState)

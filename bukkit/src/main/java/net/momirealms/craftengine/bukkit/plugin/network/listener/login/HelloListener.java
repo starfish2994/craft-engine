@@ -22,7 +22,7 @@ public final class HelloListener implements ByteBufferPacketListener {
         FriendlyByteBuf buf = event.getBuffer();
         String name = buf.readUtf(16);
         player.setUnverifiedName(name);
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             UUID uuid = buf.readUUID();
             player.setUnverifiedUUID(uuid);
         } else {

@@ -84,6 +84,6 @@ public final class DebugItemModelCommand extends BukkitCommandFeature<CommandSen
 
     @Override
     public boolean isAvailable() {
-        return VersionHelper.isOrAbove1_21_2();
+        return VersionHelper.isOrAbove1_21_2;
     }
 }

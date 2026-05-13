@@ -53,10 +53,10 @@ public final class AddEntityListener implements ByteBufferPacketListener {
         this.handlers[EntityTypeProxy.TRIDENT$registryId] = createOptionalCustomProjectileEntityHandler(false);
         this.handlers[EntityTypeProxy.ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
         this.handlers[EntityTypeProxy.SPECTRAL_ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
-        if (VersionHelper.isOrAbove1_20_3()) {
+        if (VersionHelper.isOrAbove1_20_3) {
             this.handlers[EntityTypeProxy.TNT$registryId] = simpleAddEntityHandler(PrimedTNTPacketHandler.INSTANCE);
         }
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             this.handlers[EntityTypeProxy.OMINOUS_ITEM_SPAWNER$registryId] = simpleAddEntityHandler(ItemPacketHandler.INSTANCE);
         }
         this.handlers[EntityTypeProxy.FALLING_BLOCK$registryId] = (user, event) -> {
@@ -67,7 +67,7 @@ public final class AddEntityListener implements ByteBufferPacketListener {
             double x = buf.readDouble();
             double y = buf.readDouble();
             double z = buf.readDouble();
-            Vec3d movement = VersionHelper.isOrAbove1_21_9() ? buf.readLpVec3() : null;
+            Vec3d movement = VersionHelper.isOrAbove1_21_9 ? buf.readLpVec3() : null;
             byte xRot = buf.readByte();
             byte yRot = buf.readByte();
             byte yHeadRot = buf.readByte();
@@ -75,9 +75,9 @@ public final class AddEntityListener implements ByteBufferPacketListener {
             // Falling blocks
             int remapped = BukkitNetworkManager.instance().remapBlockState(data, user.clientModEnabled());
             if (remapped != data) {
-                int xa = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
-                int ya = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
-                int za = VersionHelper.isOrAbove1_21_9() ? -1 : buf.readShort();
+                int xa = VersionHelper.isOrAbove1_21_9 ? -1 : buf.readShort();
+                int ya = VersionHelper.isOrAbove1_21_9 ? -1 : buf.readShort();
+                int za = VersionHelper.isOrAbove1_21_9 ? -1 : buf.readShort();
                 event.setChanged(true);
                 buf.clear();
                 buf.writeVarInt(event.packetID());
@@ -87,14 +87,14 @@ public final class AddEntityListener implements ByteBufferPacketListener {
                 buf.writeDouble(x);
                 buf.writeDouble(y);
                 buf.writeDouble(z);
-                if (VersionHelper.isOrAbove1_21_9()) buf.writeLpVec3(movement);
+                if (VersionHelper.isOrAbove1_21_9) buf.writeLpVec3(movement);
                 buf.writeByte(xRot);
                 buf.writeByte(yRot);
                 buf.writeByte(yHeadRot);
                 buf.writeVarInt(remapped);
-                if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(xa);
-                if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(ya);
-                if (!VersionHelper.isOrAbove1_21_9()) buf.writeShort(za);
+                if (!VersionHelper.isOrAbove1_21_9) buf.writeShort(xa);
+                if (!VersionHelper.isOrAbove1_21_9) buf.writeShort(ya);
+                if (!VersionHelper.isOrAbove1_21_9) buf.writeShort(za);
             }
         };
         this.handlers[EntityTypeProxy.ITEM_DISPLAY$registryId] = (user, event) -> {

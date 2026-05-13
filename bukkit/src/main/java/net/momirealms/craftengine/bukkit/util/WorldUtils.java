@@ -19,7 +19,7 @@ public final class WorldUtils {
         Object worldServer = CraftChunkProxy.INSTANCE.getWorld(bukkitChunk);
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
 
-        if (VersionHelper.isOrAbove1_21()) {
+        if (VersionHelper.isOrAbove1_21) {
             return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, bukkitChunk.getX(), bukkitChunk.getZ());
         } else {
             return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, bukkitChunk.getX(), bukkitChunk.getZ());
@@ -29,7 +29,7 @@ public final class WorldUtils {
     public static Object getEntityLookup(World world) {
         Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(world);
         Object entityLookup;
-        if (VersionHelper.isOrAbove1_21()) {
+        if (VersionHelper.isOrAbove1_21) {
             entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(serverLevel);
         } else {
             entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(serverLevel);

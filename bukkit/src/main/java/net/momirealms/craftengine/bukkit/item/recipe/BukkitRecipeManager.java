@@ -99,15 +99,15 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         instance = this;
         this.plugin = plugin;
         this.recipeEventListener = new RecipeEventListener(plugin, this, plugin.itemManager());
-        this.crafterEventListener = VersionHelper.isOrAbove1_21() ? new CrafterEventListener(plugin, this, plugin.itemManager()) : null;
+        this.crafterEventListener = VersionHelper.isOrAbove1_21 ? new CrafterEventListener(plugin, this, plugin.itemManager()) : null;
     }
 
     public static RecipeRegistry createRecipeRegistry() {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             return new RecipeRegistry1_21_2();
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             return new RecipeRegistry1_20_5();
-        } else if (VersionHelper.isOrAbove1_20_2()) {
+        } else if (VersionHelper.isOrAbove1_20_2) {
             return new RecipeRegistry1_20_2();
         } else {
             return new RecipeRegistry1_20();
@@ -199,7 +199,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         super.recipeRegistry.register(RecipeInjector.REPAIR_ITEM, RecipeInjector.REPAIR_ITEM_RECIPE);
 
         // 在低版本是特殊配方，高版本不是
-        if (!VersionHelper.isOrAbove26_1()) {
+        if (!VersionHelper.isOrAbove26_1) {
             super.recipeRegistry.unregister(RecipeInjector.ARMOR_DYE);
             super.recipeRegistry.unregister(RecipeInjector.FIREWORK_STAR_FADE);
             super.recipeRegistry.register(RecipeInjector.ARMOR_DYE, RecipeInjector.ARMOR_DYE_RECIPE);
@@ -226,12 +226,12 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         super.recipeRegistry.finalizeRegistration();
 
         // 刷新配方
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             Object manager = minecraftRecipeManager();
             RecipeManagerProxy.INSTANCE.finalizeRecipeLoading(manager, RecipeManagerProxy.INSTANCE.getEnabledFlags(manager));
         }
         // 1.21.6以下直接发包
-        if (!VersionHelper.isOrAbove1_21_6() || VersionHelper.isFolia()) {
+        if (!VersionHelper.isOrAbove1_21_6 || VersionHelper.isFolia) {
             PlayerListProxy.INSTANCE.reloadRecipeData(CraftServerProxy.INSTANCE.getPlayerList(Bukkit.getServer()));
         }
 
@@ -245,7 +245,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         if (!Config.enableRecipeSystem()) return;
 
         // 处理酿造配方
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             PotionBrewer potionBrewer = Bukkit.getPotionBrewer();
             if (!this.brewingRecipesToUnregister.isEmpty()) {
                 for (Key potion : this.brewingRecipesToUnregister) {
@@ -272,7 +272,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         }
 
         // 重载资源
-        if (VersionHelper.isOrAbove1_21_6() && !VersionHelper.isFolia()) {
+        if (VersionHelper.isOrAbove1_21_6 && !VersionHelper.isFolia) {
             for (BukkitServerPlayer player : this.plugin.networkManager().onlineUsers()) {
                 Object serverPlayer = player.serverPlayer();
                 Object advancements = ServerPlayerProxy.INSTANCE.getAdvancements(serverPlayer);
@@ -334,7 +334,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     }
 
     private Map<Key, JsonObject> scanResources() {
-        Object fileToIdConverter = FileToIdConverterProxy.INSTANCE.json(VersionHelper.isOrAbove1_21() ? "recipe" : "recipes");
+        Object fileToIdConverter = FileToIdConverterProxy.INSTANCE.json(VersionHelper.isOrAbove1_21 ? "recipe" : "recipes");
         Object minecraftServer = MinecraftServerProxy.INSTANCE.getServer();
         Object packRepository = MinecraftServerProxy.INSTANCE.getPackRepository(minecraftServer);
         List<Object> selected = PackRepositoryProxy.INSTANCE.getSelected(packRepository);

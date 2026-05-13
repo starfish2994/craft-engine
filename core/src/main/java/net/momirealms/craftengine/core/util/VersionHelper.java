@@ -153,19 +153,6 @@ public final class VersionHelper {
         return 10000 * v1 + v2 * 100 + v3;
     }
 
-
-    public static int majorVersion() {
-        return majorVersion;
-    }
-
-    public static int minorVersion() {
-        return minorVersion;
-    }
-
-    public static int version() {
-        return version;
-    }
-
     private static boolean exists(String... classNames) {
         for (String className : classNames) {
             try {
@@ -200,6 +187,18 @@ public final class VersionHelper {
 
     private static boolean checkLeaf() {
         return exists("org.dreeam.leaf.config.LeafConfig");
+    }
+
+    public static int majorVersion() {
+        return majorVersion;
+    }
+
+    public static int minorVersion() {
+        return minorVersion;
+    }
+
+    public static int version() {
+        return version;
     }
 
     public static boolean isFolia() {

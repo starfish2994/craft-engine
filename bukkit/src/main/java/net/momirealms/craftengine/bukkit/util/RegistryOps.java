@@ -17,7 +17,7 @@ public final class RegistryOps {
     private RegistryOps() {}
 
     public static final DynamicOps<Object> NBT = RegistryOpsProxy.INSTANCE.create(NbtOpsProxy.NBT_OPS_INSTANCE, RegistryUtils.getRegistryAccess());
-    public static final DynamicOps<Tag> SPARROW_NBT = RegistryOpsProxy.INSTANCE.create(VersionHelper.isOrAbove1_20_5() ? NBTOps.INSTANCE : LegacyNBTOps.INSTANCE, RegistryUtils.getRegistryAccess());
+    public static final DynamicOps<Tag> SPARROW_NBT = RegistryOpsProxy.INSTANCE.create(VersionHelper.isOrAbove1_20_5 ? NBTOps.INSTANCE : LegacyNBTOps.INSTANCE, RegistryUtils.getRegistryAccess());
     public static final DynamicOps<Object> JAVA = RegistryOpsProxy.INSTANCE.create(SparrowClass.existsNoRemap("com.mojang.serialization.JavaOps") ? JavaOps.INSTANCE : LegacyJavaOps.INSTANCE, RegistryUtils.getRegistryAccess());
     public static final DynamicOps<JsonElement> JSON = RegistryOpsProxy.INSTANCE.create(JsonOps.INSTANCE, RegistryUtils.getRegistryAccess());
 }

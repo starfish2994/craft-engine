@@ -79,7 +79,7 @@ public final class BlockEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerAttack(EntityDamageByEntityEvent event) {
-        if (!VersionHelper.isOrAbove1_20_5()) {
+        if (!VersionHelper.isOrAbove1_20_5) {
             if (event.getDamager() instanceof Player player) {
                 BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                 if (serverPlayer == null) return;

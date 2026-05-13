@@ -31,7 +31,7 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
     @Override
     public void sendToast(Player player, Item icon, Component message, AdvancementType type) {
         Object displayInfo;
-        if (VersionHelper.isOrAbove26_1()) {
+        if (VersionHelper.isOrAbove26_1) {
             displayInfo = DisplayInfoProxy.INSTANCE.newInstance$new(
                     ItemStackUtils.toItemStackTemplate(icon),
                     ComponentUtils.adventureToMinecraft(message),  // title
@@ -42,7 +42,7 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
                     false, // announce to chat
                     true // hidden
             );
-        } else if (VersionHelper.isOrAbove1_20_3()) {
+        } else if (VersionHelper.isOrAbove1_20_3) {
             displayInfo = DisplayInfoProxy.INSTANCE.newInstance(
                     icon.minecraftItem(),
                     ComponentUtils.adventureToMinecraft(message),  // title
@@ -65,12 +65,12 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
                     true // hidden
             );
         }
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             displayInfo = Optional.of(displayInfo);
         }
         Object identifier = KeyUtils.toIdentifier(Key.of("craftengine", "toast"));
         Object criterion;
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             criterion = CriterionProxy.INSTANCE.newInstance(ImpossibleTriggerProxy.INSTANCE.newInstance(), ImpossibleTriggerProxy.TriggerInstanceProxy.INSTANCE.newInstance());
         } else {
             criterion = CriterionProxy.INSTANCE.newInstance(ImpossibleTriggerProxy.TriggerInstanceProxy.INSTANCE.newInstance());
@@ -78,8 +78,8 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
         Map<String, Object> criteria = Map.of("impossible", criterion);
         Object advancementProgress = AdvancementProgressProxy.INSTANCE.newInstance();
         Object advancement;
-        if (VersionHelper.isOrAbove1_20_2()) {
-            Object advancementRequirements = VersionHelper.isOrAbove1_20_3() ?
+        if (VersionHelper.isOrAbove1_20_2) {
+            Object advancementRequirements = VersionHelper.isOrAbove1_20_3 ?
                     AdvancementRequirementsProxy.INSTANCE.newInstance(List.of(List.of("impossible"))) :
                     AdvancementRequirementsProxy.INSTANCE.newInstance(new String[][] {{"impossible"}});
             advancement = AdvancementProxy.INSTANCE.newInstance(
@@ -107,10 +107,10 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
         AdvancementProgressProxy.INSTANCE.grantProgress(advancementProgress, "impossible");
         Map<Object, Object> advancementsToGrant = new HashMap<>();
         advancementsToGrant.put(identifier, advancementProgress);
-        Object grantPacket = VersionHelper.isOrAbove1_21_5() ?
+        Object grantPacket = VersionHelper.isOrAbove1_21_5 ?
                 ClientboundUpdateAdvancementsPacketProxy.INSTANCE.newInstance(false, Arrays.asList(advancement), new HashSet<>(), advancementsToGrant, true) :
                 ClientboundUpdateAdvancementsPacketProxy.INSTANCE.newInstance(false, Arrays.asList(advancement), new HashSet<>(), advancementsToGrant);
-        Object removePacket = VersionHelper.isOrAbove1_21_5() ?
+        Object removePacket = VersionHelper.isOrAbove1_21_5 ?
                 ClientboundUpdateAdvancementsPacketProxy.INSTANCE.newInstance(false, new ArrayList<>(), MiscUtils.init(new HashSet<>(), s -> s.add(identifier)), new HashMap<>(), true) :
                 ClientboundUpdateAdvancementsPacketProxy.INSTANCE.newInstance(false, new ArrayList<>(), MiscUtils.init(new HashSet<>(), s -> s.add(identifier)), new HashMap<>());
         player.sendPackets(List.of(grantPacket, removePacket), false);

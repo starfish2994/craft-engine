@@ -300,7 +300,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
 
     private void initSlimeWorldHook() {
         WorldManager worldManager = this.plugin.worldManager();
-        if (VersionHelper.isOrAbove1_21_4()) {
+        if (VersionHelper.isOrAbove1_21_4) {
             try {
                 Class.forName("com.infernalsuite.asp.api.AdvancedSlimePaperAPI");
                 runCatchingHook(() -> {
@@ -333,9 +333,9 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     @SuppressWarnings({"deprecation", "DataFlowIssue"})
     private void initFastAsyncWorldEditHook() {
         Plugin fastAsyncWorldEdit = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit");
-        String version = VersionHelper.isPaper() ? fastAsyncWorldEdit.getPluginMeta().getVersion() : fastAsyncWorldEdit.getDescription().getVersion();
+        String version = VersionHelper.isPaper ? fastAsyncWorldEdit.getPluginMeta().getVersion() : fastAsyncWorldEdit.getDescription().getVersion();
         if (!WorldEditBlockRegister.checkFAWECompatible(version)) {
-            if (VersionHelper.isOrAbove1_20_3()) {
+            if (VersionHelper.isOrAbove1_20_3) {
                 this.plugin.logger().error("");
                 if (Locale.getDefault() == Locale.SIMPLIFIED_CHINESE) {
                     this.plugin.logger().error("[兼容性] 插件需要更新 FastAsyncWorldEdit 到 2.13.0 或更高版本，以获得更好的兼容性。(当前版本: " + version + ")");

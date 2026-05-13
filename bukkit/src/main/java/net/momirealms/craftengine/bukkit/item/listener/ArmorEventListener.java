@@ -22,7 +22,7 @@ public final class ArmorEventListener implements Listener {
     // 低版本没有自定义盔甲，所以完全不需要考虑能放置上去的情况
     @EventHandler(ignoreCancelled = true)
     public void onInteractHorse(PlayerInteractEntityEvent event) {
-        if (VersionHelper.isOrAbove1_21_2()) return;
+        if (VersionHelper.isOrAbove1_21_2) return;
         if (event.getRightClicked() instanceof Horse horse) {
             ItemStack itemInHand = event.getPlayer().getInventory().getItem(event.getHand());
             if (horse.getInventory().getArmor() == null) {
@@ -46,7 +46,7 @@ public final class ArmorEventListener implements Listener {
     // 处理低版本的马物品栏
     @EventHandler(ignoreCancelled = true)
     public void onMoveItemInHorseInventory(InventoryClickEvent event) {
-        if (VersionHelper.isOrAbove1_21_2()) return;
+        if (VersionHelper.isOrAbove1_21_2) return;
         if (!(event.getInventory() instanceof HorseInventory horseInventory)) {
             return;
         }
@@ -86,7 +86,7 @@ public final class ArmorEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onMoveItemInHorseInventory(InventoryDragEvent event) {
-        if (VersionHelper.isOrAbove1_21_2()) return;
+        if (VersionHelper.isOrAbove1_21_2) return;
         if (!(event.getInventory() instanceof HorseInventory horseInventory)) {
             return;
         }

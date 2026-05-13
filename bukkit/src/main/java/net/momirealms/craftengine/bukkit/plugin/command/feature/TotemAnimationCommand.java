@@ -77,7 +77,7 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                     NamespacedKey namespacedKey = context.get("id");
                     Key key = Key.of(namespacedKey.namespace(), namespacedKey.value());
                     ItemDefinition itemDefinition = plugin().itemManager().getItemDefinition(key).orElse(null);
-                    if (itemDefinition == null || (!VersionHelper.isOrAbove1_21_2() && itemDefinition.material().equals(ItemKeys.TOTEM_OF_UNDYING))) {
+                    if (itemDefinition == null || (!VersionHelper.isOrAbove1_21_2 && itemDefinition.material().equals(ItemKeys.TOTEM_OF_UNDYING))) {
                         handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.toString()));
                         return;
                     }
@@ -95,7 +95,7 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                         if (serverPlayer == null) continue;
                         Item item = itemDefinition.buildItem(serverPlayer);
-                        if (VersionHelper.isOrAbove1_21_2()) {
+                        if (VersionHelper.isOrAbove1_21_2) {
                             item.setJavaComponent(DataComponentTypes.DEATH_PROTECTION, Map.of());
                         }
                         PlayerUtils.sendTotemAnimation(serverPlayer, item, soundData, removeSound);

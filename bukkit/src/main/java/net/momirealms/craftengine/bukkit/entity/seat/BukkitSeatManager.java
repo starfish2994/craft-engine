@@ -37,7 +37,7 @@ public final class BukkitSeatManager implements SeatManager, Listener {
 
     public BukkitSeatManager(BukkitCraftEngine plugin) {
         this.plugin = plugin;
-        this.dismountListener = VersionHelper.isOrAbove1_20_3() ? new DismountListener1_20_3(this::handleDismount) : new DismountListener1_20(this::handleDismount);
+        this.dismountListener = VersionHelper.isOrAbove1_20_3 ? new DismountListener1_20_3(this::handleDismount) : new DismountListener1_20(this::handleDismount);
         instance = this;
     }
 

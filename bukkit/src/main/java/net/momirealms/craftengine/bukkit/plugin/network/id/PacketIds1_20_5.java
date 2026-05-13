@@ -225,7 +225,7 @@ final class PacketIds1_20_5 implements PacketIds {
 
     @Override
     public int clientboundLoginFinishedPacket() {
-        return PacketIdHelper.byName(VersionHelper.isOrAbove1_21_2() ? "minecraft:login_finished" : "minecraft:game_profile", ConnectionState.LOGIN, PacketFlow.CLIENTBOUND);
+        return PacketIdHelper.byName(VersionHelper.isOrAbove1_21_2 ? "minecraft:login_finished" : "minecraft:game_profile", ConnectionState.LOGIN, PacketFlow.CLIENTBOUND);
     }
 
     @Override

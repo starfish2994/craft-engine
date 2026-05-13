@@ -61,7 +61,7 @@ public final class PlayTotemAnimationFunction<CTX extends Context> extends Abstr
         }
         for (Player player : this.selector.get(ctx)) {
             Item buildItem = itemDefinition.buildItem(player);
-            if (VersionHelper.isOrAbove1_21_2()) {
+            if (VersionHelper.isOrAbove1_21_2) {
                 buildItem.setJavaComponent(DataComponentKeys.DEATH_PROTECTION, Map.of());
             }
             player.sendTotemAnimation(buildItem, soundData, this.silent);

@@ -254,7 +254,7 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
         Object blockState = state.customBlockState().minecraftState();
         Object blockPos = LocationUtils.toBlockPos(context.getClickedPos());
         Object voxelShape;
-        if (VersionHelper.isOrAbove1_21_6()) {
+        if (VersionHelper.isOrAbove1_21_6) {
             voxelShape = CollisionContextProxy.INSTANCE.placementContext(player);
         } else if (player != null) {
             voxelShape = CollisionContextProxy.INSTANCE.of(player);

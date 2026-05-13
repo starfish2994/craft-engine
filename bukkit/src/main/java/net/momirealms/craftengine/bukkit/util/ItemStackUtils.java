@@ -105,7 +105,7 @@ public final class ItemStackUtils {
         Tag itemTag = tag;
         int currentVersion = VersionHelper.WORLD_VERSION;
         if (Config.enableItemDataFixerUpper() && dataVersion != currentVersion) {
-            if (VersionHelper.isPaper() && VersionHelper.MINECRAFT_VERSION == MinecraftVersion.V1_21_5) {
+            if (VersionHelper.isPaper && VersionHelper.MINECRAFT_VERSION == MinecraftVersion.V1_21_5) {
                 Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, itemTag);
                 Object converted = MCDataConverterProxy.INSTANCE.convertTag(MCTypeRegistryProxy.ITEM_STACK, nmsTag, dataVersion, currentVersion);
                 itemTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, converted);
@@ -136,7 +136,7 @@ public final class ItemStackUtils {
     }
 
     public static void hurtAndBreak(Object nmsStack, int amount, Object livingEntity, Object slot) {
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             ItemStackProxy.INSTANCE.hurtAndBreak(nmsStack, amount, livingEntity, slot);
         } else {
             ItemStackProxy.INSTANCE.hurtAndBreak(nmsStack, amount, livingEntity, entity -> LivingEntityProxy.INSTANCE.broadcastBreakEvent(entity, slot));

@@ -44,7 +44,7 @@ public final class CustomFurnitureHitbox extends AbstractFurnitureHitBox {
                 config.entityType(), 0, Vec3Proxy.ZERO, 0
         ));
         packets.add(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(entityId, config.cachedValues()));
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             Object attributeIns = AttributeInstanceProxy.INSTANCE.newInstance$0(AttributesProxy.SCALE, $ -> {});
             AttributeInstanceProxy.INSTANCE.setBaseValue(attributeIns, config.scale());
             packets.add(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId, Collections.singletonList(attributeIns)));

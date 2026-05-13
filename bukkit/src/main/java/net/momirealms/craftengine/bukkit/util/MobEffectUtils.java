@@ -27,7 +27,7 @@ public final class MobEffectUtils {
             Object packet = SReflection.getUnsafe().allocateInstance(ClientboundUpdateMobEffectPacketProxy.CLASS);
             ClientboundUpdateMobEffectPacketProxy.INSTANCE.setEntityId(packet, entityId);
             ClientboundUpdateMobEffectPacketProxy.INSTANCE.setEffectDurationTicks(packet, duration);
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 ClientboundUpdateMobEffectPacketProxy.INSTANCE.setEffectAmplifier(packet, amplifier);
                 ClientboundUpdateMobEffectPacketProxy.INSTANCE.setEffect(packet, mobEffect);
             } else {

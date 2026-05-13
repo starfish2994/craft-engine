@@ -142,7 +142,7 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
 
     @Override
     public boolean isPathFindable(Object thisBlock, Object[] args) {
-        Object type = VersionHelper.isOrAbove1_20_5() ? args[1] : args[3];
+        Object type = VersionHelper.isOrAbove1_20_5 ? args[1] : args[3];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return false;

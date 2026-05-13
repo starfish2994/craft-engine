@@ -51,7 +51,7 @@ public final class CustomSmithingTrimRecipe extends AbstractRecipe
         this.pattern = pattern;
         this.condition = condition;
         this.smithingFunctions = smithingFunctions;
-        if (pattern == null && VersionHelper.isOrAbove1_21_5()) {
+        if (pattern == null && VersionHelper.isOrAbove1_21_5) {
             throw new IllegalStateException("SmithingTrimRecipe cannot have a null pattern on 1.21.5 and above.");
         }
     }
@@ -154,7 +154,7 @@ public final class CustomSmithingTrimRecipe extends AbstractRecipe
                     section.getNonNullValue(TEMPLATE_TYPE, ConfigConstants.ARGUMENT_LIST, super::parseIngredient),
                     section.getNonNullValue("base", ConfigConstants.ARGUMENT_LIST, super::parseIngredient),
                     section.getNonNullValue("addition", ConfigConstants.ARGUMENT_LIST, super::parseIngredient),
-                    VersionHelper.isOrAbove1_21_5() ? section.getNonNullIdentifier("pattern") : null,
+                    VersionHelper.isOrAbove1_21_5 ? section.getNonNullIdentifier("pattern") : null,
                     section.getList(FUNCTIONS, CommonFunctions::fromConfig).toArray(new Function[0]),
                     MiscUtils.allOf(section.getList(CONDITIONS, CommonConditions::fromConfig))
             );
@@ -167,7 +167,7 @@ public final class CustomSmithingTrimRecipe extends AbstractRecipe
                     Objects.requireNonNull(parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("template")))),
                     Objects.requireNonNull(parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("base")))),
                     Objects.requireNonNull(parseVanillaIngredient(VANILLA_RECIPE_HELPER.singleIngredient(json.get("addition")))),
-                    VersionHelper.isOrAbove1_21_5() ? Key.of(json.get("pattern").getAsString()) : null,
+                    VersionHelper.isOrAbove1_21_5 ? Key.of(json.get("pattern").getAsString()) : null,
                     null,
                     null
             );

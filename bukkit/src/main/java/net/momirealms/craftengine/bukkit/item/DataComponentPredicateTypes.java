@@ -11,7 +11,7 @@ public final class DataComponentPredicateTypes {
     private DataComponentPredicateTypes() {}
 
     public static Object byId(Key key) {
-        if (!VersionHelper.isOrAbove1_21_5()) return null;
+        if (!VersionHelper.isOrAbove1_21_5) return null;
         return RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.DATA_COMPONENT_PREDICATE_TYPE, KeyUtils.toIdentifier(key));
     }
 }

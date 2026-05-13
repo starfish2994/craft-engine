@@ -13,7 +13,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ServerboundContainerClickPacketProxy;
 
 public final class NMSContainerClickListener implements NMSPacketListener {
-    public static final NMSPacketListener INSTANCE = VersionHelper.isOrAbove1_21_5() ? new NMSContainerClickListener() : null;
+    public static final NMSPacketListener INSTANCE = VersionHelper.isOrAbove1_21_5 ? new NMSContainerClickListener() : null;
 
     private NMSContainerClickListener() {}
 

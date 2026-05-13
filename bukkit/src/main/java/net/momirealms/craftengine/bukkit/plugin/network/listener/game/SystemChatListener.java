@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class SystemChatListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3() ? new V1_20_3() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3 ? new V1_20_3() : new V1_20();
 
     private SystemChatListener() {}
 

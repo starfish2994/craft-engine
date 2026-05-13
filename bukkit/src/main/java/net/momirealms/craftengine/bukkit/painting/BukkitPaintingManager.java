@@ -82,14 +82,14 @@ public final class BukkitPaintingManager extends AbstractPaintingManager {
     }
 
     private static Object createPaintingVariant(Painting painting) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             return PaintingVariantProxy.INSTANCE.newInstance(
                     painting.width(), painting.height(),
                     KeyUtils.toIdentifier(painting.assetId()),
                     painting.title().map(ComponentUtils::adventureToMinecraft),
                     painting.author().map(ComponentUtils::adventureToMinecraft)
             );
-        } else if (VersionHelper.isOrAbove1_21()) {
+        } else if (VersionHelper.isOrAbove1_21) {
             return PaintingVariantProxy.INSTANCE.newInstance(
                     painting.width(), painting.height(),
                     KeyUtils.toIdentifier(painting.assetId())

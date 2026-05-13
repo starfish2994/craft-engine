@@ -36,7 +36,7 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
         if (this.fallDamageMultiplier <= 0.0) return;
         Object entity = args[3];
         Number fallDistance = (Number) args[4];
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             EntityProxy.INSTANCE.causeFallDamage(
                     entity, fallDistance.doubleValue() * this.fallDamageMultiplier, 1.0F,
                     DamageSourcesProxy.INSTANCE.fall(EntityProxy.INSTANCE.damageSources(entity))
@@ -69,7 +69,7 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
                     && /* 防抖 -> */ y > 0.035 /* <- 防抖 */
             ) {
                 // 这里一定要延迟 1t 不然就会出问题
-                if (VersionHelper.isFolia()) {
+                if (VersionHelper.isFolia) {
                     Entity bukkitEntity = EntityProxy.INSTANCE.getBukkitEntity(entity);
                     bukkitEntity.getScheduler().runDelayed(BukkitCraftEngine.instance().javaPlugin(),
                             r -> EntityProxy.INSTANCE.setHurtMarked(entity, true),

@@ -567,9 +567,9 @@ public final class Config {
         this.item$update_triggers$drop = config.getBoolean("item.update-triggers.drop", false);
         this.item$update_triggers$pick_up = config.getBoolean("item.update-triggers.pick-up", false);
         this.item$custom_model_data_starting_value$default = config.getInt("item.custom-model-data-starting-value.default", 10000);
-        this.item$always_use_item_model = config.getBoolean("item.always-use-item-model", true) && VersionHelper.isOrAbove1_21_2();
+        this.item$always_use_item_model = config.getBoolean("item.always-use-item-model", true) && VersionHelper.isOrAbove1_21_2;
         this.item$always_generate_model_overrides = config.getBoolean("item.always-generate-model-overrides", false);
-        this.item$always_use_custom_model_data = this.item$always_generate_model_overrides || (config.getBoolean("item.always-use-custom-model-data", false) && VersionHelper.isOrAbove1_21_2());
+        this.item$always_use_custom_model_data = this.item$always_generate_model_overrides || (config.getBoolean("item.always-use-custom-model-data", false) && VersionHelper.isOrAbove1_21_2);
         this.item$default_material = Key.of(config.getString("item.default-material", "nether_brick"));
         this.item$default_drop_display$enable = config.getBoolean("item.default-drop-display.enable", false);
         this.item$default_drop_display$format = this.item$default_drop_display$enable ? config.getString("item.default-drop-display.format", "<arg:count>x <name>"): null;

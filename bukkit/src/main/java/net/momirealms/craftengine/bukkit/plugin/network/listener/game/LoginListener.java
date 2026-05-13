@@ -28,7 +28,7 @@ public final class LoginListener implements ByteBufferPacketListener {
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
         BukkitServerPlayer player = (BukkitServerPlayer) user;
         FriendlyByteBuf buf = event.getBuffer();
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             {
                 /*
                 网络切换相关
@@ -50,7 +50,7 @@ public final class LoginListener implements ByteBufferPacketListener {
             boolean reducedDebugInfo = buf.readBoolean();
             boolean showDeathScreen = buf.readBoolean();
             boolean doLimitedCrafting = buf.readBoolean();
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 int dimensionType = buf.readVarInt();
                 Key dimension = buf.readKey();
                 World world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
@@ -66,7 +66,7 @@ public final class LoginListener implements ByteBufferPacketListener {
                     boolean isFlat = buf.readBoolean();
                     Optional<GlobalPos> lastDeathLocation = buf.readOptional(FriendlyByteBuf::readGlobalPos);
                     int portalCooldown = buf.readVarInt();
-                    int seaLevel = VersionHelper.isOrAbove1_21_2() ? buf.readVarInt() : 0;
+                    int seaLevel = VersionHelper.isOrAbove1_21_2 ? buf.readVarInt() : 0;
                     boolean enforcesSecureChat = true;
                     event.setChanged(true);
                     buf.clear();
@@ -89,7 +89,7 @@ public final class LoginListener implements ByteBufferPacketListener {
                     buf.writeBoolean(isFlat);
                     buf.writeOptional(lastDeathLocation, FriendlyByteBuf::writeGlobalPos);
                     buf.writeVarInt(portalCooldown);
-                    if (VersionHelper.isOrAbove1_21_2()) buf.writeVarInt(seaLevel);
+                    if (VersionHelper.isOrAbove1_21_2) buf.writeVarInt(seaLevel);
                     buf.writeBoolean(enforcesSecureChat);
                 }
             } else { // 1.20.2~1.20.4

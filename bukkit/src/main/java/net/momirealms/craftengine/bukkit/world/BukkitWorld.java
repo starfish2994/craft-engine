@@ -83,7 +83,7 @@ public final class BukkitWorld implements World {
     public Chunk getChunkIfLoaded(int x, int z) {
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(this.minecraftWorld());
         Object levelChunk;
-        if (VersionHelper.isOrAbove1_21()) {
+        if (VersionHelper.isOrAbove1_21) {
             levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, x, z);
         } else {
             levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, x, z);
@@ -122,7 +122,7 @@ public final class BukkitWorld implements World {
     public void dropItemNaturally(Position location, Item item) {
         ItemStack itemStack = ItemStackProxy.INSTANCE.getBukkitStack(item.minecraftItem());
         if (ItemStackUtils.isEmpty(itemStack)) return;
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             platformWorld().dropItemNaturally(new Location(null, location.x(), location.y(), location.z()), itemStack);
         } else {
             platformWorld().dropItemNaturally(new Location(null, location.x() - 0.5, location.y() - 0.5, location.z() - 0.5), itemStack);

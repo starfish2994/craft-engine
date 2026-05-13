@@ -8,7 +8,7 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.VersionHelper;
 
 public final class EntityPositionSyncListener implements ByteBufferPacketListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_21_2() ? new EntityPositionSyncListener() : null;
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_21_2 ? new EntityPositionSyncListener() : null;
 
     private EntityPositionSyncListener() {}
 

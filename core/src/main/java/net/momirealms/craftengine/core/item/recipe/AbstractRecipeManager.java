@@ -204,7 +204,7 @@ public abstract class AbstractRecipeManager implements RecipeManager {
         }
 
         private void registerDyeRecipes() {
-            if (VersionHelper.isOrAbove26_1()) {
+            if (VersionHelper.isOrAbove26_1) {
                 boolean hasCustomItem = false;
                 AbstractItemManager itemManager = (AbstractItemManager) AbstractRecipeManager.this.plugin.itemManager();
                 Map<Key, ItemDefinition> dyeableItems = itemManager.dyeableItems();

@@ -44,7 +44,7 @@ public final class LegacyShapedRecipe implements LegacyRecipe {
     }
 
     public static LegacyShapedRecipe read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item> reader) {
-        if (VersionHelper.isOrAbove1_20_3()) {
+        if (VersionHelper.isOrAbove1_20_3) {
             String group = buf.readUtf();
             int category = buf.readVarInt();
             int width = buf.readVarInt();
@@ -75,7 +75,7 @@ public final class LegacyShapedRecipe implements LegacyRecipe {
 
     @Override
     public void write(FriendlyByteBuf buf, FriendlyByteBuf.Writer<Item> writer) {
-        if (VersionHelper.isOrAbove1_20_3()) {
+        if (VersionHelper.isOrAbove1_20_3) {
             buf.writeUtf(this.group);
             buf.writeVarInt(this.category.ordinal());
             buf.writeVarInt(this.width);
