@@ -21,7 +21,6 @@ import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.CEWorld;
-import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
@@ -457,8 +456,8 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             Debugger.FURNITURE.warnLazy(() -> {
                 BukkitFurniture furniture = this.byColliderEntityId.get(collider.entityId());
                 Key id = furniture != null ? furniture.config.id() : null;
-                Vec3d furnitureLocation = furniture != null ? furniture.position().toVec3d() : null;
-                Vec3d colliderLocation = LocationUtils.toVec3d(bukkitEntity.getLocation());
+                Location furnitureLocation = furniture != null ? furniture.location() : null;
+                Location colliderLocation = bukkitEntity.getLocation();
                 return "furniture " + id + " at " + furnitureLocation + " and collider at " + colliderLocation + " are not on the same tick thread";
             }, Throwable::new);
             bukkitEntity.getScheduler().run(this.plugin.javaPlugin(), t -> collider.destroy(), null);
