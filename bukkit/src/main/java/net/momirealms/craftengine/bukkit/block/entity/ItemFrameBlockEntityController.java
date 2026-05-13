@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.entity;
 
 import net.momirealms.craftengine.bukkit.block.behavior.ItemFrameBlockBehavior;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic.DynamicItemFrameBlockEntityElement;
-import net.momirealms.craftengine.bukkit.entity.data.ItemFrameData;
+import net.momirealms.craftengine.bukkit.entity.data.decoration.ItemFrameData;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;

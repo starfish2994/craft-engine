@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.hitbox;
 
-import net.momirealms.craftengine.bukkit.entity.data.InteractionEntityData;
-import net.momirealms.craftengine.bukkit.entity.data.ShulkerData;
+import net.momirealms.craftengine.bukkit.entity.data.InteractionData;
+import net.momirealms.craftengine.bukkit.entity.data.monster.ShulkerData;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitCollider;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.core.entity.furniture.Collider;
@@ -62,7 +62,7 @@ public final class ShulkerFurnitureHitboxConfig extends AbstractFurnitureHitBoxC
         this.interactionEntity = interactionEntity;
         this.direction = direction;
 
-        ShulkerData.Peek.addEntityDataIfNotDefaultValue(peek, this.cachedShulkerValues);
+        ShulkerData.RawPeekAmount.addEntityDataIfNotDefaultValue(peek, this.cachedShulkerValues);
         ShulkerData.Color.addEntityDataIfNotDefaultValue((byte) 0, this.cachedShulkerValues);
         ShulkerData.NoGravity.addEntityDataIfNotDefaultValue(true, this.cachedShulkerValues);
         ShulkerData.Silent.addEntityDataIfNotDefaultValue(true, this.cachedShulkerValues);
@@ -71,13 +71,13 @@ public final class ShulkerFurnitureHitboxConfig extends AbstractFurnitureHitBoxC
 
         List<Object> cachedInteractionValues = new ArrayList<>();
         if (invisible) {
-            InteractionEntityData.SharedFlags.addEntityDataIfNotDefaultValue((byte) 0x20, cachedInteractionValues);
+            InteractionData.SharedFlags.addEntityDataIfNotDefaultValue((byte) 0x20, cachedInteractionValues);
         }
         float shulkerHeight = (getPhysicalPeek(peek * 0.01F) + 1) * scale;
         if (direction == Direction.UP) {
-            InteractionEntityData.Height.addEntityDataIfNotDefaultValue(shulkerHeight + 0.01f, cachedInteractionValues);
-            InteractionEntityData.Width.addEntityDataIfNotDefaultValue(scale + 0.005f, cachedInteractionValues);
-            InteractionEntityData.Responsive.addEntityDataIfNotDefaultValue(interactive, cachedInteractionValues);
+            InteractionData.Height.addEntityDataIfNotDefaultValue(shulkerHeight + 0.01f, cachedInteractionValues);
+            InteractionData.Width.addEntityDataIfNotDefaultValue(scale + 0.005f, cachedInteractionValues);
+            InteractionData.Response.addEntityDataIfNotDefaultValue(interactive, cachedInteractionValues);
             this.spawner = (entityIds, world, x, y, z, yaw, offset, packets, collider, aabb) -> {
                 collider.accept(this.createCollider(Direction.UP, world, offset, x, y, z, entityIds[1], aabb));
                 if (interactionEntity) {
@@ -92,9 +92,9 @@ public final class ShulkerFurnitureHitboxConfig extends AbstractFurnitureHitBoxC
             };
             this.aabbCreator = (x, y, z, yaw, offset) -> createAABB(Direction.UP, offset, x, y, z);
         } else if (direction == Direction.DOWN) {
-            InteractionEntityData.Height.addEntityDataIfNotDefaultValue(shulkerHeight + 0.01f, cachedInteractionValues);
-            InteractionEntityData.Width.addEntityDataIfNotDefaultValue(scale + 0.005f, cachedInteractionValues);
-            InteractionEntityData.Responsive.addEntityDataIfNotDefaultValue(interactive, cachedInteractionValues);
+            InteractionData.Height.addEntityDataIfNotDefaultValue(shulkerHeight + 0.01f, cachedInteractionValues);
+            InteractionData.Width.addEntityDataIfNotDefaultValue(scale + 0.005f, cachedInteractionValues);
+            InteractionData.Response.addEntityDataIfNotDefaultValue(interactive, cachedInteractionValues);
             this.spawner = (entityIds, world, x, y, z, yaw, offset, packets, collider, aabb) -> {
                 collider.accept(this.createCollider(Direction.DOWN, world, offset, x, y, z, entityIds[1], aabb));
                 packets.accept(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(entityIds[1], List.of(ShulkerData.AttachFace.createEntityDataIfNotDefaultValue(DirectionProxy.UP))));
@@ -110,9 +110,9 @@ public final class ShulkerFurnitureHitboxConfig extends AbstractFurnitureHitBoxC
             };
             this.aabbCreator = (x, y, z, yaw, offset) -> createAABB(Direction.DOWN, offset, x, y, z);
         } else {
-            InteractionEntityData.Height.addEntityDataIfNotDefaultValue(scale + 0.01f, cachedInteractionValues);
-            InteractionEntityData.Width.addEntityDataIfNotDefaultValue(scale + 0.005f, cachedInteractionValues);
-            InteractionEntityData.Responsive.addEntityDataIfNotDefaultValue(interactive, cachedInteractionValues);
+            InteractionData.Height.addEntityDataIfNotDefaultValue(scale + 0.01f, cachedInteractionValues);
+            InteractionData.Width.addEntityDataIfNotDefaultValue(scale + 0.005f, cachedInteractionValues);
+            InteractionData.Response.addEntityDataIfNotDefaultValue(interactive, cachedInteractionValues);
             this.spawner = (entityIds, world, x, y, z, yaw, offset, packets, collider, aabb) -> {
                 Direction shulkerAnchor = getOriginalDirection(direction, Direction.fromYaw(yaw));
                 Direction shulkerDirection = shulkerAnchor.opposite();
@@ -251,12 +251,12 @@ public final class ShulkerFurnitureHitboxConfig extends AbstractFurnitureHitBoxC
         } else if (dz < 0) {
             z1 += dz;
         }
-        double minX = x + x1 + relativePos.x();
-        double maxX = x + x2 + relativePos.x();
-        double minY = y + y1 + relativePos.y();
-        double maxY = y + y2 + relativePos.y();
-        double minZ = z + z1 - relativePos.z();
-        double maxZ = z + z2 - relativePos.z();
+        double minX = x + x1 + relativePos.x;
+        double maxX = x + x2 + relativePos.x;
+        double minY = y + y1 + relativePos.y;
+        double maxY = y + y2 + relativePos.y;
+        double minZ = z + z1 - relativePos.z;
+        double maxZ = z + z2 - relativePos.z;
         return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
     }
 

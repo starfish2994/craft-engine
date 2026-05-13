@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.entity.furniture.behavior;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.antigrieflib.Flag;
-import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.item.ItemEntityData;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;

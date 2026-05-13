@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import com.google.common.base.Objects;
-import net.momirealms.craftengine.bukkit.entity.data.ArmorStandData;
+import net.momirealms.craftengine.bukkit.entity.data.decoration.ArmorStandData;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
@@ -71,7 +71,7 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
                 BaseEntityData.SharedFlags.addEntityData((byte) 0x20, dataValues);
             }
             if (small) {
-                ArmorStandData.ArmorStandFlags.addEntityData((byte) 0x01, dataValues);
+                ArmorStandData.ClientFlags.addEntityData((byte) 0x01, dataValues);
             }
             return dataValues;
         };

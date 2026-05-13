@@ -1,5 +1,6 @@
-package net.momirealms.craftengine.bukkit.entity.data;
+package net.momirealms.craftengine.bukkit.entity.data.item;
 
+import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.network.syncher.EntityDataSerializersProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
@@ -9,12 +10,12 @@ public class PrimedTntData<T> extends BaseEntityData<T> {
     // 1.20.3+
     public static final PrimedTntData<Object> BlockState = of(PrimedTntData.class, EntityDataSerializersProxy.BLOCK_STATE, BlocksProxy.TNT$defaultState, VersionHelper.isOrAbove1_20_3());
 
-    public static <T> PrimedTntData<T> of(final Class<?> clazz, final Object serializer, T defaultValue, boolean condition) {
+    private static <T> PrimedTntData<T> of(final Class<?> clazz, final Object serializer, T defaultValue, boolean condition) {
         if (!condition) return null;
         return new PrimedTntData<>(clazz, serializer, defaultValue);
     }
 
-    public PrimedTntData(Class<?> clazz, Object serializer, T defaultValue) {
+    protected PrimedTntData(Class<?> clazz, Object serializer, T defaultValue) {
         super(clazz, serializer, defaultValue);
     }
 }

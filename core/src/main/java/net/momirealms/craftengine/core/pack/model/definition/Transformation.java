@@ -15,19 +15,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public final class Transformation {
+/**
+ * @param matrix 一个不可变的列表，其中包含16个浮点数元素，描述一个行主序（Row-major）矩阵
+ */
+public record Transformation(List<Float> matrix) {
     private static final String[] RIGHT_ROTATION = new String[]{"right_rotation", "right-rotation"};
     private static final String[] LEFT_ROTATION = new String[]{"left_rotation", "left-rotation"};
-    public final List<Float> matrix;
 
-    public Transformation(Quaternionf rightRotation, Quaternionf leftRotation, Vector3f scale, Vector3f translation) {
-        this(toMatrix(rightRotation, leftRotation, scale, translation));
-    }
-    /**
-     * @param matrix 一个不可变的列表，其中包含16个浮点数元素，描述一个行主序（Row-major）矩阵
-     */
-    public Transformation(List<Float> matrix) {
-        this.matrix = matrix;
+    public Transformation(Vector3f translation, Quaternionf leftRotation, Vector3f scale, Quaternionf rightRotation) {
+        this(toMatrix(translation, leftRotation, scale, rightRotation));
     }
 
     public static Transformation fromConfig(ConfigValue value) {
@@ -39,7 +35,7 @@ public final class Transformation {
         Quaternionf leftRotation = section.getValue(LEFT_ROTATION, Transformation::parseRotation, ConfigConstants.ZERO_QUATERNION);
         Vector3f scale = section.getVector3f("scale", ConfigConstants.NORMAL_SCALE);
         Vector3f translation = section.getVector3f("translation", ConfigConstants.ZERO_VECTOR3);
-        return new Transformation(rightRotation, leftRotation, scale, translation);
+        return new Transformation(translation, leftRotation, scale, rightRotation);
     }
 
     public static Transformation fromJson(JsonElement json) {
@@ -55,7 +51,7 @@ public final class Transformation {
         Vector3f scale = new Vector3f(scaleArray.get(0).getAsFloat(), scaleArray.get(1).getAsFloat(), scaleArray.get(2).getAsFloat());
         JsonArray translationArray = jsonObject.getAsJsonArray("translation");
         Vector3f translation = new Vector3f(translationArray.get(0).getAsFloat(), translationArray.get(1).getAsFloat(), translationArray.get(2).getAsFloat());
-        return new Transformation(rightRotation, leftRotation, scale, translation);
+        return new Transformation(translation, leftRotation, scale, rightRotation);
     }
 
     public JsonElement toJson() {
@@ -87,7 +83,7 @@ public final class Transformation {
         return new Quaternionf(new AxisAngle4f(angle, axis.get(0).getAsFloat(), axis.get(1).getAsFloat(), axis.get(2).getAsFloat()));
     }
 
-    private static List<Float> toMatrix(Quaternionf rightRotation, Quaternionf leftRotation, Vector3f scale, Vector3f translation) {
+    private static List<Float> toMatrix(Vector3f translation, Quaternionf leftRotation, Vector3f scale, Quaternionf rightRotation) {
         Matrix3f V = new Matrix3f().set(rightRotation); // 初始旋转矩阵 V
         Matrix3f S = new Matrix3f().scaling(scale);     // 缩放对角矩阵 S
         Matrix3f U = new Matrix3f().set(leftRotation);  // 再次旋转矩阵 U

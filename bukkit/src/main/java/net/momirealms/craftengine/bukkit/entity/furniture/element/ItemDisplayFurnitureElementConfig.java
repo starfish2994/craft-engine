@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
-import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.entity.display.Billboard;
 import net.momirealms.craftengine.core.entity.display.ItemDisplayContext;
@@ -103,21 +103,21 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
         this.metadata = (player, source) -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
-                ItemDisplayEntityData.SharedFlags.addEntityData((byte) 0x40, dataValues);
-                ItemDisplayEntityData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
+                DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x40, dataValues);
+                DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
             }
-            ItemDisplayEntityData.DisplayedItem.addEntityData(itemFunction.apply(player, source).minecraftItem(), dataValues);
-            ItemDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(this.scale, dataValues);
-            ItemDisplayEntityData.RotationLeft.addEntityDataIfNotDefaultValue(this.rotation, dataValues);
-            ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);
-            ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(this.translation, dataValues);
-            ItemDisplayEntityData.DisplayType.addEntityDataIfNotDefaultValue(this.displayContext.id(), dataValues);
-            ItemDisplayEntityData.ShadowRadius.addEntityDataIfNotDefaultValue(this.shadowRadius, dataValues);
-            ItemDisplayEntityData.ShadowStrength.addEntityDataIfNotDefaultValue(this.shadowStrength, dataValues);
+            DisplayData.ItemDisplayData.ItemStack.addEntityData(itemFunction.apply(player, source).minecraftItem(), dataValues);
+            DisplayData.ItemDisplayData.Scale.addEntityDataIfNotDefaultValue(this.scale, dataValues);
+            DisplayData.ItemDisplayData.LeftRotation.addEntityDataIfNotDefaultValue(this.rotation, dataValues);
+            DisplayData.ItemDisplayData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);
+            DisplayData.ItemDisplayData.Translation.addEntityDataIfNotDefaultValue(this.translation, dataValues);
+            DisplayData.ItemDisplayData.ItemTransform.addEntityDataIfNotDefaultValue(this.displayContext.id(), dataValues);
+            DisplayData.ItemDisplayData.ShadowRadius.addEntityDataIfNotDefaultValue(this.shadowRadius, dataValues);
+            DisplayData.ItemDisplayData.ShadowStrength.addEntityDataIfNotDefaultValue(this.shadowStrength, dataValues);
             if (this.blockLight != -1 && this.skyLight != -1) {
-                ItemDisplayEntityData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
+                DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
             }
-            ItemDisplayEntityData.ViewRange.addEntityDataIfNotDefaultValue((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
+            DisplayData.ItemDisplayData.ViewRange.addEntityDataIfNotDefaultValue((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
             return dataValues;
         };
     }

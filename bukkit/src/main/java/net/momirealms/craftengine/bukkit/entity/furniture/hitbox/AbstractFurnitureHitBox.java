@@ -8,7 +8,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.entity.seat.SeatConfig;
-import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.core.world.Position;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -44,7 +44,7 @@ public abstract class AbstractFurnitureHitBox implements FurnitureHitBox {
         return this.seats;
     }
 
-    protected Collider createCollider(World world, Vec3d position, AABB ceAABB, boolean canCollide, boolean blocksBuilding, boolean canBeHitByProjectile) {
+    protected Collider createCollider(World world, Position position, AABB ceAABB, boolean canCollide, boolean blocksBuilding, boolean canBeHitByProjectile) {
        return BukkitCollider.create(world, position, ceAABB, canCollide, blocksBuilding, canBeHitByProjectile);
     }
 }

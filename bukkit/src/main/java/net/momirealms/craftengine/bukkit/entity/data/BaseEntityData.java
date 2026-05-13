@@ -15,7 +15,7 @@ public class BaseEntityData<T> extends BukkitEntityData<T> {
     public static final BaseEntityData<Object> Pose = new BaseEntityData<>(BaseEntityData.class, EntityDataSerializersProxy.POSE, PoseProxy.STANDING);
     public static final BaseEntityData<Integer> TicksFrozen = new BaseEntityData<>(BaseEntityData.class, EntityDataSerializersProxy.INT, 0);
 
-    public BaseEntityData(Class<?> clazz, Object serializer, T defaultValue) {
+    protected BaseEntityData(Class<?> clazz, Object serializer, T defaultValue) {
         super(clazz, serializer, defaultValue);
     }
 }

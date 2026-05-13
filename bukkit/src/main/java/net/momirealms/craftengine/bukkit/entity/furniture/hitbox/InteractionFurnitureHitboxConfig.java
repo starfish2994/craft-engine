@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.hitbox;
 
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
-import net.momirealms.craftengine.bukkit.entity.data.InteractionEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.InteractionData;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.AbstractFurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfigFactory;
@@ -38,9 +38,9 @@ public final class InteractionFurnitureHitboxConfig extends AbstractFurnitureHit
         this.size = size;
         this.responsive = interactive;
         this.invisible = invisible;
-        InteractionEntityData.Height.addEntityDataIfNotDefaultValue(size.y, this.cachedValues);
-        InteractionEntityData.Width.addEntityDataIfNotDefaultValue(size.x, this.cachedValues);
-        InteractionEntityData.Responsive.addEntityDataIfNotDefaultValue(interactive, this.cachedValues);
+        InteractionData.Height.addEntityDataIfNotDefaultValue(size.y, this.cachedValues);
+        InteractionData.Width.addEntityDataIfNotDefaultValue(size.x, this.cachedValues);
+        InteractionData.Response.addEntityDataIfNotDefaultValue(interactive, this.cachedValues);
         if (invisible) {
             BaseEntityData.SharedFlags.addEntityDataIfNotDefaultValue((byte) 0x20, this.cachedValues);
         }

@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.plugin.network.handler;
 
-import net.momirealms.craftengine.bukkit.entity.data.ItemFrameData;
+import net.momirealms.craftengine.bukkit.entity.data.decoration.ItemFrameData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;

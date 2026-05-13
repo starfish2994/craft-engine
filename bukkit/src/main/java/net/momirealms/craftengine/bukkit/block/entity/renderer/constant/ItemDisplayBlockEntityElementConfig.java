@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import com.google.common.base.Objects;
-import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
@@ -94,11 +94,11 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         this.lazyMetadataPacket = (player, ts) -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
-                ItemDisplayEntityData.SharedFlags.addEntityData((byte) 0x40, dataValues);
-                ItemDisplayEntityData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
+                DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x40, dataValues);
+                DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
             } else {
-                ItemDisplayEntityData.SharedFlags.addEntityData((byte) 0x0, dataValues);
-                ItemDisplayEntityData.GlowColorOverride.addEntityData(-1, dataValues);
+                DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x0, dataValues);
+                DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(-1, dataValues);
             }
             Item wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
             if (wrappedItem == null) {
@@ -107,20 +107,20 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
             if (ts != null) {
                 ts.applyTint(wrappedItem);
             }
-            ItemDisplayEntityData.DisplayedItem.addEntityData(wrappedItem.minecraftItem(), dataValues);
-            ItemDisplayEntityData.Scale.addEntityData(this.scale, dataValues);
-            ItemDisplayEntityData.RotationLeft.addEntityData(this.rotation, dataValues);
-            ItemDisplayEntityData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues);
-            ItemDisplayEntityData.Translation.addEntityData(this.translation, dataValues);
-            ItemDisplayEntityData.DisplayType.addEntityData(this.displayContext.id(), dataValues);
-            ItemDisplayEntityData.ShadowRadius.addEntityData(this.shadowRadius, dataValues);
-            ItemDisplayEntityData.ShadowStrength.addEntityData(this.shadowStrength, dataValues);
+            DisplayData.ItemDisplayData.ItemStack.addEntityData(wrappedItem.minecraftItem(), dataValues);
+            DisplayData.ItemDisplayData.Scale.addEntityData(this.scale, dataValues);
+            DisplayData.ItemDisplayData.LeftRotation.addEntityData(this.rotation, dataValues);
+            DisplayData.ItemDisplayData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues);
+            DisplayData.ItemDisplayData.Translation.addEntityData(this.translation, dataValues);
+            DisplayData.ItemDisplayData.ItemTransform.addEntityData(this.displayContext.id(), dataValues);
+            DisplayData.ItemDisplayData.ShadowRadius.addEntityData(this.shadowRadius, dataValues);
+            DisplayData.ItemDisplayData.ShadowStrength.addEntityData(this.shadowStrength, dataValues);
             if (this.blockLight != -1 && this.skyLight != -1) {
-                ItemDisplayEntityData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
+                DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
             } else {
-                ItemDisplayEntityData.BrightnessOverride.addEntityData(-1, dataValues);
+                DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(-1, dataValues);
             }
-            ItemDisplayEntityData.ViewRange.addEntityData((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
+            DisplayData.ItemDisplayData.ViewRange.addEntityData((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
             return dataValues;
         };
     }

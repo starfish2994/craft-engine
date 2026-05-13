@@ -12,7 +12,7 @@ public class BukkitEntityData<T> implements EntityData<T> {
     public final T defaultValue;
     public final Object entityDataAccessor;
 
-    public BukkitEntityData(Class<?> clazz, Object serializer, T defaultValue) {
+    protected BukkitEntityData(Class<?> clazz, Object serializer, T defaultValue) {
         this.id = ID_REGISTRY.define(clazz);
         this.serializer = serializer;
         this.defaultValue = defaultValue;

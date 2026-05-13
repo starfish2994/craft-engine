@@ -36,7 +36,7 @@ public final class CustomFurnitureHitbox extends AbstractFurnitureHitBox {
         WorldPosition position = furniture.position();
         Vec3d pos = Furniture.getRelativePosition(position, config.position());
         AABB aabb = AABB.makeBoundingBox(pos, config.width(), config.height());
-        this.collider = createCollider(furniture.world(), pos, aabb, false, config.blocksBuilding(), config.canBeHitByProjectile());
+        this.collider = createCollider(furniture.world(), position, aabb, false, config.blocksBuilding(), config.canBeHitByProjectile());
         int entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         List<Object> packets = new ArrayList<>(3);
         packets.add(ClientboundAddEntityPacketProxy.INSTANCE.newInstance(

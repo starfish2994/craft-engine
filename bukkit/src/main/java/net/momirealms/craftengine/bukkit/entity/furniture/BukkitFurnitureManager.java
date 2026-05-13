@@ -422,6 +422,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             this.byInteractableEntityId.remove(id);
         }
         for (Collider collisionEntity : furniture.colliders()) {
+            collisionEntity.destroy();
             this.byColliderEntityId.remove(collisionEntity.entityId());
         }
         for (FurnitureElement element : furniture.elements()) {

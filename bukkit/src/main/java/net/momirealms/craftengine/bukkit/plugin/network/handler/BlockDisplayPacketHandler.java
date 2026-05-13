@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.handler;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
-import net.momirealms.craftengine.bukkit.entity.data.BlockDisplayEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
@@ -35,8 +35,8 @@ public final class BlockDisplayPacketHandler implements EntityPacketHandler {
         for (int i = packedItems.size() - 1; i >= 0; i--) {
             Object packedItem = packedItems.get(i);
             int entityDataId = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getId(packedItem);
-            if (entityDataId == BlockDisplayEntityData.DisplayedBlock.id()) {
-                Object blockState = EntityUtils.getEntityDataValue(packedItem, BlockDisplayEntityData.DisplayedBlock);
+            if (entityDataId == DisplayData.BlockDisplayData.BlockState.id()) {
+                Object blockState = EntityUtils.getEntityDataValue(packedItem, DisplayData.BlockDisplayData.BlockState);
                 int stateId = BlockStateUtils.blockStateToId(blockState);
                 int newStateId= BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
                 if (newStateId == stateId) continue;

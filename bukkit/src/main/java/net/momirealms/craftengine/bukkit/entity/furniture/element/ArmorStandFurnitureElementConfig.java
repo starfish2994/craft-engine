@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
-import net.momirealms.craftengine.bukkit.entity.data.ArmorStandData;
+import net.momirealms.craftengine.bukkit.entity.data.decoration.ArmorStandData;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
@@ -73,7 +73,7 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
                 BaseEntityData.SharedFlags.addEntityData((byte) 0x20, dataValues);
             }
             if (small) {
-                ArmorStandData.ArmorStandFlags.addEntityData((byte) 0x01, dataValues);
+                ArmorStandData.ClientFlags.addEntityData((byte) 0x01, dataValues);
             }
             return dataValues;
         };

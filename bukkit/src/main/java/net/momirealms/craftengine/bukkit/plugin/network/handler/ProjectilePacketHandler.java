@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.plugin.network.handler;
 
-import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitCustomProjectile;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
@@ -128,20 +128,20 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
             }
         }
 
-        ItemDisplayEntityData.InterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);
-        ItemDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(meta.translation(), itemDisplayValues);
-        ItemDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(meta.scale(), itemDisplayValues);
-        ItemDisplayEntityData.RotationLeft.addEntityDataIfNotDefaultValue(meta.rotation(), itemDisplayValues);
+        DisplayData.ItemDisplayData.TransformationInterpolationDelay.addEntityDataIfNotDefaultValue(-1, itemDisplayValues);
+        DisplayData.ItemDisplayData.Translation.addEntityDataIfNotDefaultValue(meta.translation(), itemDisplayValues);
+        DisplayData.ItemDisplayData.Scale.addEntityDataIfNotDefaultValue(meta.scale(), itemDisplayValues);
+        DisplayData.ItemDisplayData.LeftRotation.addEntityDataIfNotDefaultValue(meta.rotation(), itemDisplayValues);
         if (VersionHelper.isOrAbove1_20_2()) {
-            ItemDisplayEntityData.TransformationInterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
-            ItemDisplayEntityData.PositionRotationInterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
+            DisplayData.ItemDisplayData.TransformationInterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
+            DisplayData.ItemDisplayData.PosRotInterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
         } else {
-            ItemDisplayEntityData.InterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
+            DisplayData.ItemDisplayData.InterpolationDuration.addEntityDataIfNotDefaultValue(1, itemDisplayValues);
         }
 
-        ItemDisplayEntityData.DisplayedItem.addEntityDataIfNotDefaultValue(displayedItem.minecraftItem(), itemDisplayValues);
-        ItemDisplayEntityData.DisplayType.addEntityDataIfNotDefaultValue(meta.displayType().id(), itemDisplayValues);
-        ItemDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(meta.billboard().id(), itemDisplayValues);
+        DisplayData.ItemDisplayData.ItemStack.addEntityDataIfNotDefaultValue(displayedItem.minecraftItem(), itemDisplayValues);
+        DisplayData.ItemDisplayData.ItemTransform.addEntityDataIfNotDefaultValue(meta.displayType().id(), itemDisplayValues);
+        DisplayData.ItemDisplayData.BillboardConstraints.addEntityDataIfNotDefaultValue(meta.billboard().id(), itemDisplayValues);
         return itemDisplayValues;
     }
 }
