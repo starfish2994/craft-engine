@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.entity.furniture.behavior.GlowingFurnit
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
@@ -314,7 +313,6 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
     }
 
     public static void addBiomeRemapper(BiomeRemapper remapper) {
-        Debugger.PACKET.warnLazy(() -> "Added biome remapper", Throwable::new);
         if (biomeRemapper == BiomeRemapper.DUMMY) {
             biomeRemapper = remapper;
         } else if (biomeRemapper instanceof DualBiomeRemapper(BiomeRemapper first, BiomeRemapper second)) {
@@ -333,7 +331,6 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
     }
 
     public static void clearBiomeRemappers() {
-        Debugger.PACKET.warnLazy(() -> "Cleared biome remappers", Throwable::new);
         biomeRemapper = BiomeRemapper.DUMMY;
     }
 

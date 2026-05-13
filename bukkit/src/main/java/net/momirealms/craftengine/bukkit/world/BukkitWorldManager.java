@@ -596,10 +596,10 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
         }
         if (levelChunk == null) {
-            Debugger.CHUNK.warnLazy(() -> "Unable to retrieve LevelChunk from the loaded chunk " +
+            Debugger.CHUNK.warnWithStack(() -> "Unable to retrieve LevelChunk from the loaded chunk " +
                             "[ServerLevel=" + worldServer + ", X=" + chunkX + ", Z=" + chunkZ + "]. " +
-                            "This is " + (VersionHelper.isFolia ? "" : "not") + " a Folia server",
-                    Throwable::new);
+                            "This is " + (VersionHelper.isFolia ? "" : "not") + " a Folia server"
+            );
             return; // fixme idk why
         }
         BukkitChunkAccess bukkitChunkAccess = new BukkitChunkAccess(levelChunk);

@@ -50,13 +50,13 @@ public final class BukkitVariantSnapshot extends FurnitureSnapshotState {
                             Debugger.FURNITURE.warn(() -> "Failed to add collider to world", e);
                         }
                     }
-                    Debugger.FURNITURE.warnLazy(() -> {
+                    Debugger.FURNITURE.warnWithStack(() -> {
                         BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByColliderEntityId(entity.entityId());
                         Key id = furniture != null ? furniture.config.id() : null;
                         Location furnitureLocation = furniture != null ? furniture.location() : null;
                         Location colliderLocation = bukkitEntity.getLocation();
                         return "furniture " + id + " at " + furnitureLocation + " and collider at " + colliderLocation + " are not on the same tick thread";
-                    }, Throwable::new);
+                    });
                     bukkitEntity.getScheduler().run(BukkitCraftEngine.instance().javaPlugin(),
                             t -> LevelWriterProxy.INSTANCE.addFreshEntity(world, minecraftEntity, CreatureSpawnEvent.SpawnReason.CUSTOM),
                             null

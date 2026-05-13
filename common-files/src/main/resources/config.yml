@@ -701,3 +701,4 @@ debug:
   chunk: false
   packet: false
   ignored-packets: []
+  print-stack-trace: false

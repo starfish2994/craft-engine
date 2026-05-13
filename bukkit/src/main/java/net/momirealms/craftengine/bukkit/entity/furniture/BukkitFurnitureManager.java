@@ -453,13 +453,13 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
                 }
             }
             Entity bukkitEntity = EntityProxy.INSTANCE.getBukkitEntity(entity);
-            Debugger.FURNITURE.warnLazy(() -> {
+            Debugger.FURNITURE.warnWithStack(() -> {
                 BukkitFurniture furniture = this.byColliderEntityId.get(collider.entityId());
                 Key id = furniture != null ? furniture.config.id() : null;
                 Location furnitureLocation = furniture != null ? furniture.location() : null;
                 Location colliderLocation = bukkitEntity.getLocation();
                 return "furniture " + id + " at " + furnitureLocation + " and collider at " + colliderLocation + " are not on the same tick thread";
-            }, Throwable::new);
+            });
             bukkitEntity.getScheduler().run(this.plugin.javaPlugin(), t -> collider.destroy(), null);
             return;
         }
