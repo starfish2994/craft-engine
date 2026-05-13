@@ -139,10 +139,12 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 for (Chunk chunk : world.getLoadedChunks()) {
                     if (VersionHelper.isFolia) {
                         this.plugin.scheduler().executeSync(() -> {
-                            handleChunkLoad(ceWorld, chunk, false);
-                            CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
-                            if (loadedChunk != null) {
-                                loadedChunk.setEntitiesLoaded(true);
+                            if (chunk.isLoaded()) {
+                                handleChunkLoad(ceWorld, chunk, false);
+                                CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
+                                if (loadedChunk != null) {
+                                    loadedChunk.setEntitiesLoaded(true);
+                                }
                             }
                         }, world, chunk.getX(), chunk.getZ());
                     } else {
@@ -595,15 +597,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         } else {
             levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
         }
-        if (levelChunk == null) {
-            Debugger.CHUNK.warnWithStack(() -> "Unable to retrieve LevelChunk from the loaded chunk " +
-                            "[ServerLevel=" + worldServer + ", X=" + chunkX + ", Z=" + chunkZ + "]. " +
-                            "This is " + (VersionHelper.isFolia ? "" : "not") + " a Folia server"
-            );
-            return; // fixme idk why
-        }
         BukkitChunkAccess bukkitChunkAccess = new BukkitChunkAccess(levelChunk);
-
         ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
         CEChunk chunkAtIfLoaded = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);
         if (chunkAtIfLoaded != null) {
