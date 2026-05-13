@@ -90,7 +90,7 @@ public abstract class AbstractPaintingManager implements PaintingManager {
 
     @Override
     public void runDelayedSyncTasks() {
-        if (!VersionHelper.isOrAbove1_21()) return;
+        if (!VersionHelper.isOrAbove1_21) return;
         this.registerPaintings(this.paintings);
     }
 

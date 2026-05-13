@@ -43,7 +43,7 @@ public final class AxeItemBehavior extends ItemBehavior {
     private AxeItemBehavior() {}
 
     private boolean canBlockAttack(Item item) {
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             return item.hasComponent(DataComponentKeys.BLOCKS_ATTACK);
         } else {
             return item.vanillaId().equals(ItemKeys.SHIELD);

@@ -55,7 +55,7 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
     protected void useRemainder(ComponentItemWrapper item, Item data, int count) {
         data.count(count);
         Object useRemainder;
-        if (VersionHelper.isOrAbove26_1()) {
+        if (VersionHelper.isOrAbove26_1) {
             useRemainder = UseRemainderProxy.INSTANCE.newInstance$1(ItemStackUtils.toItemStackTemplate(data));
         } else {
             useRemainder = UseRemainderProxy.INSTANCE.newInstance$0(data.minecraftItem());

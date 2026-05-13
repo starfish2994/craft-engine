@@ -56,7 +56,7 @@ public final class SkriptHook {
     @SuppressWarnings({"DataFlowIssue", "deprecation"})
     private static boolean checkCompatibleAndWarn() {
         Plugin plugin = Bukkit.getPluginManager().getPlugin("Skript");
-        String version = VersionHelper.isPaper() ? plugin.getPluginMeta().getVersion() : plugin.getDescription().getVersion();
+        String version = VersionHelper.isPaper ? plugin.getPluginMeta().getVersion() : plugin.getDescription().getVersion();
         version = version.split("-", 2)[0];
         String[] parts = version.split("\\.");
         if (parts.length < 2) {

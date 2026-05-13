@@ -20,7 +20,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerRe
 import java.util.Queue;
 
 public final class NMSFinishConfigurationListener implements NMSPacketListener {
-    public static final NMSPacketListener INSTANCE = VersionHelper.isOrAbove1_20_2() ? new NMSFinishConfigurationListener() : null;
+    public static final NMSPacketListener INSTANCE = VersionHelper.isOrAbove1_20_2 ? new NMSFinishConfigurationListener() : null;
 
     private NMSFinishConfigurationListener() {}
 
@@ -64,7 +64,7 @@ public final class NMSFinishConfigurationListener implements NMSPacketListener {
             CraftEngine.instance().logger().warn("Failed to finish current task for " + user.name(), e);
         }
 
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             // 1.20.5+开始会检查是否结束需要重新设置回去，不然不会发keepAlive包
             ServerCommonPacketListenerImplProxy.INSTANCE.setClosed(packetListener, false);
         }
@@ -83,7 +83,7 @@ public final class NMSFinishConfigurationListener implements NMSPacketListener {
                 return;
             }
             // 向配置阶段连接的任务重加入资源包的任务
-            if (VersionHelper.isOrAbove1_20_3()) {
+            if (VersionHelper.isOrAbove1_20_3) {
                 for (ResourcePackDownloadData data : dataList) {
                     tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
                     user.addResourcePackUUID(data.uuid());

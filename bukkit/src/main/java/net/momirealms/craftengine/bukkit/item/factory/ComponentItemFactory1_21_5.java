@@ -140,7 +140,7 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
             modifierTag.putDouble("amount", modifier.amount());
             modifierTag.putString("operation", modifier.operation().id());
             AttributeModifier.Display display = modifier.display();
-            if (VersionHelper.isOrAbove1_21_6() && display != null) {
+            if (VersionHelper.isOrAbove1_21_6 && display != null) {
                 CompoundTag displayTag = new CompoundTag();
                 AttributeModifier.Display.Type displayType = display.type();
                 displayTag.putString("type", displayType.name().toLowerCase(Locale.ENGLISH));

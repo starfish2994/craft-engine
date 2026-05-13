@@ -52,7 +52,7 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     public Component readComponent() {
-        if (VersionHelper.isOrAbove1_20_3()) {
+        if (VersionHelper.isOrAbove1_20_3) {
             return AdventureHelper.nbtToComponent(this.readNbt(false));
         } else {
             return AdventureHelper.jsonToComponent(this.readUtf(262144));
@@ -60,7 +60,7 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     public void writeComponent(Component component) {
-        if (VersionHelper.isOrAbove1_20_3()) {
+        if (VersionHelper.isOrAbove1_20_3) {
             this.writeNbt(AdventureHelper.componentToNbt(component), false);
         } else {
             this.writeUtf(AdventureHelper.componentToJson(component));
@@ -141,11 +141,11 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     public int readContainerId() {
-        return VersionHelper.isOrAbove1_21_2() ? this.readVarInt() : this.readUnsignedByte();
+        return VersionHelper.isOrAbove1_21_2 ? this.readVarInt() : this.readUnsignedByte();
     }
 
     public void writeContainerId(int id) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             this.writeVarInt(id);
         } else {
             this.writeByte(id);

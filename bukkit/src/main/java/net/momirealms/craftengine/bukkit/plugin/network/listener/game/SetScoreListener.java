@@ -17,7 +17,7 @@ import net.momirealms.sparrow.nbt.Tag;
 import java.util.Map;
 
 public final class SetScoreListener implements ByteBufferPacketListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3() ? new SetScoreListener() : null;
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3 ? new SetScoreListener() : null;
 
     private SetScoreListener() {}
 

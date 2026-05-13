@@ -99,7 +99,7 @@ public final class VineCropHeadBlockBehavior extends AbstractCanSurviveBlockBeha
                 // 检查是否需要生长
                 if (age >= this.ageProperty.max) {
                     Object nextPos = this.direction ? LocationUtils.above(blockPos) : LocationUtils.below(blockPos);
-                    boolean success = VersionHelper.isOrAbove1_21_5()
+                    boolean success = VersionHelper.isOrAbove1_21_5
                             ? CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL)
                             : CraftEventFactoryProxy.INSTANCE.handleBlockGrowEvent(level, nextPos, super.blockDefinition.defaultState().customBlockState().minecraftState());
                     if (success) {

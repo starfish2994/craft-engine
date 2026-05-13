@@ -88,7 +88,7 @@ public final class ItemEventListener implements Listener {
     public void onResourcePackGenerate(AsyncResourcePackGenerateEvent event) {
         if (Config.obfuscateItemModel()) {
             this.itemManager.persistItemModelMappings();
-            if (VersionHelper.isFolia()) {
+            if (VersionHelper.isFolia) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     player.getScheduler().run(this.plugin.javaPlugin(), (t) -> {
                         player.updateInventory();
@@ -559,7 +559,7 @@ public final class ItemEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
-        if (VersionHelper.isOrAbove1_20_5()) return;
+        if (VersionHelper.isOrAbove1_20_5) return;
         if (!(event.getEntity() instanceof Player player)) return;
         ItemStack consumedItem = event.getItem();
         if (ItemStackUtils.isEmpty(consumedItem)) return;
@@ -700,7 +700,7 @@ public final class ItemEventListener implements Listener {
         ItemStack itemStack = itemDrop.getItemStack();
         Item wrapped = this.itemManager.wrap(itemStack);
         // 低版本拙劣的inventory change替代品
-        if (!VersionHelper.isOrAbove1_20_3()) {
+        if (!VersionHelper.isOrAbove1_20_3) {
             this.itemManager.unlockRecipeOnInventoryChanged(player, wrapped);
         }
         Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
@@ -734,7 +734,7 @@ public final class ItemEventListener implements Listener {
         ItemStack currentItem = event.getCurrentItem();
         Item wrapped = this.itemManager.wrap(currentItem);
         // 低版本拙劣的inventory change替代品
-        if (!VersionHelper.isOrAbove1_20_3()) {
+        if (!VersionHelper.isOrAbove1_20_3) {
             this.itemManager.unlockRecipeOnInventoryChanged(player, wrapped);
         }
         if (Config.triggerUpdateClick()) {

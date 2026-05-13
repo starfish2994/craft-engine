@@ -157,7 +157,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
             LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.poweredProperty, on).customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
             updateNeighbours(thisBlock, blockState, level, pos);
             playSound(level, pos, on);
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 LevelAccessorProxy.INSTANCE.gameEvent$0(level, arrow, on ? GameEventProxy.BLOCK_ACTIVATE : GameEventProxy.BLOCK_DEACTIVATE, pos);
             } else {
                 LevelAccessorProxy.INSTANCE.gameEvent$1(level, arrow, on ? GameEventProxy.BLOCK_ACTIVATE : GameEventProxy.BLOCK_DEACTIVATE, pos);
@@ -173,7 +173,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
         if (direction == null) return;
         Direction opposite = direction.opposite();
         Object nmsDirection = DirectionUtils.toNMSDirection(opposite);
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             @SuppressWarnings("unchecked")
             Property<Direction> facing = (Property<Direction>) state.owner().value().getProperty("facing");
             Object orientation = null;
@@ -194,7 +194,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
         SoundData soundData = getSound(on);
         if (soundData == null) return;
         Object sound = SoundEventProxy.INSTANCE.create(KeyUtils.toIdentifier(soundData.id()), Optional.empty());
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             LevelAccessorProxy.INSTANCE.playSound$0(level, null, pos, sound, SoundSourceProxy.BLOCKS, soundData.volume().get(), soundData.pitch().get());
         } else {
             LevelAccessorProxy.INSTANCE.playSound$1(level, null, pos, sound, SoundSourceProxy.BLOCKS, soundData.volume().get(), soundData.pitch().get());
@@ -210,7 +210,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
         this.updateNeighbours(thisBlock, state, level, pos);
         LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.ticksToStayPressed);
         playSound(level, pos, true);
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             LevelAccessorProxy.INSTANCE.gameEvent$0(level, player, GameEventProxy.BLOCK_ACTIVATE, pos);
         } else {
             LevelAccessorProxy.INSTANCE.gameEvent$1(level, player, GameEventProxy.BLOCK_ACTIVATE, pos);

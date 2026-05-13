@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class ContainerClickListener implements ByteBufferPacketListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_21_5() ? null : new ContainerClickListener();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_21_5 ? null : new ContainerClickListener();
 
     private ContainerClickListener() {}
 

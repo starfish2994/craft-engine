@@ -23,7 +23,7 @@ public final class RespawnListener implements ByteBufferPacketListener {
         player.clearView();
         FriendlyByteBuf buf = event.getBuffer();
         World world;
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             /*dimensionType*/ buf.readVarInt();
             Key dimension = buf.readKey();
             world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));

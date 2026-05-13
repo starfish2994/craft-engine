@@ -21,8 +21,8 @@ public final class ParticleUtils {
         } catch (IllegalArgumentException e) {
             return switch (particle) {
                 case "REDSTONE" -> Particle.valueOf("DUST");
-                case "VILLAGER_HAPPY", "HAPPY_VILLAGER" -> Particle.valueOf(VersionHelper.isOrAbove1_20_5() ? "HAPPY_VILLAGER" : "VILLAGER_HAPPY");
-                case "BUBBLE", "WATER_BUBBLE" -> Particle.valueOf(VersionHelper.isOrAbove1_20_5() ? "BUBBLE" : "WATER_BUBBLE");
+                case "VILLAGER_HAPPY", "HAPPY_VILLAGER" -> Particle.valueOf(VersionHelper.isOrAbove1_20_5 ? "HAPPY_VILLAGER" : "VILLAGER_HAPPY");
+                case "BUBBLE", "WATER_BUBBLE" -> Particle.valueOf(VersionHelper.isOrAbove1_20_5 ? "BUBBLE" : "WATER_BUBBLE");
                 default -> Particle.valueOf(particle);
             };
         }

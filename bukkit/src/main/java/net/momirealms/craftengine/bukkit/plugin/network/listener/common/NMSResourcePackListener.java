@@ -24,7 +24,7 @@ public final class NMSResourcePackListener implements NMSPacketListener {
 
     @Override
     public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
-        if (VersionHelper.isOrAbove1_20_3()) {
+        if (VersionHelper.isOrAbove1_20_3) {
             UUID uuid = ServerboundResourcePackPacketProxy.INSTANCE.getId(packet);
             if (!user.isResourcePackLoading(uuid)) {
                 // 不是CraftEngine发送的资源包,不管
@@ -41,7 +41,7 @@ public final class NMSResourcePackListener implements NMSPacketListener {
                 return;
             }
             // 响应不是最终的或者没有配置阶段就不处理后续
-            if (returnAction.intermediate() || !VersionHelper.isOrAbove1_20_2()) return;
+            if (returnAction.intermediate() || !VersionHelper.isOrAbove1_20_2) return;
             event.setCancelled(true);
             Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(user.connection());
             if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return; // 不是配置阶段不处理
@@ -50,7 +50,7 @@ public final class NMSResourcePackListener implements NMSPacketListener {
                 try {
                     // 当客户端发出多次成功包的时候，finish会报错，我们忽略他
                     ServerCommonPacketListenerProxy.INSTANCE.handleResourcePackResponse(packetListener, packet);
-                    if (VersionHelper.isPaper() && VersionHelper.isOrAbove1_21_7()) { // paper在1.21.7+增加了判断不会主动结束任务
+                    if (VersionHelper.isPaper && VersionHelper.isOrAbove1_21_7) { // paper在1.21.7+增加了判断不会主动结束任务
                         ServerConfigurationPacketListenerImplProxy.INSTANCE.finishCurrentTask(packetListener, ServerResourcePackConfigurationTaskProxy.TYPE);
                     }
                 } catch (Throwable e) {

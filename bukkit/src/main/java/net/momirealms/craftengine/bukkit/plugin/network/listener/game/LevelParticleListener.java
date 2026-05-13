@@ -25,7 +25,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
     public LevelParticleListener(int[] blockStateMapper, int[] modBlockStateMapper) {
         this.blockStateMapper = blockStateMapper;
         this.modBlockStateMapper = modBlockStateMapper;
-        this.internal = VersionHelper.isOrAbove1_21_4() ? new V1_21_4() : VersionHelper.isOrAbove1_20_5() ? new V1_20_5() : new V1_20();
+        this.internal = VersionHelper.isOrAbove1_21_4 ? new V1_21_4() : VersionHelper.isOrAbove1_20_5 ? new V1_20_5() : new V1_20();
     }
 
     @Override
@@ -168,7 +168,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
             } else if (ItemParticleOptionProxy.CLASS.isInstance(option)) {
                 BukkitItemManager itemManager = BukkitItemManager.instance();
                 Object itemStack = ItemParticleOptionProxy.INSTANCE.getItemStack(option);
-                if (VersionHelper.isOrAbove26_1()) {
+                if (VersionHelper.isOrAbove26_1) {
                     itemStack = ItemStackTemplateProxy.INSTANCE.create(itemStack);
                 }
                 Item item = itemManager.wrap(itemStack);
@@ -176,7 +176,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
                 if (item == null) return;
                 Object type = ItemParticleOptionProxy.INSTANCE.getType(option);
                 Object stack = item.minecraftItem();
-                if (VersionHelper.isOrAbove26_1()) {
+                if (VersionHelper.isOrAbove26_1) {
                     Object template = ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(stack);
                     newOption = ItemParticleOptionProxy.INSTANCE.newInstance$1(type, template);
                 } else {

@@ -69,7 +69,7 @@ public final class TagsProcessor implements ItemProcessor {
 
     @Override
     public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             Tag previous = item.getComponentAsSparrowTag(DataComponentKeys.CUSTOM_DATA);
             if (previous != null) {
                 networkData.put(DataComponentKeys.CUSTOM_DATA.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));

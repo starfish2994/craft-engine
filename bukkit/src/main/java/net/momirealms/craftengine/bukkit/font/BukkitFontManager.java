@@ -130,7 +130,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
         if (ItemStackUtils.isEmpty(result)) return;
         Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
         String renameText;
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             AnvilView anvilView = event.getView();
             renameText = anvilView.getRenameText();
         } else {

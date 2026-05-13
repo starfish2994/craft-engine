@@ -34,14 +34,14 @@ public final class ProfileProcessor implements SimpleNetworkItemProcessor {
     public Item apply(Item item, ItemBuildContext context) {
         if (this.profileName != null) {
             String resultString = this.profileName.get(context);
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 item.setJavaComponent(DataComponentKeys.PROFILE, resultString);
             } else {
                 item.setTag(resultString, "SkullOwner");
             }
         } else if (this.base64Data != null) {
             item.skull(this.base64Data);
-        } else if (VersionHelper.isOrAbove1_20_5() && this.texture != null) {
+        } else if (VersionHelper.isOrAbove1_20_5 && this.texture != null) {
             item.setJavaComponent(DataComponentKeys.PROFILE, Map.of("texture", this.texture.asString()));
         }
         return item;
@@ -60,7 +60,7 @@ public final class ProfileProcessor implements SimpleNetworkItemProcessor {
                 if (base64Data != null) {
                     return new ProfileProcessor(null, base64Data, null);
                 }
-                if (VersionHelper.isOrAbove1_20_5()) {
+                if (VersionHelper.isOrAbove1_20_5) {
                     Key texture = section.getAssetPath("texture");
                     if (texture != null) {
                         return new ProfileProcessor(null, null, texture);
@@ -77,7 +77,7 @@ public final class ProfileProcessor implements SimpleNetworkItemProcessor {
                 }
                 if (base64Data != null) {
                     return new ProfileProcessor(null, base64Data, null);
-                } else if (VersionHelper.isOrAbove1_20_5() && (guess.contains(":") || guess.contains("/")) && !guess.contains("<") && !guess.contains(">")) {
+                } else if (VersionHelper.isOrAbove1_20_5 && (guess.contains(":") || guess.contains("/")) && !guess.contains("<") && !guess.contains(">")) {
                     return new ProfileProcessor(null, null, Key.of(guess));
                 } else {
                     return new ProfileProcessor(TextProviders.fromString(guess), null, null);

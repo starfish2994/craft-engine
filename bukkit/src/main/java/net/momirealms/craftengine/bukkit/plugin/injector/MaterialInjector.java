@@ -45,7 +45,7 @@ public final class MaterialInjector {
         MaterialProxy.INSTANCE.setLegacy(material, false);
         NamespacedKey key = KeyUtils.toNamespacedKey(id);
         MaterialProxy.INSTANCE.setKey(material, key);
-        if (VersionHelper.isOrAbove1_21()) {
+        if (VersionHelper.isOrAbove1_21) {
             MaterialProxy.INSTANCE.setItemType(material, () -> null);
             MaterialProxy.INSTANCE.setBlockType(material, Suppliers.memoize(() -> Registry.BLOCK.get(key)));
         }

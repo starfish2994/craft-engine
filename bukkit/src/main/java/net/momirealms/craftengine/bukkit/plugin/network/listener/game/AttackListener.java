@@ -37,7 +37,7 @@ import org.bukkit.util.Vector;
 import java.util.Optional;
 
 public final class AttackListener implements ByteBufferPacketListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove26_1() ? new AttackListener() : null;
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove26_1 ? new AttackListener() : null;
 
     private AttackListener() {}
 
@@ -164,7 +164,7 @@ public final class AttackListener implements ByteBufferPacketListener {
             CraftEngineFurniture.remove(furniture, serverPlayer, breakEvent.dropItems(), true);
         };
 
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.isFolia) {
             CraftEngine.instance().scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
         } else {
             CraftEngine.instance().scheduler().executeSync(mainThreadTask);

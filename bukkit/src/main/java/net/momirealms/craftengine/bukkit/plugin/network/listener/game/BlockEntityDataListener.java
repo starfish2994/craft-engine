@@ -36,7 +36,7 @@ public final class BlockEntityDataListener implements ByteBufferPacketListener {
         boolean changed = false;
         BlockPos pos = buf.readBlockPos();
         int entityType = buf.readVarInt();
-        boolean named = !VersionHelper.isOrAbove1_20_2();
+        boolean named = !VersionHelper.isOrAbove1_20_2;
         CompoundTag tag = (CompoundTag) buf.readNbt(named);
         // todo 刷怪笼里的物品？
 
@@ -49,7 +49,7 @@ public final class BlockEntityDataListener implements ByteBufferPacketListener {
                 if (itemTag instanceof CompoundTag itemCompoundTag) {
                     byte slot = itemCompoundTag.getByte("Slot");
                     Object nmsStack;
-                    if (VersionHelper.isOrAbove1_20_5()) {
+                    if (VersionHelper.isOrAbove1_20_5) {
                         nmsStack = ItemStackProxy.INSTANCE.getCodec().parse(RegistryOps.SPARROW_NBT, itemCompoundTag)
                                 .resultOrPartial((error) -> CraftEngine.instance().logger().error("Tried to parse invalid item: '" + error + "'")).orElse(null);
                     } else {
@@ -70,7 +70,7 @@ public final class BlockEntityDataListener implements ByteBufferPacketListener {
                 ListTag newItemsTag = new ListTag();
                 for (Pair<Byte, Item> pair : items) {
                     CompoundTag newItemCompoundTag;
-                    if (VersionHelper.isOrAbove1_20_5()) {
+                    if (VersionHelper.isOrAbove1_20_5) {
                         newItemCompoundTag = (CompoundTag) ItemStackProxy.INSTANCE.getCodec().encodeStart(RegistryOps.SPARROW_NBT, pair.right().minecraftItem())
                                 .resultOrPartial((error) -> CraftEngine.instance().logger().error("Tried to encode invalid item: '" + error + "'")).orElse(null);
                     } else {

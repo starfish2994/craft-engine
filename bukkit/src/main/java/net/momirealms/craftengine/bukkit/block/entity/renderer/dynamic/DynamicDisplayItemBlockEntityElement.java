@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.block.entity.DisplayItemBlockEntityController;
-import net.momirealms.craftengine.bukkit.entity.data.ItemEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.item.ItemEntityData;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;

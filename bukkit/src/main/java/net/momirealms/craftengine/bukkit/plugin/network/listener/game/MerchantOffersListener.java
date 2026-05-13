@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class MerchantOffersListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_5() ? new V1_20_5() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_5 ? new V1_20_5() : new V1_20();
 
     private MerchantOffersListener() {}
 

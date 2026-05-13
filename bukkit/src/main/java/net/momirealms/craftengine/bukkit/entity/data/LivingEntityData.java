@@ -14,7 +14,7 @@ public class LivingEntityData<T> extends BaseEntityData<T> {
     public static final LivingEntityData<Integer> StingerCount = new LivingEntityData<>(LivingEntityData.class, EntityDataSerializersProxy.INT, 0);
     public static final LivingEntityData<Optional<Object>> SleepingPos = new LivingEntityData<>(LivingEntityData.class, EntityDataSerializersProxy.OPTIONAL_BLOCK_POS, Optional.empty());
 
-    public LivingEntityData(Class<?> clazz, Object serializer, T defaultValue) {
+    protected LivingEntityData(Class<?> clazz, Object serializer, T defaultValue) {
         super(clazz, serializer, defaultValue);
     }
 }

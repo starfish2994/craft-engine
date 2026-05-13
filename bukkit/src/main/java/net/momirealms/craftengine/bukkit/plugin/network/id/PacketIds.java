@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.id;
 import net.momirealms.craftengine.core.util.VersionHelper;
 
 public interface PacketIds {
-    PacketIds INSTANCE = VersionHelper.isOrAbove1_20_5() ? new PacketIds1_20_5() : new PacketIds1_20();
+    PacketIds INSTANCE = VersionHelper.isOrAbove1_20_5 ? new PacketIds1_20_5() : new PacketIds1_20();
 
     int clientboundBlockUpdatePacket();
 

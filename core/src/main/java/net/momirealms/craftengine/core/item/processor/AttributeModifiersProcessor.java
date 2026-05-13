@@ -22,7 +22,7 @@ public final class AttributeModifiersProcessor implements SimpleNetworkItemProce
     private static final Object[] NBT_PATH = new Object[]{"AttributeModifiers"};
 
     static {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             CONVERTOR.put(Attributes1_21.BURNING_TIME, Attributes.BURNING_TIME);
             CONVERTOR.put(Attributes1_21.ARMOR, Attributes.ARMOR);
             CONVERTOR.put(Attributes1_21.ARMOR_TOUGHNESS, Attributes.ARMOR_TOUGHNESS);
@@ -166,7 +166,7 @@ public final class AttributeModifiersProcessor implements SimpleNetworkItemProce
                 Optional<Key> id = Optional.ofNullable(section.getIdentifier("id"));
                 NumberProvider amount = section.getNonNullNumber("amount");
                 PreModifier.PreDisplay display = null;
-                if (VersionHelper.isOrAbove1_21_6() && section.containsKey("display")) {
+                if (VersionHelper.isOrAbove1_21_6 && section.containsKey("display")) {
                     ConfigSection displaySection = section.getNonNullSection("display");
                     AttributeModifier.Display.Type displayType = displaySection.getNonNullEnum("type", AttributeModifier.Display.Type.class);
                     if (displayType == AttributeModifier.Display.Type.OVERRIDE) {

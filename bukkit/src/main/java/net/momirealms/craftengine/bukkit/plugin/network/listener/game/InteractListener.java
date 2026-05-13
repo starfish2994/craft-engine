@@ -52,7 +52,7 @@ import org.bukkit.util.Vector;
 import java.util.Optional;
 
 public final class InteractListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove26_1() ? new V26_1() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove26_1 ? new V26_1() : new V1_20();
 
     private InteractListener() {}
 
@@ -308,7 +308,7 @@ public final class InteractListener {
             }
         };
 
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.isFolia) {
             CraftEngine.instance().scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
         } else {
             CraftEngine.instance().scheduler().executeSync(mainThreadTask);

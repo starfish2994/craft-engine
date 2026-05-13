@@ -36,7 +36,7 @@ public final class CustomFurnitureHitbox extends AbstractFurnitureHitBox {
         WorldPosition position = furniture.position();
         Vec3d pos = Furniture.getRelativePosition(position, config.position());
         AABB aabb = AABB.makeBoundingBox(pos, config.width(), config.height());
-        this.collider = createCollider(furniture.world(), pos, aabb, false, config.blocksBuilding(), config.canBeHitByProjectile());
+        this.collider = createCollider(furniture.world(), position, aabb, false, config.blocksBuilding(), config.canBeHitByProjectile());
         int entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         List<Object> packets = new ArrayList<>(3);
         packets.add(ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
@@ -44,7 +44,7 @@ public final class CustomFurnitureHitbox extends AbstractFurnitureHitBox {
                 config.entityType(), 0, Vec3Proxy.ZERO, 0
         ));
         packets.add(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(entityId, config.cachedValues()));
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             Object attributeIns = AttributeInstanceProxy.INSTANCE.newInstance$0(AttributesProxy.SCALE, $ -> {});
             AttributeInstanceProxy.INSTANCE.setBaseValue(attributeIns, config.scale());
             packets.add(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId, Collections.singletonList(attributeIns)));

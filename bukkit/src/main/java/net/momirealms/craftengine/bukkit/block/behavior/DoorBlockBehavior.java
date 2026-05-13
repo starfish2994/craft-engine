@@ -104,7 +104,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior
         }
         ImmutableBlockState customState = optionalCustomState.get();
         DoubleBlockHalf half = customState.get(this.halfProperty);
-        Object direction = VersionHelper.isOrAbove1_21_2() ? args[4] : args[1];
+        Object direction = VersionHelper.isOrAbove1_21_2 ? args[4] : args[1];
         if (DirectionProxy.INSTANCE.getAxis(direction) == AxisProxy.Y && half == DoubleBlockHalf.LOWER == (direction == DirectionProxy.UP)) {
             Optional<ImmutableBlockState> optionalNeighborState = BlockStateUtils.getOptionalCustomBlockState(args[updateShape$neighborState]);
             if (optionalNeighborState.isEmpty()) {
@@ -302,7 +302,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior
 
     @Override
     public boolean isPathFindable(Object thisBlock, Object[] args) {
-        Object type = VersionHelper.isOrAbove1_20_5() ? args[1] : args[3];
+        Object type = VersionHelper.isOrAbove1_20_5 ? args[1] : args[3];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return false;

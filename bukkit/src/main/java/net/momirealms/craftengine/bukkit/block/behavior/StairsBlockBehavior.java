@@ -64,7 +64,7 @@ public final class StairsBlockBehavior extends WaterloggedBlockBehavior {
         if (super.waterloggedProperty != null && customState.get(this.waterloggedProperty)) {
             LevelAccessorProxy.INSTANCE.scheduleTick$1(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
         }
-        Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2() ? args[4] : args[1]);
+        Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2 ? args[4] : args[1]);
         StairsShape stairsShape = getStairsShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
                 ? customState.with(this.shapeProperty, stairsShape).customBlockState().minecraftState()

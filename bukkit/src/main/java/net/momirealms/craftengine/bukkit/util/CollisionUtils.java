@@ -1,11 +1,13 @@
 package net.momirealms.craftengine.bukkit.util;
 
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.CollisionGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.EntityGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.shapes.BooleanOpProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.shapes.ShapesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.shapes.VoxelShapeProxy;
+import net.momirealms.craftengine.proxy.spottedleaf.moonrise.common.util.TickThreadProxy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +46,9 @@ public final class CollisionUtils {
         }
         Object bounds = VoxelShapeProxy.INSTANCE.bounds(combinedShape);
         if (CollisionGetterProxy.INSTANCE.getBlockCollisions(level, null, bounds).iterator().hasNext()) {
+            return false;
+        }
+        if (VersionHelper.isFolia && !(VersionHelper.isOrAbove1_21 ? TickThreadProxy.INSTANCE.isTickThreadFor$1(level, bounds) : TickThreadProxy.INSTANCE.isTickThreadFor$0(level, bounds))) {
             return false;
         }
         List<Object> entities = EntityGetterProxy.INSTANCE.getEntities(level, null, bounds);

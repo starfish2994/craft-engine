@@ -59,7 +59,7 @@ public final class UpdateAdvancementsListener implements ByteBufferPacketListene
             Map<Key, AdvancementProgress> progress = buf.readMap(FriendlyByteBuf::readKey, AdvancementProgress::read);
 
             boolean showAdvancement = false;
-            if (VersionHelper.isOrAbove1_21_5()) {
+            if (VersionHelper.isOrAbove1_21_5) {
                 showAdvancement = buf.readBoolean();
             }
 
@@ -72,7 +72,7 @@ public final class UpdateAdvancementsListener implements ByteBufferPacketListene
                     ($, item) -> PacketUtils.writeItem(buf, item)));
             buf.writeCollection(removed, FriendlyByteBuf::writeKey);
             buf.writeMap(progress, FriendlyByteBuf::writeKey, (byteBuf, advancementProgress) -> advancementProgress.write(byteBuf));
-            if (VersionHelper.isOrAbove1_21_5()) {
+            if (VersionHelper.isOrAbove1_21_5) {
                 buf.writeBoolean(showAdvancement);
             }
         }

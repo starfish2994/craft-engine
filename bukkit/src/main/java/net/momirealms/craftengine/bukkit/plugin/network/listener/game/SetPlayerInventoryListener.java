@@ -12,7 +12,7 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.VersionHelper;
 
 public final class SetPlayerInventoryListener implements ByteBufferPacketListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_21_2() ? new SetPlayerInventoryListener() : null;
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_21_2 ? new SetPlayerInventoryListener() : null;
 
     private SetPlayerInventoryListener() {}
 

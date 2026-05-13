@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.item.network.encrypt;
 
-import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.sparrow.nbt.ByteArrayTag;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.NBT;
@@ -37,7 +36,6 @@ public final class ItemCrypto {
     }
 
     public static void setAlgorithm(CryptoAlgorithm algorithm) {
-        Debugger.ITEM.warnLazy(() -> "setAlgorithm=" + algorithm, Throwable::new);
         ALGORITHM = algorithm;
     }
 }

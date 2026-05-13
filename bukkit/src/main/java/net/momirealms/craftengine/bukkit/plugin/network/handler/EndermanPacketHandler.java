@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.handler;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
-import net.momirealms.craftengine.bukkit.entity.data.EnderManData;
+import net.momirealms.craftengine.bukkit.entity.data.monster.EnderManData;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
@@ -35,8 +35,8 @@ public final class EndermanPacketHandler implements EntityPacketHandler {
         for (int i = packedItems.size() - 1; i >= 0; i--) {
             Object packedItem = packedItems.get(i);
             int entityDataId = SynchedEntityDataProxy.DataValueProxy.INSTANCE.getId(packedItem);
-            if (entityDataId == EnderManData.CarryState.id()) {
-                Optional<Object> blockState = EntityUtils.getEntityDataValue(packedItem, EnderManData.CarryState);
+            if (entityDataId == EnderManData.CarriedBlock.id()) {
+                Optional<Object> blockState = EntityUtils.getEntityDataValue(packedItem, EnderManData.CarriedBlock);
                 if (blockState.isEmpty()) continue;
                 int stateId = BlockStateUtils.blockStateToId(blockState.get());
                 int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());

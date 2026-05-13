@@ -26,7 +26,7 @@ public final class RegistryDataListener implements ByteBufferPacketListener {
 
     @Override
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-        if (!VersionHelper.isOrAbove1_21()) return;
+        if (!VersionHelper.isOrAbove1_21) return;
         FriendlyByteBuf buf = event.getBuffer();
         Key registryId = buf.readKey();
         Player player = (Player) user;

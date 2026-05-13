@@ -71,7 +71,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
         Object state = args[0];
         Object level = args[updateShape$level];
         Object blockPos = args[updateShape$blockPos];
-        Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2() ? args[4] : args[1]);
+        Direction direction = DirectionUtils.fromNMSDirection(VersionHelper.isOrAbove1_21_2 ? args[4] : args[1]);
         if (direction == Direction.DOWN && !BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state, level, blockPos)) {
             Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(state);
             if (optionalCustomState.isEmpty()) {
@@ -191,7 +191,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     @Override
     public void affectNeighborsAfterRemoval(Object thisBlock, Object[] args) {
         boolean flag;
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             flag = !(boolean) args[3];
         } else {
             flag = !(boolean) args[4] && !BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.is$0(args[0], BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getBlock(args[3]));
@@ -205,7 +205,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void updateNeighbours(Object level, Object pos, Object thisBlock) {
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             LevelAccessorProxy.INSTANCE.updateNeighborsAt(level, pos, thisBlock);
             LevelAccessorProxy.INSTANCE.updateNeighborsAt(level, LocationUtils.below(pos), thisBlock);
         } else {

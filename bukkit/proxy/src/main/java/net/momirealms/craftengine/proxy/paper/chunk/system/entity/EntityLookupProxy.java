@@ -1,10 +1,8 @@
 package net.momirealms.craftengine.proxy.paper.chunk.system.entity;
 
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
-import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
-import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
-import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
-import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
+import net.momirealms.sparrow.reflection.proxy.annotation.*;
 
 @ReflectionProxy(name = {"io.papermc.paper.chunk.system.entity.EntityLookup", "ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup"}, activeIf = "has_patch=paper")
 public interface EntityLookupProxy {
@@ -21,4 +19,7 @@ public interface EntityLookupProxy {
 
     @MethodInvoker(name = "getChunk")
     Object getChunk(Object target, int chunkX, int chunkZ);
+
+    @MethodInvoker(name = "canRemoveEntity")
+    boolean canRemoveEntity(Object target, @Type(clazz = EntityProxy.class) Object entity);
 }

@@ -3,8 +3,7 @@ package net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.block.entity.DrawerBlockEntityController;
-import net.momirealms.craftengine.bukkit.entity.data.ItemDisplayEntityData;
-import net.momirealms.craftengine.bukkit.entity.data.TextDisplayEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
@@ -65,17 +64,17 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
     // 更新展示的物品包
     public void refreshChangeDisplayItemPacket(Item item) {
         this.changeItemDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.itemId, new ArrayList<>() {{
-            ItemDisplayEntityData.DisplayedItem.addEntityData(item.minecraftItem(), this);
-            ItemDisplayEntityData.Scale.addEntityData(controller.behavior.itemScale, this);
-            ItemDisplayEntityData.DisplayType.addEntityData(ItemDisplayContext.FIXED.id(), this);
+            DisplayData.ItemDisplayData.ItemStack.addEntityData(item.minecraftItem(), this);
+            DisplayData.ItemDisplayData.Scale.addEntityData(controller.behavior.itemScale, this);
+            DisplayData.ItemDisplayData.ItemTransform.addEntityData(ItemDisplayContext.FIXED.id(), this);
         }});
     }
 
     // 更新显示的数量包
     public void refreshChangeTextContentPacket(int count) {
         this.changeTextContentDataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.textId, new ArrayList<>() {{
-            TextDisplayEntityData.Text.addEntityData(ComponentUtils.adventureToMinecraft(Component.text(count)), this);
-            TextDisplayEntityData.Scale.addEntityData(controller.behavior.textScale, this);
+            DisplayData.TextDisplayData.Text.addEntityData(ComponentUtils.adventureToMinecraft(Component.text(count)), this);
+            DisplayData.TextDisplayData.Scale.addEntityData(controller.behavior.textScale, this);
         }});
     }
 

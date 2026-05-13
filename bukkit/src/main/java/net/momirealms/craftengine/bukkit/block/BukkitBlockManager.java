@@ -232,7 +232,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private Object parseBlockState(String state) {
         try {
             Object registryOrLookUp = BuiltInRegistriesProxy.BLOCK;
-            if (!VersionHelper.isOrAbove1_21_2()) {
+            if (!VersionHelper.isOrAbove1_21_2) {
                 registryOrLookUp = RegistryProxy.INSTANCE.asLookup(registryOrLookUp);
             }
             Object result = BlockStateParserProxy.INSTANCE.parseForBlock(registryOrLookUp, state, false);
@@ -300,7 +300,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             shapeHolder.bindValue(new BukkitBlockShape(nmsVisualState, Optional.ofNullable(state.settings().supportShapeBlockState()).map(it -> Objects.requireNonNull(createVanillaBlockState(it), "Illegal block state: " + it).minecraftState()).orElse(null)));
             ObjectHolder<BlockBehavior> behaviorHolder = nmsBlock.behaviorDelegate();
             behaviorHolder.bindValue(state.behavior());
-            if (VersionHelper.isOrAbove1_21_2()) {
+            if (VersionHelper.isOrAbove1_21_2) {
                 BlockBehaviourProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
             } else {
                 BlockProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
@@ -314,11 +314,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.initCache(nmsState);
             boolean isConditionallyFullOpaque = canOcclude & useShapeForLightOcclusion;
-            if (!VersionHelper.isOrAbove1_21_2()) {
+            if (!VersionHelper.isOrAbove1_21_2) {
                 BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setConditionallyFullOpaque(nmsState, isConditionallyFullOpaque);
             }
 
-            if (VersionHelper.isOrAbove1_21_2()) {
+            if (VersionHelper.isOrAbove1_21_2) {
                 int blockLight = settings.blockLight() != -1 ? settings.blockLight() : BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getLightDampening$0(nmsVisualState);
                 BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setLightDampening(nmsState, blockLight);
                 boolean propagatesSkylightDown = settings.propagatesSkylightDown() == Tristate.UNDEFINED ? BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPropagatesSkylightDown(nmsVisualState) : settings.propagatesSkylightDown().asBoolean();

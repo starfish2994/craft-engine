@@ -105,7 +105,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
         }
         Object neighborState = args[updateShape$neighborState];
         Object level = args[updateShape$level];
-        BlockPos blockPos = LocationUtils.fromBlockPos(VersionHelper.isOrAbove1_21_2() ? args[3] : args[4]);
+        BlockPos blockPos = LocationUtils.fromBlockPos(VersionHelper.isOrAbove1_21_2 ? args[3] : args[4]);
         Object relativeState = getBlockState(level, blockPos.relative(direction.opposite()));
         boolean neighborStateIsWall = this.isWall(neighborState);
         boolean relativeStateIsWall = this.isWall(relativeState);
@@ -162,7 +162,7 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
 
     @Override
     public boolean isPathFindable(Object thisBlock, Object[] args) {
-        Object type = VersionHelper.isOrAbove1_20_5() ? args[1] : args[3];
+        Object type = VersionHelper.isOrAbove1_20_5 ? args[1] : args[3];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return false;

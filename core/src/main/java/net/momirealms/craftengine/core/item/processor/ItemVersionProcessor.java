@@ -22,7 +22,7 @@ public final class ItemVersionProcessor implements ItemProcessor {
 
     @Override
     public Item apply(Item item, ItemBuildContext context) {
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getComponentAsSparrowTag(DataComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
             customData.putInt(VERSION_TAG, this.version);
             item.setSparrowTagComponent(DataComponentKeys.CUSTOM_DATA, customData);

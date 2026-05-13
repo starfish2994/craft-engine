@@ -21,9 +21,9 @@ public final class PaintingVariantProcessor implements SimpleNetworkItemProcesso
 
     @Override
     public Item apply(Item item, ItemBuildContext context) {
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             item.setJavaComponent(DataComponentKeys.PAINTING_VARIANT, this.id);
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             item.setJavaComponent(DataComponentKeys.ENTITY_DATA, Map.of(
                     "id", "minecraft:painting",
                     "variant", this.id
@@ -36,7 +36,7 @@ public final class PaintingVariantProcessor implements SimpleNetworkItemProcesso
 
     @Override
     public Key componentType(Item item, ItemBuildContext context) {
-        return VersionHelper.isOrAbove1_21_5() ? DataComponentKeys.PAINTING_VARIANT : DataComponentKeys.ENTITY_DATA;
+        return VersionHelper.isOrAbove1_21_5 ? DataComponentKeys.PAINTING_VARIANT : DataComponentKeys.ENTITY_DATA;
     }
 
     @Override

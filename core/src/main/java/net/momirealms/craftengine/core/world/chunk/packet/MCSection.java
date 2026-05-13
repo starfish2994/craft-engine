@@ -20,7 +20,7 @@ public final class MCSection {
 
     public void readPacket(FriendlyByteBuf buf) {
         this.nonEmptyBlockCount = buf.readShort();
-        if (VersionHelper.isOrAbove26_1()) this.fluidCount = buf.readShort();
+        if (VersionHelper.isOrAbove26_1) this.fluidCount = buf.readShort();
         this.serverBlockStateContainer.readPacket(buf);
         PalettedContainer<Integer> palettedContainer = this.biomeContainer.slice();
         palettedContainer.readPacket(buf);
@@ -29,7 +29,7 @@ public final class MCSection {
 
     public void writePacket(FriendlyByteBuf buf) {
         buf.writeShort(this.nonEmptyBlockCount);
-        if (VersionHelper.isOrAbove26_1()) buf.writeShort(this.fluidCount);
+        if (VersionHelper.isOrAbove26_1) buf.writeShort(this.fluidCount);
         this.serverBlockStateContainer.getClientCompatiblePalettedContainer(this.clientBlockStateList).writePacket(buf);
         this.biomeContainer.writePacket(buf);
     }

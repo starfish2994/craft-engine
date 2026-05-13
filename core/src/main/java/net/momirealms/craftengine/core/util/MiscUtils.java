@@ -37,6 +37,10 @@ public final class MiscUtils {
         return start + floor(delta * (float) (i - 1)) + (delta > 0.0F ? 1 : 0);
     }
 
+    public static double lerpDiscrete(double delta, double start, double end) {
+        return start + delta * (end - start);
+    }
+
     public static int murmurHash3Mixer(int value) {
         value ^= value >>> 16;
         value *= -2048144789;

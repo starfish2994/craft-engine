@@ -91,7 +91,7 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior imp
         } else if (FluidStateProxy.INSTANCE.getAmount(BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getFluidState(blockState)) == 8) {
             return false;
         } else {
-            if (VersionHelper.isOrAbove1_21_2()) {
+            if (VersionHelper.isOrAbove1_21_2) {
                 return LightEngineProxy.INSTANCE.getLightBlockInto(
                         state, blockState, DirectionProxy.UP,
                         BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getLightDampening$1(blockState)

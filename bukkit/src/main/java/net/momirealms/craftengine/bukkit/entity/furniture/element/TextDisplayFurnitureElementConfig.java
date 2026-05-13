@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
-import net.momirealms.craftengine.bukkit.entity.data.TextDisplayEntityData;
+import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.core.entity.display.Billboard;
 import net.momirealms.craftengine.core.entity.display.TextDisplayAlignment;
@@ -104,24 +104,24 @@ public final class TextDisplayFurnitureElementConfig implements FurnitureElement
         this.metadata = (player) -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
-                TextDisplayEntityData.SharedFlags.addEntityData((byte) 0x40, dataValues);
-                TextDisplayEntityData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
+                DisplayData.TextDisplayData.SharedFlags.addEntityData((byte) 0x40, dataValues);
+                DisplayData.TextDisplayData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
             }
-            TextDisplayEntityData.Scale.addEntityDataIfNotDefaultValue(this.scale, dataValues);
-            TextDisplayEntityData.RotationLeft.addEntityDataIfNotDefaultValue(this.rotation, dataValues);
-            TextDisplayEntityData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);
-            TextDisplayEntityData.Translation.addEntityDataIfNotDefaultValue(this.translation, dataValues);
-            TextDisplayEntityData.ShadowRadius.addEntityDataIfNotDefaultValue(this.shadowRadius, dataValues);
-            TextDisplayEntityData.ShadowStrength.addEntityDataIfNotDefaultValue(this.shadowStrength, dataValues);
-            TextDisplayEntityData.Text.addEntityData(ComponentUtils.adventureToMinecraft(AdventureHelper.miniMessage().deserialize(this.text, NetworkTextReplaceContext.of(player).tagResolvers())), dataValues);
-            TextDisplayEntityData.LineWidth.addEntityDataIfNotDefaultValue(this.lineWidth, dataValues);
-            TextDisplayEntityData.BackgroundColor.addEntityDataIfNotDefaultValue(this.backgroundColor, dataValues);
-            TextDisplayEntityData.TextOpacity.addEntityDataIfNotDefaultValue(this.opacity, dataValues);
-            TextDisplayEntityData.TextDisplayMasks.addEntityDataIfNotDefaultValue(TextDisplayEntityData.encodeMask(this.hasShadow, this.isSeeThrough, this.useDefaultBackgroundColor, this.alignment), dataValues);
+            DisplayData.TextDisplayData.Scale.addEntityDataIfNotDefaultValue(this.scale, dataValues);
+            DisplayData.TextDisplayData.LeftRotation.addEntityDataIfNotDefaultValue(this.rotation, dataValues);
+            DisplayData.TextDisplayData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);
+            DisplayData.TextDisplayData.Translation.addEntityDataIfNotDefaultValue(this.translation, dataValues);
+            DisplayData.TextDisplayData.ShadowRadius.addEntityDataIfNotDefaultValue(this.shadowRadius, dataValues);
+            DisplayData.TextDisplayData.ShadowStrength.addEntityDataIfNotDefaultValue(this.shadowStrength, dataValues);
+            DisplayData.TextDisplayData.Text.addEntityData(ComponentUtils.adventureToMinecraft(AdventureHelper.miniMessage().deserialize(this.text, NetworkTextReplaceContext.of(player).tagResolvers())), dataValues);
+            DisplayData.TextDisplayData.LineWidth.addEntityDataIfNotDefaultValue(this.lineWidth, dataValues);
+            DisplayData.TextDisplayData.BackgroundColor.addEntityDataIfNotDefaultValue(this.backgroundColor, dataValues);
+            DisplayData.TextDisplayData.TextOpacity.addEntityDataIfNotDefaultValue(this.opacity, dataValues);
+            DisplayData.TextDisplayData.Flags.addEntityDataIfNotDefaultValue(DisplayData.TextDisplayData.encodeFlags(this.hasShadow, this.isSeeThrough, this.useDefaultBackgroundColor, this.alignment), dataValues);
             if (this.blockLight != -1 && this.skyLight != -1) {
-                TextDisplayEntityData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
+                DisplayData.TextDisplayData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
             }
-            TextDisplayEntityData.ViewRange.addEntityDataIfNotDefaultValue((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
+            DisplayData.TextDisplayData.ViewRange.addEntityDataIfNotDefaultValue((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
             return dataValues;
         };
     }

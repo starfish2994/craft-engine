@@ -163,7 +163,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
 
     @Override
     public void openMerchant(net.momirealms.craftengine.core.entity.player.Player player, Component title, List<MerchantOffer> offers) {
-        Merchant merchant = VersionHelper.isOrAbove1_21_4() ? Bukkit.createMerchant() : LegacyInventoryUtils.createMerchant();
+        Merchant merchant = VersionHelper.isOrAbove1_21_4 ? Bukkit.createMerchant() : LegacyInventoryUtils.createMerchant();
         List<MerchantRecipe> recipes = new ArrayList<>();
         for (MerchantOffer offer : offers) {
             MerchantRecipe merchantRecipe = new MerchantRecipe(ItemStackUtils.getBukkitStack(offer.result()), 0, CRAFT_ENGINE_MAGIC_MERCHANT_NUMBER, false, offer.xp(), 0);

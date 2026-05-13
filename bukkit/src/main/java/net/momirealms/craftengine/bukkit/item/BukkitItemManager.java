@@ -81,8 +81,8 @@ public final class BukkitItemManager extends AbstractItemManager {
         this.factory = BukkitItemFactory.create(plugin);
         this.itemEventListener = new ItemEventListener(plugin, this);
         this.armorEventListener = new ArmorEventListener();
-        this.slotChangeListener = VersionHelper.isOrAbove1_20_3() ? new SlotChangeListener(this) : null;
-        this.networkItemHandler = VersionHelper.isOrAbove1_20_5() ? new ModernNetworkItemHandler(this) : new LegacyNetworkItemHandler();
+        this.slotChangeListener = VersionHelper.isOrAbove1_20_3 ? new SlotChangeListener(this) : null;
+        this.networkItemHandler = VersionHelper.isOrAbove1_20_5 ? new ModernNetworkItemHandler(this) : new LegacyNetworkItemHandler();
         this.registerAllVanillaItems();
         this.bedrockItemHolder = Objects.requireNonNull(RegistryUtils.getHolder(BuiltInRegistriesProxy.ITEM, ResourceKeyProxy.INSTANCE.create(RegistriesProxy.ITEM, KeyUtils.toIdentifier(Key.of("minecraft:bedrock")))));
         this.registerCustomTrimMaterial();
@@ -325,9 +325,9 @@ public final class BukkitItemManager extends AbstractItemManager {
     }
 
     private Object createTrimPattern(Key key) {
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             return TrimPatternProxy.INSTANCE.newInstance(KeyUtils.toIdentifier(key), ComponentProxy.INSTANCE.empty(), false);
-        } else if (VersionHelper.isOrAbove1_20_2()) {
+        } else if (VersionHelper.isOrAbove1_20_2) {
             return TrimPatternProxy.INSTANCE.newInstance(KeyUtils.toIdentifier(key), this.bedrockItemHolder, ComponentProxy.INSTANCE.empty(), false);
         } else {
             return TrimPatternProxy.INSTANCE.newInstance(KeyUtils.toIdentifier(key), this.bedrockItemHolder, ComponentProxy.INSTANCE.empty());
@@ -335,10 +335,10 @@ public final class BukkitItemManager extends AbstractItemManager {
     }
 
     private Object createTrimMaterial() {
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             Object assetGroup = MaterialAssetGroupProxy.INSTANCE.create("custom");
             return TrimMaterialProxy.INSTANCE.newInstance(assetGroup, ComponentProxy.INSTANCE.empty());
-        } else if (VersionHelper.isOrAbove1_21_4()) {
+        } else if (VersionHelper.isOrAbove1_21_4) {
             return TrimMaterialProxy.INSTANCE.newInstance("custom", this.bedrockItemHolder, Map.of(), ComponentProxy.INSTANCE.empty());
         } else {
             return TrimMaterialProxy.INSTANCE.newInstance("custom", this.bedrockItemHolder, 0f, Map.of(), ComponentProxy.INSTANCE.empty());
@@ -426,17 +426,17 @@ public final class BukkitItemManager extends AbstractItemManager {
     public Item applyTrim(Item base, Item addition, Item template, Key pattern) {
         Object registryAccess = RegistryUtils.getRegistryAccess();
         Optional<?> optionalMaterial;
-        if (VersionHelper.isOrAbove26_1()) {
+        if (VersionHelper.isOrAbove26_1) {
             optionalMaterial = (Optional<?>) addition.getExactComponent(DataComponentKeys.PROVIDES_TRIM_MATERIAL);
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             optionalMaterial = TrimMaterialsProxy.INSTANCE.getFromIngredient$0(registryAccess, addition.minecraftItem());
         } else {
             optionalMaterial = TrimMaterialsProxy.INSTANCE.getFromIngredient$1(registryAccess, addition.minecraftItem());
         }
         Optional<?> optionalPattern;
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             optionalPattern = RegistryProxy.INSTANCE.get$0(RegistryUtils.lookupOrThrow(RegistriesProxy.TRIM_PATTERN), KeyUtils.toIdentifier(pattern));
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             optionalPattern = TrimPatternsProxy.INSTANCE.getFromTemplate$1(registryAccess, template.minecraftItem());
         } else {
             optionalPattern = TrimPatternsProxy.INSTANCE.getFromTemplate$0(registryAccess, template.minecraftItem());
@@ -444,10 +444,10 @@ public final class BukkitItemManager extends AbstractItemManager {
         if (optionalMaterial.isPresent() && optionalPattern.isPresent()) {
             Object armorTrim = ArmorTrimProxy.INSTANCE.newInstance(optionalMaterial.get(), optionalPattern.get());
             Object previousTrim;
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 previousTrim = base.getExactComponent(DataComponentKeys.TRIM);
             } else {
-                if (VersionHelper.isOrAbove1_20_2()) {
+                if (VersionHelper.isOrAbove1_20_2) {
                     previousTrim = ArmorTrimProxy.INSTANCE.getTrim(registryAccess, base.minecraftItem(), true);
                 } else {
                     previousTrim = ArmorTrimProxy.INSTANCE.getTrim(registryAccess, base.minecraftItem());
@@ -457,7 +457,7 @@ public final class BukkitItemManager extends AbstractItemManager {
                 return this.emptyItem;
             }
             Item newItem = base.copyWithCount(1);
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 newItem.setExactComponent(DataComponentKeys.TRIM, armorTrim);
             } else {
                 ArmorTrimProxy.INSTANCE.setTrim(registryAccess, newItem.minecraftItem(), armorTrim);

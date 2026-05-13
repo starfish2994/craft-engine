@@ -31,7 +31,7 @@ public final class BukkitPlatform implements Platform {
 
     @Override
     public void dispatchCommand(String command) {
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.isFolia) {
             Bukkit.getGlobalRegionScheduler().run(this.plugin.javaPlugin(), (t) -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
         } else {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);

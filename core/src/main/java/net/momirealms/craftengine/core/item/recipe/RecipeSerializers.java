@@ -27,7 +27,7 @@ public final class RecipeSerializers {
         register(Key.of("crafting_shaped"), CustomShapedRecipe.SERIALIZER);
         register(SHAPELESS, CustomShapelessRecipe.SERIALIZER);
         register(Key.of("crafting_shapeless"), CustomShapelessRecipe.SERIALIZER);
-        if (VersionHelper.isOrAbove26_1()) {
+        if (VersionHelper.isOrAbove26_1) {
             register(DYE, CustomDyeRecipe.SERIALIZER);
             register(Key.of("crafting_dye"), CustomDyeRecipe.SERIALIZER);
         }

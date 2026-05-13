@@ -27,7 +27,7 @@ public final class ChimeBlockBehavior extends BukkitBlockBehavior {
         if (this.hitSound == null) return;
         Object blockPos = BlockHitResultProxy.INSTANCE.getBlockPos(args[2]);
         Object sound = SoundEventProxy.INSTANCE.create(KeyUtils.toIdentifier(hitSound.id()), Optional.empty());
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             LevelAccessorProxy.INSTANCE.playSound$0(args[0], null, blockPos, sound, SoundSourceProxy.BLOCKS, hitSound.volume().get(), hitSound.pitch().get());
         } else {
             LevelAccessorProxy.INSTANCE.playSound$1(args[0], null, blockPos, sound, SoundSourceProxy.BLOCKS, hitSound.volume().get(), hitSound.pitch().get());

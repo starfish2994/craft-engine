@@ -18,7 +18,7 @@ public final class LoginFinishedListener implements ByteBufferPacketListener {
 
     @Override
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-        if (!VersionHelper.isOrAbove1_20_2()) {
+        if (!VersionHelper.isOrAbove1_20_2) {
             /*
             发送这个包以后在1.20.1会从login切换到play
             1. send ClientboundGameProfilePacket
@@ -32,7 +32,7 @@ public final class LoginFinishedListener implements ByteBufferPacketListener {
         user.setVerifiedName(buffer.readUtf(16));
         int count = buffer.readVarInt();
         PropertyMap propertyMap;
-        if (VersionHelper.isOrAbove1_21_9()) {
+        if (VersionHelper.isOrAbove1_21_9) {
             ImmutableMultimap.Builder<String, Property> builder = ImmutableMultimap.builder();
             for (int i = 0; i < count; ++i) {
                 String name = buffer.readUtf(64);

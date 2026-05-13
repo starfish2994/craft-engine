@@ -64,6 +64,8 @@ public final class Config {
     private boolean debug$resource_pack;
     private boolean debug$block;
     private boolean debug$entity_culling;
+    private boolean debug$chunk;
+    private boolean debug$print_stack_trace;
     private Set<String> debug$ignored_packets;
 
     private boolean resource_pack$remove_tinted_leaves_particle;
@@ -367,7 +369,9 @@ public final class Config {
         this.debug$resource_pack = config.getBoolean("debug.resource-pack", false);
         this.debug$block = config.getBoolean("debug.block", false);
         this.debug$entity_culling = config.getBoolean("debug.entity-culling", false);
+        this.debug$chunk = config.getBoolean("debug.chunk", false);
         this.debug$ignored_packets = new HashSet<>(config.getStringList("debug.ignored-packets"));
+        this.debug$print_stack_trace = config.getBoolean("debug.print-stack-trace", false);
 
         // resource pack
         this.resource_pack$path = resolvePath(config.getString("resource-pack.path", "./generated/resource_pack.zip"));
@@ -567,9 +571,9 @@ public final class Config {
         this.item$update_triggers$drop = config.getBoolean("item.update-triggers.drop", false);
         this.item$update_triggers$pick_up = config.getBoolean("item.update-triggers.pick-up", false);
         this.item$custom_model_data_starting_value$default = config.getInt("item.custom-model-data-starting-value.default", 10000);
-        this.item$always_use_item_model = config.getBoolean("item.always-use-item-model", true) && VersionHelper.isOrAbove1_21_2();
+        this.item$always_use_item_model = config.getBoolean("item.always-use-item-model", true) && VersionHelper.isOrAbove1_21_2;
         this.item$always_generate_model_overrides = config.getBoolean("item.always-generate-model-overrides", false);
-        this.item$always_use_custom_model_data = this.item$always_generate_model_overrides || (config.getBoolean("item.always-use-custom-model-data", false) && VersionHelper.isOrAbove1_21_2());
+        this.item$always_use_custom_model_data = this.item$always_generate_model_overrides || (config.getBoolean("item.always-use-custom-model-data", false) && VersionHelper.isOrAbove1_21_2);
         this.item$default_material = Key.of(config.getString("item.default-material", "nether_brick"));
         this.item$default_drop_display$enable = config.getBoolean("item.default-drop-display.enable", false);
         this.item$default_drop_display$format = this.item$default_drop_display$enable ? config.getString("item.default-drop-display.format", "<arg:count>x <name>"): null;
@@ -781,8 +785,16 @@ public final class Config {
         return instance.debug$furniture;
     }
 
+    public static boolean debugChunk() {
+        return instance.debug$chunk;
+    }
+
     public static boolean debugResourcePack() {
         return instance.debug$resource_pack;
+    }
+
+    public static boolean debugPrintStackTrace() {
+        return instance.debug$print_stack_trace;
     }
 
     public static boolean checkUpdate() {

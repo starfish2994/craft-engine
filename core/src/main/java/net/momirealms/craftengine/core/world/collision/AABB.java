@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.world.collision;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.EntityHitResult;
+import net.momirealms.craftengine.core.world.Position;
 import net.momirealms.craftengine.core.world.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -60,14 +61,14 @@ public final class AABB {
         return x * x + y * y + z * z;
     }
 
-    public static AABB makeBoundingBox(Vec3d pos, double width, double height) {
+    public static AABB makeBoundingBox(Position pos, double width, double height) {
         return new AABB(
-            pos.x - width / 2,
-            pos.y,
-            pos.z - width / 2,
-            pos.x + width / 2,
-            pos.y + height,
-            pos.z + width / 2
+            pos.x() - width / 2,
+            pos.y(),
+            pos.z() - width / 2,
+            pos.x() + width / 2,
+            pos.y() + height,
+            pos.z() + width / 2
         );
     }
 

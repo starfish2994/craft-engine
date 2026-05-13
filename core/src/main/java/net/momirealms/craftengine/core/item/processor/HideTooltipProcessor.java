@@ -59,9 +59,9 @@ public final class HideTooltipProcessor implements ItemProcessor {
 
     public HideTooltipProcessor(List<Key> components) {
         this.components = components;
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             this.applier = new ModernApplier(components);
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             if (components.isEmpty()) {
                 this.applier = new DummyApplier();
             } else if (components.size() == 1) {
@@ -101,14 +101,14 @@ public final class HideTooltipProcessor implements ItemProcessor {
 
     @Override
     public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             Tag previous = item.getComponentAsSparrowTag(DataComponentKeys.TOOLTIP_DISPLAY);
             if (previous != null) {
                 networkData.put(DataComponentKeys.TOOLTIP_DISPLAY.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
             } else {
                 networkData.put(DataComponentKeys.TOOLTIP_DISPLAY.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.REMOVE));
             }
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             for (Key component : this.components) {
                 Tag previous = item.getComponentAsSparrowTag(component);
                 if (previous != null) {

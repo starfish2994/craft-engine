@@ -682,7 +682,7 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
             CompoundTag modifierTag = new CompoundTag();
             modifierTag.putString("type", modifier.type());
             modifierTag.putString("slot", modifier.slot().name().toLowerCase(Locale.ENGLISH));
-            if (VersionHelper.isOrAbove1_21()) {
+            if (VersionHelper.isOrAbove1_21) {
                 modifierTag.putString("id", modifier.id().toString());
             } else {
                 modifierTag.putIntArray("uuid", UUIDUtils.uuidToIntArray(UUID.nameUUIDFromBytes(modifier.id().toString().getBytes(StandardCharsets.UTF_8))));

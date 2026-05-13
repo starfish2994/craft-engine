@@ -49,7 +49,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             Object bundleContents = wrapped.getExactComponent(DataComponentTypes.BUNDLE_CONTENTS);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
-            if (VersionHelper.isOrAbove26_1()) {
+            if (VersionHelper.isOrAbove26_1) {
                 for (Object itemTemplate : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
                     Object previousItem = ItemStackTemplateProxy.INSTANCE.create(itemTemplate);
                     Optional<Item> converted = this.itemManager.c2s(this.itemManager.wrap(previousItem));
@@ -82,7 +82,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             Object containerContents = wrapped.getExactComponent(DataComponentTypes.CONTAINER);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
-            if (VersionHelper.isOrAbove26_1()) {
+            if (VersionHelper.isOrAbove26_1) {
                 for (Object previousItem : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
                     @SuppressWarnings("unchecked")
                     Optional<Object> previousTemplate = (Optional<Object>) previousItem;
@@ -176,7 +176,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             Object bundleContents = wrapped.getExactComponent(DataComponentTypes.BUNDLE_CONTENTS);
             List<Object> newItems = new ArrayList<>();
             boolean changed = false;
-            if (VersionHelper.isOrAbove26_1()) {
+            if (VersionHelper.isOrAbove26_1) {
                 for (Object itemTemplate : BundleContentsProxy.INSTANCE.getItems(bundleContents)) {
                     Object previousItem = ItemStackTemplateProxy.INSTANCE.create(itemTemplate);
                     Optional<Item> converted = this.itemManager.s2c(this.itemManager.wrap(previousItem), player);
@@ -209,7 +209,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             Object containerContents = wrapped.getExactComponent(DataComponentTypes.CONTAINER);
             boolean changed = false;
             List<Object> newItems = new ArrayList<>();
-            if (VersionHelper.isOrAbove26_1()) {
+            if (VersionHelper.isOrAbove26_1) {
                 for (Object optionalTemplate : ItemContainerContentsProxy.INSTANCE.getItems(containerContents)) {
                     @SuppressWarnings("unchecked")
                     Optional<Object> previousTemplate = (Optional<Object>) optionalTemplate;
@@ -278,15 +278,15 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         // 如果拦截物品的描述名称等
         if (Config.interceptItem()) {
             if (wrapped.hasComponent(DataComponentTypes.ITEM_NAME)) {
-                if (VersionHelper.isOrAbove1_21_5()) processModernItemName(wrapped, () -> tag, context);
+                if (VersionHelper.isOrAbove1_21_5) processModernItemName(wrapped, () -> tag, context);
                 else processLegacyItemName(wrapped, () -> tag, context);
             }
             if (wrapped.hasComponent(DataComponentTypes.CUSTOM_NAME)) {
-                if (VersionHelper.isOrAbove1_21_5()) processModernCustomName(wrapped, () -> tag, context);
+                if (VersionHelper.isOrAbove1_21_5) processModernCustomName(wrapped, () -> tag, context);
                 else processLegacyCustomName(wrapped, () -> tag, context);
             }
             if (wrapped.hasComponent(DataComponentTypes.LORE)) {
-                if (VersionHelper.isOrAbove1_21_5()) processModernLore(wrapped, () -> tag, context);
+                if (VersionHelper.isOrAbove1_21_5) processModernLore(wrapped, () -> tag, context);
                 else processLegacyLore(wrapped, () -> tag, context);
             }
         }
@@ -422,7 +422,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
 
         public Optional<Item> process(Context context) {
-            if (VersionHelper.isOrAbove1_21_5()) {
+            if (VersionHelper.isOrAbove1_21_5) {
                 if (processModernLore(this.item, this::getOrCreateTag, context))
                     this.globalChanged = true;
                 if (processModernCustomName(this.item, this::getOrCreateTag, context))

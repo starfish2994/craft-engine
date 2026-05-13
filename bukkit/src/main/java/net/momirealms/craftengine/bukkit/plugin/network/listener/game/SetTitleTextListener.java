@@ -16,7 +16,7 @@ import net.momirealms.sparrow.nbt.Tag;
 import java.util.Map;
 
 public final class SetTitleTextListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3() ? new V1_20_3() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3 ? new V1_20_3() : new V1_20();
 
     private SetTitleTextListener() {}
 

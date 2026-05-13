@@ -88,7 +88,7 @@ public final class SlabBlockBehavior extends WaterloggedBlockBehavior implements
 
     @Override
     public boolean canPlaceLiquid(Object thisBlock, Object[] args) {
-        Object blockState = VersionHelper.isOrAbove1_20_2() ? args[3] : args[2];
+        Object blockState = VersionHelper.isOrAbove1_20_2 ? args[3] : args[2];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         return optionalCustomState.filter(state -> state.get(this.typeProperty) != SlabType.DOUBLE && super.canPlaceLiquid(thisBlock, args)).isPresent();
     }
@@ -100,14 +100,14 @@ public final class SlabBlockBehavior extends WaterloggedBlockBehavior implements
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return blockState;
         if (optionalCustomState.get().get(this.waterloggedProperty)) {
-            LevelAccessorProxy.INSTANCE.scheduleTick$1(VersionHelper.isOrAbove1_21_2() ? args[2] : args[3], VersionHelper.isOrAbove1_21_2() ? args[3] : args[4], FluidsProxy.WATER, 5);
+            LevelAccessorProxy.INSTANCE.scheduleTick$1(VersionHelper.isOrAbove1_21_2 ? args[2] : args[3], VersionHelper.isOrAbove1_21_2 ? args[3] : args[4], FluidsProxy.WATER, 5);
         }
         return blockState;
     }
 
     @Override
     public boolean isPathFindable(Object thisBlock, Object[] args) {
-        Object type = VersionHelper.isOrAbove1_20_5() ? args[1] : args[3];
+        Object type = VersionHelper.isOrAbove1_20_5 ? args[1] : args[3];
         Object blockState = args[0];
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
         if (optionalCustomState.isEmpty()) return false;

@@ -83,7 +83,7 @@ public final class DynamicItemFrameBlockEntityElement implements BlockEntityElem
         if (world == null) return;
         Object savedData = this.controller.mapItemSavedData();
         if (savedData == null) {
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 savedData = MapItemProxy.INSTANCE.getSavedData$0(mapId, world.world.minecraftWorld());
             } else {
                 savedData = MapItemProxy.INSTANCE.getSavedData$1((Integer) mapId, world.world.minecraftWorld());
@@ -101,7 +101,7 @@ public final class DynamicItemFrameBlockEntityElement implements BlockEntityElem
             byte scale = MapItemSavedDataProxy.INSTANCE.getScale(savedData);
             boolean locked = MapItemSavedDataProxy.INSTANCE.getLocked(savedData);
             Object packet;
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 packet = ClientboundMapItemDataPacketProxy.INSTANCE.newInstance$0(mapId, scale, locked, null, patch);
             } else {
                 packet = ClientboundMapItemDataPacketProxy.INSTANCE.newInstance$1((Integer) mapId, scale, locked, null, patch);

@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public final class PlayerChatListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3() ? new V1_20_3() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3 ? new V1_20_3() : new V1_20();
 
     private PlayerChatListener() {}
 
@@ -150,7 +150,7 @@ public final class PlayerChatListener {
             if (!Config.interceptPlayerChat()) return;
             FriendlyByteBuf buf = event.getBuffer();
             boolean changed = false;
-            int globalIndex = VersionHelper.isOrAbove1_21_5() ? buf.readVarInt() : -1;
+            int globalIndex = VersionHelper.isOrAbove1_21_5 ? buf.readVarInt() : -1;
             UUID sender = buf.readUUID();
             int index = buf.readVarInt();
             byte @Nullable [] messageSignature = buf.readNullable(b -> {
@@ -217,7 +217,7 @@ public final class PlayerChatListener {
                 event.setChanged(true);
                 buf.clear();
                 buf.writeVarInt(event.packetID());
-                if (VersionHelper.isOrAbove1_21_5()) buf.writeVarInt(globalIndex);
+                if (VersionHelper.isOrAbove1_21_5) buf.writeVarInt(globalIndex);
                 buf.writeUUID(sender);
                 buf.writeVarInt(index);
                 buf.writeNullable(messageSignature, (b, bs) -> buf.writeBytes(bs));
@@ -243,7 +243,7 @@ public final class PlayerChatListener {
     private static void convertToSystemChat(NetWorkUser user, ByteBufPacketEvent event) {
         event.setCancelled(true);
         FriendlyByteBuf buf = event.getBuffer();
-        /*globalIndex*/ if (VersionHelper.isOrAbove1_21_5()) buf.readVarInt();
+        /*globalIndex*/ if (VersionHelper.isOrAbove1_21_5) buf.readVarInt();
         UUID sender = buf.readUUID();
         /*index*/ buf.readVarInt();
         /*signature*/ buf.readNullable(it -> it.readFixedBytes(256));
@@ -261,7 +261,7 @@ public final class PlayerChatListener {
         /*filterMaskMask*/ if (filterMaskType == 2 /*PARTIALLY_FILTERED*/) buf.readBitSet();
         Object chatType; // 这里需要和注册表交互，太复杂了直接用 nms 解决
         ByteBuf nmsFriendlyByteBuf = PacketUtils.ensureNMSFriendlyByteBuf(buf);
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             chatType = StreamCodecProxy.INSTANCE.decode(ChatTypeProxy.BoundProxy.STREAM_CODEC, nmsFriendlyByteBuf);
         } else {
             chatType = ChatTypeProxy.BoundNetworkProxy.INSTANCE.resolve(

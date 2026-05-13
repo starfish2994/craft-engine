@@ -66,7 +66,7 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
         for (int i = property.min + 1; i <= property.max; i++) {
             Object blockPos = LocationUtils.toBlockPos(context.getClickedPos().relative(Direction.UP, i));
             Object voxelShape;
-            if (VersionHelper.isOrAbove1_21_6()) {
+            if (VersionHelper.isOrAbove1_21_6) {
                 voxelShape = CollisionContextProxy.INSTANCE.placementContext(player);
             } else if (player != null) {
                 voxelShape = CollisionContextProxy.INSTANCE.of(player);

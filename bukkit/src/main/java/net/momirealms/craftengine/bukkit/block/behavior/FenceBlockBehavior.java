@@ -43,7 +43,7 @@ import java.util.Optional;
 
 public final class FenceBlockBehavior extends BukkitBlockBehavior implements PathFindingBlock {
     public static final BlockBehaviorFactory<FenceBlockBehavior> FACTORY = new Factory();
-    public static final Object InteractionResult$SUCCESS_SERVER = VersionHelper.isOrAbove1_21_2() ? InteractionResultProxy.INSTANCE.getSuccessServer() : InteractionResultProxy.INSTANCE.getSuccess();
+    public static final Object InteractionResult$SUCCESS_SERVER = VersionHelper.isOrAbove1_21_2 ? InteractionResultProxy.INSTANCE.getSuccessServer() : InteractionResultProxy.INSTANCE.getSuccess();
     private static final Key DEFAULT_CONNECTABLE = Key.of("minecraft:wooden_fences");
     public final Property<Boolean> northProperty;
     public final Property<Boolean> eastProperty;

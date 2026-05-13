@@ -150,7 +150,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
 
     @Override
     public void delayedInit() {
-        if (!VersionHelper.isFolia()) {
+        if (!VersionHelper.isFolia) {
             if (this.syncTickTask == null || this.syncTickTask.cancelled())
                 this.syncTickTask = CraftEngine.instance().scheduler().sync().runRepeating(this::syncTick, 1, 1);
         }

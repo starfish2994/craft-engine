@@ -98,8 +98,8 @@ public final class BlockStateGenerator {
 
         constructor$CraftEngineBlockState = clazz$CraftEngineBlock.getSparrowConstructor(ConstructorMatcher.takeArguments(
                 BlockProxy.CLASS,
-                VersionHelper.isOrAbove26_1() ? PropertyProxy.CLASS.arrayType() : VersionHelper.isOrAbove1_20_5() ? Reference2ObjectArrayMap.class : ImmutableMap.class,
-                VersionHelper.isOrAbove26_1() ? Comparable.class.arrayType() : MapCodec.class
+                VersionHelper.isOrAbove26_1 ? PropertyProxy.CLASS.arrayType() : VersionHelper.isOrAbove1_20_5 ? Reference2ObjectArrayMap.class : ImmutableMap.class,
+                VersionHelper.isOrAbove26_1 ? Comparable.class.arrayType() : MapCodec.class
         )).asm$3();
 
         String generatedFactoryClassName = packageWithName.substring(0, packageWithName.lastIndexOf('.')) + ".CraftEngineStateFactory";
@@ -190,7 +190,7 @@ public final class BlockStateGenerator {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 return Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
                         k -> {
-                            if (VersionHelper.isOrAbove1_21_2()) {
+                            if (VersionHelper.isOrAbove1_21_2) {
                                 return PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues());
                             } else {
                                 Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
@@ -208,7 +208,7 @@ public final class BlockStateGenerator {
                             Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
                             List<?> possibleCEValues = ceProperty.possibleValues();
                             if (possibleMCValues.size() != possibleCEValues.size()) return false;
-                            if (VersionHelper.isOrAbove1_21_2()) {
+                            if (VersionHelper.isOrAbove1_21_2) {
                                 List<?> possibleMCValueList = (List<?>) possibleMCValues;
                                 for (int i = 0; i < possibleMCValues.size(); i++) {
                                     if (!possibleMCValueList.get(i).toString().equals(possibleCEValues.get(i).toString())) {
@@ -245,7 +245,7 @@ public final class BlockStateGenerator {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
                         k -> {
-                            if (VersionHelper.isOrAbove1_21_2()) {
+                            if (VersionHelper.isOrAbove1_21_2) {
                                 return PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues());
                             } else {
                                 Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
@@ -265,7 +265,7 @@ public final class BlockStateGenerator {
                             Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
                             List<?> possibleCEValues = ceProperty.possibleValues();
                             if (possibleMCValues.size() != possibleCEValues.size()) return false;
-                            if (VersionHelper.isOrAbove1_21_2()) {
+                            if (VersionHelper.isOrAbove1_21_2) {
                                 List<?> possibleMCValueList = (List<?>) possibleMCValues;
                                 for (int i = 0; i < possibleMCValues.size(); i++) {
                                     if (!possibleMCValueList.get(i).toString().equals(possibleCEValues.get(i).toString())) {
@@ -306,7 +306,7 @@ public final class BlockStateGenerator {
                 Pair<Property<?>, Object> propertyPair = Pair.of(ceProperty, mcProperty);
                 if (Boolean.TRUE.equals(COMPATIBLE_PROPERTIES.get(propertyPair,
                         k -> {
-                            if (VersionHelper.isOrAbove1_21_2()) {
+                            if (VersionHelper.isOrAbove1_21_2) {
                                 return PropertyProxy.INSTANCE.getPossibleValues(mcProperty).equals(ceProperty.possibleValues());
                             } else {
                                 Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
@@ -326,7 +326,7 @@ public final class BlockStateGenerator {
                             Collection<?> possibleMCValues = PropertyProxy.INSTANCE.getPossibleValues(mcProperty);
                             List<?> possibleCEValues = ceProperty.possibleValues();
                             if (possibleMCValues.size() != possibleCEValues.size()) return false;
-                            if (VersionHelper.isOrAbove1_21_2()) {
+                            if (VersionHelper.isOrAbove1_21_2) {
                                 List<?> possibleMCValueList = (List<?>) possibleMCValues;
                                 for (int i = 0; i < possibleMCValues.size(); i++) {
                                     if (!possibleMCValueList.get(i).toString().equals(possibleCEValues.get(i).toString())) {

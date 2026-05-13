@@ -549,9 +549,9 @@ public class BukkitServerPlayer extends Player {
     public void sendCustomPayload(Key channelId, byte[] data) {
         Object channelIdentifier = KeyUtils.toIdentifier(channelId);
         Object responsePacket;
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             Object dataPayload;
-            if (VersionHelper.isOrAbove1_20_5()) {
+            if (VersionHelper.isOrAbove1_20_5) {
                 dataPayload = DiscardedPayloadProxy.CONSTRUCTOR.newInstance(channelIdentifier, DiscardedPayloadProxy.PAPER_PATCH ? data : Unpooled.wrappedBuffer(data));
             } else {
                 dataPayload = ServerboundCustomPayloadPacketProxy.UnknownPayloadProxy.CONSTRUCTOR.newInstance(channelIdentifier, ServerboundCustomPayloadPacketProxy.UnknownPayloadProxy.PAPER_PATCH ? data : Unpooled.wrappedBuffer(data));
@@ -720,7 +720,7 @@ public class BukkitServerPlayer extends Player {
             org.bukkit.entity.Player player = platformPlayer();
             this.firstPersonCameraVec3 = this.eyeLocation;
             int distance = 4;
-            if (VersionHelper.isOrAbove1_21_6()) {
+            if (VersionHelper.isOrAbove1_21_6) {
                 Entity vehicle = player.getVehicle();
                 if (vehicle != null && vehicle.getType() == EntityType.HAPPY_GHAST) {
                     distance = 8;
@@ -798,7 +798,7 @@ public class BukkitServerPlayer extends Player {
     }
 
     private void updateGUI() {
-        org.bukkit.inventory.Inventory top = !VersionHelper.isOrAbove1_21() ? LegacyInventoryUtils.getTopInventory(platformPlayer()) : platformPlayer().getOpenInventory().getTopInventory();
+        org.bukkit.inventory.Inventory top = !VersionHelper.isOrAbove1_21 ? LegacyInventoryUtils.getTopInventory(platformPlayer()) : platformPlayer().getOpenInventory().getTopInventory();
         if (!InventoryUtils.isCustomContainer(top)) return;
         InventoryHolder topHolder = top.getHolder();
         if (topHolder instanceof CraftEngineGUIHolder holder) {
@@ -869,7 +869,7 @@ public class BukkitServerPlayer extends Player {
                     // 如果客户端觉得这个方块不能秒破，那么应该给客户端补发一个level event以正确渲染声音和粒子
                     // 客户端觉得不能秒破有两种情况：
                     // 1. 此时客户端觉得自己挖掘速度为0
-                    boolean attributeCannotBreak = VersionHelper.isOrAbove1_20_5() && !this.clientSideCanBreak;
+                    boolean attributeCannotBreak = VersionHelper.isOrAbove1_20_5 && !this.clientSideCanBreak;
                     // 2. 客户端侧的方块就是不能秒破
                     if (attributeCannotBreak || getDestroyProgress(vanillaBlockState.minecraftState(), pos) < 1f) {
                         Object levelEventPacket = ClientboundLevelEventPacketProxy.INSTANCE.newInstance(
@@ -880,7 +880,7 @@ public class BukkitServerPlayer extends Player {
             }
         } else {
             // 客户端此时觉得自己不能秒破，但实际可以秒破
-            if (canInstantBreak && VersionHelper.isOrAbove1_20_5() && !this.clientSideCanBreak) {
+            if (canInstantBreak && VersionHelper.isOrAbove1_20_5 && !this.clientSideCanBreak) {
                 Object levelEventPacket = ClientboundLevelEventPacketProxy.INSTANCE.newInstance(
                         WorldEvents.BLOCK_BREAK_EFFECT, LocationUtils.toBlockPos(pos), BlockStateUtils.blockStateToId(state), false);
                 sendPacket(levelEventPacket, false);
@@ -900,7 +900,7 @@ public class BukkitServerPlayer extends Player {
             }
             this.clientSideCanBreak = canBreak;
             if (canBreak) {
-                if (VersionHelper.isOrAbove1_20_5()) {
+                if (VersionHelper.isOrAbove1_20_5) {
                     Object serverPlayer = serverPlayer();
                     Object attributeInstance = LivingEntityProxy.INSTANCE.getAttribute(serverPlayer, AttributesProxy.BLOCK_BREAK_SPEED);
                     sendPacket(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId(), Lists.newArrayList(attributeInstance)), true);
@@ -909,8 +909,8 @@ public class BukkitServerPlayer extends Player {
                     resetEffect(MobEffectsProxy.HASTE);
                 }
             } else {
-                if (VersionHelper.isOrAbove1_20_5()) {
-                    Object attributeModifier = VersionHelper.isOrAbove1_21() ?
+                if (VersionHelper.isOrAbove1_20_5) {
+                    Object attributeModifier = VersionHelper.isOrAbove1_21 ?
                             AttributeModifierProxy.INSTANCE.newInstance(KeyUtils.toIdentifier(Key.CRAFTENGINE_NAMESPACE, "custom_hardness"), -9999d, AttributeModifierProxy.OperationProxy.ADD_VALUE) :
                             AttributeModifierProxy.INSTANCE.newInstance(UUID.randomUUID(), Key.CRAFTENGINE_NAMESPACE + ":custom_hardness", -9999d, AttributeModifierProxy.OperationProxy.ADD_VALUE);
                     Object attributeSnapshot = ClientboundUpdateAttributesPacketProxy.AttributeSnapshotProxy.INSTANCE.newInstance(AttributesProxy.BLOCK_BREAK_SPEED, 1d, Lists.newArrayList(attributeModifier));
@@ -1040,7 +1040,7 @@ public class BukkitServerPlayer extends Player {
                 // creative mode + invalid item in hand
                 if (canInstabuild() && (itemMaterial == Material.DEBUG_STICK
                         || itemMaterial == Material.TRIDENT
-                        || (VersionHelper.isOrAbove1_20_5() && itemMaterial == MaterialUtils.MACE)
+                        || (VersionHelper.isOrAbove1_20_5 && itemMaterial == MaterialUtils.MACE)
                         || item.hasItemTag(ItemTags.SWORDS))) {
                     return;
                 }
@@ -1127,7 +1127,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public double getCachedInteractionRange() {
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             if (this.lastUpdateInteractionRangeTick + 20 > gameTicks()) {
                 return this.cachedInteractionRange;
             }
@@ -1244,7 +1244,7 @@ public class BukkitServerPlayer extends Player {
         if (this.connection == null) {
             Object serverPlayer = serverPlayer();
             if (serverPlayer != null) {
-                if (VersionHelper.isOrAbove1_20_2()) {
+                if (VersionHelper.isOrAbove1_20_2) {
                     this.connection = ServerCommonPacketListenerImplProxy.INSTANCE.getConnection(ServerPlayerProxy.INSTANCE.getConnection(serverPlayer));
                 } else {
                     this.connection = ServerGamePacketListenerImplProxy.INSTANCE.getConnection(ServerPlayerProxy.INSTANCE.getConnection(serverPlayer));
@@ -1324,7 +1324,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void addResourcePackUUID(UUID uuid) {
-        if (VersionHelper.isOrAbove1_20_3()) {
+        if (VersionHelper.isOrAbove1_20_3) {
             this.resourcePackUUID.add(uuid);
         }
     }
@@ -1351,7 +1351,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void unloadCurrentResourcePack() {
-        if (!VersionHelper.isOrAbove1_20_3()) {
+        if (!VersionHelper.isOrAbove1_20_3) {
             return;
         }
         if (decoderState() == ConnectionState.PLAY && !this.resourcePackUUID.isEmpty()) {
@@ -1389,7 +1389,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public double luck() {
-        if (VersionHelper.isOrAbove1_21_3()) {
+        if (VersionHelper.isOrAbove1_21_3) {
             return Optional.ofNullable(platformPlayer().getAttribute(Attribute.LUCK)).map(AttributeInstance::getValue).orElse(1d);
         } else {
             return LegacyAttributeUtils.getLuck(platformPlayer());
@@ -1408,7 +1408,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public double maxHealth() {
-        if (VersionHelper.isOrAbove1_21()) {
+        if (VersionHelper.isOrAbove1_21) {
             return Objects.requireNonNull(platformPlayer().getAttribute(Attribute.MAX_HEALTH)).getValue();
         } else {
             return LegacyAttributeUtils.getMaxHealth(platformPlayer());
@@ -1783,14 +1783,14 @@ public class BukkitServerPlayer extends Player {
     @Override
     public void addResourcePackTasks(List<ResourcePackDownloadData> dataList) {
         if (dataList.isEmpty()) return;
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             ChannelHandler connection = connection();
             if (connection == null) return;
             Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(connection);
             if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return;
             Queue<Object> tasks = ServerConfigurationPacketListenerImplProxy.INSTANCE.getConfigurationTasks(packetListener);
             boolean removed = tasks.removeIf(JoinWorldTaskProxy.CLASS::isInstance);
-            if (VersionHelper.isOrAbove1_20_3()) {
+            if (VersionHelper.isOrAbove1_20_3) {
                 for (ResourcePackDownloadData data : dataList) {
                     tasks.add(ServerResourcePackConfigurationTaskProxy.INSTANCE.newInstance(ResourcePackUtils.createServerResourcePackInfo(data.uuid(), data.url(), data.sha1())));
                     addResourcePackUUID(data.uuid());
@@ -1810,7 +1810,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void setItemCooldown(Key id, int ticks) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             Object serverPlayer = serverPlayer();
             Object cooldowns = PlayerProxy.INSTANCE.getCooldowns(serverPlayer);
             ItemCooldownsProxy.INSTANCE.addCooldown(cooldowns, KeyUtils.toIdentifier(id), ticks);
@@ -1819,7 +1819,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public int getItemCooldown(Key id) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             Object serverPlayer = serverPlayer();
             Object cooldowns = PlayerProxy.INSTANCE.getCooldowns(serverPlayer);
             Map<Object, Object> instanceById = ItemCooldownsProxy.INSTANCE.getCooldowns(cooldowns);

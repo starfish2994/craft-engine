@@ -71,7 +71,7 @@ public final class ShulkerFurnitureHitbox extends AbstractFurnitureHitBox {
                     this.entityIds[1], (short) 0, ya, (short) 0, true
             ));
         }
-        if (VersionHelper.isOrAbove1_20_5() && config.scale() != 1) {
+        if (VersionHelper.isOrAbove1_20_5 && config.scale() != 1) {
             Object attributeIns = AttributeInstanceProxy.INSTANCE.newInstance$0(AttributesProxy.SCALE, $ -> {});
             AttributeInstanceProxy.INSTANCE.setBaseValue(attributeIns, config.scale());
             packets.add(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(this.entityIds[1], Collections.singletonList(attributeIns)));

@@ -180,17 +180,17 @@ public final class StringKeyConstructor extends StandardConstructor {
             char firstChar = versionSpec.charAt(0);
             if (firstChar == '>') {
                 int version = VersionHelper.parseVersionToInteger(versionSpec);
-                return versionSpec.charAt(1) == '=' ? VersionHelper.version() >= version : VersionHelper.version() > version;
+                return versionSpec.charAt(1) == '=' ? VersionHelper.version >= version : VersionHelper.version > version;
             } else if (firstChar == '<') {
                 int version = VersionHelper.parseVersionToInteger(versionSpec);
-                return versionSpec.charAt(1) == '=' ? VersionHelper.version() <= version : VersionHelper.version() < version;
+                return versionSpec.charAt(1) == '=' ? VersionHelper.version <= version : VersionHelper.version < version;
             } else {
-                return VersionHelper.parseVersionToInteger(versionSpec) == VersionHelper.version();
+                return VersionHelper.parseVersionToInteger(versionSpec) == VersionHelper.version;
             }
         } else {
             int min = VersionHelper.parseVersionToInteger(versionSpec.substring(0, index));
             int max = VersionHelper.parseVersionToInteger(versionSpec.substring(index + 1));
-            return VersionHelper.version() >= min && VersionHelper.version() <= max;
+            return VersionHelper.version >= min && VersionHelper.version <= max;
         }
     }
 

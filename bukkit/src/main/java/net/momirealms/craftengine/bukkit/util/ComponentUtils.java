@@ -12,7 +12,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentSerializationProxy;
 
 public final class ComponentUtils {
-    public static final Codec<Object> ComponentSerialization$CODEC = VersionHelper.isOrAbove1_20_3() ? ComponentSerializationProxy.INSTANCE.getCodec() : null;
+    public static final Codec<Object> ComponentSerialization$CODEC = VersionHelper.isOrAbove1_20_3 ? ComponentSerializationProxy.INSTANCE.getCodec() : null;
 
     private ComponentUtils() {}
 
@@ -25,10 +25,10 @@ public final class ComponentUtils {
     }
 
     public static Object jsonElementToMinecraft(JsonElement json) {
-        if (VersionHelper.isOrAbove1_21_6()) {
+        if (VersionHelper.isOrAbove1_21_6) {
             if (json == null) return null;
             return ComponentSerialization$CODEC.parse(RegistryOps.JSON, json).getOrThrow(JsonParseException::new);
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             return ComponentProxy.SerializerProxy.INSTANCE.fromJson(json, RegistryUtils.getRegistryAccess());
         } else {
             return ComponentProxy.SerializerProxy.INSTANCE.fromJson(json);
@@ -36,10 +36,10 @@ public final class ComponentUtils {
     }
 
     public static Object jsonToMinecraft(String json) {
-        if (VersionHelper.isOrAbove1_21_6()) {
+        if (VersionHelper.isOrAbove1_21_6) {
             JsonElement jsonElement = GsonHelper.get().fromJson(json, JsonElement.class);
             return ComponentSerialization$CODEC.parse(RegistryOps.JSON, jsonElement).getOrThrow(JsonParseException::new);
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             return ComponentProxy.SerializerProxy.INSTANCE.fromJson(json, RegistryUtils.getRegistryAccess());
         } else {
             return ComponentProxy.SerializerProxy.INSTANCE.fromJson(json);
@@ -47,10 +47,10 @@ public final class ComponentUtils {
     }
 
     public static String minecraftToJson(Object component) {
-        if (VersionHelper.isOrAbove1_21_6()) {
+        if (VersionHelper.isOrAbove1_21_6) {
             JsonElement jsonElement = ComponentSerialization$CODEC.encodeStart(RegistryOps.JSON, component).getOrThrow(JsonParseException::new);
             return GsonHelper.get().toJson(jsonElement);
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             return ComponentProxy.SerializerProxy.INSTANCE.toJson(component, RegistryUtils.getRegistryAccess());
         } else {
             return ComponentProxy.SerializerProxy.INSTANCE.toJson(component);

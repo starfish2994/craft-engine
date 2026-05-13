@@ -41,7 +41,7 @@ public final class DataComponentTypes {
     private DataComponentTypes() {}
 
     public static Object byId(Key key) {
-        if (!VersionHelper.isOrAbove1_20_5()) return null;
+        if (!VersionHelper.isOrAbove1_20_5) return null;
         return RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.DATA_COMPONENT_TYPE, KeyUtils.toIdentifier(key));
     }
 }

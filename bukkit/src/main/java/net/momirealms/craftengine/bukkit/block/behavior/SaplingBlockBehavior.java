@@ -136,7 +136,7 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
-            if (VersionHelper.isOrAbove1_20_2()) {
+            if (VersionHelper.isOrAbove1_20_2) {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, level, blockPos, visualState);
             } else {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, level, blockPos, visualState, true);
@@ -185,7 +185,7 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
-            if (VersionHelper.isOrAbove1_20_2()) {
+            if (VersionHelper.isOrAbove1_20_2) {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState);
             } else {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState, true);

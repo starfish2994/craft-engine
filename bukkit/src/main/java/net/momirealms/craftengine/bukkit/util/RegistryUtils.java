@@ -32,7 +32,7 @@ public final class RegistryUtils {
     }
 
     public static Object getRegistryValue(Object registry, Object id) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             return RegistryProxy.INSTANCE.getValue(registry, id);
         } else {
             return RegistryProxy.INSTANCE.get$2(registry, id);
@@ -46,7 +46,7 @@ public final class RegistryUtils {
 
     @Nullable
     public static Object getHolder(Object registry, Object resourceKey) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             return RegistryProxy.INSTANCE.get$1(registry, resourceKey).orElse(null);
         } else {
             return RegistryProxy.INSTANCE.getHolder$1(registry, resourceKey).orElse(null);
@@ -55,9 +55,9 @@ public final class RegistryUtils {
 
     @Nullable
     public static Object getHolderById(Object registry, Object id) {
-        if (VersionHelper.isOrAbove1_21_2()) {
+        if (VersionHelper.isOrAbove1_21_2) {
             return RegistryProxy.INSTANCE.get$0(registry, id).orElse(null);
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             return RegistryProxy.INSTANCE.getHolder$0(registry, id).orElse(null);
         } else {
             throw new UnsupportedOperationException();

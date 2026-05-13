@@ -48,6 +48,6 @@ public final class SetItemItemModelCommand extends BukkitCommandFeature<CommandS
 
     @Override
     public boolean isAvailable() {
-        return VersionHelper.isOrAbove1_21_2();
+        return VersionHelper.isOrAbove1_21_2;
     }
 }

@@ -37,7 +37,7 @@ public final class PlayerInfoUpdateListener implements ByteBufferPacketListener 
             ByteBuf nmsFriendlyByteBuf = PacketUtils.ensureNMSFriendlyByteBuf(it);
             for (Object action : actions) {
                 Object reader = ClientboundPlayerInfoUpdatePacketProxy.ActionProxy.INSTANCE.getReader(action);
-                if (VersionHelper.isOrAbove1_20_5()) {
+                if (VersionHelper.isOrAbove1_20_5) {
                     ClientboundPlayerInfoUpdatePacketProxy.ActionProxy.ReaderProxy.INSTANCE.read$1(reader, builder, nmsFriendlyByteBuf);
                 } else {
                     ClientboundPlayerInfoUpdatePacketProxy.ActionProxy.ReaderProxy.INSTANCE.read$0(reader, builder, nmsFriendlyByteBuf);
@@ -68,7 +68,7 @@ public final class PlayerInfoUpdateListener implements ByteBufferPacketListener 
                 ByteBuf nmsFriendlyByteBuf = PacketUtils.ensureNMSFriendlyByteBuf(it);
                 for (Object action : actions) {
                     Object writer = ClientboundPlayerInfoUpdatePacketProxy.ActionProxy.INSTANCE.getWriter(action);
-                    if (VersionHelper.isOrAbove1_20_5()) {
+                    if (VersionHelper.isOrAbove1_20_5) {
                         ClientboundPlayerInfoUpdatePacketProxy.ActionProxy.WriterProxy.INSTANCE.write$1(writer, nmsFriendlyByteBuf, entry);
                     } else {
                         ClientboundPlayerInfoUpdatePacketProxy.ActionProxy.WriterProxy.INSTANCE.write$0(writer, nmsFriendlyByteBuf, entry);

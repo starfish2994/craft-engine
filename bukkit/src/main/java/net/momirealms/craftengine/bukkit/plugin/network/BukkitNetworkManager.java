@@ -134,7 +134,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         // register packet handlers
         this.registerPacketListeners();
         // set up packet senders
-        this.packetConsumer = VersionHelper.isOrAbove1_21_6()
+        this.packetConsumer = VersionHelper.isOrAbove1_21_6
                 ? (target, packet, sendListener) -> ConnectionProxy.INSTANCE.send$0(target, packet, (ChannelFutureListener) sendListener)
                 : ConnectionProxy.INSTANCE::send$1;
         this.packetsConsumer = (connection, packets, sendListener) -> {
@@ -169,7 +169,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             ServerConnectionListenerProxy.INSTANCE.setChannels(serverConnection, monitor);
         }
         // Inject Leaves bot list
-        if (VersionHelper.isLeaves()) {
+        if (VersionHelper.isLeaves) {
             this.injectLeavesBotList();
         }
     }
@@ -492,7 +492,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             this.onlineUsers.put(player.getUniqueId(), user);
             this.resetUserArray();
             // folia在此tick每个玩家
-            if (VersionHelper.isFolia()) {
+            if (VersionHelper.isFolia) {
                 player.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> user.tick(),
                         () -> {
                         }, 1, 1);
@@ -591,7 +591,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     @NotNull
     public Channel getChannel(Player player) {
         SimpleChannelInboundHandler<Object> connection;
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             connection = ServerCommonPacketListenerImplProxy.INSTANCE.getConnection(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)));
         } else {
             connection = ServerGamePacketListenerImplProxy.INSTANCE.getConnection(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)));
@@ -605,7 +605,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         if (immediately) {
             this.immediatePacketConsumer.accept(player.nettyChannel(), packet, sendListener);
         } else {
-            if (VersionHelper.isOrAbove1_21_6()) {
+            if (VersionHelper.isOrAbove1_21_6) {
                 this.packetConsumer.accept(player.connection(), packet, sendListener != null ? (ChannelFutureListener) $ -> sendListener.run() : null);
             } else {
                 this.packetConsumer.accept(player.connection(), packet, sendListener != null ? PacketSendListenerProxy.INSTANCE.thenRun(sendListener) : null);
@@ -619,7 +619,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         if (immediately) {
             this.immediatePacketsConsumer.accept(player.nettyChannel(), packet, sendListener);
         } else {
-            if (VersionHelper.isOrAbove1_21_6()) {
+            if (VersionHelper.isOrAbove1_21_6) {
                 this.packetsConsumer.accept(player.connection(), packet, sendListener != null ? (ChannelFutureListener) $ -> sendListener.run() : null);
             } else {
                 this.packetsConsumer.accept(player.connection(), packet, sendListener != null ? PacketSendListenerProxy.INSTANCE.thenRun(sendListener) : null);

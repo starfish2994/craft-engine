@@ -13,7 +13,7 @@ public final class BukkitSchedulerAdapter extends AbstractJavaScheduler<World> {
 
     public BukkitSchedulerAdapter(BukkitCraftEngine plugin) {
         super(plugin);
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.isFolia) {
             this.sync = new FoliaExecutor(plugin);
         } else {
             this.sync = new BukkitExecutor(plugin);

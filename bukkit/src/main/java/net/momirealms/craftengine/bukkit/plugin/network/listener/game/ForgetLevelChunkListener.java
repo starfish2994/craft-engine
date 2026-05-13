@@ -21,7 +21,7 @@ public final class ForgetLevelChunkListener implements ByteBufferPacketListener 
         BukkitServerPlayer player = (BukkitServerPlayer) user;
         FriendlyByteBuf buf = event.getBuffer();
         CEWorld ceWorld = BukkitWorldManager.instance().getWorld(player.world().uuid());
-        if (VersionHelper.isOrAbove1_20_2()) {
+        if (VersionHelper.isOrAbove1_20_2) {
             long chunkPos = buf.readLong();
             user.removeTrackedChunk(chunkPos);
             CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkPos);

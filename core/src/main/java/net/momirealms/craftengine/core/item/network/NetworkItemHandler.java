@@ -53,7 +53,7 @@ public interface NetworkItemHandler {
         Operation(int id, TriConsumer<Item, String, Tag> componentConsumer, TriConsumer<Item, String, Tag> nbtConsumer) {
             this.id = id;
             this.tag = new ByteTag((byte) id);
-            this.consumer = VersionHelper.isOrAbove1_20_5() ? componentConsumer : nbtConsumer;
+            this.consumer = VersionHelper.isOrAbove1_20_5 ? componentConsumer : nbtConsumer;
         }
 
         public int id() {

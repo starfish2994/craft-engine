@@ -59,7 +59,7 @@ public final class ComponentItemType implements ItemType {
     }
 
     private <T> T getDefaultComponentInternal(Object type) {
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             return DataComponentGetterProxy.INSTANCE.get(ItemProxy.INSTANCE.components(this.item), type);
         } else {
             return DataComponentMapProxy.INSTANCE.get(ItemProxy.INSTANCE.components(this.item), type);

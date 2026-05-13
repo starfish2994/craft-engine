@@ -13,7 +13,7 @@ public interface LegacyRecipeHolder {
     LegacyRecipe recipe();
 
     static LegacyRecipeHolder read(FriendlyByteBuf buf, FriendlyByteBuf.Reader<Item> reader) {
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             return ModernRecipeHolderImpl.read(buf, reader);
         } else {
             return LegacyRecipeHolderImpl.read(buf, reader);

@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.core.entity.furniture.tick.TickingFurnitureImpl;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -26,11 +27,13 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.EntityLookupProxy;
 import net.momirealms.craftengine.proxy.paper.world.ChunkEntitySlicesProxy;
+import net.momirealms.craftengine.proxy.spottedleaf.moonrise.common.util.TickThreadProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.*;
 import org.bukkit.entity.*;
@@ -115,7 +118,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         Bukkit.getPluginManager().registerEvents(this.furnitureEventListener, this.plugin.javaPlugin());
 
         // 对世界上已有实体的记录
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.isFolia) {
             BiConsumer<Entity, Runnable> taskExecutor = (entity, runnable) -> entity.getScheduler().run(this.plugin.javaPlugin(), (t) -> runnable.run(), () -> {});
             for (World world : Bukkit.getWorlds()) {
                 List<Entity> entities = world.getEntities();
@@ -260,7 +263,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         if (optionalFurniture.isEmpty()) return;
 
         // 只对1.20.2及以上生效，1.20.1比较特殊
-        if (!VersionHelper.isOrAbove1_20_2()) {
+        if (!VersionHelper.isOrAbove1_20_2) {
             return;
         }
 
@@ -289,7 +292,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
         // 这个区块还处于加载实体中，这个时候不处理（1.20.1需要特殊处理）
         Location location = entity.getLocation();
-        if (VersionHelper.isOrAbove1_20_2() && !isEntitiesLoaded(location)) {
+        if (VersionHelper.isOrAbove1_20_2 && !isEntitiesLoaded(location)) {
             return;
         }
 
@@ -392,7 +395,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             if (ticker != null) {
                 TickingFurnitureImpl<FurnitureController> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.syncTickers.put(entityId, tickingFurniture);
-                if (VersionHelper.isFolia()) {
+                if (VersionHelper.isFolia) {
                     furniture.bukkitEntity().getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> {
                         if (tickingFurniture.isValid()) {
                             tickingFurniture.tick();
@@ -422,6 +425,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             this.byInteractableEntityId.remove(id);
         }
         for (Collider collisionEntity : furniture.colliders()) {
+            tryRemoveCollider(collisionEntity);
             this.byColliderEntityId.remove(collisionEntity.entityId());
         }
         for (FurnitureElement element : furniture.elements()) {
@@ -429,10 +433,43 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         }
     }
 
+    private void tryRemoveCollider(Collider collider) {
+        Object entity = collider.handle();
+        Object level = EntityProxy.INSTANCE.getLevel(entity);
+        Object entityLookup;
+        if (VersionHelper.isOrAbove1_21) {
+            entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(level);
+        } else {
+            entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(level);
+        }
+        if (!EntityLookupProxy.INSTANCE.canRemoveEntity(entityLookup, entity)) return;
+        if (VersionHelper.isFolia) {
+            if (TickThreadProxy.INSTANCE.isTickThreadFor(entity)) {
+                try {
+                    collider.destroy();
+                    return;
+                } catch (Throwable e) {
+                    Debugger.FURNITURE.warn(() -> "Failed to remove collider from world", e);
+                }
+            }
+            Entity bukkitEntity = EntityProxy.INSTANCE.getBukkitEntity(entity);
+            Debugger.FURNITURE.warnWithStack(() -> {
+                BukkitFurniture furniture = this.byColliderEntityId.get(collider.entityId());
+                Key id = furniture != null ? furniture.config.id() : null;
+                Location furnitureLocation = furniture != null ? furniture.location() : null;
+                Location colliderLocation = bukkitEntity.getLocation();
+                return "furniture " + id + " at " + furnitureLocation + " and collider at " + colliderLocation + " are not on the same tick thread";
+            });
+            bukkitEntity.getScheduler().run(this.plugin.javaPlugin(), t -> collider.destroy(), null);
+            return;
+        }
+        collider.destroy();
+    }
+
     private void runSafeEntityOperation(Location location, Runnable action) {
         Object world = CraftWorldProxy.INSTANCE.getWorld(location.getWorld());
         Object entityLookup;
-        if (VersionHelper.isOrAbove1_21()) {
+        if (VersionHelper.isOrAbove1_21) {
             entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(world);
         } else {
             entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(world);

@@ -21,12 +21,12 @@ public class BukkitBlockBehavior extends BlockBehavior {
         super(blockDefinition);
     }
 
-    protected static final int updateShape$level = VersionHelper.isOrAbove1_21_2() ? 1 : 3;
-    protected static final int updateShape$blockPos = VersionHelper.isOrAbove1_21_2() ? 3 : 4;
-    protected static final int updateShape$neighborState = VersionHelper.isOrAbove1_21_2() ? 6 : 2;
-    protected static final int updateShape$direction = VersionHelper.isOrAbove1_21_2() ? 4 : 1;
+    protected static final int updateShape$level = VersionHelper.isOrAbove1_21_2 ? 1 : 3;
+    protected static final int updateShape$blockPos = VersionHelper.isOrAbove1_21_2 ? 3 : 4;
+    protected static final int updateShape$neighborState = VersionHelper.isOrAbove1_21_2 ? 6 : 2;
+    protected static final int updateShape$direction = VersionHelper.isOrAbove1_21_2 ? 4 : 1;
 
-    protected static final int isPathFindable$type = VersionHelper.isOrAbove1_20_5() ? 1 : 3;
+    protected static final int isPathFindable$type = VersionHelper.isOrAbove1_20_5 ? 1 : 3;
 
     @Override
     public boolean isPathFindable(Object thisBlock, Object[] args) {
@@ -34,7 +34,7 @@ public class BukkitBlockBehavior extends BlockBehavior {
         if (optionalCustomState.isEmpty()) return false;
         BlockStateWrapper vanillaState = optionalCustomState.get().visualBlockState();
         if (vanillaState == null) return false;
-        if (VersionHelper.isOrAbove1_20_5()) {
+        if (VersionHelper.isOrAbove1_20_5) {
             return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPathfindable(vanillaState.minecraftState(), args[isPathFindable$type]);
         } else {
             return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.isPathfindable(vanillaState.minecraftState(), args[1], args[2], args[isPathFindable$type]);
@@ -44,7 +44,7 @@ public class BukkitBlockBehavior extends BlockBehavior {
     @Override
     public void fallOn(Object thisBlock, Object[] args) {
         Object sources = EntityProxy.INSTANCE.damageSources(args[3]);
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             EntityProxy.INSTANCE.causeFallDamage(args[3], (double) args[4], 1.0f, DamageSourcesProxy.INSTANCE.fall(sources));
         } else {
             EntityProxy.INSTANCE.causeFallDamage(args[3], (float) args[4], 1.0f, DamageSourcesProxy.INSTANCE.fall(sources));
@@ -60,7 +60,7 @@ public class BukkitBlockBehavior extends BlockBehavior {
 
     @Override
     public void affectNeighborsAfterRemoval(Object thisBlock, Object[] args) {
-        if (!VersionHelper.isOrAbove1_21_5()) {
+        if (!VersionHelper.isOrAbove1_21_5) {
             if (BlockStateProxy.INSTANCE.hasBlockEntity(args[0]) && !BlockStateProxy.INSTANCE.is$0(args[0], BlockStateProxy.INSTANCE.getBlock(args[3]))) {
                 LevelProxy.INSTANCE.removeBlockEntity(args[1], args[2]);
             }

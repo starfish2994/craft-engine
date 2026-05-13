@@ -63,7 +63,7 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior implements Bon
 
     @Override
     public boolean isBonemealSuccess(Object thisBlock, Object[] args) {
-        if (!VersionHelper.isOrAbove1_20_2()) return true;
+        if (!VersionHelper.isOrAbove1_20_2) return true;
         Object level = args[0];
         Object blockPos = args[2];
         Object blockState = args[3];
@@ -115,7 +115,7 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior implements Bon
         Object visualStateBlock = BlockStateUtils.getBlockOwner(visualState);
         if (BonemealableBlockProxy.CLASS.isInstance(visualStateBlock)) {
             boolean is;
-            if (VersionHelper.isOrAbove1_20_2()) {
+            if (VersionHelper.isOrAbove1_20_2) {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState);
             } else {
                 is = BonemealableBlockProxy.INSTANCE.isValidBonemealTarget(visualStateBlock, world.minecraftWorld(), LocationUtils.toBlockPos(pos), visualState, true);

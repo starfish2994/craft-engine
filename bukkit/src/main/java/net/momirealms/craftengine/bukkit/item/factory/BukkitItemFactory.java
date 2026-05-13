@@ -32,17 +32,17 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
 
     public static BukkitItemFactory<? extends BukkitItemWrapper> create(CraftEngine plugin) {
         Objects.requireNonNull(plugin, "plugin");
-        if (VersionHelper.isOrAbove1_21_5()) {
+        if (VersionHelper.isOrAbove1_21_5) {
             return new ComponentItemFactory1_21_5(plugin);
-        } else if (VersionHelper.isOrAbove1_21_4()) {
+        } else if (VersionHelper.isOrAbove1_21_4) {
             return new ComponentItemFactory1_21_4(plugin);
-        } else if (VersionHelper.isOrAbove1_21_2()) {
+        } else if (VersionHelper.isOrAbove1_21_2) {
             return new ComponentItemFactory1_21_2(plugin);
-        } else if (VersionHelper.isOrAbove1_21()) {
+        } else if (VersionHelper.isOrAbove1_21) {
             return new ComponentItemFactory1_21(plugin);
-        } else if (VersionHelper.isOrAbove1_20_5()) {
+        } else if (VersionHelper.isOrAbove1_20_5) {
             return new ComponentItemFactory1_20_5(plugin);
-        } else if (VersionHelper.isOrAbove1_20()) {
+        } else if (VersionHelper.isOrAbove1_20) {
             return new UniversalItemFactory(plugin);
         }
         throw new IllegalStateException("Unsupported server version: " + VersionHelper.MINECRAFT_VERSION.version());
