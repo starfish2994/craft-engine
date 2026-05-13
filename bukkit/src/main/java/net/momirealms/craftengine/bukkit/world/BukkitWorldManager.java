@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -593,6 +594,13 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunkX, chunkZ);
         } else {
             levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
+        }
+        if (levelChunk == null) {
+            Debugger.CHUNK.warnLazy(() -> "Unable to retrieve LevelChunk from the loaded chunk " +
+                            "[ServerLevel=" + worldServer + ", X=" + chunkX + ", Z=" + chunkZ + "]. " +
+                            "This is " + (VersionHelper.isFolia ? "" : "not") + " a Folia server",
+                    Throwable::new);
+            return; // fixme idk why
         }
         BukkitChunkAccess bukkitChunkAccess = new BukkitChunkAccess(levelChunk);
 

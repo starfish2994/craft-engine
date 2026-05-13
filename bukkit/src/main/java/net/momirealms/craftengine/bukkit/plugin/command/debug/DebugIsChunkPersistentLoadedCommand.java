@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.sender.Sender;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Chunk;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -24,7 +25,11 @@ public final class DebugIsChunkPersistentLoadedCommand extends BukkitCommandFeat
                     Player player = context.sender();
                     Chunk chunk = player.getChunk();
                     Sender sender = plugin().senderFactory().wrap(player);
-                    sender.sendMessage(Component.text(chunk.isForceLoaded()));
+                    if (VersionHelper.isFolia) {
+                        plugin().scheduler().sync().run(() -> sender.sendMessage(Component.text(chunk.isForceLoaded())), chunk.getWorld(), chunk.getX(), chunk.getZ());
+                    } else {
+                        sender.sendMessage(Component.text(chunk.isForceLoaded()));
+                    }
                 });
     }
 

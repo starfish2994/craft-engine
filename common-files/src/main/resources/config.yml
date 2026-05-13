@@ -698,5 +698,6 @@ debug:
   resource-pack: false
   block: false
   entity-culling: false
+  chunk: false
   packet: false
   ignored-packets: []

@@ -64,6 +64,7 @@ public final class Config {
     private boolean debug$resource_pack;
     private boolean debug$block;
     private boolean debug$entity_culling;
+    private boolean debug$chunk;
     private Set<String> debug$ignored_packets;
 
     private boolean resource_pack$remove_tinted_leaves_particle;
@@ -367,6 +368,7 @@ public final class Config {
         this.debug$resource_pack = config.getBoolean("debug.resource-pack", false);
         this.debug$block = config.getBoolean("debug.block", false);
         this.debug$entity_culling = config.getBoolean("debug.entity-culling", false);
+        this.debug$chunk = config.getBoolean("debug.chunk", false);
         this.debug$ignored_packets = new HashSet<>(config.getStringList("debug.ignored-packets"));
 
         // resource pack
@@ -779,6 +781,10 @@ public final class Config {
 
     public static boolean debugFurniture() {
         return instance.debug$furniture;
+    }
+
+    public static boolean debugChunk() {
+        return instance.debug$chunk;
     }
 
     public static boolean debugResourcePack() {
