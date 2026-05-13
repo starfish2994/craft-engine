@@ -16,21 +16,25 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.core.entity.furniture.tick.TickingFurnitureImpl;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.CEWorld;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.EntityLookupProxy;
 import net.momirealms.craftengine.proxy.paper.world.ChunkEntitySlicesProxy;
+import net.momirealms.craftengine.proxy.spottedleaf.moonrise.common.util.TickThreadProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.*;
 import org.bukkit.entity.*;
@@ -422,12 +426,45 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             this.byInteractableEntityId.remove(id);
         }
         for (Collider collisionEntity : furniture.colliders()) {
-            collisionEntity.destroy();
+            tryRemoveCollider(collisionEntity);
             this.byColliderEntityId.remove(collisionEntity.entityId());
         }
         for (FurnitureElement element : furniture.elements()) {
             element.deactivate();
         }
+    }
+
+    private void tryRemoveCollider(Collider collider) {
+        Object entity = collider.handle();
+        Object level = EntityProxy.INSTANCE.getLevel(entity);
+        Object entityLookup;
+        if (VersionHelper.isOrAbove1_21) {
+            entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(level);
+        } else {
+            entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(level);
+        }
+        if (!EntityLookupProxy.INSTANCE.canRemoveEntity(entityLookup, entity)) return;
+        if (VersionHelper.isFolia) {
+            if (TickThreadProxy.INSTANCE.isTickThreadFor(entity)) {
+                try {
+                    collider.destroy();
+                    return;
+                } catch (Throwable e) {
+                    Debugger.FURNITURE.warn(() -> "Failed to remove collider from world", e);
+                }
+            }
+            Entity bukkitEntity = EntityProxy.INSTANCE.getBukkitEntity(entity);
+            Debugger.FURNITURE.warnLazy(() -> {
+                BukkitFurniture furniture = this.byColliderEntityId.get(collider.entityId());
+                Key id = furniture != null ? furniture.config.id() : null;
+                Vec3d furnitureLocation = furniture != null ? furniture.position().toVec3d() : null;
+                Vec3d colliderLocation = LocationUtils.toVec3d(bukkitEntity.getLocation());
+                return "furniture " + id + " at " + furnitureLocation + " and collider at " + colliderLocation + " are not on the same tick thread";
+            }, Throwable::new);
+            bukkitEntity.getScheduler().run(this.plugin.javaPlugin(), t -> collider.destroy(), null);
+            return;
+        }
+        collider.destroy();
     }
 
     private void runSafeEntityOperation(Location location, Runnable action) {
