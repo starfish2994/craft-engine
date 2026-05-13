@@ -48,9 +48,6 @@ public final class FurnitureEventListener implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntitiesLoadEarly(EntitiesLoadEvent event) {
-        if (!event.getChunk().isLoaded()) {
-            return;
-        }
         List<Entity> entities = event.getEntities();
         for (int i = 0, size = entities.size(); i < size; i++) {
             Entity entity = entities.get(i);
