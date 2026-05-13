@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
         permits LoreProcessor.EmptyLoreProcessor, LoreProcessor.CompositeLoreProcessor, LoreProcessor.DoubleLoreProcessor, LoreProcessor.SingleLoreProcessor {
     ItemProcessorFactory<LoreProcessor> FACTORY = new LoreFactory();
+    Object[] NBT_PATH = new Object[]{"display", "Lore"};
 
     @Override
     @Nullable

@@ -101,7 +101,7 @@ public final class InsertLoreProcessor implements SimpleNetworkItemProcessor {
 
     @Override
     public Object[] nbtPath(Item item, ItemBuildContext context) {
-        return new Object[]{"display", "Lore"};
+        return LoreProcessor.NBT_PATH;
     }
 
     @Override
