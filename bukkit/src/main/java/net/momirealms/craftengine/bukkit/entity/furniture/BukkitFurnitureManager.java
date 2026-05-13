@@ -336,7 +336,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         }
 
         // 移除被WorldEdit错误复制的碰撞实体
-        runSafeEntityOperation(location, entity::remove);
+        runSafeEntityOperation(location.getChunk(), entity::remove);
     }
 
     public void handleCollisionEntityDuringChunkLoad(Entity collisionEntity) {
@@ -371,7 +371,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         BukkitFurniture bukkitFurniture = new BukkitFurniture(display, furniture, getFurnitureDataAccessor(display));
         initFurniture(bukkitFurniture);
         Location location = display.getLocation();
-        runSafeEntityOperation(location, () -> {
+        runSafeEntityOperation(location.getChunk(), () -> {
             bukkitFurniture.addCollidersToWorld();
             for (FurnitureElement element : bukkitFurniture.elements()) {
                 element.activate();
@@ -466,18 +466,19 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         collider.destroy();
     }
 
-    private void runSafeEntityOperation(Location location, Runnable action) {
-        Object world = CraftWorldProxy.INSTANCE.getWorld(location.getWorld());
+    private void runSafeEntityOperation(Chunk chunk, Runnable action) {
+        if (!chunk.isLoaded()) return;
+        Object world = CraftWorldProxy.INSTANCE.getWorld(chunk.getWorld());
         Object entityLookup;
         if (VersionHelper.isOrAbove1_21) {
             entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(world);
         } else {
             entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(world);
         }
-        Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, chunk.getX(), chunk.getZ());
         boolean preventChange = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
         if (preventChange) {
-            this.plugin.scheduler().sync().runLater(action, 1, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+            this.plugin.scheduler().sync().runLater(action, 1, chunk.getWorld(), chunk.getX(), chunk.getZ());
         } else {
             action.run();
         }

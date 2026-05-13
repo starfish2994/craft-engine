@@ -208,6 +208,10 @@ public final class InteractListener {
                 return;
             }
 
+            if (!furniture.isValid()) {
+                return;
+            }
+
             // 执行家具行为
             InteractEntityContext interactEntityContext = new InteractEntityContext(serverPlayer, hand, hitResult);
             InteractionResult result = furniture.controller.useOnFurniture(hitBox, interactEntityContext);

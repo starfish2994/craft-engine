@@ -1,12 +1,14 @@
 package net.momirealms.craftengine.bukkit.plugin.injector;
 
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.MapCodec;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.ClassFileVersion;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
+import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -24,6 +26,7 @@ import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderLookupProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.RegistryAccessProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamCodecProxy;
 import net.momirealms.craftengine.proxy.minecraft.resources.IdentifierProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.ContainerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.CraftingContainerProxy;
@@ -36,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -72,16 +76,33 @@ public final class RecipeInjector {
                 ElementMatchers.takesArguments(CraftingContainerProxy.CLASS, RegistryAccessProxy.CLASS)
         ).and(ElementMatchers.returns(ItemStackProxy.CLASS));
 
-        Class<?> clazz$InjectedRepairItemRecipe = byteBuddy
-                .subclass(RepairItemRecipeProxy.CLASS, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING)
-                .name("net.momirealms.craftengine.bukkit.item.recipe.RepairItemRecipe")
-                // 只修改match逻辑，合并需要在事件里处理，否则无法应用变量
-                .method(matches)
-                .intercept(MethodDelegation.to(RepairMatchesInterceptor.INSTANCE))
-                .make()
-                .load(RecipeInjector.class.getClassLoader())
-                .getLoaded();
-        REPAIR_ITEM_RECIPE = createSpecialRecipe(REPAIR_ITEM, clazz$InjectedRepairItemRecipe);
+        if (VersionHelper.isOrAbove26_1) {
+            Class<?> clazz$InjectedRepairItemRecipe = byteBuddy
+                    .subclass(RepairItemRecipeProxy.CLASS, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING)
+                    .name("net.momirealms.craftengine.bukkit.item.recipe.RepairItemRecipe")
+                    .defineField("serializer", RecipeSerializerProxy.CLASS, Modifier.PUBLIC)
+                    .method(matches)
+                    .intercept(MethodDelegation.to(RepairMatchesInterceptor.INSTANCE))
+                    .method(ElementMatchers.named("getSerializer"))
+                    .intercept(FieldAccessor.ofField("serializer"))
+                    .make()
+                    .load(RecipeInjector.class.getClassLoader())
+                    .getLoaded();
+            REPAIR_ITEM_RECIPE = createSpecialRecipe(REPAIR_ITEM, clazz$InjectedRepairItemRecipe);
+            clazz$InjectedRepairItemRecipe.getField("serializer")
+                    .set(REPAIR_ITEM_RECIPE, RecipeSerializerProxy.INSTANCE.newInstance(MapCodec.unit(REPAIR_ITEM_RECIPE), StreamCodecProxy.INSTANCE.unit(REPAIR_ITEM_RECIPE)));
+        } else {
+            Class<?> clazz$InjectedRepairItemRecipe = byteBuddy
+                    .subclass(RepairItemRecipeProxy.CLASS, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING)
+                    .name("net.momirealms.craftengine.bukkit.item.recipe.RepairItemRecipe")
+                    // 只修改match逻辑，合并需要在事件里处理，否则无法应用变量
+                    .method(matches)
+                    .intercept(MethodDelegation.to(RepairMatchesInterceptor.INSTANCE))
+                    .make()
+                    .load(RecipeInjector.class.getClassLoader())
+                    .getLoaded();
+            REPAIR_ITEM_RECIPE = createSpecialRecipe(REPAIR_ITEM, clazz$InjectedRepairItemRecipe);
+        }
 
         // 26.1 以上的染色配方直接注册，无需特殊配方
         if (!VersionHelper.isOrAbove26_1) {
