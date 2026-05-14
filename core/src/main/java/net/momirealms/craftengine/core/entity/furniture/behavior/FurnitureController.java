@@ -136,7 +136,7 @@ public abstract class FurnitureController {
      * Called when the furniture is unloaded from memory.
      * This can occur due to chunk unloading or the furniture being destroyed.
      */
-    public void onUnload() {
+    public void onUnload(boolean isStopping) {
     }
 
     /**
@@ -277,9 +277,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onUnload() {
-            this.first.onUnload();
-            this.second.onUnload();
+        public void onUnload(boolean isStopping) {
+            this.first.onUnload(isStopping);
+            this.second.onUnload(isStopping);
         }
 
         @Override
@@ -487,9 +487,9 @@ public abstract class FurnitureController {
         }
 
         @Override
-        public void onUnload() {
+        public void onUnload(boolean isStopping) {
             for (FurnitureController controller : this.controllers) {
-                controller.onUnload();
+                controller.onUnload(isStopping);
             }
         }
 

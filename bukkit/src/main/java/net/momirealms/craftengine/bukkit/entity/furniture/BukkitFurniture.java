@@ -88,7 +88,7 @@ public final class BukkitFurniture extends Furniture {
 
         // 先移除
         {
-            BukkitFurnitureManager.instance().invalidateFurniture(this);
+            BukkitFurnitureManager.instance().invalidateFurniture(this, false);
             super.destroySeats();
             super.clearColliders();
         }
@@ -141,7 +141,7 @@ public final class BukkitFurniture extends Furniture {
 
             // 先移除
             {
-                BukkitFurnitureManager.instance().invalidateFurniture(this);
+                BukkitFurnitureManager.instance().invalidateFurniture(this, false);
                 super.destroySeats();
                 super.clearColliders();
 

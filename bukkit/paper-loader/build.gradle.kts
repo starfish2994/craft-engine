@@ -1,6 +1,8 @@
 import net.minecrell.pluginyml.paper.PaperPluginDescription
 import net.momirealms.paperServer
 import xyz.jpenilla.runpaper.task.RunServer
+import xyz.jpenilla.runtask.pluginsapi.PluginDownloadService
+import xyz.jpenilla.runtask.service.DownloadsAPIService
 
 plugins {
     id("de.eldoria.plugin-yml.paper") version "0.7.1"
@@ -171,9 +173,6 @@ tasks {
     }
 }
 
-/**
- * Register Run Dev Server Tasks
- */
 listOf(
     "26.1.2",
 ).forEach {
@@ -181,43 +180,54 @@ listOf(
 }
 
 listOf(
-    "1.21.11",
-    "1.21.10",
-    "1.21.8",
-    "1.21.5",
-    "1.21.4",
-    "1.21.3",
-    "1.21.1",
-    "1.20.6",
-    "1.20.4",
-    "1.20.2",
-    "1.20.1",
-).forEach {
-    registerPaperTask(it)
+    "1.21.11", "1.21.10", "1.21.8", "1.21.5", "1.21.4", "1.21.3", "1.21.1",
+    "1.20.6", "1.20.4", "1.20.2", "1.20.1"
+).forEach { version ->
+    registerPaperTask(version)
 }
 
 fun registerPaperTask(
     version: String,
     dirName: String = version,
-    javaVersion : Int = 21,
-    serverJar: File? = null
+    javaVersion: Int = 21,
+    serverJarFile: File? = null
 ) {
-    listOf(version).forEach { taskName ->
-        tasks.register(taskName, RunServer::class) {
-            group = "run dev server"
-            minecraftVersion(version)
-            serverJar?.let { serverJar(it) }
-            pluginJars.from(tasks.shadowJar.flatMap { it.archiveFile })
-            runDirectory = rootProject.layout.projectDirectory.dir("runPaper/${dirName}")
-            javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(javaVersion)
-            }
-            systemProperties["com.mojang.eula.agree"] = true
-            systemProperties["net.momirealms.craftengine.dev"] = true
-            jvmArgs("-Dorg.bukkit.plugin.java.LibraryLoader.centralURL=https://maven.aliyun.com/repository/central")
-            jvmArgs("-Dsun.stdout.encoding=UTF-8")
-            jvmArgs("-Dsun.stderr.encoding=UTF-8")
-            jvmArgs("-Ddisable.watchdog=true")
+    fun RunServer.applyCommonConfig() {
+        description = "run dev server"
+        minecraftVersion(version)
+        serverJarFile?.let { serverJar(it) }
+        pluginJars.from(tasks.shadowJar.flatMap { it.archiveFile })
+
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(javaVersion)
         }
+
+        systemProperties["com.mojang.eula.agree"] = true
+        systemProperties["net.momirealms.craftengine.dev"] = true
+
+        jvmArgs(
+            "-Dorg.bukkit.plugin.java.LibraryLoader.centralURL=https://maven.aliyun.com/repository/central",
+            "-Dsun.stdout.encoding=UTF-8",
+            "-Dsun.stderr.encoding=UTF-8",
+            "-Ddisable.watchdog=true"
+        )
+    }
+
+    tasks.register<RunServer>("$version-paper") {
+        description = "run dev server"
+        group = "run dev server"
+        runDirectory = rootProject.layout.projectDirectory.dir("runPaper/$dirName")
+        applyCommonConfig()
+    }
+
+    tasks.register<RunServer>("$version-folia") {
+        description = "run dev server"
+        group = "run dev server"
+        runDirectory = rootProject.layout.projectDirectory.dir("runFolia/$dirName")
+
+        downloadsApiService.convention(DownloadsAPIService.folia(project))
+        pluginDownloadService.convention(PluginDownloadService.paper(project))
+
+        applyCommonConfig()
     }
 }
