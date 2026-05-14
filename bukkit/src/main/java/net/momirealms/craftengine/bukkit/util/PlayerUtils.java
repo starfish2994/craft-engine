@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.entity.data.item.ItemEntityData;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
@@ -96,9 +97,9 @@ public final class PlayerUtils {
 
                 player.sendPackets(List.of(addEntityPacket, itemMetaPacket), false);
                 player.world().playSound(player.position(), Sounds.ENTITY_ITEM_PICKUP, 0.2F, ((RandomUtils.generateRandomFloat() - RandomUtils.generateRandomFloat()) * 0.7F + 1.0F) * 2.0F, SoundSource.PLAYER);
-                CraftEngine.instance().scheduler().platform().runDelayed(() -> {
+                BukkitCraftEngine.instance().scheduler().platform().runDelayed(() -> {
                     player.sendPacket(ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), k -> k.add(entityId))), false);
-                });
+                }, null, (org.bukkit.entity.Player) player.platformPlayer());
             }
             AbstractContainerMenuProxy.INSTANCE.broadcastChanges(PlayerProxy.INSTANCE.getContainerMenu(serverPlayer));
         } else {

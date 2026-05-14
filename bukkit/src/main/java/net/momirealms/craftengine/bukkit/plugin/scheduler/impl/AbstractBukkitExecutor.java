@@ -29,7 +29,7 @@ public abstract class AbstractBukkitExecutor implements PlatformExecutor {
 
     @Override
     public void runDelayed(Runnable r, net.momirealms.craftengine.core.world.World world, int x, int z) {
-        runDelayed(r, (World) world.platformWorld(), x, z);
+        runDelayed(r, world == null ? null : (World) world.platformWorld(), x, z);
     }
 
     public void runDelayed(Runnable r, Location location) {

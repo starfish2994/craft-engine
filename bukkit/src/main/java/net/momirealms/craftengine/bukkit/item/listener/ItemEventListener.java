@@ -664,7 +664,7 @@ public final class ItemEventListener implements Listener {
                 packets.add(ClientboundContainerSetDataPacketProxy.INSTANCE.newInstance(AbstractContainerMenuProxy.INSTANCE.getContainerId(container), i, data));
             }
             serverPlayer.sendPackets(packets, false);
-        });
+        }, null, serverPlayer.platformPlayer());
     }
 
     /*
