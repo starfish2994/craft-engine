@@ -76,7 +76,6 @@ public final class Dependencies {
             List.of(Relocation.of("cloud", "org{}incendo{}cloud"),
                     Relocation.of("geantyref", "io{}leangen{}geantyref"),
                     Relocation.of("adventure", "net{}kyori{}adventure"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("option", "net{}kyori{}option"))
     );
 
@@ -87,7 +86,6 @@ public final class Dependencies {
             List.of(Relocation.of("cloud", "org{}incendo{}cloud"),
                     Relocation.of("geantyref", "io{}leangen{}geantyref"),
                     Relocation.of("adventure", "net{}kyori{}adventure"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("option", "net{}kyori{}option"))
     );
 
@@ -98,7 +96,6 @@ public final class Dependencies {
             List.of(Relocation.of("cloud", "org{}incendo{}cloud"),
                     Relocation.of("geantyref", "io{}leangen{}geantyref"),
                     Relocation.of("adventure", "net{}kyori{}adventure"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("option", "net{}kyori{}option"))
     );
 
@@ -194,7 +191,6 @@ public final class Dependencies {
             "net{}kyori",
             "option",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     );
@@ -204,22 +200,15 @@ public final class Dependencies {
             "net{}kyori",
             "adventure-api",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
-    ) {
-        @Override
-        public String classifier() {
-            return "patched";
-        }
-    };
+    );
 
     public static final Dependency ADVENTURE_NBT = new Dependency(
             "adventure-nbt",
             "net{}kyori",
             "adventure-nbt",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     ) {
@@ -234,7 +223,6 @@ public final class Dependencies {
             "net{}kyori",
             "adventure-key",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     ) {
@@ -244,37 +232,11 @@ public final class Dependencies {
         }
     };
 
-    public static final Dependency EXAMINATION_API = new Dependency(
-            "examination-api",
-            "net{}kyori",
-            "examination-api",
-            List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
-                    Relocation.of("adventure", "net{}kyori{}adventure")),
-            DependencyVisibility.PUBLIC
-    );
-
-    public static final Dependency EXAMINATION_STRING = new Dependency(
-            "examination-string",
-            "net{}kyori",
-            "examination-string",
-            List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
-                    Relocation.of("adventure", "net{}kyori{}adventure")),
-            DependencyVisibility.PUBLIC
-    ) {
-        @Override
-        public String getVersion() {
-            return EXAMINATION_API.getVersion();
-        }
-    };
-
     public static final Dependency MINIMESSAGE = new Dependency(
             "adventure-text-minimessage",
             "net{}kyori",
             "adventure-text-minimessage",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     ) {
@@ -289,7 +251,6 @@ public final class Dependencies {
             "net{}kyori",
             "adventure-text-serializer-commons",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     ) {
@@ -304,7 +265,6 @@ public final class Dependencies {
             "net{}kyori",
             "adventure-text-serializer-gson",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     ) {
@@ -319,7 +279,6 @@ public final class Dependencies {
             "net{}kyori",
             "adventure-text-serializer-json-legacy-impl",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     ) {
@@ -334,7 +293,6 @@ public final class Dependencies {
             "net{}kyori",
             "adventure-text-serializer-legacy",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     ) {
@@ -349,7 +307,6 @@ public final class Dependencies {
             "net{}kyori",
             "adventure-text-serializer-json",
             List.of(Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("examination", "net{}kyori{}examination"),
                     Relocation.of("adventure", "net{}kyori{}adventure")),
             DependencyVisibility.PUBLIC
     ) {
