@@ -50,8 +50,6 @@ public interface Plugin {
 
     boolean isInitializing();
 
-    boolean isStopping();
-
     DependencyManager dependencyManager();
 
     <W> SchedulerAdapter<W> scheduler();

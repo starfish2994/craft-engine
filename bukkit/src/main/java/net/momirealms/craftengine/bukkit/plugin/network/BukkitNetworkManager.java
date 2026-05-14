@@ -492,7 +492,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             this.onlineUsers.put(player.getUniqueId(), user);
             this.resetUserArray();
             // folia在此tick每个玩家
-            if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
+            if (VersionHelper.isFolia) {
                 player.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> user.tick(),
                         () -> {
                         }, 1, 1);

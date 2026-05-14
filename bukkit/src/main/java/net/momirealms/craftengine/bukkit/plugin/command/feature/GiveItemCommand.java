@@ -68,7 +68,7 @@ public final class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
                     }
                     ItemDefinition finalItemDefinition = itemDefinition;
                     for (Player player : players) {
-                        if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
+                        if (VersionHelper.isFolia) {
                             player.getScheduler().run(plugin().javaPlugin(), t -> {
                                 BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                                 if (serverPlayer == null) return;

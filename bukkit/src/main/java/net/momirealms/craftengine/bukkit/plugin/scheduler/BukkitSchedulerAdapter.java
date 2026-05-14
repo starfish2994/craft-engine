@@ -4,13 +4,12 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.scheduler.impl.BukkitExecutor;
 import net.momirealms.craftengine.bukkit.plugin.scheduler.impl.FoliaExecutor;
 import net.momirealms.craftengine.core.plugin.scheduler.AbstractJavaScheduler;
-import net.momirealms.craftengine.core.plugin.scheduler.DummyRegionExecutor;
 import net.momirealms.craftengine.core.plugin.scheduler.RegionExecutor;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.World;
 
 public final class BukkitSchedulerAdapter extends AbstractJavaScheduler<World> {
-    private RegionExecutor<World> sync;
+    private final RegionExecutor<World> sync;
 
     public BukkitSchedulerAdapter(BukkitCraftEngine plugin) {
         super(plugin);
@@ -19,12 +18,6 @@ public final class BukkitSchedulerAdapter extends AbstractJavaScheduler<World> {
         } else {
             this.sync = new BukkitExecutor(plugin);
         }
-    }
-
-    @Override
-    public void shutdownExecutor() {
-        this.sync = new DummyRegionExecutor<>();
-        super.shutdownExecutor();
     }
 
     @Override

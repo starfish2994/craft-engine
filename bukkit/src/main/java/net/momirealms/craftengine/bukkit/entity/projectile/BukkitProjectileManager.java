@@ -8,7 +8,6 @@ import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -52,7 +51,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
-        if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
+        if (VersionHelper.isFolia) {
             for (World world : Bukkit.getWorlds()) {
                 List<Entity> entities = world.getEntities();
                 for (Entity entity : entities) {
@@ -145,7 +144,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         public ProjectileInjectTask(Projectile projectile, boolean checkInGround) {
             this.projectile = projectile;
             this.checkInGround = checkInGround;
-            if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
+            if (VersionHelper.isFolia) {
                 this.task = new FoliaTask(projectile.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> this.run(), () -> {}, 1, 1));
             } else {
                 this.task = plugin.scheduler().sync().runRepeating(this, 1, 1);

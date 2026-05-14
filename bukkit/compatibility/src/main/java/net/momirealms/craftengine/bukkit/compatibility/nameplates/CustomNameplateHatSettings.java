@@ -52,7 +52,7 @@ public final class CustomNameplateHatSettings implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         // 稍微延迟一下，可以等待背包同步插件的处理
-        if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
+        if (VersionHelper.isFolia) {
             player.getScheduler().runDelayed(BukkitCraftEngine.instance().javaPlugin(), t1 -> {
                 if (player.isOnline()) {
                     updateHatHeight(player, player.getInventory().getItem(EquipmentSlot.HEAD));

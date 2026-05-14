@@ -108,7 +108,6 @@ public abstract class CraftEngine implements Plugin {
     private final Consumer<CraftEngine> reloadEventDispatcher;
     private boolean isReloading;
     private boolean isInitializing;
-    private boolean isStopping;
 
     private String buildByBit = "%%__BUILTBYBIT__%%";
     private String polymart = "%%__POLYMART__%%";
@@ -301,7 +300,6 @@ public abstract class CraftEngine implements Plugin {
 
     protected void onPluginEnable() {
         this.isInitializing = true;
-        this.isStopping = false;
 
         // 注册网络相关的bukkit事件监听器
         this.networkManager.init();
@@ -478,7 +476,6 @@ public abstract class CraftEngine implements Plugin {
     }
 
     protected void onPluginDisable() {
-        this.isStopping = true;
         if (this.networkManager != null) this.networkManager.disable();
         if (this.fontManager != null) this.fontManager.disable();
         if (this.advancementManager != null) this.advancementManager.disable();
@@ -611,11 +608,6 @@ public abstract class CraftEngine implements Plugin {
     @Override
     public boolean isInitializing() {
         return this.isInitializing;
-    }
-
-    @Override
-    public boolean isStopping() {
-        return this.isStopping;
     }
 
     @Override

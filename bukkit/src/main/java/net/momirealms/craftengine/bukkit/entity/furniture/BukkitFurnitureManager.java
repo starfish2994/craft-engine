@@ -15,7 +15,6 @@ import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.core.entity.furniture.tick.TickingFurnitureImpl;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.sound.SoundData;
@@ -119,7 +118,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         Bukkit.getPluginManager().registerEvents(this.furnitureEventListener, this.plugin.javaPlugin());
 
         // 对世界上已有实体的记录
-        if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
+        if (VersionHelper.isFolia) {
             BiConsumer<Entity, Runnable> taskExecutor = (entity, runnable) -> entity.getScheduler().run(this.plugin.javaPlugin(), (t) -> runnable.run(), () -> {});
             for (World world : Bukkit.getWorlds()) {
                 List<Entity> entities = world.getEntities();
@@ -396,7 +395,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             if (ticker != null) {
                 TickingFurnitureImpl<FurnitureController> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.syncTickers.put(entityId, tickingFurniture);
-                if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
+                if (VersionHelper.isFolia) {
                     furniture.bukkitEntity().getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> {
                         if (tickingFurniture.isValid()) {
                             tickingFurniture.tick();
@@ -435,7 +434,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     private void tryRemoveCollider(Collider collider) {
-        if (CraftEngine.instance().isStopping()) return;
+        if (Bukkit.isStopping()) return;
         Object entity = collider.handle();
         Object level = EntityProxy.INSTANCE.getLevel(entity);
         Object entityLookup;
