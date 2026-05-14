@@ -52,7 +52,7 @@ public final class SetCreativeModeSlotListener implements ByteBufferPacketListen
             return;
         }
         if (!user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_21_4)) {
-            if (VersionHelper.isFolia) {
+            if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
                 serverPlayer.platformPlayer().getScheduler().run(
                         BukkitCraftEngine.instance().javaPlugin(),
                         t -> handleSetCreativeSlotPacketOnMainThread(serverPlayer, slotNum, item),

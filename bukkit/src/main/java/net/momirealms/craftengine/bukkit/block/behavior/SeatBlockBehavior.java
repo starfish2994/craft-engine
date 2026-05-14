@@ -55,7 +55,7 @@ public final class SeatBlockBehavior extends BukkitBlockBehavior implements Enti
         BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) return InteractionResult.PASS;
         player.updateLastSuccessfulInteractionTick(player.gameTicks());
-        if (VersionHelper.isFolia) {
+        if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
             player.platformPlayer().getScheduler().run(BukkitCraftEngine.instance().javaPlugin(), (t) -> {
                 blockEntity.controller.let(SeatBlockEntityController.class, this.controllerId, c -> {
                     if (c.spawnSeat(player)) {

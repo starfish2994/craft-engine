@@ -26,6 +26,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.setting.value.FoodData;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -89,7 +90,7 @@ public final class ItemEventListener implements Listener {
     public void onResourcePackGenerate(AsyncResourcePackGenerateEvent event) {
         if (Config.obfuscateItemModel()) {
             this.itemManager.persistItemModelMappings();
-            if (VersionHelper.isFolia) {
+            if (VersionHelper.isFolia && !CraftEngine.instance().isStopping()) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     player.getScheduler().run(this.plugin.javaPlugin(), (t) -> {
                         player.updateInventory();

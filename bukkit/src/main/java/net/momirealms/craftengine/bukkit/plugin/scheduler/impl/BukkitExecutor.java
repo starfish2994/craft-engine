@@ -40,7 +40,7 @@ public final class BukkitExecutor implements RegionExecutor<World> {
         if (delay <= 0) {
             if (Bukkit.isPrimaryThread()) {
                 runnable.run();
-                return new DummyTask();
+                return DummyTask.INSTANCE;
             } else {
                 return new BukkitTask(Bukkit.getScheduler().runTask(plugin.javaPlugin(), runnable));
             }
