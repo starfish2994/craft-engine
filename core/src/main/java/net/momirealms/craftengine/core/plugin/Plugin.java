@@ -56,7 +56,7 @@ public interface Plugin {
 
     DependencyManager dependencyManager();
 
-    <W> SchedulerAdapter<W> scheduler();
+    SchedulerAdapter scheduler();
 
     void saveResource(String filePath);
 
@@ -64,7 +64,7 @@ public interface Plugin {
 
     String serverVersion();
 
-    <T> ItemManager itemManager();
+    ItemManager itemManager();
 
     BlockManager blockManager();
 
@@ -84,7 +84,7 @@ public interface Plugin {
 
     PackManager packManager();
 
-    <T> RecipeManager recipeManager();
+    RecipeManager recipeManager();
 
     <P extends Plugin, C> SenderFactory<P, C> senderFactory();
 

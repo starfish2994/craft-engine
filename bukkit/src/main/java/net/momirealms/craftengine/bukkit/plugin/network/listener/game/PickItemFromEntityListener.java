@@ -4,11 +4,11 @@ import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
@@ -40,9 +40,9 @@ public final class PickItemFromEntityListener implements ByteBufferPacketListene
         if (!player.canInteractPoint(LocationUtils.toVec3d(location), 16)) {
             return;
         }
-        CraftEngine.instance().scheduler().sync().run(
+        BukkitCraftEngine.instance().scheduler().platform().run(
                 () -> handlePickItemFromEntityOnMainThread((BukkitServerPlayer) user, furniture, furniture.hitboxByEntityId(entityId)),
-                location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4
+               location
         );
     }
 

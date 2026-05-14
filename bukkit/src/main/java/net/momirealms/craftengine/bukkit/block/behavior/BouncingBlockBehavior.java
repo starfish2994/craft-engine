@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.PrioritizedFallOnHandler;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -13,7 +12,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourc
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
-import org.bukkit.entity.Entity;
 
 public final class BouncingBlockBehavior extends BukkitBlockBehavior implements PrioritizedFallOnHandler {
     public static final BlockBehaviorFactory<BouncingBlockBehavior> FACTORY = new Factory();
@@ -69,18 +67,9 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
                     && /* 防抖 -> */ y > 0.035 /* <- 防抖 */
             ) {
                 // 这里一定要延迟 1t 不然就会出问题
-                if (VersionHelper.isFolia) {
-                    Entity bukkitEntity = EntityProxy.INSTANCE.getBukkitEntity(entity);
-                    bukkitEntity.getScheduler().runDelayed(BukkitCraftEngine.instance().javaPlugin(),
-                            r -> EntityProxy.INSTANCE.setHurtMarked(entity, true),
-                            null, 1L
-                    );
-                } else {
-                    CraftEngine.instance().scheduler().sync().runLater(
-                            () -> EntityProxy.INSTANCE.setHurtMarked(entity, true),
-                            1L
-                    );
-                }
+                BukkitCraftEngine.instance().scheduler().platform().runLater(() -> {
+                    EntityProxy.INSTANCE.setHurtMarked(entity, true);
+                }, null, 1, EntityProxy.INSTANCE.getBukkitEntity(entity));
             }
         }
     }

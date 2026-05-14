@@ -460,7 +460,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, chunk.getX(), chunk.getZ());
         boolean preventChange = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
         if (preventChange) {
-            this.plugin.scheduler().sync().runLater(action, 1, chunk.getWorld(), chunk.getX(), chunk.getZ());
+            this.plugin.scheduler().platform().runLater(action, 1, chunk.getWorld(), chunk.getX(), chunk.getZ());
         } else {
             action.run();
         }

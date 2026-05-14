@@ -52,9 +52,11 @@ public abstract class CEWorld {
     public void setTicking(boolean ticking) {
         if (ticking) {
             if (this.syncTickTask == null || this.syncTickTask.cancelled())
-                this.syncTickTask = CraftEngine.instance().scheduler().sync().runRepeating(this::syncTick, 1, 1);
+                this.syncTickTask = CraftEngine.instance().scheduler().platform().runRepeating(this::syncTick, 1, 1);
             if (this.asyncTickTask == null || this.asyncTickTask.cancelled())
-                this.asyncTickTask = CraftEngine.instance().scheduler().sync().runAsyncRepeating(this::asyncTick, 1, 1);
+                this.asyncTickTask = CraftEngine.instance().scheduler().platform().runRepeating(() -> {
+                    CraftEngine.instance().scheduler().async().execute(this::asyncTick);
+                }, 1, 1);
         } else {
             if (this.syncTickTask != null && !this.syncTickTask.cancelled())
                 this.syncTickTask.cancel();

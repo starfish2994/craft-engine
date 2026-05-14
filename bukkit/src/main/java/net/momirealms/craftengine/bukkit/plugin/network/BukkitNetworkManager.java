@@ -493,9 +493,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             this.resetUserArray();
             // folia在此tick每个玩家
             if (VersionHelper.isFolia) {
-                player.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> user.tick(),
-                        () -> {
-                        }, 1, 1);
+                player.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> user.tick(), null, 1, 1);
             }
             // 发送修复图腾音效
             user.sendPacket(TotemAnimationCommand.FIX_TOTEM_SOUND_PACKET, false);

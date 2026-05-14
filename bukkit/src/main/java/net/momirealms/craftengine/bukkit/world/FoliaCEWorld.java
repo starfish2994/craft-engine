@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.world;
 
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.world.chunk.FoliaCEChunk;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.TickersList;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.World;
@@ -41,7 +41,7 @@ public final class FoliaCEWorld extends BukkitCEWorld {
                 TickingChunk chunk = (TickingChunk) chunks[i];
                 if (chunk.isValid()) {
                     ChunkPos chunkPos = chunk.chunkPos();
-                    CraftEngine.instance().scheduler().sync().run(chunk::tick, this.world.platformWorld(), chunkPos.x, chunkPos.z);
+                    BukkitCraftEngine.instance().scheduler().platform().run(chunk::tick, this.world, chunkPos.x, chunkPos.z);
                 } else {
                     this.tickingChunks.markAsRemoved(i);
                     this.tickingChunkByPos.remove(chunk.chunkPos());

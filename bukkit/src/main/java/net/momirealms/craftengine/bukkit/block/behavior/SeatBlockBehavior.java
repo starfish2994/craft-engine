@@ -12,10 +12,8 @@ import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.seat.SeatConfig;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
@@ -55,23 +53,13 @@ public final class SeatBlockBehavior extends BukkitBlockBehavior implements Enti
         BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) return InteractionResult.PASS;
         player.updateLastSuccessfulInteractionTick(player.gameTicks());
-        if (VersionHelper.isFolia) {
-            player.platformPlayer().getScheduler().run(BukkitCraftEngine.instance().javaPlugin(), (t) -> {
-                blockEntity.controller.let(SeatBlockEntityController.class, this.controllerId, c -> {
-                    if (c.spawnSeat(player)) {
-                        player.swingHand(context.getHand());
-                    }
-                });
-            }, null);
-        } else {
-            CraftEngine.instance().scheduler().sync().runDelayed(() -> {
-                blockEntity.controller.let(SeatBlockEntityController.class, this.controllerId, c -> {
-                    if (c.spawnSeat(player)) {
-                        player.swingHand(context.getHand());
-                    }
-                });
+        BukkitCraftEngine.instance().scheduler().platform().runDelayed(() -> {
+            blockEntity.controller.let(SeatBlockEntityController.class, this.controllerId, c -> {
+                if (c.spawnSeat(player)) {
+                    player.swingHand(context.getHand());
+                }
             });
-        }
+        }, null, player.platformPlayer());
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 

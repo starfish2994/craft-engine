@@ -89,18 +89,8 @@ public final class ItemEventListener implements Listener {
     public void onResourcePackGenerate(AsyncResourcePackGenerateEvent event) {
         if (Config.obfuscateItemModel()) {
             this.itemManager.persistItemModelMappings();
-            if (VersionHelper.isFolia) {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    player.getScheduler().run(this.plugin.javaPlugin(), (t) -> {
-                        player.updateInventory();
-                    }, null);
-                }
-            } else {
-                this.plugin.scheduler().sync().run(() -> {
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        player.updateInventory();
-                    }
-                });
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                this.plugin.scheduler().platform().run(player::updateInventory, null, player);
             }
         }
     }
@@ -661,7 +651,7 @@ public final class ItemEventListener implements Listener {
         if (customItem.clientItem() == ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem())) return;
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return;
-        this.plugin.scheduler().sync().runDelayed(() -> {
+        this.plugin.scheduler().platform().runDelayed(() -> {
             Object container = PlayerProxy.INSTANCE.getContainerMenu(serverPlayer.serverPlayer());
             if (!EnchantmentMenuProxy.CLASS.isInstance(container)) return;
             Object secondSlotItem = SlotProxy.INSTANCE.getItem(AbstractContainerMenuProxy.INSTANCE.getSlot(container, 1));

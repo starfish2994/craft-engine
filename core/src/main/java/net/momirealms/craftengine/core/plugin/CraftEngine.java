@@ -76,7 +76,7 @@ public abstract class CraftEngine implements Plugin {
     protected ClassPathAppender sharedClassPathAppender;
     protected ClassPathAppender privateClassPathAppender;
     protected DependencyManager dependencyManager;
-    protected SchedulerAdapter<?> scheduler;
+    protected SchedulerAdapter scheduler;
     protected NetworkManager networkManager;
     protected FontManager fontManager;
     protected PackManager packManager;
@@ -349,7 +349,7 @@ public abstract class CraftEngine implements Plugin {
         this.postEnableTaskRegistry.executeTasks();
 
         // 延迟重载，以便其他依赖CraftEngine的插件能注册parser
-        this.scheduler.sync().runDelayed(() -> {
+        this.scheduler.platform().runDelayed(() -> {
             // 初始化一些平台的任务
             this.platformDelayedEnable();
 
@@ -395,7 +395,7 @@ public abstract class CraftEngine implements Plugin {
 
             // 用于兼容那些注册群系比较晚的插件，点名批评某R开头的季节插件
             int biomeCount = this.platform.biomeCount();
-            this.scheduler.sync().runDelayed(() -> {
+            this.scheduler.platform().runDelayed(() -> {
                 if (biomeCount != this.platform.biomeCount()) {
                     ((AbstractBlockManager) this.blockManager).registerBlockStatePacketListener();
                 }
@@ -578,10 +578,9 @@ public abstract class CraftEngine implements Plugin {
         );
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <W> SchedulerAdapter<W> scheduler() {
-        return (SchedulerAdapter<W>) this.scheduler;
+    public SchedulerAdapter scheduler() {
+        return this.scheduler;
     }
 
     @Override

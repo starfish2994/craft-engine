@@ -3,7 +3,6 @@ package net.momirealms.craftengine.bukkit.entity.projectile;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.plugin.scheduler.impl.FoliaTask;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
@@ -51,22 +50,11 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
-        if (VersionHelper.isFolia) {
-            for (World world : Bukkit.getWorlds()) {
-                List<Entity> entities = world.getEntities();
-                for (Entity entity : entities) {
-                    if (entity instanceof Projectile projectile) {
-                        projectile.getScheduler().run(this.plugin.javaPlugin(), (t) -> handleProjectileLoad(projectile), () -> {});
-                    }
-                }
-            }
-        } else {
-            for (World world : Bukkit.getWorlds()) {
-                List<Entity> entities = world.getEntities();
-                for (Entity entity : entities) {
-                    if (entity instanceof Projectile projectile) {
-                        handleProjectileLoad(projectile);
-                    }
+        for (World world : Bukkit.getWorlds()) {
+            List<Entity> entities = world.getEntities();
+            for (Entity entity : entities) {
+                if (entity instanceof Projectile projectile) {
+                    this.plugin.scheduler().platform().run(() -> handleProjectileLoad(projectile), null, projectile);
                 }
             }
         }
@@ -114,6 +102,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     }
 
     private void handleProjectileLoad(Projectile projectile) {
+        if (!projectile.isValid()) return;
         ItemStack projectileItem;
         if (projectile instanceof ThrowableProjectile throwableProjectile) {
             projectileItem = throwableProjectile.getItem();
@@ -144,11 +133,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         public ProjectileInjectTask(Projectile projectile, boolean checkInGround) {
             this.projectile = projectile;
             this.checkInGround = checkInGround;
-            if (VersionHelper.isFolia) {
-                this.task = new FoliaTask(projectile.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> this.run(), () -> {}, 1, 1));
-            } else {
-                this.task = plugin.scheduler().sync().runRepeating(this, 1, 1);
-            }
+            this.task = plugin.scheduler().platform().runRepeating(this, null, 1, 1, projectile);
         }
 
         @Override

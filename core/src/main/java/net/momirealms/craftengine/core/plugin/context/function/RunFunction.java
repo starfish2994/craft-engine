@@ -34,18 +34,18 @@ public final class RunFunction<CTX extends Context> extends AbstractConditionalF
         } else {
             Optional<WorldPosition> position = ctx.getOptionalParameter(DirectContextParameters.POSITION);
             if (!VersionHelper.isFolia || position.isEmpty()) {
-                CraftEngine.instance().scheduler().sync().runLater(() -> {
+                CraftEngine.instance().scheduler().platform().runLater(() -> {
                     for (Function<CTX> function : functions) {
                         function.run(ctx);
                     }
                 }, delay);
             } else {
                 WorldPosition pos = position.get();
-                CraftEngine.instance().scheduler().sync().runLater(() -> {
+                CraftEngine.instance().scheduler().platform().runLater(() -> {
                     for (Function<CTX> function : functions) {
                         function.run(ctx);
                     }
-                }, delay, pos.world().platformWorld(), MiscUtils.floor(pos.x()) >> 4, MiscUtils.floor(pos.z()) >> 4);
+                }, delay, pos.world(), MiscUtils.floor(pos.x()) >> 4, MiscUtils.floor(pos.z()) >> 4);
             }
         }
     }

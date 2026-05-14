@@ -46,7 +46,7 @@ public final class NMSResourcePackListener implements NMSPacketListener {
             Object packetListener = ConnectionProxy.INSTANCE.getPacketListener(user.connection());
             if (!ServerConfigurationPacketListenerImplProxy.CLASS.isInstance(packetListener)) return; // 不是配置阶段不处理
             // 主线程上处理这个包
-            CraftEngine.instance().scheduler().executeSync(() -> {
+            CraftEngine.instance().scheduler().platform().run(() -> {
                 try {
                     // 当客户端发出多次成功包的时候，finish会报错，我们忽略他
                     ServerCommonPacketListenerProxy.INSTANCE.handleResourcePackResponse(packetListener, packet);

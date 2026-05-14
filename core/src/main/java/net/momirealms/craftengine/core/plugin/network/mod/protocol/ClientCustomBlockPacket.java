@@ -60,7 +60,7 @@ public record ClientCustomBlockPacket(int vanillaSize, int currentSize) implemen
         ModPackets.sendPacket(user, CraftEngine.instance().blockManager().cachedVisualBlockStatePacket());
         if (!VersionHelper.isOrAbove1_20_2) {
             // 因为旧版本没有配置阶段需要重新发送区块
-            CraftEngine.instance().scheduler().executeSync(user::resendChunks);
+            CraftEngine.instance().scheduler().platform().run(user::resendChunks);
         }
     }
 }

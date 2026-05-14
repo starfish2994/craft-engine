@@ -7,7 +7,6 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.setting.CustomItemSettingType;
 import net.momirealms.craftengine.core.item.setting.ItemSettingsModifiers;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.customnameplates.api.CNPlayer;
@@ -52,19 +51,11 @@ public final class CustomNameplateHatSettings implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         // 稍微延迟一下，可以等待背包同步插件的处理
-        if (VersionHelper.isFolia) {
-            player.getScheduler().runDelayed(BukkitCraftEngine.instance().javaPlugin(), t1 -> {
-                if (player.isOnline()) {
-                    updateHatHeight(player, player.getInventory().getItem(EquipmentSlot.HEAD));
-                }
-            }, null, 10);
-        } else {
-            CraftEngine.instance().scheduler().sync().runLater(() -> {
-                if (player.isOnline()) {
-                    updateHatHeight(player, player.getInventory().getItem(EquipmentSlot.HEAD));
-                }
-            }, 10);
-        }
+        BukkitCraftEngine.instance().scheduler().platform().runLater(() -> {
+            if (player.isOnline()) {
+                updateHatHeight(player, player.getInventory().getItem(EquipmentSlot.HEAD));
+            }
+        }, null, 10, player);
     }
 
     public void updateHatHeight(Player player, ItemStack newItem) {

@@ -41,7 +41,6 @@ import net.momirealms.craftengine.core.plugin.dependency.Dependencies;
 import net.momirealms.craftengine.core.plugin.dependency.Dependency;
 import net.momirealms.craftengine.core.plugin.logger.JavaPluginLogger;
 import net.momirealms.craftengine.core.plugin.logger.PluginLogger;
-import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.util.CharacterUtils;
 import net.momirealms.craftengine.core.util.ExceptionCollector;
@@ -50,7 +49,6 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.BukkitProxy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
@@ -271,7 +269,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         }
         // tick task
         if (!VersionHelper.isFolia) {
-            this.tickTask = this.scheduler().sync().runRepeating(() -> {
+            this.tickTask = this.scheduler().platform().runRepeating(() -> {
                 for (BukkitServerPlayer serverPlayer : networkManager().onlineUsers()) {
                     serverPlayer.tick();
                 }
@@ -376,11 +374,6 @@ public final class BukkitCraftEngine extends CraftEngine {
     }
 
     @Override
-    public SchedulerAdapter<World> scheduler() {
-        return (SchedulerAdapter<World>) this.scheduler;
-    }
-
-    @Override
     public BukkitItemManager itemManager() {
         return (BukkitItemManager) this.itemManager;
     }
@@ -423,6 +416,11 @@ public final class BukkitCraftEngine extends CraftEngine {
     @Override
     public SenderFactory<CraftEngine, CommandSender> senderFactory() {
         return (SenderFactory<CraftEngine, CommandSender>) this.senderFactory;
+    }
+
+    @Override
+    public BukkitSchedulerAdapter scheduler() {
+        return (BukkitSchedulerAdapter) this.scheduler;
     }
 
     public JavaPlugin javaPlugin() {

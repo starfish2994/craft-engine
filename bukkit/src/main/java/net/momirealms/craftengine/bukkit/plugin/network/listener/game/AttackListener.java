@@ -164,11 +164,6 @@ public final class AttackListener implements ByteBufferPacketListener {
             CraftEngineFurniture.remove(furniture, serverPlayer, breakEvent.dropItems(), true);
         };
 
-        if (VersionHelper.isFolia) {
-            CraftEngine.instance().scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
-        } else {
-            CraftEngine.instance().scheduler().executeSync(mainThreadTask);
-        }
+        BukkitCraftEngine.instance().scheduler().platform().run(mainThreadTask, location);
     }
-
 }

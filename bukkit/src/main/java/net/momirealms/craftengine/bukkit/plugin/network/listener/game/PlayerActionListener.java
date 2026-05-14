@@ -1,11 +1,11 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
@@ -37,7 +37,7 @@ public final class PlayerActionListener implements ByteBufferPacketListener {
         if (!player.canInteractPoint(new Vec3d(pos.x, pos.y, pos.z), 4)) {
             return;
         }
-        CraftEngine.instance().scheduler().sync().run(
+        BukkitCraftEngine.instance().scheduler().platform().run(
                 () -> handlePlayerActionPacketOnMainThread(player, world, pos, action),
                 world, pos.x >> 4, pos.z >> 4
         );

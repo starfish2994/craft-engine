@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BukkitItemUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
@@ -311,12 +312,6 @@ public final class InteractListener {
                 }
             }
         };
-
-        if (VersionHelper.isFolia) {
-            CraftEngine.instance().scheduler().sync().run(mainThreadTask, location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
-        } else {
-            CraftEngine.instance().scheduler().executeSync(mainThreadTask);
-        }
+        BukkitCraftEngine.instance().scheduler().platform().run(mainThreadTask, location);
     }
-
 }

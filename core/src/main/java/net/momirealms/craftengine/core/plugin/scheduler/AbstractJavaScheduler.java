@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class AbstractJavaScheduler<T> implements SchedulerAdapter<T> {
+public abstract class AbstractJavaScheduler implements SchedulerAdapter {
     private static final int PARALLELISM = 16;
 
     private final Plugin plugin;

@@ -14,7 +14,6 @@ import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.FlagKeys;
 import net.momirealms.craftengine.core.plugin.locale.MessageConstants;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -68,23 +67,14 @@ public final class GiveItemCommand extends BukkitCommandFeature<CommandSender> {
                     }
                     ItemDefinition finalItemDefinition = itemDefinition;
                     for (Player player : players) {
-                        if (VersionHelper.isFolia) {
-                            player.getScheduler().run(plugin().javaPlugin(), t -> {
-                                BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
-                                if (serverPlayer == null) return;
-                                Item builtItem = finalItemDefinition.buildItem(serverPlayer);
-                                if (builtItem != null) {
-                                    PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);
-                                }
-                            }, null);
-                        } else {
+                        this.plugin().scheduler().platform().run(() -> {
                             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
-                            if (serverPlayer == null) continue;
+                            if (serverPlayer == null) return;
                             Item builtItem = finalItemDefinition.buildItem(serverPlayer);
                             if (builtItem != null) {
                                 PlayerUtils.giveItem(serverPlayer, amount, builtItem, true);
                             }
-                        }
+                        }, null, player);
                     }
                     if (players.size() == 1) {
                         handleFeedback(context, MessageConstants.COMMAND_ITEM_GIVE_SUCCESS_SINGLE, Component.text(amount), Component.text(itemId.toString()), Component.text(players.iterator().next().getName()));

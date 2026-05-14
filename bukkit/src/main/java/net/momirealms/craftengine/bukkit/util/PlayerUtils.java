@@ -96,7 +96,7 @@ public final class PlayerUtils {
 
                 player.sendPackets(List.of(addEntityPacket, itemMetaPacket), false);
                 player.world().playSound(player.position(), Sounds.ENTITY_ITEM_PICKUP, 0.2F, ((RandomUtils.generateRandomFloat() - RandomUtils.generateRandomFloat()) * 0.7F + 1.0F) * 2.0F, SoundSource.PLAYER);
-                CraftEngine.instance().scheduler().sync().runDelayed(() -> {
+                CraftEngine.instance().scheduler().platform().runDelayed(() -> {
                     player.sendPacket(ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), k -> k.add(entityId))), false);
                 });
             }

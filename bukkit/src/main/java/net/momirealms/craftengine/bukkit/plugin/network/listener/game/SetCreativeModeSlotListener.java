@@ -52,16 +52,9 @@ public final class SetCreativeModeSlotListener implements ByteBufferPacketListen
             return;
         }
         if (!user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_21_4)) {
-            if (VersionHelper.isFolia) {
-                serverPlayer.platformPlayer().getScheduler().run(
-                        BukkitCraftEngine.instance().javaPlugin(),
-                        t -> handleSetCreativeSlotPacketOnMainThread(serverPlayer, slotNum, item),
-                        () -> {
-                        }
-                );
-            } else {
+            BukkitCraftEngine.instance().scheduler().platform().run(() -> {
                 handleSetCreativeSlotPacketOnMainThread(serverPlayer, slotNum, item);
-            }
+            }, null, serverPlayer.platformPlayer());
         }
         BukkitItemManager.instance().c2s(item).ifPresent((newItem) -> {
             event.setChanged(true);
@@ -126,26 +119,23 @@ public final class SetCreativeModeSlotListener implements ByteBufferPacketListen
             if (sameItemSlot < 9) {
                 inventory.setHeldItemSlot(sameItemSlot);
                 ItemStack previousItem = inventory.getItem(slot - 36);
-                BukkitCraftEngine.instance().scheduler().sync().runDelayed(() -> inventory.setItem(slot - 36, previousItem));
+                inventory.setItem(slot - 36, previousItem);
             } else {
                 ItemStack sameItem = inventory.getItem(sameItemSlot);
-                int finalSameItemSlot = sameItemSlot;
-                BukkitCraftEngine.instance().scheduler().sync().runDelayed(() -> {
-                    inventory.setItem(finalSameItemSlot, new ItemStack(Material.AIR));
-                    inventory.setItem(slot - 36, sameItem);
-                });
+                inventory.setItem(sameItemSlot, new ItemStack(Material.AIR));
+                inventory.setItem(slot - 36, sameItem);
             }
         } else {
             if (item.count() == 1) {
                 if (ItemStackUtils.isEmpty(inventory.getItem(slot - 36))) {
-                    BukkitCraftEngine.instance().scheduler().sync().runDelayed(() -> inventory.setItem(slot - 36, itemStack));
+                    inventory.setItem(slot - 36, itemStack);
                     return;
                 }
                 if (emptySlot != -1) {
                     inventory.setHeldItemSlot(emptySlot);
                     inventory.setItem(emptySlot, itemStack);
                 } else {
-                    BukkitCraftEngine.instance().scheduler().sync().runDelayed(() -> inventory.setItem(slot - 36, itemStack));
+                    inventory.setItem(slot - 36, itemStack);
                 }
             }
         }

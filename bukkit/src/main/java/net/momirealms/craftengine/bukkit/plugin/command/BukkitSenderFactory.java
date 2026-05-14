@@ -55,7 +55,7 @@ public final class BukkitSenderFactory extends SenderFactory<BukkitCraftEngine, 
                     commandSender.sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
             default -> {
                 String legacy = LegacyComponentSerializer.legacySection().serialize(message);
-                plugin().scheduler().sync().run(() -> sender.sendMessage(legacy));
+                plugin().scheduler().platform().run(() -> sender.sendMessage(legacy));
             }
         }
     }

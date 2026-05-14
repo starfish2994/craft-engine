@@ -21,7 +21,6 @@ import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
-import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -138,7 +137,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 injectWorld(ceWorld);
                 for (Chunk chunk : world.getLoadedChunks()) {
                     if (VersionHelper.isFolia) {
-                        this.plugin.scheduler().executeSync(() -> {
+                        this.plugin.scheduler().platform().run(() -> {
                             if (chunk.isLoaded()) {
                                 handleChunkLoad(ceWorld, chunk, false);
                                 CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
