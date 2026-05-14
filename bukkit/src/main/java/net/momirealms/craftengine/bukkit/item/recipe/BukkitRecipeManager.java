@@ -139,7 +139,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     public void unload() {
         if (!Config.enableRecipeSystem()) return;
         // 安排卸载任务，这些任务会在load后执行。如果没有load说明服务器已经关闭了，那就不需要管卸载了。
-        if (!Bukkit.isStopping()) {
+        if (!this.plugin.isStopping()) {
             for (Recipe recipe : this.nativeRecipes) {
                 Key id = recipe.id();
                 // 不要卸载数据包配方，只记录自定义的配方

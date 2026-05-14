@@ -480,7 +480,7 @@ public class CEChunk {
         if (!this.activated) return;
         this.blockEntities.values().forEach(e -> e.setValid(false));
 
-        if (!CraftEngine.instance().platform().isStopping()) {
+        if (!CraftEngine.instance().isStopping()) {
             try {
                 this.renderLock.readLock().lock();
                 this.constantBlockEntityRenderers.values().forEach(ConstantBlockEntityRenderer::deactivate);

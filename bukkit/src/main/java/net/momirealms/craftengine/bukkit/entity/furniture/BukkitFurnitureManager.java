@@ -162,6 +162,8 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         super.disable();
         HandlerList.unregisterAll(this.furnitureEventListener);
         unload();
+
+
     }
 
     @Override

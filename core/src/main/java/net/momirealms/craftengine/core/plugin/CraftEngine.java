@@ -102,12 +102,14 @@ public abstract class CraftEngine implements Plugin {
     protected TeamManager teamManager;
     protected PaintingManager paintingManager;
 
-    private final PluginTaskRegistry beforeEnableTaskRegistry = new PluginTaskRegistry();
-    private final PluginTaskRegistry afterEnableTaskRegistry = new PluginTaskRegistry();
+    private final PluginTaskRegistry preEnableTaskRegistry = new PluginTaskRegistry();
+    private final PluginTaskRegistry postEnableTaskRegistry = new PluginTaskRegistry();
 
     private final Consumer<CraftEngine> reloadEventDispatcher;
     private boolean isReloading;
     private boolean isInitializing;
+    private boolean isStopping;
+    private boolean isDisabled;
 
     private String buildByBit = "%%__BUILTBYBIT__%%";
     private String polymart = "%%__POLYMART__%%";
@@ -330,7 +332,7 @@ public abstract class CraftEngine implements Plugin {
         }
 
         // 延迟任务
-        this.beforeEnableTaskRegistry.executeTasks();
+        this.preEnableTaskRegistry.executeTasks();
 
         if (!Config.delayConfigurationLoad()) {
             // 清理缓存，初始化一些东西，不需要读config和translation，因为boostrap阶段已经读取过了
@@ -344,7 +346,7 @@ public abstract class CraftEngine implements Plugin {
         }
 
         // 延迟任务
-        this.afterEnableTaskRegistry.executeTasks();
+        this.postEnableTaskRegistry.executeTasks();
 
         // 延迟重载，以便其他依赖CraftEngine的插件能注册parser
         this.scheduler.sync().runDelayed(() -> {
@@ -476,6 +478,7 @@ public abstract class CraftEngine implements Plugin {
     }
 
     protected void onPluginDisable() {
+        this.isStopping = true;
         if (this.networkManager != null) this.networkManager.disable();
         if (this.fontManager != null) this.fontManager.disable();
         if (this.advancementManager != null) this.advancementManager.disable();
@@ -501,6 +504,8 @@ public abstract class CraftEngine implements Plugin {
         if (this.commandManager != null) this.commandManager.unregisterFeatures();
         if (this.senderFactory != null) this.senderFactory.close();
         if (this.dependencyManager != null) this.dependencyManager.close();
+        this.isStopping = false;
+        this.isDisabled = true;
     }
 
     protected void registerDefaultParsers() {
@@ -607,6 +612,16 @@ public abstract class CraftEngine implements Plugin {
     @Override
     public boolean isInitializing() {
         return this.isInitializing;
+    }
+
+    @Override
+    public boolean isStopping() {
+        return this.isStopping;
+    }
+
+    @Override
+    public boolean isDisabled() {
+        return this.isDisabled;
     }
 
     @Override
@@ -739,7 +754,7 @@ public abstract class CraftEngine implements Plugin {
      */
     @ApiStatus.Experimental
     public PluginTaskRegistry beforeEnableTaskRegistry() {
-        return this.beforeEnableTaskRegistry;
+        return this.preEnableTaskRegistry;
     }
 
     /**
@@ -751,6 +766,6 @@ public abstract class CraftEngine implements Plugin {
      */
     @ApiStatus.Experimental
     public PluginTaskRegistry afterEnableTaskRegistry() {
-        return this.afterEnableTaskRegistry;
+        return this.postEnableTaskRegistry;
     }
 }

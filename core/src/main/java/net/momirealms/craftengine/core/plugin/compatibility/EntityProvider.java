@@ -16,6 +16,4 @@ public interface EntityProvider {
 
     @Nullable
     String getEntityId(Entity entity);
-
-
 }

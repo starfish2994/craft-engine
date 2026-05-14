@@ -252,7 +252,7 @@ public final class BukkitCraftEngine extends CraftEngine {
     public void onPluginDisable() {
         super.onPluginDisable();
         if (this.tickTask != null) this.tickTask.cancel();
-        if (!Bukkit.getServer().isStopping()) {
+        if (VersionHelper.isPaper && !Bukkit.getServer().isStopping()) {
             logger().error(" ");
             logger().error(" ");
             logger().error(" ");

@@ -22,8 +22,6 @@ public interface Platform {
 
     Player getPlayer(UUID uuid);
 
-    boolean isStopping();
-
     ParticleType getParticleType(Key name);
 
     int biomeCount();

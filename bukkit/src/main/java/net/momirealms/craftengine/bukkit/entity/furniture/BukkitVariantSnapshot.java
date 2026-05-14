@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.entity.furniture.Collider;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureSnapshotState;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.Key;
@@ -35,7 +36,6 @@ public final class BukkitVariantSnapshot extends FurnitureSnapshotState {
 
     @Override
     public void addCollidersToWorld(World cWorld) {
-        if (Bukkit.isStopping()) return;
         Object world = cWorld.minecraftWorld();
         for (Collider entity : super.colliders) {
             Object minecraftEntity = entity.handle();
