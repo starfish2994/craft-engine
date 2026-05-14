@@ -434,6 +434,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     private void tryRemoveCollider(Collider collider) {
+        if (Bukkit.isStopping()) return;
         Object entity = collider.handle();
         Object level = EntityProxy.INSTANCE.getLevel(entity);
         Object entityLookup;

@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.spottedleaf.moonrise.common.util.TickThreadProxy;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -34,6 +35,7 @@ public final class BukkitVariantSnapshot extends FurnitureSnapshotState {
 
     @Override
     public void addCollidersToWorld(World cWorld) {
+        if (Bukkit.isStopping()) return;
         Object world = cWorld.minecraftWorld();
         for (Collider entity : super.colliders) {
             Object minecraftEntity = entity.handle();

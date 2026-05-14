@@ -13,6 +13,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
+import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
@@ -172,6 +173,7 @@ public final class ItemEventListener implements Listener {
             Vec3d vec3d = new Vec3d(interactionPoint.getX(), interactionPoint.getY(), interactionPoint.getZ());
             hitResult = new BlockHitResult(vec3d, direction, pos, false); // todo 需要检测玩家是否在方块内，特指脚手架
         }
+        BukkitWorld world = BukkitAdaptor.adapt(block.getWorld());
 
         // 处理自定义方块
         if (immutableBlockState != null) {
@@ -218,7 +220,7 @@ public final class ItemEventListener implements Listener {
             }
 
             if (hitResult != null) {
-                UseOnContext useOnContext = new UseOnContext(serverPlayer, hand, itemInHand, hitResult);
+                UseOnContext useOnContext = new UseOnContext(world, serverPlayer, hand, itemInHand, hitResult);
                 boolean hasItem = !serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() || !serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty();
                 boolean flag = player.isSneaking() && hasItem;
                 if (!flag) {
@@ -298,7 +300,7 @@ public final class ItemEventListener implements Listener {
                 // 它也确实是原版物品
                 if (!isCustomItem) {
                     // 它目前可以被放置出来
-                    if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(serverPlayer, hand, itemInHand, hitResult)))) {
+                    if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(world, serverPlayer, hand, itemInHand, hitResult)))) {
                         // 如果交互目标是一个自定义方块
                         if (immutableBlockState != null) {
                             // 如果客户端觉得它可交互，那么就不会意淫出声音
@@ -323,7 +325,7 @@ public final class ItemEventListener implements Listener {
                         // 不能在BlockPlaceEvent里检测，是因为种农作物不触发相关事件
                         // 允许尝试放置方块
                         if (serverPlayer.isSecondaryUseActive() || !InteractUtils.isInteractable(player, blockData, hitResult, itemInHand)) {
-                            if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(serverPlayer, hand, itemInHand, hitResult)))) {
+                            if (InteractUtils.canPlaceBlock(new BlockPlaceContext(new UseOnContext(world, serverPlayer, hand, itemInHand, hitResult)))) {
                                 event.setCancelled(true);
                             }
                         }
@@ -348,7 +350,7 @@ public final class ItemEventListener implements Listener {
                 if (!serverPlayer.isSecondaryUseActive() && interactable) {
                     return;
                 }
-                UseOnContext useOnContext = new UseOnContext(serverPlayer, hand, itemInHand, hitResult);
+                UseOnContext useOnContext = new UseOnContext(world, serverPlayer, hand, itemInHand, hitResult);
                 // 依次执行物品行为
                 InteractionResult useResult = optionalItemBehavior.get().useOnBlock(useOnContext);
                 if (useResult.success()) {
@@ -401,8 +403,10 @@ public final class ItemEventListener implements Listener {
                     Object nmsHitResult = InteractUtils.toNMSHitResult(hitResult);
                     Object item = ItemStackProxy.INSTANCE.getItem(itemInHand.minecraftItem());
                     Object result = ItemProxy.INSTANCE.useOn(item, UseOnContextProxy.INSTANCE.newInstance(
+                            world.minecraftWorld(),
                             serverPlayer.serverPlayer(),
                             hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND,
+                            itemInHand.minecraftItem(),
                             nmsHitResult
                     ));
                     if (result != InteractionResultProxy.INSTANCE.getPass()) {
