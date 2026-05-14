@@ -46,6 +46,7 @@ public final class VersionHelper {
     public static final boolean isOrAbove26_1;
     public static final boolean isOrAbove26_1_1;
     public static final boolean isOrAbove26_1_2;
+    public static final boolean isOrAbove26_2;
     private static final Class<?> UNOBFUSCATED_CLAZZ = Objects.requireNonNull(ReflectionUtils.getClazz(
             "net.minecraft.obfuscate.DontObfuscate", // 因为无混淆版本没有这个类所以说多写几个防止找不到了
             "net.minecraft.data.Main",
@@ -101,6 +102,7 @@ public final class VersionHelper {
             isOrAbove26_1 = version >= 260100;
             isOrAbove26_1_1 = version >= 260101;
             isOrAbove26_1_2 = version >= 260102;
+            isOrAbove26_2 = version >= 260200;
 
             majorVersion = major;
             minorVersion = minor;
@@ -189,126 +191,157 @@ public final class VersionHelper {
         return exists("org.dreeam.leaf.config.LeafConfig");
     }
 
+    @Deprecated(forRemoval = true)
     public static int majorVersion() {
         return majorVersion;
     }
 
+    @Deprecated(forRemoval = true)
     public static int minorVersion() {
         return minorVersion;
     }
 
+    @Deprecated(forRemoval = true)
     public static int version() {
         return version;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isFolia() {
         return isFolia;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isPaper() {
         return isPaper;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isCanvas() {
         return isCanvas;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isLeaves() {
         return isLeaves;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isLeaf() {
         return isLeaf;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isMojmap() {
         return isMojmap;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_20() {
         return isOrAbove1_20;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_20_1() {
         return isOrAbove1_20_1;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_20_2() {
         return isOrAbove1_20_2;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_20_3() {
         return isOrAbove1_20_3;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_20_4() {
         return isOrAbove1_20_4;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_20_5() {
         return isOrAbove1_20_5;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_20_6() {
         return isOrAbove1_20_6;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21() {
         return isOrAbove1_21;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_1() {
         return isOrAbove1_21_1;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_2() {
         return isOrAbove1_21_2;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_3() {
         return isOrAbove1_21_3;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_4() {
         return isOrAbove1_21_4;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_5() {
         return isOrAbove1_21_5;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_6() {
         return isOrAbove1_21_6;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_7() {
         return isOrAbove1_21_7;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_8() {
         return isOrAbove1_21_8;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_9() {
         return isOrAbove1_21_9;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_10() {
         return isOrAbove1_21_10;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove1_21_11() {
         return isOrAbove1_21_11;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove26_1() {
         return isOrAbove26_1;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove26_1_1() {
         return isOrAbove26_1_1;
     }
 
+    @Deprecated(forRemoval = true)
     public static boolean isOrAbove26_1_2() {
         return isOrAbove26_1_2;
     }

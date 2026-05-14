@@ -327,7 +327,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public CEWorld getWorld(UUID uuid) {
-        if (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID)) {
+        if (!VersionHelper.isFolia && (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID))) {
             return this.lastWorld;
         }
         CEWorld world = this.worlds.get(uuid);
