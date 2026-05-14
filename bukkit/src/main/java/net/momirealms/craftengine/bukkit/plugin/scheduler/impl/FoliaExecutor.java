@@ -7,8 +7,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
 public final class FoliaExecutor extends AbstractBukkitExecutor {
     private final BukkitCraftEngine plugin;
 
@@ -28,10 +26,11 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
 
     @Override
     public void run(Runnable r, World world, int x, int z) {
-        Optional.ofNullable(world).ifPresentOrElse(w ->
-                Bukkit.getRegionScheduler().execute(this.plugin.javaPlugin(), w, x, z, r),
-                () -> Bukkit.getGlobalRegionScheduler().execute(this.plugin.javaPlugin(), r)
-        );
+        if (world == null) {
+            execute(r);
+        } else {
+            Bukkit.getRegionScheduler().execute(this.plugin.javaPlugin(), world, x, z, r);
+        }
     }
 
     @Override
@@ -64,9 +63,9 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
     @Override
     public SchedulerTask runLater(Runnable r, Runnable retired, long delay, Entity entity) {
         if (delay <= 0) {
-            return new FoliaTask(entity.getScheduler().runDelayed(this.plugin.javaPlugin(), (t) -> r.run(), retired, delay));
-        } else {
             return new FoliaTask(entity.getScheduler().run(this.plugin.javaPlugin(), (t) -> r.run(), retired));
+        } else {
+            return new FoliaTask(entity.getScheduler().runDelayed(this.plugin.javaPlugin(), (t) -> r.run(), retired, delay));
         }
     }
 

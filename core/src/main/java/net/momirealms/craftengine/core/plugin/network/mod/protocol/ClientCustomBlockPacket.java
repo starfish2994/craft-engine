@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.plugin.network.mod.protocol;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslationArgument;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
@@ -60,7 +61,7 @@ public record ClientCustomBlockPacket(int vanillaSize, int currentSize) implemen
         ModPackets.sendPacket(user, CraftEngine.instance().blockManager().cachedVisualBlockStatePacket());
         if (!VersionHelper.isOrAbove1_20_2) {
             // 因为旧版本没有配置阶段需要重新发送区块
-            CraftEngine.instance().scheduler().platform().run(user::resendChunks);
+            CraftEngine.instance().scheduler().platform().run(user::resendChunks, null, (Player) user);
         }
     }
 }

@@ -208,8 +208,8 @@ fun registerPaperTask(
         jvmArgs(
             "-Dorg.bukkit.plugin.java.LibraryLoader.centralURL=https://maven.aliyun.com/repository/central",
             "-Dsun.stdout.encoding=UTF-8",
-            "-Dsun.stderr.encoding=UTF-8",
-            "-Ddisable.watchdog=true"
+            "-Dsun.stderr.encoding=UTF-8"
+//            "-Ddisable.watchdog=true"
         )
     }
 
