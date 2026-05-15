@@ -53,7 +53,7 @@ public final class BukkitWorld implements World {
         this.minecraftWorld = new WeakReference<>(CraftWorldProxy.INSTANCE.getWorld(bukkitWorld));
         this.uuid = bukkitWorld.getUID();
         this.worldName = bukkitWorld.getName();
-        this.worldFolder = bukkitWorld.getWorldPath();
+        this.worldFolder = bukkitWorld.getWorldFolder().toPath(); // 低版本没有直接获取path
     }
 
     @Override
