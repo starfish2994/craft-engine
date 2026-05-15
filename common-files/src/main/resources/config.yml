@@ -613,10 +613,10 @@ gui:
 
 chunk-system:
   # Storage format for chunk data persistence
-  # mca: Minecraft Anvil format
-  # pdc: Persistent Data Container provided by Bukkit
-  # none: No persistent storage (in-memory only)
-  storage-type: pdc
+  # mca: Minecraft Anvil format (Independent storage ensures that the custom block will not be corrupted when loaded in other scenarios)
+  # pdc: Persistent Data Container provided by Bukkit (Faster, but can only run on Bukkit and its downstream platforms)
+  # none: No persistent storage (In-memory only)
+  storage-type: mca
   # Caches serialized chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
   cache-system: true
   # Compression algorithm for chunk data

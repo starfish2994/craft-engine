@@ -186,6 +186,13 @@ remove_item_component:
     - /craftengine item remove-component
     - /ce item remove-component
 
+migrate_world_storage:
+  enable: true
+  permission: ce.command.admin.migrate_world_storage
+  usage:
+    - /craftengine feature migrate-world-storage
+    - /ce feature migrate-world-storage
+
 # Debug commands
 debug_set_block:
   enable: true

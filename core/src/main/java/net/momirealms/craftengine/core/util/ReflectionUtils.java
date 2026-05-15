@@ -18,7 +18,6 @@ public final class ReflectionUtils {
     public static final boolean JNI_IS_AVAILABLE = MiscUtils.get(() -> {
         try {
             Class.forName("cn.gtemc.reflection.ImplLookupGetter");
-            if (VersionHelper.IS_RUNNING_IN_DEV) System.err.println("[CraftEngine] JNI is available");
             return true;
         } catch (Throwable t) {
             if (VersionHelper.IS_RUNNING_IN_DEV) {
