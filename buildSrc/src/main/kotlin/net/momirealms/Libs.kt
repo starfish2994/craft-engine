@@ -59,7 +59,7 @@ fun DependencyHandlerScope.cloud(project: Project, configuration: String = JavaP
 }
 
 fun DependencyHandlerScope.paperServer(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
-    configuration("io.papermc.paper:paper-api:${project.ver("paper_version")}-R0.1-SNAPSHOT")
+    configuration("io.papermc.paper:paper-api:${project.ver("paper_version")}")
 }
 
 fun DependencyHandlerScope.asm(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
