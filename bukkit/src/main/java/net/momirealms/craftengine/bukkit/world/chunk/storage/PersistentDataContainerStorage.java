@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.world.chunk.storage;
 import net.momirealms.craftengine.bukkit.world.chunk.BukkitChunkAccess;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
+import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.craftengine.core.world.chunk.serialization.DefaultChunkSerializer;
@@ -22,9 +23,11 @@ import java.util.Objects;
 public class PersistentDataContainerStorage implements WorldDataStorage {
     private static final NamespacedKey CHUNK_KEY = Objects.requireNonNull(NamespacedKey.fromString("craftengine:chunk_data"));
     private final ChunkFactory chunkFactory;
+    private final World world;
 
-    public PersistentDataContainerStorage(ChunkFactory chunkFactory) {
+    public PersistentDataContainerStorage(World world, ChunkFactory chunkFactory) {
         this.chunkFactory = chunkFactory;
+        this.world = world;
     }
 
     @Override
@@ -52,6 +55,30 @@ public class PersistentDataContainerStorage implements WorldDataStorage {
         }
         CompoundTag nbt = DefaultChunkSerializer.serialize(chunk);
         PersistentDataContainer pdc = chunkAccess.getPersistentDataContainer();
+        setPdc(pdc, nbt);
+    }
+
+    @Override
+    public @Nullable CompoundTag readChunkTagAt(@NotNull ChunkPos pos) throws IOException {
+        org.bukkit.World bukkitWorld = (org.bukkit.World) this.world.platformWorld();
+        PersistentDataContainer pdc = bukkitWorld.getChunkAt(pos.x, pos.z).getPersistentDataContainer();
+        byte[] bytes = pdc.get(CHUNK_KEY, PersistentDataType.BYTE_ARRAY);
+        if (bytes == null) {
+            return null;
+        }
+        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes))) {
+            return NBT.readCompound(dis, false);
+        }
+    }
+
+    @Override
+    public void writeChunkTagAt(@NotNull ChunkPos pos, @Nullable CompoundTag nbt) throws IOException {
+        org.bukkit.World bukkitWorld = (org.bukkit.World) this.world.platformWorld();
+        PersistentDataContainer pdc = bukkitWorld.getChunkAt(pos.x, pos.z).getPersistentDataContainer();
+        setPdc(pdc, nbt);
+    }
+
+    private void setPdc(@NotNull PersistentDataContainer pdc, @Nullable CompoundTag nbt) throws IOException {
         if (nbt == null) {
             pdc.remove(CHUNK_KEY);
         } else {

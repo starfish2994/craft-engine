@@ -52,12 +52,28 @@ public final class SlimeWorldDataStorage implements WorldDataStorage {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public void writeChunkAt(@NotNull ChunkPos pos, @NotNull CEChunk chunk) {
+    public void writeChunkAt(@NotNull ChunkPos pos, @NotNull CEChunk chunk) throws IOException {
         SlimeChunk slimeChunk = getWorld().getChunk(pos.x, pos.z);
         if (slimeChunk == null) return;
-        CompoundTag nbt = DefaultChunkSerializer.serialize(chunk);
+        writeChunkTagAt(pos, DefaultChunkSerializer.serialize(chunk));
+    }
+
+    @Nullable
+    @Override
+    public CompoundTag readChunkTagAt(@NotNull ChunkPos pos) throws IOException {
+        SlimeChunk slimeChunk = getWorld().getChunk(pos.x, pos.z);
+        if (slimeChunk == null) return null;
+        Object tag = slimeChunk.getExtraData().get("craftengine");
+        if (tag == null) return null;
+        return NBT.fromBytes(this.adaptor.byteArrayTagToBytes(tag));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void writeChunkTagAt(@NotNull ChunkPos pos, @Nullable CompoundTag nbt) {
+        SlimeChunk slimeChunk = getWorld().getChunk(pos.x, pos.z);
+        if (slimeChunk == null) return;
         if (nbt == null) {
             slimeChunk.getExtraData().remove("craftengine");
         } else {

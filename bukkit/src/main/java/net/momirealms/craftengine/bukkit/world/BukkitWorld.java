@@ -43,6 +43,8 @@ public final class BukkitWorld implements World {
     private final WeakReference<org.bukkit.World> bukkitWorld;
     private final WeakReference<Object> minecraftWorld;
     private final UUID uuid;
+    private final String worldName;
+    private final Path worldFolder;
     private CEWorld ceWorld;
     private WorldHeight worldHeight;
 
@@ -50,6 +52,8 @@ public final class BukkitWorld implements World {
         this.bukkitWorld = new WeakReference<>(bukkitWorld);
         this.minecraftWorld = new WeakReference<>(CraftWorldProxy.INSTANCE.getWorld(bukkitWorld));
         this.uuid = bukkitWorld.getUID();
+        this.worldName = bukkitWorld.getName();
+        this.worldFolder = bukkitWorld.getWorldPath();
     }
 
     @Override
@@ -105,17 +109,17 @@ public final class BukkitWorld implements World {
 
     @Override
     public String name() {
-        return platformWorld().getName();
+        return this.worldName;
     }
 
     @Override
     public Path directory() {
-        return platformWorld().getWorldFolder().toPath();
+        return this.worldFolder;
     }
 
     @Override
     public UUID uuid() {
-        return platformWorld().getUID();
+        return this.uuid;
     }
 
     @Override

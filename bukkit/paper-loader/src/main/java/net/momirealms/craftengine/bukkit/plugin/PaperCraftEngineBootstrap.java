@@ -6,11 +6,9 @@ import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
-import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.momirealms.craftengine.bukkit.plugin.agent.RuntimePatcher;
 import net.momirealms.craftengine.bukkit.plugin.classpath.BukkitClassPathAppender;
 import net.momirealms.craftengine.bukkit.plugin.classpath.PaperPluginClassPathAppender;
-import net.momirealms.craftengine.core.plugin.Migrator;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.logger.PluginLogger;
 import net.momirealms.craftengine.core.plugin.logger.Slf4jPluginLogger;
@@ -26,11 +24,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Logger;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class PaperCraftEngineBootstrap implements PluginBootstrap {

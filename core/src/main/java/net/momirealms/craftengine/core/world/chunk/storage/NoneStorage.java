@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +19,15 @@ public final class NoneStorage implements WorldDataStorage {
 
     @Override
     public void writeChunkAt(@NotNull ChunkPos pos, @NotNull CEChunk chunk) {
+    }
+
+    @Override
+    public @Nullable CompoundTag readChunkTagAt(@NotNull ChunkPos pos) {
+        return null;
+    }
+
+    @Override
+    public void writeChunkTagAt(@NotNull ChunkPos pos, @Nullable CompoundTag nbt) {
     }
 
     @Override

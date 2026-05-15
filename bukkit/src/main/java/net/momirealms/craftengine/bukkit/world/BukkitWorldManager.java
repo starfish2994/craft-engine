@@ -320,6 +320,10 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         this.storageAdaptor = storageAdaptor;
     }
 
+    public StorageAdaptor getStorageAdaptor() {
+        return this.storageAdaptor;
+    }
+
     public CEWorld getWorld(World world) {
         return getWorld(world.getUID());
     }

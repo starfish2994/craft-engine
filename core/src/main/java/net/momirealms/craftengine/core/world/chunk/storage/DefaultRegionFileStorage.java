@@ -151,6 +151,22 @@ public class DefaultRegionFileStorage implements WorldDataStorage {
     }
 
     @Override
+    public CompoundTag readChunkTagAt(@NotNull ChunkPos pos) throws IOException {
+        RegionFile regionFile = this.getRegionFile(pos, true);
+        if (regionFile == null) {
+            return null;
+        }
+        synchronized (regionFile) {
+            try (DataInputStream dataInputStream = regionFile.getChunkDataInputStream(pos)) {
+                if (dataInputStream == null) {
+                    return null;
+                }
+                return NBT.readCompound(dataInputStream, false);
+            }
+        }
+    }
+
+    @Override
     public void writeChunkAt(@NotNull ChunkPos pos, @NotNull CEChunk chunk) throws IOException {
         CompoundTag nbt = DefaultChunkSerializer.serialize(chunk);
         writeChunkTagAt(pos, nbt);
@@ -161,6 +177,7 @@ public class DefaultRegionFileStorage implements WorldDataStorage {
         this.writeChunkTagAt(pos, null);
     }
 
+    @Override
     public void writeChunkTagAt(@NotNull ChunkPos pos, @Nullable CompoundTag nbt) throws IOException {
         RegionFile regionFile = this.getRegionFile(pos, nbt == null);
         if (regionFile == null) return;

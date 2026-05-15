@@ -511,6 +511,7 @@ network:
     item: true
     advancement: true   # Toast
     player-chat: true
+    dialog: true
 
   # Settings related to communication with CraftEngineMod
   mod-channel:
@@ -613,9 +614,17 @@ gui:
 
 chunk-system:
   # Storage format for chunk data persistence
+  #
   # mca: Minecraft Anvil format (Independent storage ensures that the custom block will not be corrupted when loaded in other scenarios)
   # pdc: Persistent Data Container provided by Bukkit (Faster, but can only run on Bukkit and its downstream platforms)
   # none: No persistent storage (In-memory only)
+  #
+  # The SlimeWorld will automatically use the Slime format for storage without requiring any configuration.
+  #
+  # To migrate world storage, first change the storage type in the configuration.
+  # Then run the command: /ce feature migrate-world-storage [world] [previous_type]
+  # Once the migration is complete, restart the server.
+  #
   storage-type: mca
   # Caches serialized chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
   cache-system: true

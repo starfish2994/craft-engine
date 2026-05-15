@@ -132,8 +132,8 @@ public final class ItemEventListener implements Listener {
         Player player = event.getPlayer();
         if (
                 (action != Action.LEFT_CLICK_BLOCK && action != Action.RIGHT_CLICK_BLOCK) ||  /* block is required */
-                (player.getGameMode() == GameMode.SPECTATOR) ||  /* no spectator interactions */
-                (action == Action.LEFT_CLICK_BLOCK && player.getGameMode() == GameMode.CREATIVE) /* it's breaking the block */
+                        (player.getGameMode() == GameMode.SPECTATOR) ||  /* no spectator interactions */
+                        (action == Action.LEFT_CLICK_BLOCK && player.getGameMode() == GameMode.CREATIVE) /* it's breaking the block */
         ) {
             return;
         }
@@ -446,7 +446,6 @@ public final class ItemEventListener implements Listener {
             itemDefinition.execute(context, EventTrigger.LEFT_CLICK);
             if (dummy.isCancelled()) {
                 event.setCancelled(true);
-                return;
             }
         }
     }
@@ -501,7 +500,6 @@ public final class ItemEventListener implements Listener {
                     return;
                 }
                 if (useResult != InteractionResult.PASS) {
-                    return;
                 }
             }
         }
@@ -715,7 +713,6 @@ public final class ItemEventListener implements Listener {
         ), EventTrigger.PICK_UP);
         if (dummy.isCancelled()) {
             event.setCancelled(true);
-            return;
         }
     }
 

@@ -16,6 +16,7 @@ import net.momirealms.sparrow.nbt.NBT;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 
@@ -54,7 +55,22 @@ public final class LegacySlimeWorldDataStorage implements WorldDataStorage {
     public void writeChunkAt(@NotNull ChunkPos pos, @NotNull CEChunk chunk) {
         SlimeChunk slimeChunk = getWorld().getChunk(pos.x, pos.z);
         if (slimeChunk == null) return;
-        CompoundTag nbt = DefaultChunkSerializer.serialize(chunk);
+        writeChunkTagAt(pos, DefaultChunkSerializer.serialize(chunk));
+    }
+
+    @Override
+    public @Nullable CompoundTag readChunkTagAt(@NotNull ChunkPos pos) throws IOException {
+        SlimeChunk slimeChunk = getWorld().getChunk(pos.x, pos.z);
+        if (slimeChunk == null) return null;
+        Optional<ByteArrayTag> tag = slimeChunk.getExtraData().getAsByteArrayTag("craftengine");
+        if (tag.isEmpty()) return null;
+        return NBT.fromBytes(tag.get().getValue());
+    }
+
+    @Override
+    public void writeChunkTagAt(@NotNull ChunkPos pos, @Nullable CompoundTag nbt) {
+        SlimeChunk slimeChunk = getWorld().getChunk(pos.x, pos.z);
+        if (slimeChunk == null) return;
         if (nbt == null) {
             slimeChunk.getExtraData().getValue().remove("craftengine");
         } else {
