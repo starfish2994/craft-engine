@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
@@ -41,6 +42,7 @@ public final class RegistryDataListener implements ByteBufferPacketListener {
                 e.write(b);
             });
         } else if (registryId.equals(DIALOG)) {
+            if (!Config.interceptDialog()) return;
             List<Entry> entries = buf.readList(Entry::read);
             event.setChanged(true);
             buf.clear();

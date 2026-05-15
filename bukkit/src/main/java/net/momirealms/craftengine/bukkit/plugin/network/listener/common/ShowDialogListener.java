@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
@@ -26,6 +27,7 @@ public final class ShowDialogListener implements ByteBufferPacketListener {
 
     @Override
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+        if (!Config.interceptDialog()) return;
         FriendlyByteBuf buf = event.getBuffer();
         Either<Integer, Tag> directOrRef = buf.readHolder(it -> it.readNbt(false));
         Player player = (Player) user;
