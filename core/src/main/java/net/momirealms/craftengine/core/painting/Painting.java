@@ -13,10 +13,10 @@ public record Painting(int width, int height, Key assetId, Optional<Component> t
     public static Painting fromJson(JsonObject json) {
         int width = json.get("width").getAsInt();
         int height = json.get("height").getAsInt();
-        Key assetId = Key.minecraft(json.get("asset-id").getAsString());
+        Key assetId = Key.minecraft(json.get("asset_id").getAsString());
         Optional<Component> title = json.has("title") ? Optional.of(AdventureHelper.jsonElementToComponent(json.get("title"))) : Optional.empty();
         Optional<Component> author = json.has("author") ? Optional.of(AdventureHelper.jsonElementToComponent(json.get("author"))) : Optional.empty();
-        boolean showInOpTab = json.get("show-in-op-tab").getAsBoolean();
+        boolean showInOpTab = json.get("show_in_op_tab").getAsBoolean();
         return new Painting(width, height, assetId, title, author, showInOpTab);
     }
 
@@ -24,10 +24,10 @@ public record Painting(int width, int height, Key assetId, Optional<Component> t
         JsonObject json = new JsonObject();
         json.addProperty("width", this.width);
         json.addProperty("height", this.height);
-        json.addProperty("asset-id", this.assetId.toString());
+        json.addProperty("asset_id", this.assetId.toString());
         this.title.ifPresent(it -> json.add("title", AdventureHelper.componentToJsonElement(it)));
         this.author.ifPresent(it -> json.add("author", AdventureHelper.componentToJsonElement(it)));
-        json.addProperty("show-in-op-tab", this.showInOpTab);
+        json.addProperty("show_in_op_tab", this.showInOpTab);
         return json;
     }
 }
