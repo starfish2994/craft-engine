@@ -9,10 +9,12 @@ plugins {
 
 subprojects {
 
-    apply(plugin = "java")
-    apply(plugin = "java-library")
-    apply(plugin = "com.gradleup.shadow")
-    apply(plugin = "maven-publish")
+    apply {
+        plugin("java")
+        plugin("java-library")
+        plugin("com.gradleup.shadow")
+        plugin("maven-publish")
+    }
 
     repositories {
         mavenCentral()
