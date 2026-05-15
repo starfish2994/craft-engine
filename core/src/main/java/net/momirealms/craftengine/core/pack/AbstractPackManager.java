@@ -1785,7 +1785,7 @@ public abstract class AbstractPackManager implements PackManager {
                                 } else {
                                     if (!status.inBlockAtlas() && notInAtlasTextures.add(spritePath)) {
                                         this.plugin.logger().warn(TranslationManager.instance().plainTranslation(
-                                                "warning.config.resource_pack.generation.texture_not_in_atlas",
+                                                "resource_pack.texture_not_in_atlas",
                                                 spritePath.asString()
                                         ));
                                     }

@@ -74,6 +74,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     private final Map<String, ItemSource> itemSources;
     private final Map<String, LevelerProvider> levelerProviders;
     private final Map<String, EntityProvider> entityProviders;
+    private final Set<String> loggedPlugins;
     private ModelProvider[] modelProviderArray;
     private TagResolverProvider[] tagResolverProviderArray = null;
     private JsonObject blueMapBlockColors = new JsonObject();
@@ -89,6 +90,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         this.entityProviders = new HashMap<>();
         this.modelProviders = new HashMap<>();
         this.tagResolverProviders = new HashMap<>();
+        this.loggedPlugins = new HashSet<>();
         this.modelProviderArray = new ModelProvider[0];
     }
 
@@ -238,17 +240,21 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
             runCatchingHook(() -> WrappedBlockStateHelper.register("ac{}grim{}grimac{}shaded{}com{}github{}retrooper{}packetevents"), "GrimAC");
         }
         BukkitLevelerBridge levelerBridge = BukkitLevelerBridge.builder()
-                .onHookSuccess(this::logHook)
-                .onHookFailure((s, t) -> this.plugin.logger().warn("Failed to hook " + s, t))
-                .detectSupportedPlugins()
+                .detectSupportedPlugins(
+                        this::logHook,
+                        (s, t) -> this.plugin.logger().warn("Failed to hook " + s, t),
+                        null
+                )
                 .build();
         for (cn.gtemc.levelerbridge.api.LevelerProvider<org.bukkit.entity.Player> provider : levelerBridge.providers()) {
             this.registerLevelerProvider(new LevelerBridgeLeveler(provider));
         }
         BukkitItemBridge itemBridge = BukkitItemBridge.builder()
-                .onHookSuccess(this::logHook)
-                .onHookFailure((s, t) -> this.plugin.logger().warn("Failed to hook " + s, t))
-                .detectSupportedPlugins(p -> !p.getName().equalsIgnoreCase("CraftEngine"))
+                .detectSupportedPlugins(
+                        this::logHook,
+                        (s, t) -> this.plugin.logger().warn("Failed to hook " + s, t),
+                        p -> !p.getName().equalsIgnoreCase("CraftEngine")
+                )
                 .build();
         for (Provider<ItemStack, org.bukkit.entity.Player> provider : itemBridge.providers()) {
             this.registerItemSource(new ItemBridgeSource(provider));
@@ -256,6 +262,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.isPluginEnabled("BlueMap")) {
             runCatchingHook(this::initBlueMapHook, "BlueMap");
         }
+        this.loggedPlugins.clear();
     }
 
     private void runCatchingHook(ThrowableRunnable runnable, String plugin) {
@@ -279,6 +286,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     private void logHook(String plugin) {
+        if (!this.loggedPlugins.add(plugin)) return;
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("plugin.compatibility", plugin));
     }
 

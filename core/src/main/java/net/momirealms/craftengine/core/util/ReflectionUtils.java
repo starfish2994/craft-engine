@@ -15,17 +15,20 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class ReflectionUtils {
-    public static final MethodHandles.Lookup LOOKUP;
-
-    static {
-        MethodHandles.Lookup lookup;
+    public static final boolean JNI_IS_AVAILABLE = MiscUtils.get(() -> {
         try {
-            lookup = ImplLookupGetter.IMPL_LOOKUP;
-        } catch (UnsatisfiedLinkError error) {
-            lookup = SReflection.getLookup();
+            Class.forName("cn.gtemc.reflection.ImplLookupGetter");
+            if (VersionHelper.IS_RUNNING_IN_DEV) System.err.println("[CraftEngine] JNI is available");
+            return true;
+        } catch (Throwable t) {
+            if (VersionHelper.IS_RUNNING_IN_DEV) {
+                System.err.println("[CraftEngine] JNI is not available");
+                t.printStackTrace(System.err);
+            }
+            return false;
         }
-        LOOKUP = lookup;
-    }
+    });
+    public static final MethodHandles.Lookup LOOKUP = JNI_IS_AVAILABLE ? ImplLookupGetter.IMPL_LOOKUP : SReflection.getLookup();
 
     private ReflectionUtils() {
     }

@@ -28,6 +28,10 @@ public final class Migrator {
             if (Files.exists(customModelDataFolder)) {
                 Files.move(customModelDataFolder, cacheFolder.resolve("custom_model_data"), StandardCopyOption.REPLACE_EXISTING);
             }
+            Path jukeboxSongs = cacheFolder.resolve("jukebox-songs.json");
+            if (Files.exists(jukeboxSongs)) {
+                Files.move(jukeboxSongs, cacheFolder.resolve("jukebox_songs.json"), StandardCopyOption.REPLACE_EXISTING);
+            }
         }
     }
 

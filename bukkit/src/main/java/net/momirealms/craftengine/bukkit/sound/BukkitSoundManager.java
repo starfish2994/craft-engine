@@ -47,7 +47,7 @@ public final class BukkitSoundManager extends AbstractSoundManager {
         if (songs == null || songs.isEmpty()) return;
         Path persistSongPath = this.plugin.dataFolderPath()
                 .resolve("cache")
-                .resolve("jukebox-songs.json");
+                .resolve("jukebox_songs.json");
         try {
             Files.createDirectories(persistSongPath.getParent());
             JsonObject cache = new JsonObject();
@@ -70,7 +70,7 @@ public final class BukkitSoundManager extends AbstractSoundManager {
     private Map<Key, JukeboxSong> loadLastRegisteredSongs() {
         Path persistSongPath = this.plugin.dataFolderPath()
                 .resolve("cache")
-                .resolve("jukebox-songs.json");
+                .resolve("jukebox_songs.json");
         if (Files.exists(persistSongPath) && Files.isRegularFile(persistSongPath)) {
             try {
                 Map<Key, JukeboxSong> songs = new HashMap<>();

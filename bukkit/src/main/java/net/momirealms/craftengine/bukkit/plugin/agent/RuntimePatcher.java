@@ -2,8 +2,10 @@ package net.momirealms.craftengine.bukkit.plugin.agent;
 
 import cn.gtemc.reflection.ImplLookupGetter;
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.core.util.ReflectionUtils;
 import org.bukkit.Bukkit;
 
 import java.lang.instrument.Instrumentation;
@@ -22,7 +24,7 @@ public final class RuntimePatcher {
                 .load(Bukkit.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
                 .getLoaded();
         Field field = holderClass.getField("runnable");
-        Instrumentation inst = ImplLookupGetter.INSTRUMENTATION;
+        Instrumentation inst = ReflectionUtils.JNI_IS_AVAILABLE ? ImplLookupGetter.INSTRUMENTATION : ByteBuddyAgent.install();
         field.set(null, (Runnable) () -> {
             try {
                 plugin.injectRegistries();
