@@ -16,7 +16,7 @@ lang#items:
     item.default.topaz_pickaxe: 黃玉鎬
     item.default.topaz_axe: 黃玉斧
     item.default.topaz_hoe: 黃玉鋤
-    item.default.topaz_shovel: 黃玉鍬
+    item.default.topaz_shovel: 黃玉鏟
     item.default.topaz_sword: 黃玉劍
     item.default.topaz_helmet: 黃玉頭盔
     item.default.topaz_chestplate: 黃玉胸甲
@@ -24,20 +24,20 @@ lang#items:
     item.default.topaz_boots: 黃玉靴子
     item.default.topaz_trident: 黃玉三叉戟
     item.default.topaz_ore: 黃玉礦石
-    item.default.deepslate_topaz_ore: 深層黃玉礦石
+    item.default.deepslate_topaz_ore: 深板岩黃玉礦石
     item.default.topaz: 黃玉
     item.default.palm_log: 棕櫚原木
-    item.default.stripped_palm_log: 去皮棕櫚原木
-    item.default.palm_wood: 棕櫚木
-    item.default.stripped_palm_wood: 去皮棕櫚木
-    item.default.palm_planks: 棕櫚木板
+    item.default.stripped_palm_log: 剝皮棕櫚原木
+    item.default.palm_wood: 棕櫚木塊
+    item.default.stripped_palm_wood: 剝皮棕櫚木塊
+    item.default.palm_planks: 棕櫚木材
     item.default.palm_sapling: 棕櫚樹苗
     item.default.palm_leaves: 棕櫚樹葉
-    item.default.palm_trapdoor: 棕櫚木活板門
+    item.default.palm_trapdoor: 棕櫚木地板門
     item.default.palm_door: 棕櫚木門
     item.default.palm_fence_gate: 棕櫚木柵欄門
-    item.default.palm_slab: 棕櫚木臺階
-    item.default.palm_stairs: 棕櫚木樓梯
+    item.default.palm_slab: 棕櫚木半磚
+    item.default.palm_stairs: 棕櫚木階梯
     item.default.palm_pressure_plate: 棕櫚木壓力板
     item.default.palm_button: 棕櫚木按鈕
     item.default.palm_fence: 棕櫚木柵欄
@@ -59,11 +59,11 @@ lang#items:
     item.default.magma_fruit: 岩漿果實
     item.default.globe: 地球儀
     item.default.drill: 鑽頭
-    item.default.togglable_light_block: 可調節光源方塊
+    item.default.togglable_light_block: 可調節光源
     item.default.showcase: 物品展示櫃
     item.default.drawer_block: 抽屜方塊
     item.default.candelabrum: 燭臺
-# 為方塊提供翻譯，對於那些需要獲取服務端方塊本地化鍵名的外掛來說尤其有效
+# 為方塊提供翻譯，對於那些需要獲取伺服端方塊本地化鍵名的外掛來說尤其有效
 lang#blocks:
   zh_tw:
     block_name:default:chinese_lantern: 燈籠
@@ -71,17 +71,17 @@ lang#blocks:
     block_name:default:topaz_ore: 黃玉礦石
     block_name:default:deepslate_topaz_ore: 深層黃玉礦石
     block_name:default:palm_log: 棕櫚原木
-    block_name:default:stripped_palm_log: 去皮棕櫚原木
-    block_name:default:palm_wood: 棕櫚木
-    block_name:default:stripped_palm_wood: 去皮棕櫚木
-    block_name:default:palm_planks: 棕櫚木板
+    block_name:default:stripped_palm_log: 剝皮棕櫚原木
+    block_name:default:palm_wood: 棕櫚木塊
+    block_name:default:stripped_palm_wood: 剝皮棕櫚木塊
+    block_name:default:palm_planks: 棕櫚木材
     block_name:default:palm_sapling: 棕櫚樹苗
     block_name:default:palm_leaves: 棕櫚樹葉
-    block_name:default:palm_trapdoor: 棕櫚木活板門
+    block_name:default:palm_trapdoor: 棕櫚木地板門
     block_name:default:palm_door: 棕櫚木門
     block_name:default:palm_fence_gate: 棕櫚木柵欄門
-    block_name:default:palm_slab: 棕櫚木臺階
-    block_name:default:palm_stairs: 棕櫚木樓梯
+    block_name:default:palm_slab: 棕櫚木半磚
+    block_name:default:palm_stairs: 棕櫚木階梯
     block_name:default:palm_button: 棕櫚木按鈕
     block_name:default:palm_fence: 棕櫚木柵欄
     block_name:default:fairy_flower: 仙靈花
@@ -101,7 +101,7 @@ lang#blocks:
     block_name:default:hami_melon_stem: 哈密瓜莖
     block_name:default:attached_hami_melon_stem: 哈密瓜莖
     block_name:default:magma_plant: 岩漿植物
-    block_name:default:togglable_light_block: 可調節光源方塊
+    block_name:default:togglable_light_block: 可調節光源
     block_name:default:drawer_block: 抽屜方塊
 # 傢俱相關的翻譯通常是為 API 設計的
 # 如果你使用的外掛支援顯示傢俱名稱，那麼你很可能需要配置這些傢俱的翻譯
@@ -113,9 +113,9 @@ lang#furniture:
     furniture.default.wooden_chair: 木椅
     furniture.default.showcase: 物品展示櫃
     furniture.default.candelabrum: 燭臺
-# 此處的 "translation" 特指服務端的本地化
+# 此處的 "translation" 特指伺服端的本地化
 # 這意味著您編寫的內容不會直接包含在客戶端資源包中
-# 服務端會對您設定的鍵名進行翻譯，然後將已本地化的文本傳送給客戶端
+# 伺服端會對您設定的鍵名進行翻譯，然後將已本地化的文本傳送給客戶端
 # https://ce.gtemc.cn/zh-Hans/configuration/i18n
 translations#categories:
   zh_tw:
@@ -126,4 +126,4 @@ translations#categories:
     category.misc: 雜項
 translations#emoji:
   zh_tw:
-    emoji.tip: 使用<yellow>'<arg:0>'</yellow>來發送表情'<arg:1>'
+    emoji.tip: 使用<yellow>'<arg:0>'</yellow>來傳送表情'<arg:1>'
