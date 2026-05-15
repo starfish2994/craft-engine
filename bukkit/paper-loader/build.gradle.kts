@@ -1,4 +1,5 @@
 import net.minecrell.pluginyml.paper.PaperPluginDescription
+import net.momirealms.nbt
 import net.momirealms.paperServer
 import xyz.jpenilla.runpaper.task.RunServer
 import xyz.jpenilla.runtask.pluginsapi.PluginDownloadService
@@ -19,6 +20,7 @@ repositories {
 
 dependencies {
     paperServer(project)
+    nbt(project)
 
     implementation(project(":core"))
     implementation(project(":bukkit"))

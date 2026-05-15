@@ -45,10 +45,7 @@ import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.dis
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplayTypes;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.sound.SoundManager;
-import net.momirealms.craftengine.core.util.CompletableFutures;
-import net.momirealms.craftengine.core.util.GsonHelper;
-import net.momirealms.craftengine.core.util.Timestamp;
-import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.WorldManager;
 import net.momirealms.craftengine.core.world.score.TeamManager;
 import org.apache.logging.log4j.LogManager;
@@ -64,6 +61,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -149,10 +147,18 @@ public abstract class CraftEngine implements Plugin {
         // 初始化实体剔除器
         this.entityCullingManager = EntityCullingManager.INSTANCE;
 
+        // 迁移缓存
         try {
-            Migrator.run(this);
+            Migrator.migrateCache(this);
         } catch (Exception e) {
-            this.logger.warn("Failed to run migrator", e);
+            this.logger.warn("Failed to migrate cache", e);
+        }
+
+        // 迁移世界数据
+        try {
+            Migrator.migrateWorldData(this);
+        } catch (Exception e) {
+            this.logger.warn("Failed to migrate worlds", e);
         }
     }
 
