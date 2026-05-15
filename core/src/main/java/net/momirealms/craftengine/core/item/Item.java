@@ -45,6 +45,16 @@ public interface Item {
         return CraftEngine.instance().itemManager().fromBytes(bytes);
     }
 
+    default Item toClientSide(Player player) {
+        Optional<Item> item = CraftEngine.instance().itemManager().s2c(this, player);
+        return item.orElse(this);
+    }
+
+    default Item toServerSide() {
+        Optional<Item> item = CraftEngine.instance().itemManager().c2s(this);
+        return item.orElse(this);
+    }
+
     Object minecraftItem();
 
     default Object platformItem() {
