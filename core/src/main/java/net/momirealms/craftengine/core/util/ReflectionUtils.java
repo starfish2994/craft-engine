@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.util;
 
 import cn.gtemc.reflection.ImplLookupGetter;
+import net.momirealms.sparrow.reflection.SReflection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,9 +15,20 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class ReflectionUtils {
-    public static final MethodHandles.Lookup LOOKUP = ImplLookupGetter.IMPL_LOOKUP;
+    public static final MethodHandles.Lookup LOOKUP;
 
-    private ReflectionUtils() {}
+    static {
+        MethodHandles.Lookup lookup;
+        try {
+            lookup = ImplLookupGetter.IMPL_LOOKUP;
+        } catch (UnsatisfiedLinkError error) {
+            lookup = SReflection.getLookup();
+        }
+        LOOKUP = lookup;
+    }
+
+    private ReflectionUtils() {
+    }
 
     public static Class<?> getClazz(String... classes) {
         for (String className : classes) {
