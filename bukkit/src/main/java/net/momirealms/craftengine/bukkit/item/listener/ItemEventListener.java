@@ -26,7 +26,6 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.setting.value.FoodData;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -78,7 +77,6 @@ import org.bukkit.inventory.*;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 public final class ItemEventListener implements Listener {
     private final BukkitCraftEngine plugin;
