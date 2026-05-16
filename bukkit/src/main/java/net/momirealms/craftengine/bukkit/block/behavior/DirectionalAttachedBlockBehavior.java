@@ -27,6 +27,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
     public final List<Object> tagsCanSurviveOn;
     public final LazyReference<Set<Object>> blockStatesCanSurviveOn;
     public final boolean blacklistMode;
+    public final boolean isSixDirection;
 
     private DirectionalAttachedBlockBehavior(BlockDefinition blockDefinition,
                                              Property<Direction> facingProperty,
@@ -38,6 +39,7 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
         this.facingProperty = facingProperty;
         this.blockStatesCanSurviveOn = blockStatesCanSurviveOn;
         this.blacklistMode = blacklist;
+        this.isSixDirection = facingProperty.possibleValues().size() == 6;
     }
 
     @Override
@@ -84,9 +86,18 @@ public final class DirectionalAttachedBlockBehavior extends BukkitBlockBehavior 
         World level = context.getLevel();
         BlockPos clickedPos = context.getClickedPos();
         for (Direction direction : context.getNearestLookingDirections()) {
-            state = state.with(behavior.facingProperty, direction.opposite());
-            if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state.customBlockState().minecraftState(), level.minecraftWorld(), LocationUtils.toBlockPos(clickedPos))) {
-                return state;
+            if (isSixDirection) {
+                state = state.with(behavior.facingProperty, direction.opposite());
+                if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state.customBlockState().minecraftState(), level.minecraftWorld(), LocationUtils.toBlockPos(clickedPos))) {
+                    return state;
+                }
+            } else {
+                if (direction.stepY() == 0) {
+                    state = state.with(behavior.facingProperty, direction.opposite());
+                    if (BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(state.customBlockState().minecraftState(), level.minecraftWorld(), LocationUtils.toBlockPos(clickedPos))) {
+                        return state;
+                    }
+                }
             }
         }
         return null;
