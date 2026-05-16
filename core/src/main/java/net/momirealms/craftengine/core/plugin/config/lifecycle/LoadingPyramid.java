@@ -44,7 +44,7 @@ public final class LoadingPyramid {
 
         ConfigTask task = this.tasks.get(stage);
         if (task == null) {
-            throw new IllegalStateException("Undefined stage: " + stage);
+            return CompletableFuture.completedFuture(null);
         }
 
         CompletableFuture<Void> future;
