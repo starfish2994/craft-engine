@@ -437,7 +437,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         Object registryAccess = RegistryUtils.getRegistryAccess();
         Optional<?> optionalMaterial;
         if (VersionHelper.isOrAbove26_1) {
-            optionalMaterial = (Optional<?>) addition.getExactComponent(DataComponentKeys.PROVIDES_TRIM_MATERIAL);
+            optionalMaterial = Optional.ofNullable(addition.getExactComponent(DataComponentKeys.PROVIDES_TRIM_MATERIAL));
         } else if (VersionHelper.isOrAbove1_20_5) {
             optionalMaterial = TrimMaterialsProxy.INSTANCE.getFromIngredient$0(registryAccess, addition.minecraftItem());
         } else {
