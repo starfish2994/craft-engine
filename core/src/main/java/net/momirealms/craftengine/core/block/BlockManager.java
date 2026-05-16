@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.block;
 
 import com.google.gson.JsonElement;
+import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
@@ -56,6 +57,8 @@ public interface BlockManager extends Manageable, ModelGenerator {
     int currentBlockRegistrySize();
 
     VisualBlockStatePacket cachedVisualBlockStatePacket();
+
+    BlockBehavior getEmptyBlockBehavior();
 
     static Key createCustomBlockKey(int id) {
         return Key.of("craftengine", "custom_" + id);

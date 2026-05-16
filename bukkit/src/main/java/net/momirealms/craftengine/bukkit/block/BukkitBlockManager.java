@@ -157,6 +157,11 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         return new BukkitBlockBehavior(definition);
     }
 
+    @Override
+    public BlockBehavior getEmptyBlockBehavior() {
+        return EmptyBlockBehavior.INSTANCE;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public BlockBehavior createBlockBehavior(BlockDefinition blockDefinition, ConfigValue behaviorValue) {
