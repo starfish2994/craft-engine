@@ -41,6 +41,8 @@ import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListenerHolder;
 import net.momirealms.craftengine.core.plugin.network.listener.NMSPacketListener;
+import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.CreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.leaves.bot.BotListProxy;
@@ -500,6 +502,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             // 发送颜色队伍
             for (Object packet : BukkitTeamManager.instance().addTeamsPackets()) {
                 user.sendPacket(packet, false);
+            }
+            if (user.hasClientMod()) {
+                ModPackets.sendPackets(user, CreativeModeTabItemsPacket.create(user));
             }
             Channel channel = user.nettyChannel();
             if (this.hasAntiPopup && Config.disableChatReport() && channel != null) {

@@ -84,6 +84,10 @@ public interface NetWorkUser {
 
     void setClientModState(boolean enable);
 
+    boolean hasClientMod();
+
+    void setHasClientMod(boolean hasClientMod);
+
     void addResourcePackUUID(UUID uuid);
 
     boolean isResourcePackLoading(UUID uuid);

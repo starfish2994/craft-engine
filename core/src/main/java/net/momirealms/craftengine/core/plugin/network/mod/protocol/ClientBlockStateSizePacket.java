@@ -34,5 +34,6 @@ public record ClientBlockStateSizePacket(int blockStateSize) implements ModPacke
     @Override
     public void handle(NetWorkUser user) {
         user.setClientBlockList(new IntIdentityList(this.blockStateSize));
+        user.setHasClientMod(true);
     }
 }

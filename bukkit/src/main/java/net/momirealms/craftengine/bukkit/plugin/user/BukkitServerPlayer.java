@@ -163,6 +163,7 @@ public class BukkitServerPlayer extends Player {
     private int resentSoundTick;
     private int resentSwingTick;
     // has fabric client mod or not
+    private boolean enableClientMod = false;
     private boolean hasClientMod = false;
     private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaBlockStateCount());
     // cache if player can break blocks
@@ -1294,12 +1295,23 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public boolean clientModEnabled() {
-        return this.hasClientMod;
+        return this.enableClientMod;
     }
 
     @Override
     public void setClientModState(boolean enable) {
+        this.enableClientMod = enable;
         this.hasClientMod = enable;
+    }
+
+    @Override
+    public boolean hasClientMod() {
+        return this.hasClientMod;
+    }
+
+    @Override
+    public void setHasClientMod(boolean hasClientMod) {
+        this.hasClientMod = hasClientMod;
     }
 
     @Override

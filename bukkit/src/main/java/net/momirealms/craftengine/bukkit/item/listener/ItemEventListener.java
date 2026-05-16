@@ -26,11 +26,14 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.setting.value.FoodData;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
+import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.CreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.sound.SoundSet;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.*;
@@ -75,6 +78,7 @@ import org.bukkit.inventory.*;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 public final class ItemEventListener implements Listener {
     private final BukkitCraftEngine plugin;
@@ -91,6 +95,10 @@ public final class ItemEventListener implements Listener {
             this.itemManager.persistItemModelMappings();
             for (Player player : Bukkit.getOnlinePlayers()) {
                 this.plugin.scheduler().platform().run(player::updateInventory, null, player);
+                BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+                if (serverPlayer != null && serverPlayer.hasClientMod()) {
+                    ModPackets.sendPackets(serverPlayer, CreativeModeTabItemsPacket.create(serverPlayer));
+                }
             }
         }
     }

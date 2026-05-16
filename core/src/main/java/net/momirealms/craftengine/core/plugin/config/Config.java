@@ -223,6 +223,7 @@ public final class Config {
     private boolean network$disable_chat_report;
     private boolean network$mod_channel$enable;
     private boolean network$mod_channel$requires_permission;
+    private int network$mod_channel$creative_tab_max_items_per_packet;
     private boolean network$item_crypto$enable;
 
     private boolean item$client_bound_model;
@@ -695,6 +696,7 @@ public final class Config {
         this.network$intercept_packets$dialog = config.getBoolean("network.intercept-packets.dialog", true);
         this.network$mod_channel$enable = config.getBoolean("network.mod-channel.enable", true);
         this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
+        this.network$mod_channel$creative_tab_max_items_per_packet = Math.max(config.getInt("network.mod-channel.creative-tab-max-items-per-packet", 10), 1);
         if (this.firstTime) {
             this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
             if (this.network$item_crypto$enable) {
@@ -1170,6 +1172,10 @@ public final class Config {
 
     public static boolean modChannelRequiresPermission() {
         return instance.network$mod_channel$requires_permission;
+    }
+
+    public static int modChannelCreativeTabMaxItemsPerPacket() {
+        return instance.network$mod_channel$creative_tab_max_items_per_packet;
     }
 
     public static boolean enableItemCrypto() {
