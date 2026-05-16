@@ -8,10 +8,7 @@ import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.PacketFlow;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.CancelBlockUpdatePacket;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.ClientBlockStateSizePacket;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.ClientCustomBlockPacket;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockStatePacket;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.*;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
@@ -25,6 +22,7 @@ public final class ModPackets {
     public static final ModPacketType<CancelBlockUpdatePacket> CANCEL_BLOCK_UPDATE = register(CancelBlockUpdatePacket.TYPE, CancelBlockUpdatePacket.CODEC);
     public static final ModPacketType<ClientBlockStateSizePacket> CLIENT_BLOCK_STATE_SIZE = register(ClientBlockStateSizePacket.TYPE, ClientBlockStateSizePacket.CODEC);
     public static final ModPacketType<VisualBlockStatePacket> VISUAL_BLOCK_STATE = register(VisualBlockStatePacket.TYPE, VisualBlockStatePacket.CODEC);
+    public static final ModPacketType<CreativeModeTabItemsPacket> CREATIVE_MODE_TAB_ITEMS = register(CreativeModeTabItemsPacket.TYPE, CreativeModeTabItemsPacket.CODEC);
 
     private ModPackets() {
     }
@@ -38,8 +36,15 @@ public final class ModPackets {
         return type;
     }
 
+    public static void sendPackets(NetWorkUser user, Iterable<? extends ModPacket> packets) {
+        if (packets == null) return;
+        for (ModPacket packet : packets) {
+            sendPacket(user, packet);
+        }
+    }
+
     public static void sendPacket(NetWorkUser user, ModPacket packet) {
-        if (!Config.enableModChannel()) return;
+        if (!Config.enableModChannel() || packet == null) return;
         @SuppressWarnings("unchecked")
         NetworkCodec<FriendlyByteBuf, ModPacket> codec = (NetworkCodec<FriendlyByteBuf, ModPacket>) BuiltInRegistries.MOD_PACKET.getValue(packet.type());
         if (codec == null) {

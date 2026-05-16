@@ -31,6 +31,8 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
+import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.CreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.sound.SoundSet;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.*;
@@ -91,6 +93,10 @@ public final class ItemEventListener implements Listener {
             this.itemManager.persistItemModelMappings();
             for (Player player : Bukkit.getOnlinePlayers()) {
                 this.plugin.scheduler().platform().run(player::updateInventory, null, player);
+                BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+                if (serverPlayer != null && serverPlayer.hasClientMod()) {
+                    ModPackets.sendPackets(serverPlayer, CreativeModeTabItemsPacket.create(serverPlayer));
+                }
             }
         }
     }

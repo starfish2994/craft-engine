@@ -511,6 +511,7 @@ network:
   mod-channel:
     enable: true
     requires-permission: false
+    creative-tab-max-items-per-packet: 10
 
   # Encrypt the raw component information before sending it to the client. This option requires a restart to apply.
   item-crypto:
