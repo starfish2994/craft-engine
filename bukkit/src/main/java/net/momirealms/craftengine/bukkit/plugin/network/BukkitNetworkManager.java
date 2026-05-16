@@ -32,10 +32,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
-import net.momirealms.craftengine.core.plugin.network.AbstractNetworkManager;
-import net.momirealms.craftengine.core.plugin.network.ConnectionState;
-import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
-import net.momirealms.craftengine.core.plugin.network.PacketFlow;
+import net.momirealms.craftengine.core.plugin.network.*;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
@@ -81,6 +78,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public final class BukkitNetworkManager extends AbstractNetworkManager implements Listener {
@@ -503,7 +501,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             for (Object packet : BukkitTeamManager.instance().addTeamsPackets()) {
                 user.sendPacket(packet, false);
             }
-            if (user.hasClientMod()) {
+            if (user.hasClientMod() && user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_20_2)) {
                 ModPackets.sendPackets(user, CreativeModeTabItemsPacket.create(user));
             }
             Channel channel = user.nettyChannel();

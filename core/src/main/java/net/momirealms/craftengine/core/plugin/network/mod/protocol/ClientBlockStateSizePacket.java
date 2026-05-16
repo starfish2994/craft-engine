@@ -1,8 +1,11 @@
 package net.momirealms.craftengine.core.plugin.network.mod.protocol;
 
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.plugin.network.ProtocolVersion;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.ModPacket;
+import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.IntIdentityList;
@@ -33,6 +36,9 @@ public record ClientBlockStateSizePacket(int blockStateSize) implements ModPacke
 
     @Override
     public void handle(NetWorkUser user) {
+        if (!user.hasClientMod() && !user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_20_2)) {
+            ModPackets.sendPackets(user, CreativeModeTabItemsPacket.create((Player) user));
+        }
         user.setClientBlockList(new IntIdentityList(this.blockStateSize));
         user.setHasClientMod(true);
     }
