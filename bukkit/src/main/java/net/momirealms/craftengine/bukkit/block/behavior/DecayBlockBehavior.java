@@ -9,11 +9,13 @@ import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.number.ConstantNumberProvider;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.util.LazyReference;
+import net.momirealms.craftengine.core.util.random.RandomUtils;
 import net.momirealms.craftengine.core.util.random.ThreadLocalRandomSource;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.DirectionProxy;
@@ -32,13 +34,15 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
     public final boolean hasRequiredLight;
     public final LazyReference<BlockStateWrapper> decayInto;
     public final boolean useRandomTick;
+    public final NumberProvider chance;
 
     private DecayBlockBehavior(
             BlockDefinition blockDefinition,
             IntegerProperty ageProperty,
             @Nullable NumberProvider delay,
             int requiredLight,
-            LazyReference<BlockStateWrapper> decayInto
+            LazyReference<BlockStateWrapper> decayInto,
+            NumberProvider chance
     ) {
         super(blockDefinition);
         this.ageProperty = ageProperty;
@@ -47,6 +51,7 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
         this.hasRequiredLight = requiredLight > 0;
         this.decayInto = decayInto;
         this.useRandomTick = delay == null;
+        this.chance = chance;
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -67,7 +72,7 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
             LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
             return;
         }
-        if (this.hasRequiredLight && getLight(level, pos) < this.requiredLight) {
+        if (this.hasRequiredLight && getLight(level, pos) < this.requiredLight || RandomUtils.generateRandomDouble() > this.chance.getDouble(ThreadLocalRandomSource.INSTANCE)) {
             LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
             return;
         }
@@ -88,6 +93,7 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
         ImmutableBlockState blockState = BlockStateUtils.getNullableCustomBlockState(args[0]);
         if (blockState == null || blockState.isEmpty()) return;
         if (this.hasRequiredLight && getLight(level, pos) < this.requiredLight) return;
+        if (RandomUtils.generateRandomDouble() > this.chance.getDouble(ThreadLocalRandomSource.INSTANCE)) return;
         int age = blockState.get(this.ageProperty);
         if (age < this.ageProperty.max) {
             LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
@@ -136,7 +142,8 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
                     (IntegerProperty) BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),
                     delay,
                     section.getInt(REQUIRED_LIGHT, 0),
-                    LazyReference.lazyReference(() -> Objects.requireNonNull(CraftEngine.instance().blockManager().createBlockState(decayInto), decayInto))
+                    LazyReference.lazyReference(() -> Objects.requireNonNull(CraftEngine.instance().blockManager().createBlockState(decayInto), decayInto)),
+                    section.getNumber("chance", ConfigConstants.CONSTANT_ONE)
             );
         }
     }
