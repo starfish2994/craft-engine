@@ -98,11 +98,13 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onEntityRemove(EntityRemoveFromWorldEvent event) {
-        this.projectiles.remove(event.getEntity().getEntityId());
+        if (event.getEntity() instanceof Projectile projectile) {
+            this.projectiles.remove(projectile.getEntityId());
+        }
     }
 
     private void handleProjectileLoad(Projectile projectile) {
-        if (!projectile.isValid()) return;
+        if (this.projectiles.containsKey(projectile.getEntityId())) return;
         ItemStack projectileItem;
         if (projectile instanceof ThrowableProjectile throwableProjectile) {
             projectileItem = throwableProjectile.getItem();
@@ -140,6 +142,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         public void run() {
             if (!this.projectile.isValid()) {
                 this.task.cancel();
+                BukkitProjectileManager.this.projectiles.remove(this.projectile.getEntityId());
                 return;
             }
 
