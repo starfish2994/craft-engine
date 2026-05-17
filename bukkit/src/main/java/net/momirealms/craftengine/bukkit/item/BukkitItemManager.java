@@ -400,14 +400,14 @@ public final class BukkitItemManager extends AbstractItemManager {
     }
 
     @Override
-    protected ItemDefinition.Builder createPlatformItemBuilder(UniqueKey id, Key materialId, Key clientBoundMaterialId) {
+    protected ItemDefinition.Builder createPlatformItemBuilder(String path, UniqueKey id, Key materialId, Key clientBoundMaterialId) {
         Object item = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(materialId));
         Object clientBoundItem = materialId == clientBoundMaterialId ? item : RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(clientBoundMaterialId));
         if (item == ItemsProxy.AIR) {
-            throw new KnownResourceException("resource.item.invalid_material", materialId.toString());
+            throw new KnownResourceException("resource.item.invalid_material", path, materialId.toString());
         }
         if (clientBoundItem == ItemsProxy.AIR) {
-            throw new KnownResourceException("resource.item.invalid_material", clientBoundMaterialId.toString());
+            throw new KnownResourceException("resource.item.invalid_material", path, clientBoundMaterialId.toString());
         }
         return BukkitItemDefinition.builder(item, clientBoundItem)
                 .id(id)

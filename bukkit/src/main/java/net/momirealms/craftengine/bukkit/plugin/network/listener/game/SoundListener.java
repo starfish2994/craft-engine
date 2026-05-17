@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
@@ -13,13 +15,21 @@ import net.momirealms.craftengine.proxy.minecraft.core.IdMapProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamEncoderProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
+import org.bukkit.Location;
+
+import java.time.Duration;
+import java.util.UUID;
 
 public final class SoundListener implements ByteBufferPacketListener {
     public static final ByteBufferPacketListener INSTANCE = new SoundListener();
     public static final Object SoundEvent$DIRECT_STREAM_CODEC = VersionHelper.isOrAbove1_20_5 ? SoundEventProxy.INSTANCE.getDirectStreamCodec() : null;
+    private static final Cache<SoundLocation, Key> IGNORED_SOUNDS = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofSeconds(1))
+            .build();
 
     private SoundListener() {}
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
         FriendlyByteBuf buf = event.getBuffer();
@@ -69,6 +79,15 @@ public final class SoundListener implements ByteBufferPacketListener {
             float volume = buf.readFloat();
             float pitch = buf.readFloat();
             long seed = buf.readLong();
+
+            // 只取消原版的
+            SoundLocation soundLocation = new SoundLocation(user.clientSideWorld().uuid(), x, y, z);
+            Key optionalIgnoredSound = IGNORED_SOUNDS.getIfPresent(soundLocation);
+            if (optionalIgnoredSound != null && optionalIgnoredSound.equals(soundId)) {
+                event.setCancelled(true);
+                return;
+            }
+
             Key mapped = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
             if (mapped != null) {
                 event.setChanged(true);
@@ -90,6 +109,21 @@ public final class SoundListener implements ByteBufferPacketListener {
                 buf.writeFloat(pitch);
                 buf.writeLong(seed);
             }
+        }
+    }
+
+    public static void addTempIgnoredSound(Location location, Key soundId) {
+        IGNORED_SOUNDS.put(SoundLocation.fromLocation(location), soundId);
+    }
+
+    public record SoundLocation(UUID world, int x, int y, int z) {
+
+        public static SoundLocation fromLocation(Location loc) {
+            int x = (int) (loc.getX() * 8d);
+            int y = (int) (loc.getY() * 8d);
+            int z = (int) (loc.getZ() * 8d);
+            UUID uuid = loc.getWorld().getUID();
+            return new SoundLocation(uuid, x, y, z);
         }
     }
 }

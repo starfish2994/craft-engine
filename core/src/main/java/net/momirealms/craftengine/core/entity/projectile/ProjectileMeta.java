@@ -4,7 +4,6 @@ import net.momirealms.craftengine.core.entity.display.Billboard;
 import net.momirealms.craftengine.core.entity.display.ItemDisplayContext;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -16,7 +15,7 @@ public record ProjectileMeta(Key item,
                              Vector3f translation,
                              Quaternionf rotation,
                              double range,
-                             SoundData throwSound) {
+                             ProjectileSounds sounds) {
 
     private static final String[] DISPLAY_TRANSFORM = new String[] {"display_transform", "display-transform"};
 
@@ -29,10 +28,10 @@ public record ProjectileMeta(Key item,
         Quaternionf rotation = section.getQuaternion("rotation", ConfigConstants.ZERO_QUATERNION);
         double range = section.getDouble("range", 1);
         ConfigSection soundsSection = section.getSection("sounds");
-        SoundData throwSound = null;
+        ProjectileSounds sounds = null;
         if (soundsSection != null) {
-            throwSound = soundsSection.getValue("throw", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.RANGED_0_9_1));
+            sounds = ProjectileSounds.fromConfig(soundsSection);
         }
-        return new ProjectileMeta(itemId, displayType, billboard, scale, translation, rotation, range, throwSound);
+        return new ProjectileMeta(itemId, displayType, billboard, scale, translation, rotation, range, sounds);
     }
 }

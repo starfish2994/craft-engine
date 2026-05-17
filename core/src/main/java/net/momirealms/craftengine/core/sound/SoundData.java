@@ -17,6 +17,10 @@ public record SoundData(Key id, SoundValue volume, SoundValue pitch) {
         return new SoundData(id, volume, pitch);
     }
 
+    public static SoundData of(Key id) {
+        return new SoundData(id, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_1);
+    }
+
     public static SoundData fromConfig(ConfigValue value, SoundData.SoundValue volume, SoundData.SoundValue pitch) {
         Key soundId;
         if (value.is(Map.class)) {

@@ -12,6 +12,8 @@ public interface ItemsProxy {
     Object BARRIER = INSTANCE.getBarrier();
     Object DEBUG_STICK = INSTANCE.getDebugStick();
     Object WRITABLE_BOOK = INSTANCE.getWritableBook();
+    Object FIRE_CHARGE = INSTANCE.getFireCharge();
+    Object WIND_CHARGE = INSTANCE.getWindCharge();
 
     @FieldGetter(name = "AIR", isStatic = true)
     Object getAir();
@@ -27,4 +29,12 @@ public interface ItemsProxy {
 
     @FieldGetter(name = "WRITABLE_BOOK", isStatic = true)
     Object getWritableBook();
+
+    @FieldGetter(name = "FIRE_CHARGE", isStatic = true)
+    Object getFireCharge();
+
+    @FieldGetter(name = "WIND_CHARGE", isStatic = true, activeIf = "min_version=1.21")
+    default Object getWindCharge() {
+        return null;
+    }
 }

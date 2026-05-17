@@ -98,6 +98,8 @@ items:
           scale: 0.5
           sounds:
             throw: minecraft:item.trident.throw
+            hit_entity: minecraft:item.trident.hit
+            hit_block: minecraft:item.trident.hit_ground
         tags:
           - default:topaz_tools
       data:
@@ -160,6 +162,8 @@ items:
           scale: 0.5
           sounds:
             throw: minecraft:item.trident.throw
+            hit_entity: minecraft:item.trident.hit
+            hit_block: minecraft:item.trident.hit_ground
         tags:
           - default:topaz_tools
       model:

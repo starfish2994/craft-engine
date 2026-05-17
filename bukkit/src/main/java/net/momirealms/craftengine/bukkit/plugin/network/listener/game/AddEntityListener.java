@@ -53,6 +53,9 @@ public final class AddEntityListener implements ByteBufferPacketListener {
         this.handlers[EntityTypeProxy.TRIDENT$registryId] = createOptionalCustomProjectileEntityHandler(false);
         this.handlers[EntityTypeProxy.ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
         this.handlers[EntityTypeProxy.SPECTRAL_ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
+        if (VersionHelper.isOrAbove1_21) {
+            this.handlers[EntityTypeProxy.WIND_CHARGE$registryId] = createOptionalCustomProjectileEntityHandler(false);
+        }
         if (VersionHelper.isOrAbove1_20_3) {
             this.handlers[EntityTypeProxy.TNT$registryId] = simpleAddEntityHandler(PrimedTNTPacketHandler.INSTANCE);
         }

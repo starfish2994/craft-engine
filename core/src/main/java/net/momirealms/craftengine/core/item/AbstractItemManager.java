@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.datafixers.util.Either;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.*;
 import net.momirealms.craftengine.core.item.customdata.*;
 import net.momirealms.craftengine.core.item.equipment.*;
@@ -34,8 +33,6 @@ import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.number.ConstantNumberProvider;
-import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.CreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.util.*;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
@@ -235,7 +232,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         return featureFlag$destroyOnDeathChance;
     }
 
-    protected abstract ItemDefinition.Builder createPlatformItemBuilder(UniqueKey id, Key material, Key clientBoundMaterial);
+    protected abstract ItemDefinition.Builder createPlatformItemBuilder(String path, UniqueKey id, Key material, Key clientBoundMaterial);
 
     protected abstract void registerArmorTrimPattern(Collection<Key> equipments);
 
@@ -559,7 +556,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 // 是否使用客户端侧模型
                 boolean clientBoundModel = VersionHelper.PREMIUM && section.getBoolean(CLIENT_BOUND_MODEL, Config.globalClientboundModel());
 
-                ItemDefinition.Builder itemBuilder = createPlatformItemBuilder(uniqueId, material, clientBoundMaterial);
+                ItemDefinition.Builder itemBuilder = createPlatformItemBuilder(section.path(), uniqueId, material, clientBoundMaterial);
 
                 // 模型配置区域，如果这里被配置了，那么用户可以配置custom-model-data或item-model
                 ConfigValue modelValue = section.getValue(MODEL);

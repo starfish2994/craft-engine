@@ -47,6 +47,7 @@ public interface EntityTypeProxy {
     Object MINECART  = INSTANCE.getMinecart();
     Object SPAWNER_MINECART  = INSTANCE.getSpawnerMinecart();
     Object TNT_MINECART = INSTANCE.getTntMinecart();
+    Object WIND_CHARGE = INSTANCE.getWindCharge();
     int TEXT_DISPLAY$registryId = getRegistryId(TEXT_DISPLAY);
     int ITEM_DISPLAY$registryId = getRegistryId(ITEM_DISPLAY);
     int BLOCK_DISPLAY$registryId = getRegistryId(BLOCK_DISPLAY);
@@ -82,6 +83,7 @@ public interface EntityTypeProxy {
     int MINECART$registryId = getRegistryId(MINECART);
     int SPAWNER_MINECART$registryId = getRegistryId(SPAWNER_MINECART);
     int TNT_MINECART$registryId = getRegistryId(TNT_MINECART);
+    int WIND_CHARGE$registryId = getRegistryId(WIND_CHARGE);
 
     private static int getRegistryId(Object type) {
         if (type == null) return -1;
@@ -167,6 +169,11 @@ public interface EntityTypeProxy {
 
     @FieldGetter(name = "HAPPY_GHAST", isStatic = true, activeIf = "min_version=1.21.6")
     default Object getHappyGhast() {
+        return null;
+    }
+
+    @FieldGetter(name = "WIND_CHARGE", isStatic = true, activeIf = "min_version=1.21")
+    default Object getWindCharge() {
         return null;
     }
 
