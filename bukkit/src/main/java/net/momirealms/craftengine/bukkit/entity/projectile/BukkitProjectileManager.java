@@ -216,7 +216,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
             if (meta != null) {
                 BukkitCustomProjectile customProjectile = new BukkitCustomProjectile(meta, projectile, wrapped);
                 this.projectiles.put(projectile.getEntityId(), customProjectile);
-                new ProjectileInjectTask(projectile, wrapped.getEnchantment(EnchantmentKeys.LOYALTY).isPresent());
+                new ProjectileInjectTask(projectile, wrapped.getEnchantment(EnchantmentKeys.LOYALTY).isEmpty());
 //                projectile.setGravity(meta.gravity());
                 ProjectileSounds sounds = meta.sounds();
                 // 如果有自定义声音，就让雪豹闭嘴
