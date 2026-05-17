@@ -97,7 +97,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     // 自动分配
     protected final IdAllocator internalIdAllocator;
     protected final VisualBlockStateAllocator visualBlockStateAllocator;
-    // 缓存的VisualBlockStatePacket
+    // 缓存的visual_block_state自定义包
     private ClientboundVisualBlockStatePacket cachedClientboundVisualBlockStatePacket;
 
     protected AbstractBlockManager(CraftEngine plugin, int vanillaBlockStateCount, int customBlockCount) {
