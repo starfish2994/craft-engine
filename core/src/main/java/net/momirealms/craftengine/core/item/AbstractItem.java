@@ -186,6 +186,11 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
+    public boolean isTag(Key tag) {
+        return this.factory.isTag(this.item, tag);
+    }
+
+    @Override
     public @NotNull Key id() {
         return this.factory.id(this.item);
     }

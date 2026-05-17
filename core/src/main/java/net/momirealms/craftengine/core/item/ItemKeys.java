@@ -84,6 +84,8 @@ public final class ItemKeys {
     public static final Key WOLF_ARMOR = Key.of("minecraft:wolf_armor");
     public static final Key NETHER_BRICK = Key.of("minecraft:nether_brick");
 
+    public static final Key ARROW = Key.of("minecraft:arrow");
+
     public static final Key[] AXES = new Key[] {WOODEN_AXE, COPPER_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE};
 
     public static final Key[] WATER_BUCKETS = new Key[] {WATER_BUCKET, COD_BUCKET, SALMON_BUCKET, TROPICAL_FISH_BUCKET, TADPOLE_BUCKET, PUFFERFISH_BUCKET, AXOLOTL_BUCKET};

@@ -73,6 +73,8 @@ public interface Item {
 
     boolean isBlockItem();
 
+    boolean isTag(Key tag);
+
     @NotNull
     Key id();
 

@@ -20,6 +20,7 @@ import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryOps;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.entity.projectile.AbstractCustomProjectile;
 import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
@@ -44,6 +45,7 @@ import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.tags.TagKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ProjectileWeaponItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.equipment.trim.*;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.Bukkit;
@@ -142,6 +144,16 @@ public final class BukkitItemManager extends AbstractItemManager {
         Bukkit.getPluginManager().registerEvents(this.itemEventListener, this.plugin.javaPlugin());
         Bukkit.getPluginManager().registerEvents(this.armorEventListener, this.plugin.javaPlugin());
         if (this.slotChangeListener != null) Bukkit.getPluginManager().registerEvents(this.slotChangeListener, this.plugin.javaPlugin());
+        this.injectProjectilePredicate();
+    }
+
+    private void injectProjectilePredicate() {
+        try {
+            ProjectileWeaponItemProxy.INSTANCE.setArrowOnly(ARROW_ONLY);
+            ProjectileWeaponItemProxy.INSTANCE.setArrowOrFirework(ARROW_OR_FIREWORK);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     public NetworkItemHandler networkItemHandler() {
@@ -419,14 +431,17 @@ public final class BukkitItemManager extends AbstractItemManager {
         for (Object item : (Iterable<?>) BuiltInRegistriesProxy.ITEM) {
             Object identifier = RegistryProxy.INSTANCE.getKey(BuiltInRegistriesProxy.ITEM, item);
             Key itemKey = KeyUtils.identifierToKey(identifier);
-            VANILLA_ITEMS.add(itemKey);
+
             UniqueKey uniqueKey = UniqueKey.create(itemKey);
             Object mcHolder = Objects.requireNonNull(RegistryUtils.getHolder(BuiltInRegistriesProxy.ITEM, ResourceKeyProxy.INSTANCE.create(RegistriesProxy.ITEM, identifier)));
             Set<Object> tags = HolderProxy.ReferenceProxy.INSTANCE.getTags(mcHolder);
+            Set<Key> tagKeys = new HashSet<>();
             for (Object tag : tags) {
                 Key tagId = KeyUtils.identifierToKey(TagKeyProxy.INSTANCE.getLocation(tag));
-                VANILLA_ITEM_TAGS.computeIfAbsent(tagId, (key) -> new ArrayList<>()).add(uniqueKey);
+                tagKeys.add(tagId);
+                VANILLA_TAG_TO_ITEMS.computeIfAbsent(tagId, (key) -> new ArrayList<>()).add(uniqueKey);
             }
+            VANILLA_ITEM_TO_TAGS.put(itemKey, tagKeys);
         }
     }
 

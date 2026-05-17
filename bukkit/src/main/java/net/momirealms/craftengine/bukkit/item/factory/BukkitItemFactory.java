@@ -5,9 +5,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemWrapper;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.ItemTags;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
-import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemFactory;
-import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
 import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -46,6 +44,13 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
             return new UniversalItemFactory(plugin);
         }
         throw new IllegalStateException("Unsupported server version: " + VersionHelper.MINECRAFT_VERSION.version());
+    }
+
+    @Override
+    protected boolean isTag(W item, Key tag) {
+        Key id = id(item);
+        Optional<ItemDefinition> itemDefinition = this.plugin.itemManager().getItemDefinition(id);
+        return itemDefinition.map(definition -> definition.settings().tags().contains(tag)).orElseGet(() -> this.plugin.itemManager().getVanillaItemTags(id).contains(tag));
     }
 
     @Override

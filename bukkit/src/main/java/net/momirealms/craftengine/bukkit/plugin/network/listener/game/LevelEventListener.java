@@ -23,7 +23,6 @@ import net.momirealms.craftengine.proxy.minecraft.sounds.SoundSourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import org.bukkit.Location;
-import org.bukkit.block.BlockState;
 
 import java.time.Duration;
 import java.util.Optional;
