@@ -56,7 +56,7 @@ public interface BlockManager extends Manageable, ModelGenerator {
 
     int currentBlockRegistrySize();
 
-    ClientboundVisualBlockStatePacket cachedVisualBlockStatePacket();
+    ClientboundVisualBlockStatePacket cachedClientboundVisualBlockStatePacket();
 
     BlockBehavior getEmptyBlockBehavior();
 

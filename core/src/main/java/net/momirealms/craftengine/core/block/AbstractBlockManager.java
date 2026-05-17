@@ -166,7 +166,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     }
 
     @Override
-    public ClientboundVisualBlockStatePacket cachedVisualBlockStatePacket() {
+    public ClientboundVisualBlockStatePacket cachedClientboundVisualBlockStatePacket() {
         return this.cachedClientboundVisualBlockStatePacket;
     }
 

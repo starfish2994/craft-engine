@@ -51,7 +51,7 @@ public record ServerboundEnableClientCustomBlockPacket(int vanillaSize, int curr
         }
         user.setClientCustomBlock(true);
         user.setClientBlockList(new IntIdentityList(this.currentSize));
-        user.sendClientCustomPacket(CraftEngine.instance().blockManager().cachedVisualBlockStatePacket());
+        user.sendClientCustomPacket(CraftEngine.instance().blockManager().cachedClientboundVisualBlockStatePacket());
         if (!VersionHelper.isOrAbove1_20_2) {
             // 因为旧版本没有配置阶段需要重新发送区块
             CraftEngine.instance().scheduler().platform().run(user::resendChunks, null, (Player) user);

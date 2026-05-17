@@ -107,13 +107,6 @@ public final class Key {
         return asString();
     }
 
-    public String asCEMinimalString() {
-        if (this.namespace.equals(CRAFTENGINE_NAMESPACE)) {
-            return this.value;
-        }
-        return asString();
-    }
-
     private static String[] decompose(String id, String namespace) {
         String[] strings = new String[]{namespace, id};
         int i = id.indexOf(':');
