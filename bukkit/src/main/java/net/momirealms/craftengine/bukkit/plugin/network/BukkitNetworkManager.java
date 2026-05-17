@@ -503,7 +503,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 user.sendPacket(packet, false);
             }
             if (user.hasClientMod() && user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_20_2)) {
-                user.sendClientCustomPackets(ClientboundCreativeModeTabItemsPacket.create(user));
+                user.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(user));
             }
             Channel channel = user.nettyChannel();
             if (this.hasAntiPopup && Config.disableChatReport() && channel != null) {

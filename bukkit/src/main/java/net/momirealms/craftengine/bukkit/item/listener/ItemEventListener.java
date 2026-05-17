@@ -96,7 +96,7 @@ public final class ItemEventListener implements Listener {
                 this.plugin.scheduler().platform().run(player::updateInventory, null, player);
                 BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                 if (serverPlayer != null && serverPlayer.hasClientMod()) {
-                    serverPlayer.sendClientCustomPackets(ClientboundCreativeModeTabItemsPacket.create(serverPlayer));
+                    serverPlayer.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(serverPlayer));
                 }
             }
         }

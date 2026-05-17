@@ -21,7 +21,7 @@ public final class ServerboundCancelBlockUpdateRequestPacket implements ServerCu
 
     @Override
     public void handle(NetWorkUser user, ByteBufPacketEvent event) {
-        user.sendClientCustomPacket(ClientboundCancelBlockUpdateResponsePacket.INSTANCE);
+        user.sendCustomPacket(ClientboundCancelBlockUpdateResponsePacket.INSTANCE);
     }
 
     @Override

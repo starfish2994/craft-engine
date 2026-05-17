@@ -115,7 +115,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         if (!ReloadCommand.RELOAD_PACK_FLAG || !Config.obfuscateItemModel()) {
             for (Player player : CraftEngine.instance().networkManager().onlineUsers()) {
                 if (!player.hasClientMod()) continue;
-                player.sendClientCustomPackets(ClientboundCreativeModeTabItemsPacket.create(player));
+                player.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(player));
             }
         }
     }

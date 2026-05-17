@@ -33,7 +33,7 @@ public record ClientboundVisualBlockStatePacket(int[] data) implements ClientCus
     }
 
     @Override
-    public NetworkCodec<FriendlyByteBuf, ? extends ClientCustomPacket> codec() {
+    public NetworkCodec<FriendlyByteBuf, ClientboundVisualBlockStatePacket> codec() {
         return CODEC;
     }
 }

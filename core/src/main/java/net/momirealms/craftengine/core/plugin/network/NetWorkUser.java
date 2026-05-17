@@ -60,9 +60,9 @@ public interface NetWorkUser {
 
     void sendPackets(List<Object> packet, boolean immediately, Runnable sendListener);
 
-    void sendClientCustomPacket(ClientCustomPacket packet);
+    void sendCustomPacket(ClientCustomPacket packet);
 
-    void sendClientCustomPackets(List<? extends ClientCustomPacket> packets);
+    void sendCustomPackets(List<? extends ClientCustomPacket> packets);
 
     void kick(@Nullable Component message);
 

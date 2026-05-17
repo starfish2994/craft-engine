@@ -218,7 +218,7 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
         }
 
         private void updateLightBlock(Player player, BlockPos blockPos, int lightPower) {
-            player.sendClientCustomPacket(new ClientboundLightPacket(blockPos, (byte) lightPower));
+            player.sendCustomPacket(new ClientboundLightPacket(blockPos, (byte) lightPower));
         }
     }
 

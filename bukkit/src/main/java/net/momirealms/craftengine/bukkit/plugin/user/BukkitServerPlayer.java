@@ -549,7 +549,7 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void sendClientCustomPacket(ClientCustomPacket packet) {
+    public void sendCustomPacket(ClientCustomPacket packet) {
         FriendlyByteBuf result = new FriendlyByteBuf(Unpooled.buffer());
         result.writeVarInt(encoderState == ConnectionState.PLAY ? CUSTOM_PAYLOAD_PLAY : CUSTOM_PAYLOAD_CONFIG);
         result.writeKey(packet.id());
@@ -560,9 +560,9 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void sendClientCustomPackets(List<? extends ClientCustomPacket> packets) {
+    public void sendCustomPackets(List<? extends ClientCustomPacket> packets) {
         for (ClientCustomPacket packet : packets) {
-            sendClientCustomPacket(packet);
+            sendCustomPacket(packet);
         }
     }
 

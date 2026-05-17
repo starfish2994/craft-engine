@@ -161,7 +161,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.cachedClientboundVisualBlockStatePacket = ClientboundVisualBlockStatePacket.create();
         for (Player player : CraftEngine.instance().networkManager().onlineUsers()) {
             if (!player.clientCustomBlockEnabled()) continue;
-            player.sendClientCustomPacket(this.cachedClientboundVisualBlockStatePacket);
+            player.sendCustomPacket(this.cachedClientboundVisualBlockStatePacket);
         }
     }
 
