@@ -6,8 +6,8 @@ import io.netty.channel.ChannelHandler;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.plugin.Plugin;
+import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
 import net.momirealms.craftengine.core.util.IntIdentityList;
-import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
 import org.jetbrains.annotations.ApiStatus;
@@ -60,7 +60,9 @@ public interface NetWorkUser {
 
     void sendPackets(List<Object> packet, boolean immediately, Runnable sendListener);
 
-    void sendCustomPayload(Key channel, byte[] data);
+    void sendClientCustomPacket(ClientCustomPacket packet);
+
+    void sendClientCustomPackets(List<? extends ClientCustomPacket> packets);
 
     void kick(@Nullable Component message);
 
@@ -80,13 +82,15 @@ public interface NetWorkUser {
 
     Map<Integer, EntityPacketHandler> entityPacketHandlers();
 
-    boolean clientModEnabled();
+    boolean clientCustomBlockEnabled();
 
-    void setClientModState(boolean enable);
+    void setClientCustomBlock(boolean enable);
 
     boolean hasClientMod();
 
-    void setHasClientMod(boolean hasClientMod);
+    int clientModProtocol();
+
+    void setClientModProtocol(int version);
 
     void addResourcePackUUID(UUID uuid);
 

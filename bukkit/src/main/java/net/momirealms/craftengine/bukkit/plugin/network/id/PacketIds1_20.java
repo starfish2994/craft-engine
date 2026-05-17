@@ -12,10 +12,12 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.Clientb
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.ServerboundHelloPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.ServerboundLoginAcknowledgedPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.status.ClientboundStatusResponsePacketProxy;
+import net.momirealms.craftengine.core.plugin.network.id.PacketIds;
 
-final class PacketIds1_20 implements PacketIds {
+public final class PacketIds1_20 implements PacketIds {
+    public static final PacketIds INSTANCE = new PacketIds1_20();
 
-    PacketIds1_20() {}
+    private PacketIds1_20() {}
 
     @Override
     public int clientboundBlockUpdatePacket() {

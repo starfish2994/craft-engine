@@ -76,7 +76,7 @@ public final class AddEntityListener implements ByteBufferPacketListener {
             byte yHeadRot = buf.readByte();
             int data = buf.readVarInt();
             // Falling blocks
-            int remapped = BukkitNetworkManager.instance().remapBlockState(data, user.clientModEnabled());
+            int remapped = BukkitNetworkManager.instance().remapBlockState(data, user.clientCustomBlockEnabled());
             if (remapped != data) {
                 int xa = VersionHelper.isOrAbove1_21_9 ? -1 : buf.readShort();
                 int ya = VersionHelper.isOrAbove1_21_9 ? -1 : buf.readShort();

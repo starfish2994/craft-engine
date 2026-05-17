@@ -18,9 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-/**
- * 随便写了点方便后面重构和客户端通讯
- */
 public interface NetworkCodecs {
 
     NetworkCodec<ByteBuf, Boolean> BOOLEAN = new NetworkCodec<>() {
