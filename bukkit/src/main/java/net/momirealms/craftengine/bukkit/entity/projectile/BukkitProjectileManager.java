@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
+import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
@@ -16,6 +17,8 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerEntityProxy
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.projectile.AbstractArrowProxy;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
@@ -54,7 +57,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
             List<Entity> entities = world.getEntities();
             for (Entity entity : entities) {
                 if (entity instanceof Projectile projectile) {
-                    this.plugin.scheduler().platform().run(() -> handleProjectileLoad(projectile), null, projectile);
+                    this.plugin.scheduler().platform().run(() -> handleProjectileLoad(projectile, false), null, projectile);
                 }
             }
         }
@@ -72,7 +75,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onProjectileLaunch(ProjectileLaunchEvent event) {
-        handleProjectileLoad(event.getEntity());
+        handleProjectileLoad(event.getEntity(), true);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -83,7 +86,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onEntityAdd(EntityAddToWorldEvent event) {
         if (event.getEntity() instanceof Projectile projectile) {
-            handleProjectileLoad(projectile);
+            handleProjectileLoad(projectile, false);
         }
     }
 
@@ -91,7 +94,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     public void onEntitiesLoad(EntitiesLoadEvent event) {
         for (Entity entity : event.getEntities()) {
             if (entity instanceof Projectile projectile) {
-                handleProjectileLoad(projectile);
+                handleProjectileLoad(projectile, false);
             }
         }
     }
@@ -103,7 +106,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         }
     }
 
-    private void handleProjectileLoad(Projectile projectile) {
+    private void handleProjectileLoad(Projectile projectile, boolean launch) {
         if (this.projectiles.containsKey(projectile.getEntityId())) return;
         ItemStack projectileItem;
         if (projectile instanceof ThrowableProjectile throwableProjectile) {
@@ -121,6 +124,13 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
                 BukkitCustomProjectile customProjectile = new BukkitCustomProjectile(meta, projectile, wrapped);
                 this.projectiles.put(projectile.getEntityId(), customProjectile);
                 new ProjectileInjectTask(projectile, !projectileItem.getItemMeta().hasEnchant(Enchantment.LOYALTY));
+                if (launch) {
+                    SoundData throwSound = meta.throwSound();
+                    if (throwSound != null) {
+                        Location location = projectile.getLocation();
+                        location.getWorld().playSound(location, throwSound.id().asString(), SoundCategory.PLAYERS, throwSound.volume().get(), throwSound.pitch().get());
+                    }
+                }
             }
         });
     }

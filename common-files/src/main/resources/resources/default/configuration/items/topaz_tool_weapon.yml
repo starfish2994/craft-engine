@@ -96,6 +96,8 @@ items:
           rotation: 1,1,1,1
           display_transform: NONE
           scale: 0.5
+          sounds:
+            throw: minecraft:item.trident.throw
         tags:
           - default:topaz_tools
       data:
@@ -156,6 +158,8 @@ items:
           rotation: 1,1,1,1
           display_transform: NONE
           scale: 0.5
+          sounds:
+            throw: minecraft:item.trident.throw
         tags:
           - default:topaz_tools
       model:
