@@ -4,14 +4,13 @@ import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.world.WorldEvents;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public final class ProjectileSounds {
-    public static final SoundData EMPTY_SOUND = new SoundData(Key.of("minecraft:intentionally_empty"), SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_1);
-    public static final TargetBasedSound EMPTY_TARGET_BASED_SOUND = new TargetBasedSound(SoundData.EMPTY, Map.of());
     private static final String[] HIT_ENTITY = new String[] {"hit_entity", "hit-entity"};
     private static final String[] HIT_BLOCK = new String[] {"hit_block", "hit-block"};
     private final SoundData throwSound;

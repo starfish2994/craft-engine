@@ -182,6 +182,10 @@ public final class ItemSettingsModifiers {
         Key itemId = value.getAsIdentifier();
         settings.fuelRemainder(itemId);
     }));
+    public static final ItemSettingsModifierType<ItemSettingsModifier> ALLOWED_PROJECTILES = register(Key.ce("allowed_projectiles"), (value -> settings -> {
+        List<Key> list = value.getAsList(ConfigValue::getAsIdentifier);
+        settings.allowedProjectiles(new HashSet<>(list));
+    }));
 
     private ItemSettingsModifiers() {}
 

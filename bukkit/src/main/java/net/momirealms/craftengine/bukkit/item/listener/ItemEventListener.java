@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.item.listener;
 
+import com.destroystokyo.paper.event.player.PlayerReadyArrowEvent;
 import io.papermc.paper.event.block.CompostItemEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackGenerateEvent;
@@ -19,10 +20,13 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
+import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.enchantment.EnchantmentKeys;
 import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.setting.value.FoodData;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
@@ -61,9 +65,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.Powerable;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -861,19 +863,65 @@ public final class ItemEventListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onShootBow(EntityShootBowEvent event) {
         LivingEntity shooter = event.getEntity();
         ItemStack bow = event.getBow();
-        BukkitItem wrap = this.itemManager.wrap(bow);
-        wrap.getDefinition().ifPresent(definition -> {
-            definition.execute(PlayerOptionalContext.of(shooter instanceof Player player ? BukkitAdaptor.adapt(player) : null,
+        BukkitItem bowItem = this.itemManager.wrap(bow);
+        BukkitServerPlayer serverPlayer = shooter instanceof Player player ? BukkitAdaptor.adapt(player) : null;
+
+        // 触发射击事件
+        bowItem.getDefinition().ifPresent(definition -> {
+            definition.execute(PlayerOptionalContext.of(serverPlayer,
                     ContextHolder.builder()
                             .withParameter(DirectContextParameters.EVENT, Cancellable.of(event::isCancelled, event::setCancelled))
                             .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(shooter))
                             .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(shooter.getLocation()))
-                            .withParameter(DirectContextParameters.ITEM_IN_HAND, wrap)
+                            .withParameter(DirectContextParameters.ITEM_IN_HAND, bowItem)
             ), EventTrigger.SHOOT);
         });
+
+        // 让某些弹药不支持无限
+        ItemStack consumable = event.getConsumable();
+        if (bow == null || consumable == null || serverPlayer == null || serverPlayer.isCreativeMode()) {
+            return;
+        }
+
+        // 设置一些其他属性
+        BukkitItem arrowItem = this.itemManager.wrap(consumable);
+        Optional<ItemDefinition> arrowDefinition = arrowItem.getDefinition();
+        arrowDefinition.ifPresent(definition -> {
+            ProjectileMeta projectileMeta = definition.settings().projectileMeta();
+            if (projectileMeta != null) {
+                if (projectileMeta.ignoreInfinityEnchantment() && bowItem.getEnchantment(EnchantmentKeys.INFINITY).isPresent()) {
+                    serverPlayer.clearOrCountMatchingInventoryItems(arrowItem.id(), 1);
+                    if (event.getProjectile() instanceof AbstractArrow projectile && projectileMeta.pickupable()) {
+                        projectile.setPickupStatus(AbstractArrow.PickupStatus.ALLOWED);
+                        BukkitItem arrow = this.itemManager.wrap(projectile.getItemStack());
+                        arrow.removeComponent(DataComponentKeys.INTANGIBLE_PROJECTILE);
+                        projectile.setItemStack(arrow.getBukkitItem());
+                    }
+                }
+                if (!projectileMeta.pickupable() && event.getProjectile() instanceof AbstractArrow projectile) {
+                    projectile.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+                    BukkitItem arrow = this.itemManager.wrap(projectile.getItemStack());
+                    arrow.setJavaComponent(DataComponentKeys.INTANGIBLE_PROJECTILE, Map.of());
+                    projectile.setItemStack(arrow.getBukkitItem());
+                }
+            }
+        });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onReadyArrow(PlayerReadyArrowEvent event) {
+        BukkitItem bowItem = this.plugin.itemManager().wrap(event.getBow());
+        Optional<ItemDefinition> bowItemDefinition = bowItem.getDefinition();
+        if (bowItemDefinition.isPresent()) {
+            ItemDefinition itemDefinition = bowItemDefinition.get();
+            Set<Key> ammo = itemDefinition.settings().allowedProjectiles();
+            if (!ammo.isEmpty() && !ammo.contains(this.plugin.itemManager().wrap(event.getArrow()).id())) {
+                event.setCancelled(true);
+            }
+        }
     }
 }

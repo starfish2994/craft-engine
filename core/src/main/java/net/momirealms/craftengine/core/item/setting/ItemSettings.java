@@ -49,6 +49,7 @@ public final class ItemSettings {
     LegacyChatFormatter glowColor = null;
     Map<CustomItemSettingType<?>, Object> customData = new IdentityHashMap<>(4);
     boolean triggerAdvancement = false;
+    Set<Key> allowedProjectiles = Set.of();
 
     private ItemSettings() {}
 
@@ -297,6 +298,10 @@ public final class ItemSettings {
         return this.fuelRemainder;
     }
 
+    public Set<Key> allowedProjectiles() {
+        return this.allowedProjectiles;
+    }
+
     public ItemSettings fireworkColor(Color color) {
         this.fireworkColor = color;
         return this;
@@ -424,6 +429,11 @@ public final class ItemSettings {
 
     public ItemSettings fuelRemainder(Key fuelRemainder) {
         this.fuelRemainder = fuelRemainder;
+        return this;
+    }
+
+    public ItemSettings allowedProjectiles(Set<Key> allowedProjectiles) {
+        this.allowedProjectiles = allowedProjectiles;
         return this;
     }
 }

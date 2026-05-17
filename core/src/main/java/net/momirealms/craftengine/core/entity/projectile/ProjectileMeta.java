@@ -14,24 +14,34 @@ public record ProjectileMeta(Key item,
                              Vector3f scale,
                              Vector3f translation,
                              Quaternionf rotation,
-                             double range,
+                             boolean gravity,
+                             boolean ignoreInfinityEnchantment,
+                             boolean removeOnHit,
+                             boolean pickupable,
                              ProjectileSounds sounds) {
 
     private static final String[] DISPLAY_TRANSFORM = new String[] {"display_transform", "display-transform"};
+    private static final String[] IGNORE_INFINITY_ENCHANTMENT = new String[] {"ignore_infinity_enchantment", "ignore-infinity-enchantment"};
+    private static final String[] REMOVE_ON_HIT = new String[] {"remove_on_hit", "remove-on-hit"};
 
     public static ProjectileMeta fromConfig(ConfigSection section) {
-        Key itemId = section.getNonNullIdentifier("item");
-        ItemDisplayContext displayType = section.getEnum(DISPLAY_TRANSFORM, ItemDisplayContext.class, ItemDisplayContext.NONE);
-        Billboard billboard = section.getEnum("billboard", Billboard.class, Billboard.FIXED);
-        Vector3f translation = section.getVector3f("translation", ConfigConstants.ZERO_VECTOR3);
-        Vector3f scale = section.getVector3f("scale", ConfigConstants.NORMAL_SCALE);
-        Quaternionf rotation = section.getQuaternion("rotation", ConfigConstants.ZERO_QUATERNION);
-        double range = section.getDouble("range", 1);
         ConfigSection soundsSection = section.getSection("sounds");
         ProjectileSounds sounds = null;
         if (soundsSection != null) {
             sounds = ProjectileSounds.fromConfig(soundsSection);
         }
-        return new ProjectileMeta(itemId, displayType, billboard, scale, translation, rotation, range, sounds);
+        return new ProjectileMeta(
+                section.getNonNullIdentifier("item"),
+                section.getEnum(DISPLAY_TRANSFORM, ItemDisplayContext.class, ItemDisplayContext.NONE),
+                section.getEnum("billboard", Billboard.class, Billboard.FIXED),
+                section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),
+                section.getVector3f("translation", ConfigConstants.ZERO_VECTOR3),
+                section.getQuaternion("rotation", ConfigConstants.ZERO_QUATERNION),
+                section.getBoolean("gravity", true),
+                section.getBoolean(IGNORE_INFINITY_ENCHANTMENT, false),
+                section.getBoolean(REMOVE_ON_HIT, false),
+                section.getBoolean("pickupable", true),
+                sounds
+        );
     }
 }
