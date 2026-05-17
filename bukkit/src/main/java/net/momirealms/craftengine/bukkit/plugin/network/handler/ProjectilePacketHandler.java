@@ -100,7 +100,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         user.sendPackets(List.of(
                 ClientboundAddEntityPacketProxy.INSTANCE.newInstance(this.entityId, uuid, x, y, z,
                         MiscUtils.clamp(-MiscUtils.unpackDegrees(xRot), -90.0F, 90.0F),
-                        MiscUtils.packDegrees(-MiscUtils.unpackDegrees(yRot)),
+                        -MiscUtils.unpackDegrees(yRot),
                         EntityTypeProxy.ITEM_DISPLAY,
                         data,
                         movement != null ? Vec3Proxy.INSTANCE.newInstance(movement.x, movement.y, movement.z) : Vec3Proxy.INSTANCE.newInstance((double) xa / 8000.0, (double) ya / 8000.0, (double) za / 8000.0),
