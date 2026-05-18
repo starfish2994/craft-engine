@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodecs;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
+import net.momirealms.craftengine.core.plugin.network.mod.CustomPackets;
 import net.momirealms.craftengine.core.plugin.network.mod.ServerCustomPacket;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.IntIdentityList;
@@ -36,5 +37,6 @@ public record ServerboundHandshakePacket(int protocolVersion, int blockListSize)
     public void handle(NetWorkUser user, ByteBufPacketEvent event) {
         user.setClientModProtocol(this.protocolVersion);
         user.setClientBlockList(new IntIdentityList(this.blockListSize));
+        CustomPackets.checkProtocolVersion(user);
     }
 }

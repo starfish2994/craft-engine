@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.core.plugin.network.mod;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslationArgument;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -17,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class CustomPackets {
+    public static final int PROTOCOL_VERSION = 1;
     public static final NetworkCodec<FriendlyByteBuf, ClientboundLightPacket> LIGHT = registerClientbound(ClientboundLightPacket.ID, ClientboundLightPacket.CODEC);
     public static final NetworkCodec<FriendlyByteBuf, ClientboundVisualBlockStatePacket> VISUAL_BLOCK_STATE = registerClientbound(ClientboundVisualBlockStatePacket.ID, ClientboundVisualBlockStatePacket.CODEC);
     public static final NetworkCodec<FriendlyByteBuf, ClientboundCancelBlockUpdateResponsePacket> CANCEL_BLOCK_UPDATE_RESPONSE = registerClientbound(ClientboundCancelBlockUpdateResponsePacket.ID, ClientboundCancelBlockUpdateResponsePacket.CODEC);
@@ -56,5 +59,15 @@ public final class CustomPackets {
 
     public static void registerTrustedPacket(@NotNull Key id, @NotNull Class<?> clazz) {
         TRUSTED_PACKETS.put(id, ClientCustomPacket.class.isAssignableFrom(clazz));
+    }
+
+    public static void checkProtocolVersion(NetWorkUser user) {
+        if (user.clientModProtocol() == PROTOCOL_VERSION) return;
+        user.kick(Component.translatable(
+                "disconnect.craftengine.client_outdated",
+                "Please update your CraftEngine Client Mod \n client protocol version " + user.clientModProtocol() + ", server protocol version " + PROTOCOL_VERSION,
+                TranslationArgument.numeric(user.clientModProtocol()),
+                TranslationArgument.numeric(PROTOCOL_VERSION)
+        ));
     }
 }

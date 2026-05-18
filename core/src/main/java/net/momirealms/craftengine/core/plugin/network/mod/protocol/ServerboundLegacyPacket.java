@@ -1,9 +1,9 @@
 package net.momirealms.craftengine.core.plugin.network.mod.protocol;
 
-import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
+import net.momirealms.craftengine.core.plugin.network.mod.CustomPackets;
 import net.momirealms.craftengine.core.plugin.network.mod.ServerCustomPacket;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
@@ -32,9 +32,6 @@ public final class ServerboundLegacyPacket implements ServerCustomPacket {
 
     @Override
     public void handle(NetWorkUser user, ByteBufPacketEvent event) {
-        user.kick(Component.translatable(
-                "disconnect.craftengine.client_outdated",
-                "Please update your CraftEngine client mod"
-        ).arguments(Component.text(user.clientModProtocol())));
+        CustomPackets.checkProtocolVersion(user);
     }
 }
