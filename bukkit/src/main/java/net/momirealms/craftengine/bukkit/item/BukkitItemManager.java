@@ -150,8 +150,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         try {
             ProjectileWeaponItemProxy.INSTANCE.setArrowOnly(ARROW_ONLY);
             ProjectileWeaponItemProxy.INSTANCE.setArrowOrFirework(ARROW_OR_FIREWORK);
-        } catch (Throwable t) {
-            t.printStackTrace();
+        } catch (Throwable ignored) {
         }
     }
 

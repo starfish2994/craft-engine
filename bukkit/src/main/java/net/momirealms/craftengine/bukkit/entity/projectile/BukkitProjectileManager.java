@@ -18,7 +18,10 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.enchantment.EnchantmentKeys;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.sound.SoundData;
-import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.util.ItemUtils;
+import net.momirealms.craftengine.core.util.Tristate;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ChunkMapProxy;
@@ -43,27 +46,24 @@ import org.bukkit.util.Vector;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class BukkitProjectileManager implements Listener, ProjectileManager {
     private static final NamespacedKey PROJECTILE_ITEM = new NamespacedKey("craftengine", "projectile_item");
+
+
     private static BukkitProjectileManager instance;
     private final BukkitCraftEngine plugin;
     // 会被netty线程访问
     private final Map<Integer, BukkitCustomProjectile> projectiles = new ConcurrentHashMap<>();
-    private static final Key TRIDENT_THROW = Key.of("item.trident.throw");
-    private static final Key SNOWBALL_THROW = Key.of("entity.snowball.throw");
-    private static final Key EGG_THROW = Key.of("entity.egg.throw");
-    private static final Key ENDER_PEARL_THROW = Key.of("entity.ender_pearl.throw");
-    private static final Key EXPERIENCE_BOTTLE_THROW = Key.of("entity.experience_bottle.throw");
-    private static final Key WIND_CHARGE_THROW = Key.of("entity.wind_charge.throw");
-    private static final Key ARROW_SHOOT = Key.of("entity.arrow.shoot");
-    private static final Key CROSSBOW_SHOOT = Key.of("item.crossbow.shoot");
 
     public BukkitProjectileManager(BukkitCraftEngine plugin) {
         this.plugin = plugin;
         instance = this;
+    }
+
+    public static BukkitProjectileManager instance() {
+        return instance;
     }
 
     @Override
@@ -221,38 +221,33 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
                 if (meta.velocity() != 1) {
                     projectile.setVelocity(projectile.getVelocity().multiply(meta.velocity()));
                 }
+                if (projectile instanceof AbstractArrow abstractArrow) {
+                    if (meta.damage() >= 0) {
+                        abstractArrow.setDamage(meta.damage());
+                    }
+                    if (meta.pierceLevel() >= 0) {
+                        abstractArrow.setPierceLevel(Math.min(127, meta.pierceLevel()));
+                    }
+                }
                 ProjectileSounds sounds = meta.sounds();
                 // 如果有自定义声音，就让雪豹闭嘴
                 if (sounds != null) {
                     projectile.setSilent(true);
                     if (launch) {
                         Location location = projectile.getLocation();
-                        Location playerLocation = location;
-                        UUID ownerUniqueId = projectile.getOwnerUniqueId();
-                        if (ownerUniqueId != null) {
-                            Player thrower = Bukkit.getPlayer(ownerUniqueId);
-                            if (thrower != null && thrower.isOnline()) {
-                                playerLocation = thrower.getLocation();
-                            }
+                        Location playerLocation = null;
+                        if (projectile.getShooter() instanceof Player thrower) {
+                            playerLocation = thrower.getLocation();
                         }
-                        switch (projectile) {
-                            case Trident trident -> SoundListener.addTempIgnoredSound(location, TRIDENT_THROW);
-                            case Snowball snowball -> SoundListener.addTempIgnoredSound(playerLocation, SNOWBALL_THROW);
-                            case Egg egg -> SoundListener.addTempIgnoredSound(playerLocation, EGG_THROW);
-                            case EnderPearl enderPearl -> SoundListener.addTempIgnoredSound(playerLocation, ENDER_PEARL_THROW);
-                            case ThrownExpBottle thrownExpBottle -> SoundListener.addTempIgnoredSound(playerLocation, EXPERIENCE_BOTTLE_THROW);
-                            case Arrow arrow -> SoundListener.addTempIgnoredSound(playerLocation, ARROW_SHOOT);
-                            case SpectralArrow spectralArrow -> SoundListener.addTempIgnoredSound(playerLocation, ARROW_SHOOT);
-                            case SmallFireball smallFireball -> {
-                                Vector velocity = smallFireball.getVelocity();
-                                Direction approximateNearest = Direction.getApproximateNearest(velocity.getX(), velocity.getY(), velocity.getZ()).opposite();
-                                Location added = location.add(new Vector(approximateNearest.stepX() * 0.75, approximateNearest.stepY() * 0.75, approximateNearest.stepZ() * 0.75));
-                                LevelEventListener.addTempIgnoredEvent(added, WorldEvents.BLAZE_SHOOTS);
-                            }
-                            default -> {
-                                if (VersionHelper.isOrAbove1_21 && projectile instanceof WindCharge windCharge) {
-                                    SoundListener.addTempIgnoredSound(playerLocation, WIND_CHARGE_THROW);
-                                }
+                        if (projectile instanceof SmallFireball smallFireball) {
+                            Vector velocity = smallFireball.getVelocity();
+                            Direction approximateNearest = Direction.getApproximateNearest(velocity.getX(), velocity.getY(), velocity.getZ()).opposite();
+                            Location added = location.add(new Vector(approximateNearest.stepX() * 0.75, approximateNearest.stepY() * 0.75, approximateNearest.stepZ() * 0.75));
+                            LevelEventListener.addTempIgnoredEvent(added, WorldEvents.BLAZE_SHOOTS);
+                        } else {
+                            SoundListener.addTempIgnoredSound(location);
+                            if (playerLocation != null) {
+                                SoundListener.addTempIgnoredSound(playerLocation);
                             }
                         }
                         SoundData throwSound = sounds.throwSound();
@@ -334,9 +329,5 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
             }
             return true;
         }
-    }
-
-    public static BukkitProjectileManager instance() {
-        return instance;
     }
 }

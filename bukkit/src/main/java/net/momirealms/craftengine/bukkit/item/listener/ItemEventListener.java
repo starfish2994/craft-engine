@@ -7,6 +7,7 @@ import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackGenerateEven
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.entity.BukkitItemEntity;
+import net.momirealms.craftengine.bukkit.entity.projectile.ProjectileItems;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemDefinition;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
@@ -24,6 +25,7 @@ import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDefinition;
+import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.enchantment.EnchantmentKeys;
@@ -65,10 +67,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.Powerable;
-import org.bukkit.entity.AbstractArrow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -884,35 +883,53 @@ public final class ItemEventListener implements Listener {
             ), EventTrigger.SHOOT);
         });
 
-        // 让某些弹药不支持无限
         ItemStack consumable = event.getConsumable();
-        if (bow == null || consumable == null || serverPlayer == null || serverPlayer.isCreativeMode()) {
+        if (consumable == null) {
             return;
         }
-
-        // 设置一些其他属性
         BukkitItem arrowItem = this.itemManager.wrap(consumable);
+
+        // 替换弹射物
+        Entity projectile = event.getProjectile();
+        Key weaponId = bowItem.vanillaId();
+        boolean replaceProjectile = false;
+        if (weaponId.equals(ItemKeys.BOW)) {
+            replaceProjectile = !this.itemManager.isBowAmmo(arrowItem);
+        } else if (weaponId.equals(ItemKeys.CROSSBOW)) {
+            replaceProjectile = !this.itemManager.isCrossbowAmmo(arrowItem);
+        }
+        if (replaceProjectile) {
+            Projectile projectileByItem = ProjectileItems.createProjectileByItem(projectile.getLocation(), arrowItem, shooter, projectile instanceof AbstractArrow abstractArrow && abstractArrow.isCritical());
+            if (projectileByItem != null) {
+                projectileByItem.setVelocity(projectile.getVelocity());
+                event.setProjectile(projectileByItem);
+                projectile = projectileByItem;
+            }
+        }
+
+        // 设置一些其他属性，无限和是否允许捡起
         Optional<ItemDefinition> arrowDefinition = arrowItem.getDefinition();
-        arrowDefinition.ifPresent(definition -> {
+        if (arrowDefinition.isPresent()) {
+            ItemDefinition definition = arrowDefinition.get();
             ProjectileMeta projectileMeta = definition.settings().projectileMeta();
-            if (projectileMeta != null) {
+            if (projectileMeta != null && serverPlayer != null && !serverPlayer.isCreativeMode()) {
                 if (projectileMeta.ignoreInfinityEnchantment() && bowItem.getEnchantment(EnchantmentKeys.INFINITY).isPresent()) {
                     serverPlayer.clearOrCountMatchingInventoryItems(arrowItem.id(), 1);
-                    if (event.getProjectile() instanceof AbstractArrow projectile && projectileMeta.pickupable()) {
-                        projectile.setPickupStatus(AbstractArrow.PickupStatus.ALLOWED);
-                        BukkitItem arrow = this.itemManager.wrap(projectile.getItemStack());
+                    if (projectile instanceof AbstractArrow p1 && projectileMeta.pickupable()) {
+                        p1.setPickupStatus(AbstractArrow.PickupStatus.ALLOWED);
+                        BukkitItem arrow = this.itemManager.wrap(p1.getItemStack());
                         arrow.removeComponent(DataComponentKeys.INTANGIBLE_PROJECTILE);
-                        projectile.setItemStack(arrow.getBukkitItem());
+                        p1.setItemStack(arrow.getBukkitItem());
                     }
                 }
-                if (!projectileMeta.pickupable() && event.getProjectile() instanceof AbstractArrow projectile) {
-                    projectile.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
-                    BukkitItem arrow = this.itemManager.wrap(projectile.getItemStack());
+                if (!projectileMeta.pickupable() && projectile instanceof AbstractArrow p1) {
+                    p1.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+                    BukkitItem arrow = this.itemManager.wrap(p1.getItemStack());
                     arrow.setJavaComponent(DataComponentKeys.INTANGIBLE_PROJECTILE, Map.of());
-                    projectile.setItemStack(arrow.getBukkitItem());
+                    p1.setItemStack(arrow.getBukkitItem());
                 }
             }
-        });
+        }
     }
 
     @EventHandler(ignoreCancelled = true)

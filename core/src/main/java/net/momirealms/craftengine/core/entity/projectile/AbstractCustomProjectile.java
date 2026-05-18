@@ -20,11 +20,11 @@ public abstract class AbstractCustomProjectile implements CustomProjectile {
 
     @Override
     public Projectile projectile() {
-        return projectile;
+        return this.projectile;
     }
 
     @Override
     public Item item() {
-        return item;
+        return this.item;
     }
 }

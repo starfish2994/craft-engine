@@ -81,6 +81,14 @@ public final class EntityUtils {
         }
     }
 
+    public static <T extends Entity> T spawnEntity(World world, Location loc, Class<T> type, Consumer<T> function) {
+        if (VersionHelper.isOrAbove1_20_2) {
+            return world.spawn(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function);
+        } else {
+            return LegacyEntityUtils.spawn(world, loc, type, function);
+        }
+    }
+
     public static Key getEntityType(Entity entity) {
         Object nmsEntity = CraftEntityProxy.INSTANCE.getEntity(entity);
         Object entityType = EntityProxy.INSTANCE.getType(nmsEntity);

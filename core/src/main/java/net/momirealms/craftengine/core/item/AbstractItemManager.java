@@ -75,8 +75,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     protected boolean featureFlag$keepOnDeathChance = false;
     protected boolean featureFlag$destroyOnDeathChance = false;
     // 用语弩和弓的弹药判定
-    protected final ProjectilePredicate ARROW_ONLY = new ProjectilePredicate(k -> k.hasPluginTag(ItemTags.ARROWS));
-    protected final ProjectilePredicate ARROW_OR_FIREWORK = new ProjectilePredicate(k -> k.hasPluginTag(ItemTags.ARROWS) || k.id().equals(ItemKeys.FIREWORK_ROCKET));
+    protected final ProjectilePredicate ARROW_ONLY = new ProjectilePredicate(k -> k.hasVanillaTag(ItemTags.ARROWS));
+    protected final ProjectilePredicate ARROW_OR_FIREWORK = new ProjectilePredicate(k -> k.hasVanillaTag(ItemTags.ARROWS) || k.id().equals(ItemKeys.FIREWORK_ROCKET));
 
     protected AbstractItemManager(CraftEngine plugin) {
         super(plugin);
@@ -119,6 +119,14 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     private void clearFeatureFlags() {
         this.featureFlag$keepOnDeathChance = false;
         this.featureFlag$destroyOnDeathChance = false;
+    }
+
+    public boolean isCrossbowAmmo(Item item) {
+        return ARROW_OR_FIREWORK.testVanillaOnly(item);
+    }
+
+    public boolean isBowAmmo(Item item) {
+        return ARROW_ONLY.testVanillaOnly(item);
     }
 
     @Override
@@ -1051,6 +1059,10 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
         public void setDynamic(Set<Key> dynamic) {
             this.dynamic = dynamic;
+        }
+
+        public boolean testVanillaOnly(Item item) {
+            return this.constant.test(item);
         }
 
         @Override

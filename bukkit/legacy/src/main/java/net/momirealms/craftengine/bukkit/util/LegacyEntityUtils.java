@@ -14,4 +14,8 @@ public final class LegacyEntityUtils {
     public static Entity spawnEntity(World world, Location loc, EntityType type, Consumer<Entity> function) {
         return world.spawnEntity(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function::accept);
     }
+
+    public static <T extends Entity> T spawn(World world, Location loc, Class<T> type, Consumer<T> function) {
+        return world.spawn(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function::accept);
+    }
 }

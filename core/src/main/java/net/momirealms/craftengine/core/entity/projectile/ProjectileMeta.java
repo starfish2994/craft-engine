@@ -1,13 +1,7 @@
 package net.momirealms.craftengine.core.entity.projectile;
 
-import net.momirealms.craftengine.core.entity.display.Billboard;
-import net.momirealms.craftengine.core.entity.display.ItemDisplayContext;
-import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.Tristate;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 public record ProjectileMeta(ProjectileDisplay display,
                              Tristate gravity,
@@ -15,11 +9,12 @@ public record ProjectileMeta(ProjectileDisplay display,
                              boolean removeOnHit,
                              boolean pickupable,
                              float velocity,
+                             double damage,
+                             int pierceLevel,
                              ProjectileSounds sounds) {
-
-
     private static final String[] IGNORE_INFINITY_ENCHANTMENT = new String[] {"ignore_infinity_enchantment", "ignore-infinity-enchantment"};
     private static final String[] REMOVE_ON_HIT = new String[] {"remove_on_hit", "remove-on-hit"};
+    private static final String[] PIERCE_LEVEL = new String[] {"pierce_level", "pierce-level"};
 
     public static ProjectileMeta fromConfig(ConfigSection section) {
         ConfigSection soundsSection = section.getSection("sounds");
@@ -41,6 +36,8 @@ public record ProjectileMeta(ProjectileDisplay display,
                 section.getBoolean(REMOVE_ON_HIT, false),
                 section.getBoolean("pickupable", true),
                 section.getFloat("velocity", 1f),
+                section.getDouble("damage", -1),
+                section.getInt(PIERCE_LEVEL, -1),
                 sounds
         );
     }
