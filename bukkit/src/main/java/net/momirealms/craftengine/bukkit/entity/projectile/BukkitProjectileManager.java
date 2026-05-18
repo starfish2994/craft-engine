@@ -18,10 +18,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.enchantment.EnchantmentKeys;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.sound.SoundData;
-import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.ItemUtils;
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ChunkMapProxy;
@@ -217,7 +214,13 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
                 BukkitCustomProjectile customProjectile = new BukkitCustomProjectile(meta, projectile, wrapped);
                 this.projectiles.put(projectile.getEntityId(), customProjectile);
                 new ProjectileInjectTask(projectile, wrapped.getEnchantment(EnchantmentKeys.LOYALTY).isEmpty());
-//                projectile.setGravity(meta.gravity());
+                Tristate gravity = meta.gravity();
+                if (gravity != Tristate.UNDEFINED) {
+                    projectile.setGravity(gravity.asBoolean());
+                }
+                if (meta.velocity() != 1) {
+                    projectile.setVelocity(projectile.getVelocity().multiply(meta.velocity()));
+                }
                 ProjectileSounds sounds = meta.sounds();
                 // 如果有自定义声音，就让雪豹闭嘴
                 if (sounds != null) {
