@@ -9,12 +9,7 @@ import net.momirealms.craftengine.core.util.Tristate;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-public record ProjectileMeta(Key item,
-                             ItemDisplayContext displayType,
-                             Billboard billboard,
-                             Vector3f scale,
-                             Vector3f translation,
-                             Quaternionf rotation,
+public record ProjectileMeta(ProjectileDisplay display,
                              Tristate gravity,
                              boolean ignoreInfinityEnchantment,
                              boolean removeOnHit,
@@ -22,7 +17,7 @@ public record ProjectileMeta(Key item,
                              float velocity,
                              ProjectileSounds sounds) {
 
-    private static final String[] DISPLAY_TRANSFORM = new String[] {"display_transform", "display-transform"};
+
     private static final String[] IGNORE_INFINITY_ENCHANTMENT = new String[] {"ignore_infinity_enchantment", "ignore-infinity-enchantment"};
     private static final String[] REMOVE_ON_HIT = new String[] {"remove_on_hit", "remove-on-hit"};
 
@@ -32,13 +27,15 @@ public record ProjectileMeta(Key item,
         if (soundsSection != null) {
             sounds = ProjectileSounds.fromConfig(soundsSection);
         }
+        ProjectileDisplay display = null;
+        ConfigSection displaySection = section.getSection("display");
+        if (displaySection != null) {
+            display = ProjectileDisplay.fromConfig(displaySection);
+        } else if (section.containsKey("item")) {
+            display = ProjectileDisplay.fromConfig(section);
+        }
         return new ProjectileMeta(
-                section.getNonNullIdentifier("item"),
-                section.getEnum(DISPLAY_TRANSFORM, ItemDisplayContext.class, ItemDisplayContext.NONE),
-                section.getEnum("billboard", Billboard.class, Billboard.FIXED),
-                section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),
-                section.getVector3f("translation", ConfigConstants.ZERO_VECTOR3),
-                section.getQuaternion("rotation", ConfigConstants.ZERO_QUATERNION),
+                display,
                 section.getEnum("gravity", Tristate.class, Tristate.UNDEFINED),
                 section.getBoolean(IGNORE_INFINITY_ENCHANTMENT, false),
                 section.getBoolean(REMOVE_ON_HIT, false),
