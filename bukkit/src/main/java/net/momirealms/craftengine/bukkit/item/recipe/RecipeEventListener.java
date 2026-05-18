@@ -550,7 +550,7 @@ public final class RecipeEventListener implements Listener {
                         repairItem = item;
                         break;
                     }
-                    if (wrappedFirst.hasItemTag(tag)) {
+                    if (wrappedFirst.hasVanillaTag(tag)) {
                         repairItem = item;
                         break;
                     }

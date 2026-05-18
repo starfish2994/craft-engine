@@ -69,7 +69,7 @@ public final class InteractUtils {
 
     // 方块
     static {
-        registerInteraction(BlockKeys.NOTE_BLOCK, (player, item, blockState, result) -> result.direction() != Direction.UP || !item.hasItemTag(NOTE_BLOCK_TOP_INSTRUMENTS));
+        registerInteraction(BlockKeys.NOTE_BLOCK, (player, item, blockState, result) -> result.direction() != Direction.UP || !item.hasVanillaTag(NOTE_BLOCK_TOP_INSTRUMENTS));
         registerInteraction(BlockKeys.POWDER_SNOW, (player, item, blockState, result) -> {
             Key id = item.vanillaId();
             return ItemKeys.BUCKET.equals(id);
@@ -442,7 +442,7 @@ public final class InteractUtils {
         });
         // 蛋糕
         registerInteraction(BlockKeys.CAKE, (player, item, blockState, result) -> {
-            if (blockState instanceof Cake cake && cake.getBites() == 0 && item.hasItemTag(CANDLES)) return true;
+            if (blockState instanceof Cake cake && cake.getBites() == 0 && item.hasVanillaTag(CANDLES)) return true;
             return canEat(player);
         });
         registerInteraction(BlockKeys.CANDLE_CAKE, (player, item, blockState, result) -> {
@@ -789,7 +789,7 @@ public final class InteractUtils {
         });
         registerEntityInteraction(EntityTypeKeys.TADPOLE, (player, entity, item) ->     {
             Key id = item.vanillaId();
-            return ItemKeys.WATER_BUCKET.equals(id) || item.hasItemTag(FROG_FOOD);
+            return ItemKeys.WATER_BUCKET.equals(id) || item.hasVanillaTag(FROG_FOOD);
         });
 
         registerEntityInteraction(EntityTypeKeys.SHEEP, (player, entity, item) -> {
@@ -835,7 +835,7 @@ public final class InteractUtils {
         registerEntityInteraction(EntityTypeKeys.WOLF, (player, entity, item) -> canBeFeed(entity, item) || isPetOwner(player, entity));
         registerEntityInteraction(EntityTypeKeys.CAT, (player, entity, item) -> canBeFeed(entity, item) || isPetOwner(player, entity));
         registerEntityInteraction(EntityTypeKeys.PARROT, (player, entity, item) -> {
-            if (item.hasItemTag(PARROT_POISONOUS_FOOD)) return true;
+            if (item.hasVanillaTag(PARROT_POISONOUS_FOOD)) return true;
             return canBeFeed(entity, item) || isPetOwner(player, entity);
         });
 
@@ -932,8 +932,8 @@ public final class InteractUtils {
         registerEntityInteraction(EntityTypeKeys.HAPPY_GHAST, (player, entity, item) -> {
             if (entity instanceof HappyGhast happyGhast && isAdult(entity)) {
                 ItemStack bodyItem = happyGhast.getEquipment().getItem(EquipmentSlot.BODY);
-                boolean hasHarness = BukkitItemManager.instance().wrap(bodyItem).hasItemTag(HARNESSES);
-                if (item.hasItemTag(HARNESSES) && !hasHarness) return true;
+                boolean hasHarness = BukkitItemManager.instance().wrap(bodyItem).hasVanillaTag(HARNESSES);
+                if (item.hasVanillaTag(HARNESSES) && !hasHarness) return true;
                 return !player.isSneaking();
             }
             return canBeFeed(entity, item);
@@ -1002,7 +1002,7 @@ public final class InteractUtils {
     }
 
     private static boolean isFood(String food, Item item) {
-        return item.hasItemTag(Key.of(food));
+        return item.hasVanillaTag(Key.of(food));
     }
 
     private static boolean canBeFeed(Entity entity, Item item) {

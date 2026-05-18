@@ -184,7 +184,7 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract void maxStackSize(W item, Integer maxStackSize);
 
-    protected abstract boolean hasItemTag(W item, Key itemTag);
+    protected abstract boolean hasVanillaTag(W item, Key itemTag);
 
     protected abstract boolean isBlockItem(W item);
 
@@ -238,5 +238,5 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract boolean isSimilar(W item1, W item2);
 
-    protected abstract boolean isTag(W item, Key tag);
+    protected abstract boolean hasPluginTag(W item, Key tag);
 }

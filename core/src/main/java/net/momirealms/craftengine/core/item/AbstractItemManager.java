@@ -75,8 +75,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     protected boolean featureFlag$keepOnDeathChance = false;
     protected boolean featureFlag$destroyOnDeathChance = false;
     // 用语弩和弓的弹药判定
-    protected final ProjectilePredicate ARROW_ONLY = new ProjectilePredicate(k -> k.isTag(ItemTags.ARROWS));
-    protected final ProjectilePredicate ARROW_OR_FIREWORK = new ProjectilePredicate(k -> k.isTag(ItemTags.ARROWS) || k.id().equals(ItemKeys.FIREWORK_ROCKET));
+    protected final ProjectilePredicate ARROW_ONLY = new ProjectilePredicate(k -> k.hasPluginTag(ItemTags.ARROWS));
+    protected final ProjectilePredicate ARROW_OR_FIREWORK = new ProjectilePredicate(k -> k.hasPluginTag(ItemTags.ARROWS) || k.id().equals(ItemKeys.FIREWORK_ROCKET));
 
     protected AbstractItemManager(CraftEngine plugin) {
         super(plugin);

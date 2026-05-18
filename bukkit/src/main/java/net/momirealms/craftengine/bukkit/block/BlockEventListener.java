@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockBreakEvent;
+import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.loot.BlockLootContext;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
@@ -137,7 +138,7 @@ public final class BlockEventListener implements Listener {
         net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(player.getWorld());
         BlockPos blockPos = LocationUtils.toBlockPos(location);
         WorldPosition position = new WorldPosition(world, location.getBlockX() + 0.5, location.getBlockY() + 0.5, location.getBlockZ() + 0.5);
-        Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
+        BukkitItem itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
 
         if (!event.isCancelled() && !ItemUtils.isEmpty(itemInHand)) {
             Optional<ItemDefinition> optionalCustomItem = itemInHand.getDefinition();
@@ -238,6 +239,10 @@ public final class BlockEventListener implements Listener {
                 Object soundEvent = SoundTypeProxy.INSTANCE.getBreakSound(soundType);
                 Object soundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
                 if (this.manager.isBreakSoundMissing(soundId)) {
+                    // creative mode + invalid item in hand
+                    if (serverPlayer.canInstabuild() && !ItemStackUtils.canBreakBlockInCreativeMode(itemInHand)) {
+                        return;
+                    }
                     player.playSound(block.getLocation().add(0.5, 0.5, 0.5), soundId.toString(), SoundCategory.BLOCKS, 1f, 0.8f);
                 }
             }
@@ -368,7 +373,7 @@ public final class BlockEventListener implements Listener {
         Player bukkitPlayer = event.getPlayer();
         BukkitServerPlayer player = BukkitAdaptor.adapt(bukkitPlayer);
         if (player == null) return;
-        Item itemInHand = player.getItemInHand(event.getHand() == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
+        BukkitItem itemInHand = player.getItemInHand(event.getHand() == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
         if (!BukkitItemUtils.isDebugStick(itemInHand)) return;
         if (!(player.canInstabuild() && player.hasPermission("minecraft.debugstick")) && !player.hasPermission("minecraft.debugstick.always")) {
             return;
