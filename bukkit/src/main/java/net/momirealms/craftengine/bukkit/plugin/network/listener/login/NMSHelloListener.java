@@ -3,30 +3,32 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.login;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
+import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
+import net.momirealms.craftengine.core.plugin.network.listener.NMSPacketListener;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.ServerboundHelloPacketProxy;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
-public final class HelloListener implements ByteBufferPacketListener {
-    public static final ByteBufferPacketListener INSTANCE = new HelloListener();
+public final class NMSHelloListener implements NMSPacketListener {
+    public static final NMSPacketListener INSTANCE = new NMSHelloListener();
 
-    private HelloListener() {}
+    private NMSHelloListener() {}
 
     @Override
-    public void onPacketReceive(NetWorkUser user, ByteBufPacketEvent event) {
+    public void onPacketReceive(NetWorkUser user, NMSPacketEvent event, Object packet) {
         BukkitServerPlayer player = (BukkitServerPlayer) user;
-        FriendlyByteBuf buf = event.getBuffer();
-        String name = buf.readUtf(16);
+        Object buf = event.getPacket();
+        String name = ServerboundHelloPacketProxy.INSTANCE.getName(buf);
         player.setUnverifiedName(name);
         if (VersionHelper.isOrAbove1_20_2) {
-            UUID uuid = buf.readUUID();
-            player.setUnverifiedUUID(uuid);
+            player.setUnverifiedUUID(ServerboundHelloPacketProxy.INSTANCE.getProfileId(packet));
         } else {
-            Optional<UUID> uuid = buf.readOptional(FriendlyByteBuf::readUUID);
+            Optional<UUID> uuid = ServerboundHelloPacketProxy.INSTANCE.getProfileId$legacy(packet);
             if (uuid.isPresent()) {
                 player.setUnverifiedUUID(uuid.get());
             } else {
