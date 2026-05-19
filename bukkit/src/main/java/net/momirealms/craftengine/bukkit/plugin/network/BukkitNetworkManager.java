@@ -159,7 +159,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             Object server = MinecraftServerProxy.INSTANCE.getServer();
             Object serverConnection = MinecraftServerProxy.INSTANCE.getConnection(server);
             List<ChannelFuture> channels = ServerConnectionListenerProxy.INSTANCE.getChannels(serverConnection);
-            ListMonitor<ChannelFuture> monitor = new ListMonitor<>(channels, (future) -> {
+            ListListener<ChannelFuture> monitor = new ListListener<>(channels, (future) -> {
                 Channel channel = future.channel();
                 injectServerChannel(channel);
                 this.injectedChannels.add(channel);
@@ -344,7 +344,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     private void injectLeavesBotList() {
         Object botList = BotListProxy.INSTANCE.getInstance();
         List<Object> bots = BotListProxy.INSTANCE.getBots(botList);
-        ListMonitor<Object> monitor = new ListMonitor<>(bots,
+        ListListener<Object> monitor = new ListListener<>(bots,
                 (bot) -> addFakePlayer(ServerPlayerProxy.INSTANCE.getBukkitEntity(bot)),
                 (bot) -> removeFakePlayer(ServerPlayerProxy.INSTANCE.getBukkitEntity(bot))
         );
