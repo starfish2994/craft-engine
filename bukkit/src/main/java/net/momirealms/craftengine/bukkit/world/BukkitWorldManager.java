@@ -737,7 +737,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
             if (!(blockEntities instanceof MapListener<?,?>)) {
                 // <BlockPos, BlockEntity>
-                MapListener<Object, Object> mapListener = new MapListener<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
+                InjectedBlockEntityMap<Object, Object> mapListener = new InjectedBlockEntityMap<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
                 ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
                 // 修改当前区块存在的
                 for (Object blockEntity : blockEntities.values()) {

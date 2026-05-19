@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
 
-public final class ListMonitor<T> implements List<T> {
+public final class ListListener<T> implements List<T> {
     private final List<T> list;
     private final Consumer<T> addListener;
     private final Consumer<Object> removeListener;
 
-    public ListMonitor(List<T> list, Consumer<T> addListener, Consumer<Object> removeListener) {
+    public ListListener(List<T> list, Consumer<T> addListener, Consumer<Object> removeListener) {
         this.list = list;
         this.addListener = addListener;
         this.removeListener = removeListener;
