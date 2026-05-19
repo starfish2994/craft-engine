@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.core.world;
 
 import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
+import ca.spottedleaf.concurrentutil.collection.MultiThreadedQueue;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.tick.TickingBlockEntity;
@@ -15,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class CEWorld {
     public static final String REGION_DIRECTORY = "craftengine";
@@ -23,15 +25,14 @@ public abstract class CEWorld {
     protected final ConcurrentLong2ReferenceChainedHashTable<CEChunk> loadedChunkMap;
     protected final WorldDataStorage worldDataStorage;
     protected final WorldHeight worldHeightAccessor;
-    protected final Set<SectionPos> lightSections = ConcurrentHashMap.newKeySet(128);
+    protected final MultiThreadedQueue<Collection<SectionPos>> pendingLightSectionBatches = new MultiThreadedQueue<>();
+    protected final AtomicBoolean lightUpdateRunning = new AtomicBoolean(false);
     protected final TickersList<TickingBlockEntity> syncTickingBlockEntities = new TickersList<>();
     protected final List<TickingBlockEntity> pendingSyncTickingBlockEntities = new ArrayList<>();
     protected final TickersList<TickingBlockEntity> asyncTickingBlockEntities = new TickersList<>();
     protected final List<TickingBlockEntity> pendingAsyncTickingBlockEntities = new ArrayList<>();
     protected volatile boolean isTickingSyncBlockEntities = false;
     protected volatile boolean isTickingAsyncBlockEntities = false;
-    protected volatile boolean isUpdatingLights = false;
-    protected List<SectionPos> pendingLightSections = new ArrayList<>();
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
 
@@ -174,11 +175,23 @@ public abstract class CEWorld {
     }
 
     public void sectionLightUpdated(Collection<SectionPos> pos) {
-        if (this.isUpdatingLights) {
-            this.pendingLightSections.addAll(pos);
-        } else {
-            this.lightSections.addAll(pos);
+        if (!pos.isEmpty()) {
+            this.pendingLightSectionBatches.offer(pos);
         }
+    }
+
+    @Nullable
+    protected LongOpenHashSet drainPendingLightSections() {
+        LongOpenHashSet sections = new LongOpenHashSet(16);
+        int drained = this.pendingLightSectionBatches.drain(batch -> {
+            for (SectionPos section : batch) {
+                sections.add(section.asLong());
+            }
+        });
+        if (drained == 0) {
+            return null;
+        }
+        return sections;
     }
 
     public WorldHeight worldHeight() {
