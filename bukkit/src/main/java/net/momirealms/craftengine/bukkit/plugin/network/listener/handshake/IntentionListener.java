@@ -41,7 +41,7 @@ public final class IntentionListener implements ByteBufferPacketListener {
             return;
         }
         if (nextState == ConnectionState.LOGIN) { // 重定位一下 channel handler，确保在pe后处理
-            BukkitNetworkManager.relocateChannelHandler(user.nettyChannel());
+            user.nettyChannel().eventLoop().execute(() -> BukkitNetworkManager.relocateChannelHandler(user.nettyChannel()));
         }
         if (this.hasViaVersion) {
             int viaVersionProtocolVersion = CraftEngine.instance().compatibilityManager().getViaVersionProtocolVersion(user);
