@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.core.IdMapProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
@@ -18,14 +19,34 @@ import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import org.bukkit.Location;
 
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public final class SoundListener implements ByteBufferPacketListener {
     public static final ByteBufferPacketListener INSTANCE = new SoundListener();
     public static final Object SoundEvent$DIRECT_STREAM_CODEC = VersionHelper.isOrAbove1_20_5 ? SoundEventProxy.INSTANCE.getDirectStreamCodec() : null;
-    private static final Cache<SoundLocation, Key> IGNORED_SOUNDS = Caffeine.newBuilder()
+    private static final Cache<SoundLocation, Object> IGNORED_SOUNDS = Caffeine.newBuilder()
             .expireAfterWrite(Duration.ofSeconds(1))
             .build();
+    private static final Key TRIDENT_THROW = Key.of("item.trident.throw");
+    private static final Key SNOWBALL_THROW = Key.of("entity.snowball.throw");
+    private static final Key EGG_THROW = Key.of("entity.egg.throw");
+    private static final Key ENDER_PEARL_THROW = Key.of("entity.ender_pearl.throw");
+    private static final Key EXPERIENCE_BOTTLE_THROW = Key.of("entity.experience_bottle.throw");
+    private static final Key WIND_CHARGE_THROW = Key.of("entity.wind_charge.throw");
+    private static final Key ARROW_SHOOT = Key.of("entity.arrow.shoot");
+    private static final Key CROSSBOW_SHOOT = Key.of("item.crossbow.shoot");
+    private static final Set<Key> PROJECTILE_SOUNDS = MiscUtils.init(new HashSet<>(), s -> {
+       s.add(SNOWBALL_THROW);
+       s.add(EGG_THROW);
+       s.add(TRIDENT_THROW);
+       s.add(ENDER_PEARL_THROW);
+       s.add(EXPERIENCE_BOTTLE_THROW);
+       s.add(WIND_CHARGE_THROW);
+       s.add(ARROW_SHOOT);
+       s.add(CROSSBOW_SHOOT);
+    });
 
     private SoundListener() {}
 
@@ -81,11 +102,13 @@ public final class SoundListener implements ByteBufferPacketListener {
             long seed = buf.readLong();
 
             // 只取消原版的
-            SoundLocation soundLocation = new SoundLocation(user.clientSideWorld().uuid(), x, y, z);
-            Key optionalIgnoredSound = IGNORED_SOUNDS.getIfPresent(soundLocation);
-            if (optionalIgnoredSound != null && optionalIgnoredSound.equals(soundId)) {
-                event.setCancelled(true);
-                return;
+            if (PROJECTILE_SOUNDS.contains(soundId)) {
+                SoundLocation soundLocation = new SoundLocation(user.clientSideWorld().uuid(), x, y, z);
+                Object optionalIgnoredSound = IGNORED_SOUNDS.getIfPresent(soundLocation);
+                if (optionalIgnoredSound != null) {
+                    event.setCancelled(true);
+                    return;
+                }
             }
 
             Key mapped = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
@@ -112,8 +135,8 @@ public final class SoundListener implements ByteBufferPacketListener {
         }
     }
 
-    public static void addTempIgnoredSound(Location location, Key soundId) {
-        IGNORED_SOUNDS.put(SoundLocation.fromLocation(location), soundId);
+    public static void addTempIgnoredSound(Location location) {
+        IGNORED_SOUNDS.put(SoundLocation.fromLocation(location), new Object());
     }
 
     public record SoundLocation(UUID world, int x, int y, int z) {

@@ -600,6 +600,12 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         } else {
             levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
         }
+
+        if (levelChunk == null) {
+            this.plugin.logger().warn("Cannot get LevelChunk at ( world: " + ceWorld.name() + " | chunk: " + chunkX + "," + chunkZ + " )");
+            return;
+        }
+
         BukkitChunkAccess bukkitChunkAccess = new BukkitChunkAccess(levelChunk);
         ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
         CEChunk chunkAtIfLoaded = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);

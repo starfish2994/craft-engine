@@ -156,4 +156,7 @@ public interface EntityProxy {
 
     @MethodInvoker(name = "isSilent")
     boolean isSilent(Object target);
+
+    @MethodInvoker(name = "setRot")
+    void setRot(Object target, float yRot, float xRot);
 }

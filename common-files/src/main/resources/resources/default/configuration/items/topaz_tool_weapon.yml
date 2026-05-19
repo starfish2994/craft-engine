@@ -91,11 +91,12 @@ items:
       material: trident
       settings:
         projectile:
-          item: default:topaz_trident
-          translation: 0,0,0
-          rotation: 1,1,1,1
-          display_transform: NONE
-          scale: 0.5
+          display:
+            item: default:topaz_trident
+            translation: 0,0,0
+            rotation: 1,1,1,1
+            display_transform: NONE
+            scale: 0.5
           sounds:
             throw: minecraft:item.trident.throw
             hit_entity: minecraft:item.trident.hit
@@ -155,11 +156,12 @@ items:
               animation: spear
       settings:
         projectile:
-          item: default:topaz_trident
-          translation: 0,0,0
-          rotation: 1,1,1,1
-          display_transform: NONE
-          scale: 0.5
+          display:
+            item: default:topaz_trident
+            translation: 0,0,0
+            rotation: 1,1,1,1
+            display_transform: NONE
+            scale: 0.5
           sounds:
             throw: minecraft:item.trident.throw
             hit_entity: minecraft:item.trident.hit

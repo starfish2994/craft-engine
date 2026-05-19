@@ -44,12 +44,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public abstract class AbstractItemManager extends AbstractModelGenerator implements ItemManager {
     protected static final Map<Key, ItemBehavior> VANILLA_ITEM_EXTRA_BEHAVIORS = new HashMap<>();
-    protected static final Set<Key> VANILLA_ITEMS = new HashSet<>(1024);
-    protected static final Map<Key, List<UniqueKey>> VANILLA_ITEM_TAGS = new HashMap<>();
+    protected static final Map<Key, Set<Key>> VANILLA_ITEM_TO_TAGS = new HashMap<>(1024);
+    protected static final Map<Key, List<UniqueKey>> VANILLA_TAG_TO_ITEMS = new HashMap<>();
     // 解析器
     private final ItemParser itemParser;
     private final EquipmentParser equipmentParser;
@@ -73,6 +74,9 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     // 其他设置
     protected boolean featureFlag$keepOnDeathChance = false;
     protected boolean featureFlag$destroyOnDeathChance = false;
+    // 用语弩和弓的弹药判定
+    protected final ProjectilePredicate ARROW_ONLY = new ProjectilePredicate(k -> k.hasVanillaTag(ItemTags.ARROWS));
+    protected final ProjectilePredicate ARROW_OR_FIREWORK = new ProjectilePredicate(k -> k.hasVanillaTag(ItemTags.ARROWS) || k.id().equals(ItemKeys.FIREWORK_ROCKET));
 
     protected AbstractItemManager(CraftEngine plugin) {
         super(plugin);
@@ -117,6 +121,14 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         this.featureFlag$destroyOnDeathChance = false;
     }
 
+    public boolean isCrossbowAmmo(Item item) {
+        return ARROW_OR_FIREWORK.testVanillaOnly(item);
+    }
+
+    public boolean isBowAmmo(Item item) {
+        return ARROW_ONLY.testVanillaOnly(item);
+    }
+
     @Override
     public Map<Key, Equipment> equipments() {
         return Collections.unmodifiableMap(this.equipments);
@@ -139,7 +151,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public List<UniqueKey> getIngredientSubstitutes(Key item) {
-        if (VANILLA_ITEMS.contains(item)) {
+        if (isVanillaItem(item)) {
             return Optional.ofNullable(this.ingredientSubstitutes.get(item)).orElse(Collections.emptyList());
         } else {
             return Collections.emptyList();
@@ -161,7 +173,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public List<UniqueKey> vanillaItemIdsByTag(Key tag) {
-        return Collections.unmodifiableList(VANILLA_ITEM_TAGS.getOrDefault(tag, List.of()));
+        return Collections.unmodifiableList(VANILLA_TAG_TO_ITEMS.getOrDefault(tag, List.of()));
     }
 
     @Override
@@ -206,7 +218,12 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public Collection<Key> vanillaItems() {
-        return Collections.unmodifiableCollection(VANILLA_ITEMS);
+        return Collections.unmodifiableCollection(VANILLA_ITEM_TO_TAGS.keySet());
+    }
+
+    @Override
+    public Set<Key> getVanillaItemTags(Key item) {
+        return VANILLA_ITEM_TO_TAGS.getOrDefault(item, Collections.emptySet());
     }
 
     @Override
@@ -221,7 +238,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     @Override
     public boolean isVanillaItem(Key item) {
-        return VANILLA_ITEMS.contains(item);
+        return VANILLA_ITEM_TO_TAGS.containsKey(item);
     }
 
     public boolean featureFlag$keepOnDeathChance() {
@@ -379,6 +396,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             // 获取有序的物品id
             int size = this.pendingConfigSections.size();
             Object[] pendingElements = this.pendingConfigSections.elements();
+            Set<Key> customProjectiles = new HashSet<>();
             for (int i = 0; i < size; i++) {
                 PendingConfigSection pending = (PendingConfigSection) pendingElements[i];
                 ItemDefinition itemDefinition = AbstractItemManager.this.itemDefinitionById.get(pending.id);
@@ -404,10 +422,15 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     List<Key> substitutes = settings.ingredientSubstitutes();
                     if (!substitutes.isEmpty()) {
                         for (Key key : substitutes) {
-                            if (VANILLA_ITEMS.contains(key)) {
+                            if (isVanillaItem(key)) {
                                 AbstractItemManager.this.ingredientSubstitutes.computeIfAbsent(key, k -> new ArrayList<>()).add(itemDefinition.uniqueId());
                             }
                         }
+                    }
+                    // custom projectiles
+                    Set<Key> projectiles = settings.allowedProjectiles();
+                    if (!projectiles.isEmpty()) {
+                        customProjectiles.addAll(projectiles);
                     }
                     if (settings.keepOnDeathChance() != 0) {
                         AbstractItemManager.this.featureFlag$keepOnDeathChance = true;
@@ -417,6 +440,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     }
                 }
             }
+            ARROW_ONLY.setDynamic(customProjectiles);
+            ARROW_OR_FIREWORK.setDynamic(customProjectiles);
         }
 
         // 创建或获取已有的自动分配器
@@ -1021,5 +1046,36 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         if (newKey == null) return merged;
         merged.put(newKey, newValue);
         return merged;
+    }
+
+    public class ProjectilePredicate implements Predicate<Object> {
+        private final Predicate<Item> constant;
+        private Set<Key> dynamic;
+
+        public ProjectilePredicate(Predicate<Item> constant) {
+            this.constant = constant;
+            this.dynamic = Set.of();
+        }
+
+        public void setDynamic(Set<Key> dynamic) {
+            this.dynamic = dynamic;
+        }
+
+        public boolean testVanillaOnly(Item item) {
+            return this.constant.test(item);
+        }
+
+        @Override
+        public boolean test(Object o) {
+            Item wrap = wrap(o);
+            if (this.constant.test(wrap)) {
+                return true;
+            }
+            Key id = wrap.id();
+            if (this.dynamic.contains(id)) {
+                return true;
+            }
+            return false;
+        }
     }
 }

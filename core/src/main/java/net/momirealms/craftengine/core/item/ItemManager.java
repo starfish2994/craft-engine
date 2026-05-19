@@ -99,6 +99,8 @@ public interface ItemManager extends Manageable, ModelGenerator {
     @ApiStatus.Internal
     Collection<Suggestion> cachedTotemSuggestions();
 
+    Set<Key> getVanillaItemTags(Key item);
+
     @ApiStatus.Internal
     Map<Key, TreeSet<LegacyOverridesModel>> legacyItemOverrides();
 

@@ -1039,12 +1039,8 @@ public class BukkitServerPlayer extends Player {
             Object gameMode = ServerPlayerProxy.INSTANCE.getGameMode(serverPlayer);
             ServerPlayerGameModeProxy.INSTANCE.setIsDestroyingBlock(gameMode, false);
             if (!item.isEmpty()) {
-                Material itemMaterial = item.getBukkitItem().getType();
                 // creative mode + invalid item in hand
-                if (canInstabuild() && (itemMaterial == Material.DEBUG_STICK
-                        || itemMaterial == Material.TRIDENT
-                        || (VersionHelper.isOrAbove1_20_5 && itemMaterial == MaterialUtils.MACE)
-                        || item.hasItemTag(ItemTags.SWORDS))) {
+                if (canInstabuild() && !ItemStackUtils.canBreakBlockInCreativeMode(item)) {
                     return;
                 }
             }

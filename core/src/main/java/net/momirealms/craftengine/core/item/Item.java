@@ -73,6 +73,10 @@ public interface Item {
 
     boolean isBlockItem();
 
+    boolean hasPluginTag(Key tag);
+
+    boolean hasVanillaTag(Key tag);
+
     @NotNull
     Key id();
 
@@ -277,8 +281,6 @@ public interface Item {
     Item copy();
 
     Item copyWithCount(int count);
-
-    boolean hasItemTag(Key itemTag);
 
     Item mergeCopy(Item another);
 

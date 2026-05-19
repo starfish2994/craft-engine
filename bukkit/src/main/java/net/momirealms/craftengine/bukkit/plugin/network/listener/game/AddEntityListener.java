@@ -7,6 +7,7 @@ import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.network.handler.*;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
+import net.momirealms.craftengine.core.entity.projectile.ProjectileDisplay;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -161,9 +162,16 @@ public final class AddEntityListener implements ByteBufferPacketListener {
             FriendlyByteBuf buf = event.getBuffer();
             int id = buf.readVarInt();
             BukkitProjectileManager.instance().projectileByEntityId(id).ifPresentOrElse(customProjectile -> {
-                ProjectilePacketHandler handler = new ProjectilePacketHandler(customProjectile, id);
-                handler.convertAddCustomProjectilePacket(buf, event, user);
-                user.entityPacketHandlers().put(id, handler);
+                ProjectileDisplay display = customProjectile.metadata().display();
+                if (display != null) {
+                    ProjectilePacketHandler handler = new ProjectilePacketHandler(customProjectile, display, id);
+                    handler.convertAddCustomProjectilePacket(buf, event, user);
+                    user.entityPacketHandlers().put(id, handler);
+                } else {
+                    if (fallback) {
+                        user.entityPacketHandlers().put(id, CommonItemPacketHandler.INSTANCE);
+                    }
+                }
             }, () -> {
                 if (fallback) {
                     user.entityPacketHandlers().put(id, CommonItemPacketHandler.INSTANCE);

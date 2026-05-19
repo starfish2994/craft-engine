@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.core.util;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongCollection;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.SectionPos;
 
@@ -38,6 +40,25 @@ public final class SectionPosUtils {
             if (y >= minLightSection && y <= maxLightSection) {
                 posSet.set(y - minLightSection);
             }
+        }
+        return nearby;
+    }
+
+    public static Map<Long, BitSet> toMap(LongCollection packedSections, int minLightSection, int maxLightSection) {
+        int nBits = maxLightSection - minLightSection;
+        Map<Long, BitSet> nearby = new Long2ObjectOpenHashMap<>(Math.max(8, packedSections.size() / 2), 0.5f);
+        LongIterator iterator = packedSections.iterator();
+        while (iterator.hasNext()) {
+            long section = iterator.nextLong();
+            int y = (int) (section << 44 >> 44);
+            if (y < minLightSection || y > maxLightSection) {
+                continue;
+            }
+            int x = (int) (section >> 42);
+            int z = (int) (section << 22 >> 42);
+            long chunkPos = ChunkPos.asLong(x, z);
+            BitSet posSet = nearby.computeIfAbsent(chunkPos, k -> new BitSet(nBits));
+            posSet.set(y - minLightSection);
         }
         return nearby;
     }

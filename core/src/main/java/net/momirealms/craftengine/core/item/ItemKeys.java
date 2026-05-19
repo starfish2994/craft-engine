@@ -47,6 +47,7 @@ public final class ItemKeys {
     public static final Key FIREWORK_STAR = Key.of("minecraft:firework_star");
     public static final Key FIREWORK_ROCKET = Key.of("minecraft:firework_rocket");
     public static final Key ENDER_EYE = Key.of("minecraft:ender_eye");
+    public static final Key ENDER_PEARL = Key.of("minecraft:ender_pearl");
     public static final Key END_CRYSTAL = Key.of("minecraft:end_crystal");
     public static final Key COD = Key.of("minecraft:cod");
     public static final Key SALMON = Key.of("minecraft:salmon");
@@ -68,14 +69,12 @@ public final class ItemKeys {
     public static final Key MAGENTA_DYE = Key.of("minecraft:magenta_dye");
     public static final Key PINK_DYE = Key.of("minecraft:pink_dye");
     public static final Key DEBUG_STICK = Key.of("minecraft:debug_stick");
-
     public static final Key CARROT = Key.of("minecraft:carrot");
     public static final Key POTATO = Key.of("minecraft:potato");
     public static final Key BEETROOT_SEEDS = Key.of("minecraft:beetroot_seeds");
     public static final Key WHEAT_SEEDS = Key.of("minecraft:wheat_seeds");
     public static final Key SWEET_BERRIES = Key.of("minecraft:sweet_berries");
     public static final Key GLOW_BERRIES = Key.of("minecraft:glow_berries");
-
     public static final Key LEATHER_HELMET = Key.of("minecraft:leather_helmet");
     public static final Key LEATHER_CHESTPLATE = Key.of("minecraft:leather_chestplate");
     public static final Key LEATHER_LEGGINGS = Key.of("minecraft:leather_leggings");
@@ -83,11 +82,16 @@ public final class ItemKeys {
     public static final Key LEATHER_HORSE_ARMOR = Key.of("minecraft:leather_horse_armor");
     public static final Key WOLF_ARMOR = Key.of("minecraft:wolf_armor");
     public static final Key NETHER_BRICK = Key.of("minecraft:nether_brick");
+    public static final Key ARROW = Key.of("minecraft:arrow");
+    public static final Key EGG = Key.of("minecraft:egg");
+    public static final Key BLUE_EGG = Key.of("minecraft:blue_egg");
+    public static final Key BROWN_EGG = Key.of("minecraft:brown_egg");
+    public static final Key SNOWBALL = Key.of("minecraft:snowball");
+    public static final Key EXPERIENCE_BOTTLE = Key.of("minecraft:experience_bottle");
+    public static final Key FIRE_CHARGE = Key.of("minecraft:fire_charge");
 
     public static final Key[] AXES = new Key[] {WOODEN_AXE, COPPER_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE};
-
     public static final Key[] WATER_BUCKETS = new Key[] {WATER_BUCKET, COD_BUCKET, SALMON_BUCKET, TROPICAL_FISH_BUCKET, TADPOLE_BUCKET, PUFFERFISH_BUCKET, AXOLOTL_BUCKET};
-
     public static final Key[] DYES = new Key[] {
             WHITE_DYE, LIGHT_GRAY_DYE, GRAY_DYE, BLACK_DYE, BROWN_DYE, RED_DYE, ORANGE_DYE, YELLOW_DYE, LIME_DYE,
             GREEN_DYE, CYAN_DYE, LIGHT_BLUE_DYE, BLUE_DYE, PURPLE_DYE, MAGENTA_DYE, PINK_DYE

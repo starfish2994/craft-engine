@@ -16,11 +16,11 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
-import net.momirealms.craftengine.bukkit.util.ItemTags;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.item.ItemTags;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
 import net.momirealms.craftengine.core.util.*;
@@ -393,7 +393,7 @@ public final class RecipeInjector {
 
     private static final Predicate<Item> IS_DYEABLE =
             VersionHelper.isOrAbove1_20_5 ?
-                    (item -> item.hasItemTag(ItemTags.DYEABLE)) :
+                    (item -> item.hasVanillaTag(ItemTags.DYEABLE)) :
                     (item -> {
                        Object itemLike = ItemStackProxy.INSTANCE.getItem(item.minecraftItem());
                        return DyeableLeatherItemProxy.CLASS.isInstance(itemLike);

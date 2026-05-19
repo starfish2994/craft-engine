@@ -15,10 +15,4 @@ public final class BukkitCustomProjectile extends AbstractCustomProjectile {
     public BukkitProjectile projectile() {
         return (BukkitProjectile) super.projectile();
     }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Item item() {
-        return (Item) item;
-    }
 }
