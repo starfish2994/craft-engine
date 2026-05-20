@@ -9,6 +9,8 @@ import net.momirealms.craftengine.core.plugin.locale.MessageConstants;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.parser.standard.StringParser;
+import org.incendo.cloud.suggestion.Suggestion;
+import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -22,7 +24,9 @@ public final class SaveDefaultResourceCommand extends BukkitCommandFeature<Comma
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder
-                .optional("path", StringParser.stringParser(StringParser.StringMode.GREEDY))
+                .optional("path", StringParser.stringComponent(StringParser.StringMode.GREEDY).suggestionProvider(SuggestionProvider.suggesting(
+                        Suggestion.suggestion("/internal"), Suggestion.suggestion("/default"), Suggestion.suggestion("/remove_shulker_head"), Suggestion.suggestion("/legacy_armor")
+                )))
                 .handler(context -> {
                     AbstractPackManager packManager = (AbstractPackManager) CraftEngine.instance().packManager();
                     Optional<String> path = context.optional("path");
