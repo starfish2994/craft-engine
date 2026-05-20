@@ -55,6 +55,7 @@ command.item.clear.test.multiple: <white>Found <arg:0> matching item(s) on <arg:
 command.item.set_custom_model_data: <white>Set the CustomModelData to '<arg:0>'</white>
 command.item.set_item_model: <white>Set the ItemModel to '<arg:0>'</white>
 command.item.remove_item_component: <white>Removed item component '<arg:0>'</white>
+command.item.browser.missing_element: <red>Cannot open item browser due to missing gui element '<arg:0>'</red><gray><i><newline>If you don't know what you did that caused this error, please click <b><u><click:run_command:'/ce resource save-default /internal'><hover:show_text:'Release plugin internal assets'>HERE</hover></click></u></b> to release the plugin's internal assets</i></gray>
 command.search_recipe.not_found: <red>No recipe found for this item</red>
 command.search_usage.not_found: <red>No usage found for this item</red>
 command.search_recipe.no_item: <red>Please hold an item before running this command</red>
@@ -71,10 +72,12 @@ command.resource.create.success: <white>Created resource <arg:0>.</white>
 command.resource.create.failure.unknown: '<red>Failed to create resource <arg:0>, Error: <arg:1></red>'
 command.resource.create.failure.invalid_namespace: <red>Failed to create resource <arg:0>, The namespace <arg:1> is invalid.</red>
 command.resource.create.failure.exists: <red>Resource <arg:0> already exists.</red>
+command.resource.save_default.success: <white>Successfully saved default assets from '<arg:0>'</white><newline><gray>Click <u><b><i><click:run_command:'/ce reload all'><hover:show_text:'Reload the plugin'>HERE</hover></click></i></b></u> to apply the changes</gray>
+command.resource.save_default.failure: <red>An unknown error occurred while saving the default assets. Please check the console
 command.upload.failure.not_supported: <red>Current hosting method '<arg:0>' doesn't support uploading resource packs.</red>
 command.upload.on_progress: <white>Started uploading progress. Check the console for more information.</white>
 command.send_resource_pack.success.single: <white>Sent resource pack to <arg:0>.</white>
-command.send_resource_pack.success.multiple: <white>Send resource packs to <arg:0> players.</white>
+command.send_resource_pack.success.multiple: <white>Send resource packs to <arg:0> players</white>
 command.locale.set.failure: '<red>Invalid locale format: <arg:0></red>'
 command.locale.set.success: <white>Selected locale has been set to <arg:0> for <arg:1></white>
 command.locale.unset.success: <white>Cleared selected locale for <arg:0></white>

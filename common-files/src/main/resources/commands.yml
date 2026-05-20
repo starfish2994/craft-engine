@@ -122,6 +122,13 @@ create_resource:
     - /craftengine resource create
     - /ce resource create
 
+save_default_resource:
+  enable: true
+  permission: ce.command.admin.resource
+  usage:
+    - /craftengine resource save-default
+    - /ce resource save-default
+
 set_locale:
   enable: true
   permission: ce.command.admin.set_locale
@@ -298,13 +305,6 @@ debug_entity_id:
   usage:
     - /craftengine debug entity-id
     - /ce debug entity-id
-
-debug_save_default_resources:
-  enable: true
-  permission: ce.command.debug.save_default_resources
-  usage:
-    - /craftengine debug save-default-resources
-    - /ce debug save-default-resources
 
 debug_custom_model_data:
   enable: true

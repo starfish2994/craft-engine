@@ -159,7 +159,7 @@ public abstract class AbstractPackManager implements PackManager {
         try {
             if (Files.notExists(resourcesFolder)) {
                 Files.createDirectories(resourcesFolder);
-                this.saveDefaultConfigs();
+                this.saveDefaultConfigs("");
             }
         } catch (IOException e) {
             this.plugin.logger().warn("Failed to create default configs folder", e);
@@ -396,7 +396,7 @@ public abstract class AbstractPackManager implements PackManager {
         try {
             if (Files.notExists(resourcesFolder)) {
                 Files.createDirectories(resourcesFolder);
-                this.saveDefaultConfigs();
+                this.saveDefaultConfigs("");
             }
         } catch (IOException e) {
             this.plugin.logger().error("Error saving default configs", e);
@@ -466,8 +466,8 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    public void saveDefaultConfigs() throws IOException {
-        saveFileByIndexFile("resources");
+    public void saveDefaultConfigs(String path) throws IOException {
+        saveFileByIndexFile("resources" + path);
     }
 
     private void saveFileByIndexFile(String path) throws IOException {
