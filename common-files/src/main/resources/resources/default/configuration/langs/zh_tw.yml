@@ -63,7 +63,7 @@ lang#items:
     item.default.showcase: 物品展示櫃
     item.default.drawer_block: 抽屜方塊
     item.default.candelabrum: 燭臺
-# 為方塊提供翻譯，對於那些需要獲取伺服端方塊本地化鍵名的外掛來說尤其有效
+# 為方塊提供翻譯，對於那些需要獲取伺服端方塊本地化鍵名的插件來說尤其有效
 lang#blocks:
   zh_tw:
     block_name:default:chinese_lantern: 燈籠
@@ -104,7 +104,7 @@ lang#blocks:
     block_name:default:togglable_light_block: 可調節光源
     block_name:default:drawer_block: 抽屜方塊
 # 傢俱相關的翻譯通常是為 API 設計的
-# 如果你使用的外掛支援顯示傢俱名稱，那麼你很可能需要配置這些傢俱的翻譯
+# 如果你使用的插件支援顯示傢俱名稱，那麼你很可能需要配置這些傢俱的翻譯
 lang#furniture:
   zh_tw:
     furniture.default.bench: 長椅

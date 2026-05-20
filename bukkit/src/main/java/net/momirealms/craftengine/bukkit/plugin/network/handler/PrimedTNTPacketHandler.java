@@ -38,7 +38,7 @@ public final class PrimedTNTPacketHandler implements EntityPacketHandler {
             if (entityDataId == PrimedTntData.BlockState.id()) {
                 Object blockState = EntityUtils.getEntityDataValue(packedItem, PrimedTntData.BlockState);
                 int stateId = BlockStateUtils.blockStateToId(blockState);
-                int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
+                int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientCustomBlockEnabled());
                 if (newStateId == stateId) continue;
                 SynchedEntityDataProxy.DataValueProxy.INSTANCE.setValue(packedItem, BlockStateUtils.idToBlockState(newStateId));
                 isChanged = true;

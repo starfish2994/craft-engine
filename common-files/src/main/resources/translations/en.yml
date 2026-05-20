@@ -140,6 +140,8 @@ host.self.http_server_started: "Netty HTTP server started on port: <arg:0>"
 config.errors_detected: Error found in config.yml - <arg:0>
 update.available: 'New version <arg:0> is available: <arg:1>'
 update.is_latest: You're running the latest version
+mod.clientbound.no_permission: Player <arg:0> does not have permission <arg:1> to receive packet <arg:2>, to grant this permission please install the LuckPerms plugin and assign it directly
+mod.serverbound.no_permission: Player <arg:0> does not have permission <arg:1> to send packet <arg:2>, to grant this permission please install the LuckPerms plugin and assign it directly
 resource_pack.invalid_overlay_format: Invalid overlay format '<arg:0>'. Overlay format must contain the placeholder '{version}'
 resource_pack.generation_started: Generating resource pack...
 resource_pack.generation_finished: Generated resource pack in <arg:0>ms

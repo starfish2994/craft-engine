@@ -3,10 +3,12 @@ package net.momirealms.craftengine.bukkit.plugin.network.id;
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.PacketFlow;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.plugin.network.id.PacketIds;
 
-final class PacketIds1_20_5 implements PacketIds {
+public final class PacketIds1_20_5 implements PacketIds {
+    public static final PacketIds INSTANCE = new PacketIds1_20_5();
 
-    PacketIds1_20_5() {}
+    public PacketIds1_20_5() {}
 
     @Override
     public int clientboundBlockUpdatePacket() {

@@ -44,6 +44,8 @@ public interface ItemManager extends Manageable, ModelGenerator {
 
     Map<Key, ItemDefinition> loadedItems();
 
+    List<Key> orderedItemIds();
+
     Optional<Equipment> getEquipment(Key key);
 
     Optional<ItemDefinition> getItemDefinition(Key key);

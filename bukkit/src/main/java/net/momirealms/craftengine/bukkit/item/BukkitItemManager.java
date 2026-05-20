@@ -31,8 +31,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.compatibility.ItemSource;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
-import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.CreativeModeTabItemsPacket;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.ClientboundCreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.MappedRegistryProxy;
@@ -117,7 +116,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         if (!ReloadCommand.RELOAD_PACK_FLAG || !Config.obfuscateItemModel()) {
             for (Player player : CraftEngine.instance().networkManager().onlineUsers()) {
                 if (!player.hasClientMod()) continue;
-                ModPackets.sendPackets(player, CreativeModeTabItemsPacket.create(player));
+                player.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(player));
             }
         }
     }

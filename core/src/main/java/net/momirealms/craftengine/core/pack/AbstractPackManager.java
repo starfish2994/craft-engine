@@ -3076,7 +3076,7 @@ public abstract class AbstractPackManager implements PackManager {
                 ImmutableBlockState state = this.plugin.blockManager().getImmutableBlockStateUnsafe(entry.getKey() + vanillaBlockStateCount);
                 this.plugin.compatibilityManager().blueMapBlockColors(state, blueMapBlockStates::add);
             }
-            if (!blueMapBlockStates.isEmpty()) {
+            if (!blueMapBlockStates.asMap().isEmpty()) {
                 writeJsonSafely(blueMapBlockStates, generatedPackPath.resolve("assets").resolve(Key.CRAFTENGINE_NAMESPACE).resolve("blockColors.json"));
             }
         }

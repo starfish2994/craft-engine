@@ -35,7 +35,7 @@ public final class SectionBlocksUpdateListener implements ByteBufferPacketListen
 
     @Override
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-        int[] remapper = user.clientModEnabled() ? this.modBlockStateMapper : this.blockStateMapper;
+        int[] remapper = user.clientCustomBlockEnabled() ? this.modBlockStateMapper : this.blockStateMapper;
         FriendlyByteBuf buf = event.getBuffer();
         long sPos = buf.readLong();
         int blocks = buf.readVarInt();

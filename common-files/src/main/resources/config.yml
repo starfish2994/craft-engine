@@ -509,8 +509,8 @@ network:
 
   # Settings related to communication with CraftEngineMod
   mod-channel:
-    enable: true
-    requires-permission: false
+    requires-permission: true
+    logging-permission-denied: true
     creative-tab-max-items-per-packet: 10
 
   # Encrypt the raw component information before sending it to the client. This option requires a restart to apply.

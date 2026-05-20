@@ -55,7 +55,7 @@ public final class LevelEventListener implements ByteBufferPacketListener {
                 }
             }
             boolean global = buf.readBoolean();
-            int newState = user.clientModEnabled() ? modBlockStateMapper[state] : blockStateMapper[state];
+            int newState = user.clientCustomBlockEnabled() ? modBlockStateMapper[state] : blockStateMapper[state];
             Object blockState = BlockStateUtils.idToBlockState(state);
             Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(blockState);
             Object soundEvent = SoundTypeProxy.INSTANCE.getBreakSound(soundType);

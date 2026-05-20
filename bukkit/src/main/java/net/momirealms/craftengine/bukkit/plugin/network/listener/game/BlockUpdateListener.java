@@ -36,7 +36,7 @@ public final class BlockUpdateListener implements ByteBufferPacketListener {
         FriendlyByteBuf buf = event.getBuffer();
         BlockPos pos = buf.readBlockPos();
         int before = buf.readVarInt();
-        int state = user.clientModEnabled() ? modBlockStateMapper[before] : blockStateMapper[before];
+        int state = user.clientCustomBlockEnabled() ? modBlockStateMapper[before] : blockStateMapper[before];
 
         if (this.handleClientChunk) {
             ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(pos.x >> 4, pos.z >> 4));
@@ -67,7 +67,7 @@ public final class BlockUpdateListener implements ByteBufferPacketListener {
             return;
         }
         // 如果客户端有mod，且发送的是自定义方块，则忽略
-        if (user.clientModEnabled() && !BlockStateUtils.isVanillaBlock(before)) {
+        if (user.clientCustomBlockEnabled() && !BlockStateUtils.isVanillaBlock(before)) {
             return;
         }
         event.setChanged(true);

@@ -5,13 +5,14 @@ import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockStatePacket;
+import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
 import net.momirealms.craftengine.core.util.Key;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -56,7 +57,7 @@ public interface BlockManager extends Manageable, ModelGenerator {
 
     int currentBlockRegistrySize();
 
-    VisualBlockStatePacket cachedVisualBlockStatePacket();
+    List<ClientCustomPacket> cachedClientVisualBlockStatesPackets();
 
     BlockBehavior getEmptyBlockBehavior();
 

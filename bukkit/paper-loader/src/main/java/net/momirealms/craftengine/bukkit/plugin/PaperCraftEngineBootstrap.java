@@ -166,7 +166,7 @@ public final class PaperCraftEngineBootstrap implements PluginBootstrap {
             }
 
             try {
-                if (!worldDataToMigrate.isEmpty()) {
+                if (!worldDataToMigrate.asMap().isEmpty()) {
                     Path tempData = context.getDataDirectory().resolve("worlds_to_migrate.json");
                     if (Files.exists(tempData)) {
                         JsonObject existingData = GsonHelper.readJsonObjectFromFile(tempData);
