@@ -25,6 +25,8 @@ public final class CustomPayloadListener implements ByteBufferPacketListener {
         if (CustomPackets.checkPermission(user, packetId, false)) {
             ServerCustomPacket packet = codec.decode(buf);
             packet.handle(user, event);
+        } else {
+            event.setCancelled(true);
         }
     }
 
@@ -37,6 +39,8 @@ public final class CustomPayloadListener implements ByteBufferPacketListener {
         if (CustomPackets.checkPermission(user, packetId, true)) {
             ClientCustomPacket packet = codec.decode(buf);
             packet.handle(user, event);
+        } else {
+            event.setCancelled(true);
         }
     }
 }

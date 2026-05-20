@@ -61,6 +61,7 @@ public final class SelfHost implements ResourcePackHost {
         private static final String[] QPS_PER_IP = new String[]{"qps_per_ip", "qps-per-ip"};
         private static final String[] MAX_BANDWIDTH_PER_SECOND = new String[]{"max_bandwidth_per_second", "max-bandwidth-per-second"};
         private static final String[] MIN_DOWNLOAD_SPEED_PER_PLAYER = new String[]{"min_download_speed_per_player", "min-download-speed-per-player"};
+        private static final String[] USE_SERVER_PORT = new String[]{"use_server_port", "use-server-port"};
 
         @Override
         public SelfHost create(ConfigSection section) {
@@ -87,6 +88,7 @@ public final class SelfHost implements ResourcePackHost {
             String protocol = section.getString("protocol", "http");
             boolean denyNonMinecraftRequest = section.getBoolean(DENY_NON_MINECRAFT_REQUEST, true);
             boolean strictValidation = section.getBoolean(STRICT_VALIDATION);
+            boolean useServerPort = section.getBoolean(USE_SERVER_PORT, false);
 
             // 流量控制
             Bandwidth limit = null;
@@ -109,7 +111,7 @@ public final class SelfHost implements ResourcePackHost {
             }
 
             // 更新单例
-            selfHostHttpServer.updateProperties(ip, port, url, denyNonMinecraftRequest, protocol, limit, oneTimeToken, maxBandwidthUsage, minDownloadSpeed, strictValidation);
+            selfHostHttpServer.updateProperties(ip, port, url, denyNonMinecraftRequest, protocol, limit, oneTimeToken, maxBandwidthUsage, minDownloadSpeed, strictValidation, useServerPort);
             return INSTANCE;
         }
     }

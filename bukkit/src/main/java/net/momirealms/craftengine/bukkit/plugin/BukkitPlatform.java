@@ -101,4 +101,9 @@ public final class BukkitPlatform implements Platform {
     public PacketIds packetIds() {
         return BukkitNetworkManager.PACKET_IDS;
     }
+
+    @Override
+    public int getServerPort() {
+        return Bukkit.getPort();
+    }
 }
