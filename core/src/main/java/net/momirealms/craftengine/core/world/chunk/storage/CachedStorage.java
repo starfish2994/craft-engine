@@ -24,7 +24,7 @@ public final class CachedStorage<T extends WorldDataStorage> implements WorldDat
         this.chunkCache = Caffeine.newBuilder()
                 .executor(CraftEngine.instance().scheduler().async())
                 .scheduler(Scheduler.systemScheduler())
-                .initialCapacity(2048)
+                .initialCapacity(4096)
                 .expireAfterAccess(60, TimeUnit.SECONDS)
                 .build();
     }
