@@ -1019,7 +1019,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         private boolean check(ChannelHandlerContext context, ByteBuf buf) {
             if (BukkitNetworkManager.this.enableServerPortHost == null) return false;
             int readableBytes = buf.readableBytes();
+            if (readableBytes == 0) return false;
             if (readableBytes == 1 && buf.getByte(0) == 'G') return true;
+            if (readableBytes == 2 && buf.getByte(0) == 'G' && buf.getByte(1) == 'E') return true;
             if (readableBytes < 3) return false;
             if (buf.getByte(0) != 'G' || buf.getByte(1) != 'E' || buf.getByte(2) != 'T') return false;
             ChannelPipeline pipeline = context.channel().pipeline();
