@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.core.plugin.network.mod.protocol;
 
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.plugin.network.ProtocolVersion;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodecs;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
@@ -38,5 +40,9 @@ public record ServerboundHandshakePacket(int protocolVersion, int blockListSize)
         user.setClientModProtocol(this.protocolVersion);
         user.setClientBlockList(new IntIdentityList(this.blockListSize));
         CustomPackets.checkProtocolVersion(user);
+        // 1.20.1 或更低版本没有配置阶段所以在这里处理
+        if (user.hasClientMod() && !user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_20_2)) {
+            user.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create((Player) user));
+        }
     }
 }

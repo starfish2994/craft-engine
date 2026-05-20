@@ -457,7 +457,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
 
     @Override
     public void blueMapBlockColors(ImmutableBlockState state, BiConsumer<String, JsonElement> callback) {
-        if (this.blueMapBlockColors.isEmpty() || state == null || state.isEmpty()) return;
+        if (this.blueMapBlockColors.asMap().isEmpty() || state == null || state.isEmpty()) return;
         String visualId = state.visualBlockState().ownerId().asString();
         JsonElement value = this.blueMapBlockColors.get(visualId);
         if (value == null) return;

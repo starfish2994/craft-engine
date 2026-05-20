@@ -56,7 +56,7 @@ public final class Migrator {
             return;
         }
         JsonObject worldsToMigrate = GsonHelper.readJsonObjectFromFile(tempData);
-        if (worldsToMigrate == null || worldsToMigrate.isEmpty()) {
+        if (worldsToMigrate == null || worldsToMigrate.asMap().isEmpty()) {
             return;
         }
 
