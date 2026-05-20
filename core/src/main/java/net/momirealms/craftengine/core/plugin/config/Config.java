@@ -221,8 +221,8 @@ public final class Config {
     private boolean network$intercept_packets$dialog;
     private boolean network$disable_item_operations;
     private boolean network$disable_chat_report;
-    private boolean network$mod_channel$enable;
     private boolean network$mod_channel$requires_permission;
+    private boolean network$mod_channel$logging_permission_denied;
     private int network$mod_channel$creative_tab_max_items_per_packet;
     private boolean network$item_crypto$enable;
 
@@ -694,8 +694,8 @@ public final class Config {
         this.network$intercept_packets$advancement = config.getBoolean("network.intercept-packets.advancement", true);
         this.network$intercept_packets$player_chat = config.getBoolean("network.intercept-packets.player-chat", true);
         this.network$intercept_packets$dialog = config.getBoolean("network.intercept-packets.dialog", true);
-        this.network$mod_channel$enable = config.getBoolean("network.mod-channel.enable", true);
         this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
+        this.network$mod_channel$logging_permission_denied = config.getBoolean("network.mod-channel.logging-permission-denied", true);
         this.network$mod_channel$creative_tab_max_items_per_packet = Math.max(config.getInt("network.mod-channel.creative-tab-max-items-per-packet", 10), 1);
         if (this.firstTime) {
             this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
@@ -1166,12 +1166,12 @@ public final class Config {
         return instance.network$disable_chat_report;
     }
 
-    public static boolean enableModChannel() {
-        return instance.network$mod_channel$enable;
-    }
-
     public static boolean modChannelRequiresPermission() {
         return instance.network$mod_channel$requires_permission;
+    }
+
+    public static boolean modChannelLoggingPermissionDenied() {
+        return instance.network$mod_channel$logging_permission_denied;
     }
 
     public static int modChannelCreativeTabMaxItemsPerPacket() {

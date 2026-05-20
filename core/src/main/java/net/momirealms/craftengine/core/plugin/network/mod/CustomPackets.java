@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslationArgument;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.protocol.*;
@@ -56,7 +57,14 @@ public final class CustomPackets {
         Boolean isClient = TRUSTED_PACKETS.get(id);
         if (isClient != null && isClient == toClient) return true;
         String permission = "ce.mod." + (toClient ? "clientbound" : "serverbound") + "." + (id.namespace.equals("craftengine") ? id.value : id);
-        return CraftEngine.instance().compatibilityManager().hasPermission(user, permission);
+        boolean hasPermission = CraftEngine.instance().compatibilityManager().hasPermission(user, permission);
+        if (!hasPermission && Config.modChannelLoggingPermissionDenied()) {
+            CraftEngine.instance().logger().warn(TranslationManager.instance().plainTranslation(
+                    toClient ? "mod.clientbound.no_permission" : "mod.serverbound.no_permission",
+                    user.name(), permission, id.asString()
+            ));
+        }
+        return hasPermission;
     }
 
     public static void registerTrustedPacket(@NotNull Key id, @NotNull Class<?> clazz) {

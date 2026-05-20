@@ -140,6 +140,8 @@ host.self.http_server_started: Netty HTTP伺服器已在 <arg:0> 埠啟動
 config.errors_detected: 在 config.yml 中發現錯誤 - <arg:0>
 update.available: 新版本 <arg:0> 已發布：<arg:1>
 update.is_latest: 你正在使用最新版本
+mod.clientbound.no_permission: 玩家 <arg:0> 沒有 <arg:1> 權限接收 <arg:2> 包，如需授予權限請安裝 LuckPerms 插件並直接賦予即可
+mod.serverbound.no_permission: 玩家 <arg:0> 沒有 <arg:1> 權限傳送 <arg:2> 包，如需授予權限請安裝 LuckPerms 插件並直接賦予即可
 resource_pack.invalid_overlay_format: 無效的疊加資源包格式「<arg:0>」。疊加資源包格式必須包含佔位符「{version}」
 resource_pack.generation_started: 正在生成資源包...
 resource_pack.generation_finished: 資源包生成完成，耗時 <arg:0> 毫秒
