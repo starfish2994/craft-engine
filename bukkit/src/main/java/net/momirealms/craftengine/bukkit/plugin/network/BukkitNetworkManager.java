@@ -1022,8 +1022,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (readableBytes == 0) return false;
             if (readableBytes == 1 && buf.getByte(0) == 'G') return true;
             if (readableBytes == 2 && buf.getByte(0) == 'G' && buf.getByte(1) == 'E') return true;
-            if (readableBytes < 3) return false;
-            if (buf.getByte(0) != 'G' || buf.getByte(1) != 'E' || buf.getByte(2) != 'T') return false;
+            if (readableBytes < 3 || buf.getByte(0) != 'G' || buf.getByte(1) != 'E' || buf.getByte(2) != 'T') return false;
             ChannelPipeline pipeline = context.channel().pipeline();
             for (ChannelHandler handler : pipeline.toMap().values()) pipeline.remove(handler);
             BukkitNetworkManager.this.enableServerPortHost.accept(pipeline);
