@@ -181,7 +181,7 @@ resource-pack:
         deny-non-minecraft-request: true
         one-time-token: true
         strict-validation: false
-        use-server-port: false
+        use-server-port: true
         rate-limiting:
           max-bandwidth-per-second: 5_000_000
           min-download-speed-per-player: 50_000

@@ -115,7 +115,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     private static final String PLAYER_CHANNEL_HANDLER_NAME = "craftengine_player_channel_handler";
     private static final String PACKET_ENCODER = "craftengine_encoder";
     private static final String PACKET_DECODER = "craftengine_decoder";
-    private static final String HTTP_DECODER = "craftengine_decoder_http";
+    private static final String HTTP_DECODER = "craftengine_http_decoder";
     private static BukkitNetworkManager instance;
     private final BukkitCraftEngine plugin;
     private final TriConsumer<ChannelHandler, Object, Object> packetConsumer;
