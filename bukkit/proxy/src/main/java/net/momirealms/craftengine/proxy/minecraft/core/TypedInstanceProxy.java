@@ -35,5 +35,4 @@ public interface TypedInstanceProxy {
 
     @MethodInvoker(name = "is")
     boolean is$4(Object target, @Type(clazz = ResourceKeyProxy.class) Object type);
-
 }

@@ -61,7 +61,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
             if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
                 Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
                 int id = BlockStateUtils.blockStateToId(blockState);
-                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
+                int remapped = user.clientCustomBlockEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
                 if (remapped == id) return;
                 newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
             } else if (ItemParticleOptionProxy.CLASS.isInstance(option)) {
@@ -110,7 +110,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
             if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
                 Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
                 int id = BlockStateUtils.blockStateToId(blockState);
-                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
+                int remapped = user.clientCustomBlockEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
                 if (remapped == id) return;
                 Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
                 newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));
@@ -161,7 +161,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
             if (BlockParticleOptionProxy.CLASS.isInstance(option)) {
                 Object blockState = BlockParticleOptionProxy.INSTANCE.getState(option);
                 int id = BlockStateUtils.blockStateToId(blockState);
-                int remapped = user.clientModEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
+                int remapped = user.clientCustomBlockEnabled() ? modBlockStateMapper[id] : blockStateMapper[id];
                 if (remapped == id) return;
                 Object type = BlockParticleOptionProxy.INSTANCE.getType(option);
                 newOption = BlockParticleOptionProxy.INSTANCE.newInstance(type, BlockStateUtils.idToBlockState(remapped));

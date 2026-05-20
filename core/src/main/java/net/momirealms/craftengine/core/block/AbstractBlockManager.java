@@ -33,8 +33,8 @@ import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
-import net.momirealms.craftengine.core.plugin.network.mod.ModPackets;
-import net.momirealms.craftengine.core.plugin.network.mod.protocol.VisualBlockStatePacket;
+import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.ClientboundVisualBlockStatesPacket;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -98,8 +98,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     // 自动分配
     protected final IdAllocator internalIdAllocator;
     protected final VisualBlockStateAllocator visualBlockStateAllocator;
-    // 缓存的VisualBlockStatePacket
-    private VisualBlockStatePacket cachedVisualBlockStatePacket;
+    // 缓存的 visual_block_state 自定义包
+    private List<ClientCustomPacket> cachedClientVisualBlockStatesPackets;
 
     protected AbstractBlockManager(CraftEngine plugin, int vanillaBlockStateCount, int customBlockCount) {
         super(plugin);
@@ -159,16 +159,16 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         this.updateTags();
         this.processSounds();
         this.clearCache();
-        this.cachedVisualBlockStatePacket = VisualBlockStatePacket.create();
+        this.cachedClientVisualBlockStatesPackets = ClientboundVisualBlockStatesPacket.create();
         for (Player player : CraftEngine.instance().networkManager().onlineUsers()) {
-            if (!player.clientModEnabled()) continue;
-            ModPackets.sendPacket(player, this.cachedVisualBlockStatePacket);
+            if (!player.clientCustomBlockEnabled()) continue;
+            player.sendCustomPackets(this.cachedClientVisualBlockStatesPackets);
         }
     }
 
     @Override
-    public VisualBlockStatePacket cachedVisualBlockStatePacket() {
-        return this.cachedVisualBlockStatePacket;
+    public List<ClientCustomPacket> cachedClientVisualBlockStatesPackets() {
+        return this.cachedClientVisualBlockStatesPackets;
     }
 
     @Override

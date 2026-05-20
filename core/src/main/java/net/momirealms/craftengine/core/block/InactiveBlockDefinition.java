@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.block;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.sparrow.nbt.CompoundTag;
 
@@ -19,6 +20,7 @@ public final class InactiveBlockDefinition extends AbstractBlockDefinition {
         return this.cachedData.computeIfAbsent(nbt, k -> {
             ImmutableBlockState state = new ImmutableBlockState(super.holder, super.variantProvider, new Reference2ObjectArrayMap<>());
             state.setNbtToSave(state.toNbtToSave(nbt));
+            state.setBehavior(CraftEngine.instance().blockManager().getEmptyBlockBehavior());
             return state;
         });
     }

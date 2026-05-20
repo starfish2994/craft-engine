@@ -124,8 +124,10 @@ public final class WorldStorageInjector {
                 } else {
                     blockEntity.setBlockState(newImmutableBlockState);
                     // 方块类型未变，仅更新状态，选择性更新ticker
-                    chunk.replaceOrCreateTickingBlockEntity(blockEntity);
-                    chunk.createDynamicBlockEntityRenderer(blockEntity);
+                    if (chunk.isActivated()) {
+                        chunk.replaceOrCreateTickingBlockEntity(blockEntity);
+                        chunk.createDynamicBlockEntityRenderer(blockEntity);
+                    }
                 }
             }
 
@@ -136,7 +138,7 @@ public final class WorldStorageInjector {
             }
 
             // 如果新方块的光照属性和客户端认为的不同
-            if (Config.enableBlockLightSystem()) {
+            if (Config.enableBlockLightSystem() && chunk.isLoaded()) {
                 if (previousImmutableBlockState.isEmpty()) {
                     // 原版块到自定义块，只需要判断新块是否和客户端视觉一致
                     updateLight(holder, newImmutableBlockState.visualBlockState().minecraftState(), newState, x, y, z);
@@ -165,7 +167,7 @@ public final class WorldStorageInjector {
                     BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                     chunk.removeConstantBlockEntityRenderer(pos);
                 }
-                if (Config.enableBlockLightSystem()) {
+                if (Config.enableBlockLightSystem() && chunk.isLoaded()) {
                     // 自定义块到原版块，只需要判断旧块是否和客户端一直
                     BlockStateWrapper wrapper = previous.visualBlockState();
                     if (wrapper != null) {
@@ -178,7 +180,8 @@ public final class WorldStorageInjector {
 
     @SuppressWarnings("DuplicatedCode")
     private static void updateLight(@This InjectedStorage thisObj, Object clientState, Object serverState, int x, int y, int z) {
-        CEWorld world = thisObj.chunk().world;
+        CEChunk chunk = thisObj.chunk();
+        CEWorld world = chunk.world;
         if (LightUtils.hasDifferentLightProperties(serverState, clientState)) {
             SectionPos sectionPos = thisObj.pos();
             List<SectionPos> pos = SectionPosUtils.calculateAffectedRegions((sectionPos.x() << 4) + x, (sectionPos.y() << 4) + y, (sectionPos.z() << 4) + z, 15);
@@ -188,7 +191,8 @@ public final class WorldStorageInjector {
 
     @SuppressWarnings("DuplicatedCode")
     private static void updateLight$complex(@This InjectedStorage thisObj, Object newClientState, Object newServerState, Object oldServerState, int x, int y, int z) {
-        CEWorld world = thisObj.chunk().world;
+        CEChunk chunk = thisObj.chunk();
+        CEWorld world = chunk.world;
         // 如果客户端新状态和服务端新状态光照属性不同
         if (LightUtils.hasDifferentLightProperties(newClientState, newServerState)) {
             SectionPos sectionPos = thisObj.pos();

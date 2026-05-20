@@ -509,8 +509,9 @@ network:
 
   # Settings related to communication with CraftEngineMod
   mod-channel:
-    enable: true
-    requires-permission: false
+    requires-permission: true
+    logging-permission-denied: true
+    creative-tab-max-items-per-packet: 10
 
   # Encrypt the raw component information before sending it to the client. This option requires a restart to apply.
   item-crypto:
@@ -654,6 +655,15 @@ chunk-system:
     enable: false
     remove: []
     convert: {}
+  # It is decided at which stage of chunk generation the custom chunk data will be saved.
+  # Since Minecraft's chunk generation can be terminated at any stage, you can disable
+  # these options if you do not need the datapack to generate the terrain.
+  generation:
+    noise: true
+    surface: true
+    structure: true
+    carver: true
+    feature: true
 
 # [Premium Exclusive]
 client-optimization:

@@ -44,6 +44,8 @@ public interface ItemManager extends Manageable, ModelGenerator {
 
     Map<Key, ItemDefinition> loadedItems();
 
+    List<Key> orderedItemIds();
+
     Optional<Equipment> getEquipment(Key key);
 
     Optional<ItemDefinition> getItemDefinition(Key key);
@@ -96,6 +98,8 @@ public interface ItemManager extends Manageable, ModelGenerator {
 
     @ApiStatus.Internal
     Collection<Suggestion> cachedTotemSuggestions();
+
+    Set<Key> getVanillaItemTags(Key item);
 
     @ApiStatus.Internal
     Map<Key, TreeSet<LegacyOverridesModel>> legacyItemOverrides();

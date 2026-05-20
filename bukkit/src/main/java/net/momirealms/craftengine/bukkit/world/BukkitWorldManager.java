@@ -25,6 +25,7 @@ import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.CESection;
+import net.momirealms.craftengine.core.world.chunk.ChunkGenerationStage;
 import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
@@ -139,7 +140,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     if (VersionHelper.isFolia) {
                         this.plugin.scheduler().platform().run(() -> {
                             if (chunk.isLoaded()) {
-                                handleChunkLoad(ceWorld, chunk, false);
+                                handleChunkLoad(ceWorld, chunk);
                                 CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
                                 if (loadedChunk != null) {
                                     loadedChunk.setEntitiesLoaded(true);
@@ -147,7 +148,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                             }
                         }, world, chunk.getX(), chunk.getZ());
                     } else {
-                        handleChunkLoad(ceWorld, chunk, false);
+                        handleChunkLoad(ceWorld, chunk);
                         CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
                         if (loadedChunk != null) {
                             loadedChunk.setEntitiesLoaded(true);
@@ -285,7 +286,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         if (this.worlds.containsKey(uuid)) {
             CEWorld ceWorld = this.worlds.get(uuid);
             for (Chunk chunk : world.getLoadedChunks()) {
-                handleChunkLoad(ceWorld, chunk, true);
+                handleChunkLoad(ceWorld, chunk);
                 CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
                 if (loadedChunk != null) {
                     loadedChunk.setEntitiesLoaded(true);
@@ -303,7 +304,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         if (world == null) {
             return;
         }
-        handleChunkLoad(world, event.getChunk(), event.isNewChunk());
+        handleChunkLoad(world, event.getChunk());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -366,7 +367,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         this.resetWorldArray();
         this.injectWorld(ceWorld);
         for (Chunk chunk : ((World) world.platformWorld()).getLoadedChunks()) {
-            handleChunkLoad(ceWorld, chunk, false);
+            handleChunkLoad(ceWorld, chunk);
         }
         ceWorld.setTicking(true);
         return ceWorld;
@@ -384,7 +385,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         this.resetWorldArray();
         this.injectWorld(world);
         for (Chunk chunk : ((World) world.world().platformWorld()).getLoadedChunks()) {
-            handleChunkLoad(world, chunk, false);
+            handleChunkLoad(world, chunk);
         }
         world.setTicking(true);
     }
@@ -565,30 +566,46 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     // for FastNMS chunk generator
-    public void handleChunkGenerate(CEWorld ceWorld, ChunkPos chunkPos, Object chunkAccess) {
-        if (ceWorld.isChunkLoaded(chunkPos.longKey)) return;
+    public Runnable handleChunkGenerate(CEWorld ceWorld, ChunkPos chunkPos, Object chunkAccess, ChunkGenerationStage stage) {
+        if (!stage.enabled()) return null;
         Object[] sections = ChunkAccessProxy.INSTANCE.getSections(chunkAccess);
         CEChunk ceChunk;
         try {
-            ceChunk = ceWorld.worldDataStorage().readNewChunkAt(ceWorld, chunkPos);
-            CESection[] ceSections = ceChunk.sections();
-            synchronized (sections) {
-                for (int i = 0; i < ceSections.length; i++) {
-                    CESection ceSection = ceSections[i];
-                    Object section = sections[i];
-                    int finalI = i;
-                    WorldStorageInjector.inject(section, ceSection, ceChunk, new SectionPos(chunkPos.x, ceChunk.sectionY(i), chunkPos.z),
-                            (injected) -> sections[finalI] = injected);
+            BukkitChunkAccess access = new BukkitChunkAccess(chunkAccess);
+            ceChunk = ceWorld.worldDataStorage().readChunkAt(ceWorld, chunkPos, access);
+            ceChunk.setChunkAccess(access);
+            if (!WorldStorageInjector.isSectionInjected(sections[0])) {
+                CESection[] ceSections = ceChunk.sections();
+                synchronized (sections) {
+                    for (int i = 0; i < ceSections.length; i++) {
+                        CESection ceSection = ceSections[i];
+                        Object section = sections[i];
+                        int finalI = i;
+                        WorldStorageInjector.inject(section, ceSection, ceChunk, new SectionPos(chunkPos.x, ceChunk.sectionY(i), chunkPos.z),
+                                (injected) -> sections[finalI] = injected);
+                    }
                 }
             }
-            ceChunk.load();
+            return () -> {
+                try {
+                    if (ceChunk.isUnsaved()) {
+                        ceWorld.worldDataStorage().writeChunkAt(chunkPos, ceChunk);
+                        ceChunk.setUnsaved(false);
+                    }
+                } catch (IOException e) {
+                    this.plugin.logger().warn("Failed to write chunk [world=" + ceWorld.name() +
+                            ", chunk=(" + chunkPos.x + ", " + chunkPos.z + "), stage=" + stage.name() + "]", e);
+                }
+            };
         } catch (IOException e) {
-            this.plugin.logger().warn("Failed to read new chunk at " + chunkPos.x + " " + chunkPos.z, e);
+            this.plugin.logger().warn("Failed to read chunk [world=" + ceWorld.name() +
+                    ", chunk=(" + chunkPos.x + ", " + chunkPos.z + ")]", e);
+            return null;
         }
     }
 
     @SuppressWarnings("DuplicatedCode")
-    private void handleChunkLoad(CEWorld ceWorld, Chunk chunk, boolean isNew) {
+    private void handleChunkLoad(CEWorld ceWorld, Chunk chunk) {
         int chunkX = chunk.getX();
         int chunkZ = chunk.getZ();
 
@@ -600,20 +617,14 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         } else {
             levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
         }
-        BukkitChunkAccess bukkitChunkAccess = new BukkitChunkAccess(levelChunk);
-        ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
-        CEChunk chunkAtIfLoaded = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);
-        if (chunkAtIfLoaded != null) {
-            chunkAtIfLoaded.setChunkAccess(bukkitChunkAccess);
-            if (isNew) {
-                chunkAtIfLoaded.activateAllBlockEntities();
-            }
-            if (Config.recipeInjectBlockEntities()) {
-                injectBlockEntities(levelChunk);
-            }
+
+        if (levelChunk == null) {
+            this.plugin.logger().warn("Cannot get LevelChunk at ( world: " + ceWorld.name() + " | chunk: " + chunkX + "," + chunkZ + " )");
             return;
         }
 
+        BukkitChunkAccess bukkitChunkAccess = new BukkitChunkAccess(levelChunk);
+        ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
         CEChunk ceChunk;
         try {
             ceChunk = ceWorld.worldDataStorage().readChunkAt(ceWorld, chunkPos, bukkitChunkAccess);
@@ -731,7 +742,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
             if (!(blockEntities instanceof MapListener<?,?>)) {
                 // <BlockPos, BlockEntity>
-                MapListener<Object, Object> mapListener = new MapListener<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
+                InjectedBlockEntityMap<Object, Object> mapListener = new InjectedBlockEntityMap<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
                 ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);
                 // 修改当前区块存在的
                 for (Object blockEntity : blockEntities.values()) {
@@ -804,18 +815,16 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"placed-feature", "placed-features", "placed_feature", "placed_features"};
         private final AtomicInteger id = new AtomicInteger();
         private List<ConditionalFeature> tempFeatures = null;
-        private List<ConditionalFeature> backendFeatures = null;
 
         @Override
         public void preProcess() {
-            this.backendFeatures = new ArrayList<>();
-            this.tempFeatures = Collections.synchronizedList(this.backendFeatures);
+            this.tempFeatures = Collections.synchronizedList(new ArrayList<>());
             this.id.set(0);
         }
 
         @Override
         public void postProcess() {
-            BukkitWorldManager.this.customPlacedFeatures = this.backendFeatures;
+            BukkitWorldManager.this.customPlacedFeatures = this.tempFeatures;
             BukkitWorldManager.this.lastReloadFeatureTime = System.currentTimeMillis();
         }
 

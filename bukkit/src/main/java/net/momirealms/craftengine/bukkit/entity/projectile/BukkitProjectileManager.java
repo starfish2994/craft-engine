@@ -2,34 +2,46 @@ package net.momirealms.craftengine.bukkit.entity.projectile;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import com.destroystokyo.paper.event.player.PlayerLaunchProjectileEvent;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.api.event.BlockDispenseProjectileEvent;
+import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.game.LevelEventListener;
+import net.momirealms.craftengine.bukkit.plugin.network.listener.game.SoundListener;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
+import net.momirealms.craftengine.core.entity.projectile.ProjectileSounds;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.enchantment.EnchantmentKeys;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
+import net.momirealms.craftengine.core.sound.SoundData;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
+import net.momirealms.craftengine.core.util.Tristate;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ChunkMapProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.projectile.AbstractArrowProxy;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Projectile;
-import org.bukkit.entity.ThrowableProjectile;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPortalEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Vector;
 
 import java.util.List;
 import java.util.Map;
@@ -37,6 +49,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class BukkitProjectileManager implements Listener, ProjectileManager {
+    private static final NamespacedKey PROJECTILE_ITEM = new NamespacedKey("craftengine", "projectile_item");
+
+
     private static BukkitProjectileManager instance;
     private final BukkitCraftEngine plugin;
     // 会被netty线程访问
@@ -47,6 +62,10 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         instance = this;
     }
 
+    public static BukkitProjectileManager instance() {
+        return instance;
+    }
+
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
@@ -54,7 +73,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
             List<Entity> entities = world.getEntities();
             for (Entity entity : entities) {
                 if (entity instanceof Projectile projectile) {
-                    this.plugin.scheduler().platform().run(() -> handleProjectileLoad(projectile), null, projectile);
+                    this.plugin.scheduler().platform().run(() -> handleProjectileLoad(projectile, false), null, projectile);
                 }
             }
         }
@@ -70,11 +89,52 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         return Optional.ofNullable(this.projectiles.get(entityId));
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onProjectileLaunch(ProjectileLaunchEvent event) {
-        handleProjectileLoad(event.getEntity());
+    private ItemStack getItemFromProjectile(Projectile projectile, boolean readPdc) {
+        if (projectile instanceof ThrowableProjectile throwableProjectile) {
+            return throwableProjectile.getItem();
+        } else if (projectile instanceof AbstractArrow abstractArrow) {
+            return abstractArrow.getItemStack();
+        } else if (projectile instanceof Firework firework) {
+            return firework.getItem();
+        } else if (projectile instanceof SizedFireball sizedFireball) {
+            return sizedFireball.getDisplayItem();
+        } if (readPdc) {
+            byte[] bytes = projectile.getPersistentDataContainer().get(PROJECTILE_ITEM, PersistentDataType.BYTE_ARRAY);
+            if (bytes != null) {
+                return this.plugin.itemManager().fromBytes(bytes).getBukkitItem();
+            }
+        }
+        return null;
     }
 
+    // 如果物品不直接支持存储物品，使用pdc存储
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    public void onPlayerThrowProjectile(PlayerLaunchProjectileEvent event) {
+        Projectile projectile = event.getProjectile();
+        ItemStack storedItem = getItemFromProjectile(projectile, false);
+        if (storedItem == null) {
+            projectile.getPersistentDataContainer().set(PROJECTILE_ITEM, PersistentDataType.BYTE_ARRAY, BukkitItemManager.instance().wrap(event.getItemStack()).toBytes());
+        }
+    }
+
+    // 发射器里射出的弹射物，这里特指风弹
+    @EventHandler
+    public void onDispenseProjectile(BlockDispenseProjectileEvent event) {
+        Projectile projectile = event.getProjectile();
+        ItemStack storedItem = getItemFromProjectile(projectile, false);
+        if (storedItem == null) {
+            projectile.getPersistentDataContainer().set(PROJECTILE_ITEM, PersistentDataType.BYTE_ARRAY, BukkitItemManager.instance().wrap(event.getItem()).toBytes());
+            handleProjectileLoad(projectile, true);
+        }
+    }
+
+    // 可能是玩家发射的也可能是发射器发射的
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        handleProjectileLoad(event.getEntity(), true);
+    }
+
+    // 穿过传送门需要销毁
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityPortal(EntityPortalEvent event) {
         this.projectiles.remove(event.getEntity().getEntityId());
@@ -83,7 +143,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onEntityAdd(EntityAddToWorldEvent event) {
         if (event.getEntity() instanceof Projectile projectile) {
-            handleProjectileLoad(projectile);
+            handleProjectileLoad(projectile, false);
         }
     }
 
@@ -91,26 +151,61 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     public void onEntitiesLoad(EntitiesLoadEvent event) {
         for (Entity entity : event.getEntities()) {
             if (entity instanceof Projectile projectile) {
-                handleProjectileLoad(projectile);
+                handleProjectileLoad(projectile, false);
             }
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onEntityRemove(EntityRemoveFromWorldEvent event) {
-        this.projectiles.remove(event.getEntity().getEntityId());
+        if (event.getEntity() instanceof Projectile projectile) {
+            this.projectiles.remove(projectile.getEntityId());
+        }
     }
 
-    private void handleProjectileLoad(Projectile projectile) {
-        if (!projectile.isValid()) return;
-        ItemStack projectileItem;
-        if (projectile instanceof ThrowableProjectile throwableProjectile) {
-            projectileItem = throwableProjectile.getItem();
-        } else if (projectile instanceof Arrow arrow) {
-            projectileItem = arrow.getItemStack();
-        } else {
-            return;
+    @SuppressWarnings("DuplicatedCode")
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onProjectileHit(ProjectileHitEvent event) {
+        Projectile projectile = event.getEntity();
+        BukkitCustomProjectile customProjectile = this.projectiles.get(projectile.getEntityId());
+        if (customProjectile == null) return;
+        ProjectileMeta meta = customProjectile.metadata();
+        ProjectileSounds sounds = meta.sounds();
+        if (sounds == null) return;
+
+        Block block = event.getHitBlock();
+        if (block != null) {
+            ProjectileSounds.TargetBasedSound targetBasedSound = sounds.hitBlockSound();
+            if (targetBasedSound != null) {
+                SoundData soundData = targetBasedSound.get(BukkitAdaptor.adapt(block).id());
+                if (soundData != null) {
+                    Location location = projectile.getLocation();
+                    location.getWorld().playSound(location, soundData.id().asString(), SoundCategory.NEUTRAL, soundData.volume().get(), soundData.pitch().get());
+                }
+            }
         }
+
+        Entity hitEntity = event.getHitEntity();
+        if (hitEntity != null) {
+            ProjectileSounds.TargetBasedSound targetBasedSound = sounds.hitEntitySound();
+            if (targetBasedSound != null) {
+                SoundData soundData = targetBasedSound.get(EntityUtils.getEntityType(hitEntity));
+                if (soundData != null) {
+                    Location location = projectile.getLocation();
+                    location.getWorld().playSound(location, soundData.id().asString(), SoundCategory.NEUTRAL, soundData.volume().get(), soundData.pitch().get());
+                }
+            }
+        }
+
+        if (meta.removeOnHit()) {
+            projectile.remove();
+        }
+    }
+
+    private void handleProjectileLoad(Projectile projectile, boolean launch) {
+        if (this.projectiles.containsKey(projectile.getEntityId())) return;
+        ItemStack projectileItem = getItemFromProjectile(projectile, true);
+        if (projectileItem == null) return;
         Item wrapped = this.plugin.itemManager().wrap(projectileItem);
         if (ItemUtils.isEmpty(wrapped)) return;
         wrapped.getDefinition().ifPresent(it -> {
@@ -118,7 +213,49 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
             if (meta != null) {
                 BukkitCustomProjectile customProjectile = new BukkitCustomProjectile(meta, projectile, wrapped);
                 this.projectiles.put(projectile.getEntityId(), customProjectile);
-                new ProjectileInjectTask(projectile, !projectileItem.getItemMeta().hasEnchant(Enchantment.LOYALTY));
+                new ProjectileInjectTask(projectile, wrapped.getEnchantment(EnchantmentKeys.LOYALTY).isEmpty());
+                Tristate gravity = meta.gravity();
+                if (gravity != Tristate.UNDEFINED) {
+                    projectile.setGravity(gravity.asBoolean());
+                }
+                if (meta.velocity() != 1) {
+                    projectile.setVelocity(projectile.getVelocity().multiply(meta.velocity()));
+                }
+                if (projectile instanceof AbstractArrow abstractArrow) {
+                    if (meta.damage() >= 0) {
+                        abstractArrow.setDamage(meta.damage());
+                    }
+                    if (meta.pierceLevel() >= 0) {
+                        abstractArrow.setPierceLevel(Math.min(127, meta.pierceLevel()));
+                    }
+                }
+                ProjectileSounds sounds = meta.sounds();
+                // 如果有自定义声音，就让雪豹闭嘴
+                if (sounds != null) {
+                    projectile.setSilent(true);
+                    if (launch) {
+                        Location location = projectile.getLocation();
+                        Location playerLocation = null;
+                        if (projectile.getShooter() instanceof Player thrower) {
+                            playerLocation = thrower.getLocation();
+                        }
+                        if (projectile instanceof SmallFireball smallFireball) {
+                            Vector velocity = smallFireball.getVelocity();
+                            Direction approximateNearest = Direction.getApproximateNearest(velocity.getX(), velocity.getY(), velocity.getZ()).opposite();
+                            Location added = location.add(new Vector(approximateNearest.stepX() * 0.75, approximateNearest.stepY() * 0.75, approximateNearest.stepZ() * 0.75));
+                            LevelEventListener.addTempIgnoredEvent(added, WorldEvents.BLAZE_SHOOTS);
+                        } else {
+                            SoundListener.addTempIgnoredSound(location);
+                            if (playerLocation != null) {
+                                SoundListener.addTempIgnoredSound(playerLocation);
+                            }
+                        }
+                        SoundData throwSound = sounds.throwSound();
+                        if (throwSound != null) {
+                            location.getWorld().playSound(location, throwSound.id().asString(), SoundCategory.NEUTRAL, throwSound.volume().get(), throwSound.pitch().get());
+                        }
+                    }
+                }
             }
         });
     }
@@ -140,6 +277,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         public void run() {
             if (!this.projectile.isValid()) {
                 this.task.cancel();
+                BukkitProjectileManager.this.projectiles.remove(this.projectile.getEntityId());
                 return;
             }
 
@@ -191,9 +329,5 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
             }
             return true;
         }
-    }
-
-    public static BukkitProjectileManager instance() {
-        return instance;
     }
 }

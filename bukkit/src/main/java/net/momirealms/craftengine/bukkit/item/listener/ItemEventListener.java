@@ -1,11 +1,13 @@
 package net.momirealms.craftengine.bukkit.item.listener;
 
+import com.destroystokyo.paper.event.player.PlayerReadyArrowEvent;
 import io.papermc.paper.event.block.CompostItemEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackGenerateEvent;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.entity.BukkitItemEntity;
+import net.momirealms.craftengine.bukkit.entity.projectile.ProjectileItems;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemDefinition;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
@@ -19,10 +21,14 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
+import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDefinition;
+import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.enchantment.EnchantmentKeys;
 import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.setting.value.FoodData;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateResult;
@@ -31,6 +37,7 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.ClientboundCreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.sound.SoundSet;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.*;
@@ -59,9 +66,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.Powerable;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -91,6 +96,10 @@ public final class ItemEventListener implements Listener {
             this.itemManager.persistItemModelMappings();
             for (Player player : Bukkit.getOnlinePlayers()) {
                 this.plugin.scheduler().platform().run(player::updateInventory, null, player);
+                BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+                if (serverPlayer != null && serverPlayer.hasClientMod()) {
+                    serverPlayer.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(serverPlayer));
+                }
             }
         }
     }
@@ -855,19 +864,83 @@ public final class ItemEventListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onShootBow(EntityShootBowEvent event) {
         LivingEntity shooter = event.getEntity();
         ItemStack bow = event.getBow();
-        BukkitItem wrap = this.itemManager.wrap(bow);
-        wrap.getDefinition().ifPresent(definition -> {
-            definition.execute(PlayerOptionalContext.of(shooter instanceof Player player ? BukkitAdaptor.adapt(player) : null,
+        BukkitItem bowItem = this.itemManager.wrap(bow);
+        BukkitServerPlayer serverPlayer = shooter instanceof Player player ? BukkitAdaptor.adapt(player) : null;
+
+        // 触发射击事件
+        bowItem.getDefinition().ifPresent(definition -> {
+            definition.execute(PlayerOptionalContext.of(serverPlayer,
                     ContextHolder.builder()
                             .withParameter(DirectContextParameters.EVENT, Cancellable.of(event::isCancelled, event::setCancelled))
                             .withParameter(DirectContextParameters.ENTITY, new BukkitEntity(shooter))
                             .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(shooter.getLocation()))
-                            .withParameter(DirectContextParameters.ITEM_IN_HAND, wrap)
+                            .withParameter(DirectContextParameters.ITEM_IN_HAND, bowItem)
             ), EventTrigger.SHOOT);
         });
+
+        ItemStack consumable = event.getConsumable();
+        if (consumable == null) {
+            return;
+        }
+        BukkitItem arrowItem = this.itemManager.wrap(consumable);
+
+        // 替换弹射物
+        Entity projectile = event.getProjectile();
+        Key weaponId = bowItem.vanillaId();
+        boolean replaceProjectile = false;
+        if (weaponId.equals(ItemKeys.BOW)) {
+            replaceProjectile = !this.itemManager.isBowAmmo(arrowItem);
+        } else if (weaponId.equals(ItemKeys.CROSSBOW)) {
+            replaceProjectile = !this.itemManager.isCrossbowAmmo(arrowItem);
+        }
+        if (replaceProjectile) {
+            Projectile projectileByItem = ProjectileItems.createProjectileByItem(projectile.getLocation(), arrowItem, shooter, projectile instanceof AbstractArrow abstractArrow && abstractArrow.isCritical());
+            if (projectileByItem != null) {
+                projectileByItem.setVelocity(projectile.getVelocity());
+                event.setProjectile(projectileByItem);
+                projectile = projectileByItem;
+            }
+        }
+
+        // 设置一些其他属性，无限和是否允许捡起
+        Optional<ItemDefinition> arrowDefinition = arrowItem.getDefinition();
+        if (arrowDefinition.isPresent()) {
+            ItemDefinition definition = arrowDefinition.get();
+            ProjectileMeta projectileMeta = definition.settings().projectileMeta();
+            if (projectileMeta != null && serverPlayer != null && !serverPlayer.isCreativeMode()) {
+                if (projectileMeta.ignoreInfinityEnchantment() && bowItem.getEnchantment(EnchantmentKeys.INFINITY).isPresent()) {
+                    serverPlayer.clearOrCountMatchingInventoryItems(arrowItem.id(), 1);
+                    if (projectile instanceof AbstractArrow p1 && projectileMeta.pickupable()) {
+                        p1.setPickupStatus(AbstractArrow.PickupStatus.ALLOWED);
+                        BukkitItem arrow = this.itemManager.wrap(p1.getItemStack());
+                        arrow.removeComponent(DataComponentKeys.INTANGIBLE_PROJECTILE);
+                        p1.setItemStack(arrow.getBukkitItem());
+                    }
+                }
+                if (!projectileMeta.pickupable() && projectile instanceof AbstractArrow p1) {
+                    p1.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+                    BukkitItem arrow = this.itemManager.wrap(p1.getItemStack());
+                    arrow.setJavaComponent(DataComponentKeys.INTANGIBLE_PROJECTILE, Map.of());
+                    p1.setItemStack(arrow.getBukkitItem());
+                }
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onReadyArrow(PlayerReadyArrowEvent event) {
+        BukkitItem bowItem = this.plugin.itemManager().wrap(event.getBow());
+        Optional<ItemDefinition> bowItemDefinition = bowItem.getDefinition();
+        if (bowItemDefinition.isPresent()) {
+            ItemDefinition itemDefinition = bowItemDefinition.get();
+            Set<Key> ammo = itemDefinition.settings().allowedProjectiles();
+            if (!ammo.isEmpty() && !ammo.contains(this.plugin.itemManager().wrap(event.getArrow()).id())) {
+                event.setCancelled(true);
+            }
+        }
     }
 }

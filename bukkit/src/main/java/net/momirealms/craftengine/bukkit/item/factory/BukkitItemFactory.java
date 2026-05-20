@@ -6,6 +6,7 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.ItemTags;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.ItemFactory;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
@@ -14,6 +15,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.TypedInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.BlockItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
@@ -46,6 +48,13 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
             return new UniversalItemFactory(plugin);
         }
         throw new IllegalStateException("Unsupported server version: " + VersionHelper.MINECRAFT_VERSION.version());
+    }
+
+    @Override
+    protected boolean hasPluginTag(W item, Key tag) {
+        Key id = id(item);
+        Optional<ItemDefinition> itemDefinition = this.plugin.itemManager().getItemDefinition(id);
+        return itemDefinition.map(definition -> definition.settings().tags().contains(tag)).orElseGet(() -> this.plugin.itemManager().getVanillaItemTags(id).contains(tag));
     }
 
     @Override
@@ -85,10 +94,14 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
     }
 
     @Override
-    protected boolean hasItemTag(W item, Key itemTag) {
+    protected boolean hasVanillaTag(W item, Key itemTag) {
         Object minecraftItem = item.minecraftItem();
         Object tag = ItemTags.getOrCreate(itemTag);
-        return ItemStackProxy.INSTANCE.is$0(minecraftItem, tag);
+        if (VersionHelper.isOrAbove26_1) {
+            return TypedInstanceProxy.INSTANCE.is$1(minecraftItem, tag);
+        } else {
+            return ItemStackProxy.INSTANCE.is$0(minecraftItem, tag);
+        }
     }
 
     @Override

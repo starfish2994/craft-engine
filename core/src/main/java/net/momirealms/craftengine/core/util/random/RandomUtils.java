@@ -10,6 +10,10 @@ public final class RandomUtils {
         return min + (max - min) * ThreadLocalRandom.current().nextDouble();
     }
 
+    public static double generateRandomDouble() {
+        return ThreadLocalRandom.current().nextDouble();
+    }
+
     public static float generateRandomFloat(float min, float max) {
         return min + (max - min) * ThreadLocalRandom.current().nextFloat();
     }

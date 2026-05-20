@@ -164,7 +164,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                                     .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(element.gui().currentPage()))
                                     .withParameter(GuiParameters.MAX_PAGE, String.valueOf(element.gui().maxPages()))
                             )))
-                            .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + next));
+                            .orElseThrow(() -> new GuiElementMissingException(next));
                 }, true)
         )
         .addIngredient('<', GuiElement.paged((element) -> {
@@ -174,7 +174,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                                     .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(element.gui().currentPage()))
                                     .withParameter(GuiParameters.MAX_PAGE, String.valueOf(element.gui().maxPages()))
                             )))
-                            .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + previous));
+                            .orElseThrow(() -> new GuiElementMissingException(previous));
                 }, false)
         );
 
@@ -222,7 +222,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         .addIngredient('A', Ingredient.paged())
         .addIngredient('=', GuiElement.constant(this.plugin.itemManager().getItemDefinition(parentGui != null ? Constants.CATEGORY_BACK : Constants.CATEGORY_EXIT)
                 .map(it -> it.buildItem(ItemBuildContext.of(player)))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + (parentGui != null ? Constants.CATEGORY_BACK : Constants.CATEGORY_EXIT))),
+                .orElseThrow(() -> new GuiElementMissingException(parentGui != null ? Constants.CATEGORY_BACK : Constants.CATEGORY_EXIT)),
                 ((element, click) -> {
                     click.cancel();
                     player.playSound(Constants.SOUND_RETURN_PAGE, 0.25f, 1);
@@ -240,7 +240,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                                     .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(element.gui().currentPage()))
                                     .withParameter(GuiParameters.MAX_PAGE, String.valueOf(element.gui().maxPages()))
                             )))
-                            .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + next));
+                            .orElseThrow(() -> new GuiElementMissingException(next));
                 }, true)
         )
         .addIngredient('<', GuiElement.paged((element) -> {
@@ -250,7 +250,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                                     .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(element.gui().currentPage()))
                                     .withParameter(GuiParameters.MAX_PAGE, String.valueOf(element.gui().maxPages()))
                             )))
-                            .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + previous));
+                            .orElseThrow(() -> new GuiElementMissingException(previous));
                 }, false)
         );
 
@@ -397,7 +397,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         }) : GuiElement.EMPTY)
         .addIngredient('=', GuiElement.constant(this.plugin.itemManager().getItemDefinition(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)
                         .map(it -> it.buildItem(ItemBuildContext.of(player)))
-                        .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + (parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT))),
+                        .orElseThrow(() -> new GuiElementMissingException(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)),
                 ((element, click) -> {
                     click.cancel();
                     player.playSound(Constants.SOUND_RETURN_PAGE, 0.25f, 1);
@@ -513,7 +513,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         }) : GuiElement.EMPTY)
         .addIngredient('=', GuiElement.constant(this.plugin.itemManager().getItemDefinition(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)
                         .map(it -> it.buildItem(ItemBuildContext.of(player)))
-                        .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + (parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT))),
+                        .orElseThrow(() -> new GuiElementMissingException(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)),
                 ((element, click) -> {
                     click.cancel();
                     player.playSound(Constants.SOUND_RETURN_PAGE, 0.25f, 1);
@@ -530,7 +530,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + next)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(next)), (e, c) -> {
             c.cancel();
             if (index + 1 < recipes.size()) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -543,7 +543,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + previous)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(previous)), (e, c) -> {
             c.cancel();
             if (index > 0) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -666,7 +666,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         }) : GuiElement.EMPTY)
         .addIngredient('=', GuiElement.constant(this.plugin.itemManager().getItemDefinition(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)
                         .map(it -> it.buildItem(ItemBuildContext.of(player)))
-                        .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + (parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT))),
+                        .orElseThrow(() -> new GuiElementMissingException(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)),
                 ((element, click) -> {
                     click.cancel();
                     player.playSound(Constants.SOUND_RETURN_PAGE, 0.25f, 1);
@@ -683,7 +683,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + next)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(next)), (e, c) -> {
             c.cancel();
             if (index + 1 < recipes.size()) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -696,7 +696,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + previous)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(previous)), (e, c) -> {
             c.cancel();
             if (index > 0) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -898,7 +898,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         }))
         .addIngredient('=', GuiElement.constant(this.plugin.itemManager().getItemDefinition(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)
                         .map(it -> it.buildItem(ItemBuildContext.of(player)))
-                        .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + (parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT))),
+                        .orElseThrow(() -> new GuiElementMissingException(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)),
                 ((element, click) -> {
                     click.cancel();
                     player.playSound(Constants.SOUND_RETURN_PAGE, 0.25f, 1);
@@ -915,7 +915,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + next)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(next)), (e, c) -> {
             c.cancel();
             if (index + 1 < recipes.size()) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -928,7 +928,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + previous)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(previous)), (e, c) -> {
             c.cancel();
             if (index > 0) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -998,7 +998,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.COOKING_TIME, String.valueOf(recipe.cookingTime()))
                         .withParameter(GuiParameters.COOKING_EXPERIENCE, String.valueOf(recipe.experience()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + Constants.RECIPE_COOKING_INFO)), (e, c) -> c.cancel()))
+                .orElseThrow(() -> new GuiElementMissingException(Constants.RECIPE_COOKING_INFO)), (e, c) -> c.cancel()))
         .addIngredient('^', player.hasPermission(GET_ITEM_PERMISSION) ? GuiElement.constant(this.plugin.itemManager().createWrappedItem(Constants.RECIPE_GET_ITEM, player), (e, c) -> {
             c.cancel();
             player.playSound(Constants.SOUND_PICK_ITEM);
@@ -1037,7 +1037,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         }))
         .addIngredient('=', GuiElement.constant(this.plugin.itemManager().getItemDefinition(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)
                         .map(it -> it.buildItem(ItemBuildContext.of(player)))
-                        .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + (parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT))),
+                        .orElseThrow(() -> new GuiElementMissingException(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)),
                 ((element, click) -> {
                     click.cancel();
                     player.playSound(Constants.SOUND_RETURN_PAGE, 0.25f, 1);
@@ -1054,7 +1054,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + next)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(next)), (e, c) -> {
             c.cancel();
             if (index + 1 < recipes.size()) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -1067,7 +1067,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + previous)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(previous)), (e, c) -> {
             c.cancel();
             if (index > 0) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -1150,7 +1150,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         }) : GuiElement.EMPTY)
         .addIngredient('=', GuiElement.constant(this.plugin.itemManager().getItemDefinition(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)
                         .map(it -> it.buildItem(ItemBuildContext.of(player)))
-                        .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + (parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT))),
+                        .orElseThrow(() -> new GuiElementMissingException(parentGui != null ? Constants.RECIPE_BACK : Constants.RECIPE_EXIT)),
                 ((element, click) -> {
                     click.cancel();
                     player.playSound(Constants.SOUND_RETURN_PAGE, 0.25f, 1);
@@ -1167,7 +1167,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + next)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(next)), (e, c) -> {
             c.cancel();
             if (index + 1 < recipes.size()) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);
@@ -1180,7 +1180,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                         .withParameter(GuiParameters.CURRENT_PAGE, String.valueOf(index + 1))
                         .withParameter(GuiParameters.MAX_PAGE, String.valueOf(recipes.size()))
                 )))
-                .orElseThrow(() -> new GuiElementMissingException("Can't find gui element " + previous)), (e, c) -> {
+                .orElseThrow(() -> new GuiElementMissingException(previous)), (e, c) -> {
             c.cancel();
             if (index > 0) {
                 player.playSound(Constants.SOUND_CHANGE_PAGE, 0.25f, 1);

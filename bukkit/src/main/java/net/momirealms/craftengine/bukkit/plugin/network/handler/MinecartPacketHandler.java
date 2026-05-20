@@ -74,7 +74,7 @@ public final class MinecartPacketHandler implements EntityPacketHandler {
             Optional<Object> blockState = EntityUtils.getEntityDataValue(packedItem, AbstractMinecartData.CustomDisplayBlockState);
             if (blockState.isEmpty()) return false;
             int stateId = BlockStateUtils.blockStateToId(blockState.get());
-            int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
+            int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientCustomBlockEnabled());
             if (newStateId == stateId) return false;
             SynchedEntityDataProxy.DataValueProxy.INSTANCE.setValue(packedItem, Optional.of(BlockStateUtils.idToBlockState(newStateId)));
             return true;
@@ -88,7 +88,7 @@ public final class MinecartPacketHandler implements EntityPacketHandler {
         public boolean handle(NetWorkUser user, Object packedItem, int entityDataId) {
             if (entityDataId != AbstractMinecartData.DisplayBlockState.id()) return false;
             int stateId = EntityUtils.getEntityDataValue(packedItem, AbstractMinecartData.DisplayBlockState);
-            int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
+            int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientCustomBlockEnabled());
             if (newStateId == stateId) return false;
             SynchedEntityDataProxy.DataValueProxy.INSTANCE.setValue(packedItem, newStateId);
             return true;

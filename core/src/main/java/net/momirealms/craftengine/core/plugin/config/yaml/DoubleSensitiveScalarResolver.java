@@ -41,9 +41,6 @@ public final class DoubleSensitiveScalarResolver implements ScalarResolver {
     }
 
     public void addImplicitResolver(Tag tag, Pattern regexp, String first) {
-        if (regexp == null) {
-            System.out.println(first);
-        }
         if (first == null) {
             List<ResolverTuple> curr =
                     yamlImplicitResolvers.computeIfAbsent(null, c -> new ArrayList<>());

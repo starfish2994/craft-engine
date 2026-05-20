@@ -34,7 +34,7 @@ public final class SetItemCustomModelDataCommand extends BukkitCommandFeature<Co
                     }
 
                     int dataValue = context.get("value");
-                    itemInHand.customModelData(0);
+                    itemInHand.customModelData(dataValue);
                     handleFeedback(context, MessageConstants.COMMAND_ITEM_SET_CUSTOM_MODEL_DATA, Component.text(dataValue));
                 });
     }

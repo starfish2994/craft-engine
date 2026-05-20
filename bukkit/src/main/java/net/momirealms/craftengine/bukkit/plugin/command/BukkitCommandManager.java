@@ -71,7 +71,7 @@ public final class BukkitCommandManager extends AbstractCommandManager<CommandSe
                 new CreateResourceCommand(this, plugin),
                 new UploadPackCommand(this, plugin),
                 new SendResourcePackCommand(this, plugin),
-                new DebugSaveDefaultResourcesCommand(this, plugin),
+                new SaveDefaultResourceCommand(this, plugin),
                 new CleanCacheCommand(this, plugin),
                 new DebugGenerateInternalAssetsCommand(this, plugin),
                 new DebugCustomModelDataCommand(this, plugin),

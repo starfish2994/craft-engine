@@ -59,7 +59,7 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
         ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
         boolean named = !VersionHelper.isOrAbove1_20_2;
 
-        int[] remapper = user.clientModEnabled() ? this.modBlockStateMapper : this.blockStateMapper;
+        int[] remapper = user.clientCustomBlockEnabled() ? this.modBlockStateMapper : this.blockStateMapper;
 
         // 读取区块数据
         int heightmapsCount = 0;

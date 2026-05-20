@@ -39,7 +39,7 @@ public final class EndermanPacketHandler implements EntityPacketHandler {
                 Optional<Object> blockState = EntityUtils.getEntityDataValue(packedItem, EnderManData.CarriedBlock);
                 if (blockState.isEmpty()) continue;
                 int stateId = BlockStateUtils.blockStateToId(blockState.get());
-                int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientModEnabled());
+                int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientCustomBlockEnabled());
                 if (newStateId == stateId) continue;
                 SynchedEntityDataProxy.DataValueProxy.INSTANCE.setValue(packedItem, Optional.of(BlockStateUtils.idToBlockState(newStateId)));
                 isChanged = true;

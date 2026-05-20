@@ -5,6 +5,8 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemTags;
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.recipe.UniqueIdItem;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -17,6 +19,7 @@ import net.momirealms.craftengine.proxy.minecraft.util.datafix.fixes.ReferencesP
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.component.ToolProxy;
 import net.momirealms.craftengine.proxy.spottedleaf.dataconverter.minecraft.MCDataConverterProxy;
 import net.momirealms.craftengine.proxy.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistryProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -175,5 +178,21 @@ public final class ItemStackUtils {
                 ItemStackProxy.INSTANCE.getCount(minecraftItem),
                 ItemStackProxy.INSTANCE.getComponentsPatch(minecraftItem)
         );
+    }
+
+    public static boolean canBreakBlockInCreativeMode(BukkitItem item) {
+        if (VersionHelper.isOrAbove1_21_5) {
+            Object tool = item.getExactComponent(DataComponentKeys.TOOL);
+            if (tool == null) {
+                return true;
+            }
+            return ToolProxy.INSTANCE.canDestroyBlocksInCreative(tool);
+        } else {
+            Material material = item.getBukkitItem().getType();
+            return material != Material.DEBUG_STICK
+                    && material != Material.TRIDENT
+                    && (!VersionHelper.isOrAbove1_20_5 || material != MaterialUtils.MACE)
+                    && !item.hasVanillaTag(ItemTags.SWORDS);
+        }
     }
 }

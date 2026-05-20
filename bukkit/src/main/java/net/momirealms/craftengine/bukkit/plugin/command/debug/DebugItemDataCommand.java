@@ -50,7 +50,7 @@ public final class DebugItemDataCommand extends BukkitCommandFeature<CommandSend
                 .handler(context -> {
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(context.sender());
                     if (serverPlayer == null) return;
-                    Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).copyWithCount(1);
+                    Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).copy();
                     if (itemInHand.isEmpty()) {
                         return;
                     }

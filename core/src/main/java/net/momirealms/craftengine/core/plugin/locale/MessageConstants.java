@@ -18,6 +18,7 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_ITEM_SET_CUSTOM_MODEL_DATA = Component.translatable().key("command.item.set_custom_model_data");
     TranslatableComponent.Builder COMMAND_ITEM_SET_ITEM_MODEL = Component.translatable().key("command.item.set_item_model");
     TranslatableComponent.Builder COMMAND_ITEM_REMOVE_ITEM_COMPONENT = Component.translatable().key("command.item.remove_item_component");
+    TranslatableComponent.Builder COMMAND_ITEM_BROWSER_MISSING_ELEMENT = Component.translatable().key("command.item.browser.missing_element");
     TranslatableComponent.Builder COMMAND_SEARCH_RECIPE_NOT_FOUND = Component.translatable().key("command.search_recipe.not_found");
     TranslatableComponent.Builder COMMAND_SEARCH_RECIPE_NO_ITEM = Component.translatable().key("command.search_recipe.no_item");
     TranslatableComponent.Builder COMMAND_SEARCH_USAGE_NOT_FOUND = Component.translatable().key("command.search_usage.not_found");
@@ -32,6 +33,8 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_RESOURCE_CREATE_FAILURE_UNKNOWN = Component.translatable().key("command.resource.create.failure.unknown");
     TranslatableComponent.Builder COMMAND_RESOURCE_CREATE_FAILURE_INVALID_NAMESPACE = Component.translatable().key("command.resource.create.failure.invalid_namespace");
     TranslatableComponent.Builder COMMAND_RESOURCE_CREATE_FAILURE_EXISTS = Component.translatable().key("command.resource.create.failure.exists");
+    TranslatableComponent.Builder COMMAND_RESOURCE_SAVE_DEFAULT_SUCCESS = Component.translatable().key("command.resource.save_default.success");
+    TranslatableComponent.Builder COMMAND_RESOURCE_SAVE_DEFAULT_FAILURE = Component.translatable().key("command.resource.save_default.failure");
     TranslatableComponent.Builder COMMAND_UPLOAD_FAILURE_NOT_SUPPORTED = Component.translatable().key("command.upload.failure.not_supported");
     TranslatableComponent.Builder COMMAND_UPLOAD_ON_PROGRESS = Component.translatable().key("command.upload.on_progress");
     TranslatableComponent.Builder COMMAND_SEND_RESOURCE_PACK_SUCCESS_SINGLE = Component.translatable().key("command.send_resource_pack.success.single");

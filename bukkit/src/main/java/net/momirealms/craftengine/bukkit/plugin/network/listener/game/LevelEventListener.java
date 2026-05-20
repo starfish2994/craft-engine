@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
@@ -20,10 +22,16 @@ import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundSourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
+import org.bukkit.Location;
 
+import java.time.Duration;
 import java.util.Optional;
+import java.util.UUID;
 
 public final class LevelEventListener implements ByteBufferPacketListener {
+    private static final Cache<WorldBlockPos, Integer> IGNORED_EVENTS = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofSeconds(1))
+            .build();
     private final int[] blockStateMapper;
     private final int[] modBlockStateMapper;
 
@@ -36,56 +44,75 @@ public final class LevelEventListener implements ByteBufferPacketListener {
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
         FriendlyByteBuf buf = event.getBuffer();
         int eventId = buf.readInt();
-        if (eventId != WorldEvents.BLOCK_BREAK_EFFECT) return;
         BlockPos blockPos = buf.readBlockPos();
-        int state = buf.readInt();
-        // 移除不透明设置
-        if (Config.entityCullingRayTracing()) {
-            ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(blockPos.x >> 4, blockPos.z >> 4));
-            if (trackedChunk != null) {
-                trackedChunk.setOccluding(blockPos.x, blockPos.y, blockPos.z, false);
-            }
-        }
-        boolean global = buf.readBoolean();
-        int newState = user.clientModEnabled() ? modBlockStateMapper[state] : blockStateMapper[state];
-        Object blockState = BlockStateUtils.idToBlockState(state);
-        Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(blockState);
-        Object soundEvent = SoundTypeProxy.INSTANCE.getBreakSound(soundType);
-        Object rawSoundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
-        if (BlockStateUtils.isVanillaBlock(state)) {
-            if (BukkitBlockManager.instance().isBreakSoundMissing(rawSoundId)) {
-                Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(KeyUtils.identifierToKey(rawSoundId));
-                if (mappedSoundId != null) {
-                    Object packet = ClientboundSoundPacketProxy.INSTANCE.newInstance(
-                            HolderProxy.INSTANCE.direct(SoundEventProxy.INSTANCE.create(KeyUtils.toIdentifier(mappedSoundId), Optional.empty())),
-                            SoundSourceProxy.BLOCKS,
-                            blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
-                            RandomUtils.generateRandomLong()
-                    );
-                    user.sendPacket(packet, true);
+        if (eventId == WorldEvents.BLOCK_BREAK_EFFECT) {
+            int state = buf.readInt();
+            // 移除不透明设置
+            if (Config.entityCullingRayTracing()) {
+                ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(blockPos.x >> 4, blockPos.z >> 4));
+                if (trackedChunk != null) {
+                    trackedChunk.setOccluding(blockPos.x, blockPos.y, blockPos.z, false);
                 }
             }
-        } else {
-            Key soundId = KeyUtils.identifierToKey(rawSoundId);
-            Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
-            Object finalSoundId = KeyUtils.toIdentifier(mappedSoundId == null ? soundId : mappedSoundId);
-            Object packet = ClientboundSoundPacketProxy.INSTANCE.newInstance(
-                    HolderProxy.INSTANCE.direct(SoundEventProxy.INSTANCE.create(finalSoundId, Optional.empty())),
-                    SoundSourceProxy.BLOCKS,
-                    blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
-                    RandomUtils.generateRandomLong()
-            );
-            user.sendPacket(packet, true);
+            boolean global = buf.readBoolean();
+            int newState = user.clientCustomBlockEnabled() ? modBlockStateMapper[state] : blockStateMapper[state];
+            Object blockState = BlockStateUtils.idToBlockState(state);
+            Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(blockState);
+            Object soundEvent = SoundTypeProxy.INSTANCE.getBreakSound(soundType);
+            Object rawSoundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
+            if (BlockStateUtils.isVanillaBlock(state)) {
+                if (BukkitBlockManager.instance().isBreakSoundMissing(rawSoundId)) {
+                    Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(KeyUtils.identifierToKey(rawSoundId));
+                    if (mappedSoundId != null) {
+                        Object packet = ClientboundSoundPacketProxy.INSTANCE.newInstance(
+                                HolderProxy.INSTANCE.direct(SoundEventProxy.INSTANCE.create(KeyUtils.toIdentifier(mappedSoundId), Optional.empty())),
+                                SoundSourceProxy.BLOCKS,
+                                blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
+                                RandomUtils.generateRandomLong()
+                        );
+                        user.sendPacket(packet, true);
+                    }
+                }
+            } else {
+                Key soundId = KeyUtils.identifierToKey(rawSoundId);
+                Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(soundId);
+                Object finalSoundId = KeyUtils.toIdentifier(mappedSoundId == null ? soundId : mappedSoundId);
+                Object packet = ClientboundSoundPacketProxy.INSTANCE.newInstance(
+                        HolderProxy.INSTANCE.direct(SoundEventProxy.INSTANCE.create(finalSoundId, Optional.empty())),
+                        SoundSourceProxy.BLOCKS,
+                        blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
+                        RandomUtils.generateRandomLong()
+                );
+                user.sendPacket(packet, true);
+            }
+            if (newState == state) {
+                return;
+            }
+            event.setChanged(true);
+            buf.clear();
+            buf.writeVarInt(event.packetID());
+            buf.writeInt(eventId);
+            buf.writeBlockPos(blockPos);
+            buf.writeInt(newState);
+            buf.writeBoolean(global);
+        } else if (eventId == WorldEvents.BLAZE_SHOOTS) {
+            WorldBlockPos worldBlockPos = new WorldBlockPos(user.clientSideWorld().uuid(), blockPos);
+            Integer eventsIfPresent = IGNORED_EVENTS.getIfPresent(worldBlockPos);
+            if (eventsIfPresent != null && eventsIfPresent == eventId) {
+                event.setCancelled(true);
+                return;
+            }
         }
-        if (newState == state) {
-            return;
+    }
+
+    public static void addTempIgnoredEvent(Location location, int eventId) {
+        IGNORED_EVENTS.put(WorldBlockPos.fromLocation(location), eventId);
+    }
+
+    public record WorldBlockPos(UUID uuid, BlockPos blockPos) {
+
+        public static WorldBlockPos fromLocation(Location location) {
+            return new WorldBlockPos(location.getWorld().getUID(), new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
         }
-        event.setChanged(true);
-        buf.clear();
-        buf.writeVarInt(event.packetID());
-        buf.writeInt(eventId);
-        buf.writeBlockPos(blockPos);
-        buf.writeInt(newState);
-        buf.writeBoolean(global);
     }
 }

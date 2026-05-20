@@ -186,6 +186,11 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
+    public boolean hasPluginTag(Key tag) {
+        return this.factory.hasPluginTag(this.item, tag);
+    }
+
+    @Override
     public @NotNull Key id() {
         return this.factory.id(this.item);
     }
@@ -532,8 +537,8 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public boolean hasItemTag(Key itemTag) {
-        return this.factory.hasItemTag(this.item, itemTag);
+    public boolean hasVanillaTag(Key itemTag) {
+        return this.factory.hasVanillaTag(this.item, itemTag);
     }
 
     @Override

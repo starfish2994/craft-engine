@@ -17,6 +17,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.CraftEngineGUIHolder;
+import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
@@ -44,6 +45,8 @@ import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.ProtocolVersion;
+import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
+import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.*;
@@ -54,10 +57,7 @@ import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.ConnectionProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ClientboundCustomPayloadPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ClientboundResourcePackPopPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ServerboundCustomPayloadPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.custom.DiscardedPayloadProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.ClientboundLoginDisconnectPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.syncher.SynchedEntityDataProxy;
@@ -123,6 +123,8 @@ public class BukkitServerPlayer extends Player {
     public static final Key DISPLAY_ENTITY_VIEW_DISTANCE_SCALE = Key.ce("display_entity_view_distance_scale");
     public static final Key ENABLE_ENTITY_CULLING = Key.ce("enable_entity_culling");
     public static final Key ENABLE_FURNITURE_DEBUG = Key.ce("enable_furniture_debug");
+    private static final int CUSTOM_PAYLOAD_PLAY = BukkitNetworkManager.PACKET_IDS.clientboundCustomPayloadPacket$play();
+    private static final int CUSTOM_PAYLOAD_CONFIG = BukkitNetworkManager.PACKET_IDS.clientboundCustomPayloadPacket$configuration();
     private final BukkitCraftEngine plugin;
 
     // connection state
@@ -163,7 +165,8 @@ public class BukkitServerPlayer extends Player {
     private int resentSoundTick;
     private int resentSwingTick;
     // has fabric client mod or not
-    private boolean hasClientMod = false;
+    private boolean enableClientCustomBlock = false;
+    private int clientModProtocol = -1;
     private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaBlockStateCount());
     // cache if player can break blocks
     private boolean clientSideCanBreak = true;
@@ -546,21 +549,21 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void sendCustomPayload(Key channelId, byte[] data) {
-        Object channelIdentifier = KeyUtils.toIdentifier(channelId);
-        Object responsePacket;
-        if (VersionHelper.isOrAbove1_20_2) {
-            Object dataPayload;
-            if (VersionHelper.isOrAbove1_20_5) {
-                dataPayload = DiscardedPayloadProxy.CONSTRUCTOR.newInstance(channelIdentifier, DiscardedPayloadProxy.PAPER_PATCH ? data : Unpooled.wrappedBuffer(data));
-            } else {
-                dataPayload = ServerboundCustomPayloadPacketProxy.UnknownPayloadProxy.CONSTRUCTOR.newInstance(channelIdentifier, ServerboundCustomPayloadPacketProxy.UnknownPayloadProxy.PAPER_PATCH ? data : Unpooled.wrappedBuffer(data));
-            }
-            responsePacket = ClientboundCustomPayloadPacketProxy.INSTANCE.newInstance(dataPayload);
-        } else {
-            responsePacket = ClientboundCustomPayloadPacketProxy.INSTANCE.newInstance(channelIdentifier, PacketUtils.ensureNMSFriendlyByteBuf(Unpooled.wrappedBuffer(data)));
+    public void sendCustomPacket(ClientCustomPacket packet) {
+        FriendlyByteBuf result = new FriendlyByteBuf(Unpooled.buffer());
+        result.writeVarInt(this.encoderState == ConnectionState.PLAY ? CUSTOM_PAYLOAD_PLAY : CUSTOM_PAYLOAD_CONFIG);
+        result.writeKey(packet.id());
+        @SuppressWarnings("unchecked")
+        var codec = (NetworkCodec<FriendlyByteBuf, ClientCustomPacket>) packet.codec();
+        codec.encode(result, packet);
+        this.channel.writeAndFlush(result);
+    }
+
+    @Override
+    public void sendCustomPackets(List<? extends ClientCustomPacket> packets) {
+        for (ClientCustomPacket packet : packets) {
+            sendCustomPacket(packet);
         }
-        this.sendPacket(responsePacket, true);
     }
 
     @Override
@@ -1036,12 +1039,8 @@ public class BukkitServerPlayer extends Player {
             Object gameMode = ServerPlayerProxy.INSTANCE.getGameMode(serverPlayer);
             ServerPlayerGameModeProxy.INSTANCE.setIsDestroyingBlock(gameMode, false);
             if (!item.isEmpty()) {
-                Material itemMaterial = item.getBukkitItem().getType();
                 // creative mode + invalid item in hand
-                if (canInstabuild() && (itemMaterial == Material.DEBUG_STICK
-                        || itemMaterial == Material.TRIDENT
-                        || (VersionHelper.isOrAbove1_20_5 && itemMaterial == MaterialUtils.MACE)
-                        || item.hasItemTag(ItemTags.SWORDS))) {
+                if (canInstabuild() && !ItemStackUtils.canBreakBlockInCreativeMode(item)) {
                     return;
                 }
             }
@@ -1293,13 +1292,28 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public boolean clientModEnabled() {
-        return this.hasClientMod;
+    public boolean clientCustomBlockEnabled() {
+        return this.enableClientCustomBlock;
     }
 
     @Override
-    public void setClientModState(boolean enable) {
-        this.hasClientMod = enable;
+    public void setClientCustomBlock(boolean enable) {
+        this.enableClientCustomBlock = enable;
+    }
+
+    @Override
+    public boolean hasClientMod() {
+        return this.clientModProtocol != -1;
+    }
+
+    @Override
+    public int clientModProtocol() {
+        return this.clientModProtocol;
+    }
+
+    @Override
+    public void setClientModProtocol(int version) {
+        this.clientModProtocol = version;
     }
 
     @Override

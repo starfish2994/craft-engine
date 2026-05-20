@@ -164,6 +164,11 @@ public final class Config {
     private boolean chunk_system$process_invalid_blocks$enable;
     private Map<String, String> chunk_system$process_invalid_blocks$mapping;
     private StorageType chunk_system$storage_type;
+    private boolean chunk_system$generation$noise;
+    private boolean chunk_system$generation$structure;
+    private boolean chunk_system$generation$surface;
+    private boolean chunk_system$generation$carver;
+    private boolean chunk_system$generation$feature;
 
     private boolean furniture$hide_base_entity;
     private ColliderType furniture$collision_entity_type;
@@ -221,8 +226,9 @@ public final class Config {
     private boolean network$intercept_packets$dialog;
     private boolean network$disable_item_operations;
     private boolean network$disable_chat_report;
-    private boolean network$mod_channel$enable;
     private boolean network$mod_channel$requires_permission;
+    private boolean network$mod_channel$logging_permission_denied;
+    private int network$mod_channel$creative_tab_max_items_per_packet;
     private boolean network$item_crypto$enable;
 
     private boolean item$client_bound_model;
@@ -540,6 +546,12 @@ public final class Config {
         }
         this.chunk_system$process_invalid_blocks$mapping = blockBuilder.build();
 
+        this.chunk_system$generation$feature = config.getBoolean("chunk-system.generation.feature", true);
+        this.chunk_system$generation$carver = config.getBoolean("chunk-system.generation.carver", true);
+        this.chunk_system$generation$noise = config.getBoolean("chunk-system.generation.noise", true);
+        this.chunk_system$generation$structure = config.getBoolean("chunk-system.generation.structure", true);
+        this.chunk_system$generation$surface = config.getBoolean("chunk-system.generation.surface", true);
+
         // furniture
         this.furniture$hide_base_entity = config.getBoolean("furniture.hide-base-entity", true);
         this.furniture$collision_entity_type = ColliderType.valueOf(config.getString("furniture.collision-entity-type", "interaction").toUpperCase(Locale.ENGLISH));
@@ -693,8 +705,9 @@ public final class Config {
         this.network$intercept_packets$advancement = config.getBoolean("network.intercept-packets.advancement", true);
         this.network$intercept_packets$player_chat = config.getBoolean("network.intercept-packets.player-chat", true);
         this.network$intercept_packets$dialog = config.getBoolean("network.intercept-packets.dialog", true);
-        this.network$mod_channel$enable = config.getBoolean("network.mod-channel.enable", true);
         this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
+        this.network$mod_channel$logging_permission_denied = config.getBoolean("network.mod-channel.logging-permission-denied", true);
+        this.network$mod_channel$creative_tab_max_items_per_packet = Math.max(config.getInt("network.mod-channel.creative-tab-max-items-per-packet", 10), 1);
         if (this.firstTime) {
             this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
             if (this.network$item_crypto$enable) {
@@ -1164,12 +1177,16 @@ public final class Config {
         return instance.network$disable_chat_report;
     }
 
-    public static boolean enableModChannel() {
-        return instance.network$mod_channel$enable;
-    }
-
     public static boolean modChannelRequiresPermission() {
         return instance.network$mod_channel$requires_permission;
+    }
+
+    public static boolean modChannelLoggingPermissionDenied() {
+        return instance.network$mod_channel$logging_permission_denied;
+    }
+
+    public static int modChannelCreativeTabMaxItemsPerPacket() {
+        return instance.network$mod_channel$creative_tab_max_items_per_packet;
     }
 
     public static boolean enableItemCrypto() {
@@ -1530,6 +1547,26 @@ public final class Config {
 
     public static Path packSquashConfigPath() {
         return instance.resource_pack$pack_squash$config_path;
+    }
+
+    public static boolean generationNoise() {
+        return instance.chunk_system$generation$noise;
+    }
+
+    public static boolean generationStructure() {
+        return instance.chunk_system$generation$structure;
+    }
+
+    public static boolean generationCarver() {
+        return instance.chunk_system$generation$carver;
+    }
+
+    public static boolean generationFeature() {
+        return instance.chunk_system$generation$feature;
+    }
+
+    public static boolean generationSurface() {
+        return instance.chunk_system$generation$surface;
     }
 
     public YamlDocument loadYamlConfig(String filePath, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {

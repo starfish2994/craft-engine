@@ -6,7 +6,7 @@ lang#items:
     item.default.fairy_flower: 仙靈花
     item.default.reed: 蘆葦
     item.default.flame_cane: 烈焰甘蔗
-    item.default.ender_pearl_flower_seeds: 末影珍珠花種子
+    item.default.ender_pearl_flower_seeds: 終界珍珠花種子
     item.default.bench: 長椅
     item.default.table_lamp: 檯燈
     item.default.wooden_chair: 木椅
@@ -41,7 +41,7 @@ lang#items:
     item.default.palm_pressure_plate: 棕櫚木壓力板
     item.default.palm_button: 棕櫚木按鈕
     item.default.palm_fence: 棕櫚木柵欄
-    item.default.netherite_anvil: 下界合金砧
+    item.default.netherite_anvil: 獄髓砧
     item.default.gunpowder_block: 火藥粉末
     item.default.solid_gunpowder_block: 凝固火藥塊
     item.default.copper_coil: 銅線圈
@@ -63,11 +63,11 @@ lang#items:
     item.default.showcase: 物品展示櫃
     item.default.drawer_block: 抽屜方塊
     item.default.candelabrum: 燭臺
-# 為方塊提供翻譯，對於那些需要獲取伺服端方塊本地化鍵名的外掛來說尤其有效
+# 為方塊提供翻譯，對於那些需要獲取伺服端方塊本地化鍵名的插件來說尤其有效
 lang#blocks:
   zh_tw:
     block_name:default:chinese_lantern: 燈籠
-    block_name:default:netherite_anvil: 下界合金砧
+    block_name:default:netherite_anvil: 獄髓砧
     block_name:default:topaz_ore: 黃玉礦石
     block_name:default:deepslate_topaz_ore: 深層黃玉礦石
     block_name:default:palm_log: 棕櫚原木
@@ -87,7 +87,7 @@ lang#blocks:
     block_name:default:fairy_flower: 仙靈花
     block_name:default:reed: 蘆葦
     block_name:default:flame_cane: 烈焰甘蔗
-    block_name:default:ender_pearl_flower: 末影珍珠花
+    block_name:default:ender_pearl_flower: 終界珍珠花
     block_name:default:gunpowder_block: 火藥粉末
     block_name:default:solid_gunpowder_block: 凝固火藥塊
     block_name:default:copper_coil: 銅線圈
@@ -104,7 +104,7 @@ lang#blocks:
     block_name:default:togglable_light_block: 可調節光源
     block_name:default:drawer_block: 抽屜方塊
 # 傢俱相關的翻譯通常是為 API 設計的
-# 如果你使用的外掛支援顯示傢俱名稱，那麼你很可能需要配置這些傢俱的翻譯
+# 如果你使用的插件支援顯示傢俱名稱，那麼你很可能需要配置這些傢俱的翻譯
 lang#furniture:
   zh_tw:
     furniture.default.bench: 長椅

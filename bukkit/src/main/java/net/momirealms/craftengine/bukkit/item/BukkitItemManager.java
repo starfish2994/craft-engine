@@ -13,6 +13,7 @@ import net.momirealms.craftengine.bukkit.item.listener.ItemEventListener;
 import net.momirealms.craftengine.bukkit.item.listener.SlotChangeListener;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.plugin.command.feature.ReloadCommand;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
@@ -26,9 +27,11 @@ import net.momirealms.craftengine.core.item.processor.ObfuscatedItemModelProcess
 import net.momirealms.craftengine.core.item.recipe.DatapackRecipeResult;
 import net.momirealms.craftengine.core.item.recipe.IngredientUnlockable;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.compatibility.ItemSource;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.plugin.network.mod.protocol.ClientboundCreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.MappedRegistryProxy;
@@ -40,6 +43,7 @@ import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.tags.TagKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ProjectileWeaponItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.equipment.trim.*;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.Bukkit;
@@ -109,6 +113,12 @@ public final class BukkitItemManager extends AbstractItemManager {
             this.recipeIngredientSources = sources.toArray(new ItemSource[0]);
             this.hasExternalRecipeSource = true;
         }
+        if (!ReloadCommand.RELOAD_PACK_FLAG || !Config.obfuscateItemModel()) {
+            for (Player player : CraftEngine.instance().networkManager().onlineUsers()) {
+                if (!player.hasClientMod()) continue;
+                player.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(player));
+            }
+        }
     }
 
     @Override
@@ -132,6 +142,15 @@ public final class BukkitItemManager extends AbstractItemManager {
         Bukkit.getPluginManager().registerEvents(this.itemEventListener, this.plugin.javaPlugin());
         Bukkit.getPluginManager().registerEvents(this.armorEventListener, this.plugin.javaPlugin());
         if (this.slotChangeListener != null) Bukkit.getPluginManager().registerEvents(this.slotChangeListener, this.plugin.javaPlugin());
+        this.injectProjectilePredicate();
+    }
+
+    private void injectProjectilePredicate() {
+        try {
+            ProjectileWeaponItemProxy.INSTANCE.setArrowOnly(ARROW_ONLY);
+            ProjectileWeaponItemProxy.INSTANCE.setArrowOrFirework(ARROW_OR_FIREWORK);
+        } catch (Throwable ignored) {
+        }
     }
 
     public NetworkItemHandler networkItemHandler() {
@@ -390,14 +409,14 @@ public final class BukkitItemManager extends AbstractItemManager {
     }
 
     @Override
-    protected ItemDefinition.Builder createPlatformItemBuilder(UniqueKey id, Key materialId, Key clientBoundMaterialId) {
+    protected ItemDefinition.Builder createPlatformItemBuilder(String path, UniqueKey id, Key materialId, Key clientBoundMaterialId) {
         Object item = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(materialId));
         Object clientBoundItem = materialId == clientBoundMaterialId ? item : RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ITEM, KeyUtils.toIdentifier(clientBoundMaterialId));
         if (item == ItemsProxy.AIR) {
-            throw new KnownResourceException("resource.item.invalid_material", materialId.toString());
+            throw new KnownResourceException("resource.item.invalid_material", path, materialId.toString());
         }
         if (clientBoundItem == ItemsProxy.AIR) {
-            throw new KnownResourceException("resource.item.invalid_material", clientBoundMaterialId.toString());
+            throw new KnownResourceException("resource.item.invalid_material", path, clientBoundMaterialId.toString());
         }
         return BukkitItemDefinition.builder(item, clientBoundItem)
                 .id(id)
@@ -409,14 +428,17 @@ public final class BukkitItemManager extends AbstractItemManager {
         for (Object item : (Iterable<?>) BuiltInRegistriesProxy.ITEM) {
             Object identifier = RegistryProxy.INSTANCE.getKey(BuiltInRegistriesProxy.ITEM, item);
             Key itemKey = KeyUtils.identifierToKey(identifier);
-            VANILLA_ITEMS.add(itemKey);
+
             UniqueKey uniqueKey = UniqueKey.create(itemKey);
             Object mcHolder = Objects.requireNonNull(RegistryUtils.getHolder(BuiltInRegistriesProxy.ITEM, ResourceKeyProxy.INSTANCE.create(RegistriesProxy.ITEM, identifier)));
             Set<Object> tags = HolderProxy.ReferenceProxy.INSTANCE.getTags(mcHolder);
+            Set<Key> tagKeys = new HashSet<>();
             for (Object tag : tags) {
                 Key tagId = KeyUtils.identifierToKey(TagKeyProxy.INSTANCE.getLocation(tag));
-                VANILLA_ITEM_TAGS.computeIfAbsent(tagId, (key) -> new ArrayList<>()).add(uniqueKey);
+                tagKeys.add(tagId);
+                VANILLA_TAG_TO_ITEMS.computeIfAbsent(tagId, (key) -> new ArrayList<>()).add(uniqueKey);
             }
+            VANILLA_ITEM_TO_TAGS.put(itemKey, tagKeys);
         }
     }
 
@@ -427,7 +449,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         Object registryAccess = RegistryUtils.getRegistryAccess();
         Optional<?> optionalMaterial;
         if (VersionHelper.isOrAbove26_1) {
-            optionalMaterial = (Optional<?>) addition.getExactComponent(DataComponentKeys.PROVIDES_TRIM_MATERIAL);
+            optionalMaterial = Optional.ofNullable(addition.getExactComponent(DataComponentKeys.PROVIDES_TRIM_MATERIAL));
         } else if (VersionHelper.isOrAbove1_20_5) {
             optionalMaterial = TrimMaterialsProxy.INSTANCE.getFromIngredient$0(registryAccess, addition.minecraftItem());
         } else {

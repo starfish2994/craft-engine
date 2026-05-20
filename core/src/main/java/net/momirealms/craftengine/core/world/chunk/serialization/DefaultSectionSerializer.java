@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.InactiveBlockDefinition;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Holder;
@@ -78,6 +79,7 @@ public final class DefaultSectionSerializer {
                 Holder.Reference<BlockDefinition> holder = ((WritableRegistry<BlockDefinition>) BuiltInRegistries.BLOCK).registerForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), key));
                 InactiveBlockDefinition inactiveBlock = new InactiveBlockDefinition(holder);
                 holder.bindValue(inactiveBlock);
+                inactiveBlock.setBehavior(CraftEngine.instance().blockManager().getEmptyBlockBehavior());
                 return holder;
             });
             ImmutableBlockState state = owner.value().getBlockState(data);

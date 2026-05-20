@@ -17,6 +17,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.UniqueKey;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -46,6 +47,16 @@ public final class BukkitItemDefinition extends AbstractItemDefinition {
             modifier.apply(wrapped, context);
         }
         return wrapped;
+    }
+
+    @Override
+    public BukkitItem buildItem(@Nullable Player player) {
+        return (BukkitItem) super.buildItem(player);
+    }
+
+    @Override
+    public BukkitItem buildItem(ItemBuildContext context) {
+        return (BukkitItem) super.buildItem(context);
     }
 
     public ItemStack buildBukkitItem(org.bukkit.entity.Player player) {

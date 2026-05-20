@@ -45,6 +45,16 @@ public interface Item {
         return CraftEngine.instance().itemManager().fromBytes(bytes);
     }
 
+    default Item toClientSide(Player player) {
+        Optional<Item> item = CraftEngine.instance().itemManager().s2c(this, player);
+        return item.orElse(this);
+    }
+
+    default Item toServerSide() {
+        Optional<Item> item = CraftEngine.instance().itemManager().c2s(this);
+        return item.orElse(this);
+    }
+
     Object minecraftItem();
 
     default Object platformItem() {
@@ -62,6 +72,10 @@ public interface Item {
     boolean isCustomItem();
 
     boolean isBlockItem();
+
+    boolean hasPluginTag(Key tag);
+
+    boolean hasVanillaTag(Key tag);
 
     @NotNull
     Key id();
@@ -267,8 +281,6 @@ public interface Item {
     Item copy();
 
     Item copyWithCount(int count);
-
-    boolean hasItemTag(Key itemTag);
 
     Item mergeCopy(Item another);
 
