@@ -164,6 +164,11 @@ public final class Config {
     private boolean chunk_system$process_invalid_blocks$enable;
     private Map<String, String> chunk_system$process_invalid_blocks$mapping;
     private StorageType chunk_system$storage_type;
+    private boolean chunk_system$generation$noise;
+    private boolean chunk_system$generation$structure;
+    private boolean chunk_system$generation$surface;
+    private boolean chunk_system$generation$carver;
+    private boolean chunk_system$generation$feature;
 
     private boolean furniture$hide_base_entity;
     private ColliderType furniture$collision_entity_type;
@@ -540,6 +545,12 @@ public final class Config {
             }
         }
         this.chunk_system$process_invalid_blocks$mapping = blockBuilder.build();
+
+        this.chunk_system$generation$feature = config.getBoolean("chunk-system.generation.feature", true);
+        this.chunk_system$generation$carver = config.getBoolean("chunk-system.generation.carver", true);
+        this.chunk_system$generation$noise = config.getBoolean("chunk-system.generation.noise", true);
+        this.chunk_system$generation$structure = config.getBoolean("chunk-system.generation.structure", true);
+        this.chunk_system$generation$surface = config.getBoolean("chunk-system.generation.surface", true);
 
         // furniture
         this.furniture$hide_base_entity = config.getBoolean("furniture.hide-base-entity", true);
@@ -1536,6 +1547,26 @@ public final class Config {
 
     public static Path packSquashConfigPath() {
         return instance.resource_pack$pack_squash$config_path;
+    }
+
+    public static boolean generationNoise() {
+        return instance.chunk_system$generation$noise;
+    }
+
+    public static boolean generationStructure() {
+        return instance.chunk_system$generation$structure;
+    }
+
+    public static boolean generationCarver() {
+        return instance.chunk_system$generation$carver;
+    }
+
+    public static boolean generationFeature() {
+        return instance.chunk_system$generation$feature;
+    }
+
+    public static boolean generationSurface() {
+        return instance.chunk_system$generation$surface;
     }
 
     public YamlDocument loadYamlConfig(String filePath, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {

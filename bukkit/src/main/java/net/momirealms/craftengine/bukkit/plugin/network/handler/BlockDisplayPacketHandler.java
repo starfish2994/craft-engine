@@ -38,7 +38,7 @@ public final class BlockDisplayPacketHandler implements EntityPacketHandler {
             if (entityDataId == DisplayData.BlockDisplayData.BlockState.id()) {
                 Object blockState = EntityUtils.getEntityDataValue(packedItem, DisplayData.BlockDisplayData.BlockState);
                 int stateId = BlockStateUtils.blockStateToId(blockState);
-                int newStateId= BukkitNetworkManager.instance().remapBlockState(stateId, user.clientCustomBlockEnabled());
+                int newStateId = BukkitNetworkManager.instance().remapBlockState(stateId, user.clientCustomBlockEnabled());
                 if (newStateId == stateId) continue;
                 SynchedEntityDataProxy.DataValueProxy.INSTANCE.setValue(packedItem, BlockStateUtils.idToBlockState(newStateId));
                 isChanged = true;

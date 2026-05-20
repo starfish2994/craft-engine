@@ -91,8 +91,6 @@ public final class DebugTargetBlockCommand extends BukkitCommandFeature<CommandS
                         }
                         CEWorld world = plugin().worldManager().getWorld(block.getWorld().getUID());
                         BlockPos blockPos = LocationUtils.toBlockPos(block.getLocation());
-                        ImmutableBlockState dataInCache = world.getBlockStateAtIfLoaded(blockPos);
-                        sender.sendMessage(Component.text("storage: " + (dataInCache != null && !dataInCache.isEmpty())));
                         BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(blockPos);
                         if (blockEntity != null) {
                             boolean valid = blockEntity.isValid();
@@ -137,6 +135,10 @@ public final class DebugTargetBlockCommand extends BukkitCommandFeature<CommandS
                                         .clickEvent(ClickEvent.suggestCommand(stringTag)));
                             }
                         }
+                        CEWorld world = plugin().worldManager().getWorld(block.getWorld().getUID());
+                        BlockPos blockPos = LocationUtils.toBlockPos(block.getLocation());
+                        ImmutableBlockState dataInCache = world.getBlockStateAtIfLoaded(blockPos);
+                        sender.sendMessage(Component.text("storage: " + (dataInCache != null && !dataInCache.isEmpty())));
                     }
                 });
     }

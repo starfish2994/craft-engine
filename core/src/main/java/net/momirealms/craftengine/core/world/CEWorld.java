@@ -97,11 +97,11 @@ public abstract class CEWorld {
     }
 
     public void addLoadedChunk(CEChunk chunk) {
-        this.loadedChunkMap.put(chunk.chunkPos().longKey(), chunk);
+        this.loadedChunkMap.put(chunk.chunkPos.longKey, chunk);
     }
 
     public void removeLoadedChunk(CEChunk chunk) {
-        this.loadedChunkMap.remove(chunk.chunkPos().longKey());
+        this.loadedChunkMap.remove(chunk.chunkPos.longKey);
     }
 
     @Nullable

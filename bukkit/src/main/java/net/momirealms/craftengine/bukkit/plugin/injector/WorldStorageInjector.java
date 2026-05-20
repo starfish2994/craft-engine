@@ -124,8 +124,10 @@ public final class WorldStorageInjector {
                 } else {
                     blockEntity.setBlockState(newImmutableBlockState);
                     // 方块类型未变，仅更新状态，选择性更新ticker
-                    chunk.replaceOrCreateTickingBlockEntity(blockEntity);
-                    chunk.createDynamicBlockEntityRenderer(blockEntity);
+                    if (chunk.isActivated()) {
+                        chunk.replaceOrCreateTickingBlockEntity(blockEntity);
+                        chunk.createDynamicBlockEntityRenderer(blockEntity);
+                    }
                 }
             }
 

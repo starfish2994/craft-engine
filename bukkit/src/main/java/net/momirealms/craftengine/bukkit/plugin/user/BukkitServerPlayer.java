@@ -551,7 +551,7 @@ public class BukkitServerPlayer extends Player {
     @Override
     public void sendCustomPacket(ClientCustomPacket packet) {
         FriendlyByteBuf result = new FriendlyByteBuf(Unpooled.buffer());
-        result.writeVarInt(encoderState == ConnectionState.PLAY ? CUSTOM_PAYLOAD_PLAY : CUSTOM_PAYLOAD_CONFIG);
+        result.writeVarInt(this.encoderState == ConnectionState.PLAY ? CUSTOM_PAYLOAD_PLAY : CUSTOM_PAYLOAD_CONFIG);
         result.writeKey(packet.id());
         @SuppressWarnings("unchecked")
         var codec = (NetworkCodec<FriendlyByteBuf, ClientCustomPacket>) packet.codec();
