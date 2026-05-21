@@ -71,6 +71,7 @@ public final class SelfHostHttpServer {
     private boolean denyNonMinecraft = true;
     private boolean useToken;
     private boolean strictValidation = false;
+    private boolean useServerPort = false;
     private boolean enabled = false;
 
     private long globalUploadRateLimit = 0;
@@ -109,7 +110,8 @@ public final class SelfHostHttpServer {
                                  boolean token,
                                  long globalUploadRateLimit,
                                  long minDownloadSpeed,
-                                 boolean strictValidation) {
+                                 boolean strictValidation,
+                                 boolean useServerPort) {
         this.ip = ip;
         this.url = url;
         this.denyNonMinecraft = denyNonMinecraft;
@@ -117,6 +119,7 @@ public final class SelfHostHttpServer {
         this.limitPerIp = limitPerIp;
         this.useToken = token;
         this.strictValidation = strictValidation;
+        this.useServerPort = useServerPort;
         if (this.globalUploadRateLimit != globalUploadRateLimit || this.minDownloadSpeed != minDownloadSpeed) {
             this.globalUploadRateLimit = globalUploadRateLimit;
             this.minDownloadSpeed = minDownloadSpeed;
@@ -126,18 +129,47 @@ public final class SelfHostHttpServer {
                 this.trafficShapingHandler.setWriteChannelLimit(initSize);
             }
         }
-        if (this.port == port && this.serverChannel != null && this.enabled) return;
-        disable();
-
-        this.port = port;
-        initializeServer();
+        if (useServerPort) {
+            disable();
+            this.port = -1;
+            initializeServerPortHost();
+        } else {
+            if (this.port == port && this.serverChannel != null && this.enabled) return;
+            disable();
+            this.port = port;
+            initializeServer();
+        }
     }
 
     public String url() {
         if (this.url != null && !this.url.isEmpty()) {
             return this.url;
         }
+        if (this.useServerPort && this.port == -1) {
+            this.port = CraftEngine.instance().platform().getServerPort();
+        }
         return this.protocol + "://" + this.ip + ":" + this.port + "/";
+    }
+
+    private void initializeServerPortHost() {
+        long initSize = this.globalUploadRateLimit <= 0 ? 0 : Math.max(this.minDownloadSpeed, this.globalUploadRateLimit);
+        this.virtualTrafficExecutor = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
+        this.trafficShapingHandler = new GlobalChannelTrafficShapingHandler(
+                this.virtualTrafficExecutor,
+                initSize,
+                0, // 全局读取不限
+                initSize, // 默认单通道和总体一致
+                0, // 单通道读取不限
+                100, // checkInterval (ms)
+                10_000 // maxTime (ms)
+        );
+        CraftEngine.instance().networkManager().setEnableServerPortHost(pipeline -> {
+            pipeline.addLast("trafficShaping", SelfHostHttpServer.this.trafficShapingHandler);
+            pipeline.addLast(new HttpServerCodec());
+            pipeline.addLast(new ChunkedWriteHandler());
+            pipeline.addLast(new HttpObjectAggregator(1048576));
+            pipeline.addLast(new RequestHandler());
+        });
     }
 
     private void initializeServer() {

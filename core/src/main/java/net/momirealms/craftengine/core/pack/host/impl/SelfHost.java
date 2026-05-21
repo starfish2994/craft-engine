@@ -8,10 +8,23 @@ import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.util.Pair;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
 public final class SelfHost implements ResourcePackHost {
@@ -61,6 +74,8 @@ public final class SelfHost implements ResourcePackHost {
         private static final String[] QPS_PER_IP = new String[]{"qps_per_ip", "qps-per-ip"};
         private static final String[] MAX_BANDWIDTH_PER_SECOND = new String[]{"max_bandwidth_per_second", "max-bandwidth-per-second"};
         private static final String[] MIN_DOWNLOAD_SPEED_PER_PLAYER = new String[]{"min_download_speed_per_player", "min-download-speed-per-player"};
+        private static final String[] USE_SERVER_PORT = new String[]{"use_server_port", "use-server-port"};
+        private static final String[] FORCE_REFRESH_AUTO_IP = new String[]{"force_refresh_auto_ip", "force-refresh-auto-ip"};
 
         @Override
         public SelfHost create(ConfigSection section) {
@@ -68,6 +83,9 @@ public final class SelfHost implements ResourcePackHost {
 
             // url 拼接
             String ip = section.getNonEmptyString("ip");
+            if ("auto".equalsIgnoreCase(ip)) {
+                ip = getIp(section.getBoolean(FORCE_REFRESH_AUTO_IP, false));
+            }
             int port = section.getInt("port", 8163);
             if (port <= 0) {
                 throw new KnownResourceException("number.greater_than", section.assemblePath("port"), "port", "0");
@@ -87,6 +105,7 @@ public final class SelfHost implements ResourcePackHost {
             String protocol = section.getString("protocol", "http");
             boolean denyNonMinecraftRequest = section.getBoolean(DENY_NON_MINECRAFT_REQUEST, true);
             boolean strictValidation = section.getBoolean(STRICT_VALIDATION);
+            boolean useServerPort = section.getBoolean(USE_SERVER_PORT, false);
 
             // 流量控制
             Bandwidth limit = null;
@@ -109,8 +128,91 @@ public final class SelfHost implements ResourcePackHost {
             }
 
             // 更新单例
-            selfHostHttpServer.updateProperties(ip, port, url, denyNonMinecraftRequest, protocol, limit, oneTimeToken, maxBandwidthUsage, minDownloadSpeed, strictValidation);
+            selfHostHttpServer.updateProperties(
+                    ip, port, url, denyNonMinecraftRequest,
+                    protocol, limit, oneTimeToken,
+                    maxBandwidthUsage, minDownloadSpeed, strictValidation,
+                    useServerPort
+            );
             return INSTANCE;
+        }
+
+        private static final URI CLOUDFLARE = URI.create("https://www.cloudflare.com/cdn-cgi/trace");
+        private static final URI CLOUDFLARE_CN = URI.create("https://www.cloudflare-cn.com/cdn-cgi/trace");
+        private static final String LOCALHOST = "localhost";
+
+        private static String getIp(boolean forceRefresh) {
+            String cacheIp = forceRefresh ? null : readCache();
+            if (cacheIp != null) return cacheIp;
+            boolean inChina = Locale.getDefault() == Locale.SIMPLIFIED_CHINESE;
+            String ip = fetchIp(inChina ? CLOUDFLARE_CN : CLOUDFLARE);
+            if (LOCALHOST.equals(ip)) {
+                ip = fetchIp(inChina ? CLOUDFLARE : CLOUDFLARE_CN);
+            }
+            return ip;
+        }
+        
+        private static String fetchIp(URI uri) {
+            HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+            HttpResponse<String> response;
+            try {
+                response = HttpClientManager.get().send(request, HttpResponse.BodyHandlers.ofString());
+            } catch (IOException | InterruptedException e) {
+                CraftEngine.instance().logger().warn("Failed to automatically obtain an IP address. Uri: " + uri, e);
+                return LOCALHOST;
+            }
+            Properties props = new Properties();
+            try {
+                props.load(new StringReader(response.body()));
+            } catch (IOException e) {
+                CraftEngine.instance().logger().warn("Failed to automatically obtain an IP address. Uri: " + uri + " Body: " + response.body(), e);
+                return LOCALHOST;
+            }
+            if (!props.containsKey("ip")) {
+                CraftEngine.instance().logger().warn("Failed to automatically obtain an IP address. Uri: " + uri + " Body: " + response.body());
+                return LOCALHOST;
+            }
+            try {
+                Pair<String, String> ip = verifyIp(props.getProperty("ip"));
+                saveCache(ip.right());
+                return ip.left();
+            } catch (UnknownHostException e) {
+                CraftEngine.instance().logger().warn("Failed to automatically obtain an IP address. Invalid IP address. Uri: " + uri + " Body: " + response.body());
+                return LOCALHOST;
+            }
+        }
+
+        private static Pair<String, String> verifyIp(String ip) throws UnknownHostException {
+            InetAddress address = InetAddress.getByName(ip);
+            String verifiedIp = address.getHostAddress();
+            if (address instanceof Inet6Address) {
+                return Pair.of("[" + verifiedIp + "]", verifiedIp);
+            }
+            return Pair.of(verifiedIp, verifiedIp);
+        }
+
+        private static String readCache() {
+            Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("server-ip.txt");
+            if (Files.exists(cachePath) && Files.isRegularFile(cachePath)) {
+                try {
+                    return verifyIp(Files.readString(cachePath)).left();
+                } catch (UnknownHostException e) {
+                    CraftEngine.instance().logger().warn("Failed to resolve a valid IP address from the cache " + cachePath, e);
+                } catch (IOException e) {
+                    CraftEngine.instance().logger().warn("Failed to load IP address cache " + cachePath, e);
+                }
+            }
+            return null;
+        }
+
+        private static void saveCache(String ip) {
+            Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("server-ip.txt");
+            try {
+                Files.createDirectories(cachePath.getParent());
+                Files.writeString(cachePath, ip, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } catch (IOException e) {
+                CraftEngine.instance().logger().warn("Failed to persist IP address cache", e);
+            }
         }
     }
 }

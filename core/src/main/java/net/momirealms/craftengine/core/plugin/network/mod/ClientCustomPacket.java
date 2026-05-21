@@ -19,6 +19,10 @@ public interface ClientCustomPacket {
 
     NetworkCodec<FriendlyByteBuf, ? extends ClientCustomPacket> codec();
 
+    default boolean bypassPermissionCheck(NetWorkUser user) {
+        return false;
+    }
+
     default void handle(NetWorkUser user, ByteBufPacketEvent event) {
     }
 }

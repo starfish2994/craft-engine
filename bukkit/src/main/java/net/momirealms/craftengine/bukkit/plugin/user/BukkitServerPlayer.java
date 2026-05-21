@@ -47,6 +47,7 @@ import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.ProtocolVersion;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
+import net.momirealms.craftengine.core.plugin.network.mod.CustomPackets;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.*;
@@ -550,6 +551,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void sendCustomPacket(ClientCustomPacket packet) {
+        if (!CustomPackets.checkPermission(this, packet)) return;
         FriendlyByteBuf result = new FriendlyByteBuf(Unpooled.buffer());
         result.writeVarInt(this.encoderState == ConnectionState.PLAY ? CUSTOM_PAYLOAD_PLAY : CUSTOM_PAYLOAD_CONFIG);
         result.writeKey(packet.id());

@@ -57,6 +57,11 @@ public record ClientboundLightPacket(BlockPos pos, byte level) implements Client
     }
 
     @Override
+    public boolean bypassPermissionCheck(NetWorkUser user) {
+        return true;
+    }
+
+    @Override
     public void handle(NetWorkUser user, ByteBufPacketEvent event) {
         ClientChunk trackedChunk = user.getTrackedChunk(ChunkPos.asLong(pos.x >> 4, pos.z >> 4));
         if (trackedChunk == null) return;

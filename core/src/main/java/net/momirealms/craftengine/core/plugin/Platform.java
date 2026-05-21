@@ -36,4 +36,6 @@ public interface Platform {
     void writeItem(ByteBuf buf, Item item);
 
     PacketIds packetIds();
+
+    int getServerPort();
 }
