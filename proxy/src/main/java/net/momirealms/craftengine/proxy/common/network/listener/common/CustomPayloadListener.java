@@ -15,8 +15,6 @@ import net.momirealms.craftengine.proxy.common.util.Key;
 import net.momirealms.craftengine.proxy.common.util.ProxyByteBuf;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public final class CustomPayloadListener {
     private CustomPayloadListener() {}
 
@@ -58,12 +56,10 @@ public final class CustomPayloadListener {
             Key channel = buf.readKey();
             // NetworkTagData
             if (channel.equals(NetworkTagDataSyncService.TAG_DATA_CHANNEL_KEY)) {
-                Optional.ofNullable(connection.player())
-                        .map(ProxyPlayer::server)
-                        .map(BackendServer::name)
-                        .ifPresent(name -> {
-                            this.plugin.networkTagDataSyncService().receiveTagData(name, buf);
-                        });
+                if (player == null) return;
+                BackendServer backendServer = player.server();
+                if (backendServer == null) return;
+                this.plugin.networkTagDataSyncService().receiveTagData(backendServer.name(), buf);
                 packet.setCancelled(true);
             }
         }
