@@ -31,8 +31,8 @@ public final class ProxyMessageManager implements Listener {
         this.plugin = plugin;
         if (ENABLE_PROXY) {
             Bukkit.getPluginManager().registerEvents(this, plugin.javaPlugin());
-            CustomPackets.registerClientbound(ProxyboundNetworkTagDataPacket.ID, ProxyboundNetworkTagDataPacket.CODEC);
-            CustomPackets.registerServerbound(ServerboundNetworkTagDataVersionPacket.ID, ServerboundNetworkTagDataVersionPacket.CODEC);
+            CustomPackets.registerClientbound(ProxyboundNetworkTagDataPacket.ID, ProxyboundNetworkTagDataPacket.CODEC, CustomPackets.ALWAYS_ALLOWED, false);
+            CustomPackets.registerServerbound(ServerboundNetworkTagDataVersionPacket.ID, ServerboundNetworkTagDataVersionPacket.CODEC, CustomPackets.ALWAYS_ALLOWED);
         }
     }
 

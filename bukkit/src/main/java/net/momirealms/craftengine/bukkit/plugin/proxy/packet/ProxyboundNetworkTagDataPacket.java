@@ -49,5 +49,4 @@ public record ProxyboundNetworkTagDataPacket() implements ClientCustomPacket {
         NetworkTagDataSerializer.writeGlobalVariables(buf, BukkitCraftEngine.instance().globalVariableManager());
         return buf.array();
     }
-
 }
