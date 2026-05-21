@@ -175,7 +175,7 @@ resource-pack:
     # Read this page for more host types and argument explanations: https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host
     hosting:
       - type: "self"
-        ip: "localhost"
+        ip: "auto"
         port: 8163
         protocol: "http"
         deny-non-minecraft-request: true
