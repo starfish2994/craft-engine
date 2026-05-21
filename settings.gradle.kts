@@ -9,9 +9,6 @@ include(":bukkit:compatibility:legacy")
 include(":bukkit:loader")
 include(":bukkit:proxy")
 include(":bukkit:paper-loader")
-include(":proxy")
-include(":proxy:velocity")
-include(":proxy:bungeecord")
 
 pluginManagement {
     plugins {
