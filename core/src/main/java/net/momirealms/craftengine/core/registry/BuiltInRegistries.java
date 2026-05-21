@@ -71,9 +71,10 @@ import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProviderType;
 import net.momirealms.craftengine.core.plugin.context.selector.PlayerSelectorType;
-import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
+import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacketType;
 import net.momirealms.craftengine.core.plugin.network.mod.ServerCustomPacket;
+import net.momirealms.craftengine.core.plugin.network.mod.ServerCustomPacketType;
 import net.momirealms.craftengine.core.plugin.network.protocol.chat.ClickEvent;
 import net.momirealms.craftengine.core.plugin.network.protocol.dialog.Dialog;
 import net.momirealms.craftengine.core.plugin.network.protocol.dialog.action.DialogAction;
@@ -82,7 +83,6 @@ import net.momirealms.craftengine.core.plugin.network.protocol.dialog.input.Dial
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.legacy.LegacyRecipe;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.RecipeDisplay;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplay;
-import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
 import java.util.function.Supplier;
@@ -116,8 +116,8 @@ public final class BuiltInRegistries {
     public static final Registry<LegacyRecipe.Type<? extends LegacyRecipe>> LEGACY_RECIPE_TYPE = createConstantBoundRegistry(Registries.LEGACY_RECIPE_TYPE, 16);
     public static final Registry<PostProcessorType<? extends PostProcessor>> RECIPE_POST_PROCESSOR_TYPE = createConstantBoundRegistry(Registries.RECIPE_POST_PROCESSOR_TYPE, 16);
     public static final Registry<ItemUpdaterType<? extends ItemUpdater>> ITEM_UPDATER_TYPE = createConstantBoundRegistry(Registries.ITEM_UPDATER_TYPE, 16);
-    public static final Registry<NetworkCodec<FriendlyByteBuf, ? extends ClientCustomPacket>> CLIENT_MOD_PACKET = createConstantBoundRegistry(Registries.CLIENT_MOD_PACKET, 16);
-    public static final Registry<NetworkCodec<FriendlyByteBuf, ? extends ServerCustomPacket>> SERVER_MOD_PACKET = createConstantBoundRegistry(Registries.SERVER_MOD_PACKET, 16);
+    public static final Registry<ClientCustomPacketType<? extends ClientCustomPacket>> CLIENT_MOD_PACKET = createConstantBoundRegistry(Registries.CLIENT_MOD_PACKET, 16);
+    public static final Registry<ServerCustomPacketType<? extends ServerCustomPacket>> SERVER_MOD_PACKET = createConstantBoundRegistry(Registries.SERVER_MOD_PACKET, 16);
     public static final Registry<BlockEntityElementConfigType<? extends BlockEntityElement>> BLOCK_ENTITY_ELEMENT_TYPE = createConstantBoundRegistry(Registries.BLOCK_ENTITY_ELEMENT_TYPE, 16);
     public static final Registry<CraftRemainderType<? extends CraftRemainder>> CRAFT_REMAINDER_TYPE = createConstantBoundRegistry(Registries.CRAFT_REMAINDER_TYPE, 16);
     public static final Registry<FurnitureElementConfigType<? extends FurnitureElement>> FURNITURE_ELEMENT_TYPE = createConstantBoundRegistry(Registries.FURNITURE_ELEMENT_TYPE, 16);
