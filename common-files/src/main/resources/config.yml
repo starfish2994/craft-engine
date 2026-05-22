@@ -170,18 +170,16 @@ resource-pack:
     # The file to upload
     file-to-upload: "./generated/resource_pack.zip"
 
-    # If you are hosting the resource pack by yourself, replace `localhost` with your server ip otherwise it would only work on your local pc
-    # If using BungeeCord or Velocity, consider using a proxy-side plugin to handle resource pack delivery.
+    # If you're using BungeeCord or Velocity, consider using a proxy-side plugin to handle resource pack delivery.
     # Read this page for more host types and argument explanations: https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host
     hosting:
       - type: "self"
         ip: "auto"
-        port: 8163
+        port: "auto"
         protocol: "http"
         deny-non-minecraft-request: true
         one-time-token: true
         strict-validation: false
-        use-server-port: true
         rate-limiting:
           max-bandwidth-per-second: 5_000_000
           min-download-speed-per-player: 50_000
@@ -510,7 +508,7 @@ network:
 
   # Settings related to communication with CraftEngineMod
   mod-channel:
-    requires-permission: true
+    requires-permission: false
     logging-permission-denied: true
     creative-tab-max-items-per-packet: 10
 

@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -131,7 +132,7 @@ public final class SelfHostHttpServer {
         }
         if (useServerPort) {
             disable();
-            this.port = -1;
+            this.port = port;
             initializeServerPortHost();
         } else {
             if (this.port == port && this.serverChannel != null && this.enabled) return;
@@ -141,14 +142,11 @@ public final class SelfHostHttpServer {
         }
     }
 
-    public String url() {
+    public String url(boolean localhost) {
         if (this.url != null && !this.url.isEmpty()) {
             return this.url;
         }
-        if (this.useServerPort && this.port == -1) {
-            this.port = CraftEngine.instance().platform().getServerPort();
-        }
-        return this.protocol + "://" + this.ip + ":" + this.port + "/";
+        return this.protocol + "://" + (localhost ? "localhost" : this.ip) + ":" + this.port + "/";
     }
 
     private void initializeServerPortHost() {
@@ -163,7 +161,7 @@ public final class SelfHostHttpServer {
                 100, // checkInterval (ms)
                 10_000 // maxTime (ms)
         );
-        CraftEngine.instance().networkManager().setEnableServerPortHost(pipeline -> {
+        CraftEngine.instance().networkManager().setServerPortHost(pipeline -> {
             pipeline.addLast("trafficShaping", SelfHostHttpServer.this.trafficShapingHandler);
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new ChunkedWriteHandler());
@@ -397,17 +395,28 @@ public final class SelfHostHttpServer {
     }
 
     @Nullable
-    public ResourcePackDownloadData generateOneTimeUrl(UUID user) {
+    public ResourcePackDownloadData generateOneTimeUrl(UUID user, Channel channel) {
         if (this.resourcePackBytes == null) return null;
 
+        boolean localhost = false;
+        if (channel != null && channel.isActive()) {
+            java.net.SocketAddress remoteAddress = channel.remoteAddress();
+            if (remoteAddress instanceof InetSocketAddress) {
+                InetAddress inetAddress = ((InetSocketAddress) remoteAddress).getAddress();
+                if (inetAddress != null && inetAddress.isLoopbackAddress()) {
+                    localhost = true;
+                }
+            }
+        }
+
         if (!this.useToken) {
-            return new ResourcePackDownloadData(url() + "download", this.packUUID, this.packHash);
+            return new ResourcePackDownloadData(url(localhost) + "download", this.packUUID, this.packHash);
         }
 
         String token = UUID.randomUUID().toString();
         this.oneTimePackUrls.put(token, this.strictValidation ? user.toString().replace("-", "") : "");
         return new ResourcePackDownloadData(
-                url() + "download?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8),
+                url(localhost) + "download?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8),
                 this.packUUID,
                 this.packHash
         );

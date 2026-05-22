@@ -129,7 +129,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     private BukkitServerPlayer[] onlineUserArray = new BukkitServerPlayer[0];
     private int[] blockStateRemapper;
     private int[] modBlockStateRemapper;
-    private Consumer<ChannelPipeline> enableServerPortHost;
+    private Consumer<ChannelPipeline> serverPortHost;
 
     public BukkitNetworkManager(BukkitCraftEngine plugin) {
         super(plugin);
@@ -713,7 +713,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
 
         addToPipeline(pipeline, new PluginChannelEncoder(user), new PluginChannelDecoder(user));
-        if (this.enableServerPortHost != null) {
+        if (this.serverPortHost != null) {
             pipeline.addFirst(HTTP_DECODER, new HTTPChannelDecoder());
         }
         channel.closeFuture().addListener((ChannelFutureListener) future -> handleDisconnection(user.nettyChannel()));
@@ -1017,7 +1017,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
 
         private boolean check(ChannelHandlerContext context, ByteBuf buf) {
-            if (BukkitNetworkManager.this.enableServerPortHost == null) return false;
+            if (BukkitNetworkManager.this.serverPortHost == null) return false;
             int readableBytes = buf.readableBytes();
             if (readableBytes == 0) return false;
             if (readableBytes == 1 && buf.getByte(0) == 'G') return true;
@@ -1025,14 +1025,14 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             if (readableBytes < 3 || buf.getByte(0) != 'G' || buf.getByte(1) != 'E' || buf.getByte(2) != 'T') return false;
             ChannelPipeline pipeline = context.channel().pipeline();
             for (ChannelHandler handler : pipeline.toMap().values()) pipeline.remove(handler);
-            BukkitNetworkManager.this.enableServerPortHost.accept(pipeline);
+            BukkitNetworkManager.this.serverPortHost.accept(pipeline);
             pipeline.fireChannelRead(buf.retain());
             return true;
         }
     }
 
     @Override
-    public void setEnableServerPortHost(Consumer<ChannelPipeline> pipeline) {
-        this.enableServerPortHost = pipeline;
+    public void setServerPortHost(Consumer<ChannelPipeline> channelPipelineConsumer) {
+        this.serverPortHost = channelPipelineConsumer;
     }
 }

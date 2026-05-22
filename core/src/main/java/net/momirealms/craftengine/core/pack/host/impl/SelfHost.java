@@ -37,7 +37,7 @@ public final class SelfHost implements ResourcePackHost {
 
     @Override
     public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(NetWorkUser user) {
-        ResourcePackDownloadData data = SelfHostHttpServer.instance().generateOneTimeUrl(user.uuid());
+        ResourcePackDownloadData data = SelfHostHttpServer.instance().generateOneTimeUrl(user.uuid(), user.nettyChannel());
         if (data == null) return CompletableFuture.completedFuture(List.of());
         return CompletableFuture.completedFuture(List.of(data));
     }
@@ -74,7 +74,6 @@ public final class SelfHost implements ResourcePackHost {
         private static final String[] QPS_PER_IP = new String[]{"qps_per_ip", "qps-per-ip"};
         private static final String[] MAX_BANDWIDTH_PER_SECOND = new String[]{"max_bandwidth_per_second", "max-bandwidth-per-second"};
         private static final String[] MIN_DOWNLOAD_SPEED_PER_PLAYER = new String[]{"min_download_speed_per_player", "min-download-speed-per-player"};
-        private static final String[] USE_SERVER_PORT = new String[]{"use_server_port", "use-server-port"};
         private static final String[] FORCE_REFRESH_AUTO_IP = new String[]{"force_refresh_auto_ip", "force-refresh-auto-ip"};
 
         @Override
@@ -86,11 +85,19 @@ public final class SelfHost implements ResourcePackHost {
             if ("auto".equalsIgnoreCase(ip)) {
                 ip = getIp(section.getBoolean(FORCE_REFRESH_AUTO_IP, false));
             }
-            int port = section.getInt("port", 8163);
-            if (port <= 0) {
-                throw new KnownResourceException("number.greater_than", section.assemblePath("port"), "port", "0");
-            } else if (port > 65535) {
-                throw new KnownResourceException("number.less_than", section.assemblePath("port"), "port", "65536");
+
+            int port;
+            boolean useServerPort = false;
+            if ("auto".equals(section.getString("port"))) {
+                port = CraftEngine.instance().platform().getServerPort();
+                useServerPort = true;
+            } else {
+                port = section.getInt("port", 8163);
+                if (port <= 0) {
+                    throw new KnownResourceException("number.greater_than", section.assemblePath("port"), "port", "0");
+                } else if (port > 65535) {
+                    throw new KnownResourceException("number.less_than", section.assemblePath("port"), "port", "65536");
+                }
             }
             String url = section.getString("url", "");
             if (!url.isEmpty()) {
@@ -105,7 +112,6 @@ public final class SelfHost implements ResourcePackHost {
             String protocol = section.getString("protocol", "http");
             boolean denyNonMinecraftRequest = section.getBoolean(DENY_NON_MINECRAFT_REQUEST, true);
             boolean strictValidation = section.getBoolean(STRICT_VALIDATION);
-            boolean useServerPort = section.getBoolean(USE_SERVER_PORT, false);
 
             // 流量控制
             Bandwidth limit = null;
@@ -192,7 +198,7 @@ public final class SelfHost implements ResourcePackHost {
         }
 
         private static String readCache() {
-            Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("server-ip.txt");
+            Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("server_ip.txt");
             if (Files.exists(cachePath) && Files.isRegularFile(cachePath)) {
                 try {
                     return verifyIp(Files.readString(cachePath)).left();
@@ -206,7 +212,7 @@ public final class SelfHost implements ResourcePackHost {
         }
 
         private static void saveCache(String ip) {
-            Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("server-ip.txt");
+            Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("server_ip.txt");
             try {
                 Files.createDirectories(cachePath.getParent());
                 Files.writeString(cachePath, ip, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);

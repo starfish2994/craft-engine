@@ -65,5 +65,5 @@ public interface NetworkManager extends Manageable {
 
     IllegalCharacterProcessResult processIllegalCharacters(String raw, char replacement);
 
-    void setEnableServerPortHost(Consumer<ChannelPipeline> pipeline);
+    void setServerPortHost(Consumer<ChannelPipeline> pipeline);
 }

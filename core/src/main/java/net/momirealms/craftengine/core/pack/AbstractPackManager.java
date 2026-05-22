@@ -285,7 +285,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public void load() {
-        this.plugin.networkManager().setEnableServerPortHost(null);
+        this.plugin.networkManager().setServerPortHost(null);
         Object hostingObj = Config.instance().settings().get("resource-pack.delivery.hosting");
         if (hostingObj == null) {
             this.resourcePackHost = NoneHost.INSTANCE;
