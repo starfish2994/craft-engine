@@ -69,14 +69,12 @@ public abstract class AbstractFontManager implements FontManager {
                 .map(section -> {
                     Key font = Key.of(section.getString("font", "minecraft:default"));
                     String NEG_16 = CharacterUtils.convertIfUnicode(section.getString("-16", ""));
-                    String NEG_24 = CharacterUtils.convertIfUnicode(section.getString("-24", ""));
                     String NEG_32 = CharacterUtils.convertIfUnicode(section.getString("-32", ""));
                     String NEG_48 = CharacterUtils.convertIfUnicode(section.getString("-48", ""));
                     String NEG_64 = CharacterUtils.convertIfUnicode(section.getString("-64", ""));
                     String NEG_128 = CharacterUtils.convertIfUnicode(section.getString("-128", ""));
                     String NEG_256 = CharacterUtils.convertIfUnicode(section.getString("-256", ""));
                     String POS_16 = CharacterUtils.convertIfUnicode(section.getString("16", ""));
-                    String POS_24 = CharacterUtils.convertIfUnicode(section.getString("24", ""));
                     String POS_32 = CharacterUtils.convertIfUnicode(section.getString("32", ""));
                     String POS_48 = CharacterUtils.convertIfUnicode(section.getString("48", ""));
                     String POS_64 = CharacterUtils.convertIfUnicode(section.getString("64", ""));
@@ -91,8 +89,8 @@ public abstract class AbstractFontManager implements FontManager {
                     }
                     return new OffsetFont(
                             font,
-                            NEG_16, NEG_24, NEG_32, NEG_48, NEG_64, NEG_128, NEG_256,
-                            POS_16, POS_24, POS_32, POS_48, POS_64, POS_128, POS_256,
+                            NEG_16, NEG_32, NEG_48, NEG_64, NEG_128, NEG_256,
+                            POS_16, POS_32, POS_48, POS_64, POS_128, POS_256,
                             negativeOffsets, positiveOffsets
                     );
                 })

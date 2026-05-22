@@ -36,11 +36,7 @@ public final class ServerLangData {
         return translation;
     }
 
-    public int localeCount() {
-        return this.translations.size();
-    }
-
-    public Map<Locale, String> getTranslations() {
+    public Map<Locale, String> translations() {
         return Collections.unmodifiableMap(this.translations);
     }
 }

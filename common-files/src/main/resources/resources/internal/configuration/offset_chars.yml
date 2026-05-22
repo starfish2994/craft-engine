@@ -95,42 +95,36 @@ images:
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
     char: \uf80f
-  internal:neg_24:
-    height: -26
-    ascent: -5000
-    font: minecraft:default
-    file: minecraft:font/offset/space_split.png
-    char: \uf810
   internal:neg_32:
     height: -34
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf811
+    char: \uf810
   internal:neg_48:
     height: -50
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf812
+    char: \uf811
   internal:neg_64:
     height: -66
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf813
+    char: \uf812
   internal:neg_128:
     height: -130
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf814
+    char: \uf813
   internal:neg_256:
     height: -258
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf815
+    char: \uf814
   internal:pos_1:
     height: -1
     ascent: -5000
@@ -227,39 +221,33 @@ images:
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
     char: \uf83f
-  internal:pos_24:
-    height: 23
-    ascent: -5000
-    font: minecraft:default
-    file: minecraft:font/offset/space_split.png
-    char: \uf840
   internal:pos_32:
     height: 31
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf841
+    char: \uf840
   internal:pos_48:
     height: 47
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf842
+    char: \uf841
   internal:pos_64:
     height: 63
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf843
+    char: \uf842
   internal:pos_128:
     height: 127
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf844
+    char: \uf843
   internal:pos_256:
     height: 255
     ascent: -5000
     font: minecraft:default
     file: minecraft:font/offset/space_split.png
-    char: \uf845
+    char: \uf844

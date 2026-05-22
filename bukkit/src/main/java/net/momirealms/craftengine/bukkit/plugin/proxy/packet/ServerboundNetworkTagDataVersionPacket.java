@@ -41,7 +41,7 @@ public record ServerboundNetworkTagDataVersionPacket(long proxyTagDataVersion, U
     @Override
     public void handle(NetWorkUser user, ByteBufPacketEvent event) {
         ProxyMessageManager manager = BukkitCraftEngine.instance().proxyMessageManager();
-        manager.recordPlayerBelongProxy((BukkitServerPlayer) user, this.proxyUuid);
+        manager.setProxy((BukkitServerPlayer) user, this.proxyUuid);
         if (this.proxyTagDataVersion != manager.networkTagDataVersion()) {
             user.sendCustomPacket(new ProxyboundNetworkTagDataPacket());
         }

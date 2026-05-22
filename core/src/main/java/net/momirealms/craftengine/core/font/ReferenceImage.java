@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.font;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LazyReference;
 
@@ -18,8 +17,8 @@ public final class ReferenceImage implements Image {
         this.col = col;
     }
 
-    public Key refId() {
-        return refId;
+    public Key reference() {
+        return this.refId;
     }
 
     public Image image() {

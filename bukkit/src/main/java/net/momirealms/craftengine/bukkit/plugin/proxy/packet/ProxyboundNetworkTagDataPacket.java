@@ -15,13 +15,13 @@ public record ProxyboundNetworkTagDataPacket() implements ClientCustomPacket {
             ProxyboundNetworkTagDataPacket::encode,
             buf -> ProxyboundNetworkTagDataPacket.EMPTY
     );
-    private static byte[] dataCache = null;
+    private static byte[] CACHED_BYTES = null;
 
     private void encode(FriendlyByteBuf buf) {
-        if (dataCache == null) {
-            dataCache = buildDataCache();
+        if (CACHED_BYTES == null) {
+            CACHED_BYTES = buildDataCache0();
         }
-        buf.writeBytes(dataCache);
+        buf.writeBytes(CACHED_BYTES);
     }
 
     @Override
@@ -35,12 +35,12 @@ public record ProxyboundNetworkTagDataPacket() implements ClientCustomPacket {
     }
 
     // 刷新缓存
-    public static void refreshDataCache() {
-        dataCache = buildDataCache();
+    public static void buildDataCache() {
+        CACHED_BYTES = buildDataCache0();
     }
 
     // 构建数据
-    private static byte[] buildDataCache() {
+    private static byte[] buildDataCache0() {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeLong(BukkitCraftEngine.instance().proxyMessageManager().networkTagDataVersion()); // Version
         NetworkTagDataSerializer.writeOffsetFont(buf, BukkitCraftEngine.instance().fontManager().offsetFont());

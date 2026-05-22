@@ -17,7 +17,6 @@ public final class NetworkTagDataSerializer {
             buf.writeUtf(offsetFont.negativeOffsets[i]);
         }
         buf.writeUtf(offsetFont.NEG_16);
-        buf.writeUtf(offsetFont.NEG_24);
         buf.writeUtf(offsetFont.NEG_32);
         buf.writeUtf(offsetFont.NEG_48);
         buf.writeUtf(offsetFont.NEG_64);
@@ -27,7 +26,6 @@ public final class NetworkTagDataSerializer {
             buf.writeUtf(offsetFont.positiveOffsets[i]);
         }
         buf.writeUtf(offsetFont.POS_16);
-        buf.writeUtf(offsetFont.POS_24);
         buf.writeUtf(offsetFont.POS_32);
         buf.writeUtf(offsetFont.POS_48);
         buf.writeUtf(offsetFont.POS_64);
@@ -73,7 +71,7 @@ public final class NetworkTagDataSerializer {
     }
 
     public static void writeReferenceImage(FriendlyByteBuf buf, ReferenceImage image) {
-        buf.writeKey(image.refId());
+        buf.writeKey(image.reference());
     }
 
     public static void writeL10n(FriendlyByteBuf buf, TranslationManager translationManager) {
@@ -85,7 +83,7 @@ public final class NetworkTagDataSerializer {
         if (data.fallback != null) {
             buf.writeUtf(data.fallback);
         }
-        buf.writeMap(data.getTranslations(), (b, locale) -> b.writeUtf(locale.toLanguageTag()), FriendlyByteBuf::writeUtf);
+        buf.writeMap(data.translations(), (b, locale) -> b.writeUtf(locale.toLanguageTag()), FriendlyByteBuf::writeUtf);
     }
 
     public static void writeGlobalVariables(FriendlyByteBuf buf, GlobalVariableManager globalVariableManager) {
