@@ -47,7 +47,7 @@ public final class ProxyMessageManager implements Listener {
                 if (player != null && player.isConnected()) {
                     BukkitServerPlayer bukkitServerPlayer = BukkitAdaptor.adapt(player);
                     if (bukkitServerPlayer != null) {
-                        bukkitServerPlayer.sendCustomPacket(new ProxyboundNetworkTagDataPacket());
+                        ProxyboundNetworkTagDataPacket.sendData(bukkitServerPlayer);
                         break;
                     }
                 }
