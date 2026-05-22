@@ -177,13 +177,13 @@ resource-pack:
         ip: "auto"
         port: "auto"
         protocol: "http"
-        deny-non-minecraft-request: true
-        one-time-token: true
-        strict-validation: false
-        rate-limiting:
-          max-bandwidth-per-second: 5_000_000
-          min-download-speed-per-player: 50_000
-          qps-per-ip: 5/60
+        deny_non_minecraft_request: true
+        one_time_token: true
+        strict_validation: false
+        rate_limiting:
+          max_bandwidth_per_second: 5_000_000
+          min_download_speed_per_player: 50_000
+          qps_per_ip: 5/60
 
     # HTTP proxy settings for routing resource pack download requests. For most users, this option is unnecessary.
     proxy:

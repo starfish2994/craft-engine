@@ -73,6 +73,7 @@ public final class SelfHostHttpServer {
     private boolean useToken;
     private boolean strictValidation = false;
     private boolean useServerPort = false;
+    private boolean autoIp = false;
     private boolean enabled = false;
 
     private long globalUploadRateLimit = 0;
@@ -112,8 +113,10 @@ public final class SelfHostHttpServer {
                                  long globalUploadRateLimit,
                                  long minDownloadSpeed,
                                  boolean strictValidation,
-                                 boolean useServerPort) {
+                                 boolean useServerPort,
+                                 boolean autoIp) {
         this.ip = ip;
+        this.autoIp = autoIp;
         this.url = url;
         this.denyNonMinecraft = denyNonMinecraft;
         this.protocol = protocol;
@@ -403,7 +406,7 @@ public final class SelfHostHttpServer {
         if (this.resourcePackBytes == null) return null;
 
         boolean localhost = false;
-        if (channel != null && channel.isActive()) {
+        if (this.autoIp && !CraftEngine.instance().platform().hasProxy() && channel != null && channel.isActive()) {
             java.net.SocketAddress remoteAddress = channel.remoteAddress();
             if (remoteAddress instanceof InetSocketAddress) {
                 InetAddress inetAddress = ((InetSocketAddress) remoteAddress).getAddress();

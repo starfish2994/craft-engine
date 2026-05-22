@@ -78,9 +78,11 @@ public final class SelfHost implements ResourcePackHost {
             SelfHostHttpServer selfHostHttpServer = SelfHostHttpServer.instance();
 
             // url 拼接
+            boolean autoIp = false;
             String ip = section.getNonEmptyString("ip");
             if ("auto".equalsIgnoreCase(ip)) {
                 ip = getIp();
+                autoIp = true;
             }
 
             int port;
@@ -135,7 +137,7 @@ public final class SelfHost implements ResourcePackHost {
                     ip, port, url, denyNonMinecraftRequest,
                     protocol, limit, oneTimeToken,
                     maxBandwidthUsage, minDownloadSpeed, strictValidation,
-                    useServerPort
+                    useServerPort, autoIp
             );
             return INSTANCE;
         }
