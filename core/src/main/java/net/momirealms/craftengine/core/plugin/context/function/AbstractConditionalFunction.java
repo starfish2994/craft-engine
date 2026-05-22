@@ -32,6 +32,7 @@ public abstract class AbstractConditionalFunction<CTX extends Context> implement
     protected abstract void runInternal(CTX ctx);
 
     public static abstract class AbstractFactory<CTX extends Context, T extends Function<CTX>> implements FunctionFactory<CTX, T> {
+        protected static final String[] CONDITION = new String[]{"condition", "conditions"};
         protected final java.util.function.Function<ConfigSection, Condition<CTX>> conditionFactory;
 
         public AbstractFactory(java.util.function.Function<ConfigSection, Condition<CTX>> conditionFactory) {
@@ -60,7 +61,7 @@ public abstract class AbstractConditionalFunction<CTX extends Context> implement
 
         protected List<Condition<CTX>> getPredicates(ConfigSection section) {
             if (section == null) return List.of();
-            return section.getSectionList("conditions", this.conditionFactory);
+            return section.getSectionList(CONDITION, this.conditionFactory);
         }
     }
 

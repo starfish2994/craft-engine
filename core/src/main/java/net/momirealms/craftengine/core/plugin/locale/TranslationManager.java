@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.text.minimessage.IndexedArgumentTag;
 import net.momirealms.craftengine.core.util.AdventureHelper;
+import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,6 +67,8 @@ public interface TranslationManager extends Manageable {
 
     Set<String> translationKeys();
 
+    ServerLangData translationData(String key);
+
     Map<String, ClientLangData> clientLangData();
 
     void addClientTranslation(String langId, Map<String, String> translations);
@@ -75,4 +78,6 @@ public interface TranslationManager extends Manageable {
     List<Suggestion> allLangSuggestions();
 
     Map<String, List<String>> locale2Countries();
+
+    Map<String, ServerLangData> serverLangData();
 }

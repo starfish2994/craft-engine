@@ -15,9 +15,12 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
+import java.util.function.BiPredicate;
+
 public final class CustomPackets {
     public static final int PROTOCOL_VERSION = 1;
-    public static final ClientCustomPacketType<ClientboundLightPacket> LIGHT = registerClientbound(ClientboundLightPacket.ID, ClientboundLightPacket.CODEC, true);
+    public static final BiPredicate<NetWorkUser, Key> ALWAYS_ALLOWED = (user, key) -> true;
+    public static final ClientCustomPacketType<ClientboundLightPacket> LIGHT = registerClientbound(ClientboundLightPacket.ID, ClientboundLightPacket.CODEC, ALWAYS_ALLOWED, true);
     public static final ClientCustomPacketType<ClientboundVisualBlockStateBatchStartPacket> VISUAL_BLOCK_STATE_BATCH_START = registerClientbound(ClientboundVisualBlockStateBatchStartPacket.ID, ClientboundVisualBlockStateBatchStartPacket.CODEC, false);
     public static final ClientCustomPacketType<ClientboundVisualBlockStateBatchFinishedPacket> VISUAL_BLOCK_STATE_BATCH_FINISHED = registerClientbound(ClientboundVisualBlockStateBatchFinishedPacket.ID, ClientboundVisualBlockStateBatchFinishedPacket.CODEC, false);
     public static final ClientCustomPacketType<ClientboundVisualBlockStatesPacket> VISUAL_BLOCK_STATES = registerClientbound(ClientboundVisualBlockStatesPacket.ID, ClientboundVisualBlockStatesPacket.CODEC, false);
@@ -35,17 +38,33 @@ public final class CustomPackets {
     }
 
     public static <T extends ClientCustomPacket> ClientCustomPacketType<T> registerClientbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec, boolean inServerHandle) {
-        ClientCustomPacketType<T> type = new ClientCustomPacketType<>(id, codec, inServerHandle);
+        return registerClientbound(id, codec, CustomPackets::checkClientboundPacketPermission, inServerHandle);
+    }
+
+    public static <T extends ClientCustomPacket> ClientCustomPacketType<T> registerClientbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec, BiPredicate<NetWorkUser, Key> permissionChecker, boolean inServerHandle) {
+        ClientCustomPacketType<T> type = new ClientCustomPacketType<>(id, codec, permissionChecker, inServerHandle);
         ((WritableRegistry<ClientCustomPacketType<? extends ClientCustomPacket>>) BuiltInRegistries.CLIENT_MOD_PACKET)
                 .register(ResourceKey.create(Registries.CLIENT_MOD_PACKET.location(), id), type);
         return type;
     }
 
     public static <T extends ServerCustomPacket> ServerCustomPacketType<T> registerServerbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec) {
-        ServerCustomPacketType<T> type = new ServerCustomPacketType<>(id, codec);
+        return registerServerbound(id, codec, CustomPackets::checkServerboundPacketPermission);
+    }
+
+    public static <T extends ServerCustomPacket> ServerCustomPacketType<T> registerServerbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec, BiPredicate<NetWorkUser, Key> permissionChecker) {
+        ServerCustomPacketType<T> type = new ServerCustomPacketType<>(id, codec, permissionChecker);
         ((WritableRegistry<ServerCustomPacketType<? extends ServerCustomPacket>>) BuiltInRegistries.SERVER_MOD_PACKET)
                 .register(ResourceKey.create(Registries.SERVER_MOD_PACKET.location(), id), type);
         return type;
+    }
+
+    public static boolean checkServerboundPacketPermission(NetWorkUser user, Key id) {
+        return checkPermission(user, id, false);
+    }
+
+    public static boolean checkClientboundPacketPermission(NetWorkUser user, Key id) {
+        return checkPermission(user, id, true);
     }
 
     public static boolean checkPermission(NetWorkUser user, Key id, boolean toClient) {
@@ -59,11 +78,6 @@ public final class CustomPackets {
             ));
         }
         return hasPermission;
-    }
-
-    public static boolean checkPermission(NetWorkUser user, ClientCustomPacket packet) {
-        if (packet.bypassPermissionCheck(user)) return true;
-        return checkPermission(user, packet.id(), true);
     }
 
     public static void checkProtocolVersion(NetWorkUser user) {
