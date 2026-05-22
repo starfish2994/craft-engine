@@ -18,9 +18,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
@@ -74,7 +72,6 @@ public final class SelfHost implements ResourcePackHost {
         private static final String[] QPS_PER_IP = new String[]{"qps_per_ip", "qps-per-ip"};
         private static final String[] MAX_BANDWIDTH_PER_SECOND = new String[]{"max_bandwidth_per_second", "max-bandwidth-per-second"};
         private static final String[] MIN_DOWNLOAD_SPEED_PER_PLAYER = new String[]{"min_download_speed_per_player", "min-download-speed-per-player"};
-        private static final String[] FORCE_REFRESH_AUTO_IP = new String[]{"force_refresh_auto_ip", "force-refresh-auto-ip"};
 
         @Override
         public SelfHost create(ConfigSection section) {
@@ -83,7 +80,7 @@ public final class SelfHost implements ResourcePackHost {
             // url 拼接
             String ip = section.getNonEmptyString("ip");
             if ("auto".equalsIgnoreCase(ip)) {
-                ip = getIp(section.getBoolean(FORCE_REFRESH_AUTO_IP, false));
+                ip = getIp();
             }
 
             int port;
@@ -146,16 +143,17 @@ public final class SelfHost implements ResourcePackHost {
         private static final URI CLOUDFLARE = URI.create("https://www.cloudflare.com/cdn-cgi/trace");
         private static final URI CLOUDFLARE_CN = URI.create("https://www.cloudflare-cn.com/cdn-cgi/trace");
         private static final String LOCALHOST = "localhost";
+        private static String IP_CACHE = null;
 
-        private static String getIp(boolean forceRefresh) {
-            String cacheIp = forceRefresh ? null : readCache();
-            if (cacheIp != null) return cacheIp;
-            boolean inChina = Locale.getDefault() == Locale.SIMPLIFIED_CHINESE;
-            String ip = fetchIp(inChina ? CLOUDFLARE_CN : CLOUDFLARE);
-            if (LOCALHOST.equals(ip)) {
-                ip = fetchIp(inChina ? CLOUDFLARE : CLOUDFLARE_CN);
+        private static String getIp() {
+            if (IP_CACHE == null || LOCALHOST.equals(IP_CACHE)) {
+                boolean inChina = Locale.getDefault() == Locale.SIMPLIFIED_CHINESE;
+                IP_CACHE = fetchIp(inChina ? CLOUDFLARE_CN : CLOUDFLARE);
+                if (LOCALHOST.equals(IP_CACHE)) {
+                    IP_CACHE = fetchIp(inChina ? CLOUDFLARE : CLOUDFLARE_CN);
+                }
             }
-            return ip;
+            return IP_CACHE;
         }
         
         private static String fetchIp(URI uri) {
@@ -180,7 +178,6 @@ public final class SelfHost implements ResourcePackHost {
             }
             try {
                 Pair<String, String> ip = verifyIp(props.getProperty("ip"));
-                saveCache(ip.right());
                 return ip.left();
             } catch (UnknownHostException e) {
                 CraftEngine.instance().logger().warn("Failed to automatically obtain an IP address. Invalid IP address. Uri: " + uri + " Body: " + response.body());
@@ -195,30 +192,6 @@ public final class SelfHost implements ResourcePackHost {
                 return Pair.of("[" + verifiedIp + "]", verifiedIp);
             }
             return Pair.of(verifiedIp, verifiedIp);
-        }
-
-        private static String readCache() {
-            Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("server_ip.txt");
-            if (Files.exists(cachePath) && Files.isRegularFile(cachePath)) {
-                try {
-                    return verifyIp(Files.readString(cachePath)).left();
-                } catch (UnknownHostException e) {
-                    CraftEngine.instance().logger().warn("Failed to resolve a valid IP address from the cache " + cachePath, e);
-                } catch (IOException e) {
-                    CraftEngine.instance().logger().warn("Failed to load IP address cache " + cachePath, e);
-                }
-            }
-            return null;
-        }
-
-        private static void saveCache(String ip) {
-            Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("server_ip.txt");
-            try {
-                Files.createDirectories(cachePath.getParent());
-                Files.writeString(cachePath, ip, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            } catch (IOException e) {
-                CraftEngine.instance().logger().warn("Failed to persist IP address cache", e);
-            }
         }
     }
 }

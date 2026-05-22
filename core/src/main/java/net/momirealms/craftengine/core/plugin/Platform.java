@@ -38,4 +38,6 @@ public interface Platform {
     PacketIds packetIds();
 
     int getServerPort();
+
+    boolean hasProxy();
 }

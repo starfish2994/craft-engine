@@ -106,4 +106,9 @@ public final class BukkitPlatform implements Platform {
     public int getServerPort() {
         return Bukkit.getPort();
     }
+
+    @Override
+    public boolean hasProxy() {
+        return Bukkit.getServer().getServerConfig().isProxyEnabled();
+    }
 }

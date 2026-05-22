@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.core.util.CharacterUtils;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
