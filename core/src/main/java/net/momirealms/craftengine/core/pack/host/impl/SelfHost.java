@@ -86,7 +86,7 @@ public final class SelfHost implements ResourcePackHost {
             int port;
             boolean useServerPort = false;
             if ("auto".equals(section.getString("port"))) {
-                port = CraftEngine.instance().platform().getServerPort();
+                port = -1;
                 useServerPort = true;
             } else {
                 port = section.getInt("port", 8163);

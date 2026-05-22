@@ -146,7 +146,11 @@ public final class SelfHostHttpServer {
         if (this.url != null && !this.url.isEmpty()) {
             return this.url;
         }
-        return this.protocol + "://" + (localhost ? "localhost" : this.ip) + ":" + this.port + "/";
+        if (this.useServerPort) {
+            return this.protocol + "://" + (localhost ? "localhost" : this.ip) + ":" + CraftEngine.instance().platform().getServerPort() + "/";
+        } else {
+            return this.protocol + "://" + (localhost ? "localhost" : this.ip) + ":" + this.port + "/";
+        }
     }
 
     private void initializeServerPortHost() {
