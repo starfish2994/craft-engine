@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.world.chunk.storage;
 
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
+import net.momirealms.craftengine.core.world.WorldSettings;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -11,6 +12,15 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 
 public final class NoneStorage implements WorldDataStorage {
+
+    @Override
+    public WorldSettings readSettings() {
+        return new WorldSettings(new CompoundTag());
+    }
+
+    @Override
+    public void writeSettings(WorldSettings settings) {
+    }
 
     @Override
     public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) {

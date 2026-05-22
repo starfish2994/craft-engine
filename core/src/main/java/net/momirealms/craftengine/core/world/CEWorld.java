@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class CEWorld {
     public static final String REGION_DIRECTORY = "craftengine";
     public final World world;
+    public final WorldSettings settings;
     protected final ConcurrentLong2ReferenceChainedHashTable<CEChunk> loadedChunkMap;
     protected final WorldDataStorage worldDataStorage;
     protected final WorldHeight worldHeightAccessor;
@@ -40,10 +41,7 @@ public abstract class CEWorld {
     protected SchedulerTask asyncTickTask;
 
     public CEWorld(World world, StorageAdaptor adaptor) {
-        this.world = world;
-        this.loadedChunkMap = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(1024, 0.5f);
-        this.worldDataStorage = adaptor.adapt(world);
-        this.worldHeightAccessor = world.worldHeight();
+        this(world, adaptor.adapt(world));
     }
 
     public CEWorld(World world, WorldDataStorage dataStorage) {
@@ -51,6 +49,14 @@ public abstract class CEWorld {
         this.loadedChunkMap = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(1024, 0.5f);
         this.worldDataStorage = dataStorage;
         this.worldHeightAccessor = world.worldHeight();
+        WorldSettings worldSettings;
+        try {
+            worldSettings = dataStorage.readSettings();
+        } catch (IOException e) {
+            worldSettings = new WorldSettings();
+            CraftEngine.instance().logger().warn("Failed to read settings from world " + this.name(), e);
+        }
+        this.settings = worldSettings;
     }
 
     public void setTicking(boolean ticking) {
@@ -77,7 +83,7 @@ public abstract class CEWorld {
         return this.world.uuid();
     }
 
-    public void save() {
+    public void saveChunks() {
         try {
             for (ConcurrentLong2ReferenceChainedHashTable.TableEntry<CEChunk> entry : this.loadedChunkMap.entrySet()) {
                 CEChunk chunk = entry.getValue();
@@ -88,6 +94,14 @@ public abstract class CEWorld {
             }
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to save world chunks", e);
+        }
+    }
+
+    public void saveSettings() {
+        try {
+            this.worldDataStorage.writeSettings(this.settings);
+        } catch (IOException e) {
+            CraftEngine.instance().logger().warn("Failed to save world settings", e);
         }
     }
 

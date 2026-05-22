@@ -7,6 +7,7 @@ import net.momirealms.craftengine.bukkit.world.BukkitStorageAdaptor;
 import net.momirealms.craftengine.bukkit.world.chunk.BukkitCEChunk;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
+import net.momirealms.craftengine.core.world.WorldSettings;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.craftengine.core.world.chunk.serialization.DefaultChunkSerializer;
@@ -32,6 +33,26 @@ public final class LegacySlimeWorldDataStorage implements WorldDataStorage {
     }
 
     @Override
+    public WorldSettings readSettings() throws IOException {
+        SlimeWorld world = getWorld();
+        Optional<ByteArrayTag> tag = world.getExtraData().getAsByteArrayTag("craftengine:world_settings");
+        if (tag.isEmpty()) return new WorldSettings();
+        try {
+            CompoundTag compoundTag = NBT.fromBytes(tag.get().getValue());
+            if (compoundTag == null) return new WorldSettings();
+            return new  WorldSettings(compoundTag);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read settings from slime world " + world.getName(), e);
+        }
+    }
+
+    @Override
+    public void writeSettings(WorldSettings settings) throws IOException {
+        SlimeWorld world = getWorld();
+        world.getExtraData().getValue().put(new ByteArrayTag("craftengine:world_settings", NBT.toBytes(settings.tag())));
+    }
+
+    @Override
     public CEChunk readNewChunkAt(CEWorld world, ChunkPos pos) {
         return readChunkAt(world, pos, null);
     }
@@ -47,7 +68,7 @@ public final class LegacySlimeWorldDataStorage implements WorldDataStorage {
             if (compoundTag == null) return new BukkitCEChunk(world, pos);
             return DefaultChunkSerializer.deserialize(BukkitStorageAdaptor.BUKKIT_FACTORY, world, pos, compoundTag);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to read chunk tag from slime world. " + pos, e);
+            throw new RuntimeException("Failed to read chunk tag from slime world " + world.name() + " " + pos, e);
         }
     }
 
@@ -77,7 +98,7 @@ public final class LegacySlimeWorldDataStorage implements WorldDataStorage {
             try {
                 slimeChunk.getExtraData().getValue().put("craftengine", new ByteArrayTag("craftengine", NBT.toBytes(nbt)));
             } catch (Exception e) {
-                throw new RuntimeException("Failed to write chunk tag to slime world. " + pos, e);
+                throw new RuntimeException("Failed to write chunk tag to slime world " + getWorld().getName() + " " + pos, e);
             }
         }
     }
