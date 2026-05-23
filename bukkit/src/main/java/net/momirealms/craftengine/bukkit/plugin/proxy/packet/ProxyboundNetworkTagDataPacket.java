@@ -67,9 +67,11 @@ public record ProxyboundNetworkTagDataPacket(int total, int index, byte[] data) 
 
     //发送数据
     public static void sendData(NetWorkUser user) {
-        int total = ProxyboundNetworkTagDataPacket.CACHED_BYTES.length;
-        for (int i = 0; i < total; i++) {
-            user.sendCustomPacket(new ProxyboundNetworkTagDataPacket(total, i, ProxyboundNetworkTagDataPacket.CACHED_BYTES[i]));
+        if (ProxyboundNetworkTagDataPacket.CACHED_BYTES != null) {
+            int total = ProxyboundNetworkTagDataPacket.CACHED_BYTES.length;
+            for (int i = 0; i < total; i++) {
+                user.sendCustomPacket(new ProxyboundNetworkTagDataPacket(total, i, ProxyboundNetworkTagDataPacket.CACHED_BYTES[i]));
+            }
         }
     }
 }
