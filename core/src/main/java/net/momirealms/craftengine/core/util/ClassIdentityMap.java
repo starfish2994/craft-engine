@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 
@@ -41,7 +40,7 @@ public final class ClassIdentityMap<V> {
         public V get(@NotNull Class<?> key) { return null; }
         public int size() { return 0; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             return new Map1<>(key, value);
         }
     }
@@ -60,7 +59,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 1; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map1<>(k0, value);
             return new Map2<>(k0, v0, key, value);
         }
@@ -83,7 +82,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 2; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map2<>(k0, value, k1, v1);
             if (key == k1) return new Map2<>(k0, v0,    k1, value);
             return new Map3<>(k0, v0, k1, v1, key, value);
@@ -109,7 +108,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 3; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map3<>(k0, value, k1, v1,    k2, v2);
             if (key == k1) return new Map3<>(k0, v0,    k1, value, k2, v2);
             if (key == k2) return new Map3<>(k0, v0,    k1, v1,    k2, value);
@@ -139,7 +138,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 4; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map4<>(k0, value, k1, v1,    k2, v2,    k3, v3);
             if (key == k1) return new Map4<>(k0, v0,    k1, value, k2, v2,    k3, v3);
             if (key == k2) return new Map4<>(k0, v0,    k1, v1,    k2, value, k3, v3);
@@ -172,7 +171,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 5; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map5<>(k0, value, k1, v1,    k2, v2,    k3, v3,    k4, v4);
             if (key == k1) return new Map5<>(k0, v0,    k1, value, k2, v2,    k3, v3,    k4, v4);
             if (key == k2) return new Map5<>(k0, v0,    k1, v1,    k2, value, k3, v3,    k4, v4);
@@ -208,7 +207,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 6; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map6<>(k0, value, k1, v1,    k2, v2,    k3, v3,    k4, v4,    k5, v5);
             if (key == k1) return new Map6<>(k0, v0,    k1, value, k2, v2,    k3, v3,    k4, v4,    k5, v5);
             if (key == k2) return new Map6<>(k0, v0,    k1, v1,    k2, value, k3, v3,    k4, v4,    k5, v5);
@@ -248,7 +247,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 7; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map7<>(k0, value, k1, v1,    k2, v2,    k3, v3,    k4, v4,    k5, v5,    k6, v6);
             if (key == k1) return new Map7<>(k0, v0,    k1, value, k2, v2,    k3, v3,    k4, v4,    k5, v5,    k6, v6);
             if (key == k2) return new Map7<>(k0, v0,    k1, v1,    k2, value, k3, v3,    k4, v4,    k5, v5,    k6, v6);
@@ -290,7 +289,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 8; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map8<>(k0, value, k1, v1,    k2, v2,    k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7);
             if (key == k1) return new Map8<>(k0, v0,    k1, value, k2, v2,    k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7);
             if (key == k2) return new Map8<>(k0, v0,    k1, v1,    k2, value, k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7);
@@ -336,7 +335,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 9; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map9<>(k0, value, k1, v1,    k2, v2,    k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7,    k8, v8);
             if (key == k1) return new Map9<>(k0, v0,    k1, value, k2, v2,    k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7,    k8, v8);
             if (key == k2) return new Map9<>(k0, v0,    k1, v1,    k2, value, k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7,    k8, v8);
@@ -386,7 +385,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return 10; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             if (key == k0) return new Map10<>(k0, value, k1, v1,    k2, v2,    k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7,    k8, v8,    k9, v9);
             if (key == k1) return new Map10<>(k0, v0,    k1, value, k2, v2,    k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7,    k8, v8,    k9, v9);
             if (key == k2) return new Map10<>(k0, v0,    k1, v1,    k2, value, k3, v3,    k4, v4,    k5, v5,    k6, v6,    k7, v7,    k8, v8,    k9, v9);
@@ -422,7 +421,7 @@ public final class ClassIdentityMap<V> {
 
         public int size() { return this.keys.length; }
 
-        public @NonNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
+        public @NotNull Impl<V> put(@NotNull Class<?> key, @NotNull V value) {
             final Class<?>[] k = this.keys;
             final int n = k.length;
             for (int i = 0; i < n; i++) {
