@@ -35,7 +35,7 @@ public final class SelfHost implements ResourcePackHost {
 
     @Override
     public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(NetWorkUser user) {
-        ResourcePackDownloadData data = SelfHostHttpServer.instance().generateOneTimeUrl(user.uuid(), user.nettyChannel());
+        ResourcePackDownloadData data = SelfHostHttpServer.instance().generateOneTimeUrl(user);
         if (data == null) return CompletableFuture.completedFuture(List.of());
         return CompletableFuture.completedFuture(List.of(data));
     }
