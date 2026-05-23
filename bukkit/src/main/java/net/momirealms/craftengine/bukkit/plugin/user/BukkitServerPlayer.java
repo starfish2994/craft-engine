@@ -114,6 +114,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -132,6 +135,7 @@ public class BukkitServerPlayer extends Player {
     // connection state
     private final Channel channel;
     private ChannelHandler connection;
+    private InetAddress address;
     private String name;
     private UUID uuid;
     private PropertyMap propertyMap;
@@ -586,9 +590,13 @@ public class BukkitServerPlayer extends Player {
         }
         Object kickPacket = ClientboundDisconnectPacketProxy.INSTANCE.newInstance(reason);
         this.sendPacket(kickPacket, false, () -> ConnectionProxy.INSTANCE.disconnect(this.connection(), reason));
-        this.nettyChannel().config().setAutoRead(false);
+        this.channel.config().setAutoRead(false);
         Runnable handleDisconnection = () -> ConnectionProxy.INSTANCE.handleDisconnection(this.connection());
-        BlockableEventLoopProxy.INSTANCE.scheduleOnMain(MinecraftServerProxy.INSTANCE.getServer(), handleDisconnection);
+        if (VersionHelper.isFolia) {
+            this.plugin.scheduler().platform().run(handleDisconnection);
+        } else {
+            BlockableEventLoopProxy.INSTANCE.scheduleOnMain(MinecraftServerProxy.INSTANCE.getServer(), handleDisconnection);
+        }
     }
 
     @Override
@@ -1826,6 +1834,17 @@ public class BukkitServerPlayer extends Player {
             ResourcePackDownloadData data = dataList.getFirst();
             sendPacket(ResourcePackUtils.createPacket(data.uuid(), data.url(), data.sha1()), true);
         }
+    }
+
+    @Override
+    public InetAddress address() {
+        if (this.address == null) {
+            SocketAddress socketAddress = this.channel.remoteAddress();
+            if (socketAddress instanceof InetSocketAddress inetSocketAddress) {
+                this.address = inetSocketAddress.getAddress();
+            }
+        }
+        return this.address;
     }
 
     @Override

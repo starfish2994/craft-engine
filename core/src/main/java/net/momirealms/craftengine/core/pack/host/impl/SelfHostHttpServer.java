@@ -22,6 +22,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -402,26 +403,21 @@ public final class SelfHostHttpServer {
     }
 
     @Nullable
-    public ResourcePackDownloadData generateOneTimeUrl(UUID user, Channel channel) {
+    public ResourcePackDownloadData generateOneTimeUrl(NetWorkUser user) {
         if (this.resourcePackBytes == null) return null;
 
-        boolean localhost = false;
-        if (this.autoIp && !CraftEngine.instance().platform().hasProxy() && channel != null && channel.isActive()) {
-            java.net.SocketAddress remoteAddress = channel.remoteAddress();
-            if (remoteAddress instanceof InetSocketAddress) {
-                InetAddress inetAddress = ((InetSocketAddress) remoteAddress).getAddress();
-                if (inetAddress != null && inetAddress.isLoopbackAddress()) {
-                    localhost = true;
-                }
-            }
-        }
+        UUID uuid = user.uuid();
+        if (uuid == null) return null;
+
+        InetAddress address = user.address();
+        boolean localhost = this.autoIp && !CraftEngine.instance().platform().hasProxy() && address != null && address.isLoopbackAddress();
 
         if (!this.useToken) {
             return new ResourcePackDownloadData(url(localhost) + "download", this.packUUID, this.packHash);
         }
 
         String token = UUID.randomUUID().toString();
-        this.oneTimePackUrls.put(token, this.strictValidation ? user.toString().replace("-", "") : "");
+        this.oneTimePackUrls.put(token, this.strictValidation ? uuid.toString().replace("-", "") : "");
         return new ResourcePackDownloadData(
                 url(localhost) + "download?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8),
                 this.packUUID,
