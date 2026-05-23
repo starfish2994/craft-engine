@@ -26,14 +26,16 @@ public final class GitLabHost implements ResourcePackHost {
     private final String gitlabUrl;
     private final String accessToken;
     private final String projectId;
+    private final Path cacheFilePath;
 
     private String cachedUrl;
     private String cachedSha1;
 
-    public GitLabHost(String gitlabUrl, String accessToken, String projectId) {
+    private GitLabHost(String gitlabUrl, String accessToken, String projectId, Path cacheFilePath) {
         this.gitlabUrl = gitlabUrl.endsWith("/") ? gitlabUrl.substring(0, gitlabUrl.length() - 1) : gitlabUrl;
         this.accessToken = accessToken;
         this.projectId = projectId;
+        this.cacheFilePath = cacheFilePath;
 
         this.readCacheFromDisk();
     }
@@ -128,9 +130,8 @@ public final class GitLabHost implements ResourcePackHost {
     }
 
     private void readCacheFromDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("gitlab.json");
-        if (!Files.exists(cachePath)) return;
-        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(cachePath), StandardCharsets.UTF_8)) {
+        if (!Files.exists(this.cacheFilePath)) return;
+        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(this.cacheFilePath), StandardCharsets.UTF_8)) {
             Map<String, String> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, String>>(){}.getType());
             this.cachedUrl = cache.get("url");
             this.cachedSha1 = cache.get("sha1");
@@ -140,13 +141,12 @@ public final class GitLabHost implements ResourcePackHost {
     }
 
     private void saveCacheToDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("gitlab.json");
         try {
-            Files.createDirectories(cachePath.getParent());
+            Files.createDirectories(this.cacheFilePath.getParent());
             Map<String, String> cache = new HashMap<>();
             cache.put("url", this.cachedUrl != null ? this.cachedUrl : "");
             cache.put("sha1", this.cachedSha1 != null ? this.cachedSha1 : "");
-            Files.writeString(cachePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(this.cacheFilePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to persist GitLab cache", e);
         }
@@ -157,6 +157,7 @@ public final class GitLabHost implements ResourcePackHost {
         private static final String[] GITLAB_URL = new String[] {"gitlab_url", "gitlab-url"};
         private static final String[] ACCESS_TOKEN = new String[] {"access_token", "access-token"};
         private static final String[] PROJECT_ID = new String[] {"project_id", "project-id"};
+        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
 
         @Override
         public GitLabHost create(ConfigSection section) {
@@ -165,7 +166,9 @@ public final class GitLabHost implements ResourcePackHost {
             String accessToken = useEnv ? getNonNullEnvironmentVariable(section, "CE_GITLAB_ACCESS_TOKEN") : section.getNonEmptyString(ACCESS_TOKEN);
             String projectId = section.getNonEmptyString(PROJECT_ID);
             projectId = URLEncoder.encode(projectId, StandardCharsets.UTF_8).replace("/", "%2F");
-            return new GitLabHost(gitlabUrl, accessToken, projectId);
+            Path cacheFilePath = CraftEngine.instance().dataFolderPath().resolve("cache")
+                    .resolve(section.getValue(CACHE_FILE_NAME, it -> it.getAsNonEmptyString().replace("/", "_"), "gitlab.json"));
+            return new GitLabHost(gitlabUrl, accessToken, projectId, cacheFilePath);
         }
     }
 }

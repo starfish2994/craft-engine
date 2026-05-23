@@ -15,7 +15,7 @@ public final class ExternalHost implements ResourcePackHost {
     public static final ResourcePackHostFactory<ExternalHost> FACTORY = new Factory();
     private final ResourcePackDownloadData downloadData;
 
-    public ExternalHost(ResourcePackDownloadData downloadData) {
+    private ExternalHost(ResourcePackDownloadData downloadData) {
         this.downloadData = downloadData;
     }
 
