@@ -313,8 +313,8 @@ item:
 
   # Apply 'client-bound-data' to all CraftEngine items
   global-client-bound-data:
-    remove_components:
-      - minecraft:custom_data
+    - remove_components:
+        - minecraft:custom_data
 
 equipment:
   # The sacrificed-vanilla-armor argument determines which vanilla armor gets completely removed (loses all its trims)

@@ -615,7 +615,10 @@ public final class Config {
             this.item$custom_model_data_starting_value$overrides = Map.of();
         }
         this.item$global_client_bound_data = new ArrayList<>();
-        ItemProcessors.collectProcessors(ConfigSection.of("item.global-client-bound-data", config.get("item.global-client-bound-data")), this.item$global_client_bound_data::add);
+        Optional.ofNullable(config.get("item.global-client-bound-data"))
+                .map(o -> ConfigValue.of("item.global-client-bound-data", o))
+                .map(v -> v.getAsList(ConfigValue::getAsSection))
+                .ifPresent(l -> l.forEach(s -> ItemProcessors.collectProcessors(s, this.item$global_client_bound_data::add)));
 
         // block
         this.block$sound_system$enable = config.getBoolean("block.sound-system.enable", true);
