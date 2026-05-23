@@ -12,5 +12,4 @@ public record ServerCustomPacketType<T extends ServerCustomPacket>(Key id, Netwo
     public boolean checkPermission(NetWorkUser user) {
         return this.permissionChecker.test(user, id);
     }
-
 }

@@ -56,7 +56,7 @@ public record ProxyboundNetworkTagDataPacket(int total, int index, byte[] data) 
     }
 
     // 构建数据
-    private static byte[] buildDataCache() {
+    private static byte[] buildDataCache0() {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         NetworkTagDataSerializer.writeOffsetFont(buf, BukkitCraftEngine.instance().fontManager().offsetFont());
         NetworkTagDataSerializer.writeImages(buf, BukkitCraftEngine.instance().fontManager().loadedImages());

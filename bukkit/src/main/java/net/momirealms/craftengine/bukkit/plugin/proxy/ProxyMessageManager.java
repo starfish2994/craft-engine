@@ -40,7 +40,7 @@ public final class ProxyMessageManager implements Listener {
     @EventHandler
     public void onPluginReload(CraftEngineReloadEvent event) {
         this.networkTagDataVersion = System.currentTimeMillis();
-        ProxyboundNetworkTagDataPacket.refreshDataCache();
+        ProxyboundNetworkTagDataPacket.buildDataCache();
         this.proxyPlayers.values().forEach(set -> {
             for (UUID playerUUID : set) {
                 Player player = Bukkit.getPlayer(playerUUID);
@@ -65,12 +65,12 @@ public final class ProxyMessageManager implements Listener {
     }
 
     // 记录玩家所在的代理服务器.
-    public void recordPlayerBelongProxy(@NotNull BukkitServerPlayer player, UUID proxyUUID) {
+    public void setProxy(@NotNull BukkitServerPlayer player, UUID proxyUUID) {
         this.proxyPlayers.computeIfAbsent(proxyUUID, it -> ConcurrentHashMap.newKeySet()).add(player.uuid());
         this.proxyByPlayer.put(player.uuid(), proxyUUID);
     }
 
     public long networkTagDataVersion() {
-        return networkTagDataVersion;
+        return this.networkTagDataVersion;
     }
 }

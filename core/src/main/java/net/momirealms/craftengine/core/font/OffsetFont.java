@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.core.util.CharacterUtils;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +15,6 @@ public final class OffsetFont {
     public final Key fontKey;
 
     public final String NEG_16;
-    public final String NEG_24;
     public final String NEG_32;
     public final String NEG_48;
     public final String NEG_64;
@@ -22,7 +22,6 @@ public final class OffsetFont {
     public final String NEG_256;
 
     public final String POS_16;
-    public final String POS_24;
     public final String POS_32;
     public final String POS_48;
     public final String POS_64;
@@ -36,23 +35,22 @@ public final class OffsetFont {
             .maximumSize(256)
             .build();
 
+    @SuppressWarnings("all")
     public OffsetFont(
             net.momirealms.craftengine.core.util.Key font,
-            String neg16, String neg24, String neg32, String neg48, String neg64, String neg128, String neg256,
-            String pos16, String pos24, String pos32, String pos48, String pos64, String pos128, String pos256,
+            String neg16, String neg32, String neg48, String neg64, String neg128, String neg256,
+            String pos16, String pos32, String pos48, String pos64, String pos128, String pos256,
             String[] negativeOffsets, String[] positiveOffsets
     ) {
         this.font = font;
         this.fontKey = Key.key(font.namespace(), font.value());
         this.NEG_16 = neg16;
-        this.NEG_24 = neg24;
         this.NEG_32 = neg32;
         this.NEG_48 = neg48;
         this.NEG_64 = neg64;
         this.NEG_128 = neg128;
         this.NEG_256 = neg256;
         this.POS_16 = pos16;
-        this.POS_24 = pos24;
         this.POS_32 = pos32;
         this.POS_48 = pos48;
         this.POS_64 = pos64;
@@ -99,10 +97,6 @@ public final class OffsetFont {
             stringBuilder.append(POS_32);
             offset -= 32;
         }
-        if (offset >= 24) {
-            stringBuilder.append(POS_24);
-            offset -= 24;
-        }
         if (offset >= 16) {
             stringBuilder.append(POS_16);
             offset -= 16;
@@ -134,10 +128,6 @@ public final class OffsetFont {
         if (offset >= 32) {
             stringBuilder.append(NEG_32);
             offset -= 32;
-        }
-        if (offset >= 24) {
-            stringBuilder.append(NEG_24);
-            offset -= 24;
         }
         if (offset >= 16) {
             stringBuilder.append(NEG_16);
