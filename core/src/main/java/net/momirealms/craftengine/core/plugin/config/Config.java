@@ -18,6 +18,8 @@ import net.momirealms.craftengine.core.item.network.encrypt.AESGCM;
 import net.momirealms.craftengine.core.item.network.encrypt.ChaCha20;
 import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
 import net.momirealms.craftengine.core.item.network.encrypt.Xor;
+import net.momirealms.craftengine.core.item.processor.ItemProcessor;
+import net.momirealms.craftengine.core.item.processor.ItemProcessors;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ConditionalResolution;
 import net.momirealms.craftengine.core.pack.host.HttpClientManager;
@@ -247,6 +249,7 @@ public final class Config {
     private String item$default_drop_display$format = null;
     private boolean item$data_fixer_upper$enable = true;
     private int item$data_fixer_upper$fallback_version = VersionHelper.WORLD_VERSION;
+    private List<ItemProcessor> item$global_client_bound_data = List.of();
 
     private String equipment$sacrificed_vanilla_armor$type;
     private Key equipment$sacrificed_vanilla_armor$asset_id;
@@ -611,6 +614,8 @@ public final class Config {
         } else {
             this.item$custom_model_data_starting_value$overrides = Map.of();
         }
+        this.item$global_client_bound_data = new ArrayList<>();
+        ItemProcessors.collectProcessors(ConfigSection.of("item.global-client-bound-data", config.get("item.global-client-bound-data")), this.item$global_client_bound_data::add);
 
         // block
         this.block$sound_system$enable = config.getBoolean("block.sound-system.enable", true);
@@ -1451,6 +1456,10 @@ public final class Config {
 
     public static int itemDataFixerUpperFallbackVersion() {
         return instance.item$data_fixer_upper$fallback_version;
+    }
+
+    public static List<ItemProcessor> itemGlobalClientBoundData() {
+        return instance.item$global_client_bound_data;
     }
 
     public static boolean enableEntityCulling() {

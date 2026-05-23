@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.setting.ItemSettings;
 import net.momirealms.craftengine.core.item.updater.ItemUpdateConfig;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
@@ -112,6 +113,7 @@ public final class BukkitItemDefinition extends AbstractItemDefinition {
         public BuilderImpl(Object item, Object clientBoundItem) {
             this.item = item;
             this.clientBoundItem = clientBoundItem;
+            this.clientBoundProcessors.addAll(Config.itemGlobalClientBoundData());
         }
 
         @Override

@@ -81,7 +81,8 @@ public final class BukkitCommandManager extends AbstractCommandManager<CommandSe
                 new SetItemCustomModelDataCommand(this, plugin),
                 new SetItemItemModelCommand(this, plugin),
                 new RemoveItemComponentCommand(this, plugin),
-                new MigrateWorldStorageCommand(this, plugin)
+                new MigrateWorldStorageCommand(this, plugin),
+                new EditWorldSettingsCommand(this, plugin)
         ));
         final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
         manager.settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true);
