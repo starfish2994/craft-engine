@@ -18,7 +18,7 @@ public record ProxyboundNetworkTagDataPacket(int total, int index, byte[] data) 
             buf -> ProxyboundNetworkTagDataPacket.EMPTY
     );
 
-    private static byte[][] dataCache = null;
+    private static byte[][] CACHED_BYTES = null;
 
     private void encode(FriendlyByteBuf buf) {
         buf.writeLong(BukkitCraftEngine.instance().proxyMessageManager().networkTagDataVersion()); // Version
@@ -38,8 +38,8 @@ public record ProxyboundNetworkTagDataPacket(int total, int index, byte[] data) 
     }
 
     // 刷新缓存
-    public static void refreshDataCache() {
-        byte[] dataCache = ProxyboundNetworkTagDataPacket.buildDataCache();
+    public static void buildDataCache() {
+        byte[] dataCache = ProxyboundNetworkTagDataPacket.buildDataCache0();
 
         int num = dataCache.length / PAGE_LENGTH;
         int total = dataCache.length % PAGE_LENGTH == 0 ? num : num + 1;
@@ -52,7 +52,7 @@ public record ProxyboundNetworkTagDataPacket(int total, int index, byte[] data) 
             System.arraycopy(dataCache, i, chunk, 0, end - i);
             data[index++] = chunk;
         }
-        ProxyboundNetworkTagDataPacket.dataCache = data;
+        ProxyboundNetworkTagDataPacket.CACHED_BYTES = data;
     }
 
     // 构建数据
@@ -67,9 +67,9 @@ public record ProxyboundNetworkTagDataPacket(int total, int index, byte[] data) 
 
     //发送数据
     public static void sendData(NetWorkUser user) {
-        int total = ProxyboundNetworkTagDataPacket.dataCache.length;
+        int total = ProxyboundNetworkTagDataPacket.CACHED_BYTES.length;
         for (int i = 0; i < total; i++) {
-            user.sendCustomPacket(new ProxyboundNetworkTagDataPacket(total, i, ProxyboundNetworkTagDataPacket.dataCache[i]));
+            user.sendCustomPacket(new ProxyboundNetworkTagDataPacket(total, i, ProxyboundNetworkTagDataPacket.CACHED_BYTES[i]));
         }
     }
 }
