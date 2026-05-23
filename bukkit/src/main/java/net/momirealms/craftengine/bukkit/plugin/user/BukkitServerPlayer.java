@@ -231,8 +231,6 @@ public class BukkitServerPlayer extends Player {
     private FurnitureHitData furnitureHitData;
     // 缓存可见的家具光源数据
     private FurnitureLightData furnitureLightData;
-    // 是否已经被注入了http channel handler
-    private boolean httpHostInjected;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -1868,13 +1866,5 @@ public class BukkitServerPlayer extends Player {
             }
         }
         return 0;
-    }
-
-    public boolean httpHostInjected() {
-        return this.httpHostInjected;
-    }
-
-    public void setHttpHostInjected(boolean httpHostInjected) {
-        this.httpHostInjected = httpHostInjected;
     }
 }

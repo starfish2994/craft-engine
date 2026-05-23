@@ -29,6 +29,7 @@ public final class DropboxHost implements ResourcePackHost {
     private final String appKey;
     private final String appSecret;
     private final String uploadPath;
+    private final Path cacheFilePath;
     private final ReentrantLock tokenLock = new ReentrantLock();
 
     private volatile String accessToken;
@@ -37,11 +38,12 @@ public final class DropboxHost implements ResourcePackHost {
     private String cachedUrl;
     private String cachedSha1;
 
-    public DropboxHost(String appKey, String appSecret, String refreshToken, String uploadPath) {
+    private DropboxHost(String appKey, String appSecret, String refreshToken, String uploadPath, Path cacheFilePath) {
         this.appKey = appKey;
         this.appSecret = appSecret;
         this.refreshToken = refreshToken;
         this.uploadPath = uploadPath.startsWith("/") ? uploadPath : "/" + uploadPath;
+        this.cacheFilePath = cacheFilePath;
 
         this.readCacheFromDisk();
     }
@@ -214,9 +216,8 @@ public final class DropboxHost implements ResourcePackHost {
     }
 
     private void readCacheFromDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("dropbox.json");
-        if (!Files.exists(cachePath)) return;
-        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(cachePath), StandardCharsets.UTF_8)) {
+        if (!Files.exists(this.cacheFilePath)) return;
+        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(this.cacheFilePath), StandardCharsets.UTF_8)) {
             Map<String, Object> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, Object>>(){}.getType());
             this.cachedUrl = (String) cache.get("url");
             this.cachedSha1 = (String) cache.get("sha1");
@@ -230,16 +231,15 @@ public final class DropboxHost implements ResourcePackHost {
     }
 
     private void saveCacheToDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("dropbox.json");
         try {
-            Files.createDirectories(cachePath.getParent());
+            Files.createDirectories(this.cacheFilePath.getParent());
             Map<String, Object> cache = new HashMap<>();
             cache.put("url", this.cachedUrl);
             cache.put("sha1", this.cachedSha1);
             cache.put("refresh_token", this.refreshToken);
             cache.put("access_token", this.accessToken);
             cache.put("expires_at", this.expiresAt);
-            Files.writeString(cachePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(this.cacheFilePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to persist Dropbox cache", e);
         }
@@ -251,6 +251,7 @@ public final class DropboxHost implements ResourcePackHost {
         private static final String[] APP_KEY = new String[] {"app_key", "app-key"};
         private static final String[] APP_SECRET = new String[] {"app_secret", "app-secret"};
         private static final String[] REFRESH_TOKEN = new String[] {"refresh_token", "refresh-token"};
+        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
 
         @Override
         public DropboxHost create(ConfigSection section) {
@@ -259,7 +260,9 @@ public final class DropboxHost implements ResourcePackHost {
             String appSecret = useEnv ? getNonNullEnvironmentVariable(section, "CE_DROPBOX_APP_SECRET") : section.getNonEmptyString(APP_SECRET);
             String refreshToken = useEnv ? getNonNullEnvironmentVariable(section, "CE_DROPBOX_REFRESH_TOKEN") : section.getNonEmptyString(REFRESH_TOKEN);
             String uploadPath = section.getNonNullString(UPLOAD_PATH);
-            return new DropboxHost(appKey, appSecret, refreshToken, uploadPath);
+            Path cacheFilePath = CraftEngine.instance().dataFolderPath().resolve("cache")
+                    .resolve(section.getValue(CACHE_FILE_NAME, it -> it.getAsNonEmptyString().replace("/", "_"), "dropbox.json"));
+            return new DropboxHost(appKey, appSecret, refreshToken, uploadPath, cacheFilePath);
         }
     }
 }

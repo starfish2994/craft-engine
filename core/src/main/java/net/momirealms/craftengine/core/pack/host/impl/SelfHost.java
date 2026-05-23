@@ -29,7 +29,7 @@ public final class SelfHost implements ResourcePackHost {
     public static final ResourcePackHostFactory<SelfHost> FACTORY = new Factory();
     private static final SelfHost INSTANCE = new SelfHost();
 
-    public SelfHost() {
+    private SelfHost() {
         SelfHostHttpServer.instance().readResourcePack(Config.fileToUpload());
     }
 
