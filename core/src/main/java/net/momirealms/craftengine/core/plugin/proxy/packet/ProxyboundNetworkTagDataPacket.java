@@ -15,15 +15,15 @@ public record ProxyboundNetworkTagDataPacket(long networkTagDataVersion, int tot
     public static final Key ID = Key.ce("tag_data");
     public static final NetworkCodec<FriendlyByteBuf, ProxyboundNetworkTagDataPacket> CODEC = ClientCustomPacket.codec(
             (packet, buf) -> {
-                buf.writeLong(packet.networkTagDataVersion); // Version
-                buf.writeInt(packet.total);
-                buf.writeInt(packet.index);
+                buf.writeVarLong(packet.networkTagDataVersion); // Version
+                buf.writeVarInt(packet.total);
+                buf.writeVarInt(packet.index);
                 buf.writeBytes(packet.data);
             },
             buf -> {
-                long version = buf.readLong();
-                int total = buf.readInt();
-                int index = buf.readInt();
+                long version = buf.readVarLong();
+                int total = buf.readVarInt();
+                int index = buf.readVarInt();
                 byte[] data = buf.readFixedBytes(buf.readableBytes());
                 return new ProxyboundNetworkTagDataPacket(version, total, index, data);
             }

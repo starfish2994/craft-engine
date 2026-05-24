@@ -15,11 +15,11 @@ public record ServerboundNetworkTagDataVersionPacket(long proxyTagDataVersion, U
     public static final Key ID = Key.ce("tag_data");
     public static final NetworkCodec<FriendlyByteBuf, ServerboundNetworkTagDataVersionPacket> CODEC = ServerCustomPacket.codec(
             (packet, buf) -> {
-                buf.writeLong(packet.proxyTagDataVersion);
+                buf.writeVarLong(packet.proxyTagDataVersion);
                 buf.writeUUID(packet.proxyUuid);
             },
             buf -> {
-                long dataVersion = buf.readLong();
+                long dataVersion = buf.readVarLong();
                 UUID proxyUUID = buf.readUUID();
                 return new ServerboundNetworkTagDataVersionPacket(dataVersion, proxyUUID);
             }
