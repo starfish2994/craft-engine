@@ -43,7 +43,7 @@ public record ServerboundNetworkTagDataVersionPacket(long proxyTagDataVersion, U
         ProxyMessageManager manager = BukkitCraftEngine.instance().proxyMessageManager();
         manager.setProxy((BukkitServerPlayer) user, this.proxyUuid);
         if (this.proxyTagDataVersion != manager.networkTagDataVersion()) {
-            user.sendCustomPacket(new ProxyboundNetworkTagDataPacket());
+            ProxyboundNetworkTagDataPacket.sendData(user);
         }
     }
 }

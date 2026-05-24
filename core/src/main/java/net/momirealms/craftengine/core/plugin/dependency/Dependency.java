@@ -16,7 +16,7 @@ public class Dependency {
     private final String jarInJarPath;
 
     public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations) {
-        this(id, groupId, artifactId, relocations, DependencyVisibility.PUBLIC);
+        this(id, groupId, artifactId, relocations, DependencyVisibility.INTERNAL);
     }
 
     public Dependency(String id, String groupId, String artifactId, List<Relocation> relocations, DependencyVisibility visibility) {
