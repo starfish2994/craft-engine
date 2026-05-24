@@ -4,10 +4,13 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Tristate;
 import net.momirealms.sparrow.nbt.CompoundTag;
 
+import java.util.Set;
+
 public final class WorldSettings {
     public static final String RESTORE_CUSTOM_BLOCK = "restore_custom_blocks_on_chunk_load";
     public static final String SYNC_CUSTOM_BLOCK = "sync_custom_blocks_on_chunk_load";
     public static final String RESTORE_VANILLA_BLOCK = "restore_vanilla_blocks_on_chunk_unload";
+    public static final Set<String> SETTINGS = Set.of(RESTORE_CUSTOM_BLOCK, SYNC_CUSTOM_BLOCK, RESTORE_VANILLA_BLOCK);
     private final CompoundTag settings;
     public boolean restoreCustomBlocksOnChunkLoad;
     public boolean syncCustomBlocksOnChunkLoad;
@@ -30,6 +33,21 @@ public final class WorldSettings {
             case SYNC_CUSTOM_BLOCK -> setSyncCustomBlocksOnChunkLoad(value);
             case RESTORE_VANILLA_BLOCK -> setRestoreVanillaBlocksOnChunkUnload(value);
         }
+    }
+
+    public Tristate get(String node) {
+        switch (node) {
+            case RESTORE_CUSTOM_BLOCK -> {
+                return Tristate.of(this.restoreCustomBlocksOnChunkLoad);
+            }
+            case RESTORE_VANILLA_BLOCK -> {
+                return Tristate.of(this.restoreVanillaBlocksOnChunkLoad);
+            }
+            case SYNC_CUSTOM_BLOCK -> {
+                return Tristate.of(this.syncCustomBlocksOnChunkLoad);
+            }
+        }
+        return null;
     }
 
     public void setSyncCustomBlocksOnChunkLoad(Tristate state) {
