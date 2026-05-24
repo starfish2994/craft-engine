@@ -5,9 +5,9 @@ import net.momirealms.craftengine.core.util.Tristate;
 import net.momirealms.sparrow.nbt.CompoundTag;
 
 public final class WorldSettings {
-    private static final String RESTORE_CUSTOM_BLOCK = "restore_custom_blocks_on_chunk_load";
-    private static final String SYNC_CUSTOM_BLOCK = "sync_custom_blocks_on_chunk_load";
-    private static final String RESTORE_VANILLA_BLOCK = "restore_vanilla_blocks_on_chunk_unload";
+    public static final String RESTORE_CUSTOM_BLOCK = "restore_custom_blocks_on_chunk_load";
+    public static final String SYNC_CUSTOM_BLOCK = "sync_custom_blocks_on_chunk_load";
+    public static final String RESTORE_VANILLA_BLOCK = "restore_vanilla_blocks_on_chunk_unload";
     private final CompoundTag settings;
     public boolean restoreCustomBlocksOnChunkLoad;
     public boolean syncCustomBlocksOnChunkLoad;

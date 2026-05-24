@@ -200,6 +200,13 @@ migrate_world_storage:
     - /craftengine feature migrate-world-storage
     - /ce feature migrate-world-storage
 
+edit_world_settings:
+  enable: true
+  permission: ce.command.admin.edit_world_settings
+  usage:
+    - /craftengine feature edit-world-settings
+    - /ce feature edit-world-settings
+
 # Debug commands
 debug_set_block:
   enable: true

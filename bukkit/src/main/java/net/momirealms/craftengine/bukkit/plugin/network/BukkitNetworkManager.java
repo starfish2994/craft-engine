@@ -85,7 +85,7 @@ import java.util.function.Predicate;
 
 public final class BukkitNetworkManager extends AbstractNetworkManager implements Listener {
     public static final PacketIds PACKET_IDS = VersionHelper.isOrAbove1_20_5 ? PacketIds1_20_5.INSTANCE : PacketIds1_20.INSTANCE;
-    private static final Map<Class<?>, NMSPacketListener> nmsPacketListeners = new IdentityHashMap<>(128);
+    private static final ClassIdentityMap<NMSPacketListener> nmsPacketListeners = new ClassIdentityMap<>();
     private static final ByteBufferPacketListenerHolder[] s2cHandshakingPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.CLIENTBOUND, ConnectionState.HANDSHAKING)];
     private static final ByteBufferPacketListenerHolder[] c2sHandshakingPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.SERVERBOUND, ConnectionState.HANDSHAKING)];
     private static final ByteBufferPacketListenerHolder[] s2cStatusPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.CLIENTBOUND, ConnectionState.STATUS)];
