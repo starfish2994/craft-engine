@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -133,4 +134,7 @@ public interface NetWorkUser {
      * <code>1.20.3+</code> 可以提供多个资源包，在不支持的版本只会使用列表的首个资源包</br>
      */
     void addResourcePackTasks(List<ResourcePackDownloadData> dataList);
+
+    @Nullable
+    InetAddress address();
 }

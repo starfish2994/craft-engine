@@ -29,13 +29,13 @@ public final class SelfHost implements ResourcePackHost {
     public static final ResourcePackHostFactory<SelfHost> FACTORY = new Factory();
     private static final SelfHost INSTANCE = new SelfHost();
 
-    public SelfHost() {
+    private SelfHost() {
         SelfHostHttpServer.instance().readResourcePack(Config.fileToUpload());
     }
 
     @Override
     public CompletableFuture<List<ResourcePackDownloadData>> requestResourcePackDownloadLink(NetWorkUser user) {
-        ResourcePackDownloadData data = SelfHostHttpServer.instance().generateOneTimeUrl(user.uuid(), user.nettyChannel());
+        ResourcePackDownloadData data = SelfHostHttpServer.instance().generateOneTimeUrl(user);
         if (data == null) return CompletableFuture.completedFuture(List.of());
         return CompletableFuture.completedFuture(List.of(data));
     }

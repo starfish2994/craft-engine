@@ -10,6 +10,8 @@ import java.util.List;
 public final class S3HostFactory implements ResourcePackHostFactory<S3Host> {
     public static final ResourcePackHostFactory<S3Host> INSTANCE = new S3HostFactory();
 
+    private S3HostFactory() {}
+
     @Override
     public S3Host create(ConfigSection section) {
         CraftEngine.instance().dependencyManager().loadDependencies(
