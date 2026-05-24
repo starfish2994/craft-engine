@@ -43,6 +43,7 @@ import net.momirealms.craftengine.core.plugin.network.NetworkManager;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.legacy.LegacyRecipeTypes;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.RecipeDisplayTypes;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplayTypes;
+import net.momirealms.craftengine.core.plugin.proxy.ProxyMessageManager;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.sound.SoundManager;
 import net.momirealms.craftengine.core.util.CompletableFutures;
@@ -101,6 +102,7 @@ public abstract class CraftEngine implements Plugin {
     protected EntityCullingManager entityCullingManager;
     protected TeamManager teamManager;
     protected PaintingManager paintingManager;
+    protected ProxyMessageManager proxyMessageManager;
 
     private final PluginTaskRegistry preEnableTaskRegistry = new PluginTaskRegistry();
     private final PluginTaskRegistry postEnableTaskRegistry = new PluginTaskRegistry();
@@ -203,6 +205,7 @@ public abstract class CraftEngine implements Plugin {
         this.projectileManager.reload();
         this.seatManager.reload();
         this.networkManager.reload();
+        this.proxyMessageManager.reload();
     }
 
     private void runDelayTasks(boolean reloadRecipe) {
@@ -331,6 +334,8 @@ public abstract class CraftEngine implements Plugin {
         this.lootManager.delayedInit();
         // 注册脱离坐骑监听器
         this.seatManager.delayedInit();
+        // 注册玩家相关监听器
+        this.proxyMessageManager.delayedInit();
         // 加载实体剔除线程
         this.entityCullingManager.load();
 
@@ -501,6 +506,7 @@ public abstract class CraftEngine implements Plugin {
         if (this.guiManager != null) this.guiManager.disable();
         if (this.soundManager != null) this.soundManager.disable();
         if (this.paintingManager != null) this.paintingManager.disable();
+        if (this.proxyMessageManager != null) this.proxyMessageManager.disable();
         if (this.lootManager != null) this.lootManager.disable();
         if (this.seatManager != null) this.seatManager.disable();
         if (this.translationManager != null) this.translationManager.disable();
@@ -743,8 +749,18 @@ public abstract class CraftEngine implements Plugin {
     }
 
     @Override
+    public PaintingManager paintingManager() {
+        return this.paintingManager;
+    }
+
+    @Override
     public SeatManager seatManager() {
         return this.seatManager;
+    }
+
+    @Override
+    public ProxyMessageManager proxyMessageManager() {
+        return this.proxyMessageManager;
     }
 
     @Override

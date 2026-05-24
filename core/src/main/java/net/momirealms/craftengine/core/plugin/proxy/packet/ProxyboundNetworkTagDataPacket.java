@@ -1,0 +1,81 @@
+package net.momirealms.craftengine.core.plugin.proxy.packet;
+
+import io.netty.buffer.Unpooled;
+import net.momirealms.craftengine.core.font.NetworkTagDataSerializer;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
+import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
+import net.momirealms.craftengine.core.util.FriendlyByteBuf;
+import net.momirealms.craftengine.core.util.Key;
+
+import java.util.Arrays;
+
+public record ProxyboundNetworkTagDataPacket(long networkTagDataVersion, int total, int index, byte[] data) implements ClientCustomPacket {
+    public static final Key ID = Key.ce("tag_data");
+    public static final NetworkCodec<FriendlyByteBuf, ProxyboundNetworkTagDataPacket> CODEC = ClientCustomPacket.codec(
+            (packet, buf) -> {
+                buf.writeLong(packet.networkTagDataVersion); // Version
+                buf.writeInt(packet.total);
+                buf.writeInt(packet.index);
+                buf.writeBytes(packet.data);
+            },
+            buf -> {
+                long version = buf.readLong();
+                int total = buf.readInt();
+                int index = buf.readInt();
+                byte[] data = buf.readFixedBytes(buf.readableBytes());
+                return new ProxyboundNetworkTagDataPacket(version, total, index, data);
+            }
+    );
+    private static final int PAGE_LENGTH = 30000; // https://docs.papermc.io/velocity/reference/system-properties/#velocitymax-plugin-message-payload-size
+    private static volatile ProxyboundNetworkTagDataPacket[] CACHED_PACKETS = null;
+
+    public static void rebuildDataCache() {
+        byte[] rawData = serializeTagData();
+        CACHED_PACKETS = buildPackets(rawData);
+    }
+
+    private static byte[] serializeTagData() {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            NetworkTagDataSerializer.writeOffsetFont(buf, CraftEngine.instance().fontManager().offsetFont());
+            NetworkTagDataSerializer.writeImages(buf, CraftEngine.instance().fontManager().loadedImages());
+            NetworkTagDataSerializer.writeL10n(buf, CraftEngine.instance().translationManager());
+            NetworkTagDataSerializer.writeGlobalVariables(buf, CraftEngine.instance().globalVariableManager());
+            return buf.readFixedBytes(buf.readableBytes());
+        } finally {
+            buf.release();
+        }
+    }
+
+    private static ProxyboundNetworkTagDataPacket[] buildPackets(byte[] data) {
+        long version = CraftEngine.instance().proxyMessageManager().networkTagDataVersion();
+        int total = Math.max(1, (data.length + PAGE_LENGTH - 1) / PAGE_LENGTH);
+        ProxyboundNetworkTagDataPacket[] packets = new ProxyboundNetworkTagDataPacket[total];
+        for (int i = 0; i < total; i++) {
+            int from = i * PAGE_LENGTH;
+            byte[] chunk = Arrays.copyOfRange(data, from, Math.min(from + PAGE_LENGTH, data.length));
+            packets[i] = new ProxyboundNetworkTagDataPacket(version, total, i, chunk);
+        }
+        return packets;
+    }
+
+    public static void sendData(NetWorkUser user) {
+        ProxyboundNetworkTagDataPacket[] packets = CACHED_PACKETS;
+        if (packets == null) return;
+        for (ProxyboundNetworkTagDataPacket packet : packets) {
+            user.sendCustomPacket(packet);
+        }
+    }
+
+    @Override
+    public Key id() {
+        return ID;
+    }
+
+    @Override
+    public NetworkCodec<FriendlyByteBuf, ProxyboundNetworkTagDataPacket> codec() {
+        return CODEC;
+    }
+}
