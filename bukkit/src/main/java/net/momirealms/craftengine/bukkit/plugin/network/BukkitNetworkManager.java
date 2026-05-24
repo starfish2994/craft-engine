@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin.network;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.util.internal.logging.InternalLogger;
@@ -12,7 +13,6 @@ import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCo
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
-import net.momirealms.craftengine.core.plugin.network.id.PacketIds;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.common.*;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.FinishConfigurationListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.NMSFinishConfigurationListener;
@@ -37,6 +37,7 @@ import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.plugin.network.*;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
+import net.momirealms.craftengine.core.plugin.network.id.PacketIds;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListenerHolder;
 import net.momirealms.craftengine.core.plugin.network.listener.NMSPacketListener;
@@ -79,11 +80,12 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public final class BukkitNetworkManager extends AbstractNetworkManager implements Listener {
     public static final PacketIds PACKET_IDS = VersionHelper.isOrAbove1_20_5 ? PacketIds1_20_5.INSTANCE : PacketIds1_20.INSTANCE;
-    private static final Map<Class<?>, NMSPacketListener> nmsPacketListeners = new IdentityHashMap<>(128);
+    private static final ClassIdentityMap<NMSPacketListener> nmsPacketListeners = new ClassIdentityMap<>();
     private static final ByteBufferPacketListenerHolder[] s2cHandshakingPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.CLIENTBOUND, ConnectionState.HANDSHAKING)];
     private static final ByteBufferPacketListenerHolder[] c2sHandshakingPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.SERVERBOUND, ConnectionState.HANDSHAKING)];
     private static final ByteBufferPacketListenerHolder[] s2cStatusPacketListeners = new ByteBufferPacketListenerHolder[PacketIdHelper.count(PacketFlow.CLIENTBOUND, ConnectionState.STATUS)];
@@ -113,6 +115,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     private static final String PLAYER_CHANNEL_HANDLER_NAME = "craftengine_player_channel_handler";
     private static final String PACKET_ENCODER = "craftengine_encoder";
     private static final String PACKET_DECODER = "craftengine_decoder";
+    private static final String HTTP_DECODER = "craftengine_http_decoder";
     private static BukkitNetworkManager instance;
     private final BukkitCraftEngine plugin;
     private final TriConsumer<ChannelHandler, Object, Object> packetConsumer;
@@ -126,6 +129,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     private BukkitServerPlayer[] onlineUserArray = new BukkitServerPlayer[0];
     private int[] blockStateRemapper;
     private int[] modBlockStateRemapper;
+    private Consumer<ChannelPipeline> serverPortHost;
 
     public BukkitNetworkManager(BukkitCraftEngine plugin) {
         super(plugin);
@@ -709,6 +713,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         }
 
         addToPipeline(pipeline, new PluginChannelEncoder(user), new PluginChannelDecoder(user));
+        if (this.serverPortHost != null) {
+            pipeline.addFirst(HTTP_DECODER, new HTTPChannelDecoder());
+        }
         channel.closeFuture().addListener((ChannelFutureListener) future -> handleDisconnection(user.nettyChannel()));
         setUser(channel, user);
     }
@@ -996,5 +1003,36 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
                 buf.readerIndex(preProcessIndex);
             }
         }
+    }
+
+    public class HTTPChannelDecoder extends ByteToMessageDecoder {
+
+        @Override
+        protected void decode(ChannelHandlerContext context, ByteBuf buf, List<Object> list) throws Exception {
+            if (check(context, buf)) return;
+            context.channel().pipeline().remove(this);
+            if (buf.isReadable()) {
+                list.add(buf.retain());
+            }
+        }
+
+        private boolean check(ChannelHandlerContext context, ByteBuf buf) {
+            if (BukkitNetworkManager.this.serverPortHost == null) return false;
+            int readableBytes = buf.readableBytes();
+            if (readableBytes == 0) return false;
+            if (readableBytes == 1 && buf.getByte(0) == 'G') return true;
+            if (readableBytes == 2 && buf.getByte(0) == 'G' && buf.getByte(1) == 'E') return true;
+            if (readableBytes < 3 || buf.getByte(0) != 'G' || buf.getByte(1) != 'E' || buf.getByte(2) != 'T') return false;
+            ChannelPipeline pipeline = context.channel().pipeline();
+            for (ChannelHandler handler : pipeline.toMap().values()) pipeline.remove(handler);
+            BukkitNetworkManager.this.serverPortHost.accept(pipeline);
+            pipeline.fireChannelRead(buf.retain());
+            return true;
+        }
+    }
+
+    @Override
+    public void setServerPortHost(Consumer<ChannelPipeline> channelPipelineConsumer) {
+        this.serverPortHost = channelPipelineConsumer;
     }
 }

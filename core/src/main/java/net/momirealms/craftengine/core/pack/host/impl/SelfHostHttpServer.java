@@ -22,10 +22,12 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -71,6 +73,8 @@ public final class SelfHostHttpServer {
     private boolean denyNonMinecraft = true;
     private boolean useToken;
     private boolean strictValidation = false;
+    private boolean useServerPort = false;
+    private boolean autoIp = false;
     private boolean enabled = false;
 
     private long globalUploadRateLimit = 0;
@@ -109,14 +113,18 @@ public final class SelfHostHttpServer {
                                  boolean token,
                                  long globalUploadRateLimit,
                                  long minDownloadSpeed,
-                                 boolean strictValidation) {
+                                 boolean strictValidation,
+                                 boolean useServerPort,
+                                 boolean autoIp) {
         this.ip = ip;
+        this.autoIp = autoIp;
         this.url = url;
         this.denyNonMinecraft = denyNonMinecraft;
         this.protocol = protocol;
         this.limitPerIp = limitPerIp;
         this.useToken = token;
         this.strictValidation = strictValidation;
+        this.useServerPort = useServerPort;
         if (this.globalUploadRateLimit != globalUploadRateLimit || this.minDownloadSpeed != minDownloadSpeed) {
             this.globalUploadRateLimit = globalUploadRateLimit;
             this.minDownloadSpeed = minDownloadSpeed;
@@ -126,18 +134,48 @@ public final class SelfHostHttpServer {
                 this.trafficShapingHandler.setWriteChannelLimit(initSize);
             }
         }
-        if (this.port == port && this.serverChannel != null && this.enabled) return;
-        disable();
-
-        this.port = port;
-        initializeServer();
+        if (useServerPort) {
+            disable();
+            this.port = port;
+            initializeServerPortHost();
+        } else {
+            if (this.port == port && this.serverChannel != null && this.enabled) return;
+            disable();
+            this.port = port;
+            initializeServer();
+        }
     }
 
-    public String url() {
+    public String url(boolean localhost) {
         if (this.url != null && !this.url.isEmpty()) {
             return this.url;
         }
-        return this.protocol + "://" + this.ip + ":" + this.port + "/";
+        if (this.useServerPort) {
+            return this.protocol + "://" + (localhost ? "localhost" : this.ip) + ":" + CraftEngine.instance().platform().getServerPort() + "/";
+        } else {
+            return this.protocol + "://" + (localhost ? "localhost" : this.ip) + ":" + this.port + "/";
+        }
+    }
+
+    private void initializeServerPortHost() {
+        long initSize = this.globalUploadRateLimit <= 0 ? 0 : Math.max(this.minDownloadSpeed, this.globalUploadRateLimit);
+        this.virtualTrafficExecutor = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
+        this.trafficShapingHandler = new GlobalChannelTrafficShapingHandler(
+                this.virtualTrafficExecutor,
+                initSize,
+                0, // 全局读取不限
+                initSize, // 默认单通道和总体一致
+                0, // 单通道读取不限
+                100, // checkInterval (ms)
+                10_000 // maxTime (ms)
+        );
+        CraftEngine.instance().networkManager().setServerPortHost(pipeline -> {
+            pipeline.addLast("trafficShaping", SelfHostHttpServer.this.trafficShapingHandler);
+            pipeline.addLast(new HttpServerCodec());
+            pipeline.addLast(new ChunkedWriteHandler());
+            pipeline.addLast(new HttpObjectAggregator(1048576));
+            pipeline.addLast(new RequestHandler());
+        });
     }
 
     private void initializeServer() {
@@ -365,17 +403,23 @@ public final class SelfHostHttpServer {
     }
 
     @Nullable
-    public ResourcePackDownloadData generateOneTimeUrl(UUID user) {
+    public ResourcePackDownloadData generateOneTimeUrl(NetWorkUser user) {
         if (this.resourcePackBytes == null) return null;
 
+        UUID uuid = user.uuid();
+        if (uuid == null) return null;
+
+        InetAddress address = user.address();
+        boolean localhost = this.autoIp && !CraftEngine.instance().platform().hasProxy() && address != null && address.isLoopbackAddress();
+
         if (!this.useToken) {
-            return new ResourcePackDownloadData(url() + "download", this.packUUID, this.packHash);
+            return new ResourcePackDownloadData(url(localhost) + "download", this.packUUID, this.packHash);
         }
 
         String token = UUID.randomUUID().toString();
-        this.oneTimePackUrls.put(token, this.strictValidation ? user.toString().replace("-", "") : "");
+        this.oneTimePackUrls.put(token, this.strictValidation ? uuid.toString().replace("-", "") : "");
         return new ResourcePackDownloadData(
-                url() + "download?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8),
+                url(localhost) + "download?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8),
                 this.packUUID,
                 this.packHash
         );

@@ -32,6 +32,7 @@ public final class OneDriveHost implements ResourcePackHost {
     private final String clientId;
     private final String clientSecret;
     private final String uploadPath;
+    private final Path cacheFilePath;
     private final ReentrantLock tokenLock = new ReentrantLock();
 
     private String refreshToken;
@@ -41,11 +42,12 @@ public final class OneDriveHost implements ResourcePackHost {
     private String cachedSha1;
     private String cachedFileId;
 
-    public OneDriveHost(String clientId, String clientSecret, String refreshToken, String uploadPath) {
+    private OneDriveHost(String clientId, String clientSecret, String refreshToken, String uploadPath, Path cacheFilePath) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.refreshToken = refreshToken;
         this.uploadPath = uploadPath;
+        this.cacheFilePath = cacheFilePath;
 
         this.readCacheFromDisk();
     }
@@ -213,9 +215,8 @@ public final class OneDriveHost implements ResourcePackHost {
     }
 
     private void readCacheFromDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("onedrive.json");
-        if (!Files.exists(cachePath)) return;
-        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(cachePath), StandardCharsets.UTF_8)) {
+        if (!Files.exists(this.cacheFilePath)) return;
+        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(this.cacheFilePath), StandardCharsets.UTF_8)) {
             Map<String, String> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, String>>(){}.getType());
             this.refreshToken = cache.getOrDefault("refresh-token", this.refreshToken);
             this.accessToken = cache.get("access-token");
@@ -228,16 +229,15 @@ public final class OneDriveHost implements ResourcePackHost {
     }
 
     private void saveCacheToDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("onedrive.json");
         try {
-            Files.createDirectories(cachePath.getParent());
+            Files.createDirectories(this.cacheFilePath.getParent());
             Map<String, String> cache = new HashMap<>();
             cache.put("refresh-token", this.refreshToken);
             cache.put("access-token", this.accessToken != null ? this.accessToken : "");
             cache.put("expires-at", String.valueOf(this.expiresAt));
             cache.put("sha1", this.cachedSha1 != null ? this.cachedSha1 : "");
             cache.put("file-id", this.cachedFileId != null ? this.cachedFileId : "");
-            Files.writeString(cachePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(this.cacheFilePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to persist OneDrive cache", e);
         }
@@ -249,6 +249,7 @@ public final class OneDriveHost implements ResourcePackHost {
         private static final String[] CLIENT_SECRET = new String[] {"client_secret", "client-secret"};
         private static final String[] REFRESH_TOKEN = new String[] {"refresh_token", "refresh-token"};
         private static final String[] UPLOAD_PATH = new String[] {"upload_path", "upload-path"};
+        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
 
         @Override
         public OneDriveHost create(ConfigSection section) {
@@ -257,7 +258,9 @@ public final class OneDriveHost implements ResourcePackHost {
             String clientSecret = useEnv ? getNonNullEnvironmentVariable(section, "CE_ONEDRIVE_CLIENT_SECRET") : section.getNonEmptyString(CLIENT_SECRET);
             String refreshToken = useEnv ? getNonNullEnvironmentVariable(section, "CE_ONEDRIVE_REFRESH_TOKEN") : section.getNonEmptyString(REFRESH_TOKEN);
             String uploadPath = section.getString(UPLOAD_PATH, "resource_pack.zip");
-            return new OneDriveHost(clientId, clientSecret, refreshToken, uploadPath);
+            Path cacheFilePath = CraftEngine.instance().dataFolderPath().resolve("cache")
+                    .resolve(section.getValue(CACHE_FILE_NAME, it -> it.getAsNonEmptyString().replace("/", "_"), "onedrive.json"));
+            return new OneDriveHost(clientId, clientSecret, refreshToken, uploadPath, cacheFilePath);
         }
     }
 }

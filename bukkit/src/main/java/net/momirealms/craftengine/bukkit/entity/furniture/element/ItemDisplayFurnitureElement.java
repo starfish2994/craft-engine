@@ -51,7 +51,7 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
         player.sendPacket(ClientboundBundlePacketProxy.INSTANCE.newInstance(List.of(
                 ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                         this.entityId, this.uuid,
-                        this.position.x, this.position.y, this.position.z, 0, this.position.yRot,
+                        this.position.x, this.position.y, this.position.z, this.position.xRot, this.position.yRot,
                         EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
                 ),
                 ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource))

@@ -71,9 +71,10 @@ import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProviderType;
 import net.momirealms.craftengine.core.plugin.context.selector.PlayerSelectorType;
-import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
+import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacketType;
 import net.momirealms.craftengine.core.plugin.network.mod.ServerCustomPacket;
+import net.momirealms.craftengine.core.plugin.network.mod.ServerCustomPacketType;
 import net.momirealms.craftengine.core.plugin.network.protocol.chat.ClickEvent;
 import net.momirealms.craftengine.core.plugin.network.protocol.dialog.Dialog;
 import net.momirealms.craftengine.core.plugin.network.protocol.dialog.action.DialogAction;
@@ -82,7 +83,6 @@ import net.momirealms.craftengine.core.plugin.network.protocol.dialog.input.Dial
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.legacy.LegacyRecipe;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.RecipeDisplay;
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplay;
-import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
@@ -119,8 +119,8 @@ public final class Registries {
     public static final ResourceKey<Registry<LegacyRecipe.Type<? extends LegacyRecipe>>> LEGACY_RECIPE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("legacy_recipe_type"));
     public static final ResourceKey<Registry<PostProcessorType<? extends PostProcessor>>> RECIPE_POST_PROCESSOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("recipe_post_processor_type"));
     public static final ResourceKey<Registry<ItemUpdaterType<? extends ItemUpdater>>> ITEM_UPDATER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_updater_type"));
-    public static final ResourceKey<Registry<NetworkCodec<FriendlyByteBuf, ? extends ClientCustomPacket>>> CLIENT_MOD_PACKET = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("client_mod_packet"));
-    public static final ResourceKey<Registry<NetworkCodec<FriendlyByteBuf, ? extends ServerCustomPacket>>> SERVER_MOD_PACKET = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("server_mod_packet"));
+    public static final ResourceKey<Registry<ClientCustomPacketType<? extends ClientCustomPacket>>> CLIENT_MOD_PACKET = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("client_mod_packet"));
+    public static final ResourceKey<Registry<ServerCustomPacketType<? extends ServerCustomPacket>>> SERVER_MOD_PACKET = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("server_mod_packet"));
     public static final ResourceKey<Registry<BlockEntityElementConfigType<? extends BlockEntityElement>>> BLOCK_ENTITY_ELEMENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block_entity_element_type"));
     public static final ResourceKey<Registry<CraftRemainderType<? extends CraftRemainder>>> CRAFT_REMAINDER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("craft_remainder_type"));
     public static final ResourceKey<Registry<FurnitureElementConfigType<? extends FurnitureElement>>> FURNITURE_ELEMENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_element_type"));

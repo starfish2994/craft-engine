@@ -39,7 +39,7 @@ public record ClientboundCreativeModeTabItemsPacket(Action action, List<Item> it
     }
 
     public static List<ClientboundCreativeModeTabItemsPacket> create(@NotNull Player player) {
-        if (!CustomPackets.checkPermission(player, ID, true)) return List.of();
+        if (!CustomPackets.CREATIVE_MODE_TAB_ITEMS.checkPermission(player)) return List.of();
         List<Item> itemStacks = new ArrayList<>();
         ItemManager itemManager = CraftEngine.instance().itemManager();
         List<Key> itemIds = itemManager.orderedItemIds();

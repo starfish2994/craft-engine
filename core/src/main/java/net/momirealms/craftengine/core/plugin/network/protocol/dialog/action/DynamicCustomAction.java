@@ -17,7 +17,7 @@ public final class DynamicCustomAction implements DialogAction {
     public static DynamicCustomAction read(CompoundTag tag) {
         return new DynamicCustomAction(
                 Key.of(tag.getString("id")),
-                Optional.of(tag.getCompound("additions"))
+                Optional.ofNullable(tag.getCompound("additions"))
         );
     }
 

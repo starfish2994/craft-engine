@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.network;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelPipeline;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public interface NetworkManager extends Manageable {
 
@@ -62,4 +64,6 @@ public interface NetworkManager extends Manageable {
     }
 
     IllegalCharacterProcessResult processIllegalCharacters(String raw, char replacement);
+
+    void setServerPortHost(Consumer<ChannelPipeline> pipeline);
 }

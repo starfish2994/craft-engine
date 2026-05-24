@@ -7,6 +7,8 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.core.util.GameEdition;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
+
 public final class FakeBukkitServerPlayer extends BukkitServerPlayer {
 
     public FakeBukkitServerPlayer(BukkitCraftEngine plugin) {
@@ -35,5 +37,10 @@ public final class FakeBukkitServerPlayer extends BukkitServerPlayer {
     @Override
     public boolean isFakePlayer() {
         return true;
+    }
+
+    @Override
+    public InetAddress address() {
+        return null;
     }
 }

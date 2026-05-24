@@ -207,7 +207,7 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
         }
 
         private void updateLightData() {
-            List<LightConfig> lightData = this.behavior.lightDataByVariant.get(this.furniture.getCurrentVariant().name());
+            List<LightConfig> lightData = this.behavior.getLightDataByVariant(this.furniture.getCurrentVariant().name());
             if (lightData != null) {
                 List<LightData> currentActualise = lightData.stream().map(it -> it.create(this.furniture)).toList();
                 this.furniture.snapshotState().setCustomData(LIGHT_DATA_KEY, currentActualise);

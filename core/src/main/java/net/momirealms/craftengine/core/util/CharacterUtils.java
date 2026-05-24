@@ -105,4 +105,12 @@ public final class CharacterUtils {
         }
         return sb.toString();
     }
+
+    public static String convertIfUnicode(String str) {
+        if (str.startsWith("\\u")) {
+            return new String(CharacterUtils.decodeUnicodeToChars(str));
+        } else {
+            return str;
+        }
+    }
 }

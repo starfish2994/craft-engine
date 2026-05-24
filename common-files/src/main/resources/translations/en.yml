@@ -89,6 +89,9 @@ command.place_feature.success: "<white>Placed \"<arg:0>\" at <arg:1>, <arg:2>, <
 command.place_feature.invalid: "<red>There is no feature with type \"<arg:0>\"</red>"
 command.chunk.not_loaded: "<red>That position is not loaded</red>"
 command.player.itemless: "<red><arg:0> is not holding any item</red>"
+command.world_settings.get.success: "<white>World setting <arg:0> is currently set to: <arg:1>"
+command.world_settings.set.success: "<white>World setting <arg:0> is now set to: <arg:1>"
+command.world_settings.failure: "<red>Cannot find world setting <arg:0>"
 snbt.invalid_syntax.parse_error: '<arg:0> at position <arg:1>: <arg:2>'
 snbt.invalid_syntax.here: <--[HERE]
 snbt.parser.expected_string_uuid: Expected a string representing a valid UUID

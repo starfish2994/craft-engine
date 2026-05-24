@@ -29,13 +29,15 @@ import java.util.concurrent.CompletableFuture;
 public final class LobFileHost implements ResourcePackHost {
     public static final ResourcePackHostFactory<LobFileHost> FACTORY = new Factory();
     private final String apiKey;
+    private final Path cacheFilePath;
     private AccountInfo accountInfo;
 
     private String cachedUrl;
     private String cachedSha1;
 
-    public LobFileHost(String apiKey) {
+    private LobFileHost(String apiKey, Path cacheFilePath) {
         this.apiKey = apiKey;
+        this.cacheFilePath = cacheFilePath;
 
         this.readCacheFromDisk();
     }
@@ -200,9 +202,8 @@ public final class LobFileHost implements ResourcePackHost {
     }
 
     private void readCacheFromDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("lobfile.json");
-        if (!Files.exists(cachePath)) return;
-        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(cachePath), StandardCharsets.UTF_8)) {
+        if (!Files.exists(this.cacheFilePath)) return;
+        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(this.cacheFilePath), StandardCharsets.UTF_8)) {
             Map<String, String> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, String>>(){}.getType());
             this.cachedUrl = cache.get("url");
             this.cachedSha1 = cache.get("sha1");
@@ -212,13 +213,12 @@ public final class LobFileHost implements ResourcePackHost {
     }
 
     private void saveCacheToDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache").resolve("lobfile.json");
         try {
-            Files.createDirectories(cachePath.getParent());
+            Files.createDirectories(this.cacheFilePath.getParent());
             Map<String, String> cache = new HashMap<>();
             cache.put("url", this.cachedUrl != null ? this.cachedUrl : "");
             cache.put("sha1", this.cachedSha1 != null ? this.cachedSha1 : "");
-            Files.writeString(cachePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(this.cacheFilePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to persist Lobfile cache", e);
         }
@@ -227,12 +227,15 @@ public final class LobFileHost implements ResourcePackHost {
     private static class Factory implements ResourcePackHostFactory<LobFileHost> {
         private static final String[] USE_ENVIRONMENT_VARIABLES = new String[] {"use_environment_variables", "use-environment-variables"};
         private static final String[] API_KEY = new String[] {"api_key", "api-key"};
+        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
 
         @Override
         public LobFileHost create(ConfigSection section) {
             boolean useEnv = section.getBoolean(USE_ENVIRONMENT_VARIABLES);
             String apiKey = useEnv ? getNonNullEnvironmentVariable(section, "CE_LOBFILE_API_KEY") : section.getNonEmptyString(API_KEY);
-            return new LobFileHost(apiKey);
+            Path cacheFilePath = CraftEngine.instance().dataFolderPath().resolve("cache")
+                    .resolve(section.getValue(CACHE_FILE_NAME, it -> it.getAsNonEmptyString().replace("/", "_"), "lobfile.json"));
+            return new LobFileHost(apiKey, cacheFilePath);
         }
     }
 

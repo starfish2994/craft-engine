@@ -264,7 +264,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onWorldSave(WorldSaveEvent event) {
         for (CEWorld world : this.worldArray) {
-            world.save();
+            world.saveChunks();
         }
     }
 
@@ -526,12 +526,13 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
             CESection[] ceSections = ceChunk.sections();
             Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
+            boolean restore = world.settings.restoreVanillaBlocksOnChunkLoad;
             synchronized (sections) {
                 for (int i = 0; i < ceSections.length; i++) {
                     CESection ceSection = ceSections[i];
                     Object section = sections[i];
                     WorldStorageInjector.uninject(section);
-                    if (Config.restoreVanillaBlocks()) {
+                    if (restore) {
                         if (!ceSection.statesContainer().isEmpty()) {
                             for (int x = 0; x < 16; x++) {
                                 for (int z = 0; z < 16; z++) {
@@ -688,7 +689,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                             }
                         }
                     }
-                    if (Config.restoreCustomBlocks()) {
+                    if (ceWorld.settings.restoreCustomBlocksOnChunkLoad) {
                         boolean isEmptyBefore = LevelChunkSectionProxy.INSTANCE.hasOnlyAir(section);
                         int sectionY = ceSection.sectionY;
                         // 有自定义方块

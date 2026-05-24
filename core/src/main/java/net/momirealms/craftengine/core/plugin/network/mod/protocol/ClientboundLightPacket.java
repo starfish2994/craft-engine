@@ -14,6 +14,8 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
 
+import java.util.Objects;
+
 public record ClientboundLightPacket(BlockPos pos, byte level) implements ClientCustomPacket {
     public static final Key ID = Key.ce("light");
     public static final NetworkCodec<FriendlyByteBuf, ClientboundLightPacket> CODEC = ClientCustomPacket.codec(
@@ -30,18 +32,18 @@ public record ClientboundLightPacket(BlockPos pos, byte level) implements Client
     public static final LazyReference<int[]> LIGHT_BLOCK_STATES_ID = LazyReference.lazyReference(() -> {
         int[] ids = new int[16];
         BlockManager blockManager = CraftEngine.instance().blockManager();
-        ids[0] = blockManager.createBlockState("minecraft:air").registryId();
+        ids[0] = Objects.requireNonNull(blockManager.createBlockState("minecraft:air")).registryId();
         for (int i = 1; i < 16; i++) {
-            ids[i] = blockManager.createBlockState("minecraft:light[level=" + i + "]").registryId();
+            ids[i] = Objects.requireNonNull(blockManager.createBlockState("minecraft:light[level=" + i + "]")).registryId();
         }
         return ids;
     });
     public static final LazyReference<int[]> WATERLOGGED_LIGHT_BLOCK_STATES_ID = LazyReference.lazyReference(() -> {
         int[] ids = new int[16];
         BlockManager blockManager = CraftEngine.instance().blockManager();
-        ids[0] = blockManager.createBlockState("minecraft:water").registryId();
+        ids[0] = Objects.requireNonNull(blockManager.createBlockState("minecraft:water")).registryId();
         for (int i = 1; i < 16; i++) {
-            ids[i] = blockManager.createBlockState("minecraft:light[level=" + i + ",waterlogged=true]").registryId();
+            ids[i] = Objects.requireNonNull(blockManager.createBlockState("minecraft:light[level=" + i + ",waterlogged=true]")).registryId();
         }
         return ids;
     });

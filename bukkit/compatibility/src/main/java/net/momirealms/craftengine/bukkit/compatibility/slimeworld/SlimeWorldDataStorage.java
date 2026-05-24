@@ -2,10 +2,13 @@ package net.momirealms.craftengine.bukkit.compatibility.slimeworld;
 
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeWorld;
+import io.lumine.mythic.bukkit.utils.Worlds;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.momirealms.craftengine.bukkit.world.BukkitStorageAdaptor;
 import net.momirealms.craftengine.bukkit.world.chunk.BukkitCEChunk;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
+import net.momirealms.craftengine.core.world.WorldSettings;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.craftengine.core.world.chunk.serialization.DefaultChunkSerializer;
@@ -30,6 +33,25 @@ public final class SlimeWorldDataStorage implements WorldDataStorage {
 
     public SlimeWorld getWorld() {
         return slimeWorld.get();
+    }
+
+    @Override
+    public WorldSettings readSettings() throws IOException {
+        SlimeWorld world = getWorld();
+        Object tag = world.getExtraData().get("craftengine:world_settings");
+        if (tag == null) return new WorldSettings();
+        CompoundTag compoundTag = NBT.fromBytes(this.adaptor.byteArrayTagToBytes(tag));
+        if (compoundTag == null) return new WorldSettings();
+        return new WorldSettings(compoundTag);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void writeSettings(WorldSettings settings) throws IOException {
+        SlimeWorld world = getWorld();
+        Object tag = this.adaptor.bytesToByteArrayTag(NBT.toBytes(settings.tag()));
+        Map<String, Object> data2 = (Map) world.getExtraData();
+        data2.put("craftengine:world_settings", tag);
     }
 
     @Override

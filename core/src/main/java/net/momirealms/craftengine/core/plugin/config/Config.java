@@ -18,6 +18,8 @@ import net.momirealms.craftengine.core.item.network.encrypt.AESGCM;
 import net.momirealms.craftengine.core.item.network.encrypt.ChaCha20;
 import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
 import net.momirealms.craftengine.core.item.network.encrypt.Xor;
+import net.momirealms.craftengine.core.item.processor.ItemProcessor;
+import net.momirealms.craftengine.core.item.processor.ItemProcessors;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ConditionalResolution;
 import net.momirealms.craftengine.core.pack.host.HttpClientManager;

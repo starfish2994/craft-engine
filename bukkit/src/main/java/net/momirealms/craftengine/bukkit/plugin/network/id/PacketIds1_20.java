@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.id;
 
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.PacketFlow;
+import net.momirealms.craftengine.core.plugin.network.id.PacketIds;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.*;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.configuration.ClientboundRegistryDataPacketProxy;
@@ -12,7 +13,6 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.Clientb
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.ServerboundHelloPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.login.ServerboundLoginAcknowledgedPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.status.ClientboundStatusResponsePacketProxy;
-import net.momirealms.craftengine.core.plugin.network.id.PacketIds;
 
 public final class PacketIds1_20 implements PacketIds {
     public static final PacketIds INSTANCE = new PacketIds1_20();

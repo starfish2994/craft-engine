@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.world.chunk.BukkitChunkAccess;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.WorldSettings;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.craftengine.core.world.chunk.serialization.DefaultChunkSerializer;
@@ -22,12 +23,29 @@ import java.util.Objects;
 
 public class PersistentDataContainerStorage implements WorldDataStorage {
     private static final NamespacedKey CHUNK_KEY = Objects.requireNonNull(NamespacedKey.fromString("craftengine:chunk_data"));
+    private static final NamespacedKey WORLD_SETTINGS_KEY = Objects.requireNonNull(NamespacedKey.fromString("craftengine:world_settings"));
     private final ChunkFactory chunkFactory;
     private final World world;
 
     public PersistentDataContainerStorage(World world, ChunkFactory chunkFactory) {
         this.chunkFactory = chunkFactory;
         this.world = world;
+    }
+
+    @Override
+    public WorldSettings readSettings() throws IOException {
+        org.bukkit.World bukkitWorld = (org.bukkit.World) world.platformWorld();
+        byte[] bytes = bukkitWorld.getPersistentDataContainer().get(WORLD_SETTINGS_KEY, PersistentDataType.BYTE_ARRAY);
+        if (bytes == null) {
+            return new WorldSettings(new CompoundTag());
+        }
+        return new WorldSettings(Objects.requireNonNull(NBT.fromBytes(bytes)));
+    }
+
+    @Override
+    public void writeSettings(WorldSettings settings) throws IOException {
+        org.bukkit.World bukkitWorld = (org.bukkit.World) world.platformWorld();
+        bukkitWorld.getPersistentDataContainer().set(WORLD_SETTINGS_KEY, PersistentDataType.BYTE_ARRAY, NBT.toBytes(settings.tag()));
     }
 
     @Override

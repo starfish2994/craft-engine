@@ -170,21 +170,20 @@ resource-pack:
     # The file to upload
     file-to-upload: "./generated/resource_pack.zip"
 
-    # If you are hosting the resource pack by yourself, replace `localhost` with your server ip otherwise it would only work on your local pc
-    # If using BungeeCord or Velocity, consider using a proxy-side plugin to handle resource pack delivery.
+    # If you're using BungeeCord or Velocity, consider using a proxy-side plugin to handle resource pack delivery.
     # Read this page for more host types and argument explanations: https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host
     hosting:
       - type: "self"
-        ip: "localhost"
-        port: 8163
+        ip: "auto"
+        port: "auto"
         protocol: "http"
-        deny-non-minecraft-request: true
-        one-time-token: true
-        strict-validation: false
-        rate-limiting:
-          max-bandwidth-per-second: 5_000_000
-          min-download-speed-per-player: 50_000
-          qps-per-ip: 5/60
+        deny_non_minecraft_request: true
+        one_time_token: true
+        strict_validation: false
+        rate_limiting:
+          max_bandwidth_per_second: 5_000_000
+          min_download_speed_per_player: 50_000
+          qps_per_ip: 5/60
 
     # HTTP proxy settings for routing resource pack download requests. For most users, this option is unnecessary.
     proxy:
@@ -446,12 +445,11 @@ image:
     -14: '\uf80d'
     -15: '\uf80e'
     -16: '\uf80f'
-    -24: '\uf810'
-    -32: '\uf811'
-    -48: '\uf812'
-    -64: '\uf813'
-    -128: '\uf814'
-    -256: '\uf815'
+    -32: '\uf810'
+    -48: '\uf811'
+    -64: '\uf812'
+    -128: '\uf813'
+    -256: '\uf814'
     1: '\uf830'
     2: '\uf831'
     3: '\uf832'
@@ -468,12 +466,11 @@ image:
     14: '\uf83d'
     15: '\uf83e'
     16: '\uf83f'
-    24: '\uf840'
-    32: '\uf841'
-    48: '\uf842'
-    64: '\uf843'
-    128: '\uf844'
-    256: '\uf845'
+    32: '\uf840'
+    48: '\uf841'
+    64: '\uf842'
+    128: '\uf843'
+    256: '\uf844'
 
 network:
   # Disables the chat reporting.
@@ -509,7 +506,7 @@ network:
 
   # Settings related to communication with CraftEngineMod
   mod-channel:
-    requires-permission: true
+    requires-permission: false
     logging-permission-denied: true
     creative-tab-max-items-per-packet: 10
 

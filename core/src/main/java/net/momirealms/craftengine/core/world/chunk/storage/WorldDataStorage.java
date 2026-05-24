@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.world.chunk.storage;
 
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
+import net.momirealms.craftengine.core.world.WorldSettings;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -11,6 +12,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 
 public interface WorldDataStorage {
+
+    WorldSettings readSettings() throws IOException;
+
+    void writeSettings(WorldSettings settings) throws IOException;
 
     default CEChunk readNewChunkAt(CEWorld world, ChunkPos pos) throws IOException {
         this.clearChunkAt(pos);

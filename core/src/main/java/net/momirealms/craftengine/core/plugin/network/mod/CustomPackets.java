@@ -14,48 +14,61 @@ import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.BiPredicate;
 
 public final class CustomPackets {
     public static final int PROTOCOL_VERSION = 1;
-    public static final NetworkCodec<FriendlyByteBuf, ClientboundLightPacket> LIGHT = registerClientbound(ClientboundLightPacket.ID, ClientboundLightPacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ClientboundVisualBlockStateBatchStartPacket> VISUAL_BLOCK_STATE_BATCH_START = registerClientbound(ClientboundVisualBlockStateBatchStartPacket.ID, ClientboundVisualBlockStateBatchStartPacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ClientboundVisualBlockStateBatchFinishedPacket> VISUAL_BLOCK_STATE_BATCH_FINISHED = registerClientbound(ClientboundVisualBlockStateBatchFinishedPacket.ID, ClientboundVisualBlockStateBatchFinishedPacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ClientboundVisualBlockStatesPacket> VISUAL_BLOCK_STATES = registerClientbound(ClientboundVisualBlockStatesPacket.ID, ClientboundVisualBlockStatesPacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ClientboundCancelBlockUpdateResponsePacket> CANCEL_BLOCK_UPDATE_RESPONSE = registerClientbound(ClientboundCancelBlockUpdateResponsePacket.ID, ClientboundCancelBlockUpdateResponsePacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ClientboundCreativeModeTabItemsPacket> CREATIVE_MODE_TAB_ITEMS = registerClientbound(ClientboundCreativeModeTabItemsPacket.ID, ClientboundCreativeModeTabItemsPacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ServerboundHandshakePacket> HANDSHAKE = registerServerbound(ServerboundHandshakePacket.ID, ServerboundHandshakePacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ServerboundEnableClientCustomBlockPacket> ENABLE_CLIENT_CUSTOM_BLOCK = registerServerbound(ServerboundEnableClientCustomBlockPacket.ID, ServerboundEnableClientCustomBlockPacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ServerboundCancelBlockUpdateRequestPacket> CANCEL_BLOCK_UPDATE_REQUEST = registerServerbound(ServerboundCancelBlockUpdateRequestPacket.ID, ServerboundCancelBlockUpdateRequestPacket.CODEC);
-    public static final NetworkCodec<FriendlyByteBuf, ServerboundLegacyPacket> LEGACY_PACKET = registerServerbound(ServerboundLegacyPacket.ID, ServerboundLegacyPacket.CODEC);
-    private static final Map<Key, Boolean> TRUSTED_PACKETS = new HashMap<>();
+    public static final BiPredicate<NetWorkUser, Key> ALWAYS_ALLOWED = (user, key) -> true;
+    public static final ClientCustomPacketType<ClientboundLightPacket> LIGHT = registerClientbound(ClientboundLightPacket.ID, ClientboundLightPacket.CODEC, ALWAYS_ALLOWED, true);
+    public static final ClientCustomPacketType<ClientboundVisualBlockStateBatchStartPacket> VISUAL_BLOCK_STATE_BATCH_START = registerClientbound(ClientboundVisualBlockStateBatchStartPacket.ID, ClientboundVisualBlockStateBatchStartPacket.CODEC, false);
+    public static final ClientCustomPacketType<ClientboundVisualBlockStateBatchFinishedPacket> VISUAL_BLOCK_STATE_BATCH_FINISHED = registerClientbound(ClientboundVisualBlockStateBatchFinishedPacket.ID, ClientboundVisualBlockStateBatchFinishedPacket.CODEC, false);
+    public static final ClientCustomPacketType<ClientboundVisualBlockStatesPacket> VISUAL_BLOCK_STATES = registerClientbound(ClientboundVisualBlockStatesPacket.ID, ClientboundVisualBlockStatesPacket.CODEC, false);
+    public static final ClientCustomPacketType<ClientboundCancelBlockUpdateResponsePacket> CANCEL_BLOCK_UPDATE_RESPONSE = registerClientbound(ClientboundCancelBlockUpdateResponsePacket.ID, ClientboundCancelBlockUpdateResponsePacket.CODEC, false);
+    public static final ClientCustomPacketType<ClientboundCreativeModeTabItemsPacket> CREATIVE_MODE_TAB_ITEMS = registerClientbound(ClientboundCreativeModeTabItemsPacket.ID, ClientboundCreativeModeTabItemsPacket.CODEC, false);
+    public static final ServerCustomPacketType<ServerboundHandshakePacket> HANDSHAKE = registerServerbound(ServerboundHandshakePacket.ID, ServerboundHandshakePacket.CODEC);
+    public static final ServerCustomPacketType<ServerboundEnableClientCustomBlockPacket> ENABLE_CLIENT_CUSTOM_BLOCK = registerServerbound(ServerboundEnableClientCustomBlockPacket.ID, ServerboundEnableClientCustomBlockPacket.CODEC);
+    public static final ServerCustomPacketType<ServerboundCancelBlockUpdateRequestPacket> CANCEL_BLOCK_UPDATE_REQUEST = registerServerbound(ServerboundCancelBlockUpdateRequestPacket.ID, ServerboundCancelBlockUpdateRequestPacket.CODEC);
+    public static final ServerCustomPacketType<ServerboundLegacyPacket> LEGACY_PACKET = registerServerbound(ServerboundLegacyPacket.ID, ServerboundLegacyPacket.CODEC);
 
     private CustomPackets() {
     }
 
     public static void init() {
-        registerTrustedPacket(ClientboundLightPacket.ID, ClientboundLightPacket.class);
     }
 
-    public static <T extends ClientCustomPacket> NetworkCodec<FriendlyByteBuf, T> registerClientbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec) {
-        ((WritableRegistry<NetworkCodec<FriendlyByteBuf, ? extends ClientCustomPacket>>) BuiltInRegistries.CLIENT_MOD_PACKET)
-                .register(ResourceKey.create(Registries.CLIENT_MOD_PACKET.location(), id), codec);
-        return codec;
+    public static <T extends ClientCustomPacket> ClientCustomPacketType<T> registerClientbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec, boolean inServerHandle) {
+        return registerClientbound(id, codec, CustomPackets::checkClientboundPacketPermission, inServerHandle);
     }
 
-    public static <T extends ServerCustomPacket> NetworkCodec<FriendlyByteBuf, T> registerServerbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec) {
-        ((WritableRegistry<NetworkCodec<FriendlyByteBuf, ? extends ServerCustomPacket>>) BuiltInRegistries.SERVER_MOD_PACKET)
-                .register(ResourceKey.create(Registries.SERVER_MOD_PACKET.location(), id), codec);
-        return codec;
+    public static <T extends ClientCustomPacket> ClientCustomPacketType<T> registerClientbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec, BiPredicate<NetWorkUser, Key> permissionChecker, boolean inServerHandle) {
+        ClientCustomPacketType<T> type = new ClientCustomPacketType<>(id, codec, permissionChecker, inServerHandle);
+        ((WritableRegistry<ClientCustomPacketType<? extends ClientCustomPacket>>) BuiltInRegistries.CLIENT_MOD_PACKET)
+                .register(ResourceKey.create(Registries.CLIENT_MOD_PACKET.location(), id), type);
+        return type;
+    }
+
+    public static <T extends ServerCustomPacket> ServerCustomPacketType<T> registerServerbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec) {
+        return registerServerbound(id, codec, CustomPackets::checkServerboundPacketPermission);
+    }
+
+    public static <T extends ServerCustomPacket> ServerCustomPacketType<T> registerServerbound(Key id, NetworkCodec<FriendlyByteBuf, T> codec, BiPredicate<NetWorkUser, Key> permissionChecker) {
+        ServerCustomPacketType<T> type = new ServerCustomPacketType<>(id, codec, permissionChecker);
+        ((WritableRegistry<ServerCustomPacketType<? extends ServerCustomPacket>>) BuiltInRegistries.SERVER_MOD_PACKET)
+                .register(ResourceKey.create(Registries.SERVER_MOD_PACKET.location(), id), type);
+        return type;
+    }
+
+    public static boolean checkServerboundPacketPermission(NetWorkUser user, Key id) {
+        return checkPermission(user, id, false);
+    }
+
+    public static boolean checkClientboundPacketPermission(NetWorkUser user, Key id) {
+        return checkPermission(user, id, true);
     }
 
     public static boolean checkPermission(NetWorkUser user, Key id, boolean toClient) {
         if (!Config.modChannelRequiresPermission()) return true;
-        Boolean isClient = TRUSTED_PACKETS.get(id);
-        if (isClient != null && isClient == toClient) return true;
         String permission = "ce.mod." + (toClient ? "clientbound" : "serverbound") + "." + (id.namespace.equals("craftengine") ? id.value : id);
         boolean hasPermission = CraftEngine.instance().compatibilityManager().hasPermission(user, permission);
         if (!hasPermission && Config.modChannelLoggingPermissionDenied()) {
@@ -65,10 +78,6 @@ public final class CustomPackets {
             ));
         }
         return hasPermission;
-    }
-
-    public static void registerTrustedPacket(@NotNull Key id, @NotNull Class<?> clazz) {
-        TRUSTED_PACKETS.put(id, ClientCustomPacket.class.isAssignableFrom(clazz));
     }
 
     public static void checkProtocolVersion(NetWorkUser user) {

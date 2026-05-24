@@ -58,4 +58,7 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_PLACE_FEATURE_INVALID = Component.translatable().key("command.place_feature.invalid");
     TranslatableComponent.Builder COMMAND_CHUNK_NOT_LOADED = Component.translatable().key("command.chunk.not_loaded");
     TranslatableComponent.Builder COMMAND_PLAYER_ITEMLESS =  Component.translatable().key("command.player.itemless");
+    TranslatableComponent.Builder COMMAND_WORLD_SETTINGS_GET_SUCCESS =  Component.translatable().key("command.world_settings.get.success");
+    TranslatableComponent.Builder COMMAND_WORLD_SETTINGS_SET_SUCCESS =  Component.translatable().key("command.world_settings.set.success");
+    TranslatableComponent.Builder COMMAND_WORLD_SETTINGS_FAILURE =  Component.translatable().key("command.world_settings.failure");
 }

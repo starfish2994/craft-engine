@@ -38,11 +38,12 @@ public final class OpenListHost implements ResourcePackHost {
     private final String uploadPath;
     private final boolean disableUpload;
     private final boolean isAlist;
+    private final Path cacheFilePath;
     private Pair<String, Date> jwtToken;
     private String cachedSha1;
 
-    public OpenListHost(String apiUrl, String userName, String password, String filePassword, String otpCode,
-                        Duration jwtTokenExpiration, String uploadPath, boolean disableUpload, boolean isAlist) {
+    private OpenListHost(String apiUrl, String userName, String password, String filePassword, String otpCode,
+                        Duration jwtTokenExpiration, String uploadPath, boolean disableUpload, boolean isAlist, Path cacheFilePath) {
         this.apiUrl = apiUrl;
         this.userName = userName;
         this.password = password;
@@ -52,6 +53,7 @@ public final class OpenListHost implements ResourcePackHost {
         this.uploadPath = uploadPath;
         this.disableUpload = disableUpload;
         this.isAlist = isAlist;
+        this.cacheFilePath = cacheFilePath;
 
         this.readCacheFromDisk();
     }
@@ -252,24 +254,20 @@ public final class OpenListHost implements ResourcePackHost {
     }
 
     private void readCacheFromDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache")
-                .resolve(this.isAlist ? "alist.json" : "openlist.json");
-        if (!Files.exists(cachePath) || !Files.isRegularFile(cachePath)) return;
-        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(cachePath), StandardCharsets.UTF_8)) {
+        if (!Files.exists(this.cacheFilePath) || !Files.isRegularFile(this.cacheFilePath)) return;
+        try (InputStreamReader isr = new InputStreamReader(Files.newInputStream(this.cacheFilePath), StandardCharsets.UTF_8)) {
             Map<String, String> cache = GsonHelper.get().fromJson(isr, new TypeToken<Map<String, String>>(){}.getType());
             this.cachedSha1 = cache.get("sha1");
         } catch (Exception e) {
-            CraftEngine.instance().logger().warn("Failed to load OpenList cache " + cachePath, e);
+            CraftEngine.instance().logger().warn("Failed to load OpenList cache " + this.cacheFilePath, e);
         }
     }
 
     private void saveCacheToDisk() {
-        Path cachePath = CraftEngine.instance().dataFolderPath().resolve("cache")
-                .resolve(this.isAlist ? "alist.json" : "openlist.json");
         try {
-            Files.createDirectories(cachePath.getParent());
+            Files.createDirectories(this.cacheFilePath.getParent());
             Map<String, String> cache = Collections.singletonMap("sha1", this.cachedSha1 != null ? this.cachedSha1 : "");
-            Files.writeString(cachePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(this.cacheFilePath, GsonHelper.get().toJson(cache), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Failed to persist OpenList cache", e);
         }
@@ -282,6 +280,7 @@ public final class OpenListHost implements ResourcePackHost {
         private static final String[] UPLOAD_PATH = new String[] {"upload_path", "upload-path"};
         private static final String[] DISABLE_UPLOAD = new String[] {"disable_upload", "disable-upload"};
         private static final String[] OPT_CODE = new String[] {"otp_code", "otp-code"};
+        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
 
         @Override
         public OpenListHost create(ConfigSection section) {
@@ -295,7 +294,9 @@ public final class OpenListHost implements ResourcePackHost {
             Duration jwtTokenExpiration = Duration.ofHours(section.getInt(JWT_TOKEN_EXPIRATION, 48));
             String uploadPath = section.getNonEmptyString(UPLOAD_PATH);
             boolean disableUpload = section.getBoolean(DISABLE_UPLOAD);
-            return new OpenListHost(apiUrl, userName, password, filePassword, otpCode, jwtTokenExpiration, uploadPath, disableUpload, isAlist);
+            Path cacheFilePath = CraftEngine.instance().dataFolderPath().resolve("cache")
+                    .resolve(section.getValue(CACHE_FILE_NAME, it -> it.getAsNonEmptyString().replace("/", "_"), isAlist ? "alist.json" : "openlist.json"));
+            return new OpenListHost(apiUrl, userName, password, filePassword, otpCode, jwtTokenExpiration, uploadPath, disableUpload, isAlist, cacheFilePath);
         }
     }
 }

@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.util.ExceptionCollector;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.ChunkPos;
+import net.momirealms.craftengine.core.world.WorldSettings;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.craftengine.core.world.chunk.serialization.DefaultChunkSerializer;
@@ -20,6 +21,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class DefaultRegionFileStorage implements WorldDataStorage {
     private final Path folder;
@@ -119,6 +121,27 @@ public class DefaultRegionFileStorage implements WorldDataStorage {
         } catch (NumberFormatException ex) {
             return null;
         }
+    }
+
+    @Override
+    public WorldSettings readSettings() throws IOException {
+        Path resolve = this.folder.getParent().resolve("craftengine_settings.dat");
+        if (!Files.exists(resolve)) {
+            return new WorldSettings();
+        }
+        CompoundTag tag = NBT.readFile(resolve);
+        if (tag == null) {
+            return new WorldSettings();
+        }
+        return new WorldSettings(tag);
+    }
+
+    @Override
+    public void writeSettings(WorldSettings settings) throws IOException {
+        Path parent = this.folder.getParent();
+        Path resolve = parent.resolve("craftengine_settings.dat");
+        FileUtils.createDirectoriesSafe(parent);
+        NBT.writeFile(resolve, settings.tag());
     }
 
     @Override
