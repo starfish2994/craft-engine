@@ -249,7 +249,6 @@ public final class Config {
     private String item$default_drop_display$format = null;
     private boolean item$data_fixer_upper$enable = true;
     private int item$data_fixer_upper$fallback_version = VersionHelper.WORLD_VERSION;
-    private List<ItemProcessor> item$global_client_bound_data = List.of();
 
     private String equipment$sacrificed_vanilla_armor$type;
     private Key equipment$sacrificed_vanilla_armor$asset_id;
@@ -614,11 +613,6 @@ public final class Config {
         } else {
             this.item$custom_model_data_starting_value$overrides = Map.of();
         }
-        this.item$global_client_bound_data = new ArrayList<>();
-        Optional.ofNullable(config.get("item.global-client-bound-data"))
-                .map(o -> ConfigValue.of("item.global-client-bound-data", o))
-                .map(v -> v.getAsList(ConfigValue::getAsSection))
-                .ifPresent(l -> l.forEach(s -> ItemProcessors.collectProcessors(s, this.item$global_client_bound_data::add)));
 
         // block
         this.block$sound_system$enable = config.getBoolean("block.sound-system.enable", true);
@@ -1459,10 +1453,6 @@ public final class Config {
 
     public static int itemDataFixerUpperFallbackVersion() {
         return instance.item$data_fixer_upper$fallback_version;
-    }
-
-    public static List<ItemProcessor> itemGlobalClientBoundData() {
-        return instance.item$global_client_bound_data;
     }
 
     public static boolean enableEntityCulling() {
