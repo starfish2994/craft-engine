@@ -8,18 +8,24 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3i;
 import net.momirealms.craftengine.core.world.World;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Predicate;
 
 public final class RangeMiningItemBehavior extends ItemBehavior {
     public static final ItemBehaviorFactory<RangeMiningItemBehavior> FACTORY = new Factory();
     private final List<Vec3i> miningRange;
+    private final Predicate<PlayerContext> condition;
 
     private enum PitchState {
         FLAT, // 平视（挖墙）
@@ -27,14 +33,19 @@ public final class RangeMiningItemBehavior extends ItemBehavior {
         DOWN  // 俯视（挖地板）
     }
 
-    private RangeMiningItemBehavior(List<Vec3i> miningRange) {
+    private RangeMiningItemBehavior(List<Vec3i> miningRange, Predicate<PlayerContext> condition) {
         this.miningRange = miningRange;
+        this.condition = condition;
     }
 
     @Override
     public void onBreakBlock(World world, Player player, BlockPos pos) {
         BukkitServerPlayer serverPlayer = (BukkitServerPlayer) player;
         if (serverPlayer.isRangeMining()) return;
+
+        if (!this.condition.test(PlayerOptionalContext.of(player))) {
+            return;
+        }
 
         BlockStateWrapper blockState = world.getBlockState(pos);
         float destroyProgress = player.getDestroyProgress(blockState.minecraftState(), pos);
@@ -129,9 +140,14 @@ public final class RangeMiningItemBehavior extends ItemBehavior {
     }
 
     private static class Factory implements ItemBehaviorFactory<RangeMiningItemBehavior> {
+        private static final String[] CONDITIONS = new String[]{"conditions", "condition"};
+
         @Override
         public RangeMiningItemBehavior create(Pack pack, Path path, Key key, ConfigSection section) {
-            return new RangeMiningItemBehavior(section.getList("range", ConfigValue::getAsVector3i));
+            return new RangeMiningItemBehavior(
+                    section.getList("range", ConfigValue::getAsVector3i),
+                    MiscUtils.allOf(section.getList(CONDITIONS, CommonConditions::fromConfig))
+            );
         }
     }
 }
