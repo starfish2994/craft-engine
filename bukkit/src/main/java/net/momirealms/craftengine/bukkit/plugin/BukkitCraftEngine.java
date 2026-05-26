@@ -22,6 +22,7 @@ import net.momirealms.craftengine.bukkit.pack.BukkitPackManager;
 import net.momirealms.craftengine.bukkit.painting.BukkitPaintingManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitSenderFactory;
+import net.momirealms.craftengine.bukkit.plugin.context.condition.TestFlagCondition;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitGuiManager;
 import net.momirealms.craftengine.bukkit.plugin.injector.*;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
@@ -38,15 +39,13 @@ import net.momirealms.craftengine.core.plugin.classpath.ReflectionClassPathAppen
 import net.momirealms.craftengine.core.plugin.command.sender.SenderFactory;
 import net.momirealms.craftengine.core.plugin.compatibility.CompatibilityManager;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.dependency.Dependencies;
 import net.momirealms.craftengine.core.plugin.dependency.Dependency;
 import net.momirealms.craftengine.core.plugin.logger.JavaPluginLogger;
 import net.momirealms.craftengine.core.plugin.logger.PluginLogger;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
-import net.momirealms.craftengine.core.util.CharacterUtils;
-import net.momirealms.craftengine.core.util.ExceptionCollector;
-import net.momirealms.craftengine.core.util.ReflectionUtils;
-import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.BukkitProxy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -164,6 +163,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         BukkitFurnitureHitboxTypes.init();
         BukkitBlockEntityElementConfigs.init();
         BukkitFurnitureElementConfigs.init();
+        CommonConditions.register(Key.ce("test_flag"), TestFlagCondition.factory());
         // 初始化 onload 阶段的兼容性
         super.compatibilityManager().onLoad();
         // 创建网络管理器
