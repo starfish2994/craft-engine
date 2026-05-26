@@ -18,7 +18,7 @@ public final class BukkitProxyMessageManager extends AbstractProxyMessageManager
 
     @Override
     public void delayedInit() {
-        if (!Bukkit.getServerConfig().isProxyEnabled()) return;
+        if (!this.plugin.platform().hasProxy()) return;
         super.delayedInit();
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
     }

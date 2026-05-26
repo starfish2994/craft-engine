@@ -20,6 +20,8 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Container;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.particle.ParticleType;
+import net.momirealms.craftengine.proxy.paper.configuration.GlobalConfigurationProxy;
+import net.momirealms.craftengine.proxy.spigotmc.SpigotConfigProxy;
 import net.momirealms.sparrow.nbt.Tag;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
@@ -109,6 +111,14 @@ public final class BukkitPlatform implements Platform {
 
     @Override
     public boolean hasProxy() {
-        return Bukkit.getServer().getServerConfig().isProxyEnabled();
+        boolean bungee = SpigotConfigProxy.INSTANCE.getBungee();
+        boolean velocity = GlobalConfigurationProxy.ProxiesProxy.VelocityProxy.INSTANCE.getEnabled(
+                GlobalConfigurationProxy.ProxiesProxy.INSTANCE.getVelocity(
+                        GlobalConfigurationProxy.INSTANCE.getProxies(
+                                GlobalConfigurationProxy.INSTANCE.get()
+                        )
+                )
+        );
+        return bungee || velocity;
     }
 }
