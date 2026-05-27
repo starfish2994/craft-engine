@@ -1,12 +1,11 @@
-package net.momirealms.craftengine.bukkit.plugin.proxy.packet;
+package net.momirealms.craftengine.core.plugin.proxy.packet;
 
-import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.plugin.proxy.ProxyMessageManager;
-import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.mod.ServerCustomPacket;
+import net.momirealms.craftengine.core.plugin.proxy.ProxyMessageManager;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 
@@ -15,15 +14,16 @@ import java.util.UUID;
 public record ServerboundNetworkTagDataVersionPacket(long proxyTagDataVersion, UUID proxyUuid) implements ServerCustomPacket {
     public static final Key ID = Key.ce("tag_data");
     public static final NetworkCodec<FriendlyByteBuf, ServerboundNetworkTagDataVersionPacket> CODEC = ServerCustomPacket.codec(
-            (buf, packet) -> {},
-            ServerboundNetworkTagDataVersionPacket::decode
+            (packet, buf) -> {
+                buf.writeVarLong(packet.proxyTagDataVersion);
+                buf.writeUUID(packet.proxyUuid);
+            },
+            buf -> {
+                long dataVersion = buf.readVarLong();
+                UUID proxyUUID = buf.readUUID();
+                return new ServerboundNetworkTagDataVersionPacket(dataVersion, proxyUUID);
+            }
     );
-
-    private static ServerboundNetworkTagDataVersionPacket decode(FriendlyByteBuf buf) {
-        long dataVersion = buf.readLong();
-        UUID proxyUUID = buf.readUUID();
-        return new ServerboundNetworkTagDataVersionPacket(dataVersion, proxyUUID);
-    }
 
     @Override
     public Key id() {
@@ -31,7 +31,7 @@ public record ServerboundNetworkTagDataVersionPacket(long proxyTagDataVersion, U
     }
 
     @Override
-    public NetworkCodec<FriendlyByteBuf, ? extends ServerCustomPacket> codec() {
+    public NetworkCodec<FriendlyByteBuf, ServerboundNetworkTagDataVersionPacket> codec() {
         return CODEC;
     }
 
@@ -40,8 +40,8 @@ public record ServerboundNetworkTagDataVersionPacket(long proxyTagDataVersion, U
      */
     @Override
     public void handle(NetWorkUser user, ByteBufPacketEvent event) {
-        ProxyMessageManager manager = BukkitCraftEngine.instance().proxyMessageManager();
-        manager.setProxy((BukkitServerPlayer) user, this.proxyUuid);
+        ProxyMessageManager manager = CraftEngine.instance().proxyMessageManager();
+        manager.addUser(user.uuid(), this.proxyUuid);
         if (this.proxyTagDataVersion != manager.networkTagDataVersion()) {
             ProxyboundNetworkTagDataPacket.sendData(user);
         }

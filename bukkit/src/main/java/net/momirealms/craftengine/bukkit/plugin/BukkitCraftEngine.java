@@ -22,10 +22,11 @@ import net.momirealms.craftengine.bukkit.pack.BukkitPackManager;
 import net.momirealms.craftengine.bukkit.painting.BukkitPaintingManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitSenderFactory;
+import net.momirealms.craftengine.bukkit.plugin.context.condition.TestFlagCondition;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitGuiManager;
 import net.momirealms.craftengine.bukkit.plugin.injector.*;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
-import net.momirealms.craftengine.bukkit.plugin.proxy.ProxyMessageManager;
+import net.momirealms.craftengine.bukkit.plugin.proxy.BukkitProxyMessageManager;
 import net.momirealms.craftengine.bukkit.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
@@ -38,15 +39,13 @@ import net.momirealms.craftengine.core.plugin.classpath.ReflectionClassPathAppen
 import net.momirealms.craftengine.core.plugin.command.sender.SenderFactory;
 import net.momirealms.craftengine.core.plugin.compatibility.CompatibilityManager;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.dependency.Dependencies;
 import net.momirealms.craftengine.core.plugin.dependency.Dependency;
 import net.momirealms.craftengine.core.plugin.logger.JavaPluginLogger;
 import net.momirealms.craftengine.core.plugin.logger.PluginLogger;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
-import net.momirealms.craftengine.core.util.CharacterUtils;
-import net.momirealms.craftengine.core.util.ExceptionCollector;
-import net.momirealms.craftengine.core.util.ReflectionUtils;
-import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.BukkitProxy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -67,7 +66,6 @@ import java.util.zip.ZipInputStream;
 public final class BukkitCraftEngine extends CraftEngine {
     private static final String COMPATIBILITY_CLASS = "net.momirealms.craftengine.bukkit.compatibility.BukkitCompatibilityManager";
     private static BukkitCraftEngine instance;
-    private ProxyMessageManager proxyMessageManager;
     private SchedulerTask tickTask;
     private boolean successfullyLoaded = false;
     private boolean successfullyEnabled = false;
@@ -165,6 +163,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         BukkitFurnitureHitboxTypes.init();
         BukkitBlockEntityElementConfigs.init();
         BukkitFurnitureElementConfigs.init();
+        CommonConditions.register(Key.ce("test_flag"), TestFlagCondition.factory());
         // 初始化 onload 阶段的兼容性
         super.compatibilityManager().onLoad();
         // 创建网络管理器
@@ -246,7 +245,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         // 初始化指令管理器
         super.commandManager = new BukkitCommandManager(this);
         // 初始化代理消息管理器
-        this.proxyMessageManager = new ProxyMessageManager(this);
+        super.proxyMessageManager = new BukkitProxyMessageManager(this);
         try {
             super.compatibilityManager().onEnable();
         } catch (Throwable t) {
@@ -434,10 +433,6 @@ public final class BukkitCraftEngine extends CraftEngine {
 
     public JavaPlugin javaPlugin() {
         return this.javaPlugin;
-    }
-
-    public ProxyMessageManager proxyMessageManager() {
-        return this.proxyMessageManager;
     }
 
     public static BukkitCraftEngine instance() {

@@ -54,18 +54,18 @@ public final class NetworkTagDataSerializer {
 
         int[][] codepointGrid = image.codepointGrid();
         if (codepointGrid == null) {
-            buf.writeInt(-1);
+            buf.writeVarInt(-1);
             return;
         }
 
         int rows = codepointGrid.length;
         int cols = rows == 0 ? 0 : codepointGrid[0].length;
-        buf.writeInt(rows);
-        buf.writeInt(cols);
+        buf.writeVarInt(rows);
+        buf.writeVarInt(cols);
 
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                buf.writeInt(codepointGrid[i][j]);
+        for (int[] col : codepointGrid) {
+            for (int i = 0; i < cols; i++) {
+                buf.writeVarInt(col[i]);
             }
         }
     }

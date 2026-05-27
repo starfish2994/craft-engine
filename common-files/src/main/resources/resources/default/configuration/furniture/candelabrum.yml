@@ -60,6 +60,8 @@ furniture:
           - type: match_item
             id: "minecraft:flint_and_steel"
             regex: false
+          - type: test_flag
+            flag: place
         functions:
           - type: update_interaction_tick
           - type: when
@@ -98,6 +100,8 @@ furniture:
       - on: left_click
         conditions:
           - type: "!has_item"
+          - type: test_flag
+            flag: place
         functions:
           - type: update_interaction_tick
           - type: when
