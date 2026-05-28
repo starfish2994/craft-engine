@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.pack.model.definition.tint.Tints;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
@@ -99,6 +100,9 @@ public final class BaseItemModel implements ItemModel {
 
     @Override
     public void gatherRevisions(Consumer<Revision> consumer) {
+        if (this.transformation != null) {
+            consumer.accept(Revisions.SINCE_26_1);
+        }
     }
 
     private static class Factory implements ItemModelFactory<BaseItemModel> {
