@@ -9,7 +9,6 @@ import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
-import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
@@ -23,6 +22,7 @@ import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.text.minimessage.CustomTagResolver;
 import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.syncher.SynchedEntityDataProxy;
@@ -102,7 +102,7 @@ public final class ItemPacketHandler implements EntityPacketHandler {
             }
         }
         if (glowColor != null) {
-            String teamName = BukkitTeamManager.instance().getTeamNameByColor(glowColor);
+            String teamName = TeamManagerImpl.instance().getTeamNameByColor(glowColor);
             if (teamName != null) {
                 changed = true;
                 outer: {

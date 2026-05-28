@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.network;
 
 import com.mojang.authlib.properties.PropertyMap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import net.kyori.adventure.text.Component;
@@ -64,6 +65,8 @@ public interface NetWorkUser {
     void sendCustomPacket(ClientCustomPacket packet);
 
     void sendCustomPackets(List<? extends ClientCustomPacket> packets);
+
+    void sendByteBufPacket(ByteBuf buf, boolean immediately);
 
     void kick(@Nullable Component message);
 

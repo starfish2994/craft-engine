@@ -9,5 +9,5 @@ public interface ChatFormattingProxy {
     ChatFormattingProxy INSTANCE = ASMProxyFactory.create(ChatFormattingProxy.class);
 
     @MethodInvoker(name = "valueOf", isStatic = true)
-    Object valueOf(String name);
+    Enum<?> valueOf(String name);
 }

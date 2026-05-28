@@ -5,6 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.properties.PropertyMap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -571,6 +572,15 @@ public class BukkitServerPlayer extends Player {
     public void sendCustomPackets(List<? extends ClientCustomPacket> packets) {
         for (ClientCustomPacket packet : packets) {
             sendCustomPacket(packet);
+        }
+    }
+
+    @Override
+    public void sendByteBufPacket(ByteBuf buf, boolean immediately) {
+        if (immediately) {
+            this.channel.writeAndFlush(buf);
+        } else {
+            this.channel.write(buf);
         }
     }
 
