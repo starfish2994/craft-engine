@@ -123,10 +123,10 @@ yaml.inconsistent_value_type: "Doppelter Key '<arg:1>' in Zeile <arg:2> mit unte
 plugin.compatibility: "[Kompatibilität] <arg:0> hooked"
 number.unknown_type: Unbekannter Zahlentyp '<arg:0>'
 number.fixed.invalid_expression: Ungültiger Ausdruck '<arg:0>'. https://ezylang.github.io/EvalEx/references/references.html
-number.greater_than: '<arg:0>' sollte größer sein als '<arg:1>'
-number.no_greater_than: '<arg:0>' sollte nicht größer sein als '<arg:1>'
-number.less_than: '<arg:0>' sollte kleiner sein als '<arg:1>'
-number.no_less_than: '<arg:0>' sollte nicht kleiner sein als '<arg:1>'
+number.greater_than: "'<arg:0>' sollte größer sein als '<arg:1>'"
+number.no_greater_than: "'<arg:0>' sollte nicht größer sein als '<arg:1>'"
+number.less_than: "'<arg:0>' sollte kleiner sein als '<arg:1>'"
+number.no_less_than: "'<arg:0>' sollte nicht kleiner sein als '<arg:1>'"
 condition.unknown_type: Unbekannter Condition-Typ '<arg:0>'
 condition.enchantment.invalid_format: Ungültiges Prädikat-Format '<arg:0>'. (z.B. minecraft:sharpness>=4)
 function.unknown_type: Unbekannter Function-Typ '<arg:0>'
@@ -274,7 +274,7 @@ resource.item.behavior.unknown_type: Unbekannter Item-Behavior-Typ '<arg:0>'
 resource.item.updater.unknown_type: Unbekannter Item-Updater-Typ '<arg:0>'
 resource.item.custom_model_data_exhausted: CustomModelData für Material '<arg:0>' ist bereits erschöpft
 resource.item.custom_model_data_conflict: CustomModelData '<arg:0>' wurde bereits durch Item '<arg:1>' belegt
-resource.item.missing_model_id: 'custom_model_data' oder 'item_model' für benutzerdefiniertes Modell erforderlich
+resource.item.missing_model_id: "'custom_model_data' oder 'item_model' für benutzerdefiniertes Modell erforderlich"
 resource.item.occupied_vanilla_item_model: Item-Modell '<arg:0>' wurde bereits von einem Vanilla-Item belegt
 resource.item.invalid_material: Ungültiger Material-Typ '<arg:0>'
 resource.model.generation.conflict: Modell für '<arg:0>' konnte nicht generiert werden, da zwei oder mehr Konfigurationen versuchen, verschiedene JSON-Modelle mit demselben Pfad zu generieren

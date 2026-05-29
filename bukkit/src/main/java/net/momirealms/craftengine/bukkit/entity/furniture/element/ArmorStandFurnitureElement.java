@@ -3,13 +3,13 @@ package net.momirealms.craftengine.bukkit.entity.furniture.element;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntList;
-import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.tint.FurnitureTintSource;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
@@ -63,7 +63,7 @@ public final class ArmorStandFurnitureElement extends AbstractConditionalFurnitu
         }
         Object teamPacket = null;
         if (config.glowColor != null) {
-            String teamName = BukkitTeamManager.instance().getTeamNameByColor(config.glowColor);
+            String teamName = TeamManagerImpl.instance().getTeamNameByColor(config.glowColor);
             if (teamName != null) {
                 teamPacket = ClientboundSetPlayerTeamPacketProxy.INSTANCE.newInstance(teamName, 3, Optional.empty(), ImmutableList.of(this.uuid.toString()));
             }

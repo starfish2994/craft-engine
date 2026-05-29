@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +57,9 @@ public final class CompositeItemModel implements ItemModel {
 
     @Override
     public void gatherRevisions(Consumer<Revision> consumer) {
+        if (this.transformation != null) {
+            consumer.accept(Revisions.SINCE_26_1);
+        }
         for (ItemModel model : this.models) {
             model.gatherRevisions(consumer);
         }

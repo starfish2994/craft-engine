@@ -32,7 +32,6 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.classpath.ClassPathAppender;
 import net.momirealms.craftengine.core.plugin.classpath.ReflectionClassPathAppender;
@@ -192,12 +191,8 @@ public final class BukkitCraftEngine extends CraftEngine {
         super.seatManager = new BukkitSeatManager(this);
         // 初始化家具管理器
         super.furnitureManager = new BukkitFurnitureManager(this);
-        // 初始化队伍管理器
-        super.teamManager = new BukkitTeamManager(this);
         // 初始化画管理器
         super.paintingManager = new BukkitPaintingManager(this);
-        // 初始化虚拟队伍
-        super.teamManager.init();
         // 注册默认的parser
         this.registerDefaultParsers();
         // 完成加载
