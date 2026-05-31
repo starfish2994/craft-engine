@@ -22,7 +22,10 @@ import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.StringTag;
 import net.momirealms.sparrow.nbt.Tag;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public final class RegistryDataListener implements ByteBufferPacketListener {
     public static final RegistryDataListener INSTANCE = VersionHelper.isOrAbove1_21 ? new RegistryDataListener() : null;

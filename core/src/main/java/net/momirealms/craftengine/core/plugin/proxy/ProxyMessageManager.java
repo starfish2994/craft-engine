@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.plugin.proxy;
 
 import net.momirealms.craftengine.core.plugin.Manageable;
-import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

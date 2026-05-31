@@ -250,7 +250,8 @@ public class CEChunk {
                                     CullableHolder holder = player.getTrackedBlockEntity(pos);
                                     if (holder != null) {
                                         if (holder.isShown) {
-                                            holder.setShown(player, false);
+                                            previousElement.hide(player);
+                                            element.show(player);
                                         }
                                         holder.cullable = renderer;
                                     } else {
@@ -289,6 +290,7 @@ public class CEChunk {
                                 ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).createExact(this, pos, previousElement);
                                 if (newElement != null) {
                                     previousElements[j] = null;
+                                    renderers[i] = null;
                                     elements[i] = newElement;
                                     if (hasTrackedBy) {
                                         for (int k = 0; k < trackedBy.size(); k++) {
@@ -303,6 +305,12 @@ public class CEChunk {
                                 }
                             }
                         }
+                    }
+
+                    outer: for (int i = 0; i < elements.length; i++) {
+                        BlockEntityElementConfig<? extends ConstantBlockEntityElement> config = renderers[i];
+                        if (config == null) continue;
+
                         /*
                          * 可变换部分
                          */
@@ -341,6 +349,8 @@ public class CEChunk {
                             }
                         }
                     }
+
+
                     if (hasTrackedBy) {
                         /*
                          * 未能完成变化的，需要直接删除

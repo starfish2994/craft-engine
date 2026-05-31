@@ -26,7 +26,8 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
     public final FurnitureTintSource tintSource;
     public final WorldPosition position;
     public final int entityId;
-    public final Object despawnPacket;
+    public final Object cachedDespawnPacket;
+    public final Object cachedSpawnPacket;
     public final Object cachedUpdatePosPacket;
     public final UUID uuid = UUID.randomUUID();
 
@@ -41,7 +42,12 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
         this.entityId = entityId;
         this.tintSource = config.createTintSource(furniture);
         this.position = pos;
-        this.despawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(entityId)));
+        this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(entityId)));
+        this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
+                this.entityId, this.uuid,
+                this.position.x, this.position.y, this.position.z, this.position.xRot, this.position.yRot,
+                EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+        );
         this.cachedUpdatePosPacket = positionChanged ? EntityUtils.createUpdatePosPacket(this.entityId, this.position.x, this.position.y, this.position.z, this.position.yRot, this.position.xRot, false) : null;
     }
 
@@ -53,18 +59,14 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
     @Override
     public void showInternal(Player player) {
         player.sendPacket(ClientboundBundlePacketProxy.INSTANCE.newInstance(List.of(
-                ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
-                        this.entityId, this.uuid,
-                        this.position.x, this.position.y, this.position.z, this.position.xRot, this.position.yRot,
-                        EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
-                ),
+                this.cachedSpawnPacket,
                 ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource))
         )), false);
     }
 
     @Override
     public void hide(Player player) {
-        player.sendPacket(this.despawnPacket, false);
+        player.sendPacket(this.cachedDespawnPacket, false);
     }
 
     @Override
