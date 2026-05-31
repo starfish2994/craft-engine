@@ -68,6 +68,11 @@ public final class ItemFurnitureElementConfig implements FurnitureElementConfig<
         return new ItemFurnitureElement(furniture, this);
     }
 
+    @Override
+    public Class<ItemFurnitureElement> elementClass() {
+        return ItemFurnitureElement.class;
+    }
+
     public FurnitureTintSource createTintSource(@NotNull Furniture furniture) {
         return this.tint == null ? null : this.tint.create(furniture);
     }

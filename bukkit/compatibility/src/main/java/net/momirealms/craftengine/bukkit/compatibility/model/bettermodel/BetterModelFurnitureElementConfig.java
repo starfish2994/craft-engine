@@ -46,6 +46,11 @@ public final class BetterModelFurnitureElementConfig implements FurnitureElement
         return new BetterModelFurnitureElement(furniture, this);
     }
 
+    @Override
+    public Class<BetterModelFurnitureElement> elementClass() {
+        return BetterModelFurnitureElement.class;
+    }
+
     private static class Factory implements FurnitureElementConfigFactory<BetterModelFurnitureElement> {
         private static final String[] SIGHT_TRACE = new String[] {"sight_trace", "sight-trace"};
 

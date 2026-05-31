@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
+import com.google.common.base.Objects;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.ItemDisplayBlockEntityElementConfig;
 import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.entity.display.Billboard;
@@ -28,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,6 +128,36 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
     @Override
     public ItemDisplayFurnitureElement create(@NotNull Furniture furniture) {
         return new ItemDisplayFurnitureElement(furniture, this);
+    }
+
+    @Override
+    public ItemDisplayFurnitureElement create(@NotNull Furniture furniture, @NonNull ItemDisplayFurnitureElement previous) {
+        return new ItemDisplayFurnitureElement(furniture, this, previous.entityId,
+                previous.config.yRot != this.yRot ||
+                previous.config.xRot != this.xRot ||
+                !previous.config.position.equals(this.position)
+        );
+    }
+
+    @Override
+    public ItemDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NotNull ItemDisplayFurnitureElement previous) {
+        if (!previous.config.isSamePosition(this)) {
+            return null;
+        }
+        return new ItemDisplayFurnitureElement(furniture, this, previous.entityId, false);
+    }
+
+    @Override
+    public Class<ItemDisplayFurnitureElement> elementClass() {
+        return ItemDisplayFurnitureElement.class;
+    }
+
+    public boolean isSamePosition(ItemDisplayFurnitureElementConfig that) {
+        return Float.compare(xRot, that.xRot) == 0 &&
+                Float.compare(yRot, that.yRot) == 0 &&
+                Objects.equal(position, that.position) &&
+                Objects.equal(translation, that.translation) &&
+                Objects.equal(rotation, that.rotation);
     }
 
     public FurnitureTintSource createTintSource(@NotNull Furniture furniture) {

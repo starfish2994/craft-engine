@@ -118,8 +118,8 @@ public final class Config {
     private String resource_pack$protection$obfuscation$path$item_source;
     private NumberProvider resource_pack$protection$obfuscation$path$depth;
     private NumberProvider resource_pack$protection$obfuscation$path$length;
-    private boolean resource_pack$protection$obfuscation$obfuscate_item_model$enable;
-    private boolean resource_pack$protection$obfuscation$obfuscate_item_model$use_cache;
+    private boolean resource_pack$protection$obfuscation$item_model$enable;
+    private boolean resource_pack$protection$obfuscation$item_model$use_cache;
     private int resource_pack$protection$obfuscation$atlas$images_per_canvas;
     private String resource_pack$protection$obfuscation$atlas$prefix;
     private List<String> resource_pack$protection$obfuscation$bypass_textures;
@@ -445,8 +445,8 @@ public final class Config {
         this.resource_pack$protection$obfuscation$path$depth = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.path.depth", config.get("resource-pack.protection.obfuscation.path.depth", 4)));
         this.resource_pack$protection$obfuscation$path$length = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.path.length", config.get("resource-pack.protection.obfuscation.path.length", 2)));
         this.resource_pack$protection$obfuscation$path$anti_unzip = config.getBoolean("resource-pack.protection.obfuscation.path.anti-unzip", false);
-        this.resource_pack$protection$obfuscation$obfuscate_item_model$enable = config.getBoolean("resource-pack.protection.obfuscation.obfuscate-item-model.enable", false) && this.resource_pack$protection$obfuscation$enable;
-        this.resource_pack$protection$obfuscation$obfuscate_item_model$use_cache = config.getBoolean("resource-pack.protection.obfuscation.obfuscate-item-model.use-cache", true);
+        this.resource_pack$protection$obfuscation$item_model$enable = config.getBoolean("resource-pack.protection.obfuscation.item-model.enable", false) && this.resource_pack$protection$obfuscation$enable;
+        this.resource_pack$protection$obfuscation$item_model$use_cache = config.getBoolean("resource-pack.protection.obfuscation.item-model.use-cache", true);
         this.resource_pack$protection$obfuscation$path$block_source = config.getString("resource-pack.protection.obfuscation.path.block-source", "obf_block");
         this.resource_pack$protection$obfuscation$path$item_source = config.getString("resource-pack.protection.obfuscation.path.block-source", "obf_item");
         this.resource_pack$protection$obfuscation$atlas$images_per_canvas = Math.max(0, config.getInt("resource-pack.protection.obfuscation.atlas.images-per-canvas", 256));
@@ -973,6 +973,7 @@ public final class Config {
     public static boolean autoUpload() {
         return instance.resource_pack$delivery$auto_upload;
     }
+
     public static boolean strictPlayerUuidValidation() {
         return instance.resource_pack$delivery$strict_player_uuid_validation;
     }
@@ -1066,11 +1067,11 @@ public final class Config {
     }
 
     public static boolean obfuscateItemModel() {
-        return instance.resource_pack$protection$obfuscation$obfuscate_item_model$enable;
+        return instance.resource_pack$protection$obfuscation$item_model$enable;
     }
 
     public static boolean obfuscateItemModelUseCache() {
-        return instance.resource_pack$protection$obfuscation$obfuscate_item_model$use_cache;
+        return instance.resource_pack$protection$obfuscation$item_model$use_cache;
     }
 
     public static NumberProvider overlayLength() {

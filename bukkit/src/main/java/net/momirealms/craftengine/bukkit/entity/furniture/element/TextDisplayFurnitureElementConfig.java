@@ -131,6 +131,11 @@ public final class TextDisplayFurnitureElementConfig implements FurnitureElement
         return new TextDisplayFurnitureElement(furniture, this);
     }
 
+    @Override
+    public Class<TextDisplayFurnitureElement> elementClass() {
+        return TextDisplayFurnitureElement.class;
+    }
+
     private static class Factory implements FurnitureElementConfigFactory<TextDisplayFurnitureElement> {
         private static final String[] SHADOW_RADIUS = new String[] {"shadow_radius", "shadow-radius"};
         private static final String[] SHADOW_STRENGTH = new String[] {"shadow_strength", "shadow-strength"};

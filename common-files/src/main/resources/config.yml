@@ -118,7 +118,7 @@ resource-pack:
       seed: 0 # 0 = random seed
       # Whether to obfuscate the item model component
       # This only takes effect when you enable the client-bound-model.
-      obfuscate-item-model:
+      item-model:
         enable: false
         # Prioritize using cached obfuscation results when generating the resource pack,
         # instead of re-generating all obfuscation from scratch every time.

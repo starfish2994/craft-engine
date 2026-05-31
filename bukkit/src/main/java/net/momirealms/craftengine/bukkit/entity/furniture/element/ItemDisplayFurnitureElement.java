@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.tint.FurnitureTintSource;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -27,18 +28,24 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
     public final WorldPosition position;
     public final int entityId;
     public final Object despawnPacket;
+    public final Object cachedUpdatePosPacket;
     public final UUID uuid = UUID.randomUUID();
 
     ItemDisplayFurnitureElement(Furniture furniture, ItemDisplayFurnitureElementConfig config) {
+        this(furniture, config, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+    }
+
+    ItemDisplayFurnitureElement(Furniture furniture, ItemDisplayFurnitureElementConfig config, int entityId, boolean posChanged) {
         super(config.predicate, config.hasCondition);
         this.config = config;
         this.furniture = furniture;
+        this.entityId = entityId;
         this.tintSource = config.createTintSource(furniture);
-        this.entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
         WorldPosition furniturePos = furniture.position();
         Vec3d position = Furniture.getRelativePosition(furniturePos, config.position);
         this.position = new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot + config.xRot, furniturePos.yRot + config.yRot);
         this.despawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(entityId)));
+        this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, position.x, position.y, position.z, config.yRot, config.xRot, false) : null;
     }
 
     @Override

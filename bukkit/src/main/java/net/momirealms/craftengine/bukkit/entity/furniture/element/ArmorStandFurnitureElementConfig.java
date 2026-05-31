@@ -96,6 +96,11 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
         return new ArmorStandFurnitureElement(furniture, this);
     }
 
+    @Override
+    public Class<ArmorStandFurnitureElement> elementClass() {
+        return ArmorStandFurnitureElement.class;
+    }
+
     private static class Factory implements FurnitureElementConfigFactory<ArmorStandFurnitureElement> {
         private static final String[] APPLY_DYED_COLOR = new String[]{"apply_dyed_color", "apply-dyed-color"};
         private static final String[] GLOW_COLOR = new String[]{"glow_color", "glow-color"};

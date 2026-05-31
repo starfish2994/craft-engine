@@ -255,6 +255,7 @@ public abstract class Furniture implements Cullable {
     protected void setVariantInternal(FurnitureVariant variant) {
         FurnitureVariant previousVariant = this.currentVariant;
         this.currentVariant = variant;
+        this.persistentData.setVariant(variant.name());
         Int2ObjectMap<FurnitureHitBox> hitboxMap = new Int2ObjectOpenHashMap<>();
 
         // 所有可供交互的实体列表

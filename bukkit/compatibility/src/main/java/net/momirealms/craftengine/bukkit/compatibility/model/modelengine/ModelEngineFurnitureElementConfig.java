@@ -43,6 +43,11 @@ public final class ModelEngineFurnitureElementConfig implements FurnitureElement
         return new ModelEngineFurnitureElement(furniture, this);
     }
 
+    @Override
+    public Class<ModelEngineFurnitureElement> elementClass() {
+        return ModelEngineFurnitureElement.class;
+    }
+
     private static class Factory implements FurnitureElementConfigFactory<ModelEngineFurnitureElement> {
 
         @Override
