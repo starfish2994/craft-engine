@@ -260,6 +260,19 @@ public final class BukkitFurniture extends Furniture {
         return players;
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public Set<Player> getTrackedBy() {
+        ItemDisplay itemDisplay = this.metaEntity.get();
+        if (itemDisplay == null) return Set.of();
+        Set<org.bukkit.entity.Player> trackedPlayers = itemDisplay.getTrackedPlayers();
+        Set<Player> players = new HashSet<>();
+        for (org.bukkit.entity.Player player : trackedPlayers) {
+            players.add(BukkitAdaptor.adapt(player));
+        }
+        return players;
+    }
+
     @Override
     public void saveIfDirty() {
         if (super.isUnsaved()) {
