@@ -279,6 +279,8 @@ public class CEChunk {
                         }
                     }
 
+                    boolean[] transformed = new boolean[renderers.length];
+
                     outer: for (int i = 0; i < elements.length; i++) {
                         BlockEntityElementConfig<? extends ConstantBlockEntityElement> config = renderers[i];
                         /*
@@ -290,7 +292,7 @@ public class CEChunk {
                                 ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).createExact(this, pos, previousElement);
                                 if (newElement != null) {
                                     previousElements[j] = null;
-                                    renderers[i] = null;
+                                    transformed[i] = true;
                                     elements[i] = newElement;
                                     if (hasTrackedBy) {
                                         for (int k = 0; k < trackedBy.size(); k++) {
@@ -309,7 +311,7 @@ public class CEChunk {
 
                     outer: for (int i = 0; i < elements.length; i++) {
                         BlockEntityElementConfig<? extends ConstantBlockEntityElement> config = renderers[i];
-                        if (config == null) continue;
+                        if (transformed[i]) continue;
 
                         /*
                          * 可变换部分

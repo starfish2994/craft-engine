@@ -353,8 +353,6 @@ public abstract class Furniture implements Cullable {
         List<Player> trackedBy = trackedBy();
         List<FurnitureElement> newElements = new ArrayList<>(newElementConfigList.size());
         boolean hasTrackedBy = !trackedBy.isEmpty();
-        FurnitureElement[] previousElements = this.snapshot.elements.toArray(new FurnitureElement[0]);
-        FurnitureElementConfig<? extends FurnitureElement>[] newElementConfigs = newElementConfigList.toArray(new FurnitureElementConfig[0]);
         boolean[] visibility = new boolean[trackedBy.size()];
         if (hasTrackedBy) {
             if (Config.enableEntityCulling()) {
@@ -374,9 +372,9 @@ public abstract class Furniture implements Cullable {
          * 1 对 1，命中率最高
          *
          */
-        if (previousElements.length == 1 && newElementConfigs.length == 1) {
-            FurnitureElement previousElement = previousElements[0];
-            FurnitureElementConfig<? extends FurnitureElement> config = newElementConfigs[0];
+        if (this.snapshot.elements.size() == 1 && newElementConfigList.size() == 1) {
+            FurnitureElement previousElement = this.snapshot.elements.getFirst();
+            FurnitureElementConfig<? extends FurnitureElement> config = newElementConfigList.getFirst();
             if (previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
                 FurnitureElement element = ((FurnitureElementConfig) config).create(this, previousElement);
                 if (element != null) {
@@ -402,6 +400,9 @@ public abstract class Furniture implements Cullable {
                 newElements.add(element);
             }
         } else {
+            FurnitureElement[] previousElements = this.snapshot.elements.toArray(new FurnitureElement[0]);
+            FurnitureElementConfig<? extends FurnitureElement>[] newElementConfigs = newElementConfigList.toArray(new FurnitureElementConfig[0]);
+
             outer: for (int i = 0; i < newElementConfigs.length; i++) {
                 FurnitureElementConfig<? extends FurnitureElement> config = newElementConfigs[i];
 
