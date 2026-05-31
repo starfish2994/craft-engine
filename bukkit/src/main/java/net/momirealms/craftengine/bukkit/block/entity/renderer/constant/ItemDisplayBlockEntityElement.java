@@ -28,11 +28,11 @@ public final class ItemDisplayBlockEntityElement extends AbstractConstantBlockEn
     @Nullable
     public BlockEntityTintSource tintSource;
 
-    public ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
+    ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
         this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
+    ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
         super(config.predicate, config.hasCondition);
         Vector3f position = config.position();
         this.tintSource = tintSource;

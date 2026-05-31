@@ -38,11 +38,11 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
     @Nullable
     public BlockEntityTintSource tintSource;
 
-    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
+    ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
         this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
+    ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
         super(config.predicate, config.hasCondition);
         Vector3f position = config.position();
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(

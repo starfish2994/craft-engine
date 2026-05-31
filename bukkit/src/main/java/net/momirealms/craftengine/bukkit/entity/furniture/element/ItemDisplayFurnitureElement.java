@@ -6,7 +6,6 @@ import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.tint.FurnitureTintSource;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.MiscUtils;
-import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundBundlePacketProxy;
@@ -31,21 +30,19 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
     public final Object cachedUpdatePosPacket;
     public final UUID uuid = UUID.randomUUID();
 
-    ItemDisplayFurnitureElement(Furniture furniture, ItemDisplayFurnitureElementConfig config) {
-        this(furniture, config, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+    ItemDisplayFurnitureElement(Furniture furniture, ItemDisplayFurnitureElementConfig config, WorldPosition pos) {
+        this(furniture, config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    ItemDisplayFurnitureElement(Furniture furniture, ItemDisplayFurnitureElementConfig config, int entityId, boolean posChanged) {
+    ItemDisplayFurnitureElement(Furniture furniture, ItemDisplayFurnitureElementConfig config, WorldPosition pos, int entityId, boolean positionChanged) {
         super(config.predicate, config.hasCondition);
         this.config = config;
         this.furniture = furniture;
         this.entityId = entityId;
         this.tintSource = config.createTintSource(furniture);
-        WorldPosition furniturePos = furniture.position();
-        Vec3d position = Furniture.getRelativePosition(furniturePos, config.position);
-        this.position = new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot + config.xRot, furniturePos.yRot + config.yRot);
+        this.position = pos;
         this.despawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(entityId)));
-        this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, position.x, position.y, position.z, config.yRot, config.xRot, false) : null;
+        this.cachedUpdatePosPacket = positionChanged ? EntityUtils.createUpdatePosPacket(this.entityId, this.position.x, this.position.y, this.position.z, this.position.yRot, this.position.xRot, false) : null;
     }
 
     @Override
@@ -71,11 +68,20 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
     }
 
     @Override
-    public void refresh(Player player) {
-        player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource)), false);
+    public void update(Player player) {
+        if (this.cachedUpdatePosPacket != null) {
+            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource))), false);
+        } else {
+            player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource)), false);
+        }
     }
 
     @Override
     public void gatherInteractableEntityId(Consumer<Integer> collector) {
+    }
+
+    @Override
+    public boolean supportsTransform() {
+        return true;
     }
 }

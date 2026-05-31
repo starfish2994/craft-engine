@@ -1723,6 +1723,11 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
+    public CullableHolder getTrackedEntity(int entityId) {
+        return this.trackedEntities.get(entityId);
+    }
+
+    @Override
     public void addTrackedEntity(int entityId, Cullable cullable) {
         this.trackedEntities.put(entityId, new CullableHolder(cullable));
     }

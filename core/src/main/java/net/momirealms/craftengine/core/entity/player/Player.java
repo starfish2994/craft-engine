@@ -252,6 +252,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void removeTrackedBlockEntities(Collection<BlockPos> renders);
 
+    public abstract CullableHolder getTrackedEntity(int entityId);
+
     public abstract void addTrackedEntity(int entityId, Cullable cullable);
 
     public abstract void removeTrackedBlockEntities(BlockPos pos);

@@ -1,7 +1,5 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
-import com.google.common.base.Objects;
-import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.ItemDisplayBlockEntityElementConfig;
 import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.entity.display.Billboard;
@@ -26,6 +24,8 @@ import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -127,24 +127,22 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
 
     @Override
     public ItemDisplayFurnitureElement create(@NotNull Furniture furniture) {
-        return new ItemDisplayFurnitureElement(furniture, this);
+        return new ItemDisplayFurnitureElement(furniture, this, getPos(furniture));
     }
 
     @Override
     public ItemDisplayFurnitureElement create(@NotNull Furniture furniture, @NonNull ItemDisplayFurnitureElement previous) {
-        return new ItemDisplayFurnitureElement(furniture, this, previous.entityId,
-                previous.config.yRot != this.yRot ||
-                previous.config.xRot != this.xRot ||
-                !previous.config.position.equals(this.position)
-        );
+        WorldPosition pos = getPos(furniture);
+        return new ItemDisplayFurnitureElement(furniture, this, pos, previous.entityId, !pos.equals(previous.position));
     }
 
     @Override
-    public ItemDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NotNull ItemDisplayFurnitureElement previous) {
-        if (!previous.config.isSamePosition(this)) {
+    public ItemDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NonNull ItemDisplayFurnitureElement previous) {
+        WorldPosition pos = getPos(furniture);
+        if (!pos.equals(previous.position)) {
             return null;
         }
-        return new ItemDisplayFurnitureElement(furniture, this, previous.entityId, false);
+        return new ItemDisplayFurnitureElement(furniture, this, pos, previous.entityId, false);
     }
 
     @Override
@@ -152,12 +150,10 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
         return ItemDisplayFurnitureElement.class;
     }
 
-    public boolean isSamePosition(ItemDisplayFurnitureElementConfig that) {
-        return Float.compare(xRot, that.xRot) == 0 &&
-                Float.compare(yRot, that.yRot) == 0 &&
-                Objects.equal(position, that.position) &&
-                Objects.equal(translation, that.translation) &&
-                Objects.equal(rotation, that.rotation);
+    public WorldPosition getPos(Furniture furniture) {
+        WorldPosition furniturePos = furniture.position();
+        Vec3d position = Furniture.getRelativePosition(furniturePos, this.position);
+        return new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot + xRot, furniturePos.yRot + yRot);
     }
 
     public FurnitureTintSource createTintSource(@NotNull Furniture furniture) {

@@ -32,11 +32,11 @@ public final class ItemBlockEntityElement extends AbstractConstantBlockEntityEle
     @Nullable
     public BlockEntityTintSource tintSource;
 
-    public ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
+    ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
         this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId1, int entityId2, boolean posChanged) {
+    ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId1, int entityId2, boolean posChanged) {
         super(config.predicate, config.hasCondition);
         this.tintSource = tintSource;
         this.config = config;
