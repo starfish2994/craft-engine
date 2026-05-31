@@ -118,7 +118,12 @@ resource-pack:
       seed: 0 # 0 = random seed
       # Whether to obfuscate the item model component
       # This only takes effect when you enable the client-bound-model.
-      obfuscate-item-model: false
+      obfuscate-item-model:
+        enable: false
+        # Prioritize using cached obfuscation results when generating the resource pack,
+        # instead of re-generating all obfuscation from scratch every time.
+        # If the cache entry for a file is missing, it will be generated and saved for future use.
+        use-cache: true
       # Determines the length of obfuscated overlay directories
       overlay:
         length: 3~6 # 0 = disable

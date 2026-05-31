@@ -663,7 +663,9 @@ public abstract class AbstractPackManager implements PackManager {
     public void generateResourcePack() {
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_started"));
         Timestamp timestamp = new Timestamp();
-        ObfuscatedItemModelProcessor.resetMappings();
+        if (!Config.obfuscateItemModelUseCache()) {
+            ObfuscatedItemModelProcessor.resetMappings();
+        }
 
         // Create cache data
         PackCacheData cacheData = new PackCacheData(this.plugin);
