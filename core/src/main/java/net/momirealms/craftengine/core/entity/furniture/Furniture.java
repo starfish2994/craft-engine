@@ -698,10 +698,13 @@ public abstract class Furniture implements Cullable {
         return this.snapshot.hitboxes();
     }
 
+    /**
+     * Gets the set of players who are currently "tracking" this furniture.
+     */
     public abstract Set<Player> getTrackedBy();
 
     /**
-     * Gets the set of players who are currently "tracking" this furniture.
+     * Gets the list of players who are currently "tracking" this furniture.
      */
     public abstract List<Player> trackedBy();
 
