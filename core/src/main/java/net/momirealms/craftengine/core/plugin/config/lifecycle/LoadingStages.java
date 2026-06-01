@@ -3,7 +3,8 @@ package net.momirealms.craftengine.core.plugin.config.lifecycle;
 public final class LoadingStages {
     private LoadingStages() {}
 
-    public static final LoadingStage TEMPLATE = new LoadingStage("templates");
+    public static final LoadingStage TEMPLATE = new LoadingStage("templates", true);
+    public static final LoadingStage CONFIG_FACTORY = new LoadingStage("config factories", true);
     public static final LoadingStage BLOCK_STATE_MAPPING = new LoadingStage("block state mappings");
     public static final LoadingStage GLOBAL_VARIABLE = new LoadingStage("global variables");
     public static final LoadingStage TRANSLATION = new LoadingStage("translations");

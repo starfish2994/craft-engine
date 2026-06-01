@@ -175,7 +175,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
 
         @Override
         public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE, LoadingStages.LOOT_TABLE);
+            return List.of(LoadingStages.LOOT_TABLE);
         }
 
         @Override

@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 
 public interface PackManager extends Manageable {
 
-    ConfigParser parser();
+    ConfigParser[] parsers();
 
     int loadResources(Predicate<ConfigParser> predicate);
 

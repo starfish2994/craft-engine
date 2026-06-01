@@ -439,11 +439,6 @@ public final class TranslationManagerImpl implements TranslationManager {
         }
 
         @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
-        }
-
-        @Override
         protected void parseSection(Pack pack, Path path, ConfigSection section) {
             for (String langId : section.keySet()) {
                 Locale locale = TranslationManager.parseLocale(langId);

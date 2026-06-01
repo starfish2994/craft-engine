@@ -71,10 +71,5 @@ public final class GlobalVariableManager implements Manageable {
         public LoadingStage loadingStage() {
             return LoadingStages.GLOBAL_VARIABLE;
         }
-
-        @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
-        }
     }
 }

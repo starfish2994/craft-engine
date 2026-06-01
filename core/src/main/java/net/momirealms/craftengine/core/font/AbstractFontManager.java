@@ -471,11 +471,6 @@ public abstract class AbstractFontManager implements FontManager {
         }
 
         @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
-        }
-
-        @Override
         public void postProcess() {
             for (Map.Entry<Key, IdAllocator> entry : this.idAllocators.entrySet()) {
                 IdAllocator allocator = entry.getValue();
