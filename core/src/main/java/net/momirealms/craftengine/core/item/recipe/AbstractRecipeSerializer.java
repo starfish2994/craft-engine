@@ -30,7 +30,7 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
     protected static final String[] INGREDIENTS = new String[] {"ingredients", "ingredient"};
     protected static final String[] EXP = new String[] {"exp", "experience"};
     protected static final String[] ITEMS = new String[] {"items", "item"};
-    protected static final String[] POST_PROCESSOR = new String[] {"post_processors", "post-processors"};
+    protected static final String[] POST_PROCESSOR = new String[] {"transmute_processors", "transmute-processors", "post_processors", "post-processors"};
     protected static final String[] VISUAL_RESULT = new String[] {"visual_result", "visual-result"};
     protected static final String[] FUNCTIONS = new String[] {"functions", "function"};
     protected static final String[] CONDITIONS = new String[] {"conditions", "condition"};

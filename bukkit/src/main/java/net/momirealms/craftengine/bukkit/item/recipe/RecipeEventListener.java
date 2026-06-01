@@ -795,8 +795,8 @@ public final class RecipeEventListener implements Listener {
         } else {
             if (craftingTableRecipe.alwaysRebuildOutput()) {
                 ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
-                if (craftingTableRecipe instanceof CustomDyeRecipe dyeRecipe) {
-                    inventory.setResult(ItemStackUtils.getBukkitStack(dyeRecipe.assemble(getCraftingInput(inventory), itemBuildContext)));
+                if (craftingTableRecipe instanceof CustomDyeRecipe || craftingTableRecipe instanceof CustomShapedTransformRecipe) {
+                    inventory.setResult(ItemStackUtils.getBukkitStack(craftingTableRecipe.assemble(getCraftingInput(inventory), itemBuildContext)));
                 } else {
                     inventory.setResult(ItemStackUtils.getBukkitStack(craftingTableRecipe.assemble(null, itemBuildContext)));
                 }

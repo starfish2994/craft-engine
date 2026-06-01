@@ -286,4 +286,6 @@ resource.recipe.shaped.invalid_pattern: 无效的合成图案“<arg:0>”
 resource.recipe.shaped.invalid_symbol: 无效的合成图案符号“<arg:0>”
 resource.recipe.post_processor.unknown_type: 未知的配方结果后处理器类型“<arg:0>”
 resource.recipe.unknown_type: 未知的配方类型“<arg:0>”
+resource.recipe.transform.duplication_source: "在转换类型的配方中发现2个及以上被标记为 source 的材料: “<arg:0>”, “<arg:1>”"
+resource.recipe.transform.not_found_source: "无法在转换类型配方中找到标记为 source 的材料"
 resource.vanilla_loot.block.invalid_target: 无效的方块目标“<arg:0>”
