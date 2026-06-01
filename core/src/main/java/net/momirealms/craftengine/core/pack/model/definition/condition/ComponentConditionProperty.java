@@ -37,7 +37,7 @@ public final class ComponentConditionProperty implements ConditionProperty {
         public ComponentConditionProperty create(ConfigSection section) {
             return new ComponentConditionProperty(
                     section.getNonNullString("predicate"),
-                    section.getNonNullValue("value", ConfigConstants.ARGUMENT_ANY, it -> GsonHelper.get().toJsonTree(it))
+                    section.getNonNullValue("value", ConfigConstants.ARGUMENT_ANY, it -> GsonHelper.get().toJsonTree(it.value()))
             );
         }
     }
