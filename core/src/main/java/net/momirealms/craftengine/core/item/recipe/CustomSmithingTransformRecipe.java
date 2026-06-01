@@ -165,9 +165,11 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
     }
 
     private Item createSmithingResult(Item base, Item result) {
-        Item finalResult = result;
+        Item finalResult;
         if (this.mergeComponents) {
             finalResult = base.mergeCopy(result);
+        } else {
+            finalResult = result;
         }
         if (this.processors != null) {
             for (ItemTransformDataProcessor processor : this.processors) {
