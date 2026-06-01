@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 
 public final class RecipeSerializers {
     public static final Key SHAPED = Key.of("minecraft:shaped");
+    public static final Key SHAPED_TRANSFORM = Key.of("minecraft:shaped_transform");
     public static final Key SHAPELESS = Key.of("minecraft:shapeless");
     public static final Key DYE = Key.of("minecraft:dye");
     public static final Key SMELTING = Key.of("minecraft:smelting");
@@ -24,6 +25,7 @@ public final class RecipeSerializers {
 
     static {
         register(SHAPED, CustomShapedRecipe.SERIALIZER);
+        register(SHAPED_TRANSFORM, CustomShapedTransformRecipe.SERIALIZER);
         register(Key.of("crafting_shaped"), CustomShapedRecipe.SERIALIZER);
         register(SHAPELESS, CustomShapelessRecipe.SERIALIZER);
         register(Key.of("crafting_shapeless"), CustomShapelessRecipe.SERIALIZER);
