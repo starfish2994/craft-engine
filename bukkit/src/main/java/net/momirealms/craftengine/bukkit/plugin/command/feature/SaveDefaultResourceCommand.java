@@ -25,7 +25,12 @@ public final class SaveDefaultResourceCommand extends BukkitCommandFeature<Comma
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder
                 .optional("path", StringParser.stringComponent(StringParser.StringMode.GREEDY).suggestionProvider(SuggestionProvider.suggesting(
-                        Suggestion.suggestion("/internal"), Suggestion.suggestion("/default"), Suggestion.suggestion("/remove_shulker_head"), Suggestion.suggestion("/legacy_armor")
+                        Suggestion.suggestion("/default_assets"),
+                        Suggestion.suggestion("/default_feature_populator"),
+                        Suggestion.suggestion("/default_templates"),
+                        Suggestion.suggestion("/internal"),
+                        Suggestion.suggestion("/legacy_armor"),
+                        Suggestion.suggestion("/remove_shulker_head")
                 )))
                 .handler(context -> {
                     AbstractPackManager packManager = (AbstractPackManager) CraftEngine.instance().packManager();
