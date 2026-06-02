@@ -30,7 +30,7 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
     protected static final String[] INGREDIENTS = new String[] {"ingredients", "ingredient"};
     protected static final String[] EXP = new String[] {"exp", "experience"};
     protected static final String[] ITEMS = new String[] {"items", "item"};
-    protected static final String[] POST_PROCESSOR = new String[] {"transmute_processors", "transmute-processors", "post_processors", "post-processors"};
+    protected static final String[] TRANSFORM_PROCESSOR = new String[] {"transform_processors", "transform-processors", "post_processors", "post-processors"};
     protected static final String[] VISUAL_RESULT = new String[] {"visual_result", "visual-result"};
     protected static final String[] FUNCTIONS = new String[] {"functions", "function"};
     protected static final String[] CONDITIONS = new String[] {"conditions", "condition"};
@@ -61,7 +61,7 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
         if (buildableItem.isEmpty()) {
             throw new KnownResourceException("resource.recipe.result.item_not_exist", section.assemblePath("id"), id.asString());
         }
-        List<PostProcessor> processors = section.getList(POST_PROCESSOR, v -> PostProcessors.fromConfig(v.getAsSection()));
+        List<PostProcessor> processors = section.getList(TRANSFORM_PROCESSOR, v -> PostProcessors.fromConfig(v.getAsSection()));
         return new CustomRecipeResult(
                 buildableItem.get(),
                 count,

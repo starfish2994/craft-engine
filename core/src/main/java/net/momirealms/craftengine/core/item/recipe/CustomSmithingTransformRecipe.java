@@ -216,7 +216,7 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
                     additionIngredient,
                     super.parseResult(section.getNonNullValue("result", ConfigConstants.ARGUMENT_SECTION)),
                     section.getValue(VISUAL_RESULT, super::parseResult),
-                    section.getList(POST_PROCESSOR, ItemTransformDataProcessors::fromConfig),
+                    section.getList(TRANSFORM_PROCESSOR, ItemTransformDataProcessors::fromConfig),
                     section.getBoolean(MERGE_COMPONENTS, true),
                     section.getList(FUNCTIONS, CommonFunctions::fromConfig).toArray(new Function[0]),
                     MiscUtils.allOf(section.getList(CONDITIONS, CommonConditions::fromConfig)),

@@ -60,6 +60,11 @@ public final class CustomDyeRecipe extends CustomCraftingTableRecipe {
     }
 
     @Override
+    public boolean requiresInput() {
+        return true;
+    }
+
+    @Override
     public boolean matches(RecipeInput input) {
         CraftingInput craftingInput = (CraftingInput) input;
         if (craftingInput.ingredientCount() < 2) {

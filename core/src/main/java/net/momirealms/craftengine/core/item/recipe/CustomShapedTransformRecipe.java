@@ -41,18 +41,22 @@ public class CustomShapedTransformRecipe extends CustomShapedRecipe {
                                        CustomShapedRecipe.Pattern pattern,
                                        Function<Context>[] craftingFunctions,
                                        Predicate<Context> craftingCondition,
-                                       boolean alwaysRebuildOutput,
                                        boolean ingredientCountSupport,
                                        List<ItemTransformDataProcessor> processors,
                                        boolean mergeComponents
     ) {
-        super(id, showNotification, result, visualResult, group, category, pattern, craftingFunctions, craftingCondition, alwaysRebuildOutput, ingredientCountSupport);
+        super(id, showNotification, result, visualResult, group, category, pattern, craftingFunctions, craftingCondition, true, ingredientCountSupport);
         this.processors = processors;
         this.mergeComponents = mergeComponents;
     }
 
     public boolean mergeComponents() {
         return this.mergeComponents;
+    }
+
+    @Override
+    public boolean requiresInput() {
+        return true;
     }
 
     @Override
@@ -71,7 +75,9 @@ public class CustomShapedTransformRecipe extends CustomShapedRecipe {
         } else {
             source = ((ParsedPattern) super.parsedPattern).matchSource((CraftingInput) input, false);
         }
-
+        if (source == null) {
+            return super.assembleVisual(input, context);
+        }
         Item result = this.visualResult().buildItem(context);
         return createTransformResult(source, result);
     }
@@ -87,7 +93,9 @@ public class CustomShapedTransformRecipe extends CustomShapedRecipe {
         } else {
             source = ((ParsedPattern) super.parsedPattern).matchSource((CraftingInput) input, false);
         }
-
+        if (source == null) {
+            return super.assemble(input, context);
+        }
         Item result = this.result(context);
         return createTransformResult(source, result);
     }
@@ -124,9 +132,16 @@ public class CustomShapedTransformRecipe extends CustomShapedRecipe {
                 char[] line = pattern[i].toCharArray();
                 for (int j = 0; j < line.length; j++) {
                     if (line[j] == sourceChar) {
-                        int sourceIndex = i * pattern[i].length() + j;
-                        int mirroredSourceIndex = pattern.length * line.length - sourceIndex;
-                        return new ParsedPattern(shrunk[0].length(), shrunk.length, toIngredientArray(shrunk, this.ingredients), sourceIndex, mirroredSourceIndex);
+                        int sourceIndex = i * line.length + j;
+                        int mirroredJ = line.length - 1 - j;
+                        int mirroredSourceIndex = i * line.length + mirroredJ;
+                        return new ParsedPattern(
+                                shrunk[0].length(),
+                                shrunk.length,
+                                toIngredientArray(shrunk, this.ingredients),
+                                sourceIndex,
+                                mirroredSourceIndex
+                        );
                     }
                 }
             }
@@ -141,7 +156,7 @@ public class CustomShapedTransformRecipe extends CustomShapedRecipe {
         public ParsedPattern(int width, int height, Optional<Ingredient>[] ingredients, int sourceIndex, int mirroredSourceIndex) {
             super(width, height, ingredients);
             this.sourceIndex = sourceIndex;
-            this.mirroredSourceIndex = this.symmetrical ? mirroredSourceIndex : -1;
+            this.mirroredSourceIndex = this.symmetrical ? -1 : mirroredSourceIndex;
         }
 
         Item matchSource(CraftingInput input, boolean mirrored) {
@@ -182,7 +197,7 @@ public class CustomShapedTransformRecipe extends CustomShapedRecipe {
                         sourceIngredientChar = ch;
                         sourceIngredient = ingredient;
                     } else {
-                        throw new KnownResourceException("resource.recipe.transform.duplication_source", ingredientSection.path(), String.valueOf(ch),  String.valueOf(sourceIngredientChar));
+                        throw new KnownResourceException("resource.recipe.shaped_transform.ambigious_source", ingredientSection.path(), String.valueOf(ch),  String.valueOf(sourceIngredientChar));
                     }
                 }
 
@@ -192,7 +207,7 @@ public class CustomShapedTransformRecipe extends CustomShapedRecipe {
                 }
             }
             if (sourceIngredient == null || sourceIngredientChar == ' ') {
-                throw new KnownResourceException("resource.recipe.transform.not_found_source", ingredientSection.path());
+                throw new KnownResourceException("resource.recipe.shaped_transform.source_not_found", ingredientSection.path());
             }
             List<String> pattern = section.getNonEmptyList("pattern", ConfigValue::getAsString);
             if (!validatePattern(pattern, sourceIngredientChar)) {
@@ -208,9 +223,8 @@ public class CustomShapedTransformRecipe extends CustomShapedRecipe {
                     new Pattern(id, pattern.toArray(new String[0]), ingredients, sourceIngredientChar),
                     section.getList(FUNCTIONS, CommonFunctions::fromConfig).toArray(new Function[0]),
                     MiscUtils.allOf(section.getList(CONDITIONS, CommonConditions::fromConfig)),
-                    section.getBoolean(ALWAYS_REBUILD_RESULT, true),
                     hasAdditionalIngredients,
-                    section.getList(POST_PROCESSOR, ItemTransformDataProcessors::fromConfig),
+                    section.getList(TRANSFORM_PROCESSOR, ItemTransformDataProcessors::fromConfig),
                     section.getBoolean(MERGE_COMPONENTS, true)
             );
         }
