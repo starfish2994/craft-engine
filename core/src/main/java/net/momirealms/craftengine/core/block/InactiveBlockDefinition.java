@@ -21,6 +21,7 @@ public final class InactiveBlockDefinition extends AbstractBlockDefinition {
             ImmutableBlockState state = new ImmutableBlockState(super.holder, super.variantProvider, new Reference2ObjectArrayMap<>());
             state.setNbtToSave(state.toNbtToSave(nbt));
             state.setBehavior(CraftEngine.instance().blockManager().getEmptyBlockBehavior());
+            state.setCustomBlockState(this.defaultState().customBlockState());
             return state;
         });
     }
