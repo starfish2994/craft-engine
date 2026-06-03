@@ -51,19 +51,19 @@ import java.util.function.Function;
 public final class BukkitRecipeManager extends AbstractRecipeManager {
     private static BukkitRecipeManager instance;
     public static final NamespacedKey FURNACE_LAST_USER = new NamespacedKey("craftengine", "furnace_last_user");
-
-    public static final Map<Key, Function<Recipe, Object>> RECIPE_GENERATOR = Map.of(
-            RecipeSerializers.SHAPED, recipe -> FastNMS.INSTANCE.createShapedRecipe((CustomShapedRecipe) recipe),
-            RecipeSerializers.SHAPELESS, recipe -> FastNMS.INSTANCE.createShapelessRecipe((CustomShapelessRecipe) recipe),
-            RecipeSerializers.SMELTING, recipe -> FastNMS.INSTANCE.createSmeltingRecipe((CustomSmeltingRecipe) recipe),
-            RecipeSerializers.BLASTING, recipe -> FastNMS.INSTANCE.createBlastingRecipe((CustomBlastingRecipe) recipe),
-            RecipeSerializers.SMOKING, recipe -> FastNMS.INSTANCE.createSmokingRecipe((CustomSmokingRecipe) recipe),
-            RecipeSerializers.CAMPFIRE_COOKING, recipe -> FastNMS.INSTANCE.createCampfireRecipe((CustomCampfireRecipe) recipe),
-            RecipeSerializers.STONECUTTING, recipe -> FastNMS.INSTANCE.createStonecuttingRecipe((CustomStoneCuttingRecipe) recipe),
-            RecipeSerializers.SMITHING_TRIM, recipe -> FastNMS.INSTANCE.createSmithingTrimRecipe((CustomSmithingTrimRecipe) recipe),
-            RecipeSerializers.SMITHING_TRANSFORM, recipe -> FastNMS.INSTANCE.createSmithingTransformRecipe((CustomSmithingTransformRecipe) recipe),
-            RecipeSerializers.DYE, recipe -> FastNMS.INSTANCE.createDyeRecipe((CustomDyeRecipe) recipe)
-    );
+    public static final Map<Key, Function<Recipe, Object>> RECIPE_GENERATOR = MiscUtils.init(new HashMap<>(), it -> {
+        it.put(RecipeSerializers.SHAPED, recipe -> FastNMS.INSTANCE.createShapedRecipe((CustomShapedRecipe) recipe));
+        it.put(RecipeSerializers.SHAPED_TRANSFORM, recipe -> FastNMS.INSTANCE.createShapedRecipe((CustomShapedTransformRecipe) recipe));
+        it.put(RecipeSerializers.SHAPELESS, recipe -> FastNMS.INSTANCE.createShapelessRecipe((CustomShapelessRecipe) recipe));
+        it.put(RecipeSerializers.SMELTING, recipe -> FastNMS.INSTANCE.createSmeltingRecipe((CustomSmeltingRecipe) recipe));
+        it.put(RecipeSerializers.BLASTING, recipe -> FastNMS.INSTANCE.createBlastingRecipe((CustomBlastingRecipe) recipe));
+        it.put(RecipeSerializers.SMOKING, recipe -> FastNMS.INSTANCE.createSmokingRecipe((CustomSmokingRecipe) recipe));
+        it.put(RecipeSerializers.CAMPFIRE_COOKING, recipe -> FastNMS.INSTANCE.createCampfireRecipe((CustomCampfireRecipe) recipe));
+        it.put(RecipeSerializers.STONECUTTING, recipe -> FastNMS.INSTANCE.createStonecuttingRecipe((CustomStoneCuttingRecipe) recipe));
+        it.put(RecipeSerializers.SMITHING_TRIM, recipe -> FastNMS.INSTANCE.createSmithingTrimRecipe((CustomSmithingTrimRecipe) recipe));
+        it.put(RecipeSerializers.SMITHING_TRANSFORM, recipe -> FastNMS.INSTANCE.createSmithingTransformRecipe((CustomSmithingTransformRecipe) recipe));
+        it.put(RecipeSerializers.DYE, recipe -> FastNMS.INSTANCE.createDyeRecipe((CustomDyeRecipe) recipe));
+    });
 
     // nms 模块需要使用此方法
     public static List<Object> getIngredientLooks(Ingredient ingredient) {

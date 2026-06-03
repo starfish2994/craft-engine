@@ -24,11 +24,11 @@ public final class TextDisplayBlockEntityElement extends AbstractConstantBlockEn
     public final Object cachedUpdatePosPacket;
     public final int entityId;
 
-    public TextDisplayBlockEntityElement(TextDisplayBlockEntityElementConfig config, BlockPos pos) {
+    TextDisplayBlockEntityElement(TextDisplayBlockEntityElementConfig config, BlockPos pos) {
         this(config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public TextDisplayBlockEntityElement(TextDisplayBlockEntityElementConfig config, BlockPos pos, int entityId, boolean posChanged) {
+    TextDisplayBlockEntityElement(TextDisplayBlockEntityElementConfig config, BlockPos pos, int entityId, boolean posChanged) {
         super(config.predicate, config.hasCondition);
         Vector3f position = config.position();
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(

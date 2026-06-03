@@ -5,9 +5,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
+import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
@@ -19,6 +21,8 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -198,7 +202,7 @@ public abstract class Furniture implements Cullable {
      * Refreshes the visual elements for all tracking players.
      */
     public void refreshElements() {
-        for (Player player : getTrackedBy()) {
+        for (Player player : trackedBy()) {
             refreshElements(player);
         }
     }
@@ -231,7 +235,7 @@ public abstract class Furniture implements Cullable {
      * Triggers a full refresh (elements & hitboxes) for all tracking players.
      */
     public void refresh() {
-        for (Player player : getTrackedBy()) {
+        for (Player player : trackedBy()) {
             refresh(player);
         }
     }
@@ -255,6 +259,7 @@ public abstract class Furniture implements Cullable {
     protected void setVariantInternal(FurnitureVariant variant) {
         FurnitureVariant previousVariant = this.currentVariant;
         this.currentVariant = variant;
+        this.persistentData.setVariant(variant.name());
         Int2ObjectMap<FurnitureHitBox> hitboxMap = new Int2ObjectOpenHashMap<>();
 
         // 所有可供交互的实体列表
@@ -262,12 +267,24 @@ public abstract class Furniture implements Cullable {
 
         // 获取全部家具显示元素，从行为和配置里获取
         List<FurnitureElementConfig<? extends FurnitureElement>> elementConfigs = variant.elementConfigs();
-        List<FurnitureElement> elements = new ArrayList<>(elementConfigs.size());
-        for (FurnitureElementConfig<?> elementConfig : elementConfigs) {
-            FurnitureElement element = elementConfig.create(this);
-            elements.add(element);
-            element.gatherInteractableEntityId(interactableEntityIds::addLast);
+        List<FurnitureElement> elements;
+
+        // 如果先前存在变体快照
+        if (this.snapshot != null) {
+            elements = this.updateElements(elementConfigs);
+            for (FurnitureElement element : elements) {
+                element.gatherInteractableEntityId(interactableEntityIds::addLast);
+            }
+        } else {
+            elements = new ArrayList<>(elementConfigs.size());
+            for (FurnitureElementConfig<?> elementConfig : elementConfigs) {
+                FurnitureElement element = elementConfig.create(this);
+                elements.add(element);
+                element.gatherInteractableEntityId(interactableEntityIds::addLast);
+            }
         }
+
+        // 行为提供的元素
         this.controller.gatherElements(element -> {
             elements.add(element);
             element.gatherInteractableEntityId(interactableEntityIds::addLast);
@@ -276,7 +293,7 @@ public abstract class Furniture implements Cullable {
         // 初始化碰撞箱
         List<FurnitureHitBoxConfig<? extends FurnitureHitBox>> furnitureHitBoxConfigs = variant.hitBoxConfigs();
         List<Collider> colliders = new ObjectArrayList<>(furnitureHitBoxConfigs.size());
-        List<FurnitureHitBox> hitboxes = new ArrayList<>(furnitureHitBoxConfigs.size());
+        List<FurnitureHitBox> hitboxes = new ObjectArrayList<>(furnitureHitBoxConfigs.size());
 
         // 辅助map，用于排除重复的座椅
         LazyReference<Map<Vector3f, Seat<FurnitureHitBox>>> seatMap = LazyReference.lazyReference(HashMap::new);
@@ -307,8 +324,8 @@ public abstract class Furniture implements Cullable {
         // 虚拟碰撞箱的实体id
         this.interactableEntityIds = interactableEntityIds.toIntArray();
         this.colliderEntityIds = colliders.stream().mapToInt(Collider::entityId).toArray();
-        this.snapshot = createSnapshot(elements, hitboxes, hitboxMap, colliders, new IdentityHashMap<>(4));
         this.cullingData = createCullingData(variant.cullingData());
+        this.snapshot = createSnapshot(elements, hitboxes, hitboxMap, colliders, new IdentityHashMap<>(4));
 
         // 外部模型
         Supplier<ExternalModel> externalModel = variant.externalModel();
@@ -328,6 +345,150 @@ public abstract class Furniture implements Cullable {
         // 触发变体变化
         if (previousVariant != null) {
             this.controller.onVariantChange(previousVariant);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private List<FurnitureElement> updateElements(List<FurnitureElementConfig<? extends FurnitureElement>> newElementConfigList) {
+        List<Player> trackedBy = trackedBy();
+        List<FurnitureElement> newElements = new ArrayList<>(newElementConfigList.size());
+        boolean hasTrackedBy = !trackedBy.isEmpty();
+        boolean[] visibility = new boolean[trackedBy.size()];
+        if (hasTrackedBy) {
+            if (Config.enableEntityCulling()) {
+                for (int i = 0; i < trackedBy.size(); i++) {
+                    CullableHolder trackedEntity = trackedBy.get(i).getTrackedEntity(this.metaDataEntityId);
+                    if (trackedEntity != null && trackedEntity.isShown) {
+                        visibility[i] = true;
+                    }
+                }
+            } else {
+                Arrays.fill(visibility, true);
+            }
+        }
+
+        /*
+         *
+         * 1 对 1，命中率最高
+         *
+         */
+        if (this.snapshot.elements.size() == 1 && newElementConfigList.size() == 1) {
+            FurnitureElement previousElement = this.snapshot.elements.getFirst();
+            FurnitureElementConfig<? extends FurnitureElement> config = newElementConfigList.getFirst();
+            if (previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
+                FurnitureElement element = ((FurnitureElementConfig) config).create(this, previousElement);
+                if (element != null) {
+                    if (hasTrackedBy) {
+                        for (int z = 0; z < trackedBy.size(); z++) {
+                            if (visibility[z]) {
+                                updateFurnitureElementVisibility(trackedBy.get(z), previousElement, element);
+                            }
+                        }
+                    }
+                } else {
+                    element = config.create(this);
+                    if (hasTrackedBy) {
+                        for (int z = 0; z < trackedBy.size(); z++) {
+                            if (visibility[z]) {
+                                Player player = trackedBy.get(z);
+                                previousElement.hide(player);
+                                element.show(player);
+                            }
+                        }
+                    }
+                }
+                newElements.add(element);
+            }
+        } else {
+            FurnitureElement[] previousElements = this.snapshot.elements.toArray(new FurnitureElement[0]);
+            FurnitureElementConfig<? extends FurnitureElement>[] newElementConfigs = newElementConfigList.toArray(new FurnitureElementConfig[0]);
+
+            outer: for (int i = 0; i < newElementConfigs.length; i++) {
+                FurnitureElementConfig<? extends FurnitureElement> config = newElementConfigs[i];
+
+                for (int j = 0; j < previousElements.length; j++) {
+                    FurnitureElement previousElement = previousElements[j];
+                    if (previousElement != null && previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
+                        FurnitureElement newElement = ((FurnitureElementConfig) config).createExact(this, previousElement);
+                        if (newElement != null) {
+                            previousElements[j] = null;
+                            newElementConfigs[i] = null;
+                            newElements.add(newElement);
+                            if (hasTrackedBy) {
+                                for (int z = 0; z < trackedBy.size(); z++) {
+                                    if (visibility[z]) {
+                                        updateFurnitureElementVisibility(trackedBy.get(z), previousElement, newElement);
+                                    }
+                                }
+                            }
+                            continue outer;
+                        }
+                    }
+                }
+            }
+
+            outer: for (int i = 0; i < newElementConfigs.length; i++) {
+                FurnitureElementConfig<? extends FurnitureElement> config = newElementConfigs[i];
+                if (config != null) {
+                    for (int j = 0; j < previousElements.length; j++) {
+                        FurnitureElement previousElement = previousElements[j];
+                        if (previousElement != null && previousElement.supportsTransform() && config.elementClass().isInstance(previousElement)) {
+                            FurnitureElement newElement = ((FurnitureElementConfig) config).create(this, previousElement);
+                            if (newElement != null) {
+                                previousElements[j] = null;
+                                newElements.add(newElement);
+                                if (hasTrackedBy) {
+                                    for (int z = 0; z < trackedBy.size(); z++) {
+                                        if (visibility[z]) {
+                                            updateFurnitureElementVisibility(trackedBy.get(z), previousElement, newElement);
+                                        }
+                                    }
+                                }
+                                continue outer;
+                            }
+                        }
+                    }
+
+                    FurnitureElement newElement = config.create(this);
+                    newElements.add(newElement);
+                    if (hasTrackedBy) {
+                        for (int z = 0; z < trackedBy.size(); z++) {
+                            if (visibility[z]) {
+                                newElement.show(trackedBy.get(z));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (hasTrackedBy) {
+                for (int i = 0; i < previousElements.length; i++) {
+                    FurnitureElement previousElement = previousElements[i];
+                    if (previousElement != null) {
+                        for (Player player : trackedBy) {
+                            previousElement.hide(player);
+                        }
+                    }
+                }
+            }
+        }
+        return newElements;
+    }
+
+    private static void updateFurnitureElementVisibility(Player player, FurnitureElement before, FurnitureElement after) {
+        if (before.hasCondition() || after.hasCondition()) {
+            PlayerOptionalContext context = PlayerOptionalContext.ofImmutable(player);
+            boolean previousCanSee = before.canSee(context);
+            boolean afterCanSee = after.canSee(context);
+            if (previousCanSee && afterCanSee) {
+                after.update(player);
+            } else if (previousCanSee) {
+                after.hide(player);
+            } else if (afterCanSee) {
+                after.show(player);
+            }
+        } else {
+            after.update(player);
         }
     }
 
@@ -541,6 +702,11 @@ public abstract class Furniture implements Cullable {
      * Gets the set of players who are currently "tracking" this furniture.
      */
     public abstract Set<Player> getTrackedBy();
+
+    /**
+     * Gets the list of players who are currently "tracking" this furniture.
+     */
+    public abstract List<Player> trackedBy();
 
     /**
      * Save the custom data if it's dirty

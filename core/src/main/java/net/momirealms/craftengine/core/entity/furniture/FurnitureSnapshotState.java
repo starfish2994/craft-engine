@@ -35,7 +35,7 @@ public abstract class FurnitureSnapshotState {
 
     public void refreshElements(Player player) {
         for (FurnitureElement element : this.elements) {
-            element.refresh(player);
+            element.update(player);
         }
     }
 
@@ -43,6 +43,22 @@ public abstract class FurnitureSnapshotState {
         if (this.colliders != null) {
             for (Collider collider : this.colliders) {
                 collider.destroy();
+            }
+        }
+    }
+
+    public void hideHitboxes(Player player) {
+        if (this.hitboxes != null) {
+            for (FurnitureHitBox hitbox : this.hitboxes) {
+                hitbox.hide(player);
+            }
+        }
+    }
+
+    public void showHitboxes(Player player) {
+        if (this.hitboxes != null) {
+            for (FurnitureHitBox hitbox : this.hitboxes) {
+                hitbox.show(player);
             }
         }
     }

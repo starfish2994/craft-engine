@@ -284,7 +284,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                                 }
                                 cachedFile = new CachedTranslation(data, lastModifiedTime, size);
                                 TranslationManagerImpl.this.cachedTranslations.put(locale, cachedFile);
-                            } catch (IOException e) {
+                            } catch (Exception e) {
                                 TranslationManagerImpl.this.plugin.logger().error("Error while reading translation file: " + path, e);
                                 return FileVisitResult.CONTINUE;
                             }
@@ -293,7 +293,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                     return FileVisitResult.CONTINUE;
                 }
             });
-        } catch (IOException e) {
+        } catch (Exception e) {
             this.plugin.logger().warn("Failed to load translation file from folder", e);
         }
     }
@@ -436,11 +436,6 @@ public final class TranslationManagerImpl implements TranslationManager {
         @Override
         public LoadingStage loadingStage() {
             return LoadingStages.TRANSLATION;
-        }
-
-        @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
         }
 
         @Override

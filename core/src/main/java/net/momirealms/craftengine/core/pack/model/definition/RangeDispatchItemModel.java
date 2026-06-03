@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.Range
 import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.RangeDispatchProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -101,6 +102,9 @@ public final class RangeDispatchItemModel implements ItemModel {
     public void gatherRevisions(Consumer<Revision> consumer) {
         if (this.fallBack != null) {
             this.fallBack.gatherRevisions(consumer);
+        }
+        if (this.transformation != null) {
+            consumer.accept(Revisions.SINCE_26_1);
         }
         for (ItemModel model : this.entries.values()) {
             model.gatherRevisions(consumer);

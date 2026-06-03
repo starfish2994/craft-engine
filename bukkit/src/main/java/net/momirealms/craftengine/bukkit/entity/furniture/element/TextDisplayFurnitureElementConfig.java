@@ -18,10 +18,13 @@ import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -128,7 +131,33 @@ public final class TextDisplayFurnitureElementConfig implements FurnitureElement
 
     @Override
     public TextDisplayFurnitureElement create(@NotNull Furniture furniture) {
-        return new TextDisplayFurnitureElement(furniture, this);
+        return new TextDisplayFurnitureElement(furniture, this, getPos(furniture));
+    }
+
+    @Override
+    public TextDisplayFurnitureElement create(@NotNull Furniture furniture, @NonNull TextDisplayFurnitureElement previous) {
+        WorldPosition pos = getPos(furniture);
+        return new TextDisplayFurnitureElement(furniture, this, pos, previous.entityId, !pos.equals(previous.position));
+    }
+
+    @Override
+    public TextDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NonNull TextDisplayFurnitureElement previous) {
+        WorldPosition pos = getPos(furniture);
+        if (!pos.equals(previous.position)) {
+            return null;
+        }
+        return new TextDisplayFurnitureElement(furniture, this, pos, previous.entityId, false);
+    }
+
+    @Override
+    public Class<TextDisplayFurnitureElement> elementClass() {
+        return TextDisplayFurnitureElement.class;
+    }
+
+    public WorldPosition getPos(Furniture furniture) {
+        WorldPosition furniturePos = furniture.position();
+        Vec3d position = Furniture.getRelativePosition(furniturePos, this.position);
+        return new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot + xRot, furniturePos.yRot + yRot);
     }
 
     private static class Factory implements FurnitureElementConfigFactory<TextDisplayFurnitureElement> {

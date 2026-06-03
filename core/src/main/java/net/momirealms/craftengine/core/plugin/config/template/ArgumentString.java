@@ -278,16 +278,16 @@ public interface ArgumentString {
         while (i < n) {
             char c = input.charAt(i);
 
-            // --- 1. 优先检测占位符触发器 ---
+            // 优先检测占位符触发器
             if (c == '$' && i + 1 < n && input.charAt(i + 1) == '{') {
 
-                // a. 提交之前的普通文本
+                // 提交之前的普通文本
                 if (!currentLiteral.isEmpty()) {
                     arguments.add(Literal.literal(currentLiteral.toString()));
                     currentLiteral.setLength(0);
                 }
 
-                // b. 解析占位符内部，此处的逻辑拥有自己的转义规则
+                // 解析占位符内部，此处的逻辑拥有自己的转义规则
                 int contentStartIndex = i + 2;
                 StringBuilder keyBuilder = new StringBuilder();
                 int depth = 1;
@@ -297,7 +297,7 @@ public interface ArgumentString {
                 while (j < n) {
                     char innerChar = input.charAt(j);
 
-                    // --- 占位符内部的转义逻辑 ---
+                    // 占位符内部的转义逻辑
                     if (innerChar == '\\') {
                         if (j + 1 < n && (input.charAt(j + 1) == '{' || input.charAt(j + 1) == '}')) {
                             keyBuilder.append(input.charAt(j + 1));
@@ -335,12 +335,12 @@ public interface ArgumentString {
                     i++;
                 }
             }
-            // --- 2. 其次，只处理对触发器'$'的转义 ---
+            // 只处理对触发器'$'的转义
             else if (c == '\\' && i + 1 < n && input.charAt(i + 1) == '$') {
                 currentLiteral.append('$'); // 直接添加 '$'
                 i += 2; // 跳过 '\' 和 '$'
             }
-            // --- 3. 处理所有其他字符（包括独立的'\'和'{'）为普通文本 ---
+            // 处理所有其他字符（包括独立的'\'和'{'）为普通文本
             else {
                 currentLiteral.append(c);
                 i++;

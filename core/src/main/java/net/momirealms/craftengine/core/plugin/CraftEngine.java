@@ -52,6 +52,7 @@ import net.momirealms.craftengine.core.util.Timestamp;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldManager;
 import net.momirealms.craftengine.core.world.score.TeamManager;
+import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.jetbrains.annotations.ApiStatus;
@@ -150,6 +151,10 @@ public abstract class CraftEngine implements Plugin {
         this.itemBrowserManager = new ItemBrowserManagerImpl(this);
         // 初始化实体剔除器
         this.entityCullingManager = EntityCullingManager.INSTANCE;
+        // 初始化队伍管理器
+        this.teamManager = new TeamManagerImpl(this);
+        // 初始化虚拟队伍
+        this.teamManager.init();
 
         // 迁移缓存
         try {
@@ -546,7 +551,7 @@ public abstract class CraftEngine implements Plugin {
         // register loot parser
         this.packManager.registerConfigSectionParsers(this.lootManager.parsers());
         // register skip-optimization parser
-        this.packManager.registerConfigSectionParser(this.packManager.parser());
+        this.packManager.registerConfigSectionParsers(this.packManager.parsers());
         // register feature parser
         this.packManager.registerConfigSectionParsers(this.worldManager.parsers());
         // register painting parser

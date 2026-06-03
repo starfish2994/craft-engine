@@ -48,6 +48,10 @@ public abstract class CustomCraftingTableRecipe extends AbstractGroupedRecipe
         return this.craftingCondition != null;
     }
 
+    public boolean requiresInput() {
+        return false;
+    }
+
     public CraftingRecipeCategory category() {
         return this.category;
     }

@@ -43,6 +43,8 @@ import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingPyramid;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
+import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArgument;
+import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArguments;
 import net.momirealms.craftengine.core.plugin.config.yaml.DoubleSensitiveSchema;
 import net.momirealms.craftengine.core.plugin.config.yaml.StringKeyConstructor;
 import net.momirealms.craftengine.core.plugin.locale.ClientLangData;
@@ -142,7 +144,8 @@ public abstract class AbstractPackManager implements PackManager {
     private Map<Path, CachedAssetFile> cachedAssetFiles = Collections.emptyMap();
     protected BiConsumer<Path, Path> zipGenerator;
     protected ResourcePackHost resourcePackHost;
-    private final SkipOptimizationParser parser = new SkipOptimizationParser();
+    private final SkipOptimizationParser skipOptimizationParser = new SkipOptimizationParser();
+    private final ConfigFactoryParser bundleParser = new ConfigFactoryParser();
 
     public AbstractPackManager(CraftEngine plugin, Consumer<PackCacheData> cacheEventDispatcher, BiConsumer<Path, Path> generationEventDispatcher) {
         this.plugin = plugin;
@@ -337,7 +340,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public void unload() {
-        this.parser.clearCache();
+        this.skipOptimizationParser.clearCache();
         this.loadedPacks.clear();
     }
 
@@ -485,15 +488,17 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void updateCachedConfigFiles() {
         Map<Path, CachedConfigFile> previousFiles = this.cachedConfigFiles;
         this.cachedConfigFiles = new HashMap<>(128, 0.5f);
+
         for (Pack pack : loadedPacks()) {
             if (!pack.enabled()) continue;
+
             for (Path configurationFolderPath : pack.configurationFolders()) {
                 if (!Files.isDirectory(configurationFolderPath)) continue;
+
                 try {
                     Files.walkFileTree(configurationFolderPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                         @Override
@@ -501,83 +506,34 @@ public abstract class AbstractPackManager implements PackManager {
                             if (!Files.isRegularFile(path)) {
                                 return FileVisitResult.CONTINUE;
                             }
-                            String fileName = path.getFileName().toString();
-                            if (fileName.endsWith(".yml") || fileName.endsWith(".yaml")) {
-                                CachedConfigFile cachedFile = previousFiles.get(path);
-                                long lastModifiedTime = attrs.lastModifiedTime().toMillis();
-                                long size = attrs.size();
-                                if (cachedFile != null && cachedFile.lastModified() == lastModifiedTime && cachedFile.size() == size) {
-                                    AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
-                                } else {
-                                    LoadSettings loadSettings = LoadSettings.builder()
-                                            .setSchema(DoubleSensitiveSchema.INSTANCE)
-                                            .setLabel(path.toAbsolutePath().toString())
-                                            .build();
-                                    Map<String, Object> data;
-                                    try {
-                                        String content = Files.readString(path);
-                                        try {
-                                            data = (Map<String, Object>) new Load(loadSettings, new StringKeyConstructor(loadSettings, path))
-                                                    .loadFromString(content);
-                                        } catch (ScannerException e1) {
-                                            String msg = e1.getMessage();
-                                            if (msg != null && msg.contains("TAB") && msg.contains("indentation")) {
-                                                try {
-                                                    content = content.replace("\t", "    ");
-                                                    data = (Map<String, Object>) new Load(loadSettings, new StringKeyConstructor(loadSettings, path))
-                                                            .loadFromString(content);
-                                                    Files.writeString(path, content);
-                                                } catch (ScannerException e2) {
-                                                    AbstractPackManager.this.plugin.logger().error("Error found while reading config file (after TAB fix): " + path, e2);
-                                                    return FileVisitResult.CONTINUE;
-                                                }
-                                            } else {
-                                                AbstractPackManager.this.plugin.logger().error("Error found while reading config file: " + path, e1);
-                                                return FileVisitResult.CONTINUE;
-                                            }
-                                        }
-                                    } catch (IOException e) {
-                                        AbstractPackManager.this.plugin.logger().error("Error while reading config file: " + path, e);
-                                        return FileVisitResult.CONTINUE;
-                                    } catch (ParserException e) {
-                                        AbstractPackManager.this.plugin.logger().error("Invalid YAML file found: " + path + ".\n" + e.getMessage() +
-                                                "\nIt is recommended to use Visual Studio Code as your YAML editor to fix problems more quickly.");
-                                        return FileVisitResult.CONTINUE;
-                                    }
 
-                                    if (data == null) {
-                                        return FileVisitResult.CONTINUE;
-                                    }
-                                    cachedFile = new CachedConfigFile(data, pack, lastModifiedTime, size);
-                                    AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
-                                }
-                                for (Map.Entry<String, Object> entry : cachedFile.config().entrySet()) {
-                                    processConfigEntry(entry, path, cachedFile.pack(), ConfigParser::addConfig);
-                                }
-                            } else if (fileName.endsWith(".json")) {
-                                CachedConfigFile cachedFile = previousFiles.get(path);
-                                long lastModifiedTime = attrs.lastModifiedTime().toMillis();
-                                long size = attrs.size();
-                                if (cachedFile != null && cachedFile.lastModified() == lastModifiedTime && cachedFile.size() == size) {
-                                    AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
-                                } else {
-                                    try (InputStreamReader inputStream = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
-                                        Map<String, Object> data = GsonHelper.parseJsonToMap(inputStream);
-                                        if (data == null)  return FileVisitResult.CONTINUE;
-                                        cachedFile = new CachedConfigFile(data, pack, lastModifiedTime, size);
-                                        AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
-                                    } catch (IOException e) {
-                                        AbstractPackManager.this.plugin.logger().error("Error while reading config file: " + path, e);
-                                        return FileVisitResult.CONTINUE;
-                                    } catch (JsonParseException e) {
-                                        AbstractPackManager.this.plugin.logger().error("Invalid JSON file found: " + path + ".\n" + e.getMessage() + "\nIt is recommended to use Visual Studio Code as your JSON editor to fix problems more quickly.");
-                                        return FileVisitResult.CONTINUE;
-                                    }
-                                }
-                                for (Map.Entry<String, Object> entry : cachedFile.config().entrySet()) {
-                                    processConfigEntry(entry, path, cachedFile.pack(), ConfigParser::addConfig);
-                                }
+                            String fileName = path.getFileName().toString().toLowerCase();
+                            boolean isYaml = fileName.endsWith(".yml") || fileName.endsWith(".yaml");
+                            boolean isJson = fileName.endsWith(".json");
+
+                            if (!isYaml && !isJson) {
+                                return FileVisitResult.CONTINUE;
                             }
+
+                            CachedConfigFile cachedFile = previousFiles.get(path);
+                            long lastModified = attrs.lastModifiedTime().toMillis();
+                            long size = attrs.size();
+
+                            if (cachedFile != null && cachedFile.lastModified() == lastModified && cachedFile.size() == size) {
+                                AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
+                            } else {
+                                Map<String, Object> data = isYaml ? loadYamlFile(path) : loadJsonFile(path);
+                                if (data == null) {
+                                    return FileVisitResult.CONTINUE;
+                                }
+                                cachedFile = new CachedConfigFile(data, pack, lastModified, size);
+                                AbstractPackManager.this.cachedConfigFiles.put(path, cachedFile);
+                            }
+
+                            for (Map.Entry<String, Object> entry : cachedFile.config().entrySet()) {
+                                processConfigEntry(entry, path, cachedFile.pack(), null);
+                            }
+
                             return FileVisitResult.CONTINUE;
                         }
                     });
@@ -585,6 +541,64 @@ public abstract class AbstractPackManager implements PackManager {
                     this.plugin.logger().error("Error while reading config files under " + configurationFolderPath, e);
                 }
             }
+        }
+    }
+
+    private Map<String, Object> loadYamlFile(Path path) {
+        LoadSettings loadSettings = LoadSettings.builder()
+                .setSchema(DoubleSensitiveSchema.INSTANCE)
+                .setLabel(path.toAbsolutePath().toString())
+                .build();
+
+        try {
+            String content = Files.readString(path);
+            return parseYamlContent(content, loadSettings, path, true);
+        } catch (IOException e) {
+            this.plugin.logger().error("Error while reading config file: " + path, e);
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> parseYamlContent(String content, LoadSettings loadSettings, Path path, boolean allowTabFix) {
+        try {
+            return (Map<String, Object>) new Load(loadSettings, new StringKeyConstructor(loadSettings, path))
+                    .loadFromString(content);
+        } catch (ScannerException e) {
+            String msg = e.getMessage();
+            if (allowTabFix && msg != null && msg.contains("TAB") && msg.contains("indentation")) {
+                try {
+                    String fixedContent = content.replace("\t", "    ");
+                    Map<String, Object> data = parseYamlContent(fixedContent, loadSettings, path, false);
+                    if (data != null) {
+                        Files.writeString(path, fixedContent);
+                    }
+                    return data;
+                } catch (Exception fixEx) {
+                    this.plugin.logger().error("Error found while reading config file (after TAB fix): " + path, fixEx);
+                    return null;
+                }
+            } else {
+                this.plugin.logger().error("Error found while reading config file: " + path, e);
+                return null;
+            }
+        } catch (ParserException e) {
+            this.plugin.logger().error("Invalid YAML file found: " + path + ".\n" + e.getMessage() +
+                    "\nIt is recommended to use Visual Studio Code as your YAML editor to fix problems more quickly.");
+            return null;
+        }
+    }
+
+    private Map<String, Object> loadJsonFile(Path path) {
+        try (InputStreamReader inputStream = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
+            return GsonHelper.parseJsonToMap(inputStream);
+        } catch (IOException e) {
+            this.plugin.logger().error("Error while reading config file: " + path, e);
+            return null;
+        } catch (JsonParseException e) {
+            this.plugin.logger().error("Invalid JSON file found: " + path + ".\n" + e.getMessage() +
+                    "\nIt is recommended to use Visual Studio Code as your JSON editor to fix problems more quickly.");
+            return null;
         }
     }
 
@@ -647,14 +661,14 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private void processConfigEntry(Map.Entry<String, Object> entry, Path path, Pack pack, BiConsumer<ConfigParser, CachedConfigSection> callback) {
+    private void processConfigEntry(Map.Entry<String, Object> entry, Path path, Pack pack, @Nullable Map<String, TemplateArgument> arguments) {
         if (entry.getValue() instanceof Map<?,?> m) {
             String key = entry.getKey();
             int hashIndex = key.indexOf('#');
             String configType = hashIndex != -1 ? key.substring(0, hashIndex) : key;
             ConfigParser parser = this.sectionParsers.get(configType);
             if (parser != null) {
-                callback.accept(parser, new CachedConfigSection(pack, path, ConfigSection.of(key, MiscUtils.castToMap(m))));
+                parser.addConfig(new CachedConfigSection(pack, path, ConfigSection.of(key, MiscUtils.castToMap(m)), arguments));
             }
         }
     }
@@ -663,7 +677,9 @@ public abstract class AbstractPackManager implements PackManager {
     public void generateResourcePack() {
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_started"));
         Timestamp timestamp = new Timestamp();
-        ObfuscatedItemModelProcessor.resetMappings();
+        if (!Config.obfuscateItemModelUseCache()) {
+            ObfuscatedItemModelProcessor.resetMappings();
+        }
 
         // Create cache data
         PackCacheData cacheData = new PackCacheData(this.plugin);
@@ -942,8 +958,8 @@ public abstract class AbstractPackManager implements PackManager {
         List<Path> modelJsonToOptimize = new ArrayList<>();
         Set<String> excludeTexture = new HashSet<>(Config.optimizeTextureExclude());
         Set<String> excludeJson = new HashSet<>(Config.optimizeJsonExclude());
-        excludeTexture.addAll(this.parser.excludeTexture());
-        excludeJson.addAll(this.parser.excludeJson());
+        excludeTexture.addAll(this.skipOptimizationParser.excludeTexture());
+        excludeJson.addAll(this.skipOptimizationParser.excludeJson());
         Predicate<String> textureFolderPredicate = parseExcludePredicate(excludeTexture);
         Predicate<String> jsonFolderPredicate = parseExcludePredicate(excludeJson);
 
@@ -3536,8 +3552,58 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     @Override
-    public ConfigParser parser() {
-        return this.parser;
+    public ConfigParser[] parsers() {
+        return new ConfigParser[] {this.skipOptimizationParser, this.bundleParser};
+    }
+
+    public final class ConfigFactoryParser extends SectionConfigParser {
+        private static final String[] SECTION_ID = new String[] {"config-factory", "config_factory", "config-factories", "config_factories"};
+        private static final String[] BLUEPRINT = new String[] {"blueprint", "prototype", "schema"};
+        private static final String[] INSTANCES = new String[] {"instances", "instance", "inputs", "input"};
+        private int count = 0;
+
+        @Override
+        protected void parseSection(Pack pack, Path path, ConfigSection section) {
+            List<ConfigSection> arguments = section.getNonEmptyList(INSTANCES, ConfigValue::getAsSection);
+            ConfigSection bundle = section.getNonNullSection(BLUEPRINT);
+            for (ConfigSection argument : arguments) {
+                Map<String, TemplateArgument> argumentsMap = new HashMap<>();
+                for (String key : argument.keySet()) {
+                    argumentsMap.put(key, TemplateArguments.fromConfig(argument.getValue(key)));
+                }
+                for (String parserId : bundle.keySet()) {
+                    Object value = bundle.get(parserId);
+                    if (value == null) continue;
+                    processConfigEntry(Map.entry(parserId, value), path, pack, argumentsMap);
+                }
+            }
+            this.count++;
+        }
+
+        @Override
+        public void preProcess() {
+            this.count = 0;
+        }
+
+        @Override
+        public int count() {
+            return this.count;
+        }
+
+        @Override
+        public String[] sectionId() {
+            return SECTION_ID;
+        }
+
+        @Override
+        public List<LoadingStage> dependencies() {
+            return List.of(LoadingStages.TEMPLATE);
+        }
+
+        @Override
+        public LoadingStage loadingStage() {
+            return LoadingStages.CONFIG_FACTORY;
+        }
     }
 
     public static final class SkipOptimizationParser extends SectionConfigParser {

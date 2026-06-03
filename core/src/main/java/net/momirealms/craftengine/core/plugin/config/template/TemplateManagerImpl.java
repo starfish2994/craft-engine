@@ -69,7 +69,7 @@ public final class TemplateManagerImpl implements TemplateManager {
 
         // 覆写父类逻辑，禁止应用模板
         @Override
-        protected Object createConfigValue(Key id, ConfigValue value) {
+        protected Object createConfigValue(Key id, ConfigValue value, Map<String, TemplateArgument> argumentMap) {
             return value.value();
         }
     }
@@ -82,6 +82,13 @@ public final class TemplateManagerImpl implements TemplateManager {
                 "__NAMESPACE__", PlainStringTemplateArgument.plain(id.namespace()),
                 "__ID__", PlainStringTemplateArgument.plain(id.value())
         ));
+    }
+
+    @Override
+    public Object applyTemplates(ConfigValue input, Map<String, TemplateArgument> arguments) {
+        if (input == null) return null;
+        Object preprocessedInput = preprocessUnknownValue(input);
+        return processUnknownValue(input.path(), preprocessedInput, arguments);
     }
 
     public Object preprocessUnknownValue(ConfigValue value) {

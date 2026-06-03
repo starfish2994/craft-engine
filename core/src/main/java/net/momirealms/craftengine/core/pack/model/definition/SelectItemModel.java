@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.pack.model.definition.select.SelectProper
 import net.momirealms.craftengine.core.pack.model.definition.select.SelectProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
+import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -112,6 +113,9 @@ public final class SelectItemModel implements ItemModel {
     public void gatherRevisions(Consumer<Revision> consumer) {
         if (this.fallBack != null) {
             this.fallBack.gatherRevisions(consumer);
+        }
+        if (this.transformation != null) {
+            consumer.accept(Revisions.SINCE_26_1);
         }
         for (Map.Entry<Either<JsonElement, List<JsonElement>>, ItemModel> entry : this.whenMap.entrySet()) {
             Either<JsonElement, List<JsonElement>> when = entry.getKey();

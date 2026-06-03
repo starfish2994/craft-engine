@@ -5,6 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.properties.PropertyMap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -231,6 +232,9 @@ public class BukkitServerPlayer extends Player {
     private FurnitureHitData furnitureHitData;
     // 缓存可见的家具光源数据
     private FurnitureLightData furnitureLightData;
+    // 是否正在模拟客户端可能缺失的交互逻辑
+    // 比如客户端觉得音符盒可以交互，但实际上不可，导致副手的交互包并未发出，最终导致副手的物品逻辑不执行
+    private boolean isSimulatingInteraction;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -392,6 +396,16 @@ public class BukkitServerPlayer extends Player {
     public void sendMessage(Component text, boolean overlay) {
         Object packet = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(ComponentUtils.adventureToMinecraft(text), overlay);
         sendPacket(packet, false);
+    }
+
+    @Override
+    public void setIsSimulatingInteraction(boolean isSimulating) {
+        this.isSimulatingInteraction = isSimulating;
+    }
+
+    @Override
+    public boolean isSimulatingInteraction() {
+        return this.isSimulatingInteraction;
     }
 
     @Override
@@ -571,6 +585,15 @@ public class BukkitServerPlayer extends Player {
     public void sendCustomPackets(List<? extends ClientCustomPacket> packets) {
         for (ClientCustomPacket packet : packets) {
             sendCustomPacket(packet);
+        }
+    }
+
+    @Override
+    public void sendByteBufPacket(ByteBuf buf, boolean immediately) {
+        if (immediately) {
+            this.channel.writeAndFlush(buf);
+        } else {
+            this.channel.write(buf);
         }
     }
 
@@ -1710,6 +1733,11 @@ public class BukkitServerPlayer extends Player {
             this.gameEdition = this.plugin.compatibilityManager().isBedrockPlayer(this) ? GameEdition.BEDROCK : GameEdition.JAVA;
         }
         return this.gameEdition;
+    }
+
+    @Override
+    public CullableHolder getTrackedEntity(int entityId) {
+        return this.trackedEntities.get(entityId);
     }
 
     @Override

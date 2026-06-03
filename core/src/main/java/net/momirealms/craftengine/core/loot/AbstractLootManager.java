@@ -62,11 +62,6 @@ public abstract class AbstractLootManager implements LootManager {
         }
 
         @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
-        }
-
-        @Override
         public int count() {
             return count;
         }

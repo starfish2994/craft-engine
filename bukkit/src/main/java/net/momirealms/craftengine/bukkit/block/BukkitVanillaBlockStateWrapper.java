@@ -36,7 +36,6 @@ public class BukkitVanillaBlockStateWrapper extends BukkitBlockStateWrapper {
         return this.accessor.getPropertyNames();
     }
 
-
     @Override
     public BlockStateWrapper withProperty(String propertyName, String propertyValue) {
         Object newState = this.accessor.withProperty(propertyName, propertyValue);

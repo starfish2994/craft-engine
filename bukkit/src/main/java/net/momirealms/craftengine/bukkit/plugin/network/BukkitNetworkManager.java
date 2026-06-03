@@ -29,7 +29,6 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.bukkit.util.TagUtils;
-import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -43,6 +42,7 @@ import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketL
 import net.momirealms.craftengine.core.plugin.network.listener.NMSPacketListener;
 import net.momirealms.craftengine.core.plugin.network.mod.protocol.ClientboundCreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.leaves.bot.BotListProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.RegistriesProxy;
@@ -503,8 +503,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             // 发送修复图腾音效
             user.sendPacket(TotemAnimationCommand.FIX_TOTEM_SOUND_PACKET, false);
             // 发送颜色队伍
-            for (Object packet : BukkitTeamManager.instance().addTeamsPackets()) {
-                user.sendPacket(packet, false);
+            for (ByteBuf packet : TeamManagerImpl.instance().addTeamsPackets()) {
+                user.sendByteBufPacket(packet.copy(), false);
             }
             if (user.hasClientMod() && user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_20_2)) {
                 user.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(user));

@@ -3,13 +3,13 @@ package net.momirealms.craftengine.bukkit.entity.furniture.element;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntList;
-import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.tint.FurnitureTintSource;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.VersionHelper;
-import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
@@ -28,11 +28,13 @@ import java.util.function.Consumer;
 public final class ArmorStandFurnitureElement extends AbstractConditionalFurnitureElement {
     public final ArmorStandFurnitureElementConfig config;
     public final Furniture furniture;
+    public final WorldPosition position;
     public final FurnitureTintSource tintSource;
     public final Object cachedSpawnPacket;
     public final Object cachedDespawnPacket;
     public final Object cachedScalePacket;
     public final Object cachedTeamPacket;
+    public final Object cachedUpdatePosPacket;
     public final int entityId;
     public final UUID uuid = UUID.randomUUID();
 
@@ -41,17 +43,20 @@ public final class ArmorStandFurnitureElement extends AbstractConditionalFurnitu
         return this.furniture;
     }
 
-    ArmorStandFurnitureElement(Furniture furniture, ArmorStandFurnitureElementConfig config) {
+    ArmorStandFurnitureElement(Furniture furniture, ArmorStandFurnitureElementConfig config, WorldPosition pos) {
+        this(furniture, config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+    }
+
+    ArmorStandFurnitureElement(Furniture furniture, ArmorStandFurnitureElementConfig config, WorldPosition pos, int entityId, boolean positionChanged) {
         super(config.predicate, config.hasCondition);
         this.config = config;
         this.furniture = furniture;
         this.tintSource = config.createTintSource(furniture);
-        this.entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
-        WorldPosition furniturePos = furniture.position();
-        Vec3d position = Furniture.getRelativePosition(furniturePos, config.position);
+        this.entityId = entityId;
+        this.position = pos;
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, this.uuid, position.x, position.y, position.z,
-                furniturePos.xRot + config.xRot, furniturePos.yRot + config.yRot, EntityTypeProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, furniturePos.yRot
+                this.position.xRot, this.position.yRot, EntityTypeProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, this.position.yRot
         );
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(this.entityId));
         if (VersionHelper.isOrAbove1_20_5 && config.scale != 1) {
@@ -63,12 +68,13 @@ public final class ArmorStandFurnitureElement extends AbstractConditionalFurnitu
         }
         Object teamPacket = null;
         if (config.glowColor != null) {
-            String teamName = BukkitTeamManager.instance().getTeamNameByColor(config.glowColor);
+            String teamName = TeamManagerImpl.instance().getTeamNameByColor(config.glowColor);
             if (teamName != null) {
                 teamPacket = ClientboundSetPlayerTeamPacketProxy.INSTANCE.newInstance(teamName, 3, Optional.empty(), ImmutableList.of(this.uuid.toString()));
             }
         }
         this.cachedTeamPacket = teamPacket;
+        this.cachedUpdatePosPacket = positionChanged ? EntityUtils.createUpdatePosPacket(this.entityId, this.position.x, this.position.y, this.position.z, this.position.yRot, this.position.xRot, false) : null;
     }
 
     @Override
@@ -91,14 +97,25 @@ public final class ArmorStandFurnitureElement extends AbstractConditionalFurnitu
     }
 
     @Override
-    public void refresh(Player player) {
-        player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
-                Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
-        )), false);
+    public void update(Player player) {
+        if (this.cachedUpdatePosPacket != null) {
+            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
+                    Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
+            ))), false);
+        } else {
+            player.sendPacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(this.entityId, List.of(
+                    Pair.of(EquipmentSlotProxy.HEAD, this.config.item(player, this.tintSource).minecraftItem())
+            )), false);
+        }
     }
 
     @Override
     public void gatherInteractableEntityId(Consumer<Integer> collector) {
         collector.accept(this.entityId);
+    }
+
+    @Override
+    public boolean supportsTransform() {
+        return true;
     }
 }

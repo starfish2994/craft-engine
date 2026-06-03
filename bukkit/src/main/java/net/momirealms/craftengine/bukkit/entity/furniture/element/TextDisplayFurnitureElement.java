@@ -1,10 +1,10 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.MiscUtils;
-import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundBundlePacketProxy;
@@ -24,18 +24,28 @@ public final class TextDisplayFurnitureElement extends AbstractConditionalFurnit
     public final Furniture furniture;
     public final WorldPosition position;
     public final int entityId;
-    public final Object despawnPacket;
+    public final Object cachedDespawnPacket;
+    public final Object cachedUpdatePosPacket;
+    public final Object cachedSpawnPacket;
     public final UUID uuid = UUID.randomUUID();
 
-    TextDisplayFurnitureElement(Furniture furniture, TextDisplayFurnitureElementConfig config) {
+    TextDisplayFurnitureElement(Furniture furniture, TextDisplayFurnitureElementConfig config, WorldPosition pos) {
+        this(furniture, config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+    }
+
+    TextDisplayFurnitureElement(Furniture furniture, TextDisplayFurnitureElementConfig config, WorldPosition pos, int entityId, boolean positionChanged) {
         super(config.predicate, config.hasCondition);
         this.furniture = furniture;
         this.config = config;
-        this.entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
-        WorldPosition furniturePos = furniture.position();
-        Vec3d position = Furniture.getRelativePosition(furniturePos, config.position);
-        this.position = new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot + config.xRot, furniturePos.yRot + config.yRot);
-        this.despawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(entityId)));
+        this.entityId = entityId;
+        this.position = pos;
+        this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(entityId)));
+        this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
+                this.entityId, this.uuid,
+                this.position.x, this.position.y, this.position.z, this.position.xRot, this.position.yRot,
+                EntityTypeProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
+        );
+        this.cachedUpdatePosPacket = positionChanged ? EntityUtils.createUpdatePosPacket(this.entityId, this.position.x, this.position.y, this.position.z, this.position.yRot, this.position.xRot, false) : null;
     }
 
     @Override
@@ -46,26 +56,31 @@ public final class TextDisplayFurnitureElement extends AbstractConditionalFurnit
     @Override
     public void showInternal(Player player) {
         player.sendPacket(ClientboundBundlePacketProxy.INSTANCE.newInstance(List.of(
-                ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
-                        this.entityId, this.uuid,
-                        this.position.x, this.position.y, this.position.z, this.position.xRot, this.position.yRot,
-                        EntityTypeProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
-                ),
+                this.cachedSpawnPacket,
                 ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player))
         )), false);
     }
 
     @Override
     public void hide(Player player) {
-        player.sendPacket(this.despawnPacket, false);
+        player.sendPacket(this.cachedDespawnPacket, false);
     }
 
     @Override
-    public void refresh(Player player) {
-        player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player)), false);
+    public void update(Player player) {
+        if (this.cachedUpdatePosPacket != null) {
+            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player))), false);
+        } else {
+            player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player)), false);
+        }
     }
 
     @Override
     public void gatherInteractableEntityId(Consumer<Integer> collector) {
+    }
+
+    @Override
+    public boolean supportsTransform() {
+        return true;
     }
 }

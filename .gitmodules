@@ -4,3 +4,6 @@
 [submodule "client-mod"]
 	path = client-mod
 	url = https://github.com/Xiao-MoMi/craft-engine-client-mod.git
+[submodule "proxy"]
+	path = proxy
+	url = https://github.com/Xiao-MoMi/craft-engine-proxy

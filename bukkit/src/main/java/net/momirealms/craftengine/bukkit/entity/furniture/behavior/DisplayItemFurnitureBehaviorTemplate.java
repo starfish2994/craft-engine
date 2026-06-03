@@ -288,7 +288,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
         }
 
         @Override
-        public void refresh(Player player) {
+        public void update(Player player) {
             // 没有物品就不展示
             if (furnitureHandler.savedItem.isEmpty()) {
                 this.hide(player);

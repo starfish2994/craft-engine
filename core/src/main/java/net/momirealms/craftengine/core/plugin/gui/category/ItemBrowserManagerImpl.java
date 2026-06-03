@@ -428,7 +428,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         if (depth > MAX_RECIPE_DEPTH) return;
         Recipe recipe = recipes.get(index);
         Key recipeType = recipe.serializerType();
-        if (recipeType == RecipeSerializers.SHAPELESS || recipeType == RecipeSerializers.SHAPED) {
+        if (recipeType == RecipeSerializers.SHAPELESS || recipeType == RecipeSerializers.SHAPED || recipeType == RecipeSerializers.SHAPED_TRANSFORM) {
             openCraftingRecipePage(player, (CustomCraftingTableRecipe) recipe, parentGui, recipes, index, depth, canOpenNoRecipePage);
             return;
         }
@@ -1189,7 +1189,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         }));
 
         char start = 'A';
-        if (recipe.serializerType() == RecipeSerializers.SHAPED) {
+        if (recipe.serializerType() == RecipeSerializers.SHAPED || recipe.serializerType() == RecipeSerializers.SHAPED_TRANSFORM) {
             String[] pattern = ((CustomShapedRecipe) recipe).pattern().pattern();
             for (int x = 0; x < 3; x++) {
                 for (int y = 0; y < 3; y++) {

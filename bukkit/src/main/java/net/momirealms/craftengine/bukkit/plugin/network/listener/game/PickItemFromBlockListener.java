@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.item.Item;
@@ -45,7 +46,8 @@ public final class PickItemFromBlockListener implements ByteBufferPacketListener
     private static void handlePickItemFromBlockPacketOnMainThread(BukkitServerPlayer player, BlockPos pos) {
         CEWorld serverLevel = player.world().ceWorld();
         ImmutableBlockState blockState = serverLevel.getBlockStateAtIfLoaded(pos);
-        if (blockState == null) return;
+        if (blockState == null || blockState.customBlockState() == null) return;
+        if (!BlockStateUtils.isCustomBlock(blockState.customBlockState().minecraftState())) return;
         Item item = blockState.behavior().itemToPickup(player.world(), pos, blockState, player);
         Object itemStack;
         if (item == null) {

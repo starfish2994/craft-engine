@@ -274,7 +274,7 @@ public abstract class AbstractRecipeManager implements RecipeManager {
 
         @Override
         public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE, LoadingStages.ITEM);
+            return List.of(LoadingStages.ITEM);
         }
 
         private static final String[] UNLOCK_ON_INGREDIENT_OBTAINED = new String[] {"unlock_on_ingredient_obtained", "unlock-on-ingredient-obtained"};

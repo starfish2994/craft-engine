@@ -5,11 +5,16 @@ import net.momirealms.craftengine.core.pack.CachedConfigSection;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigValue;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.template.ArgumentString;
 import net.momirealms.craftengine.core.plugin.config.template.TemplateManager;
+import net.momirealms.craftengine.core.plugin.config.template.argument.PlainStringTemplateArgument;
+import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArgument;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.ResourceConfigUtils;
 
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
@@ -28,6 +33,10 @@ public abstract class IdValueConfigParser extends IdConfigParser {
             CachedConfigSection cachedMajorSection = (CachedConfigSection) elements[i];
             ConfigSection config = cachedMajorSection.config();
             for (String key : config.keySet()) {
+                ConfigValue value = config.getValue(key);
+                if (cachedMajorSection.hasArguments() && key.contains("$")) {
+                    key = ArgumentString.preParse(config.path(), key).get(config.path(), cachedMajorSection.arguments).toString();
+                }
                 Key id = Key.withDefaultNamespace(key, cachedMajorSection.pack().namespace());
                 Path filePath = cachedMajorSection.path();
                 String currentNode = config.assemblePath(key);
@@ -35,7 +44,7 @@ public abstract class IdValueConfigParser extends IdConfigParser {
                     continue;
                 }
                 try {
-                    ConfigValue configValue = new ConfigValue(currentNode, createConfigValue(id, config.getValue(key)));
+                    ConfigValue configValue = new ConfigValue(currentNode, createConfigValue(id, value, cachedMajorSection.arguments));
                     this.pendingConfigValues.add(new PendingConfigValue(cachedMajorSection.pack(), filePath, id, configValue));
                 } catch (KnownResourceException e) {
                     error(e, filePath);
@@ -69,8 +78,18 @@ public abstract class IdValueConfigParser extends IdConfigParser {
         }
     }
 
-    protected Object createConfigValue(final Key id, final ConfigValue value) {
-        return TemplateManager.INSTANCE.applyTemplates(id, value);
+    protected Object createConfigValue(final Key id, final ConfigValue value, Map<String, TemplateArgument> argumentMap) {
+        if (argumentMap == null) {
+            return TemplateManager.INSTANCE.applyTemplates(value, Map.of(
+                    "__NAMESPACE__", PlainStringTemplateArgument.plain(id.namespace()),
+                    "__ID__", PlainStringTemplateArgument.plain(id.value())
+            ));
+        } else {
+            return TemplateManager.INSTANCE.applyTemplates(value, MiscUtils.init(argumentMap, map -> {
+                map.put("__NAMESPACE__", PlainStringTemplateArgument.plain(id.namespace()));
+                map.put("__ID__", PlainStringTemplateArgument.plain(id.value()));
+            }));
+        }
     }
 
     @Override

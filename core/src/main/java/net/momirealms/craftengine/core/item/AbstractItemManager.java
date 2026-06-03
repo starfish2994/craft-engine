@@ -292,11 +292,6 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         }
 
         @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
-        }
-
-        @Override
         public int count() {
             return AbstractItemManager.this.equipments.size();
         }

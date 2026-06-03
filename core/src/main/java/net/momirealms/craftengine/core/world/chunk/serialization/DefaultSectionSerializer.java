@@ -1,9 +1,6 @@
 package net.momirealms.craftengine.core.world.chunk.serialization;
 
-import net.momirealms.craftengine.core.block.BlockDefinition;
-import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.InactiveBlockDefinition;
+import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
@@ -77,7 +74,7 @@ public final class DefaultSectionSerializer {
             }
             Holder<BlockDefinition> owner = BuiltInRegistries.BLOCK.get(key).orElseGet(() -> {
                 Holder.Reference<BlockDefinition> holder = ((WritableRegistry<BlockDefinition>) BuiltInRegistries.BLOCK).registerForHolder(ResourceKey.create(BuiltInRegistries.BLOCK.key().location(), key));
-                InactiveBlockDefinition inactiveBlock = new InactiveBlockDefinition(holder);
+                InactiveBlockDefinition inactiveBlock = new InactiveBlockDefinition(holder, key.namespace.equals("minecraft") ? key : null); // 如果这个id是个原版方块，那么绑定为原版方块
                 holder.bindValue(inactiveBlock);
                 inactiveBlock.setBehavior(CraftEngine.instance().blockManager().getEmptyBlockBehavior());
                 return holder;

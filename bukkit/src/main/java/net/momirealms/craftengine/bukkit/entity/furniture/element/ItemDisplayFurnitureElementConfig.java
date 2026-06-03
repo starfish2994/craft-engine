@@ -24,10 +24,13 @@ import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Color;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -124,7 +127,33 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
 
     @Override
     public ItemDisplayFurnitureElement create(@NotNull Furniture furniture) {
-        return new ItemDisplayFurnitureElement(furniture, this);
+        return new ItemDisplayFurnitureElement(furniture, this, getPos(furniture));
+    }
+
+    @Override
+    public ItemDisplayFurnitureElement create(@NotNull Furniture furniture, @NonNull ItemDisplayFurnitureElement previous) {
+        WorldPosition pos = getPos(furniture);
+        return new ItemDisplayFurnitureElement(furniture, this, pos, previous.entityId, !pos.equals(previous.position));
+    }
+
+    @Override
+    public ItemDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NonNull ItemDisplayFurnitureElement previous) {
+        WorldPosition pos = getPos(furniture);
+        if (!pos.equals(previous.position)) {
+            return null;
+        }
+        return new ItemDisplayFurnitureElement(furniture, this, pos, previous.entityId, false);
+    }
+
+    @Override
+    public Class<ItemDisplayFurnitureElement> elementClass() {
+        return ItemDisplayFurnitureElement.class;
+    }
+
+    public WorldPosition getPos(Furniture furniture) {
+        WorldPosition furniturePos = furniture.position();
+        Vec3d position = Furniture.getRelativePosition(furniturePos, this.position);
+        return new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot + xRot, furniturePos.yRot + yRot);
     }
 
     public FurnitureTintSource createTintSource(@NotNull Furniture furniture) {

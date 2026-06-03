@@ -4,12 +4,12 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
-import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.block.entity.render.element.AbstractConstantBlockEntityElement;
 import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
@@ -38,11 +38,11 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
     @Nullable
     public BlockEntityTintSource tintSource;
 
-    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
+    ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
         this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
+    ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
         super(config.predicate, config.hasCondition);
         Vector3f position = config.position();
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
@@ -63,7 +63,7 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
         }
         Object teamPacket = null;
         if (config.glowColor != null) {
-            String teamName = BukkitTeamManager.instance().getTeamNameByColor(config.glowColor);
+            String teamName = TeamManagerImpl.instance().getTeamNameByColor(config.glowColor);
             if (teamName != null) {
                 teamPacket = ClientboundSetPlayerTeamPacketProxy.INSTANCE.newInstance(teamName, 3, Optional.empty(), ImmutableList.of(this.uuid.toString()));
             }

@@ -63,7 +63,7 @@ public final class BetterModelFurnitureElement extends AbstractConditionalFurnit
     }
 
     @Override
-    public void refresh(Player player) {
+    public void update(Player player) {
         this.hide(player);
         this.show(player);
     }

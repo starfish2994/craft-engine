@@ -6,10 +6,20 @@ public final class LoadingStage {
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
     private final int id;
     private final String name;
+    private final boolean core;
 
     public LoadingStage(String name) {
+        this(name, false);
+    }
+
+    public LoadingStage(String name, boolean core) {
         this.id = COUNTER.getAndIncrement();
         this.name = name;
+        this.core = core;
+    }
+
+    public boolean core() {
+        return this.core;
     }
 
     public String name() {

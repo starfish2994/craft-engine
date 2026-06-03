@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static net.momirealms.craftengine.core.plugin.locale.MessageConstants.*;
-import static net.momirealms.craftengine.core.world.WorldSettings.*;
+import static net.momirealms.craftengine.core.world.WorldSettings.SETTINGS;
 
 public final class WorldSettingsCommand extends BukkitCommandFeature<CommandSender> {
     private static final List<Suggestion> SUGGESTIONS = SETTINGS.stream().map(Suggestion::suggestion).toList();
