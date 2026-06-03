@@ -232,6 +232,9 @@ public class BukkitServerPlayer extends Player {
     private FurnitureHitData furnitureHitData;
     // 缓存可见的家具光源数据
     private FurnitureLightData furnitureLightData;
+    // 是否正在模拟客户端可能缺失的交互逻辑
+    // 比如客户端觉得音符盒可以交互，但实际上不可，导致副手的交互包并未发出，最终导致副手的物品逻辑不执行
+    private boolean isSimulatingInteraction;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -393,6 +396,16 @@ public class BukkitServerPlayer extends Player {
     public void sendMessage(Component text, boolean overlay) {
         Object packet = ClientboundSystemChatPacketProxy.INSTANCE.newInstance(ComponentUtils.adventureToMinecraft(text), overlay);
         sendPacket(packet, false);
+    }
+
+    @Override
+    public void setIsSimulatingInteraction(boolean isSimulating) {
+        this.isSimulatingInteraction = isSimulating;
+    }
+
+    @Override
+    public boolean isSimulatingInteraction() {
+        return this.isSimulatingInteraction;
     }
 
     @Override

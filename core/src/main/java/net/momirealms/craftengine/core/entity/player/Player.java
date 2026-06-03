@@ -95,6 +95,10 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void sendTitle(Component title, Component subtitle, int fadeIn, int stay, int fadeOut);
 
+    public abstract void setIsSimulatingInteraction(boolean isSimulating);
+
+    public abstract boolean isSimulatingInteraction();
+
     public abstract boolean updateLastSuccessfulInteractionTick(int tick);
 
     public abstract int lastSuccessfulInteractionTick();
