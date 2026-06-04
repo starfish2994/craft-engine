@@ -29,6 +29,11 @@ public final class BlockSettingsModifiers {
         return settings -> settings.luminance(luminance);
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> MAP_COLOR = register(Key.ce("map_color"), value -> {
+        String stringName = value.getAsString();
+        MapColor mapColor = MapColor.get(stringName);
+        if (mapColor != MapColor.CLEAR) {
+            return settings -> settings.mapColor(mapColor);
+        }
         int color = value.getAsInt();
         return settings -> settings.mapColor(MapColor.get(color));
     });
