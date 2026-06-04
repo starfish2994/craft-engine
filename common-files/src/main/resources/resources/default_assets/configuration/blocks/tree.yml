@@ -21,6 +21,7 @@ config_factory#basic:
       replaced_fence_gate_type: birch
       # If leaves can be tinted by biomes
       leaves_tintable: true
+      default_leaves_color: "#48B358"
       # https://minecraft.wiki/w/Map_item_format
       planks_map_color: sand
       wood_map_color: raw_iron
@@ -208,7 +209,7 @@ config_factory#basic:
           path: ${asset_path_prefix}${tree_type}_leaves
           tints:
             - type: minecraft:constant
-              value: ${default_leaves_color:--12012264}
+              value: ${default_leaves_color:-"#48B358"}
         behavior:
           type: block_item
           block:

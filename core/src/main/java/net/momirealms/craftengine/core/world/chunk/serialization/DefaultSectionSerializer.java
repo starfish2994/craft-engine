@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.world.chunk.serialization;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -15,6 +16,7 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.LongArrayTag;
 import net.momirealms.sparrow.nbt.Tag;
+import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,8 +81,13 @@ public final class DefaultSectionSerializer {
                 inactiveBlock.setBehavior(CraftEngine.instance().blockManager().getEmptyBlockBehavior());
                 return holder;
             });
-            ImmutableBlockState state = owner.value().getBlockState(data);
-            paletteEntries.add(state);
+            try {
+                ImmutableBlockState state = owner.value().getBlockState(data);
+                paletteEntries.add(state);
+            } catch (Throwable t) {
+                Debugger.BLOCK.warn(() -> "Failed to deserialize block " + id + data.getAsString(), t);
+                paletteEntries.add(owner.value().defaultState());
+            }
         }
         long[] data = blockStates.getLongArray("data");
         ReadableContainer.Serialized<ImmutableBlockState> serialized = new ReadableContainer.Serialized<>(paletteEntries,

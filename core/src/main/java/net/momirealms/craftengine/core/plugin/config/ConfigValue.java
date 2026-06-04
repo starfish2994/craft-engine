@@ -329,7 +329,12 @@ public final class ConfigValue {
         if (this.value instanceof Number number) {
             return Color.fromDecimal(number.intValue());
         } else {
-            return Color.fromStrings(getAsString().split(",", 4));
+            String colorString = getAsString();
+            if (colorString.startsWith("#")) {
+                return Color.fromHex(colorString);
+            } else {
+                return Color.fromStrings(colorString.split(",", 4));
+            }
         }
     }
 
