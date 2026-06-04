@@ -16,9 +16,9 @@ config_factory#basic:
       # When generating blocks such as doors, an unused state of the vanilla block needs to be replaced.
       # Available types: oak, spruce, birch, jungle, acacia, dark_oak, mangrove, cherry, pale_oak, bamboo, warped, crimson, iron
       # copper, waxed_copper, exposed_copper, waxed_exposed_copper, weathered_copper, waxed_weathered_copper, oxidized_copper, waxed_oxidized_copper
-      replaced_door_type: birch
+      replaced_door_type: oak
       # Available types: oak, spruce, birch, jungle, acacia, dark_oak, mangrove, cherry, pale_oak, bamboo, warped, crimson
-      replaced_fence_gate_type: birch
+      replaced_fence_gate_type: oak
       # If leaves can be tinted by biomes
       leaves_tintable: true
       default_leaves_color: "#48B358"
