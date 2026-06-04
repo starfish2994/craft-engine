@@ -27,7 +27,7 @@ config_factory#basic:
       leaves_map_color: plant
       # The maximum distance leaves can be from a log
       leaves_max_distance: 7
-      category_name: <!i><green><l10n:category.${tree_type}_tree></green>
+      category_name: <!i><green><l10n:category.palm_tree></green>
   blueprint:
     categories:
       ${namespace}:${tree_type}_tree:
