@@ -379,6 +379,8 @@ config_factory#basic:
         category: ${namespace}:${tree_type}_tree
         data:
           item_name: <!i><lang:item.${namespace}.${tree_type}_fence>
+        settings:
+          fuel_time: ${wood_fuel_time:-300}
         model:
           path: ${asset_path_prefix}${tree_type}_fence_inventory
           generation:
