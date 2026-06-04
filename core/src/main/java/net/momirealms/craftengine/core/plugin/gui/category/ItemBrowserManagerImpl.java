@@ -40,7 +40,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
     private final CraftEngine plugin;
     private final Map<Key, Category> byId = new ConcurrentHashMap<>(32);
     private final TreeSet<Category> categoryOnMainPage = new TreeSet<>();
-    private final Map<Key, List<Key>> externalMembers = new HashMap<>();
+    private final Map<Key, List<Key>> externalMembers = new LinkedHashMap<>();
     private final ConfigParser categoryParser = new CategoryParser();
 
     public ItemBrowserManagerImpl(CraftEngine plugin) {

@@ -312,6 +312,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         public static final String[] CONFIG_SECTION_NAME = new String[] {"items", "item"};
         private final Map<Key, IdAllocator> idAllocators = new HashMap<>();
         private final List<CompletableFuture<?>> futures = Collections.synchronizedList(new ArrayList<>());
+        private final Map<Key, List<Key>> tempCategories = new ConcurrentHashMap<>();
 
         @Override
         public int count() {
@@ -362,6 +363,9 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             if (!this.futures.isEmpty()) {
                 this.futures.clear();
             }
+            if (!this.tempCategories.isEmpty()) {
+                this.tempCategories.clear();
+            }
             ObfuscatedItemModelProcessor.CAN_OBF.clear();
         }
 
@@ -398,6 +402,10 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 if (itemDefinition != null) {
                     Key id = itemDefinition.id();
                     AbstractItemManager.this.orderedItemIds.add(id);
+                    List<Key> categories = this.tempCategories.get(id);
+                    if (categories != null) {
+                        AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, categories);
+                    }
                     if (itemDefinition.isVanillaItem()) continue;
                     // cache command suggestions
                     AbstractItemManager.this.cachedCustomItemSuggestions.add(Suggestion.suggestion(id.asString()));
@@ -690,7 +698,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
                 // 如果有类别，则添加
                 if (section.containsKey("category")) {
-                    AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, section.getList(CATEGORIES, ConfigValue::getAsIdentifier));
+                    this.tempCategories.put(id, section.getList(CATEGORIES, ConfigValue::getAsIdentifier));
                 }
 
                 if (!hasModelSection) {

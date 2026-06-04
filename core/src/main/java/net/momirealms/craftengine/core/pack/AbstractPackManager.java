@@ -3564,9 +3564,9 @@ public abstract class AbstractPackManager implements PackManager {
 
         @Override
         protected void parseSection(Pack pack, Path path, ConfigSection section) {
-            List<ConfigSection> arguments = section.getNonEmptyList(INSTANCES, ConfigValue::getAsSection);
+            List<ConfigSection> instances = section.getNonEmptyList(INSTANCES, ConfigValue::getAsSection);
             ConfigSection bundle = section.getNonNullSection(BLUEPRINT);
-            for (ConfigSection argument : arguments) {
+            for (ConfigSection argument : instances) {
                 Map<String, TemplateArgument> argumentsMap = new HashMap<>();
                 for (String key : argument.keySet()) {
                     argumentsMap.put(key, TemplateArguments.fromConfig(argument.getValue(key)));

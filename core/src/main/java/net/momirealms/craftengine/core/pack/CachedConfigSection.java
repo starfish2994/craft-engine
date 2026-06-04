@@ -31,14 +31,14 @@ public final class CachedConfigSection {
     }
 
     public Pack pack() {
-        return pack;
+        return this.pack;
     }
 
     public Path path() {
-        return path;
+        return this.path;
     }
 
     public ConfigSection config() {
-        return config;
+        return this.config;
     }
 }
