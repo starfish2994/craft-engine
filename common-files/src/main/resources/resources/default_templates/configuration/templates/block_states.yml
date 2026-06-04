@@ -886,7 +886,7 @@ templates:
         model:
           path: ${slab_model}
           generation:
-            parent: minecraft:block/slab
+            parent: minecraft:block/slab_top
             textures:
               bottom: ${slab_texture_bottom:-"${slab_texture}"}
               side: ${slab_texture_side:-"${slab_texture}"}
@@ -896,7 +896,7 @@ templates:
         model:
           path: ${slab_model}_top
           generation:
-            parent: minecraft:block/slab_top
+            parent: minecraft:block/slab
             textures:
               bottom: ${slab_texture_bottom:-"${slab_texture}"}
               side: ${slab_texture_side:-"${slab_texture}"}
