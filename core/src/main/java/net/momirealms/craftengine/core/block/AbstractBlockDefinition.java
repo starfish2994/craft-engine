@@ -80,11 +80,7 @@ public abstract class AbstractBlockDefinition implements BlockDefinition {
         for (Map.Entry<String, Tag> entry : nbt.tags.entrySet()) {
             Property<?> property = this.variantProvider.getProperty(entry.getKey());
             if (property != null) {
-                try {
-                    state = ImmutableBlockState.with(state, property, property.unpack(entry.getValue()));
-                } catch (Exception e) {
-                    CraftEngine.instance().logger().warn("Failed to parse block state: " + entry.getKey(), e);
-                }
+                state = ImmutableBlockState.with(state, property, property.unpack(entry.getValue()));
             }
         }
         return state;
