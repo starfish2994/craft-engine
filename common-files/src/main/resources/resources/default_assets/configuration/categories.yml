@@ -10,26 +10,6 @@ categories:
       - '#default:palm_tree'
       - '#default:topaz'
       - '#default:misc'
-  default:palm_tree:
-    name: <!i><green><l10n:category.palm_tree></green>
-    hidden: true
-    icon: default:palm_log
-    list:
-      - default:palm_sapling
-      - default:palm_leaves
-      - default:palm_log
-      - default:palm_wood
-      - default:stripped_palm_log
-      - default:stripped_palm_wood
-      - default:palm_planks
-      - default:palm_stairs
-      - default:palm_slab
-      - default:palm_fence
-      - default:palm_fence_gate
-      - default:palm_door
-      - default:palm_trapdoor
-      - default:palm_pressure_plate
-      - default:palm_button
   default:topaz:
     name: <!i><#FF8C00><l10n:category.topaz></#FF8C00>
     hidden: true
