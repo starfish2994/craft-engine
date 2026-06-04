@@ -53,8 +53,6 @@ public enum AutoStateGroup {
     KELP("kelp", Set.of(BlockKeys.KELP), (w) -> true),
     CHORUS("chorus", Set.of(BlockKeys.CHORUS_PLANT), (w) -> true),
     PRESSURE_PLATE("pressure_plate", Set.of(BlockKeys.LIGHT_WEIGHTED_PRESSURE_PLATE, BlockKeys.HEAVY_WEIGHTED_PRESSURE_PLATE), (w) -> true),
-    INACTIVE_PRESSURE_PLATE("inactive_pressure_plate", Set.of(BlockKeys.LIGHT_WEIGHTED_PRESSURE_PLATE, BlockKeys.HEAVY_WEIGHTED_PRESSURE_PLATE), (w) -> (int) w.getProperty("power") == 0),
-    POWERED_PRESSURE_PLATE("powered_pressure_plate", Set.of(BlockKeys.LIGHT_WEIGHTED_PRESSURE_PLATE, BlockKeys.HEAVY_WEIGHTED_PRESSURE_PLATE), (w) -> (int) w.getProperty("power") != 0),
     SAPLING("sapling", Set.of(BlockKeys.OAK_SAPLING, BlockKeys.SPRUCE_SAPLING, BlockKeys.BIRCH_SAPLING, BlockKeys.JUNGLE_SAPLING, BlockKeys.ACACIA_SAPLING, BlockKeys.DARK_OAK_SAPLING, BlockKeys.CHERRY_SAPLING, BlockKeys.PALE_OAK_SAPLING), (w) -> true),
     MUSHROOM("mushroom", Set.of(BlockKeys.BROWN_MUSHROOM_BLOCK, BlockKeys.RED_MUSHROOM_BLOCK, BlockKeys.MUSHROOM_STEM), (w) -> true),
     SOLID("solid", Set.of(BlockKeys.BROWN_MUSHROOM_BLOCK, BlockKeys.RED_MUSHROOM_BLOCK, BlockKeys.MUSHROOM_STEM, BlockKeys.NOTE_BLOCK), (w) -> true);
