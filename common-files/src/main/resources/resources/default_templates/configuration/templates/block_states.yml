@@ -884,7 +884,7 @@ templates:
       type=top,waterlogged=false:
         state: ${slab_base_block}[type=top,waterlogged=false]
         model:
-          path: ${slab_model}
+          path: ${slab_model}_top
           generation:
             parent: minecraft:block/slab_top
             textures:
@@ -894,7 +894,7 @@ templates:
       type=bottom,waterlogged=false:
         state: ${slab_base_block}[type=bottom,waterlogged=false]
         model:
-          path: ${slab_model}_top
+          path: ${slab_model}
           generation:
             parent: minecraft:block/slab
             textures:
