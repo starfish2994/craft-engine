@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 import com.google.gson.JsonElement;
 import io.netty.buffer.ByteBuf;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.DataComponentValueConverterRegistry;
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;

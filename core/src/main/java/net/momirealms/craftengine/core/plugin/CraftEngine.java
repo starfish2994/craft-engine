@@ -45,6 +45,7 @@ import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.dis
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplayTypes;
 import net.momirealms.craftengine.core.plugin.proxy.ProxyMessageManager;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
+import net.momirealms.craftengine.core.plugin.text.component.NBTDataComponentConverter;
 import net.momirealms.craftengine.core.sound.SoundManager;
 import net.momirealms.craftengine.core.util.CompletableFutures;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -142,6 +143,7 @@ public abstract class CraftEngine implements Plugin {
         BlockSettingsModifiers.init();
         FurnitureSettingsModifiers.init();
         ItemProcessors.init();
+        NBTDataComponentConverter.register();
 
         // 初始化模板管理器
         this.templateManager = TemplateManager.INSTANCE;

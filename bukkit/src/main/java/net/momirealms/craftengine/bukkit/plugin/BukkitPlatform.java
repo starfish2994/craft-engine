@@ -55,6 +55,11 @@ public final class BukkitPlatform implements Platform {
     }
 
     @Override
+    public JsonElement sparrowNBTToJson(Tag tag) {
+        return RegistryOps.SPARROW_NBT.convertTo(RegistryOps.JSON, tag);
+    }
+
+    @Override
     public Player getPlayer(UUID uuid) {
         return (Player) BukkitNetworkManager.instance().getOnlineUser(uuid);
     }

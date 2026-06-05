@@ -21,6 +21,8 @@ public interface Platform {
 
     Tag javaToSparrowNBT(Object object);
 
+    JsonElement sparrowNBTToJson(Tag object);
+
     World getWorld(String name);
 
     Player getPlayer(UUID uuid);
