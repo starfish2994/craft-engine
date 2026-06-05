@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class GlobalVariableManager implements Manageable {

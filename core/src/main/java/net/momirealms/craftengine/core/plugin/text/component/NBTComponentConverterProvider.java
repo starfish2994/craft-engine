@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.plugin.text.component;
 
-import com.google.auto.service.AutoService;
 import com.google.gson.JsonNull;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.event.DataComponentValueConverterRegistry;
