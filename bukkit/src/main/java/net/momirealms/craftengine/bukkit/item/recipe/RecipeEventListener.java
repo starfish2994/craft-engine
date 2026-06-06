@@ -443,7 +443,7 @@ public final class RecipeEventListener implements Listener {
         Item wrappedFirst = BukkitItemManager.instance().wrap(first);
         Optional<ItemDefinition> firstCustom = wrappedFirst.getDefinition();
         Item wrappedSecond = BukkitItemManager.instance().wrap(second);
-        Optional<ItemDefinition> secondCustom = wrappedFirst.getDefinition();
+        Optional<ItemDefinition> secondCustom = wrappedSecond.getDefinition();
         // 两个都是原版物品
         if (firstCustom.isEmpty() && secondCustom.isEmpty()) {
             return;

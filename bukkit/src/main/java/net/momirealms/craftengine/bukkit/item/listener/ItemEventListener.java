@@ -587,9 +587,10 @@ public final class ItemEventListener implements Listener {
         if (foodData == null) return;
         event.setCancelled(true);
         int oldFoodLevel = player.getFoodLevel();
-        if (foodData.nutrition() != 0) player.setFoodLevel(MiscUtils.clamp(oldFoodLevel + foodData.nutrition(), 0, 20));
+        int newFoodLevel = MiscUtils.clamp(oldFoodLevel + foodData.nutrition(), 0, 20);
+        if (foodData.nutrition() != 0) player.setFoodLevel(newFoodLevel);
         float oldSaturation = player.getSaturation();
-        if (foodData.saturation() != 0) player.setSaturation(MiscUtils.clamp(oldSaturation, 0, 10));
+        if (foodData.saturation() != 0) player.setSaturation(MiscUtils.clamp(oldSaturation + foodData.saturation(), 0, newFoodLevel));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)

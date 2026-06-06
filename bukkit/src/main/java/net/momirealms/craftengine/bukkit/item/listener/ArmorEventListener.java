@@ -33,7 +33,8 @@ public final class ArmorEventListener implements Listener {
                         }
                     }
                 }
-            } else if (horse.getInventory().getSaddle() == null) {
+            }
+            if (horse.getInventory().getSaddle() == null) {
                 if (itemInHand.getType() == Material.SADDLE) {
                     if (CraftEngineItems.isCustomItem(itemInHand)) {
                         event.setCancelled(true);
