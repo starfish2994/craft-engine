@@ -36,6 +36,7 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.event.CraftEventFacto
 import net.momirealms.craftengine.proxy.minecraft.core.Vec3iProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.WorldGenRegionProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BonemealableBlockProxy;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -50,16 +51,18 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
     public final int baseGrowth;
     public final float extraGrowChance;
     public final int minGrowLight;
+    public final int minSpawnLight;
     public final boolean isBoneMealTarget;
     public final NumberProvider boneMealBonus;
 
-    private CropBlockBehavior(BlockDefinition block, Property<Integer> ageProperty, float growSpeed, int minGrowLight, boolean isBoneMealTarget, NumberProvider boneMealBonus) {
+    private CropBlockBehavior(BlockDefinition block, Property<Integer> ageProperty, float growSpeed, int minGrowLight, int minSpawnLight, boolean isBoneMealTarget, NumberProvider boneMealBonus) {
         super(block);
         this.ageProperty = (IntegerProperty) ageProperty;
         this.growSpeed = growSpeed;
         this.baseGrowth = (int) growSpeed;
         this.extraGrowChance = growSpeed - baseGrowth;
         this.minGrowLight = minGrowLight;
+        this.minSpawnLight = minSpawnLight;
         this.isBoneMealTarget = isBoneMealTarget;
         this.boneMealBonus = boneMealBonus;
     }
@@ -81,8 +84,12 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         return BlockAndLightGetterProxy.INSTANCE.getRawBrightness(level, pos, 0);
     }
 
-    private boolean hasSufficientLight(Object level, Object pos) {
+    private boolean hasSufficientLightForGrow(Object level, Object pos) {
         return getRawBrightness(level, pos) >= this.minGrowLight - 1;
+    }
+
+    private boolean hasSufficientLightForSpawn(Object level, Object pos) {
+        return getRawBrightness(level, pos) >= this.minSpawnLight - 1;
     }
 
     @Override
@@ -114,7 +121,11 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
     public boolean canSurvive(Object thisBlock, Object[] args) {
         Object world = args[1];
         Object pos = args[2];
-        return hasSufficientLight(world, pos);
+        if (WorldGenRegionProxy.CLASS.isInstance(world)) {
+            return hasSufficientLightForSpawn(world, pos);
+        } else {
+            return hasSufficientLightForGrow(world, pos);
+        }
     }
 
     @Override
@@ -226,6 +237,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement"};
         private static final String[] IS_BONE_MEAL_TARGET = new String[]{"is_bone_meal_target", "is-bone-meal-target"};
         private static final String[] AGE_BONUS = new String[]{"bone_meal_age_bonus", "bone-meal-age-bonus"};
+        private static final String[] SPAWN_LIGHT_REQUIREMENT = new String[]{"spawn_light_requirement", "spawn-light-requirement"};
 
         @Override
         public CropBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -234,6 +246,7 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
                     BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),
                     section.getFloat(GROW_SPEED, 0.125f),
                     section.getInt(LIGHT_REQUIREMENT),
+                    section.getInt(SPAWN_LIGHT_REQUIREMENT, section.getInt(LIGHT_REQUIREMENT)),
                     section.getBoolean(IS_BONE_MEAL_TARGET, true),
                     section.getNumber(AGE_BONUS, ConfigConstants.CONSTANT_ONE)
             );
