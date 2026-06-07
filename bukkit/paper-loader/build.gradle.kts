@@ -89,8 +89,11 @@ paper {
         register("BetterModel") { required = false }
 
         // external items
+        register("AdvancedItems") { required = false }
         register("AzureFlow") { required = false }
         register("Baikiruto") { required = false }
+        register("CrazyVouchers") { required = false }
+        register("CustomCrafting") { required = false }
         register("CustomFishing") { required = false }
         register("DragonArmourers") { required = false }
         register("EcoArmor") { required = false }
@@ -99,10 +102,14 @@ paper {
         register("EcoMobs") { required = false }
         register("EcoPets") { required = false }
         register("EcoScrolls") { required = false }
+        register("EmakiItem") { required = false }
+        register("ExecutableBlocks") { required = false }
         register("ExecutableItems") { required = false }
         register("HeadDatabase") { required = false }
         register("HMCCosmetics") { required = false }
+        register("ItemEdit") { required = false }
         register("ItemsAdder") { required = false }
+        register("ItemsXL") { required = false }
         register("MagicGem") { required = false }
         register("MMOItems") { required = false }
         register("MythicMobs") { required = false }
