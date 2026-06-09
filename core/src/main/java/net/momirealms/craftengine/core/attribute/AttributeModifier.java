@@ -2,7 +2,12 @@ package net.momirealms.craftengine.core.attribute;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public final class AttributeModifier {
     private final String type;
@@ -48,16 +53,48 @@ public final class AttributeModifier {
 
     public enum Slot {
         ANY,
-        HAND,
-        ARMOR,
         MAINHAND,
         OFFHAND,
-        HEAD,
-        CHEST,
-        LEGS,
+        HAND,
         FEET,
+        LEGS,
+        CHEST,
+        HEAD,
+        ARMOR,
         BODY,
-        SADDLE
+        SADDLE;
+
+        public static final Map<String, Slot> BY_ID = MiscUtils.init(new HashMap<>(), m -> {
+            m.put("any", Slot.ANY);
+            m.put("hand", Slot.HAND);
+            m.put("mainhand", Slot.MAINHAND);
+            m.put("main_hand", Slot.MAINHAND);
+            m.put("offhand", Slot.OFFHAND);
+            m.put("off_hand", Slot.OFFHAND);
+            m.put("feet", Slot.FEET);
+            m.put("boots", Slot.FEET);
+            m.put("boot", Slot.FEET);
+            m.put("shoes", Slot.FEET);
+            m.put("legs", Slot.LEGS);
+            m.put("leg", Slot.LEGS);
+            m.put("leggings", Slot.LEGS);
+            m.put("chest", Slot.CHEST);
+            m.put("chestplate", Slot.CHEST);
+            m.put("head", Slot.HEAD);
+            m.put("helmet", Slot.HEAD);
+            m.put("hat", Slot.HEAD);
+            m.put("armor", Slot.ARMOR);
+            m.put("body", Slot.BODY);
+            m.put("saddle", Slot.SADDLE);
+        });
+
+        public static Slot byId(String name) {
+            return BY_ID.get(name.toLowerCase(Locale.ROOT));
+        }
+
+        public static Slot byId(String name, Slot defaultValue) {
+            return BY_ID.getOrDefault(name.toLowerCase(Locale.ROOT), defaultValue);
+        }
     }
 
     public enum Operation {

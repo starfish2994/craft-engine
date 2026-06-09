@@ -467,8 +467,18 @@ public final class ConfigSection {
     }
 
     @NotNull
+    public <T extends Enum<T>> T getNonNullEnum(String key, Class<T> enumClass, Function<String, T> custom) {
+        return getNonNullValue(key, ConfigConstants.ARGUMENT_ENUM, v -> v.getAsEnum(enumClass, custom));
+    }
+
+    @NotNull
     public <T extends Enum<T>> T getNonNullEnum(String[] keys, Class<T> enumClass) {
         return getNonNullValue(keys, ConfigConstants.ARGUMENT_ENUM, v -> v.getAsEnum(enumClass));
+    }
+
+    @NotNull
+    public <T extends Enum<T>> T getNonNullEnum(String[] keys, Class<T> enumClass, Function<String, T> custom) {
+        return getNonNullValue(keys, ConfigConstants.ARGUMENT_ENUM, v -> v.getAsEnum(enumClass, custom));
     }
 
     public <T extends Enum<T>> T getEnum(String key, Class<T> enumClass, T def) {

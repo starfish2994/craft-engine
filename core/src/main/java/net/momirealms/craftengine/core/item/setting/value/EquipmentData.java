@@ -65,7 +65,7 @@ public final class EquipmentData {
     private static final String[] SOUND_ID = new String[] {"sound_id", "sound-id"};
 
     public static EquipmentData fromConfig(@NotNull final ConfigSection section) {
-        EquipmentSlot slot = section.getNonNullEnum("slot", EquipmentSlot.class);
+        EquipmentSlot slot = section.getNonNullEnum("slot", EquipmentSlot.class, EquipmentSlot::byId);
         Key assetId = section.getIdentifier(ASSET_ID);
         Key cameraOverlay = section.getIdentifier(CAMERA_OVERLAY);
         boolean dispensable = section.getBoolean("dispensable", true);

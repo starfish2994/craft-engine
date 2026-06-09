@@ -43,9 +43,11 @@ blocks:
     state:
       auto_state: solid
       model:
-        template: default:model/simplified_cube_all
-        arguments:
-          path: minecraft:block/custom/topaz_ore
+        path: minecraft:block/custom/topaz_ore
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/custom/topaz_ore
   default:deepslate_topaz_ore:
     behavior:
       type: drop_experience_block
@@ -65,9 +67,11 @@ blocks:
     state:
       auto_state: solid
       model:
-        template: default:model/simplified_cube_all
-        arguments:
-          path: minecraft:block/custom/deepslate_topaz_ore
+        path: minecraft:block/custom/deepslate_topaz_ore
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/custom/deepslate_topaz_ore
 recipes:
   default:topaz_from_smelting_topaz_ore:
     type: smelting

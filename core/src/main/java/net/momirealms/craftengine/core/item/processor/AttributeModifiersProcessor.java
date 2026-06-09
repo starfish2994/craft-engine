@@ -161,7 +161,7 @@ public final class AttributeModifiersProcessor implements SimpleNetworkItemProce
             List<PreModifier> preModifiers = value.getAsList(v -> {
                 ConfigSection section = v.getAsSection();
                 Key nativeType = AttributeModifiersProcessor.getNativeAttributeName(section.getIdentifier("type"));
-                AttributeModifier.Slot slot = section.getEnum("slot", AttributeModifier.Slot.class, AttributeModifier.Slot.ANY);
+                AttributeModifier.Slot slot = section.getNonNullEnum("slot", AttributeModifier.Slot.class, s -> AttributeModifier.Slot.byId(s, AttributeModifier.Slot.ANY));
                 AttributeModifier.Operation operation = section.getEnum("operation", AttributeModifier.Operation.class, AttributeModifier.Operation.ADD_VALUE);
                 Optional<Key> id = Optional.ofNullable(section.getIdentifier("id"));
                 NumberProvider amount = section.getNonNullNumber("amount");

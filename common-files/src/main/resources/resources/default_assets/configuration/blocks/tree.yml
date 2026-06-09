@@ -153,9 +153,11 @@ config_factory#basic:
             loot::template: default:loot_table/self
             state:
               model:
-                template: default:model/simplified_cube_all
-                arguments:
-                  path: ${asset_path_prefix}${tree_type}_planks
+                path: ${asset_path_prefix}${tree_type}_planks
+                generation:
+                  parent: minecraft:block/cube_all
+                  textures:
+                    all: ${asset_path_prefix}${tree_type}_planks
               auto_state: solid
       ${namespace}:${tree_type}_sapling:
         category: ${namespace}:${tree_type}_tree
