@@ -155,4 +155,6 @@ public interface PacketIds {
     int clientboundShowDialogPacket$play();
 
     int clientboundShowDialogPacket$configuration();
+
+    int clientboundUpdateAttributesPacket();
 }
