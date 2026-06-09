@@ -931,37 +931,33 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void setClientSideCanBreakBlock(boolean canBreak) {
-        try {
-            // 超过1秒就强制同步一次属性
-            if (this.clientSideCanBreak == canBreak && !shouldSyncAttribute()) {
-                return;
-            }
-            this.clientSideCanBreak = canBreak;
-            if (canBreak) {
-                if (VersionHelper.isOrAbove1_20_5) {
-                    Object serverPlayer = serverPlayer();
-                    Object attributeInstance = LivingEntityProxy.INSTANCE.getAttribute(serverPlayer, AttributesProxy.BLOCK_BREAK_SPEED);
-                    sendPacket(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId(), Lists.newArrayList(attributeInstance)), true);
-                } else {
-                    resetEffect(MobEffectsProxy.MINING_FATIGUE);
-                    resetEffect(MobEffectsProxy.HASTE);
-                }
+        // 超过1秒就强制同步一次属性
+        if (this.clientSideCanBreak == canBreak && !shouldSyncAttribute()) {
+            return;
+        }
+        this.clientSideCanBreak = canBreak;
+        if (canBreak) {
+            if (VersionHelper.isOrAbove1_20_5) {
+                Object serverPlayer = serverPlayer();
+                Object attributeInstance = LivingEntityProxy.INSTANCE.getAttribute(serverPlayer, AttributesProxy.BLOCK_BREAK_SPEED);
+                sendPacket(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId(), Lists.newArrayList(attributeInstance)), true);
             } else {
-                if (VersionHelper.isOrAbove1_20_5) {
-                    Object attributeModifier = VersionHelper.isOrAbove1_21 ?
-                            AttributeModifierProxy.INSTANCE.newInstance(KeyUtils.toIdentifier(Key.CRAFTENGINE_NAMESPACE, "custom_hardness"), -9999d, AttributeModifierProxy.OperationProxy.ADD_VALUE) :
-                            AttributeModifierProxy.INSTANCE.newInstance(UUID.randomUUID(), Key.CRAFTENGINE_NAMESPACE + ":custom_hardness", -9999d, AttributeModifierProxy.OperationProxy.ADD_VALUE);
-                    Object attributeSnapshot = ClientboundUpdateAttributesPacketProxy.AttributeSnapshotProxy.INSTANCE.newInstance(AttributesProxy.BLOCK_BREAK_SPEED, 1d, Lists.newArrayList(attributeModifier));
-                    Object newPacket = ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$1(entityId(), Lists.newArrayList(attributeSnapshot));
-                    sendPacket(newPacket, true);
-                } else {
-                    Object fatiguePacket = MobEffectUtils.createPacket(MobEffectsProxy.MINING_FATIGUE, entityId(), (byte) 9, -1, false, false, false);
-                    Object hastePacket = MobEffectUtils.createPacket(MobEffectsProxy.HASTE, entityId(), (byte) 0, -1, false, false, false);
-                    sendPackets(List.of(fatiguePacket, hastePacket), true);
-                }
+                resetEffect(MobEffectsProxy.MINING_FATIGUE);
+                resetEffect(MobEffectsProxy.HASTE);
             }
-        } catch (Throwable e) {
-            this.plugin.logger().warn("Failed to set attribute for player " + platformPlayer().getName(), e);
+        } else {
+            if (VersionHelper.isOrAbove1_20_5) {
+                Object attributeModifier = VersionHelper.isOrAbove1_21 ?
+                        AttributeModifierProxy.INSTANCE.newInstance(KeyUtils.toIdentifier(Key.CRAFTENGINE_NAMESPACE, "custom_hardness"), -9999d, AttributeModifierProxy.OperationProxy.ADD_VALUE) :
+                        AttributeModifierProxy.INSTANCE.newInstance(UUID.randomUUID(), Key.CRAFTENGINE_NAMESPACE + ":custom_hardness", -9999d, AttributeModifierProxy.OperationProxy.ADD_VALUE);
+                Object attributeSnapshot = ClientboundUpdateAttributesPacketProxy.AttributeSnapshotProxy.INSTANCE.newInstance(AttributesProxy.BLOCK_BREAK_SPEED, 1d, Lists.newArrayList(attributeModifier));
+                Object newPacket = ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$1(entityId(), Lists.newArrayList(attributeSnapshot));
+                sendPacket(newPacket, true);
+            } else {
+                Object fatiguePacket = MobEffectUtils.createPacket(MobEffectsProxy.MINING_FATIGUE, entityId(), (byte) 9, -1, false, false, false);
+                Object hastePacket = MobEffectUtils.createPacket(MobEffectsProxy.HASTE, entityId(), (byte) 0, -1, false, false, false);
+                sendPackets(List.of(fatiguePacket, hastePacket), true);
+            }
         }
     }
 

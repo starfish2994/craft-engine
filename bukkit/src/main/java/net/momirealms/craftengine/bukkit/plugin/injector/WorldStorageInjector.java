@@ -100,7 +100,9 @@ public final class WorldStorageInjector {
                     BlockEntity blockEntity = chunk.getBlockEntity(pos, false);
                     if (blockEntity != null) {
                         try {
-                            blockEntity.preRemove();
+                            if (chunk.isLoaded()) {
+                                blockEntity.preRemove();
+                            }
                         } catch (Throwable t) {
                             CraftEngine.instance().logger().warn("Error removing block entity " + blockEntity.getClass().getName(), t);
                         }
