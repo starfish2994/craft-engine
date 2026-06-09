@@ -20,6 +20,7 @@ import java.util.Optional;
 public final class GeneratedModelReader implements SimplifiedModelReader {
     public static final GeneratedModelReader GENERATED = new GeneratedModelReader(Key.of("item/generated"), List.of());
     public static final GeneratedModelReader HANDHELD = new GeneratedModelReader(Key.of("item/handheld"), List.of());
+    public static final GeneratedModelReader HANDHELD_MACE = new GeneratedModelReader(Key.of("item/handheld_mace"), List.of());
     public static final GeneratedModelReader LEATHER = new GeneratedModelReader(Key.of("item/generated"), List.of(new SimpleDefaultTint(Key.of("dye"), Either.left(16777215))));
     public static final GeneratedModelReader FIREWORK_STAR = new GeneratedModelReader(Key.of("item/generated"), List.of(new ConstantTint(Either.left(-1)), new SimpleDefaultTint(Key.of("firework"), Either.left(16777215))));
 

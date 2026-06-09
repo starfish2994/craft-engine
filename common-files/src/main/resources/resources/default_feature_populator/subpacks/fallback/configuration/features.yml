@@ -306,7 +306,7 @@ placed_features:
         predicate:
           type: 'minecraft:matching_blocks'
           blocks: 'minecraft:sand'
-          offset: [0,-1,0]
+          offset: [ 0,-1,0 ]
       - type: 'minecraft:biome'
   default:reed:
     biome:

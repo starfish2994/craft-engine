@@ -14,6 +14,7 @@ import java.util.Optional;
 
 public final class OverwritableEquippableAssetIdProcessor implements SimpleNetworkItemProcessor {
     public static final ItemProcessorFactory<OverwritableEquippableAssetIdProcessor> FACTORY = new Factory();
+    public static final Key DISABLE_ARMOR_RENDERING = Key.ce("disable_armor_rendering");
     private final Key assetId;
 
     public OverwritableEquippableAssetIdProcessor(Key assetsId) {
@@ -31,6 +32,7 @@ public final class OverwritableEquippableAssetIdProcessor implements SimpleNetwo
                 {
                     Key previousAssetId = data.assetId();
                     boolean canSet = false;
+                    boolean removeAssetId = false;
                     if (previousAssetId == null) {
                         canSet = true;
                     } else {
@@ -44,12 +46,16 @@ public final class OverwritableEquippableAssetIdProcessor implements SimpleNetwo
                             if (Objects.equals(defaultAssetId, previousAssetId)) {
                                 canSet = true;
                             }
+                            if (previousAssetId.equals(DISABLE_ARMOR_RENDERING)) {
+                                canSet = true;
+                                removeAssetId = true;
+                            }
                         }
                     }
                     if (canSet) {
                         item.equippable(new EquipmentData(
                                 data.slot(),
-                                this.assetId,
+                                removeAssetId ? null : this.assetId,
                                 data.dispensable(),
                                 data.swappable(),
                                 data.damageOnHurt(),

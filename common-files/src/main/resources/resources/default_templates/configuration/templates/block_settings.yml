@@ -18,6 +18,7 @@ templates#settings:
       - default:sound/grass
     overrides:
       push_reaction: destroy
+      map_color: plant
       tags:
         - minecraft:mineable/axe
         - minecraft:saplings
@@ -33,6 +34,7 @@ templates#settings:
       resistance: 0.2
       push_reaction: destroy
       instrument: harp
+      map_color: plant
       tags:
         - minecraft:mineable/hoe
         - minecraft:sword_efficient
@@ -50,6 +52,7 @@ templates#settings:
         - minecraft:logs_that_burn
         - minecraft:logs
         - minecraft:completes_find_tree_tutorial
+      map_color: wood
   default:settings/planks:
     template:
       - default:sound/wood
@@ -59,6 +62,7 @@ templates#settings:
     overrides:
       instrument: bass
       tags: ["minecraft:mineable/axe"]
+      map_color: wood
   default:settings/ore:
     template:
       - default:sound/stone
@@ -67,7 +71,7 @@ templates#settings:
       hardness: 3.0
       resistance: 3.0
       instrument: basedrum
-      map_color: 11
+      map_color: stone
       tags: ["minecraft:mineable/pickaxe"]
       correct_tools::template: default:pickaxe_power/level_${break_power}
   default:settings/deepslate_ore:
@@ -79,7 +83,7 @@ templates#settings:
       hardness: 4.5
       resistance: 3.0
       instrument: basedrum
-      map_color: 59
+      map_color: deepslate
       tags: ["minecraft:mineable/pickaxe"]
       correct_tools::template: default:pickaxe_power/level_${break_power}
 

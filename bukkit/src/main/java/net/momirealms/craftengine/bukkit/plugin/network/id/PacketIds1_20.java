@@ -402,4 +402,9 @@ public final class PacketIds1_20 implements PacketIds {
     public int clientboundShowDialogPacket$configuration() {
         return -1;
     }
+
+    @Override
+    public int clientboundUpdateAttributesPacket() {
+        return PacketIdHelper.byClazz(ClientboundUpdateAttributesPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
 }

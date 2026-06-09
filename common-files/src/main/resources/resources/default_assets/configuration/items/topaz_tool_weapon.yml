@@ -177,6 +177,19 @@ items:
         on_false:
           type: minecraft:model
           path: minecraft:item/custom/topaz_trident_in_hand
+  $$>=1.21.11#topaz_spear:
+    default:topaz_spear:
+      material: golden_spear
+      swap_animation_scale: 1.95
+      textures:
+        - minecraft:item/custom/topaz_spear
+        - minecraft:item/custom/topaz_spear_in_hand
+      settings:
+        tags: ["default:topaz_tools"]
+      data:
+        item_name: <!i><#FF8C00><lang:item.default.topaz_spear>
+        tooltip_style: minecraft:topaz
+        max_damage: 192
 recipes:
   default:topaz_shovel:
     type: shaped
@@ -242,6 +255,19 @@ recipes:
       B: minecraft:stick
     result:
       id: default:topaz_pickaxe
+      count: 1
+  default:topaz_spear:
+    type: shaped
+    category: equipment
+    pattern:
+      - '  A'
+      - ' B '
+      - 'B  '
+    ingredients:
+      A: default:topaz
+      B: minecraft:stick
+    result:
+      id: default:topaz_spear
       count: 1
   default:topaz_bow:
     type: smithing_transform

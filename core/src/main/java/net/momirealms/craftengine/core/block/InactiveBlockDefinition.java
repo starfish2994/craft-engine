@@ -5,11 +5,9 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.CompoundTag;
-import net.momirealms.sparrow.nbt.Tag;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringJoiner;
 
 public final class InactiveBlockDefinition extends AbstractBlockDefinition {
     private final Map<CompoundTag, ImmutableBlockState> cachedData = new HashMap<>();

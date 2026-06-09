@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config;
 
+import com.ezylang.evalex.Expression;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.block.AbstractBlockManager;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
@@ -119,7 +120,11 @@ public final class ConfigValue {
                 try {
                     return Integer.parseInt(s.replace("_", ""));
                 } catch (NumberFormatException e) {
-                    throw new KnownResourceException(ConfigConstants.PARSE_INT_FAILED, this.path, s);
+                    try {
+                        return new Expression(s).evaluate().getNumberValue().intValue();
+                    } catch (Throwable ex) {
+                        throw new KnownResourceException(ConfigConstants.PARSE_INT_FAILED, this.path, s);
+                    }
                 }
             }
             case Boolean b -> { return b ? 1 : 0; }
@@ -153,7 +158,11 @@ public final class ConfigValue {
                 try {
                     return Float.parseFloat(s.replace("_", ""));
                 } catch (NumberFormatException e) {
-                    throw new KnownResourceException(ConfigConstants.PARSE_FLOAT_FAILED, this.path, s);
+                    try {
+                        return new Expression(s).evaluate().getNumberValue().floatValue();
+                    } catch (Throwable ex) {
+                        throw new KnownResourceException(ConfigConstants.PARSE_FLOAT_FAILED, this.path, s);
+                    }
                 }
             }
             case Boolean b -> { return b ? 1.0f : 0.0f; }
@@ -187,7 +196,11 @@ public final class ConfigValue {
                 try {
                     return Double.parseDouble(s.replace("_", ""));
                 } catch (NumberFormatException e) {
-                    throw new KnownResourceException(ConfigConstants.PARSE_DOUBLE_FAILED, this.path, s);
+                    try {
+                        return new Expression(s).evaluate().getNumberValue().doubleValue();
+                    } catch (Throwable ex) {
+                        throw new KnownResourceException(ConfigConstants.PARSE_DOUBLE_FAILED, this.path, s);
+                    }
                 }
             }
             case Boolean b -> { return b ? 1.0 : 0.0; }
@@ -221,7 +234,11 @@ public final class ConfigValue {
                 try {
                     return Long.parseLong(s.replace("_", ""));
                 } catch (NumberFormatException e) {
-                    throw new KnownResourceException(ConfigConstants.PARSE_LONG_FAILED, this.path, s);
+                    try {
+                        return new Expression(s).evaluate().getNumberValue().longValue();
+                    } catch (Throwable ex) {
+                        throw new KnownResourceException(ConfigConstants.PARSE_LONG_FAILED, this.path, s);
+                    }
                 }
             }
             case Boolean b -> { return b ? 1L : 0L; }
@@ -312,7 +329,12 @@ public final class ConfigValue {
         if (this.value instanceof Number number) {
             return Color.fromDecimal(number.intValue());
         } else {
-            return Color.fromStrings(getAsString().split(",", 4));
+            String colorString = getAsString();
+            if (colorString.startsWith("#")) {
+                return Color.fromHex(colorString);
+            } else {
+                return Color.fromStrings(colorString.split(",", 4));
+            }
         }
     }
 

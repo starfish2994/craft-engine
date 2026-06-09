@@ -90,6 +90,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     private List<ConditionalFeature> customPlacedFeatures = List.of();
     private List<Suggestion> cachedConfiguredFeaturesSuggestion = List.of();
     public long lastReloadFeatureTime;
+    private volatile boolean disabled;
 
     public BukkitWorldManager(BukkitCraftEngine plugin) {
         if (instance != null) {
@@ -167,6 +168,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public void disable() {
+        this.disabled = true;
         HandlerList.unregisterAll(this);
         if (this.storageAdaptor instanceof Listener listener) {
             HandlerList.unregisterAll(listener);
@@ -569,6 +571,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     // for FastNMS chunk generator
     public Runnable handleChunkGenerate(CEWorld ceWorld, ChunkPos chunkPos, Object chunkAccess, ChunkGenerationStage stage) {
         if (!stage.enabled()) return null;
+        if (this.disabled) return null;
         Object[] sections = ChunkAccessProxy.INSTANCE.getSections(chunkAccess);
         CEChunk ceChunk;
         try {

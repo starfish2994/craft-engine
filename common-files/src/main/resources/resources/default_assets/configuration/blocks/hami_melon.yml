@@ -70,16 +70,17 @@ blocks:
     state:
       auto_state: solid
       model:
-        template: default:model/cube
-        arguments:
-          model: minecraft:block/custom/hami_melon
-          particle_texture: minecraft:block/custom/hami_melon
-          down_texture: minecraft:block/custom/hami_melon_bottom
-          up_texture: minecraft:block/custom/hami_melon_top
-          north_texture: minecraft:block/custom/hami_melon
-          east_texture: minecraft:block/custom/hami_melon
-          south_texture: minecraft:block/custom/hami_melon
-          west_texture: minecraft:block/custom/hami_melon
+        path: minecraft:block/custom/hami_melon
+        generation:
+          parent: minecraft:block/cube_column
+          textures:
+            particle: minecraft:block/custom/hami_melon
+            down: minecraft:block/custom/hami_melon_bottom
+            up: minecraft:block/custom/hami_melon_top
+            north: minecraft:block/custom/hami_melon
+            east: minecraft:block/custom/hami_melon
+            south: minecraft:block/custom/hami_melon
+            west: minecraft:block/custom/hami_melon
   default:hami_melon_stem:
     settings:
       template:

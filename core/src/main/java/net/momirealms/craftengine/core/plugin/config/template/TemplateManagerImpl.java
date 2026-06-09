@@ -266,7 +266,7 @@ public final class TemplateManagerImpl implements TemplateManager {
         for (int i = 0, size = templateIds.size(); i < size; i++) {
             ArgumentString templateId = templateIds.get(i);
             String newNode = node + ".template[" + i + "]";
-            Object parsedTemplateId = templateId.get(newNode, parentArguments);
+            Object parsedTemplateId = templateId.get(newNode, arguments);
             if (parsedTemplateId == null) continue; // 忽略被null掉的模板
             Object template = ((TemplateManagerImpl) INSTANCE).templates.get(Key.of(parsedTemplateId.toString()));
             if (template == null) {
