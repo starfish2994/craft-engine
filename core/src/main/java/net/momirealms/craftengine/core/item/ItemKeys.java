@@ -89,8 +89,17 @@ public final class ItemKeys {
     public static final Key SNOWBALL = Key.of("minecraft:snowball");
     public static final Key EXPERIENCE_BOTTLE = Key.of("minecraft:experience_bottle");
     public static final Key FIRE_CHARGE = Key.of("minecraft:fire_charge");
+    public static final Key MACE = Key.of("minecraft:mace");
+    public static final Key WOODEN_SPEAR = Key.of("minecraft:wooden_spear");
+    public static final Key STONE_SPEAR = Key.of("minecraft:stone_spear");
+    public static final Key COPPER_SPEAR = Key.of("minecraft:copper_spear");
+    public static final Key IRON_SPEAR = Key.of("minecraft:iron_spear");
+    public static final Key GOLDEN_SPEAR = Key.of("minecraft:golden_spear");
+    public static final Key DIAMOND_SPEAR = Key.of("minecraft:diamond_spear");
+    public static final Key NETHERITE_SPEAR = Key.of("minecraft:netherite_spear");
 
     public static final Key[] AXES = new Key[] {WOODEN_AXE, COPPER_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE};
+    public static final Key[] SPEARS = new Key[] {WOODEN_SPEAR, COPPER_SPEAR, STONE_SPEAR, IRON_SPEAR, GOLDEN_SPEAR, DIAMOND_SPEAR, NETHERITE_SPEAR};
     public static final Key[] WATER_BUCKETS = new Key[] {WATER_BUCKET, COD_BUCKET, SALMON_BUCKET, TROPICAL_FISH_BUCKET, TADPOLE_BUCKET, PUFFERFISH_BUCKET, AXOLOTL_BUCKET};
     public static final Key[] DYES = new Key[] {
             WHITE_DYE, LIGHT_GRAY_DYE, GRAY_DYE, BLACK_DYE, BROWN_DYE, RED_DYE, ORANGE_DYE, YELLOW_DYE, LIME_DYE,

@@ -234,6 +234,10 @@ public abstract class AbstractPackManager implements PackManager {
         SIMPLIFIED_MODEL_READERS.put(ItemKeys.BOW, BowModelReader.INSTANCE);
         SIMPLIFIED_MODEL_READERS.put(ItemKeys.CROSSBOW, CrossbowModelReader.INSTANCE);
         SIMPLIFIED_MODEL_READERS.put(ItemKeys.FIREWORK_STAR, GeneratedModelReader.FIREWORK_STAR);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.MACE, GeneratedModelReader.HANDHELD_MACE);
+        for (Key spear : ItemKeys.SPEARS) {
+            SIMPLIFIED_MODEL_READERS.put(spear, SpearModelReader.INSTANCE);
+        }
     }
 
     private void loadModernItemModel(String path, BiConsumer<Key, ModernItemModel> callback) {
