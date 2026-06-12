@@ -23,6 +23,9 @@ public interface StateHolderProxy {
     @MethodInvoker(name = "getValue")
     <T extends Comparable<T>> T getValue(Object target, @Type(clazz = PropertyProxy.class) Object property);
 
+    @MethodInvoker(name = "cycle")
+    Object cycle(Object target, @Type(clazz = PropertyProxy.class) Object property);
+
     @MethodInvoker(name = "setValue")
     Object setValue(Object target, @Type(clazz = PropertyProxy.class) Object property, Comparable<?> value);
 
