@@ -108,7 +108,7 @@ public final class ItemStackUtils {
         Tag itemTag = tag;
         int currentVersion = VersionHelper.WORLD_VERSION;
         if (Config.enableItemDataFixerUpper() && dataVersion != currentVersion) {
-            if (VersionHelper.isPaper && VersionHelper.MINECRAFT_VERSION == MinecraftVersion.V1_21_5) {
+            if (VersionHelper.isPaper && VersionHelper.MINECRAFT_VERSION != MinecraftVersion.V1_21_5 && VersionHelper.MINECRAFT_VERSION != MinecraftVersion.V26_2/*todo临时禁用等paper把补丁打完*/) {
                 Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, itemTag);
                 Object converted = MCDataConverterProxy.INSTANCE.convertTag(MCTypeRegistryProxy.ITEM_STACK, nmsTag, dataVersion, currentVersion);
                 itemTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, converted);

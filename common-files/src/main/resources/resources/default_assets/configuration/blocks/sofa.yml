@@ -44,9 +44,9 @@ items:
             bounce_restitution: 0.75
         behaviors:
           - type: bouncing_block
+            sync_player_position: false
             $$<26.2:
               bounce_height: 0.66
-              sync_player_position: false
           - type: seat_block
             seats:
               - 0,0,0

@@ -45,6 +45,9 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
                     DamageSourcesProxy.INSTANCE.fall(EntityProxy.INSTANCE.damageSources(entity))
             );
         }
+        if (VersionHelper.isOrAbove26_2 && PlayerProxy.CLASS.isInstance(entity) && this.syncPlayerPosition) {
+            syncBounceUp(entity);
+        }
     }
 
     @Override
@@ -66,12 +69,16 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
             if (PlayerProxy.CLASS.isInstance(entity) && this.syncPlayerPosition
                     && /* 防抖 -> */ y > 0.035 /* <- 防抖 */
             ) {
-                // 这里一定要延迟 1t 不然就会出问题
-                BukkitCraftEngine.instance().scheduler().platform().runLater(() -> {
-                    EntityProxy.INSTANCE.setHurtMarked(entity, true);
-                }, null, 1, EntityProxy.INSTANCE.getBukkitEntity(entity));
+                syncBounceUp(entity);
             }
         }
+    }
+
+    private static void syncBounceUp(Object entity) {
+        // 这里一定要延迟 1t 不然就会出问题
+        BukkitCraftEngine.instance().scheduler().platform().runLater(() -> {
+            EntityProxy.INSTANCE.setHurtMarked(entity, true);
+        }, null, 1, EntityProxy.INSTANCE.getBukkitEntity(entity));
     }
 
     private static class Factory implements BlockBehaviorFactory<BouncingBlockBehavior> {
@@ -83,9 +90,9 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
         public BouncingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new BouncingBlockBehavior(
                     block,
-                    section.getDouble(BOUNCE_HEIGHT, 0.66),
-                    !VersionHelper.isOrAbove26_2 && section.getBoolean(SYNC_PLAYER_POSITION, true),
-                    VersionHelper.isOrAbove26_2 ? 0 : section.getDouble(FALL_DAMAGE_MULTIPLIER, 0.5)
+                    VersionHelper.isOrAbove26_2 ? 0 : section.getDouble(BOUNCE_HEIGHT, 0.66),
+                    section.getBoolean(SYNC_PLAYER_POSITION, true),
+                    section.getDouble(FALL_DAMAGE_MULTIPLIER, 0.5)
             );
         }
     }
