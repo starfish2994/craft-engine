@@ -13,23 +13,23 @@ import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 public interface LightEngineProxy {
     LightEngineProxy INSTANCE = ASMProxyFactory.create(LightEngineProxy.class);
 
-    @MethodInvoker(name = "getLightBlockInto", isStatic = true, activeIf = "min_version=1.21.2")
-    int getLightBlockInto(
-            @Type(clazz = BlockStateProxy.class) Object state1,
-            @Type(clazz = BlockStateProxy.class) Object state2,
+    @MethodInvoker(name = {"getLightDampeningInto", "getLightBlockInto"}, isStatic = true, activeIf = "min_version=1.21.2")
+    int getLightDampeningInto(
+            @Type(clazz = BlockStateProxy.class) Object fromState,
+            @Type(clazz = BlockStateProxy.class) Object toState,
             @Type(clazz = DirectionProxy.class) Object direction,
-            int defaultReturnValue
+            int simpleOpacity
     );
 
     @MethodInvoker(name = "getLightBlockInto", isStatic = true, activeIf = "max_version=1.21.1")
-    int getLightBlockInto(
-            @Type(clazz = BlockGetterProxy.class) Object world,
-            @Type(clazz = BlockStateProxy.class) Object state1,
-            @Type(clazz = BlockPosProxy.class) Object pos1,
-            @Type(clazz = BlockStateProxy.class) Object state2,
-            @Type(clazz = BlockPosProxy.class) Object pos2,
+    int getLightDampeningInto(
+            @Type(clazz = BlockGetterProxy.class) Object level,
+            @Type(clazz = BlockStateProxy.class) Object fromState,
+            @Type(clazz = BlockPosProxy.class) Object fromPos,
+            @Type(clazz = BlockStateProxy.class) Object toState,
+            @Type(clazz = BlockPosProxy.class) Object toPos,
             @Type(clazz = DirectionProxy.class) Object direction,
-            int defaultReturnValue
+            int simpleOpacity
     );
 
     @MethodInvoker(name = "hasDifferentLightProperties", isStatic = true, activeIf = "min_version=1.21.2")

@@ -14,9 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public interface EntityProxy {
     EntityProxy INSTANCE = ASMProxyFactory.create(EntityProxy.class);
     Class<?> CLASS = SparrowClass.find("net.minecraft.world.entity.Entity");
-    AtomicInteger ENTITY_COUNTER = INSTANCE.getEntityCounter();
 
-    @FieldGetter(name = "ENTITY_COUNTER")
+    @FieldGetter(name = "ENTITY_COUNTER", isStatic = true, activeIf = "max_version=26.1.2")
     AtomicInteger getEntityCounter();
 
     @FieldGetter(name = "xo")

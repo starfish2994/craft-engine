@@ -168,6 +168,10 @@ public final class BlockSettingsModifiers {
         boolean block = value.getAsBoolean();
         return settings -> settings.isRaytraceBlocking(block);
     });
+    public static final BlockSettingsModifierType<BlockSettingsModifier> BOUNCE_RESTITUTION = register(Key.ce("bounce_restitution"), value -> {
+        float bounceRestitution = value.getAsFloat();
+        return settings -> settings.bounceRestitution(bounceRestitution);
+    });
 
     private BlockSettingsModifiers() {}
 

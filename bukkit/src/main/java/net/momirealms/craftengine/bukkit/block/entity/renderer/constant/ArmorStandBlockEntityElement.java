@@ -11,8 +11,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
@@ -39,7 +38,7 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
     public BlockEntityTintSource tintSource;
 
     ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
-        this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+        this(config, pos, tintSource, EntityUtils.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
     ArmorStandBlockEntityElement(ArmorStandBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
@@ -47,7 +46,7 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
         Vector3f position = config.position();
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId, this.uuid, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
-                config.xRot(), config.yRot(), EntityTypeProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, config.yRot()
+                config.xRot(), config.yRot(), EntityTypesProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, config.yRot()
         );
         this.config = config;
         this.tintSource = tintSource;

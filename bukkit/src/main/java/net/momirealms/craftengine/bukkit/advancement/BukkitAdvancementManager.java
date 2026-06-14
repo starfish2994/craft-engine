@@ -13,7 +13,8 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.advancements.*;
-import net.momirealms.craftengine.proxy.minecraft.advancements.criterion.ImpossibleTriggerProxy;
+import net.momirealms.craftengine.proxy.minecraft.advancements.triggers.ImpossibleTriggerProxy;
+import net.momirealms.craftengine.proxy.minecraft.advancements.triggers.CriterionProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacketProxy;
 

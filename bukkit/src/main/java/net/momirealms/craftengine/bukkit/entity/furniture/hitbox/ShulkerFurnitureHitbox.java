@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.hitbox;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.entity.furniture.Collider;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
@@ -10,8 +11,7 @@ import net.momirealms.craftengine.core.util.QuaternionUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
@@ -36,7 +36,7 @@ public final class ShulkerFurnitureHitbox extends AbstractFurnitureHitBox {
     ShulkerFurnitureHitbox(Furniture furniture, ShulkerFurnitureHitboxConfig config) {
         super(furniture, config);
         this.config = config;
-        this.entityIds = acquireEntityIds(EntityProxy.ENTITY_COUNTER::incrementAndGet);
+        this.entityIds = acquireEntityIds(EntityUtils.ENTITY_COUNTER::incrementAndGet);
         WorldPosition position = furniture.position();
         Quaternionf conjugated = QuaternionUtils.toQuaternionf(0f, (float) Math.toRadians(180 - position.yRot()), 0f).conjugate();
         Vector3f offset = conjugated.transform(new Vector3f(config.position()));
@@ -54,11 +54,11 @@ public final class ShulkerFurnitureHitbox extends AbstractFurnitureHitBox {
 
         packets.add(ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityIds[0], UUID.randomUUID(), x + offset.x, originalY, z - offset.z, 0, yaw,
-                EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         ));
         packets.add(ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityIds[1], UUID.randomUUID(), x + offset.x, processedY, z - offset.z, 0, yaw,
-                EntityTypeProxy.SHULKER, 0, Vec3Proxy.ZERO, 0
+                EntityTypesProxy.SHULKER, 0, Vec3Proxy.ZERO, 0
         ));
         packets.add(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(entityIds[1], config.cachedShulkerValues()));
         packets.add(PacketUtils.createClientboundSetPassengersPacket(entityIds[0], entityIds[1]));

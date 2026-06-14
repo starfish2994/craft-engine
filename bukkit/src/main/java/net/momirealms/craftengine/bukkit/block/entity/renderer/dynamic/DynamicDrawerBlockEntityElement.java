@@ -15,8 +15,7 @@ import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,8 +46,8 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
             float entityYRot
     ) {
         this.controller = controller;
-        this.itemId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
-        this.textId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
+        this.itemId = EntityUtils.ENTITY_COUNTER.incrementAndGet();
+        this.textId = EntityUtils.ENTITY_COUNTER.incrementAndGet();
         // 包缓存
         this.despawnItemPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(itemId)));
         this.despawnTextPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(textId)));
@@ -82,11 +81,11 @@ public final class DynamicDrawerBlockEntityElement implements BlockEntityElement
     public void refreshSpawnItemAndTextPacket(WorldPosition itemPosition, WorldPosition textPosition, float entityYRot) {
         this.spawnItemPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 itemId, itemUUID, itemPosition.x, itemPosition.y, itemPosition.z,
-                0.0f, entityYRot, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                0.0f, entityYRot, EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.spawnTextPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 textId, textUUID, textPosition.x, textPosition.y, textPosition.z,
-                0.0f, entityYRot, EntityTypeProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                0.0f, entityYRot, EntityTypesProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.updateItemPosPacket = EntityUtils.createUpdatePosPacket(this.itemId,
                 itemPosition.x, itemPosition.y, itemPosition.z,

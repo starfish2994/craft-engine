@@ -316,6 +316,9 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             BlockBehaviourProxy.INSTANCE.setSpeedFactor(nmsBlock, settings.speedFactor());
             BlockBehaviourProxy.INSTANCE.setJumpFactor(nmsBlock, settings.jumpFactor());
             BlockBehaviourProxy.INSTANCE.setSoundType(nmsBlock, SoundUtils.toNMSSoundType(settings.sounds()));
+            if (VersionHelper.isOrAbove26_2) {
+                BlockBehaviourProxy.INSTANCE.setBounceRestitution(nmsBlock, settings.bounceRestitution());
+            }
 
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.initCache(nmsState);
             boolean isConditionallyFullOpaque = canOcclude & useShapeForLightOcclusion;

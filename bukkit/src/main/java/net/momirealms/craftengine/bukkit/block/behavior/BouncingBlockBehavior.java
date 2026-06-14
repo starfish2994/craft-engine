@@ -84,8 +84,8 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
             return new BouncingBlockBehavior(
                     block,
                     section.getDouble(BOUNCE_HEIGHT, 0.66),
-                    section.getBoolean(SYNC_PLAYER_POSITION, true),
-                    section.getDouble(FALL_DAMAGE_MULTIPLIER, 0.5)
+                    !VersionHelper.isOrAbove26_2 && section.getBoolean(SYNC_PLAYER_POSITION, true),
+                    VersionHelper.isOrAbove26_2 ? 0 : section.getDouble(FALL_DAMAGE_MULTIPLIER, 0.5)
             );
         }
     }

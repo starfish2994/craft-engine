@@ -5,9 +5,12 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockStateProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
+import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 @ReflectionProxy(name = "net.minecraft.server.level.ServerLevel")
 public interface ServerLevelProxy extends LevelProxy {
@@ -29,4 +32,7 @@ public interface ServerLevelProxy extends LevelProxy {
 
     @MethodInvoker(name = "getServer")
     Object getServer(Object target);
+
+    @FieldGetter(name = "ENTITY_COUNTER", isStatic = true, activeIf = "min_version=26.2")
+    AtomicInteger getEntityCounter();
 }

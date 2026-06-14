@@ -11,8 +11,7 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +33,7 @@ public final class ItemFurnitureElement extends AbstractConditionalFurnitureElem
     public final Object cachedUpdatePosPacket;
 
     ItemFurnitureElement(Furniture furniture, ItemFurnitureElementConfig config, Vec3d pos) {
-        this(furniture, config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+        this(furniture, config, pos, EntityUtils.ENTITY_COUNTER.incrementAndGet(), EntityUtils.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
     ItemFurnitureElement(Furniture furniture, ItemFurnitureElementConfig config, Vec3d pos, int entityId1, int entityId2, boolean positionChanged) {
@@ -47,11 +46,11 @@ public final class ItemFurnitureElement extends AbstractConditionalFurnitureElem
         this.position = pos;
         this.cachedSpawnPacket1 = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId1, UUID.randomUUID(), position.x, position.y, position.z,
-                0, 0, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                0, 0, EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.cachedSpawnPacket2 = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId2, UUID.randomUUID(), position.x, position.y, position.z,
-                0, 0, EntityTypeProxy.ITEM, 0, Vec3Proxy.ZERO, 0
+                0, 0, EntityTypesProxy.ITEM, 0, Vec3Proxy.ZERO, 0
         );
         this.cachedRidePacket = PacketUtils.createClientboundSetPassengersPacket(entityId1, entityId2);
         this.despawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(),

@@ -16,7 +16,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 
 import java.util.ArrayList;
@@ -103,7 +103,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
                 ClientboundAddEntityPacketProxy.INSTANCE.newInstance(this.entityId, uuid, x, y, z,
                         MiscUtils.clamp(-MiscUtils.unpackDegrees(xRot), -90.0F, 90.0F),
                         -MiscUtils.unpackDegrees(yRot),
-                        EntityTypeProxy.ITEM_DISPLAY,
+                        EntityTypesProxy.ITEM_DISPLAY,
                         data,
                         movement != null ? Vec3Proxy.INSTANCE.newInstance(movement.x, movement.y, movement.z) : Vec3Proxy.INSTANCE.newInstance((double) xa / 8000.0, (double) ya / 8000.0, (double) za / 8000.0),
                         MiscUtils.unpackDegrees(yHeadRot)
