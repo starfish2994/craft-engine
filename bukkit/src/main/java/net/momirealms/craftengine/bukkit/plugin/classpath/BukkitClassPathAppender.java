@@ -15,6 +15,7 @@ public final class BukkitClassPathAppender implements ClassPathAppender {
     public BukkitClassPathAppender() {
         ClassLoader bukkitClassLoader = Bukkit.class.getClassLoader();
 
+        // production env, server launched with a real jar file
         URLClassLoader urlClassLoader = findURLClassLoader(bukkitClassLoader);
         if (urlClassLoader != null) {
             URLClassLoaderAccess access = URLClassLoaderAccess.create(urlClassLoader);
@@ -28,6 +29,7 @@ public final class BukkitClassPathAppender implements ClassPathAppender {
             return;
         }
 
+        // fallback, we are in the development environment
         JdkBuiltinClassPathAppender jdkBuiltinAppender =
                 JdkBuiltinClassPathAppender.createIfSupported(bukkitClassLoader);
 
