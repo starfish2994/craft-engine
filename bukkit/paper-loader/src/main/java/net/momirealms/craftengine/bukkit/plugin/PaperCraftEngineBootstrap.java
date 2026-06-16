@@ -7,14 +7,15 @@ import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.momirealms.craftengine.bukkit.plugin.agent.RuntimePatcher;
-import net.momirealms.craftengine.bukkit.plugin.classpath.BukkitClassPathAppender;
 import net.momirealms.craftengine.bukkit.plugin.classpath.PaperPluginClassPathAppender;
+import net.momirealms.craftengine.core.plugin.classpath.URLClassPathAppender;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.logger.PluginLogger;
 import net.momirealms.craftengine.core.plugin.logger.Slf4jPluginLogger;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageType;
 import net.momirealms.sparrow.nbt.CompoundTag;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +56,7 @@ public final class PaperCraftEngineBootstrap implements PluginBootstrap {
         this.plugin = new BukkitCraftEngine(
                 logger,
                 context.getDataDirectory(),
-                new BukkitClassPathAppender(),
+                new URLClassPathAppender(Bukkit.class.getClassLoader()),
                 new PaperPluginClassPathAppender(this.getClass().getClassLoader())
         );
         this.plugin.applyDependencies();
