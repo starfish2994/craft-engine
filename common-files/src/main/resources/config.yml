@@ -343,17 +343,10 @@ block:
     # If set to empty, the plugin will set an empty sound list, but at the cost of some warning logs appearing on the client side
     silent-sound-path: "internal/silence.ogg"
 
-  # Adventure mode requires correct tools to break custom blocks.
-  # Vanilla clients cannot recognize custom block IDs (e.g., craftengine:custom_100).
-  #
-  # ENABLED:
-  # - Tools that can break vanilla equivalents also break custom variants.
-  #   Example: A "note_block" tool breaks custom blocks based on note blocks
-  #
-  # DISABLED:
-  # ⚠️  Server MUST specify SERVERSIDE CUSTOM BLOCK IDs in item's `can_break`.
-  # ⚠️  Sending custom block IDs to vanilla clients WILL CAUSE CRASHES!
-  # ✅  Recommended: Use `client-bound-data` for safe client synchronization.
+  # Adventure mode requires correct tools to break blocks.
+  # While vanilla clients cannot recognize custom block IDs (e.g., craftengine:custom_100).
+  # When enabled, tools that can break vanilla equivalents also break custom variants.
+  # Example: A "note_block" tool breaks custom blocks based on note blocks
   simplify-adventure-break-check: false
   # Similar to the option above, but designed for block placement
   simplify-adventure-place-check: false
