@@ -50,12 +50,7 @@ items:
               template: default:pickaxe_power/level_1
         state:
           auto_state: solid
-          model:
-            path: minecraft:block/custom/solid_gunpowder_block
-            generation:
-              parent: minecraft:block/cube_all
-              textures:
-                all: minecraft:block/custom/solid_gunpowder_block
+          texture: minecraft:block/custom/solid_gunpowder_block
 recipes:
   default:gunpowder_from_block:
     type: shapeless
