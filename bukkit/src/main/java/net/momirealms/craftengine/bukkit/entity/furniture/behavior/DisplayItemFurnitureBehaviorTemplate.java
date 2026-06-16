@@ -26,6 +26,7 @@ import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
@@ -103,6 +104,7 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
             if (!this.savedItem.isEmpty()) {
                 Tag itemStackAsTag = ItemStackUtils.saveMinecraftItemStackAsTag(this.savedItem.minecraftItem());
                 if (itemStackAsTag != null) {
+                    data.putInt("data_version", VersionHelper.WORLD_VERSION);
                     data.put(Optional.ofNullable(behavior.customDataKey).orElse(DEFAULT_DATA_KEY), itemStackAsTag);
                 }
             }

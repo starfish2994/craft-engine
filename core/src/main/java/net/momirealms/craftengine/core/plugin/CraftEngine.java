@@ -455,8 +455,8 @@ public abstract class CraftEngine implements Plugin {
     }
 
     private boolean compareVer(String v1, String v2) {
-        String[] parts1 = v1.split("\\.");
-        String[] parts2 = v2.split("\\.");
+        String[] parts1 = v1.split("-", 2)[0].split("\\.");
+        String[] parts2 = v2.split("-", 2)[0].split("\\.");
         int maxLength = Math.max(parts1.length, parts2.length);
         for (int i = 0; i < maxLength; i++) {
             int num1 = i < parts1.length ? Integer.parseInt(parts1[i]) : 0;
@@ -470,7 +470,7 @@ public abstract class CraftEngine implements Plugin {
 
     @Nullable
     private static String getLatestVersion() throws Exception {
-        String apiUrl = "https://api.spiget.org/v2/resources/128871/versions/latest";
+        String apiUrl = "https://api.voxel.shop/v1/getResourceInfo?resource_id=7624";
         URL url = new URI(apiUrl).toURL();
         // 创建HTTP连接
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -490,9 +490,12 @@ public abstract class CraftEngine implements Plugin {
             }
             in.close();
             JsonObject jsonResponse = GsonHelper.get().fromJson(response.toString(), JsonObject.class);
-            if (jsonResponse.has("name")) {
-                return jsonResponse.get("name").getAsString();
-            }
+            return jsonResponse.getAsJsonObject("response")
+                    .getAsJsonObject("resource")
+                    .getAsJsonObject("updates")
+                    .getAsJsonObject("latest")
+                    .get("version")
+                    .getAsString();
         }
         return null;
     }
