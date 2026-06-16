@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.loot.Loot;
+import net.momirealms.craftengine.core.pack.Identifier;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.allocator.BlockStateCandidate;
 import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
@@ -672,15 +673,14 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                             ConfigValue textureValue = appearanceSection.getValue(TEXTURE);
                             ConfigValue modelValue = appearanceSection.getValue(MODELS);
                             if (textureValue != null) {
-                                List<Key> textures = textureValue.getAsNonEmptyList(ConfigValue::getAsAssetPath);
-
+                                Pair<List<Key>, Key> pair = parseTextures(textureValue);
                                 ConfigValue activeConfigValue;
                                 Key modelPath;
                                 if (modelValue != null) {
                                     modelPath = modelValue.getAsAssetPath();
                                     activeConfigValue = modelValue;
-                                } else if (textures.size() == 1) {
-                                    modelPath = textures.getFirst();
+                                } else if (pair.left().size() == 1) {
+                                    modelPath = pair.left().getFirst();
                                     activeConfigValue = textureValue;
                                 } else {
                                     // 这里肯定会报错的
@@ -691,8 +691,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 JsonObject json = new JsonObject();
                                 json.addProperty("model", modelPath.asMinimalString());
 
-                                SimplifiedBlockModelReader reader = SIMPLIFIED_BLOCK_MODEL_READERS.getOrDefault(textures.size(), CubeBlockModelReader.INSTANCE);
-                                ModelGeneration gen = reader.read(textures);
+                                SimplifiedBlockModelReader reader = SIMPLIFIED_BLOCK_MODEL_READERS.getOrDefault(pair.left().size(), CubeBlockModelReader.INSTANCE);
+                                ModelGeneration gen = reader.read(pair.left(), pair.right());
                                 prepareModelGeneration(new ModelGenerationHolder(modelPath, gen));
                                 arrangeModelForStateAndVerify(visualBlockState, json, activeConfigValue.path());
                             } else {
@@ -820,6 +820,28 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             }, super.errorHandler), AbstractBlockManager.this.plugin.scheduler().async()));
         }
 
+        private Pair<List<Key>, Key> parseTextures(ConfigValue textureValue) {
+            List<Key> textures = new ArrayList<>(6);
+            ObjectHolder<Key> particleKey = new ObjectHolder<>();
+            textureValue.forEach(v -> {
+                String string = v.getAsString();
+                boolean isParticle = false;
+                if (string.startsWith("^")) {
+                    string = string.substring(1);
+                    isParticle = true;
+                }
+                String stringFormat = CharacterUtils.replaceBackslashWithSlash(string.toLowerCase(Locale.ROOT));
+                if (Identifier.isValid(stringFormat)) {
+                    Key key = Key.of(stringFormat);
+                    textures.add(key);
+                    if (isParticle) particleKey.bindValue(key);
+                } else {
+                    throw new KnownResourceException(ConfigConstants.PARSE_IDENTIFIER_FAILED, v.path(), string);
+                }
+            });
+            return Pair.of(textures, particleKey.value());
+        }
+
         private CullingData parseCullingData(@Nullable ConfigValue value) {
             if (value != null) {
                 if (value.is(Boolean.class) && !value.getAsBoolean()) {
@@ -901,7 +923,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         private JsonObject parseAppearanceModelSectionAsJson(ConfigSection section) {
             JsonObject json = new JsonObject();
             // 可选的 textures
-            List<Key> textures = section.getList(TEXTURE, ConfigValue::getAsAssetPath);
+            ConfigValue textureValue = section.getValue(TEXTURE);
+            Pair<List<Key>, Key> pair = null;
+            if (textureValue != null) {
+                pair = parseTextures(textureValue);
+            }
 
             Key modelPath;
             // 直接设定了 path
@@ -909,8 +935,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 modelPath = section.getNonNullIdentifier(PATH);
             }
             // 单贴图生成的情况下，读第一个贴图的路径
-            else if (textures.size() == 1) {
-                modelPath = textures.getFirst();
+            else if (pair != null && pair.left().size() == 1) {
+                modelPath = pair.left().getFirst();
             }
             // 否则强制要 path
             else {
@@ -933,10 +959,10 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             ConfigSection generationSection = section.getSection("generation");
             if (generationSection != null) {
                 prepareModelGeneration(new ModelGenerationHolder(modelPath, ModelGeneration.of(generationSection)));
-            } else if (!textures.isEmpty()) {
+            } else if (pair != null && !pair.left().isEmpty()) {
                 // 否则使用textures，根据textures数量拿预设模型
-                SimplifiedBlockModelReader reader = SIMPLIFIED_BLOCK_MODEL_READERS.getOrDefault(textures.size(), CubeBlockModelReader.INSTANCE);
-                ModelGeneration gen = reader.read(textures);
+                SimplifiedBlockModelReader reader = SIMPLIFIED_BLOCK_MODEL_READERS.getOrDefault(pair.left().size(), CubeBlockModelReader.INSTANCE);
+                ModelGeneration gen = reader.read(pair.left(), pair.right());
                 prepareModelGeneration(new ModelGenerationHolder(modelPath, gen));
             }
             return json;

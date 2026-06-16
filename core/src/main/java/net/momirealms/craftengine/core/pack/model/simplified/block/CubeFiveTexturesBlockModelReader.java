@@ -2,7 +2,10 @@ package net.momirealms.craftengine.core.pack.model.simplified.block;
 
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.util.Key;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 import java.util.Map;
@@ -10,24 +13,27 @@ import java.util.Map;
 public final class CubeFiveTexturesBlockModelReader implements SimplifiedBlockModelReader {
     public static final CubeFiveTexturesBlockModelReader INSTANCE = new CubeFiveTexturesBlockModelReader();
     private static final Key PARENT = Key.of("minecraft:block/cube");
+    private static final List<String> SLOTS = List.of("down", "up", "north", "south", "west", "east");
 
     private CubeFiveTexturesBlockModelReader() {
     }
 
     @Override
-    public ModelGeneration read(@UnknownNullability List<Key> textures) {
+    public ModelGeneration read(@NotNull List<Key> textures, @Nullable Key particle) {
+        Map<String, String> assignment = TextureSlotAssigner.assign(textures, SLOTS);
+        // west and east always share the same texture in the minecraft cube model
+        if (!assignment.containsKey("east") && assignment.containsKey("west")) {
+            assignment.put("east", assignment.get("west"));
+        }
+        if (!assignment.containsKey("west") && assignment.containsKey("east")) {
+            assignment.put("west", assignment.get("east"));
+        }
+        if (particle != null) {
+            assignment.put("particle", particle.asMinimalString());
+        }
         return ModelGeneration.builder()
                 .parentModelPath(PARENT)
-                .texturesOverride(
-                        Map.of(
-                                "down", textures.getFirst().asMinimalString(),
-                                "up", textures.get(1).asMinimalString(),
-                                "north", textures.get(2).asMinimalString(),
-                                "south", textures.get(3).asMinimalString(),
-                                "west", textures.get(4).asMinimalString(),
-                                "east", textures.get(4).asMinimalString()
-                        )
-                )
+                .texturesOverride(assignment)
                 .build();
     }
 }

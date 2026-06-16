@@ -11,7 +11,7 @@ public final class ObjectHolder<T> {
     }
 
     public T value() {
-        return value;
+        return this.value;
     }
 
     public void bindValue(T value) {
