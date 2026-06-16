@@ -20,9 +20,10 @@ import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistr
 import net.momirealms.craftengine.proxy.minecraft.world.item.BlockItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.NBT;
 import net.momirealms.sparrow.nbt.Tag;
-import org.bukkit.Bukkit;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -62,10 +63,15 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
         return ItemStackProxy.INSTANCE.isEmpty(item.minecraftItem());
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected byte[] toByteArray(W item) {
-        return Bukkit.getUnsafe().serializeItem(ItemStackProxy.INSTANCE.getBukkitStack(item.minecraftItem()));
+        CompoundTag tag = toNBT(item);
+        tag.putInt("DataVersion", VersionHelper.WORLD_VERSION);
+        try {
+            return NBT.toBytes(tag);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

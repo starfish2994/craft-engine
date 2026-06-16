@@ -46,6 +46,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ProjectileWeaponItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.equipment.trim.*;
 import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.NBT;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.HandlerList;
@@ -364,10 +365,16 @@ public final class BukkitItemManager extends AbstractItemManager {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public BukkitItem fromBytes(byte[] bytes) {
-        return wrap(Bukkit.getUnsafe().deserializeItem(bytes));
+        CompoundTag tag;
+        try {
+            tag = Objects.requireNonNull(NBT.fromBytes(bytes));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        int dataVersion = tag.getInt("DataVersion", 0);
+        return wrap(ItemStackUtils.parseMinecraftItem(tag, dataVersion));
     }
 
     @Override

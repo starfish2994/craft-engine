@@ -184,6 +184,7 @@ tasks {
 
 listOf(
     "26.1.2",
+    "26.2"
 ).forEach {
     registerPaperTask(it, javaVersion = 25)
 }
