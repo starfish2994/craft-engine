@@ -25,6 +25,7 @@ import net.momirealms.craftengine.core.pack.allocator.VisualBlockStateAllocator;
 import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenerator;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
+import net.momirealms.craftengine.core.pack.model.simplified.block.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
@@ -100,6 +101,14 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     protected final VisualBlockStateAllocator visualBlockStateAllocator;
     // 缓存的 visual_block_state 自定义包
     private List<ClientCustomPacket> cachedClientVisualBlockStatesPackets;
+    // 简化方块模型读取
+    private static final Map<Integer, SimplifiedBlockModelReader> SIMPLIFIED_BLOCK_MODEL_READERS = Map.of(
+            1, CubeAllBlockModelReader.INSTANCE,
+            2, CubeColumnBlockModelReader.INSTANCE,
+            3, CubeBottomTopBlockModelReader.INSTANCE,
+            4, OrientableBlockModelReader.INSTANCE,
+            5, CubeFiveTexturesBlockModelReader.INSTANCE
+    );
 
     protected AbstractBlockManager(CraftEngine plugin, int vanillaBlockStateCount, int customBlockCount) {
         super(plugin);
@@ -458,6 +467,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         private static final String[] AABB_EXPANSION = new String[]{"aabb_expansion", "aabb-expansion"};
         private static final String[] RAY_TRACING = new String[]{"ray_tracing", "ray-tracing"};
         private static final String[] APPEARANCE = new String[]{"appearance", "appearances"};
+        private static final String[] PATH = new String[] {"path", "model"};
+        private static final String[] TEXTURE = new String[]{"texture", "textures"};
 
         private void parseCustomBlock(Path path, Key id, ConfigSection section) {
             // 获取共享方块设置 （可异常）
@@ -658,9 +669,36 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                             AbstractBlockManager.this.isTransparentModelInUse = true;
                             this.arrangeModelForStateAndVerify(visualBlockState, EMPTY_VARIANT_MODEL, appearanceSection.path());
                         } else {
+                            ConfigValue textureValue = appearanceSection.getValue(TEXTURE);
                             ConfigValue modelValue = appearanceSection.getValue(MODELS);
-                            if (modelValue != null) {
-                                this.arrangeModelForStateAndVerify(visualBlockState, parseBlockModel(modelValue), modelValue.path());
+                            if (textureValue != null) {
+                                List<Key> textures = textureValue.getAsNonEmptyList(ConfigValue::getAsAssetPath);
+
+                                ConfigValue activeConfigValue;
+                                Key modelPath;
+                                if (modelValue != null) {
+                                    modelPath = modelValue.getAsAssetPath();
+                                    activeConfigValue = modelValue;
+                                } else if (textures.size() == 1) {
+                                    modelPath = textures.getFirst();
+                                    activeConfigValue = textureValue;
+                                } else {
+                                    // 这里肯定会报错的
+                                    appearanceSection.getNonNullIdentifier(MODELS);
+                                    continue;
+                                }
+
+                                JsonObject json = new JsonObject();
+                                json.addProperty("model", modelPath.asMinimalString());
+
+                                SimplifiedBlockModelReader reader = SIMPLIFIED_BLOCK_MODEL_READERS.getOrDefault(textures.size(), CubeBlockModelReader.INSTANCE);
+                                ModelGeneration gen = reader.read(textures);
+                                prepareModelGeneration(new ModelGenerationHolder(modelPath, gen));
+                                arrangeModelForStateAndVerify(visualBlockState, json, activeConfigValue.path());
+                            } else {
+                                if (modelValue != null) {
+                                    arrangeModelForStateAndVerify(visualBlockState, parseBlockModel(modelValue), modelValue.path());
+                                }
                             }
                         }
                         BlockStateAppearance blockStateAppearance = new BlockStateAppearance(
@@ -860,12 +898,26 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             AbstractBlockManager.this.tempVanillaBlockStateModels[blockStateWrapper.registryId()] = variant;
         }
 
-        private static final String[] PATH = new String[] {"path", "model"};
-
         private JsonObject parseAppearanceModelSectionAsJson(ConfigSection section) {
             JsonObject json = new JsonObject();
-            Key modelPath = section.getNonNullIdentifier(PATH);
+            // 可选的 textures
+            List<Key> textures = section.getList(TEXTURE, ConfigValue::getAsAssetPath);
+
+            Key modelPath;
+            // 直接设定了 path
+            if (section.containsKey(PATH)) {
+                modelPath = section.getNonNullIdentifier(PATH);
+            }
+            // 单贴图生成的情况下，读第一个贴图的路径
+            else if (textures.size() == 1) {
+                modelPath = textures.getFirst();
+            }
+            // 否则强制要 path
+            else {
+                modelPath = section.getNonNullIdentifier(PATH);
+            }
             json.addProperty("model", modelPath.asMinimalString());
+
             if (section.containsKey("x"))
                 json.addProperty("x", section.getInt("x"));
             if (section.containsKey("y"))
@@ -876,9 +928,16 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 json.addProperty("uvlock", section.getBoolean("uvlock"));
             if (section.containsKey("weight"))
                 json.addProperty("weight", section.getInt("weight"));
+
+            // 有模型生成优先走模型生成
             ConfigSection generationSection = section.getSection("generation");
             if (generationSection != null) {
                 prepareModelGeneration(new ModelGenerationHolder(modelPath, ModelGeneration.of(generationSection)));
+            } else if (!textures.isEmpty()) {
+                // 否则使用textures，根据textures数量拿预设模型
+                SimplifiedBlockModelReader reader = SIMPLIFIED_BLOCK_MODEL_READERS.getOrDefault(textures.size(), CubeBlockModelReader.INSTANCE);
+                ModelGeneration gen = reader.read(textures);
+                prepareModelGeneration(new ModelGenerationHolder(modelPath, gen));
             }
             return json;
         }

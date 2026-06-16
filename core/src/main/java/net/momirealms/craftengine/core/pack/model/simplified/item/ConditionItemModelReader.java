@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.pack.model.simplified;
+package net.momirealms.craftengine.core.pack.model.simplified.item;
 
 import net.momirealms.craftengine.core.pack.model.definition.BaseItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ConditionItemModel;
@@ -15,15 +15,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public final class ConditionModelReader implements SimplifiedModelReader {
-    public static final ConditionModelReader FISHING_ROD = new ConditionModelReader(Key.of("item/fishing_rod"), RodCastConditionProperty.INSTANCE, "_cast");
-    public static final ConditionModelReader ELYTRA = new ConditionModelReader(Key.of("item/generated"), BrokenConditionProperty.INSTANCE, "_broken");
-    public static final ConditionModelReader SHIELD = new ConditionModelReader(Key.of("item/generated"), UsingItemConditionProperty.INSTANCE, "_blocking");
+public final class ConditionItemModelReader implements SimplifiedItemModelReader {
+    public static final ConditionItemModelReader FISHING_ROD = new ConditionItemModelReader(Key.of("item/fishing_rod"), RodCastConditionProperty.INSTANCE, "_cast");
+    public static final ConditionItemModelReader ELYTRA = new ConditionItemModelReader(Key.of("item/generated"), BrokenConditionProperty.INSTANCE, "_broken");
+    public static final ConditionItemModelReader SHIELD = new ConditionItemModelReader(Key.of("item/generated"), UsingItemConditionProperty.INSTANCE, "_blocking");
     private final Key model;
     private final ConditionProperty property;
     private final String suffix;
 
-    private ConditionModelReader(Key model, ConditionProperty property, String suffix) {
+    private ConditionItemModelReader(Key model, ConditionProperty property, String suffix) {
         this.model = model;
         this.property = property;
         this.suffix = suffix;

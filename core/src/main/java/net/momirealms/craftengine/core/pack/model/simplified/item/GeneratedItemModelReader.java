@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.pack.model.simplified;
+package net.momirealms.craftengine.core.pack.model.simplified.item;
 
 import com.mojang.datafixers.util.Either;
 import net.momirealms.craftengine.core.pack.model.definition.BaseItemModel;
@@ -17,17 +17,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public final class GeneratedModelReader implements SimplifiedModelReader {
-    public static final GeneratedModelReader GENERATED = new GeneratedModelReader(Key.of("item/generated"), List.of());
-    public static final GeneratedModelReader HANDHELD = new GeneratedModelReader(Key.of("item/handheld"), List.of());
-    public static final GeneratedModelReader HANDHELD_MACE = new GeneratedModelReader(Key.of("item/handheld_mace"), List.of());
-    public static final GeneratedModelReader LEATHER = new GeneratedModelReader(Key.of("item/generated"), List.of(new SimpleDefaultTint(Key.of("dye"), Either.left(16777215))));
-    public static final GeneratedModelReader FIREWORK_STAR = new GeneratedModelReader(Key.of("item/generated"), List.of(new ConstantTint(Either.left(-1)), new SimpleDefaultTint(Key.of("firework"), Either.left(16777215))));
+public final class GeneratedItemModelReader implements SimplifiedItemModelReader {
+    public static final GeneratedItemModelReader GENERATED = new GeneratedItemModelReader(Key.of("item/generated"), List.of());
+    public static final GeneratedItemModelReader HANDHELD = new GeneratedItemModelReader(Key.of("item/handheld"), List.of());
+    public static final GeneratedItemModelReader HANDHELD_MACE = new GeneratedItemModelReader(Key.of("item/handheld_mace"), List.of());
+    public static final GeneratedItemModelReader LEATHER = new GeneratedItemModelReader(Key.of("item/generated"), List.of(new SimpleDefaultTint(Key.of("dye"), Either.left(16777215))));
+    public static final GeneratedItemModelReader FIREWORK_STAR = new GeneratedItemModelReader(Key.of("item/generated"), List.of(new ConstantTint(Either.left(-1)), new SimpleDefaultTint(Key.of("firework"), Either.left(16777215))));
 
     private final Key parentModel;
     private final List<Tint> tints;
 
-    private GeneratedModelReader(Key model, List<Tint> tints) {
+    private GeneratedItemModelReader(Key model, List<Tint> tints) {
         this.parentModel = model;
         this.tints = tints;
     }

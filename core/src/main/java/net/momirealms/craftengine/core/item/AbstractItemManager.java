@@ -24,7 +24,7 @@ import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenera
 import net.momirealms.craftengine.core.pack.model.legacy.LegacyItemModel;
 import net.momirealms.craftengine.core.pack.model.legacy.LegacyModelPredicate;
 import net.momirealms.craftengine.core.pack.model.legacy.LegacyOverridesModel;
-import net.momirealms.craftengine.core.pack.model.simplified.SimplifiedModelReader;
+import net.momirealms.craftengine.core.pack.model.simplified.item.SimplifiedItemModelReader;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
@@ -726,7 +726,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 if (isModernFormatRequired() || (needsLegacyCompatibility() && legacyModelSection == null)) {
                     if (textureValue != null) {
                         Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
-                        SimplifiedModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
+                        SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
                         modernModel = simplifiedModelReader.read(textureValue, Optional.ofNullable(modelValue).map(it -> {
                             if (it.is(Map.class)) {
                                 ConfigSection modelSection = it.getAsSection();
@@ -737,7 +737,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     } else if (modelValue != null) {
                         if (modelValue.is(List.class)) {
                             Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
-                            SimplifiedModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
+                            SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
                             modernModel = simplifiedModelReader.read(modelValue);
                         } else {
                             modernModel = ItemModels.fromConfig(modelValue);

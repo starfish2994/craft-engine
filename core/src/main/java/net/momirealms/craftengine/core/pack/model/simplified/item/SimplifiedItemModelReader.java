@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.pack.model.simplified;
+package net.momirealms.craftengine.core.pack.model.simplified.item;
 
 import net.momirealms.craftengine.core.pack.model.definition.ItemModel;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -6,7 +6,7 @@ import net.momirealms.craftengine.core.util.Key;
 
 import java.util.Optional;
 
-public interface SimplifiedModelReader {
+public interface SimplifiedItemModelReader {
 
     ItemModel read(ConfigValue textureValue, Optional<ConfigValue> optionalModelValue, Key id);
 

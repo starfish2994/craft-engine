@@ -23,12 +23,7 @@ items:
             map_color: 45
         state:
           auto_state: solid
-          model:
-            path: minecraft:block/custom/gunpowder_block
-            generation:
-              parent: minecraft:block/cube_all
-              textures:
-                all: minecraft:block/custom/gunpowder_block
+          texture: minecraft:block/custom/gunpowder_block
   default:solid_gunpowder_block:
     data:
       item_name: <!i><lang:item.default.solid_gunpowder_block>
