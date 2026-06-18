@@ -40,6 +40,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
     public final Key fruit;
     public final Key attachedStem;
     public final int minGrowLight;
+    public final int maxGrowLight;
     public final List<Object> tagsCanSurviveOn;
     public final LazyReference<Set<Object>> blockStatesCanSurviveOn;
 
@@ -48,6 +49,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
                               Key fruit,
                               Key attachedStem,
                               int minGrowLight,
+                              int maxGrowLight,
                               List<Object> tags,
                               LazyReference<Set<Object>> blockStates) {
         super(blockDefinition);
@@ -55,6 +57,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
         this.fruit = fruit;
         this.attachedStem = attachedStem;
         this.minGrowLight = minGrowLight;
+        this.maxGrowLight = maxGrowLight;
         this.tagsCanSurviveOn = tags;
         this.blockStatesCanSurviveOn = blockStates;
     }
@@ -75,7 +78,8 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
         Object state = args[0];
         Object level = args[1];
         Object pos = args[2];
-        if (CropBlockBehavior.getRawBrightness(level, pos) < this.minGrowLight) return;
+        int brightness = CropBlockBehavior.getRawBrightness(level, pos);
+        if (brightness < this.minGrowLight || brightness > this.maxGrowLight) return;
         ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
         if (customState == null || customState.isEmpty()) return;
         int age = customState.get(ageProperty);
@@ -149,6 +153,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
     private static class Factory implements BlockBehaviorFactory<StemBlockBehavior> {
         private static final String[] ATTACHED_STEM = new String[]{"attached_stem", "attached-stem"};
         private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement"};
+        private static final String[] MAX_LIGHT_REQUIREMENT = new String[]{"max_light_requirement", "max-light-requirement"};
 
         @Override
         public StemBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -159,6 +164,7 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
                     section.getNonNullIdentifier("fruit"),
                     section.getNonNullIdentifier(ATTACHED_STEM),
                     section.getInt(LIGHT_REQUIREMENT, 0),
+                    section.getInt(MAX_LIGHT_REQUIREMENT, 15),
                     data.tags(),
                     data.blockStates()
             );

@@ -49,17 +49,23 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
     public final IntegerProperty stageProperty;
     public final double boneMealSuccessChance;
     public final float growSpeed;
+    public final int lightRequirement;
+    public final int maxLightRequirement;
 
     private SaplingBlockBehavior(BlockDefinition block,
                                  Key feature,
                                  IntegerProperty stageProperty,
                                  double boneMealSuccessChance,
-                                 float growSpeed) {
+                                 float growSpeed,
+                                 int lightRequirement,
+                                 int maxLightRequirement) {
         super(block);
         this.feature = feature;
         this.stageProperty = stageProperty;
         this.boneMealSuccessChance = boneMealSuccessChance;
         this.growSpeed = growSpeed;
+        this.lightRequirement = lightRequirement;
+        this.maxLightRequirement = maxLightRequirement;
     }
 
     @Override
@@ -77,7 +83,8 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
         Object blockPos = args[2];
         Object blockState = args[0];
         Object aboveBlockPos = LocationUtils.above(blockPos);
-        if (LevelReaderProxy.INSTANCE.getMaxLocalRawBrightness(world, aboveBlockPos) >= 9 && RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
+        int brightness = LevelReaderProxy.INSTANCE.getMaxLocalRawBrightness(world, aboveBlockPos);
+        if (brightness >= this.lightRequirement && brightness <= this.maxLightRequirement && RandomUtils.generateRandomFloat(0, 1) < this.growSpeed) {
             increaseStage(world, blockPos, blockState, args[3]);
         }
     }
@@ -206,6 +213,8 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
         private static final String[] FEATURE = new String[]{"feature", "configured_feature", "configured-feature"};
         private static final String[] SUCCESS_CHANCE = new String[]{"bone_meal_success_chance", "bone-meal-success-chance"};
         private static final String[] GROW_SPEED = new String[]{"grow_speed", "grow-speed"};
+        private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement"};
+        private static final String[] MAX_LIGHT_REQUIREMENT = new String[]{"max_light_requirement", "max-light-requirement"};
 
         @Override
         public SaplingBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -214,7 +223,9 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
                     section.getNonNullIdentifier(FEATURE),
                     (IntegerProperty) BlockBehaviorFactory.getProperty(section.path(), block, "stage", Integer.class),
                     section.getDouble(SUCCESS_CHANCE, 0.45d),
-                    section.getFloat(GROW_SPEED, 1.0f / 7.0f)
+                    section.getFloat(GROW_SPEED, 1.0f / 7.0f),
+                    section.getInt(LIGHT_REQUIREMENT, 9),
+                    section.getInt(MAX_LIGHT_REQUIREMENT, 15)
             );
         }
     }
