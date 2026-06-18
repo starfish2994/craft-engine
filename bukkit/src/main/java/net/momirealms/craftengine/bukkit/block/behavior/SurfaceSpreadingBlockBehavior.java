@@ -29,15 +29,15 @@ import java.util.Objects;
 
 public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior implements RandomTickBlock {
     public static final BlockBehaviorFactory<SurfaceSpreadingBlockBehavior> FACTORY = new Factory();
-    public final int requiredLight;
-    public final int maxRequiredLight;
+    public final int lightRequirement;
+    public final int maxLightRequirement;
     public final LazyReference<Object> baseBlock;
     public final Property<Boolean> snowyProperty;
 
-    private SurfaceSpreadingBlockBehavior(BlockDefinition blockDefinition, int requiredLight, int maxRequiredLight, String baseBlock, @Nullable Property<Boolean> snowyProperty) {
+    private SurfaceSpreadingBlockBehavior(BlockDefinition blockDefinition, int lightRequirement, int maxLightRequirement, String baseBlock, @Nullable Property<Boolean> snowyProperty) {
         super(blockDefinition);
-        this.requiredLight = requiredLight;
-        this.maxRequiredLight = maxRequiredLight;
+        this.lightRequirement = lightRequirement;
+        this.maxLightRequirement = maxLightRequirement;
         this.snowyProperty = snowyProperty;
         this.baseBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(baseBlock)).minecraftState());
     }
@@ -57,7 +57,7 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior imp
             return;
         }
         int brightness = LevelReaderProxy.INSTANCE.getMaxLocalRawBrightness(level, BlockPosProxy.INSTANCE.relative(pos, DirectionProxy.UP));
-        if (brightness < this.requiredLight || brightness > this.maxRequiredLight) {
+        if (brightness < this.lightRequirement || brightness > this.maxLightRequirement) {
             return;
         }
         for (int i = 0; i < 4; i++) {
@@ -114,16 +114,16 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior imp
     }
 
     private static class Factory implements BlockBehaviorFactory<SurfaceSpreadingBlockBehavior> {
-        private static final String[] REQUIRED_LIGHT = new String[]{"required_light", "required-light"};
-        private static final String[] MAX_REQUIRED_LIGHT = new String[]{"max_required_light", "max-required-light"};
+        private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement", "required_light", "required-light"};
+        private static final String[] MAX_LIGHT_REQUIREMENT = new String[]{"max_light_requirement", "max-light-requirement"};
         private static final String[] BASE_BLOCK = new String[]{"base_block", "base-block"};
 
         @Override
         public SurfaceSpreadingBlockBehavior create(BlockDefinition block, ConfigSection section) {
             return new SurfaceSpreadingBlockBehavior(
                     block,
-                    section.getInt(REQUIRED_LIGHT, 0),
-                    section.getInt(MAX_REQUIRED_LIGHT, 15),
+                    section.getInt(LIGHT_REQUIREMENT, 0),
+                    section.getInt(MAX_LIGHT_REQUIREMENT, 15),
                     section.getString(BASE_BLOCK, "minecraft:dirt"),
                     BlockBehaviorFactory.getOptionalProperty(block, "snowy", Boolean.class)
             );
