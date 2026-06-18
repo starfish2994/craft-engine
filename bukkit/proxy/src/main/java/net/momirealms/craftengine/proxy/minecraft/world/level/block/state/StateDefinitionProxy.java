@@ -11,9 +11,6 @@ import java.util.function.Function;
 public interface StateDefinitionProxy {
     StateDefinitionProxy INSTANCE = ASMProxyFactory.create(StateDefinitionProxy.class);
 
-    @MethodInvoker(name = "getProperty")
-    Object getProperty(Object target, String name);
-
     @FieldGetter(name = "states")
     ImmutableList<Object> getStates(Object target);
 

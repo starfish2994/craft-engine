@@ -48,7 +48,6 @@ furniture:
         item: default:flower_basket
     variants:
       ground:
-        loot_spawn_offset: 0,0.3,0
         elements:
           - item: default:flower_basket_ground
             display_transform: none
@@ -94,7 +93,6 @@ furniture:
             interactive: true
             invisible: true
       ceiling:
-        loot_spawn_offset: 0,-0.5,0
         elements:
           - item: default:flower_basket_ceiling
             display_transform: none

@@ -7,24 +7,16 @@ import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 
-import java.util.Collection;
-
 @ReflectionProxy(name = "net.minecraft.world.level.block.state.StateHolder")
 public interface StateHolderProxy {
     StateHolderProxy INSTANCE = ASMProxyFactory.create(StateHolderProxy.class);
     Class<?> CLASS = SparrowClass.find("net.minecraft.world.level.block.state.StateHolder");
-
-    @MethodInvoker(name = "getProperties")
-    Collection<Object> getProperties(Object target);
 
     @MethodInvoker(name = "hasProperty")
     boolean hasProperty(Object target, @Type(clazz = PropertyProxy.class) Object property);
 
     @MethodInvoker(name = "getValue")
     <T extends Comparable<T>> T getValue(Object target, @Type(clazz = PropertyProxy.class) Object property);
-
-    @MethodInvoker(name = "cycle")
-    Object cycle(Object target, @Type(clazz = PropertyProxy.class) Object property);
 
     @MethodInvoker(name = "setValue")
     Object setValue(Object target, @Type(clazz = PropertyProxy.class) Object property, Comparable<?> value);

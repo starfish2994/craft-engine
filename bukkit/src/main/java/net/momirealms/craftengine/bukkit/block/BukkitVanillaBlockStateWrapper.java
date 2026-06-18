@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.block;
 
+import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.BlockRegistryMirror;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
@@ -12,7 +13,7 @@ public class BukkitVanillaBlockStateWrapper extends BukkitBlockStateWrapper {
 
     public BukkitVanillaBlockStateWrapper(Object blockState, int registryId) {
         super(blockState, registryId);
-        this.accessor = new ProxyStatePropertyAccessor(blockState);
+        this.accessor = FastNMS.INSTANCE.createStatePropertyAccessor(blockState);
     }
 
     @Override

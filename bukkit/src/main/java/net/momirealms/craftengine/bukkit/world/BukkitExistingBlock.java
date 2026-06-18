@@ -2,7 +2,6 @@ package net.momirealms.craftengine.bukkit.world;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
-import net.momirealms.craftengine.bukkit.block.ProxyStatePropertyAccessor;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
@@ -55,7 +54,7 @@ public final class BukkitExistingBlock implements ExistingBlock {
 
     @Override
     public @NotNull StatePropertyAccessor createStatePropertyAccessor() {
-        return new ProxyStatePropertyAccessor(BlockStateUtils.getBlockState(this.block));
+        return FastNMS.INSTANCE.createStatePropertyAccessor(BlockStateUtils.getBlockState(this.block));
     }
 
     @Override

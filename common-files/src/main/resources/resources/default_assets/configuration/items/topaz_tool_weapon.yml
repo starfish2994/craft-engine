@@ -256,6 +256,19 @@ recipes:
     result:
       id: default:topaz_pickaxe
       count: 1
+  default:topaz_spear:
+    type: shaped
+    category: equipment
+    pattern:
+      - '  A'
+      - ' B '
+      - 'B  '
+    ingredients:
+      A: default:topaz
+      B: minecraft:stick
+    result:
+      id: default:topaz_spear
+      count: 1
   default:topaz_bow:
     type: smithing_transform
     base: minecraft:bow
@@ -288,17 +301,3 @@ recipes:
     result:
       id: default:topaz_trident
       count: 1
-  $$>=1.21.11#topaz_spear:
-    default:topaz_spear:
-      type: shaped
-      category: equipment
-      pattern:
-        - '  A'
-        - ' B '
-        - 'B  '
-      ingredients:
-        A: default:topaz
-        B: minecraft:stick
-      result:
-        id: default:topaz_spear
-        count: 1
