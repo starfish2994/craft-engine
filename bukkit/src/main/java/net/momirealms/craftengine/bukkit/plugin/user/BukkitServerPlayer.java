@@ -79,7 +79,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeModifierProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.AbilitiesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.InventoryProxy;

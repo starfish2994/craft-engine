@@ -14,7 +14,6 @@ items:
     data:
       item_name: <!i><lang:item.default.amethyst_torch>
     model:
-      type: minecraft:model
       path: minecraft:block/custom/amethyst_torch
       generation:
         parent: minecraft:block/template_torch
@@ -24,7 +23,6 @@ items:
     data:
       item_name: <!i><lang:item.default.amethyst_torch>
     model:
-      type: minecraft:model
       path: minecraft:block/custom/amethyst_wall_torch
       generation:
         parent: minecraft:block/template_torch_wall

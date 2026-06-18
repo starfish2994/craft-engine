@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.pack.model.simplified;
+package net.momirealms.craftengine.core.pack.model.simplified.item;
 
 import com.google.gson.JsonPrimitive;
 import com.mojang.datafixers.util.Either;
@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public final class CrossbowModelReader implements SimplifiedModelReader {
-    public static final CrossbowModelReader INSTANCE = new CrossbowModelReader();
+public final class CrossbowItemModelReader implements SimplifiedItemModelReader {
+    public static final CrossbowItemModelReader INSTANCE = new CrossbowItemModelReader();
     private static final Key CROSSBOW = Key.of("item/crossbow");
     private static final Key CROSSBOW_PULLING_0 = Key.of("item/crossbow_pulling_0");
     private static final Key CROSSBOW_PULLING_1 = Key.of("item/crossbow_pulling_1");
@@ -23,7 +23,7 @@ public final class CrossbowModelReader implements SimplifiedModelReader {
     private static final Key CROSSBOW_ARROW = Key.of("item/crossbow_arrow");
     private static final Key CROSSBOW_FIREWORK = Key.of("item/crossbow_firework");
 
-    private CrossbowModelReader() {}
+    private CrossbowItemModelReader() {}
 
     @Override
     public ItemModel read(ConfigValue textureValue, Optional<ConfigValue> optionalModelValue, Key id) {

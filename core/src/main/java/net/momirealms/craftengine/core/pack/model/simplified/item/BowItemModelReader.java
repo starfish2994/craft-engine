@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.pack.model.simplified;
+package net.momirealms.craftengine.core.pack.model.simplified.item;
 
 import net.momirealms.craftengine.core.pack.model.definition.BaseItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ConditionItemModel;
@@ -15,14 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public final class BowModelReader implements SimplifiedModelReader {
-    public static final BowModelReader INSTANCE = new BowModelReader();
+public final class BowItemModelReader implements SimplifiedItemModelReader {
+    public static final BowItemModelReader INSTANCE = new BowItemModelReader();
     private static final Key BOW = Key.of("item/bow");
     private static final Key BOW_PULLING_0 = Key.of("item/bow_pulling_0");
     private static final Key BOW_PULLING_1 = Key.of("item/bow_pulling_1");
     private static final Key BOW_PULLING_2 = Key.of("item/bow_pulling_2");
 
-    private BowModelReader() {}
+    private BowItemModelReader() {}
 
     @Override
     @NotNull

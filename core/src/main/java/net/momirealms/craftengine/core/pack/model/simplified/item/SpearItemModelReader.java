@@ -1,11 +1,11 @@
-package net.momirealms.craftengine.core.pack.model.simplified;
+package net.momirealms.craftengine.core.pack.model.simplified.item;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.datafixers.util.Either;
-import net.momirealms.craftengine.core.pack.model.definition.*;
-import net.momirealms.craftengine.core.pack.model.definition.condition.UsingItemConditionProperty;
-import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.UseDurationRangeDispatchProperty;
+import net.momirealms.craftengine.core.pack.model.definition.BaseItemModel;
+import net.momirealms.craftengine.core.pack.model.definition.ItemModel;
+import net.momirealms.craftengine.core.pack.model.definition.SelectItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.select.DisplayContextSelectProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public final class SpearModelReader implements SimplifiedModelReader {
-    public static final SpearModelReader INSTANCE = new SpearModelReader();
+public final class SpearItemModelReader implements SimplifiedItemModelReader {
+    public static final SpearItemModelReader INSTANCE = new SpearItemModelReader();
     private static final Key GENERATED = Key.of("item/generated");
     private static final Key SPEAR_IN_HAND = Key.of("item/spear_in_hand");
     private static final List<JsonElement> CASES = List.of(
@@ -27,7 +27,7 @@ public final class SpearModelReader implements SimplifiedModelReader {
             new JsonPrimitive("on_shelf")
     );
 
-    private SpearModelReader() {}
+    private SpearItemModelReader() {}
 
     @Override
     @NotNull

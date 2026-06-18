@@ -35,7 +35,7 @@ import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.Custo
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerator;
 import net.momirealms.craftengine.core.pack.model.legacy.LegacyOverridesModel;
-import net.momirealms.craftengine.core.pack.model.simplified.*;
+import net.momirealms.craftengine.core.pack.model.simplified.item.*;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -97,7 +97,7 @@ public abstract class AbstractPackManager implements PackManager {
     public static final Set<Key> VANILLA_SOUNDS = new HashSet<>();
 
     // 简化的model读取器
-    public static final Map<Key, SimplifiedModelReader> SIMPLIFIED_MODEL_READERS = new HashMap<>();
+    public static final Map<Key, SimplifiedItemModelReader> SIMPLIFIED_MODEL_READERS = new HashMap<>();
 
     public static final String NEW_TRIM_MATERIAL = "custom";
 
@@ -216,27 +216,27 @@ public abstract class AbstractPackManager implements PackManager {
                 if (parent instanceof JsonPrimitive primitive) {
                     String parentModel = primitive.getAsString();
                     if (parentModel.equals("minecraft:item/handheld")) {
-                        SIMPLIFIED_MODEL_READERS.put(item, GeneratedModelReader.HANDHELD);
+                        SIMPLIFIED_MODEL_READERS.put(item, GeneratedItemModelReader.HANDHELD);
                         continue;
                     }
                 }
             }
             if (DYEABLE_LEATHER_ARMOR.contains(item)) {
-                SIMPLIFIED_MODEL_READERS.put(item, GeneratedModelReader.LEATHER);
+                SIMPLIFIED_MODEL_READERS.put(item, GeneratedItemModelReader.LEATHER);
             } else {
-                SIMPLIFIED_MODEL_READERS.put(item, GeneratedModelReader.GENERATED);
+                SIMPLIFIED_MODEL_READERS.put(item, GeneratedItemModelReader.GENERATED);
             }
         }
 
-        SIMPLIFIED_MODEL_READERS.put(ItemKeys.FISHING_ROD, ConditionModelReader.FISHING_ROD);
-        SIMPLIFIED_MODEL_READERS.put(ItemKeys.ELYTRA, ConditionModelReader.ELYTRA);
-        SIMPLIFIED_MODEL_READERS.put(ItemKeys.SHIELD, ConditionModelReader.SHIELD);
-        SIMPLIFIED_MODEL_READERS.put(ItemKeys.BOW, BowModelReader.INSTANCE);
-        SIMPLIFIED_MODEL_READERS.put(ItemKeys.CROSSBOW, CrossbowModelReader.INSTANCE);
-        SIMPLIFIED_MODEL_READERS.put(ItemKeys.FIREWORK_STAR, GeneratedModelReader.FIREWORK_STAR);
-        SIMPLIFIED_MODEL_READERS.put(ItemKeys.MACE, GeneratedModelReader.HANDHELD_MACE);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.FISHING_ROD, ConditionItemModelReader.FISHING_ROD);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.ELYTRA, ConditionItemModelReader.ELYTRA);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.SHIELD, ConditionItemModelReader.SHIELD);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.BOW, BowItemModelReader.INSTANCE);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.CROSSBOW, CrossbowItemModelReader.INSTANCE);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.FIREWORK_STAR, GeneratedItemModelReader.FIREWORK_STAR);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.MACE, GeneratedItemModelReader.HANDHELD_MACE);
         for (Key spear : ItemKeys.SPEARS) {
-            SIMPLIFIED_MODEL_READERS.put(spear, SpearModelReader.INSTANCE);
+            SIMPLIFIED_MODEL_READERS.put(spear, SpearItemModelReader.INSTANCE);
         }
     }
 

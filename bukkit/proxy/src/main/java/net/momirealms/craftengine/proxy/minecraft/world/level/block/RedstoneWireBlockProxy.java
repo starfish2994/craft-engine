@@ -7,5 +7,5 @@ import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 @ReflectionProxy(name = "net.minecraft.world.level.block.RedStoneWireBlock")
 public interface RedstoneWireBlockProxy extends BlockProxy {
     RedstoneWireBlockProxy INSTANCE = ASMProxyFactory.create(RedstoneWireBlockProxy.class);
-    Class<?> CLASS = SparrowClass.find("net.minecraft.world.level.block.RedstoneWireBlock");
+    Class<?> CLASS = SparrowClass.find("net.minecraft.world.level.block.RedStoneWireBlock");
 }

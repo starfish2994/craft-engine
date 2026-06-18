@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.ItemFrameBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.BlockDefinition;
@@ -80,28 +79,22 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
-    public int getSignal(Object thisBlock, Object[] args) {
-        return getSignal(args[0], args[1], args[2], args[3]);
+    public boolean hasAnalogOutputSignal(Object thisBlock, Object[] args) {
+        return true;
     }
 
     @Override
-    public int getDirectSignal(Object thisBlock, Object[] args) {
-        return getSignal(args[0], args[1], args[2], args[3]);
-    }
-
-    private int getSignal(Object blockState, Object blockAccess, Object pos, Object side) {
-        if (!LevelProxy.CLASS.isInstance(blockAccess)) {
+    public int getAnalogOutputSignal(Object thisBlock, Object[] args) {
+        Object level = args[1];
+        if (!LevelProxy.CLASS.isInstance(level)) {
             return 0;
         }
-        ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
+        ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
         if (state == null) {
             return 0;
         }
-        if (state.get(this.directionProperty) != DirectionUtils.fromNMSDirection(side)) {
-            return 0;
-        }
-        BukkitWorld world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(blockAccess));
-        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(LocationUtils.fromBlockPos(pos));
+        BukkitWorld world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(level));
+        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(LocationUtils.fromBlockPos(args[2]));
         if (blockEntity == null) {
             return 0;
         }
@@ -114,8 +107,8 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
-    public boolean isSignalSource(Object thisBlock, Object[] args) {
-        return true;
+    public void affectNeighborsAfterRemoval(Object thisBlock, Object[] args) {
+        LevelProxy.INSTANCE.updateNeighbourForOutputSignal(args[1], args[2], BlockStateUtils.getBlockOwner(args[0]));
     }
 
     @Override

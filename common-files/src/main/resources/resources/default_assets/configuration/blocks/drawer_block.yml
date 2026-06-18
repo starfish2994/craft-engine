@@ -37,7 +37,7 @@ items:
                 path: minecraft:block/custom/drawer_block
                 y: 90
                 generation:
-                  parent: minecraft:block/cube_all
+                  parent: minecraft:block/cube
                   textures:
                     down: minecraft:block/custom/drawer_block_bottom
                     up: minecraft:block/custom/drawer_block_top
