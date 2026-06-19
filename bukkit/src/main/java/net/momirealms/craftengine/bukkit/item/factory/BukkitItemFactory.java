@@ -65,13 +65,7 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
 
     @Override
     protected byte[] toByteArray(W item) {
-        CompoundTag tag = toNBT(item);
-        tag.putInt("DataVersion", VersionHelper.WORLD_VERSION);
-        try {
-            return NBT.toBytes(tag);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return item.platformItem().serializeAsBytes();
     }
 
     @Override

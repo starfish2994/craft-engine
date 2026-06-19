@@ -367,14 +367,7 @@ public final class BukkitItemManager extends AbstractItemManager {
 
     @Override
     public BukkitItem fromBytes(byte[] bytes) {
-        CompoundTag tag;
-        try {
-            tag = Objects.requireNonNull(NBT.fromBytes(bytes));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        int dataVersion = tag.getInt("DataVersion", 0);
-        return wrap(ItemStackUtils.parseMinecraftItem(tag, dataVersion));
+        return wrap(ItemStack.deserializeBytes(bytes));
     }
 
     @Override
