@@ -2,10 +2,7 @@ package net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes;
 
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
-import net.momirealms.sparrow.reflection.proxy.annotation.ConstructorInvoker;
-import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
-import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
-import net.momirealms.sparrow.reflection.proxy.annotation.Type;
+import net.momirealms.sparrow.reflection.proxy.annotation.*;
 
 import java.util.function.Consumer;
 
@@ -24,4 +21,7 @@ public interface AttributeInstanceProxy {
 
     @MethodInvoker(name = "getValue")
     double getValue(Object target);
+
+    @FieldGetter(name = "cachedValue")
+    double getCachedValue(Object target);
 }
