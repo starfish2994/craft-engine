@@ -42,6 +42,7 @@ public final class ItemFrameBlockEntityController extends BlockEntityController 
         super(blockEntity);
         this.behavior = behavior;
         this.element = new DynamicItemFrameBlockEntityElement(this, blockEntity.pos);
+        this.updateMetadata();
     }
 
     @Override

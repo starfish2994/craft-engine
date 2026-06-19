@@ -154,10 +154,7 @@ config_factory#basic:
             state:
               model:
                 path: ${asset_path_prefix}${tree_type}_planks
-                generation:
-                  parent: minecraft:block/cube_all
-                  textures:
-                    all: ${asset_path_prefix}${tree_type}_planks
+                texture: ${asset_path_prefix}${tree_type}_planks
               auto_state: solid
       ${namespace}:${tree_type}_sapling:
         category: ${namespace}:${tree_type}_tree

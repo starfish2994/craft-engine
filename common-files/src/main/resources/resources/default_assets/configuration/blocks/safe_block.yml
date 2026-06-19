@@ -47,25 +47,23 @@ items:
               model:
                 path: minecraft:block/custom/safe_block
                 y: 90
-                generation:
-                  parent: minecraft:block/orientable
-                  textures:
-                    front: minecraft:block/custom/safe_block_front
-                    side: minecraft:block/custom/safe_block_side
-                    top: minecraft:block/custom/safe_block_top
-                    bottom: minecraft:block/custom/safe_block_bottom
+                # minecraft:block/orientable
+                textures:
+                  - minecraft:block/custom/safe_block_bottom
+                  - minecraft:block/custom/safe_block_front
+                  - minecraft:block/custom/safe_block_side
+                  - minecraft:block/custom/safe_block_top
             east_open:
               auto_state: note_block
               model:
                 path: minecraft:block/custom/safe_block_open
                 y: 90
-                generation:
-                  parent: minecraft:block/orientable
-                  textures:
-                    front: minecraft:block/custom/safe_block_front_open
-                    side: minecraft:block/custom/safe_block_side
-                    top: minecraft:block/custom/safe_block_top
-                    bottom: minecraft:block/custom/safe_block_bottom
+                # minecraft:block/orientable
+                textures:
+                  - minecraft:block/custom/safe_block_bottom
+                  - minecraft:block/custom/safe_block_front_open
+                  - minecraft:block/custom/safe_block_side
+                  - minecraft:block/custom/safe_block_top
             north:
               auto_state: note_block
               model:

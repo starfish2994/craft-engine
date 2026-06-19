@@ -51,18 +51,22 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
     public final int baseGrowth;
     public final float extraGrowChance;
     public final int minGrowLight;
+    public final int maxGrowLight;
     public final int minSpawnLight;
+    public final int maxSpawnLight;
     public final boolean isBoneMealTarget;
     public final NumberProvider boneMealBonus;
 
-    private CropBlockBehavior(BlockDefinition block, Property<Integer> ageProperty, float growSpeed, int minGrowLight, int minSpawnLight, boolean isBoneMealTarget, NumberProvider boneMealBonus) {
+    private CropBlockBehavior(BlockDefinition block, Property<Integer> ageProperty, float growSpeed, int minGrowLight, int maxGrowLight, int minSpawnLight, int maxSpawnLight, boolean isBoneMealTarget, NumberProvider boneMealBonus) {
         super(block);
         this.ageProperty = (IntegerProperty) ageProperty;
         this.growSpeed = growSpeed;
         this.baseGrowth = (int) growSpeed;
         this.extraGrowChance = growSpeed - baseGrowth;
         this.minGrowLight = minGrowLight;
+        this.maxGrowLight = maxGrowLight;
         this.minSpawnLight = minSpawnLight;
+        this.maxSpawnLight = maxSpawnLight;
         this.isBoneMealTarget = isBoneMealTarget;
         this.boneMealBonus = boneMealBonus;
     }
@@ -85,11 +89,13 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
     }
 
     private boolean hasSufficientLightForGrow(Object level, Object pos) {
-        return getRawBrightness(level, pos) >= this.minGrowLight - 1;
+        int brightness = getRawBrightness(level, pos);
+        return brightness >= this.minGrowLight - 1 && brightness <= this.maxGrowLight;
     }
 
     private boolean hasSufficientLightForSpawn(Object level, Object pos) {
-        return getRawBrightness(level, pos) >= this.minSpawnLight - 1;
+        int brightness = getRawBrightness(level, pos);
+        return brightness >= this.minSpawnLight - 1 && brightness <= this.maxSpawnLight;
     }
 
     @Override
@@ -97,7 +103,8 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
         Object state = args[0];
         Object level = args[1];
         Object pos = args[2];
-        if (getRawBrightness(level, pos) >= this.minGrowLight) {
+        int brightness = getRawBrightness(level, pos);
+        if (brightness >= this.minGrowLight && brightness <= this.maxGrowLight) {
             BlockStateUtils.getOptionalCustomBlockState(state).ifPresent(customState -> {
                 int before = this.getAge(customState);
                 if (before < this.ageProperty.max) {
@@ -235,9 +242,11 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
     private static class Factory implements BlockBehaviorFactory<CropBlockBehavior> {
         private static final String[] GROW_SPEED = new String[]{"grow_speed", "grow-speed"};
         private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement"};
+        private static final String[] MAX_LIGHT_REQUIREMENT = new String[]{"max_light_requirement", "max-light-requirement"};
         private static final String[] IS_BONE_MEAL_TARGET = new String[]{"is_bone_meal_target", "is-bone-meal-target"};
         private static final String[] AGE_BONUS = new String[]{"bone_meal_age_bonus", "bone-meal-age-bonus"};
         private static final String[] SPAWN_LIGHT_REQUIREMENT = new String[]{"spawn_light_requirement", "spawn-light-requirement"};
+        private static final String[] MAX_SPAWN_LIGHT_REQUIREMENT = new String[]{"max_spawn_light_requirement", "max-spawn-light-requirement"};
 
         @Override
         public CropBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -246,7 +255,9 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
                     BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),
                     section.getFloat(GROW_SPEED, 0.125f),
                     section.getInt(LIGHT_REQUIREMENT),
+                    section.getInt(MAX_LIGHT_REQUIREMENT, 15),
                     section.getInt(SPAWN_LIGHT_REQUIREMENT, section.getInt(LIGHT_REQUIREMENT)),
+                    section.getInt(MAX_SPAWN_LIGHT_REQUIREMENT, section.getInt(MAX_LIGHT_REQUIREMENT, 15)),
                     section.getBoolean(IS_BONE_MEAL_TARGET, true),
                     section.getNumber(AGE_BONUS, ConfigConstants.CONSTANT_ONE)
             );

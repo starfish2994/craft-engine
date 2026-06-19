@@ -23,11 +23,10 @@ items:
           auto_state: solid
           model:
             path: minecraft:block/custom/chinese_lantern
-            generation:
-              parent: minecraft:block/cube_column
-              textures:
-                end: minecraft:block/custom/chinese_lantern_top
-                side: minecraft:block/custom/chinese_lantern
+            # minecraft:block/cube_column
+            textures:
+              - minecraft:block/custom/chinese_lantern_top
+              - minecraft:block/custom/chinese_lantern
 recipes:
   default:chinese_lantern:
     type: shaped
