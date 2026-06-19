@@ -690,6 +690,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
                                 JsonObject json = new JsonObject();
                                 json.addProperty("model", modelPath.asMinimalString());
+                                applyOtherBlockStateProperties(json, appearanceSection);
 
                                 SimplifiedBlockModelReader reader = SIMPLIFIED_BLOCK_MODEL_READERS.getOrDefault(pair.left().size(), CubeBlockModelReader.INSTANCE);
                                 ModelGeneration gen = reader.read(pair.left(), pair.right());
@@ -943,18 +944,8 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 modelPath = section.getNonNullIdentifier(PATH);
             }
             json.addProperty("model", modelPath.asMinimalString());
-
-            if (section.containsKey("x"))
-                json.addProperty("x", section.getInt("x"));
-            if (section.containsKey("y"))
-                json.addProperty("y", section.getInt("y"));
-            if (section.containsKey("z"))
-                json.addProperty("z", section.getInt("z"));
-            if (section.containsKey("uvlock"))
-                json.addProperty("uvlock", section.getBoolean("uvlock"));
-            if (section.containsKey("weight"))
-                json.addProperty("weight", section.getInt("weight"));
-
+            // 添加其他的属性
+            applyOtherBlockStateProperties(json, section);
             // 有模型生成优先走模型生成
             ConfigSection generationSection = section.getSection("generation");
             if (generationSection != null) {
@@ -966,6 +957,43 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                 prepareModelGeneration(new ModelGenerationHolder(modelPath, gen));
             }
             return json;
+        }
+
+        private void applyOtherBlockStateProperties(JsonObject json, ConfigSection section) {
+            if (section.containsKey("x")) {
+                int x = section.getInt("x");
+                if (x != 0) {
+                    if (x % 90 == 0) {
+                        json.addProperty("x", x);
+                    } else {
+                        throw new KnownResourceException("resource.block.state.invalid_rotation", section.path(), "x", String.valueOf(x));
+                    }
+                }
+            }
+            if (section.containsKey("y")) {
+                int y = section.getInt("y");
+                if (y != 0) {
+                    if (y % 90 == 0) {
+                        json.addProperty("y", y);
+                    } else {
+                        throw new KnownResourceException("resource.block.state.invalid_rotation", section.path(), "y", String.valueOf(y));
+                    }
+                }
+            }
+            if (section.containsKey("z")) {
+                int z = section.getInt("z");
+                if (z != 0) {
+                    if (z % 90 == 0) {
+                        json.addProperty("z", z);
+                    } else {
+                        throw new KnownResourceException("resource.block.state.invalid_rotation", section.path(), "z", String.valueOf(z));
+                    }
+                }
+            }
+            if (section.containsKey("uvlock"))
+                json.addProperty("uvlock", section.getBoolean("uvlock"));
+            if (section.containsKey("weight"))
+                json.addProperty("weight", section.getInt("weight"));
         }
     }
 
