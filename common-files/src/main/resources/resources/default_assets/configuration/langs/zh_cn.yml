@@ -127,4 +127,4 @@ translations#categories:
     category.misc: 杂项
 translations#emoji:
   zh_cn:
-    emoji.tip: 使用<yellow>'<arg:0>'</yellow>来发送表情'<arg:1>'
+    emoji.tip: 使用<yellow>“<arg:0>”</yellow>来发送表情“<arg:1>”

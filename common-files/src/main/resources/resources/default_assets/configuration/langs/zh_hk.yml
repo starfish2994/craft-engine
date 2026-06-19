@@ -51,7 +51,7 @@ lang#items:
     item.default.cap: 鴨舌帽
     item.default.flower_basket: 花籃
     item.default.chessboard_block: 棋盤方塊
-    item.default.safe_block: 保險櫃
+    item.default.safe_block: 保險箱
     item.default.sofa: 沙發
     item.default.amethyst_torch: 紫水晶火炬
     item.default.hami_melon_slice: 哈密瓜片
@@ -121,10 +121,10 @@ lang#furniture:
 translations#categories:
   zh_hk:
     category.default.name: 預設資產
-    category.default.lore: 包含了CraftEngine的預設配置
+    category.default.lore: 包含了 CraftEngine 的預設配置
     category.palm_tree: 棕櫚樹
     category.topaz: 黃玉
     category.misc: 雜項
 translations#emoji:
   zh_hk:
-    emoji.tip: 使用<yellow>'<arg:0>'</yellow>來傳送表情'<arg:1>'
+    emoji.tip: 使用 <yellow>「<arg:0>」</yellow> 來傳送表情「<arg:1>」
