@@ -114,7 +114,7 @@ public final class BlockSettingsModifiers {
         return settings -> settings.pushReaction(pushReaction);
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> INSTRUMENT = register(Key.ce("instrument"), value -> {
-        Instrument instrument = value.getAsEnum(Instrument.class);
+        String instrument = value.getAsNonEmptyString();
         return settings -> settings.instrument(instrument);
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> SOUNDS = register(Key.ce("sounds"), value -> {

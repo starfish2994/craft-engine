@@ -35,7 +35,7 @@ public final class BlockSettings {
     MapColor mapColor = MapColor.CLEAR;
     PushReaction pushReaction = PushReaction.NORMAL;
     int luminance;
-    Instrument instrument = Instrument.HARP;
+    String instrument = "harp";
     BlockSounds sounds = BlockSounds.EMPTY;
     @Nullable
     Key itemId;
@@ -224,7 +224,7 @@ public final class BlockSettings {
         return luminance;
     }
 
-    public Instrument instrument() {
+    public String instrument() {
         return instrument;
     }
 
@@ -336,7 +336,7 @@ public final class BlockSettings {
         return this;
     }
 
-    public BlockSettings instrument(Instrument instrument) {
+    public BlockSettings instrument(String instrument) {
         this.instrument = instrument;
         return this;
     }
