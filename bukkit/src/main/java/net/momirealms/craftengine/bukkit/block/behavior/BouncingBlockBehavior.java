@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.util.EntityDataUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -53,7 +54,7 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
     @Override
     public void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args) {
         Object entity = args[1];
-        if (EntityProxy.INSTANCE.getSharedFlag(entity, 1)) {
+        if (EntityProxy.INSTANCE.getSharedFlag(entity, EntityDataUtils.SHARED_FLAG_SNEAKING)) {
             super.updateEntityMovementAfterFallOn(thisBlock, args);
         } else {
             bounceUp(entity);
