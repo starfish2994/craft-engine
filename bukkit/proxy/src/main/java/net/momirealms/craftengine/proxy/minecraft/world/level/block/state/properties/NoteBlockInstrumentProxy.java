@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.proxy.minecraft.world.level.block.state.properties;
 
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
-import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
@@ -13,6 +12,6 @@ public interface NoteBlockInstrumentProxy {
     @MethodInvoker(name = "values", isStatic = true)
     Enum<?>[] values();
 
-    @FieldGetter(name = "valueOf", isStatic = true)
+    @MethodInvoker(name = "valueOf", isStatic = true)
     Enum<?> valueOf(String name);
 }
