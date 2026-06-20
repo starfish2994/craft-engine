@@ -280,7 +280,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setReplaceable(nmsState, settings.replaceable());
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setMapColor(nmsState, MapColorProxy.INSTANCE.byId(settings.mapColor().id));
             try {
-                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.INSTANCE.valueOf(settings.instrument()));
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.INSTANCE.valueOf(settings.instrument().toUpperCase(Locale.ROOT)));
             } catch (IllegalArgumentException e) {
                 this.plugin.logger().warn("Invalid note block instrument '" + settings.instrument() + "'", e);
                 BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.HARP);
