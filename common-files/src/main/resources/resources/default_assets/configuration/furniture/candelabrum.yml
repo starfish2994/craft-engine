@@ -181,7 +181,7 @@ furniture:
             interactive: true
             invisible: false
       wall:
-        loot_spawn_offset: 0,0.25,0
+        loot_spawn_offset: 0,0,0.5
         elements:
           - type: item_display
             item: default:candelabrum_wall
@@ -197,7 +197,7 @@ furniture:
             interactive: true
             invisible: false
       wall_lit:
-        loot_spawn_offset: 0,0.25,0
+        loot_spawn_offset: 0,0,0.5
         elements:
           - type: item_display
             item: default:candelabrum_lit_wall
