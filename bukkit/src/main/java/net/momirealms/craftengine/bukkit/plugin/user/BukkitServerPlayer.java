@@ -168,7 +168,7 @@ public class BukkitServerPlayer extends Player {
     private boolean isDestroyingBlock;
     private boolean isDestroyingCustomBlock;
     // client-side ItemDisplay used to visualize custom-block destroy progress when the
-    // block has a destroy_stage_display setting; null when no such display is active
+    // block has a destroy_stages setting; null when no such display is active
     private DestroyStageDisplayEntity destroyStageDisplayEntity;
     private boolean swingHandAck;
     private int lastSwingHandTick;
@@ -1187,7 +1187,7 @@ public class BukkitServerPlayer extends Player {
             this.destroyStageDisplayEntity = entity;
         }
         Set<UUID> current = new HashSet<>();
-        current.add(uuid());
+        current.add(this.uuid);
         Set<org.bukkit.entity.Player> trackedPlayers = platformPlayer().getTrackedPlayers();
         for (org.bukkit.entity.Player other : trackedPlayers) {
             if (isWithinDestroyRange(hitPos, other)) {
@@ -1196,7 +1196,7 @@ public class BukkitServerPlayer extends Player {
         }
         Object removePacket = entity.removePacket();
         entity.removeLeftViewers(current, viewerId -> {
-            if (viewerId.equals(uuid())) return;
+            if (viewerId.equals(this.uuid)) return;
             org.bukkit.entity.Player other = Bukkit.getPlayer(viewerId);
             if (other == null) return;
             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
@@ -1215,14 +1215,15 @@ public class BukkitServerPlayer extends Player {
     private void showDestroyStageDisplayTo(BukkitServerPlayer viewer, DestroyStageDisplayEntity entity, float progress) {
         entity.ensureSpawned(viewer, progress, packet -> viewer.sendPacket(packet, false));
     }
-
-    private void clearDestroyStageDisplay() {
+    public void clearDestroyStageDisplay() {
         DestroyStageDisplayEntity entity = this.destroyStageDisplayEntity;
         if (entity == null) return;
         this.destroyStageDisplayEntity = null;
+        this.lastSentState = -1;
         Object removePacket = entity.removePacket();
         sendPacket(removePacket, false);
         for (UUID viewerId : entity.spawnedViewers()) {
+            if (viewerId.equals(this.uuid)) continue;
             org.bukkit.entity.Player other = Bukkit.getPlayer(viewerId);
             if (other == null) continue;
             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
@@ -1473,8 +1474,9 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void clearView() {
+    public void clearEntityView() {
         this.entityTypeView.clear();
+        this.clearDestroyStageDisplay();
     }
 
     @Override
