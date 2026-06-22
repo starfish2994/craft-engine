@@ -27,6 +27,7 @@ public class ConcurrentChainedUUID2ReferenceHashTable<V> implements Iterable<Con
     protected final float loadFactor;
     protected volatile TableEntry<V>[] table;
     protected volatile TableEntry<V>[] nextTable;
+    protected volatile int threshold;
     protected Values<V> values;
     protected EntrySet<V> entrySet;
 
