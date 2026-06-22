@@ -13,6 +13,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
+import net.momirealms.craftengine.bukkit.block.display.DestroyStageDisplayEntity;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
@@ -24,6 +25,7 @@ import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.setting.DestroyStageDisplay;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
@@ -165,6 +167,9 @@ public class BukkitServerPlayer extends Player {
     private Object destroyedState;
     private boolean isDestroyingBlock;
     private boolean isDestroyingCustomBlock;
+    // client-side ItemDisplay used to visualize custom-block destroy progress when the
+    // block has a destroy_stage_display setting; null when no such display is active
+    private DestroyStageDisplayEntity destroyStageDisplayEntity;
     private boolean swingHandAck;
     private int lastSwingHandTick;
     private float miningProgress;
@@ -891,7 +896,7 @@ public class BukkitServerPlayer extends Player {
         } else {
             BlockPos previousPos = this.destroyPos;
             if (previousPos != null && !pos.equals(previousPos)) {
-                this.broadcastDestroyProgress(previousPos, -1);
+                this.broadcastDestroyProgress(previousPos, -1f);
             }
             this.destroyPos = pos;
             this.destroyedState = state;
@@ -959,6 +964,7 @@ public class BukkitServerPlayer extends Player {
         this.miningProgress = 0f;
         this.isDestroyingBlock = false;
         this.swingHandAck = false;
+        clearDestroyStageDisplay();
         this.destroyedState = null;
         this.destroyPos = null;
         this.isDestroyingCustomBlock = false;
@@ -971,6 +977,7 @@ public class BukkitServerPlayer extends Player {
         this.miningProgress = 0f;
         this.isDestroyingBlock = false;
         this.swingHandAck = false;
+        clearDestroyStageDisplay();
         this.destroyedState = null;
         this.destroyPos = null;
         this.isDestroyingCustomBlock = false;
@@ -989,7 +996,7 @@ public class BukkitServerPlayer extends Player {
         BlockPos pos = this.destroyPos;
         if (pos != null && this.isDestroyingCustomBlock) {
             // 只纠正自定义方块的破坏进度
-            this.broadcastDestroyProgress(pos, -1);
+            this.broadcastDestroyProgress(pos, -1f);
         }
     }
 
@@ -1080,12 +1087,8 @@ public class BukkitServerPlayer extends Player {
                 ImmutableBlockState customState = optionalCustomState.get();
                 // accumulate progress
                 this.miningProgress = progressToAdd + miningProgress;
-                int packetStage = (int) (this.miningProgress * 10.0F);
-                if (packetStage != this.lastSentState) {
-                    this.lastSentState = packetStage;
-                    // broadcast changes
-                    broadcastDestroyProgress(hitPos, packetStage);
-                }
+                // broadcast changes; dedup (vanilla 0~10 stage or custom item index) happens inside
+                broadcastDestroyProgress(hitPos, this.miningProgress);
 
                 // can break now
                 if (this.miningProgress >= 1f) {
@@ -1110,6 +1113,7 @@ public class BukkitServerPlayer extends Player {
                     // send break particle + (removed sounds)
                     if (breakResult) {
                         sendPacket(ClientboundLevelEventPacketProxy.INSTANCE.newInstance(WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId(), false), false);
+                        clearDestroyStageDisplay();
                         this.destroyPos = null;
                         this.miningProgress = 0;
                         this.isDestroyingBlock = false;
@@ -1118,6 +1122,7 @@ public class BukkitServerPlayer extends Player {
                         this.isDestroyingCustomBlock = false;
                     } else {
                         // 事件被取消了，重置挖掘进度
+                        clearDestroyStageDisplay();
                         this.miningProgress = 0;
                         this.isDestroyingCustomBlock = true;
                         this.isDestroyingBlock = true;
@@ -1136,20 +1141,101 @@ public class BukkitServerPlayer extends Player {
         platformPlayer().breakBlock(new Location(platformPlayer().getWorld(), x, y, z).getBlock());
     }
 
+    private void broadcastDestroyProgress(BlockPos hitPos, float progress) {
+        DestroyStageDisplay display = currentDestroyStageDisplay();
+        int key = progress < 0 ? -1 : (display != null ? display.itemIndexForProgress(progress) : (int) (progress * 10.0F));
+        if (key == this.lastSentState) {
+            return;
+        }
+        this.lastSentState = key;
+        if (display != null) {
+            broadcastDestroyProgressViaDisplay(hitPos, progress, display);
+        } else {
+            broadcastDestroyProgressVanilla(hitPos, key);
+        }
+    }
+
+    private DestroyStageDisplay currentDestroyStageDisplay() {
+        Object state = this.destroyedState;
+        if (state == null) return null;
+        ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
+        if (customState == null) return null;
+        return customState.settings().destroyStageDisplay();
+    }
+
     @SuppressWarnings("deprecation")
-    private void broadcastDestroyProgress(BlockPos hitPos, int stage) {
+    private void broadcastDestroyProgressVanilla(BlockPos hitPos, int stage) {
         Object packet = ClientboundBlockDestructionPacketProxy.INSTANCE.newInstance(Integer.MAX_VALUE - entityId(), LocationUtils.toBlockPos(hitPos), stage);
         sendPacket(packet, false);
         for (org.bukkit.entity.Player other : platformPlayer().getTrackedPlayers()) {
-            double d0 = (double) hitPos.x() - other.getX();
-            double d1 = (double) hitPos.y() - other.getY();
-            double d2 = (double) hitPos.z() - other.getZ();
-            if (d0 * d0 + d1 * d1 + d2 * d2 < 32 * 32) {
-                BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
-                if (serverPlayer == null) continue;
-                serverPlayer.sendPacket(packet, false);
+            if (!isWithinDestroyRange(hitPos, other)) continue;
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
+            if (serverPlayer == null) continue;
+            serverPlayer.sendPacket(packet, false);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void broadcastDestroyProgressViaDisplay(BlockPos hitPos, float progress, DestroyStageDisplay display) {
+        if (progress < 0) {
+            clearDestroyStageDisplay();
+            return;
+        }
+        DestroyStageDisplayEntity entity = this.destroyStageDisplayEntity;
+        if (entity == null) {
+            entity = new DestroyStageDisplayEntity(display, EntityUtils.ENTITY_COUNTER.incrementAndGet(), hitPos);
+            this.destroyStageDisplayEntity = entity;
+        }
+        Set<UUID> current = new HashSet<>();
+        current.add(uuid());
+        Set<org.bukkit.entity.Player> trackedPlayers = platformPlayer().getTrackedPlayers();
+        for (org.bukkit.entity.Player other : trackedPlayers) {
+            if (isWithinDestroyRange(hitPos, other)) {
+                current.add(other.getUniqueId());
             }
         }
+        Object removePacket = entity.removePacket();
+        entity.removeLeftViewers(current, viewerId -> {
+            if (viewerId.equals(uuid())) return;
+            org.bukkit.entity.Player other = Bukkit.getPlayer(viewerId);
+            if (other == null) return;
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
+            if (serverPlayer == null) return;
+            serverPlayer.sendPacket(removePacket, false);
+        });
+        showDestroyStageDisplayTo(this, entity, progress);
+        for (org.bukkit.entity.Player other : trackedPlayers) {
+            if (!isWithinDestroyRange(hitPos, other)) continue;
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
+            if (serverPlayer == null) continue;
+            showDestroyStageDisplayTo(serverPlayer, entity, progress);
+        }
+    }
+
+    private void showDestroyStageDisplayTo(BukkitServerPlayer viewer, DestroyStageDisplayEntity entity, float progress) {
+        entity.ensureSpawned(viewer, progress, packet -> viewer.sendPacket(packet, false));
+    }
+
+    private void clearDestroyStageDisplay() {
+        DestroyStageDisplayEntity entity = this.destroyStageDisplayEntity;
+        if (entity == null) return;
+        this.destroyStageDisplayEntity = null;
+        Object removePacket = entity.removePacket();
+        sendPacket(removePacket, false);
+        for (UUID viewerId : entity.spawnedViewers()) {
+            org.bukkit.entity.Player other = Bukkit.getPlayer(viewerId);
+            if (other == null) continue;
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
+            if (serverPlayer == null) continue;
+            serverPlayer.sendPacket(removePacket, false);
+        }
+    }
+
+    private boolean isWithinDestroyRange(BlockPos hitPos, org.bukkit.entity.Player other) {
+        double d0 = (double) hitPos.x() - other.getX();
+        double d1 = (double) hitPos.y() - other.getY();
+        double d2 = (double) hitPos.z() - other.getZ();
+        return d0 * d0 + d1 * d1 + d2 * d2 < 32 * 32;
     }
 
     @Override

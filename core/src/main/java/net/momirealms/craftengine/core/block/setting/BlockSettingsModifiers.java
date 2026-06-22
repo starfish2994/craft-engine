@@ -172,6 +172,10 @@ public final class BlockSettingsModifiers {
         float bounceRestitution = value.getAsFloat();
         return settings -> settings.bounceRestitution(bounceRestitution);
     });
+    public static final BlockSettingsModifierType<BlockSettingsModifier> DESTROY_STAGES = register(Key.ce("destroy_stages"), value -> {
+        DestroyStageDisplay display = DestroyStageDisplay.fromConfig(value.getAsSection());
+        return settings -> settings.destroyStageDisplay(display);
+    });
 
     private BlockSettingsModifiers() {}
 

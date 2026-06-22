@@ -109,6 +109,8 @@ items:
             hit: minecraft:block.wood.hit
             place: minecraft:block.wood.place
             step: minecraft:block.wood.step
+          destroy_stages:
+            template: internal:destroy_stages
           tags:
             - minecraft:mineable/axe
           $$>=26.2:
