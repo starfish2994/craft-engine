@@ -61,9 +61,8 @@ public final class PlayerActionListener implements ByteBufferPacketListener {
                 }
                 if (player.isMiningBlock()) {
                     player.finishMiningBlock();
-                } else {
-                    player.setClientSideCanBreakBlock(true);
                 }
+                player.setClientSideCanBreakBlock(true);
                 return;
             }
             if (player.isAdventureMode()) {

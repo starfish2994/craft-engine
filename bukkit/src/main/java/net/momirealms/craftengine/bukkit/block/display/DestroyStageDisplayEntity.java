@@ -51,16 +51,16 @@ public final class DestroyStageDisplayEntity {
         return this.removePacket;
     }
 
-    public Object metadataPacket(Player player, float progress) {
-        return ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(entityId, buildMetadata(player, progress));
+    public Object metadataPacket(Player player, int index) {
+        return ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(entityId, buildMetadata(player, index));
     }
 
-    public boolean ensureSpawned(Player viewer, float progress, Consumer<Object> packetSender) {
+    public boolean ensureSpawned(Player viewer, int index, Consumer<Object> packetSender) {
         boolean firstSpawn = this.spawnedViewers.add(viewer.uuid());
         if (firstSpawn) {
             packetSender.accept(this.spawnPacket);
         }
-        packetSender.accept(metadataPacket(viewer, progress));
+        packetSender.accept(metadataPacket(viewer, index));
         return firstSpawn;
     }
 
@@ -82,9 +82,9 @@ public final class DestroyStageDisplayEntity {
         return this.spawnedViewers.isEmpty();
     }
 
-    private List<Object> buildMetadata(Player player, float progress) {
+    private List<Object> buildMetadata(Player player, int index) {
         List<Object> data = new ArrayList<>();
-        DisplayData.ItemDisplayData.ItemStack.addEntityData(resolveItem(progress, player), data);
+        DisplayData.ItemDisplayData.ItemStack.addEntityData(resolveItem(index, player), data);
         DisplayData.ItemDisplayData.Scale.addEntityDataIfNotDefaultValue(this.config.scale(), data);
         DisplayData.ItemDisplayData.LeftRotation.addEntityDataIfNotDefaultValue(this.config.rotation(), data);
         DisplayData.ItemDisplayData.Translation.addEntityDataIfNotDefaultValue(this.config.translation(), data);
@@ -99,8 +99,8 @@ public final class DestroyStageDisplayEntity {
         return data;
     }
 
-    private Object resolveItem(float progress, Player player) {
-        Key itemKey = this.config.itemForProgress(progress);
+    private Object resolveItem(int index, Player player) {
+        Key itemKey = this.config.itemForIndex(index);
         if (itemKey == null) return ItemStackProxy.EMPTY;
         Item wrapped = BukkitItemManager.instance().createWrappedItem(itemKey, player);
         if (wrapped == null) {

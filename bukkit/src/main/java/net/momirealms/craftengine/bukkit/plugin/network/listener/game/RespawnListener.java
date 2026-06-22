@@ -21,6 +21,7 @@ public final class RespawnListener implements ByteBufferPacketListener {
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
         BukkitServerPlayer player = (BukkitServerPlayer) user;
         player.clearEntityView();
+        player.clearDestroyStageDisplay();
         FriendlyByteBuf buf = event.getBuffer();
         World world;
         if (VersionHelper.isOrAbove1_20_5) {

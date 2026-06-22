@@ -93,6 +93,12 @@ public final class DestroyStageDisplay {
         return index < 0 ? null : this.items.get(index);
     }
 
+    @Nullable
+    public Key itemForIndex(int index) {
+        if (index < 0 || index >= this.items.size()) return null;
+        return this.items.get(index);
+    }
+
     public List<Key> items() {
         return this.items;
     }
