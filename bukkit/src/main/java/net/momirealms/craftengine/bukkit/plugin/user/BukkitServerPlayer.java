@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.bukkit.plugin.user;
 
-import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
+import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
@@ -25,8 +25,8 @@ import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.setting.DestroyStageDisplay;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
+import net.momirealms.craftengine.core.block.setting.DestroyStageDisplay;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
@@ -192,7 +192,7 @@ public class BukkitServerPlayer extends Player {
     // cooldown data
     private CooldownData cooldownData;
     // tracked chunks
-    private ConcurrentLong2ReferenceChainedHashTable<ClientChunk> trackedChunks;
+    private ConcurrentChainedLong2ReferenceHashTable<ClientChunk> trackedChunks;
     // entity view
     private Map<Integer, EntityPacketHandler> entityTypeView;
     // 通过指令或api设定的语言
@@ -291,7 +291,7 @@ public class BukkitServerPlayer extends Player {
     private void initPlayStageFields() {
         this.trackedBlockEntityRenderers = new ConcurrentHashMap<>(64);
         this.trackedEntities = new ConcurrentHashMap<>(64);
-        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
+        this.trackedChunks = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(512, 0.5f);
         this.entityTypeView = new ConcurrentHashMap<>(256);
         this.obtainedItems = new HashSet<>(32);
         this.furnitureHitData = new FurnitureHitData();

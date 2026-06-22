@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.world;
 
 import ca.spottedleaf.concurrentutil.collection.MultiThreadedQueue;
-import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
+import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
@@ -26,7 +26,7 @@ public abstract class CEWorld {
     public static final String REGION_DIRECTORY = "craftengine";
     public final World world;
     public final WorldSettings settings;
-    protected final ConcurrentLong2ReferenceChainedHashTable<CEChunk> loadedChunkMap;
+    protected final ConcurrentChainedLong2ReferenceHashTable<CEChunk> loadedChunkMap;
     protected final WorldDataStorage worldDataStorage;
     protected final WorldHeight worldHeightAccessor;
     protected final MultiThreadedQueue<Collection<SectionPos>> pendingLightSectionBatches = new MultiThreadedQueue<>();
@@ -46,7 +46,7 @@ public abstract class CEWorld {
 
     public CEWorld(World world, WorldDataStorage dataStorage) {
         this.world = world;
-        this.loadedChunkMap = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(1024, 0.5f);
+        this.loadedChunkMap = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(1024, 0.5f);
         this.worldDataStorage = dataStorage;
         this.worldHeightAccessor = world.worldHeight();
         WorldSettings worldSettings;
@@ -85,7 +85,7 @@ public abstract class CEWorld {
 
     public void saveChunks() {
         try {
-            for (ConcurrentLong2ReferenceChainedHashTable.TableEntry<CEChunk> entry : this.loadedChunkMap.entrySet()) {
+            for (ConcurrentChainedLong2ReferenceHashTable.TableEntry<CEChunk> entry : this.loadedChunkMap.entrySet()) {
                 CEChunk chunk = entry.getValue();
                 if (chunk.isUnsaved()) {
                     this.worldDataStorage.writeChunkAt(new ChunkPos(entry.getKey()), chunk);

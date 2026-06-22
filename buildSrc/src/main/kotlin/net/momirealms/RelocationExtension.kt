@@ -26,7 +26,7 @@ open class RelocationExtension {
             relocate("com.google.common.jimfs", "$libs.jimfs")
             relocate("org.apache.commons", "$libs.commons")
             relocate("io.leangen.geantyref", "$libs.geantyref")
-            relocate("ca.spottedleaf.concurrentutil", "$libs.concurrentutil")
+            relocate("ca.spottedleaf", "$libs.spottedleaf")
             relocate("io.netty.handler.codec.http", "$libs.netty.handler.codec.http")
             relocate("io.netty.handler.codec.rtsp", "$libs.netty.handler.codec.rtsp")
             relocate("io.netty.handler.codec.spdy", "$libs.netty.handler.codec.spdy")
