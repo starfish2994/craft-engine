@@ -10,8 +10,7 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +32,7 @@ public final class ItemBlockEntityElement extends AbstractConstantBlockEntityEle
     public BlockEntityTintSource tintSource;
 
     ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
-        this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+        this(config, pos, tintSource, EntityUtils.ENTITY_COUNTER.incrementAndGet(), EntityUtils.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
     ItemBlockEntityElement(ItemBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId1, int entityId2, boolean posChanged) {
@@ -43,11 +42,11 @@ public final class ItemBlockEntityElement extends AbstractConstantBlockEntityEle
         Vector3f position = config.position();
         this.cachedSpawnPacket1 = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId1, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
-                0, 0, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                0, 0, EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.cachedSpawnPacket2 = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId2, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
-                0, 0, EntityTypeProxy.ITEM, 0, Vec3Proxy.ZERO, 0
+                0, 0, EntityTypesProxy.ITEM, 0, Vec3Proxy.ZERO, 0
         );
         this.cachedRidePacket = PacketUtils.createClientboundSetPassengersPacket(entityId1, entityId2);
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId1, entityId2));

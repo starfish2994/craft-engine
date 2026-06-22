@@ -35,7 +35,7 @@ public final class BlockSettings {
     MapColor mapColor = MapColor.CLEAR;
     PushReaction pushReaction = PushReaction.NORMAL;
     int luminance;
-    Instrument instrument = Instrument.HARP;
+    String instrument = "harp";
     BlockSounds sounds = BlockSounds.EMPTY;
     @Nullable
     Key itemId;
@@ -47,6 +47,7 @@ public final class BlockSettings {
     float friction = 0.6f;
     float speedFactor = 1f;
     float jumpFactor = 1f;
+    float bounceRestitution;
     Map<CustomDataType<?>, Object> customData = new IdentityHashMap<>(4);
 
     private BlockSettings() {}
@@ -118,6 +119,7 @@ public final class BlockSettings {
         newSettings.speedFactor = settings.speedFactor;
         newSettings.jumpFactor = settings.jumpFactor;
         newSettings.friction = settings.friction;
+        newSettings.bounceRestitution = settings.bounceRestitution;
         newSettings.isRaytraceBlocking = settings.isRaytraceBlocking;
         newSettings.customData = new IdentityHashMap<>(settings.customData);
         return newSettings;
@@ -186,6 +188,10 @@ public final class BlockSettings {
         return jumpFactor;
     }
 
+    public float bounceRestitution() {
+        return bounceRestitution;
+    }
+
     public float speedFactor() {
         return speedFactor;
     }
@@ -218,7 +224,7 @@ public final class BlockSettings {
         return luminance;
     }
 
-    public Instrument instrument() {
+    public String instrument() {
         return instrument;
     }
 
@@ -310,6 +316,11 @@ public final class BlockSettings {
         return this;
     }
 
+    public BlockSettings bounceRestitution(float bounceRestitution) {
+        this.bounceRestitution = bounceRestitution;
+        return this;
+    }
+
     public BlockSettings tags(Set<Key> tags) {
         this.tags = tags;
         return this;
@@ -325,7 +336,7 @@ public final class BlockSettings {
         return this;
     }
 
-    public BlockSettings instrument(Instrument instrument) {
+    public BlockSettings instrument(String instrument) {
         this.instrument = instrument;
         return this;
     }

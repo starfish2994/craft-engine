@@ -11,8 +11,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.Clientbo
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundBundlePacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +31,7 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
     public final UUID uuid = UUID.randomUUID();
 
     ItemDisplayFurnitureElement(Furniture furniture, ItemDisplayFurnitureElementConfig config, WorldPosition pos) {
-        this(furniture, config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+        this(furniture, config, pos, EntityUtils.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
     ItemDisplayFurnitureElement(Furniture furniture, ItemDisplayFurnitureElementConfig config, WorldPosition pos, int entityId, boolean positionChanged) {
@@ -46,7 +45,7 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, this.uuid,
                 this.position.x, this.position.y, this.position.z, this.position.xRot, this.position.yRot,
-                EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.cachedUpdatePosPacket = positionChanged ? EntityUtils.createUpdatePosPacket(this.entityId, this.position.x, this.position.y, this.position.z, this.position.yRot, this.position.xRot, false) : null;
     }

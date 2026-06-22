@@ -173,9 +173,6 @@ public final class BlockGenerator {
                 // fallOn
                 .method(ElementMatchers.is(BlockReflections.method$Block$fallOn))
                 .intercept(MethodDelegation.to(FallOnInterceptor.INSTANCE))
-                // updateEntityMovementAfterFallOn
-                .method(ElementMatchers.is(BlockReflections.method$Block$updateEntityMovementAfterFallOn))
-                .intercept(MethodDelegation.to(UpdateEntityMovementAfterFallOnInterceptor.INSTANCE))
                 // stepOn
                 .method(ElementMatchers.is(BlockReflections.method$Block$stepOn))
                 .intercept(MethodDelegation.to(StepOnInterceptor.INSTANCE))
@@ -202,6 +199,11 @@ public final class BlockGenerator {
         if (BlockReflections.method$BlockBehaviour$onExplosionHit != null) {
             builder = builder.method(ElementMatchers.is(BlockReflections.method$BlockBehaviour$onExplosionHit))
                     .intercept(MethodDelegation.to(OnExplosionHitInterceptor.INSTANCE));
+        }
+        // 1.20~26.1.2
+        if (BlockReflections.method$Block$updateEntityMovementAfterFallOn != null) {
+            builder = builder.method(ElementMatchers.is(BlockReflections.method$Block$updateEntityMovementAfterFallOn))
+                    .intercept(MethodDelegation.to(UpdateEntityMovementAfterFallOnInterceptor.INSTANCE));
         }
         SparrowClass<?> clazz$CraftEngineBlock = SparrowClass.of(builder.make().load(BlockGenerator.class.getClassLoader()).getLoaded());
         constructor$CraftEngineBlock = clazz$CraftEngineBlock.getSparrowConstructor(ConstructorMatcher.takeArguments(BlockBehaviourProxy.PropertiesProxy.CLASS)).asm$1();

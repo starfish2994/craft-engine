@@ -10,6 +10,6 @@ translations:
     internal.get_item.0: 左鍵單擊取一個
     internal.get_item.1: 右鍵單擊取一組
     internal.cooking_info: 配方資訊
-    internal.cooking_info.0: '時間: <arg:0>刻'
+    internal.cooking_info.0: '時間: <arg:0> 刻'
     internal.cooking_info.1: '經驗: <arg:0>'
     category.internal.all: 全部物品

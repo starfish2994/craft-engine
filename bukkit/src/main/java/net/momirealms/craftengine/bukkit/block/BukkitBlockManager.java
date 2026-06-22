@@ -25,10 +25,7 @@ import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.registry.Holder;
 import net.momirealms.craftengine.core.sound.SoundSet;
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.ObjectHolder;
-import net.momirealms.craftengine.core.util.Tristate;
-import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.util.CraftMagicNumbersProxy;
 import net.momirealms.craftengine.proxy.minecraft.commands.arguments.blocks.BlockStateParserProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.*;
@@ -282,7 +279,12 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setDestroySpeed(nmsState, settings.hardness());
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setReplaceable(nmsState, settings.replaceable());
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setMapColor(nmsState, MapColorProxy.INSTANCE.byId(settings.mapColor().id));
-            BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.VALUES[settings.instrument().ordinal()]);
+            try {
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.INSTANCE.valueOf(settings.instrument().toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException e) {
+                this.plugin.logger().warn("Invalid note block instrument '" + settings.instrument() + "'", e);
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.HARP);
+            }
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setPushReaction(nmsState, PushReactionProxy.VALUES[settings.pushReaction().ordinal()]);
             boolean canOcclude = settings.canOcclude() == Tristate.UNDEFINED ? BlockStateUtils.isOcclude(nmsVisualState) : settings.canOcclude().asBoolean();
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setCanOcclude(nmsState, canOcclude);
@@ -316,6 +318,9 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             BlockBehaviourProxy.INSTANCE.setSpeedFactor(nmsBlock, settings.speedFactor());
             BlockBehaviourProxy.INSTANCE.setJumpFactor(nmsBlock, settings.jumpFactor());
             BlockBehaviourProxy.INSTANCE.setSoundType(nmsBlock, SoundUtils.toNMSSoundType(settings.sounds()));
+            if (VersionHelper.isOrAbove26_2) {
+                BlockBehaviourProxy.INSTANCE.setBounceRestitution(nmsBlock, settings.bounceRestitution());
+            }
 
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.initCache(nmsState);
             boolean isConditionallyFullOpaque = canOcclude & useShapeForLightOcclusion;

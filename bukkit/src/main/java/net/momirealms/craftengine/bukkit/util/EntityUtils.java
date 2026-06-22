@@ -13,10 +13,8 @@ import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistr
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundTeleportEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.syncher.SynchedEntityDataProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.PoseProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.PositionMoveRotationProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.*;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.vehicle.DismountHelperProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.AABBProxy;
@@ -30,9 +28,12 @@ import org.bukkit.entity.Pose;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public final class EntityUtils {
+    public static final AtomicInteger ENTITY_COUNTER = VersionHelper.isOrAbove26_2 ? ServerLevelProxy.INSTANCE.getEntityCounter() : EntityProxy.INSTANCE.getEntityCounter();
+
     private EntityUtils() {}
 
     public static Object createUpdatePosPacket(int entityId, double x, double y, double z, float yRot, float xRot, boolean onGround) {

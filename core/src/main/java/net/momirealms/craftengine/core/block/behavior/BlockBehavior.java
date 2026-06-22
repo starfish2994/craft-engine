@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldAccessor;
 import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -67,7 +68,7 @@ public abstract class BlockBehavior {
     }
 
     /**
-     * --- 1.20.1 - 1.21.1 ---<br>
+     * --- 1.20 - 1.21.1 ---<br>
      * <code>args[0]</code>: BlockState (state)<br>
      * <code>args[1]</code>: Direction (direction)<br>
      * <code>args[2]</code>: BlockState (neighborState)<br>
@@ -92,7 +93,7 @@ public abstract class BlockBehavior {
     }
 
     /**
-     * --- 1.20.1 - 1.21.1 ---<br>
+     * --- 1.20 - 1.21.1 ---<br>
      * <code>args[0]</code>: BlockState (state)<br>
      * <code>args[1]</code>: Level (level)<br>
      * <code>args[2]</code>: BlockPos (pos)<br>
@@ -366,7 +367,7 @@ public abstract class BlockBehavior {
     }
 
     /**
-     * --- 1.20.1 - 1.21.4 ---<br>
+     * --- 1.20 - 1.21.4 ---<br>
      * <code>args[0]</code>: Level (world)<br>
      * <code>args[1]</code>: BlockState (state)<br>
      * <code>args[2]</code>: BlockPos (pos)<br>
@@ -385,11 +386,13 @@ public abstract class BlockBehavior {
     public abstract void fallOn(Object thisBlock, Object[] args);
 
     /**
+     * --- 1.20 - 26.1.2 ---
      * <code>args[0]</code>: BlockGetter (level)<br>
      * <code>args[1]</code>: Entity (entity)<br>
      * <p>
      * Returns: void
      */
+    @ApiStatus.Obsolete
     public abstract void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args);
 
     /**

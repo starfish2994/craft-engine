@@ -121,10 +121,10 @@ lang#furniture:
 translations#categories:
   zh_tw:
     category.default.name: 預設資產
-    category.default.lore: 包含了CraftEngine的預設配置
+    category.default.lore: 包含了 CraftEngine 的預設配置
     category.palm_tree: 棕櫚樹
     category.topaz: 黃玉
     category.misc: 雜項
 translations#emoji:
   zh_tw:
-    emoji.tip: 使用<yellow>'<arg:0>'</yellow>來傳送表情'<arg:1>'
+    emoji.tip: 使用 <yellow>'<arg:0>'</yellow> 來傳送表情 '<arg:1>'

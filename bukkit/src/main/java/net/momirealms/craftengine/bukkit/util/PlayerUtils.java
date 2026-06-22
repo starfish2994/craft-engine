@@ -22,7 +22,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundSourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.item.ItemEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.InventoryProxy;
@@ -69,7 +69,7 @@ public final class PlayerUtils {
                 float randomAngle = RandomUtils.generateRandomFloat() * ((float) Math.PI * 2F);
                 float spreadIntensity = 0.02F * RandomUtils.generateRandomFloat();
 
-                int entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
+                int entityId = EntityUtils.ENTITY_COUNTER.incrementAndGet();
 
                 double velX = (-sinYaw * cosPitch * 0.3F) + Math.cos(randomAngle) * (double) spreadIntensity;
                 double velY = -sinPitch * 0.3F + 0.1F + (RandomUtils.generateRandomFloat() - RandomUtils.generateRandomFloat()) * 0.1F;
@@ -83,7 +83,7 @@ public final class PlayerUtils {
                         player.z(),
                         player.xRot(),
                         player.yRot(),
-                        EntityTypeProxy.ITEM,
+                        EntityTypesProxy.ITEM,
                         0,
                         Vec3Proxy.INSTANCE.newInstance(velX, velY, velZ),
                         0

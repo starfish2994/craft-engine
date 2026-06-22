@@ -114,7 +114,7 @@ public final class BlockSettingsModifiers {
         return settings -> settings.pushReaction(pushReaction);
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> INSTRUMENT = register(Key.ce("instrument"), value -> {
-        Instrument instrument = value.getAsEnum(Instrument.class);
+        String instrument = value.getAsNonEmptyString();
         return settings -> settings.instrument(instrument);
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> SOUNDS = register(Key.ce("sounds"), value -> {
@@ -167,6 +167,10 @@ public final class BlockSettingsModifiers {
     public static final BlockSettingsModifierType<BlockSettingsModifier> IS_RAYTRACE_BLOCKING = register(Key.ce("block_raytrace"), value -> {
         boolean block = value.getAsBoolean();
         return settings -> settings.isRaytraceBlocking(block);
+    });
+    public static final BlockSettingsModifierType<BlockSettingsModifier> BOUNCE_RESTITUTION = register(Key.ce("bounce_restitution"), value -> {
+        float bounceRestitution = value.getAsFloat();
+        return settings -> settings.bounceRestitution(bounceRestitution);
     });
 
     private BlockSettingsModifiers() {}

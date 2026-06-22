@@ -28,7 +28,7 @@ public abstract class AbstractModelGenerator implements ModelGenerator {
     public void prepareModelGeneration(ModelGenerationHolder holder) {
         this.modelsToGenerate.compute(holder.path(), (k, conflict) -> {
             if (conflict != null && !conflict.equals(holder.model())) {
-                throw new KnownResourceException("resource.model.generation_conflict", holder.path().asString());
+                throw new KnownResourceException("resource.model.generation.conflict", holder.path().asString());
             }
             return holder.model();
         });
