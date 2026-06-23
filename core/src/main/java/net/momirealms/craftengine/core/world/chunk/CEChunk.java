@@ -74,7 +74,7 @@ public class CEChunk {
         if (sections != null) {
             for (CESection section : sections) {
                 if (section != null) {
-                    int index = sectionIndex(section.sectionY());
+                    int index = sectionIndex(section.sectionY);
                     this.sections[index] = section;
                 }
             }
@@ -661,7 +661,7 @@ public class CEChunk {
     public boolean isEmpty() {
         if (!this.blockEntities.isEmpty()) return false;
         for (CESection section : this.sections) {
-            if (section != null && !section.statesContainer().isEmpty()) {
+            if (section != null && !section.statesContainer.isEmpty()) {
                 return false;
             }
         }

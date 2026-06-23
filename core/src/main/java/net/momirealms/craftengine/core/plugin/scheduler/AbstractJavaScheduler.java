@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.scheduler;
 
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.Plugin;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -102,11 +103,11 @@ public abstract class AbstractJavaScheduler implements SchedulerAdapter {
         }
     }
 
-    private final class ExceptionHandler implements UncaughtExceptionHandler {
+    private static final class ExceptionHandler implements UncaughtExceptionHandler {
 
         @Override
         public void uncaughtException(Thread t, Throwable e) {
-            AbstractJavaScheduler.this.plugin.logger().warn("Thread " + t.getName() + " threw an uncaught exception", e);
+            CraftEngine.instance().logger().warn("Thread " + t.getName() + " threw an uncaught exception", e);
         }
     }
 }

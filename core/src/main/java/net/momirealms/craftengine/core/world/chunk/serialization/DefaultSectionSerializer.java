@@ -32,14 +32,14 @@ public final class DefaultSectionSerializer {
 
     @Nullable
     public static CompoundTag serialize(@NotNull CESection section) {
-        ReadableContainer.Serialized<ImmutableBlockState> serialized = section.statesContainer().serialize(null, PalettedContainer.PaletteProvider.CUSTOM_BLOCK_STATE);
+        ReadableContainer.Serialized<ImmutableBlockState> serialized = section.statesContainer.serialize(null, PalettedContainer.PaletteProvider.CUSTOM_BLOCK_STATE);
         ListTag palettes = new ListTag();
         List<ImmutableBlockState> states = serialized.paletteEntries();
         if (states.size() == 1 && states.getFirst() == EmptyBlockDefinition.STATE) {
             return null;
         }
         CompoundTag sectionNbt = new CompoundTag();
-        sectionNbt.putByte("y", (byte) section.sectionY());
+        sectionNbt.putByte("y", (byte) section.sectionY);
         CompoundTag blockStates = new CompoundTag();
         sectionNbt.put("block_states", blockStates);
         for (ImmutableBlockState state : states) {
