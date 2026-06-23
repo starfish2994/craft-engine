@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.block.setting;
 
 import net.momirealms.craftengine.core.block.BlockSounds;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntitySetting;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
@@ -48,7 +49,7 @@ public final class BlockSettings {
     float speedFactor = 1f;
     float jumpFactor = 1f;
     float bounceRestitution = 0f;
-    DestroyStageDisplay destroyStageDisplay;
+    DestroyStageDisplayEntitySetting destroyStageDisplay;
     Map<CustomDataType<?>, Object> customData = new IdentityHashMap<>(4);
 
     private BlockSettings() {}
@@ -195,7 +196,7 @@ public final class BlockSettings {
     }
 
     @Nullable
-    public DestroyStageDisplay destroyStageDisplay() {
+    public DestroyStageDisplayEntitySetting destroyStageDisplay() {
         return destroyStageDisplay;
     }
 
@@ -328,8 +329,8 @@ public final class BlockSettings {
         return this;
     }
 
-    public BlockSettings destroyStageDisplay(DestroyStageDisplay destroyStageDisplay) {
-        this.destroyStageDisplay = destroyStageDisplay;
+    public BlockSettings destroyStageDisplay(DestroyStageDisplayEntitySetting setting) {
+        this.destroyStageDisplay = setting;
         return this;
     }
 

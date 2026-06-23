@@ -1,6 +1,9 @@
 package net.momirealms.craftengine.proxy.minecraft.server;
 
+import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.*;
 import org.jspecify.annotations.Nullable;
@@ -37,6 +40,9 @@ public interface MinecraftServerProxy {
 
     @MethodInvoker(name = "reloadableRegistries", activeIf = "min_version=1.20.5")
     Object reloadableRegistries(Object target);
+
+    @MethodInvoker(name = "isUnderSpawnProtection")
+    boolean isUnderSpawnProtection(Object target, @Type(clazz = ServerLevelProxy.class) Object level, @Type(clazz = BlockPosProxy.class) Object pos, @Type(clazz = PlayerProxy.class) Object player);
 
     @ReflectionProxy(name = "net.minecraft.server.MinecraftServer$ServerResourcePackInfo")
     interface ServerResourcePackInfoProxy {

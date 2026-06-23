@@ -96,6 +96,9 @@ public final class RegistryDataListener implements ByteBufferPacketListener {
                 Key id = Key.of(s.value());
                 if (Key.CRAFTENGINE_NAMESPACE.equals(id.namespace) && BukkitBlockManager.instance().createVanillaBlockState(id.asString()) instanceof BukkitCustomBlockStateWrapper state) {
                     BlockStateWrapper visual = state.visualBlockState();
+                    if (visual == null) {
+                        visual = BukkitBlockManager.instance().createVanillaBlockState("minecraft:stone");
+                    }
                     String newId = visual.ownerId().asString();
                     tag.putString("Name", newId);
                     Collection<String> propertyNames = visual.getPropertyNames();
@@ -114,7 +117,11 @@ public final class RegistryDataListener implements ByteBufferPacketListener {
                 if (value instanceof StringTag s) {
                     String string = s.value();
                     if (!(string.charAt(0) == '#') && BukkitBlockManager.instance().createVanillaBlockState(string) instanceof BukkitCustomBlockStateWrapper state) {
-                        tag.putString(key, state.visualBlockState().ownerId().asString());
+                        BlockStateWrapper visual = state.visualBlockState();
+                        if (visual == null) {
+                            visual = BukkitBlockManager.instance().createVanillaBlockState("minecraft:stone");
+                        }
+                        tag.putString(key, visual.ownerId().asString());
                         Debugger.COMMON.debug(() -> "tag2=" + tag);
                     }
                 } else if (value instanceof ListTag l) {
@@ -122,7 +129,11 @@ public final class RegistryDataListener implements ByteBufferPacketListener {
                     for (int i = 0; i < l.size(); i++) {
                         String string = l.getString(i);
                         if (BukkitBlockManager.instance().createVanillaBlockState(string) instanceof BukkitCustomBlockStateWrapper state) {
-                            l.set(i, new StringTag(state.visualBlockState().ownerId().asString()));
+                            BlockStateWrapper visual = state.visualBlockState();
+                            if (visual == null) {
+                                visual = BukkitBlockManager.instance().createVanillaBlockState("minecraft:stone");
+                            }
+                            l.set(i, new StringTag(visual.ownerId().asString()));
                             isReplaceable = true;
                         } else break;
                     }

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.block.setting;
 
 import net.momirealms.craftengine.core.block.BlockSounds;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntitySetting;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
@@ -173,7 +174,7 @@ public final class BlockSettingsModifiers {
         return settings -> settings.bounceRestitution(bounceRestitution);
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> DESTROY_STAGES = register(Key.ce("destroy_stages"), value -> {
-        DestroyStageDisplay display = DestroyStageDisplay.fromConfig(value.getAsSection());
+        DestroyStageDisplayEntitySetting display = DestroyStageDisplayEntitySetting.fromConfig(value.getAsSection());
         return settings -> settings.destroyStageDisplay(display);
     });
 
