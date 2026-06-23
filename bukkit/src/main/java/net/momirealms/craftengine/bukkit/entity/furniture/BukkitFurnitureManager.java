@@ -154,6 +154,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
                     handleMetaEntityUnload(itemDisplay, true);
                 } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
                     handleCollisionEntityUnload(entity);
+                    entity.remove();
                 }
             }
         }

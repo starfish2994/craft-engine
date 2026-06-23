@@ -27,6 +27,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.world.*;
 
 import java.util.List;
@@ -106,13 +107,14 @@ public final class FurnitureEventListener implements Listener {
      * Unload Entities
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onChunkUnload(ChunkUnloadEvent event) {
-        Entity[] entities = event.getChunk().getEntities();
+    public void onChunkUnload(EntitiesUnloadEvent event) {
+        List<Entity> entities = event.getEntities();
         for (Entity entity : entities) {
             if (entity instanceof ItemDisplay itemDisplay) {
                 this.manager.handleMetaEntityUnload(itemDisplay, false);
             } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
                 this.manager.handleCollisionEntityUnload(entity);
+                entity.remove();
             }
         }
     }
@@ -126,6 +128,7 @@ public final class FurnitureEventListener implements Listener {
                 this.manager.handleMetaEntityUnload(itemDisplay, false);
             } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
                 this.manager.handleCollisionEntityUnload(entity);
+                entity.remove();
             }
         }
     }
