@@ -5,10 +5,7 @@ import io.netty.buffer.ByteBuf;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
-import net.momirealms.craftengine.bukkit.util.PacketUtils;
-import net.momirealms.craftengine.bukkit.util.ParticleUtils;
-import net.momirealms.craftengine.bukkit.util.RegistryOps;
-import net.momirealms.craftengine.bukkit.util.RegistryUtils;
+import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitContainer;
 import net.momirealms.craftengine.bukkit.world.particle.BukkitParticleType;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -27,6 +24,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class BukkitPlatform implements Platform {
     private final BukkitCraftEngine plugin;
@@ -125,5 +123,10 @@ public final class BukkitPlatform implements Platform {
                 )
         );
         return bungee || velocity;
+    }
+
+    @Override
+    public AtomicInteger getEntityCounter() {
+        return EntityUtils.ENTITY_COUNTER;
     }
 }

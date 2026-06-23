@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.world.particle.ParticleType;
 import net.momirealms.sparrow.nbt.Tag;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public interface Platform {
 
@@ -42,4 +43,6 @@ public interface Platform {
     int getServerPort();
 
     boolean hasProxy();
+
+    AtomicInteger getEntityCounter();
 }

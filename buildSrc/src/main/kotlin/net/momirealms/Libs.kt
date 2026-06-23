@@ -34,7 +34,7 @@ fun DependencyHandlerScope.common(project: Project, configuration: String = Java
     configuration("commons-io:commons-io:${v("commons_io_version")}")
     configuration("com.mojang:datafixerupper:${v("datafixerupper_version")}")
     configuration("com.mojang:authlib:${v("authlib_version")}")
-    configuration("ca.spottedleaf:leafpile:${v("leafpile_version")}")
+    configuration(project.files("${project.rootProject.rootDir}/libs/leafpile-${v("leafpile_version")}.jar"))
     configuration("org.ahocorasick:ahocorasick:${v("ahocorasick_version")}")
     configuration("com.bucket4j:bucket4j_jdk17-core:${v("bucket4j_version")}")
     configuration("com.ezylang:EvalEx:${v("evalex_version")}")

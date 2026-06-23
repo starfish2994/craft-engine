@@ -13,8 +13,9 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
-import net.momirealms.craftengine.bukkit.block.display.DestroyStageDisplayEntity;
-import net.momirealms.craftengine.bukkit.block.display.DestroyStageDisplayManager;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.display.BukkitDestroyStageDisplayRecorder;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntity;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayRecorder;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
@@ -27,7 +28,7 @@ import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
-import net.momirealms.craftengine.core.block.setting.DestroyStageDisplay;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntitySetting;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
@@ -120,9 +121,10 @@ import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public class BukkitServerPlayer extends Player {
@@ -170,7 +172,7 @@ public class BukkitServerPlayer extends Player {
     private boolean isDestroyingCustomBlock;
     // client-side ItemDisplay used to visualize custom-block destroy progress when the
     // block has a destroy_stages setting; null when no such display is active
-    private DestroyStageDisplayManager.Entry destroyStageEntry;
+    private DestroyStageDisplayRecorder.Entry destroyStageEntry;
     private boolean swingHandAck;
     private int lastSwingHandTick;
     private float miningProgress;
@@ -299,7 +301,7 @@ public class BukkitServerPlayer extends Player {
         this.furnitureLightData = new FurnitureLightData();
         this.receivedMapData = CacheBuilder.newBuilder()
                 .weakKeys()
-                .expireAfterAccess(30, TimeUnit.MINUTES)
+                .expireAfterAccess(Duration.of(30, ChronoUnit.MINUTES))
                 .concurrencyLevel(4)
                 .build();
     }
@@ -1142,7 +1144,7 @@ public class BukkitServerPlayer extends Player {
     }
 
     private void broadcastDestroyProgress(BlockPos hitPos, float progress) {
-        DestroyStageDisplay display = currentDestroyStageDisplay();
+        DestroyStageDisplayEntitySetting display = currentDestroyStageDisplay();
         int key = progress < 0 ? -1 : (display != null ? display.itemIndexForProgress(progress) : (int) (progress * 10.0F));
         if (key == this.lastSentState) {
             return;
@@ -1155,7 +1157,7 @@ public class BukkitServerPlayer extends Player {
         }
     }
 
-    private DestroyStageDisplay currentDestroyStageDisplay() {
+    private DestroyStageDisplayEntitySetting currentDestroyStageDisplay() {
         Object state = this.destroyedState;
         if (state == null) return null;
         ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
@@ -1176,18 +1178,18 @@ public class BukkitServerPlayer extends Player {
     }
 
     @SuppressWarnings("deprecation")
-    private void broadcastDestroyProgressViaDisplay(BlockPos hitPos, float progress, DestroyStageDisplay display) {
+    public void broadcastDestroyProgressViaDisplay(BlockPos hitPos, float progress, DestroyStageDisplayEntitySetting display) {
         if (progress < 0) {
             clearDestroyStageDisplay();
             return;
         }
-        DestroyStageDisplayManager.PosKey posKey = new DestroyStageDisplayManager.PosKey(platformPlayer().getWorld().getUID(), hitPos.asLong());
-        DestroyStageDisplayManager.Entry entry = DestroyStageDisplayManager.instance().getOrCreate(posKey, display, hitPos);
+        DestroyStageDisplayRecorder.PosKey posKey = new DestroyStageDisplayRecorder.PosKey(platformPlayer().getWorld().getUID(), hitPos.asLong());
+        DestroyStageDisplayRecorder.Entry entry = BukkitDestroyStageDisplayRecorder.INSTANCE.getOrCreate(posKey, display, hitPos);
         this.destroyStageEntry = entry;
 
-        entry.minerProgress().put(this.uuid, progress);
+        entry.minerProgress.put(this.uuid, progress);
         float maxProgress = 0f;
-        for (Float p : entry.minerProgress().values()) {
+        for (Float p : entry.minerProgress.values()) {
             if (p != null && p > maxProgress) maxProgress = p;
         }
         int newIndex = display.itemIndexForProgress(maxProgress);
@@ -1196,7 +1198,7 @@ public class BukkitServerPlayer extends Player {
         }
         entry.displayedIndex(newIndex);
 
-        DestroyStageDisplayEntity entity = entry.entity();
+        DestroyStageDisplayEntity entity = entry.entity;
         Set<UUID> current = new HashSet<>();
         current.add(this.uuid);
         Set<org.bukkit.entity.Player> trackedPlayers = platformPlayer().getTrackedPlayers();
@@ -1208,9 +1210,7 @@ public class BukkitServerPlayer extends Player {
         Object removePacket = entity.removePacket();
         entity.removeLeftViewers(current, viewerId -> {
             if (viewerId.equals(this.uuid)) return;
-            org.bukkit.entity.Player other = Bukkit.getPlayer(viewerId);
-            if (other == null) return;
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
+            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) BukkitNetworkManager.instance().getOnlineUser(viewerId);
             if (serverPlayer == null) return;
             serverPlayer.sendPacket(removePacket, false);
         });
@@ -1228,20 +1228,20 @@ public class BukkitServerPlayer extends Player {
     }
 
     public void clearDestroyStageDisplay() {
-        DestroyStageDisplayManager.Entry entry = this.destroyStageEntry;
+        DestroyStageDisplayRecorder.Entry entry = this.destroyStageEntry;
         if (entry == null) return;
-        DestroyStageDisplayEntity entity = entry.entity();
+        DestroyStageDisplayEntity entity = entry.entity;
         this.destroyStageEntry = null;
         this.lastSentState = -1;
-        entry.minerProgress().remove(this.uuid);
-        if (entry.minerProgress().isEmpty()) {
-            DestroyStageDisplayManager.instance().remove(entry.key());
+        entry.minerProgress.remove(this.uuid);
+        if (entry.minerProgress.isEmpty()) {
+            BukkitDestroyStageDisplayRecorder.INSTANCE.remove(entry.key);
         } else {
             float maxProgress = 0f;
-            for (Float p : entry.minerProgress().values()) {
+            for (Float p : entry.minerProgress.values()) {
                 if (p != null && p > maxProgress) maxProgress = p;
             }
-            int newIndex = entry.display().itemIndexForProgress(maxProgress);
+            int newIndex = entry.display.itemIndexForProgress(maxProgress);
             if (newIndex != entry.displayedIndex()) {
                 entry.displayedIndex(newIndex);
                 for (UUID viewerId : entity.spawnedViewers()) {
@@ -1254,17 +1254,17 @@ public class BukkitServerPlayer extends Player {
     }
 
     public void clearDestroyStageDisplayForAll() {
-        DestroyStageDisplayManager.Entry entry = this.destroyStageEntry;
+        DestroyStageDisplayRecorder.Entry entry = this.destroyStageEntry;
         if (entry == null) {
             return;
         }
-        for (UUID minerId : new ArrayList<>(entry.minerProgress().keySet())) {
+        for (UUID minerId : entry.minerProgress.keys()) {
             BukkitServerPlayer serverPlayer = (BukkitServerPlayer) this.plugin.networkManager().getOnlineUser(minerId);
             if (serverPlayer == null) continue;
             serverPlayer.destroyStageEntry = null;
             serverPlayer.lastSentState = -1;
         }
-        DestroyStageDisplayManager.instance().remove(entry.key());
+        BukkitDestroyStageDisplayRecorder.INSTANCE.remove(entry.key);
     }
 
     private boolean isWithinDestroyRange(BlockPos hitPos, org.bukkit.entity.Player other) {

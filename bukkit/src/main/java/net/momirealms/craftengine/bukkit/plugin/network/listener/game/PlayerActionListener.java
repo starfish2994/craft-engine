@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.MinecraftServerProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
@@ -46,7 +47,13 @@ public final class PlayerActionListener implements ByteBufferPacketListener {
     private static void handlePlayerActionPacketOnMainThread(BukkitServerPlayer player, World world, BlockPos pos, int action) {
         if (action == 0/*START_DESTROY_BLOCK*/) {
             Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(world);
-            Object blockState = BlockGetterProxy.INSTANCE.getBlockState(serverLevel, LocationUtils.toBlockPos(pos));
+            Object blockPos = LocationUtils.toBlockPos(pos);
+            Object serverPlayer = player.serverPlayer();
+            if (MinecraftServerProxy.INSTANCE.isUnderSpawnProtection(MinecraftServerProxy.INSTANCE.getServer(), serverLevel, blockPos, serverPlayer)) {
+                player.setClientSideCanBreakBlock(false);
+                return;
+            }
+            Object blockState = BlockGetterProxy.INSTANCE.getBlockState(serverLevel, blockPos);
             int stateId = BlockStateUtils.blockStateToId(blockState);
             // not a custom block
             if (BlockStateUtils.isVanillaBlock(stateId)) {

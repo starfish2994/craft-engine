@@ -67,6 +67,7 @@ public final class LoginListener implements ByteBufferPacketListener {
                     Optional<GlobalPos> lastDeathLocation = buf.readOptional(FriendlyByteBuf::readGlobalPos);
                     int portalCooldown = buf.readVarInt();
                     int seaLevel = VersionHelper.isOrAbove1_21_2 ? buf.readVarInt() : 0;
+                    boolean onlineMode = VersionHelper.isOrAbove26_2 && buf.readBoolean();
                     boolean enforcesSecureChat = true;
                     event.setChanged(true);
                     buf.clear();
@@ -90,6 +91,7 @@ public final class LoginListener implements ByteBufferPacketListener {
                     buf.writeOptional(lastDeathLocation, FriendlyByteBuf::writeGlobalPos);
                     buf.writeVarInt(portalCooldown);
                     if (VersionHelper.isOrAbove1_21_2) buf.writeVarInt(seaLevel);
+                    if (VersionHelper.isOrAbove26_2) buf.writeBoolean(onlineMode);
                     buf.writeBoolean(enforcesSecureChat);
                 }
             } else { // 1.20.2~1.20.4
