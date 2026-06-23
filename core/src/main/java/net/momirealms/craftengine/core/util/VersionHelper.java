@@ -11,7 +11,7 @@ public final class VersionHelper {
     private VersionHelper() {}
 
     public static final boolean IS_RUNNING_IN_DEV = Boolean.getBoolean("net.momirealms.craftengine.dev");
-    public static final boolean PREMIUM = true;
+    public static final boolean PREMIUM = false;
     public static final MinecraftVersion MINECRAFT_VERSION;
     public static final boolean COMPONENT_RELEASE;
     public static final int WORLD_VERSION;
