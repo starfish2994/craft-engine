@@ -1061,7 +1061,7 @@ public class BukkitServerPlayer extends Player {
         // 发送破坏中音效
         if (currentTick - this.lastHitBlockTime > 3) {
             // 手上物品不是debug棒
-            if (!BukkitItemUtils.isDebugStick(item)) {
+            if (!BukkitItemUtils.isDebugStick(item) && !canInstabuild()) {
                 Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(destroyedState);
                 Object soundEvent = SoundTypeProxy.INSTANCE.getHitSound(soundType);
                 Object soundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
