@@ -102,11 +102,20 @@ public final class BlockEventListener implements Listener {
         if (Config.enableSoundSystem()) {
             Block block = event.getBlock();
             Object blockState = BlockStateUtils.getBlockState(block);
-            if (blockState != BlocksProxy.AIR$defaultState && BlockStateUtils.isVanillaBlock(blockState)) {
+            if (BlockStateUtils.isVanillaBlock(blockState)) {
                 Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(blockState);
                 Object soundEvent = SoundTypeProxy.INSTANCE.getPlaceSound(soundType);
                 Object soundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
                 if (this.manager.isPlaceSoundMissing(soundId)) {
+                    // 概率出现放置空气
+                    if (blockState == BlocksProxy.AIR$defaultState) {
+                        return;
+                    }
+                    // 打火石有逆天羊毛音效
+                    Object blockOwner = BlockStateUtils.getBlockOwner(blockState);
+                    if (blockOwner == BlocksProxy.FIRE || blockOwner == BlocksProxy.SOUL_FIRE) {
+                        return;
+                    }
                     if (player.getInventory().getItemInMainHand().getType() != Material.DEBUG_STICK) {
                         player.playSound(block.getLocation().add(0.5, 0.5, 0.5), soundId.toString(), SoundCategory.BLOCKS, 1f, 0.8f);
                     }
@@ -241,6 +250,10 @@ public final class BlockEventListener implements Listener {
                 if (this.manager.isBreakSoundMissing(soundId)) {
                     // creative mode + invalid item in hand
                     if (serverPlayer.canInstabuild() && !ItemStackUtils.canBreakBlockInCreativeMode(itemInHand)) {
+                        return;
+                    }
+                    Object blockOwner = BlockStateUtils.getBlockOwner(blockState);
+                    if (blockOwner == BlocksProxy.FIRE || blockOwner == BlocksProxy.SOUL_FIRE) {
                         return;
                     }
                     player.playSound(block.getLocation().add(0.5, 0.5, 0.5), soundId.toString(), SoundCategory.BLOCKS, 1f, 0.8f);

@@ -267,7 +267,8 @@ public final class ItemEventListener implements Listener {
                                         Vec3d.atCenterOf(hitResult.blockPos()),
                                         openable.isOpen() ? soundSet.closeSound() : soundSet.openSound(),
                                         SoundSource.BLOCK,
-                                        1, RandomUtils.generateRandomFloat(0.9f, 1));
+                                        1, RandomUtils.generateRandomFloat(0.9f, 1)
+                                );
                             }
                         } else if (blockData instanceof Powerable powerable && !powerable.isPowered()) {
                             SoundSet soundSet = SoundSet.getByBlock(blockOwner);
@@ -276,7 +277,8 @@ public final class ItemEventListener implements Listener {
                                         Vec3d.atCenterOf(hitResult.blockPos()),
                                         soundSet.openSound(),
                                         SoundSource.BLOCK,
-                                        1, RandomUtils.generateRandomFloat(0.9f, 1));
+                                        1, RandomUtils.generateRandomFloat(0.9f, 1)
+                                );
                             }
                         }
                     }
