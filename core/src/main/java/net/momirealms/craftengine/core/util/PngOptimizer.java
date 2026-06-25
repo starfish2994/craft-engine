@@ -84,7 +84,7 @@ public final class PngOptimizer {
                 if (alpha == 255) {
                     ope.put(argb, ope.getOrDefault(argb, 0) + 1);
                 } else {
-                    tra.put(argb, ope.getOrDefault(argb, 0) + 1);
+                    tra.put(argb, tra.getOrDefault(argb, 0) + 1);
                 }
             }
         }
