@@ -6,6 +6,7 @@ import com.moulberry.axiom.paperapi.display.AxiomCustomDisplayBuilder;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
+import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
@@ -15,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -46,23 +48,18 @@ public final class AxiomDisplayItems {
             return;
         }
 
-        int successCount = 0;
-        for (Map.Entry<Key, ItemDefinition> entry : items.entrySet()) {
-            try {
-                this.registerItem(entry.getKey(), entry.getValue());
-                successCount++;
-            } catch (Throwable t) {
-                this.plugin.logger().warn("Failed to register Axiom display item " + entry.getKey(), t);
-            }
-        }
 
-        if (successCount > 0) {
-            this.plugin.logger().info("Registered " + successCount + " display items with Axiom");
+        for (Key id : BukkitItemManager.instance().orderedItemIds()) {
+            try {
+                this.registerItem(id, CraftEngineItems.byId(id));
+            } catch (Throwable t) {
+                this.plugin.logger().warn("Failed to register Axiom display item " + id, t);
+            }
         }
     }
 
-    private void registerItem(Key itemId, ItemDefinition def) {
-        if (def.isVanillaItem()) {
+    private void registerItem(Key itemId, @Nullable ItemDefinition def) {
+        if (def == null || def.isVanillaItem()) {
             return;
         }
 
