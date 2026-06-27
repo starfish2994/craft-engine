@@ -32,6 +32,7 @@ import net.momirealms.craftengine.bukkit.compatibility.quickshop.QuickShopItemEx
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
 import net.momirealms.craftengine.bukkit.compatibility.viaversion.ViaVersionUtils;
+import net.momirealms.craftengine.bukkit.compatibility.axiom.AxiomIntegration;
 import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockRegister;
 import net.momirealms.craftengine.bukkit.compatibility.worldguard.WorldGuardRegionCondition;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
@@ -261,6 +262,9 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         }
         if (this.isPluginEnabled("BlueMap")) {
             runCatchingHook(this::initBlueMapHook, "BlueMap");
+        }
+        if (this.isPluginEnabled("AxiomPaper")) {
+            runCatchingHook(() -> AxiomIntegration.init(this.plugin), "AxiomPaper");
         }
         this.loggedPlugins.clear();
     }

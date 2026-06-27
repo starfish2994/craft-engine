@@ -66,6 +66,7 @@ paper {
         register("Skript") { required = false }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
+        register("AxiomPaper") { required = false }
         register("QuickShop-Hikari") { required = false }
 
         // PacketEvents

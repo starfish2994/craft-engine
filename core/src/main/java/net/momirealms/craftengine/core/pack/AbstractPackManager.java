@@ -1106,7 +1106,7 @@ public abstract class AbstractPackManager implements PackManager {
                             afterBytes.addAndGet(before.length);
                         }
                         finished.incrementAndGet();
-                    } catch (IOException | JsonParseException ignored) {
+                    } catch (IOException | JsonParseException | NullPointerException ignored) {
                     }
                 }, this.plugin.scheduler().async()));
             }
@@ -1130,7 +1130,7 @@ public abstract class AbstractPackManager implements PackManager {
                             afterBytes.addAndGet(before.length);
                         }
                         finished.incrementAndGet();
-                    } catch (IOException | JsonParseException | IllegalStateException ignored) {
+                    } catch (IOException | JsonParseException | IllegalStateException | NullPointerException ignored) {
                     }
                 }, this.plugin.scheduler().async()));
             }
@@ -3456,6 +3456,13 @@ public abstract class AbstractPackManager implements PackManager {
                                     Map<String, List<Path>> conflictChecker, Map<Path, CachedAssetFile> previousFiles) throws IOException {
         if (Config.excludeFileExtensions().contains(FileUtils.getExtension(file))) {
             return;
+        }
+        if (file.endsWith("bow.json")) {
+            this.plugin.logger().warn("");
+            this.plugin.logger().warn("");
+            this.plugin.logger().warn(file.toAbsolutePath().toString());
+            this.plugin.logger().warn("");
+            this.plugin.logger().warn("");
         }
         CachedAssetFile cachedAsset = previousFiles.get(file);
         long lastModified = attrs.lastModifiedTime().toMillis();
