@@ -15,6 +15,8 @@ public enum Debugger {
     ENTITY_CULLING(Config::debugEntityCulling),
     CHUNK(Config::debugChunk);
 
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance();
+
     private final Supplier<Boolean> condition;
 
     Debugger(Supplier<Boolean> condition) {
@@ -46,17 +48,16 @@ public enum Debugger {
     }
 
     public void warnWithStack(Supplier<String> message) {
-        if (this.condition.get()) {
-            String s = message.get();
-            if (s != null) {
-                CraftEngine.instance().logger().warn("[DEBUG] " + s);
-                if (Config.debugPrintStackTrace()) {
-                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                    for (int i = 2; i < stackTrace.length; i++) {
-                        CraftEngine.instance().logger().warn("[DEBUG]   at " + stackTrace[i]);
-                    }
-                }
-            }
+        if (!this.condition.get()) return;
+        String s = message.get();
+        if (s == null) return;
+        PluginLogger logger = CraftEngine.instance().logger();
+        logger.warn("[DEBUG] " + s);
+        if (Config.debugPrintStackTrace()) {
+            STACK_WALKER.walk(frames -> {
+                frames.skip(1).forEach(f -> logger.warn("[DEBUG]   at " + f));
+                return null;
+            });
         }
     }
 }

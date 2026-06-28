@@ -10,17 +10,11 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.proxy.adventure.key.AdventureKeyProxy;
-import net.momirealms.sparrow.reflection.clazz.SparrowClass;
-import net.momirealms.sparrow.reflection.method.SMethod3;
-import net.momirealms.sparrow.reflection.method.matcher.MethodMatcher;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
 public final class AxiomCraftEngineDisplay {
-    private static final SMethod3 method$AxiomCustomDisplayAPI$create = SparrowClass.of(AxiomCustomDisplayAPI.class)
-            .getDeclaredSparrowMethod(MethodMatcher.named("create").and(MethodMatcher.takeArguments(AdventureKeyProxy.CLASS, String.class, ItemStack.class))).asm$3();
     private final BukkitCraftEngine plugin;
     private final BukkitItemManager itemManager;
     private final AxiomCustomDisplayAPI api = AxiomCustomDisplayAPI.getAPI();
@@ -57,7 +51,7 @@ public final class AxiomCraftEngineDisplay {
         Object key = KeyUtils.toPaperAdventureKey(id);
         String searchKey = definition.translationKey();
         ItemStack itemStack = (ItemStack) item.platformItem();
-        var builder = (AxiomCustomDisplayBuilder) method$AxiomCustomDisplayAPI$create.invoke(this.api, key, searchKey, itemStack);
+        AxiomCustomDisplayBuilder builder = AxiomCustomDisplayAPIProxy.INSTANCE.create(this.api, key, searchKey, itemStack);
         try {
             this.api.register(this.plugin.javaPlugin(), builder);
         } catch (AxiomAlreadyRegisteredException e) {
