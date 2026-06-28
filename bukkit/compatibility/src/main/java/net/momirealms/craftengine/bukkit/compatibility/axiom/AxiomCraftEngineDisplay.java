@@ -18,14 +18,14 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
-public final class AxiomDisplayItems {
+public final class AxiomCraftEngineDisplay {
     private static final SMethod3 method$AxiomCustomDisplayAPI$create = SparrowClass.of(AxiomCustomDisplayAPI.class)
             .getDeclaredSparrowMethod(MethodMatcher.named("create").and(MethodMatcher.takeArguments(AdventureKeyProxy.CLASS, String.class, ItemStack.class))).asm$3();
     private final BukkitCraftEngine plugin;
     private final BukkitItemManager itemManager;
     private final AxiomCustomDisplayAPI api = AxiomCustomDisplayAPI.getAPI();
 
-    public AxiomDisplayItems(BukkitCraftEngine plugin) {
+    public AxiomCraftEngineDisplay(BukkitCraftEngine plugin) {
         this.plugin = plugin;
         this.itemManager = plugin.itemManager();
     }
