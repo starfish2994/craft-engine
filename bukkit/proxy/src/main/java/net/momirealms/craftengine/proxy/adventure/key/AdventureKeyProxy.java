@@ -11,5 +11,5 @@ public interface AdventureKeyProxy {
     Class<?> CLASS = SparrowClass.find("net{}kyori{}adventure{}key{}Key".replace("{}", "."));
 
     @MethodInvoker(name = "key", isStatic = true)
-    Object create(String namespace, String value);
+    Object key(String namespace, String value);
 }
