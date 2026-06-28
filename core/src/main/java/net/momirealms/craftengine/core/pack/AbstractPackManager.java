@@ -3457,13 +3457,6 @@ public abstract class AbstractPackManager implements PackManager {
         if (Config.excludeFileExtensions().contains(FileUtils.getExtension(file))) {
             return;
         }
-        if (file.endsWith("bow.json")) {
-            this.plugin.logger().warn("");
-            this.plugin.logger().warn("");
-            this.plugin.logger().warn(file.toAbsolutePath().toString());
-            this.plugin.logger().warn("");
-            this.plugin.logger().warn("");
-        }
         CachedAssetFile cachedAsset = previousFiles.get(file);
         long lastModified = attrs.lastModifiedTime().toMillis();
         long size = attrs.size();

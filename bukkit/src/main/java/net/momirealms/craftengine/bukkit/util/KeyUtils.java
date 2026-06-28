@@ -25,8 +25,8 @@ public final class KeyUtils {
         return net.kyori.adventure.key.Key.key(key.namespace(), key.value());
     }
 
-    public static Object toAdventureKeyNoRelocation(Key key) {
-        return AdventureKeyProxy.INSTANCE.create(key.namespace(), key.value());
+    public static Object toPaperAdventureKey(Key key) {
+        return AdventureKeyProxy.INSTANCE.key(key.namespace(), key.value());
     }
 
     public static Object toIdentifier(String namespace, String path) {

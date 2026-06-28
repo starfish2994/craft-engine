@@ -303,6 +303,7 @@ public abstract class CraftEngine implements Plugin {
                         }
                         // 同步修改进度
                         this.advancementManager.runDelayedSyncTasks();
+                        this.compatibilityManager.runDelayedSyncTasks();
                         long syncTime = timestamp.deltaMillis();
                         this.reloadEventDispatcher.accept(this);
                         future.complete(ReloadResult.success(finalAsyncTime, syncTime, finalIssues));
@@ -390,6 +391,7 @@ public abstract class CraftEngine implements Plugin {
                 this.paintingManager.runDelayedSyncTasks();
                 // 同步注册配方
                 this.recipeManager.runDelayedSyncTasks();
+                this.compatibilityManager.runDelayedSyncTasks();
             } else {
                 try {
                     this.reloadPlugin(Runnable::run, Runnable::run, true);

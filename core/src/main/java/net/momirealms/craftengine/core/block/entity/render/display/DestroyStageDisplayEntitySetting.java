@@ -65,7 +65,7 @@ public final class DestroyStageDisplayEntitySetting {
         }
         ConfigSection brightness = section.getSection("brightness");
         return new DestroyStageDisplayEntitySetting(
-                List.copyOf(items),
+                items,
                 section.getVector3f("position", ConfigConstants.CENTER_VECTOR3),
                 section.getVector3f("translation", ConfigConstants.ZERO_VECTOR3),
                 section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),

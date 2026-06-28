@@ -3,91 +3,65 @@ package net.momirealms.craftengine.bukkit.compatibility.axiom;
 import com.moulberry.axiom.paperapi.AxiomAlreadyRegisteredException;
 import com.moulberry.axiom.paperapi.AxiomCustomDisplayAPI;
 import com.moulberry.axiom.paperapi.display.AxiomCustomDisplayBuilder;
-import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
-import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
-import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.util.Key;
-import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
+import net.momirealms.craftengine.proxy.adventure.key.AdventureKeyProxy;
+import net.momirealms.sparrow.reflection.clazz.SparrowClass;
+import net.momirealms.sparrow.reflection.method.SMethod3;
+import net.momirealms.sparrow.reflection.method.matcher.MethodMatcher;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
+import java.util.List;
 
 public final class AxiomDisplayItems {
-    private static AxiomDisplayItems instance;
+    private static final SMethod3 method$AxiomCustomDisplayAPI$create = SparrowClass.of(AxiomCustomDisplayAPI.class)
+            .getDeclaredSparrowMethod(MethodMatcher.named("create").and(MethodMatcher.takeArguments(AdventureKeyProxy.CLASS, String.class, ItemStack.class))).asm$3();
     private final BukkitCraftEngine plugin;
+    private final BukkitItemManager itemManager;
+    private final AxiomCustomDisplayAPI api = AxiomCustomDisplayAPI.getAPI();
 
-    private AxiomDisplayItems(BukkitCraftEngine plugin) {
+    public AxiomDisplayItems(BukkitCraftEngine plugin) {
         this.plugin = plugin;
-        Bukkit.getPluginManager().registerEvents(new ReloadListener(), plugin.javaPlugin());
+        this.itemManager = plugin.itemManager();
     }
 
-    public static AxiomDisplayItems init(BukkitCraftEngine plugin) {
-        if (instance == null) {
-            instance = new AxiomDisplayItems(plugin);
-        }
-        return instance;
-    }
-
-    public static AxiomDisplayItems instance() {
-        return instance;
-    }
-
-    void registerAllItems() {
-        AxiomCustomDisplayAPI.getAPI().unregisterAll(this.plugin.javaPlugin());
-
-        Map<Key, ItemDefinition> items = CraftEngineItems.loadedItems();
-        if (items.isEmpty()) {
-            return;
-        }
-
-
-        for (Key id : BukkitItemManager.instance().orderedItemIds()) {
-            try {
-                this.registerItem(id, CraftEngineItems.byId(id));
-            } catch (Throwable t) {
-                this.plugin.logger().warn("Failed to register Axiom display item " + id, t);
-            }
+    public void registerAllItems() {
+        this.api.unregisterAll(this.plugin.javaPlugin());
+        List<Key> ids = this.itemManager.orderedItemIds();
+        if (ids.isEmpty()) return;
+        for (Key id : ids) {
+            if (this.itemManager.isVanillaItem(id)) continue;
+            ItemDefinition definition = this.itemManager.getItemDefinition(id).orElse(null);
+            if (definition == null) continue;
+            this.registerItem(definition);
         }
     }
 
-    private void registerItem(Key itemId, @Nullable ItemDefinition def) {
-        if (def == null || def.isVanillaItem()) {
-            return;
-        }
-
-        BukkitItem item;
+    private void registerItem(ItemDefinition definition) {
+        Item item;
         try {
-            item = (BukkitItem) def.buildItem(ItemBuildContext.empty()).toClientSide(null);
+            item = definition.buildItem(ItemBuildContext.EMPTY);
         } catch (Throwable t) {
             return;
         }
-        ItemStack stack = item.getBukkitItem();
-        if (stack == null || stack.getType().isAir()) {
-            return;
-        }
-
-        Object adventureKey = KeyUtils.toAdventureKeyNoRelocation(itemId);
-        AxiomCustomDisplayBuilder builder = AxiomCustomDisplayAPIProxy.INSTANCE.create(AxiomCustomDisplayAPI.getAPI(), adventureKey, def.translationKey(), stack);
         try {
-            AxiomCustomDisplayAPI.getAPI().register(this.plugin.javaPlugin(), builder);
+            item = item.toClientSide(null);
+        } catch (Throwable ignored) {}
+        if (item == null || item.isEmpty()) return;
+        Key id = definition.id();
+        Object key = KeyUtils.toPaperAdventureKey(id);
+        String searchKey = definition.translationKey();
+        ItemStack itemStack = (ItemStack) item.platformItem();
+        var builder = (AxiomCustomDisplayBuilder) method$AxiomCustomDisplayAPI$create.invoke(this.api, key, searchKey, itemStack);
+        try {
+            this.api.register(this.plugin.javaPlugin(), builder);
         } catch (AxiomAlreadyRegisteredException e) {
-            this.plugin.logger().warn("Display item already registered: " + itemId);
-        }
-    }
-
-    private class ReloadListener implements Listener {
-
-        @EventHandler
-        public void onCraftEngineReload(CraftEngineReloadEvent event) {
-            registerAllItems();
+            this.plugin.logger().warn("Item " + id + " is already registered, skipping.");
         }
     }
 }

@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.BukkitBlockEntityElementConfigs;
+import net.momirealms.craftengine.bukkit.compatibility.axiom.AxiomDisplayItems;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.FloodgateUtils;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.GeyserUtils;
 import net.momirealms.craftengine.bukkit.compatibility.entity.MythicMobsEntityProvider;
@@ -32,7 +33,6 @@ import net.momirealms.craftengine.bukkit.compatibility.quickshop.QuickShopItemEx
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
 import net.momirealms.craftengine.bukkit.compatibility.viaversion.ViaVersionUtils;
-import net.momirealms.craftengine.bukkit.compatibility.axiom.AxiomIntegration;
 import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockRegister;
 import net.momirealms.craftengine.bukkit.compatibility.worldguard.WorldGuardRegionCondition;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
@@ -78,6 +78,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     private final Set<String> loggedPlugins;
     private ModelProvider[] modelProviderArray;
     private TagResolverProvider[] tagResolverProviderArray = null;
+    private AxiomDisplayItems axiomDisplayItems;
     private JsonObject blueMapBlockColors = new JsonObject();
     private boolean hasPlaceholderAPI;
     private boolean hasGeyser;
@@ -263,10 +264,17 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.isPluginEnabled("BlueMap")) {
             runCatchingHook(this::initBlueMapHook, "BlueMap");
         }
-        if (this.isPluginEnabled("AxiomPaper")) {
-            runCatchingHook(() -> AxiomIntegration.init(this.plugin), "AxiomPaper");
+        if (Config.hookAxiomPaper() && this.isPluginEnabled("AxiomPaper")) {
+            runCatchingHook(() -> axiomDisplayItems = new AxiomDisplayItems(this.plugin), "AxiomPaper");
         }
         this.loggedPlugins.clear();
+    }
+
+    @Override
+    public void runDelayedSyncTasks() {
+        if (axiomDisplayItems != null) {
+            axiomDisplayItems.registerAllItems();
+        }
     }
 
     private void runCatchingHook(ThrowableRunnable runnable, String plugin) {
