@@ -27,7 +27,7 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityPro
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.EntityLookupProxy;
@@ -53,7 +53,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     private static BukkitFurnitureManager instance;
 
     public static Class<?> COLLISION_ENTITY_CLASS = Interaction.class;
-    public static Object NMS_COLLISION_ENTITY_TYPE = EntityTypeProxy.INTERACTION;
+    public static Object NMS_COLLISION_ENTITY_TYPE = EntityTypesProxy.INTERACTION;
     public static ColliderType COLLISION_ENTITY_TYPE = ColliderType.INTERACTION;
 
     private final BukkitCraftEngine plugin;
@@ -110,7 +110,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         // 确定碰撞箱实体类型
         COLLISION_ENTITY_TYPE = Config.colliderType();
         COLLISION_ENTITY_CLASS = Config.colliderType() == ColliderType.INTERACTION ? Interaction.class : Boat.class;
-        NMS_COLLISION_ENTITY_TYPE = Config.colliderType() == ColliderType.INTERACTION ? EntityTypeProxy.INTERACTION : EntityTypeProxy.OAK_BOAT;
+        NMS_COLLISION_ENTITY_TYPE = Config.colliderType() == ColliderType.INTERACTION ? EntityTypesProxy.INTERACTION : EntityTypesProxy.OAK_BOAT;
 
         // 注册事件
         Bukkit.getPluginManager().registerEvents(this.furnitureEventListener, this.plugin.javaPlugin());
@@ -154,6 +154,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
                     handleMetaEntityUnload(itemDisplay, true);
                 } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
                     handleCollisionEntityUnload(entity);
+                    entity.remove();
                 }
             }
         }
@@ -314,7 +315,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             if (serverPlayer == null) continue;
             serverPlayer.sendPacket(ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                     entity.getEntityId(), entity.getUniqueId(), location.getX(), location.getY(), location.getZ(), location.getPitch(), location.getYaw(),
-                    EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                    EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
             ), false);
         }
     }

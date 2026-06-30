@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class TeamManagerImpl implements TeamManager {
     private static TeamManagerImpl instance;
@@ -48,21 +49,33 @@ public final class TeamManagerImpl implements TeamManager {
             FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
             buf.writeVarInt(packetId);
             String teamName = TeamManager.createTeamName(color);
-            buf.writeUtf(teamName);
-            buf.writeByte(0);
-            buf.writeComponent(Component.text(teamName));
-            buf.writeByte(3);
-            if (VersionHelper.isOrAbove1_21_5) {
-                buf.writeVarInt(0);
-                buf.writeVarInt(0);
+            buf.writeUtf(teamName); // name
+            buf.writeByte(0); // method 0 = add
+            buf.writeComponent(Component.text(teamName)); // displayName
+            if (VersionHelper.isOrAbove26_2) {
+                buf.writeComponent(Component.empty()); // playerPrefix
+                buf.writeComponent(Component.empty()); // playerSuffix
             } else {
-                buf.writeUtf("always");
-                buf.writeUtf("always");
+                buf.writeByte(3); // options isAllowFriendlyFire && canSeeFriendlyInvisibles
             }
-            buf.writeEnumConstant(color);
-            buf.writeComponent(Component.empty());
-            buf.writeComponent(Component.empty());
-            buf.writeStringList(List.of());
+            if (VersionHelper.isOrAbove1_21_5) {
+                buf.writeVarInt(0); // nametagVisibility
+                buf.writeVarInt(0); // collisionRule
+            } else {
+                buf.writeUtf("always"); // nametagVisibility
+                buf.writeUtf("always"); // collisionRule
+            }
+            if (VersionHelper.isOrAbove26_2) {
+                buf.writeOptional(Optional.of(color), FriendlyByteBuf::writeEnumConstant); // color
+            } else {
+                buf.writeEnumConstant(color); // color
+                buf.writeComponent(Component.empty()); // playerPrefix
+                buf.writeComponent(Component.empty()); // playerSuffix
+            }
+            if (VersionHelper.isOrAbove26_2) {
+                buf.writeByte(3); // options isAllowFriendlyFire && canSeeFriendlyInvisibles
+            }
+            buf.writeStringList(List.of()); // players
             this.teamNameByColor.put(color, teamName);
             packets.add(buf);
         }

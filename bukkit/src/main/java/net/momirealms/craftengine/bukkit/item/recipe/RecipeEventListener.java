@@ -538,6 +538,7 @@ public final class RecipeEventListener implements Listener {
         Optional<ItemDefinition> optionalCustomTool = wrappedFirst.getDefinition();
         // 物品无法被修复
         if (optionalCustomTool.isPresent() && optionalCustomTool.get().settings().repairable().anvilRepair() == Tristate.FALSE) {
+            event.setResult(null);
             return;
         }
 

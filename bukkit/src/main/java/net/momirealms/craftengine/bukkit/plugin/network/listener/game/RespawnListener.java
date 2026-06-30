@@ -20,7 +20,8 @@ public final class RespawnListener implements ByteBufferPacketListener {
     @Override
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
         BukkitServerPlayer player = (BukkitServerPlayer) user;
-        player.clearView();
+        player.clearEntityView();
+        player.clearDestroyStageDisplay();
         FriendlyByteBuf buf = event.getBuffer();
         World world;
         if (VersionHelper.isOrAbove1_20_5) {

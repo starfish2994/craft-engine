@@ -11,8 +11,7 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
@@ -44,7 +43,7 @@ public final class ArmorStandFurnitureElement extends AbstractConditionalFurnitu
     }
 
     ArmorStandFurnitureElement(Furniture furniture, ArmorStandFurnitureElementConfig config, WorldPosition pos) {
-        this(furniture, config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+        this(furniture, config, pos, EntityUtils.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
     ArmorStandFurnitureElement(Furniture furniture, ArmorStandFurnitureElementConfig config, WorldPosition pos, int entityId, boolean positionChanged) {
@@ -56,7 +55,7 @@ public final class ArmorStandFurnitureElement extends AbstractConditionalFurnitu
         this.position = pos;
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, this.uuid, position.x, position.y, position.z,
-                this.position.xRot, this.position.yRot, EntityTypeProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, this.position.yRot
+                this.position.xRot, this.position.yRot, EntityTypesProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, this.position.yRot
         );
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(this.entityId));
         if (VersionHelper.isOrAbove1_20_5 && config.scale != 1) {

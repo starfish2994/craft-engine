@@ -5,7 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class BukkitCraftEnginePlugin extends JavaPlugin {
     private final BukkitCraftEngine plugin;
 
-    private BukkitCraftEnginePlugin() {
+    public BukkitCraftEnginePlugin() {
         this.plugin = new BukkitCraftEngine(this);
         this.plugin.applyDependencies();
         this.plugin.setUpConfigAndLocale();

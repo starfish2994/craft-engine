@@ -527,6 +527,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         Player player = event.getPlayer();
         BukkitServerPlayer serverPlayer = this.onlineUsers.remove(player.getUniqueId());
         if (serverPlayer != null) {
+            serverPlayer.clearDestroyStageDisplay();
             this.resetUserArray();
             this.saveCooldown(player, serverPlayer.cooldown());
         }

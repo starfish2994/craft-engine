@@ -27,6 +27,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.world.*;
 
 import java.util.List;
@@ -43,8 +44,24 @@ public final class FurnitureEventListener implements Listener {
         this.worldManager = worldManager;
     }
 
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    public void onWorldSave(WorldSaveEvent event) {
+        List<ItemDisplay> entities = (List<ItemDisplay>) event.getWorld().getEntitiesByClass(ItemDisplay.class);
+        for (int i = 0, size = entities.size(); i < size; i++) {
+            ItemDisplay entity = entities.get(i);
+            BukkitFurniture furniture = this.manager.loadedFurnitureByMetaEntityId(entity.getEntityId());
+            if (furniture != null) {
+                furniture.saveIfDirty();
+            }
+        }
+    }
+
     /*
-     * Load Entities
+
+
+    加载实体
+
+
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntitiesLoadEarly(EntitiesLoadEvent event) {
@@ -80,18 +97,74 @@ public final class FurnitureEventListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
-    public void onWorldSave(WorldSaveEvent event) {
-        List<ItemDisplay> entities = (List<ItemDisplay>) event.getWorld().getEntitiesByClass(ItemDisplay.class);
+    /*
+
+
+    卸载实体
+
+
+     */
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onChunkUnload(EntitiesUnloadEvent event) {
+        List<Entity> entities = event.getEntities();
         for (int i = 0, size = entities.size(); i < size; i++) {
-            ItemDisplay entity = entities.get(i);
-            BukkitFurniture furniture = this.manager.loadedFurnitureByMetaEntityId(entity.getEntityId());
-            if (furniture != null) {
-                furniture.saveIfDirty();
+            Entity entity = entities.get(i);
+            if (entity instanceof ItemDisplay itemDisplay) {
+                this.manager.handleMetaEntityUnload(itemDisplay, false);
+            } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
+                this.manager.handleCollisionEntityUnload(entity);
+                entity.remove();
             }
         }
     }
 
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onWorldUnload(WorldUnloadEvent event) {
+        GlowingFurnitureBehaviorTemplate.LIGHT_DATA.remove(event.getWorld().getUID());
+        List<Entity> entities = event.getWorld().getEntities();
+        for (int i = 0, size = entities.size(); i < size; i++) {
+            Entity entity = entities.get(i);
+            if (entity instanceof ItemDisplay itemDisplay) {
+                this.manager.handleMetaEntityUnload(itemDisplay, false);
+            } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
+                this.manager.handleCollisionEntityUnload(entity);
+                entity.remove();
+            }
+        }
+    }
+
+    /*
+
+
+    Paper 事件
+
+
+     */
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onTrackFurniture(PlayerTrackEntityEvent event) {
+        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
+            int entityId = furnitureEntity.getEntityId();
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
+            if (furniture == null) return;
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
+            if (serverPlayer == null) return;
+            furniture.controller.onPlayerTrack(serverPlayer);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onUntrackFurniture(PlayerUntrackEntityEvent event) {
+        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
+            int entityId = furnitureEntity.getEntityId();
+            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
+            if (furniture == null) return;
+            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
+            if (serverPlayer == null) return;
+            furniture.controller.onPlayerUntrack(serverPlayer);
+        }
+    }
+
+    // 主要是为了辅助监听 WorldEdit 添加的实体
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityLoad(EntityAddToWorldEvent event) {
         Entity entity = event.getEntity();
@@ -102,34 +175,7 @@ public final class FurnitureEventListener implements Listener {
         }
     }
 
-    /*
-     * Unload Entities
-     */
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onChunkUnload(ChunkUnloadEvent event) {
-        Entity[] entities = event.getChunk().getEntities();
-        for (Entity entity : entities) {
-            if (entity instanceof ItemDisplay itemDisplay) {
-                this.manager.handleMetaEntityUnload(itemDisplay, false);
-            } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
-                this.manager.handleCollisionEntityUnload(entity);
-            }
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onWorldUnload(WorldUnloadEvent event) {
-        GlowingFurnitureBehaviorTemplate.LIGHT_DATA.remove(event.getWorld().getUID());
-        List<Entity> entities = event.getWorld().getEntities();
-        for (Entity entity : entities) {
-            if (entity instanceof ItemDisplay itemDisplay) {
-                this.manager.handleMetaEntityUnload(itemDisplay, false);
-            } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
-                this.manager.handleCollisionEntityUnload(entity);
-            }
-        }
-    }
-
+    // 主要是为了辅助监听 WorldEdit 移除的实体或被kill的实体
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityUnload(EntityRemoveFromWorldEvent event) {
         Entity entity = event.getEntity();
@@ -140,6 +186,13 @@ public final class FurnitureEventListener implements Listener {
         }
     }
 
+    /*
+
+
+    杂项
+
+
+     */
     @SuppressWarnings("DuplicatedCode")
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onFurnitureHitWithDebugStick(FurnitureHitEvent event) {
@@ -205,29 +258,5 @@ public final class FurnitureEventListener implements Listener {
                     ComponentUtils.adventureToMinecraft(Component.translatable("item.minecraft.debug_stick.empty").arguments(Component.text(furniture.id().asString()))), true);
             player.sendPacket(systemChatPacket, false);
         });
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onTrackFurniture(PlayerTrackEntityEvent event) {
-        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
-            int entityId = furnitureEntity.getEntityId();
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
-            if (furniture == null) return;
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
-            if (serverPlayer == null) return;
-            furniture.controller.onPlayerTrack(serverPlayer);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onUntrackFurniture(PlayerUntrackEntityEvent event) {
-        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
-            int entityId = furnitureEntity.getEntityId();
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
-            if (furniture == null) return;
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
-            if (serverPlayer == null) return;
-            furniture.controller.onPlayerUntrack(serverPlayer);
-        }
     }
 }

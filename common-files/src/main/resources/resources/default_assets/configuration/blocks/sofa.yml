@@ -40,10 +40,13 @@ items:
             step: minecraft:block.wood.step
           tags:
             - minecraft:mineable/axe
+          $$>=26.2:
+            bounce_restitution: 0.75
         behaviors:
           - type: bouncing_block
-            bounce_height: 0.66
             sync_player_position: false
+            $$<26.2:
+              bounce_height: 0.66
           - type: seat_block
             seats:
               - 0,0,0
@@ -106,12 +109,17 @@ items:
             hit: minecraft:block.wood.hit
             place: minecraft:block.wood.place
             step: minecraft:block.wood.step
+          destroy_stages:
+            template: internal:destroy_stages
           tags:
             - minecraft:mineable/axe
+          $$>=26.2:
+            bounce_restitution: 0.75
         behaviors:
           - type: sofa_block
           - type: bouncing_block
-            bounce_height: 0.66
+            $$<26.2:
+              bounce_height: 0.66
           - type: seat_block
             seats:
               - 0,0,0 0

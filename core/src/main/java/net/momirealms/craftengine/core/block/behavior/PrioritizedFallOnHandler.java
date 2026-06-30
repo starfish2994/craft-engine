@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.core.block.behavior;
 
+import org.jetbrains.annotations.ApiStatus;
+
 public interface PrioritizedFallOnHandler {
 
     /**
@@ -22,10 +24,12 @@ public interface PrioritizedFallOnHandler {
     void fallOn(Object thisBlock, Object[] args);
 
     /**
+     * --- 1.20 - 26.1.2 ---
      * <code>args[0]</code>: BlockGetter (level)<br>
      * <code>args[1]</code>: Entity (entity)<br>
      * <p>
      * Returns: void
      */
+    @ApiStatus.Obsolete
     void updateEntityMovementAfterFallOn(Object thisBlock, Object[] args);
 }

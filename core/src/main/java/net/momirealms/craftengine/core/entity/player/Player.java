@@ -153,7 +153,7 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void closeInventory();
 
-    public abstract void clearView();
+    public abstract void clearEntityView();
 
     public abstract void unloadCurrentResourcePack();
 

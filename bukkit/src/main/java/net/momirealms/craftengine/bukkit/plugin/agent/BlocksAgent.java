@@ -36,7 +36,7 @@ public final class BlocksAgent {
                 Runnable runnable = (Runnable) field.get(null);
                 runnable.run();
             } catch (Exception e) {
-                e.printStackTrace();
+                e.printStackTrace(System.err);
             }
         }
     }

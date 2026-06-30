@@ -289,12 +289,6 @@ final class BlockReflections {
                     .and(MethodMatcher.returnType(void.class)))
     );
 
-    public static final Method method$Block$updateEntityMovementAfterFallOn = requireNonNull(
-            SparrowClass.of(BlockProxy.CLASS).getDeclaredMethod(MethodMatcher.named("updateEntityMovementAfterFallOn", "updateEntityAfterFallOn")
-                    .and(MethodMatcher.takeArguments(BlockGetterProxy.CLASS, EntityProxy.CLASS))
-                    .and(MethodMatcher.returnType(void.class)))
-    );
-
     public static final Method method$BlockStateBase$is = requireNonNull(
             SparrowClass.of((Class<?>) (VersionHelper.isOrAbove26_1 ? TypedInstanceProxy.CLASS : BlockBehaviourProxy.BlockStateBaseProxy.CLASS)).getDeclaredMethod(MethodMatcher.named("is")
                     .and(MethodMatcher.takeArguments(VersionHelper.isOrAbove26_1 ? Object.class : BlockProxy.CLASS))
@@ -337,5 +331,13 @@ final class BlockReflections {
                     .and(MethodMatcher.takeArguments(BlockStateProxy.CLASS, VersionHelper.isOrAbove1_21_2 ? ServerLevelProxy.CLASS : LevelProxy.CLASS, BlockPosProxy.CLASS, ExplosionProxy.CLASS, BiConsumer.class))
                     .and(MethodMatcher.returnType(void.class))),
             VersionHelper.isOrAbove1_21
+    );
+
+    // 1.20~26.1.2
+    public static final Method method$Block$updateEntityMovementAfterFallOn = MiscUtils.requireNonNullIf(
+            SparrowClass.of(BlockProxy.CLASS).getDeclaredMethod(MethodMatcher.named("updateEntityMovementAfterFallOn", "updateEntityAfterFallOn")
+                    .and(MethodMatcher.takeArguments(BlockGetterProxy.CLASS, EntityProxy.CLASS))
+                    .and(MethodMatcher.returnType(void.class))),
+            !VersionHelper.isOrAbove26_2
     );
 }

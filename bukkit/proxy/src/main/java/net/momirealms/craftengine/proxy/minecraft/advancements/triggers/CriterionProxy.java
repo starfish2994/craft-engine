@@ -1,11 +1,12 @@
-package net.momirealms.craftengine.proxy.minecraft.advancements;
+package net.momirealms.craftengine.proxy.minecraft.advancements.triggers;
 
+import net.momirealms.craftengine.proxy.minecraft.advancements.CriterionTriggerInstanceProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.ConstructorInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 
-@ReflectionProxy(name = "net.minecraft.advancements.Criterion")
+@ReflectionProxy(name = {"net.minecraft.advancements.triggers.Criterion", "net.minecraft.advancements.Criterion"})
 public interface CriterionProxy {
     CriterionProxy INSTANCE = ASMProxyFactory.create(CriterionProxy.class);
 

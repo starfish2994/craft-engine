@@ -1106,7 +1106,7 @@ public abstract class AbstractPackManager implements PackManager {
                             afterBytes.addAndGet(before.length);
                         }
                         finished.incrementAndGet();
-                    } catch (IOException | JsonParseException ignored) {
+                    } catch (IOException | JsonParseException | NullPointerException ignored) {
                     }
                 }, this.plugin.scheduler().async()));
             }
@@ -1130,7 +1130,7 @@ public abstract class AbstractPackManager implements PackManager {
                             afterBytes.addAndGet(before.length);
                         }
                         finished.incrementAndGet();
-                    } catch (IOException | JsonParseException | IllegalStateException ignored) {
+                    } catch (IOException | JsonParseException | IllegalStateException | NullPointerException ignored) {
                     }
                 }, this.plugin.scheduler().async()));
             }

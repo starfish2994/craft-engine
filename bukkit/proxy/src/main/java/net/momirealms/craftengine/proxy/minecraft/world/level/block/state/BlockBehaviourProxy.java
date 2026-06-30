@@ -73,6 +73,12 @@ public interface BlockBehaviourProxy {
     @FieldSetter(name = "descriptionId", activeIf = "min_version=1.21.2")
     void setDescriptionId(Object target, String descriptionId);
 
+    @FieldGetter(name = "bounceRestitution", activeIf = "min_version=26.2")
+    float getBounceRestitution(Object target);
+
+    @FieldSetter(name = "bounceRestitution", activeIf = "min_version=26.2")
+    void setBounceRestitution(Object target, float bounceRestitution);
+
     @ReflectionProxy(name = "net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase")
     interface BlockStateBaseProxy extends StateHolderProxy, TypedInstanceProxy {
         BlockStateBaseProxy INSTANCE = ASMProxyFactory.create(BlockStateBaseProxy.class);

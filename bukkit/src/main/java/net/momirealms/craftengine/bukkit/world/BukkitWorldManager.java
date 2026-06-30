@@ -75,7 +75,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     private final BukkitCraftEngine plugin;
     private boolean initialized = false;
     // loaded worlds
-    private final ConcurrentUUID2ReferenceChainedHashTable<CEWorld> worlds;
+    private final ConcurrentChainedUUID2ReferenceHashTable<CEWorld> worlds;
     private CEWorld[] worldArray;
     private StorageAdaptor storageAdaptor;
     // for faster getter
@@ -97,7 +97,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             throw new IllegalStateException();
         }
         this.plugin = plugin;
-        this.worlds = ConcurrentUUID2ReferenceChainedHashTable.createWithCapacity(10, 0.5f);
+        this.worlds = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(16);
         this.storageAdaptor = new BukkitStorageAdaptor();
         instance = this;
     }
@@ -535,7 +535,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     Object section = sections[i];
                     WorldStorageInjector.uninject(section);
                     if (restore) {
-                        if (!ceSection.statesContainer().isEmpty()) {
+                        if (!ceSection.statesContainer.isEmpty()) {
                             for (int x = 0; x < 16; x++) {
                                 for (int z = 0; z < 16; z++) {
                                     for (int y = 0; y < 16; y++) {

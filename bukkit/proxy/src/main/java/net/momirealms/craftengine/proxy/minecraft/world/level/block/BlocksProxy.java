@@ -11,6 +11,7 @@ public interface BlocksProxy {
     Object AIR = INSTANCE.getAir();
     Object STONE = INSTANCE.getStone();
     Object FIRE = INSTANCE.getFire();
+    Object SOUL_FIRE = INSTANCE.getSoulFire();
     Object ICE = INSTANCE.getIce();
     Object SHORT_GRASS = INSTANCE.getShortGrass();
     Object COMPOSTER = INSTANCE.getComposter();
@@ -45,6 +46,9 @@ public interface BlocksProxy {
 
     @FieldGetter(name = "FIRE", isStatic = true)
     Object getFire();
+
+    @FieldGetter(name = "SOUL_FIRE", isStatic = true)
+    Object getSoulFire();
 
     @FieldGetter(name = "ICE", isStatic = true)
     Object getIce();

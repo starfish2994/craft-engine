@@ -29,8 +29,8 @@ dependencies {
     implementation(project(":bukkit:compatibility:legacy"))
     implementation(project(":common-files"))
 
-    // concurrentutil
-    implementation(files("${rootProject.rootDir}/libs/concurrentutil-${rootProject.properties["concurrent_util_version"]}.jar"))
+    // leafpile
+    implementation(files("${rootProject.rootDir}/libs/leafpile-${rootProject.properties["leafpile_version"]}.jar"))
 
     implementation("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     implementation("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
@@ -66,6 +66,7 @@ paper {
         register("Skript") { required = false }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
+        register("AxiomPaper") { required = false }
         register("QuickShop-Hikari") { required = false }
 
         // PacketEvents
@@ -184,6 +185,7 @@ tasks {
 
 listOf(
     "26.1.2",
+    "26.2"
 ).forEach {
     registerPaperTask(it, javaVersion = 25)
 }

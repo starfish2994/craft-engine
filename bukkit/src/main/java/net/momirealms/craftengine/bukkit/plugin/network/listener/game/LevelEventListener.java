@@ -61,16 +61,18 @@ public final class LevelEventListener implements ByteBufferPacketListener {
             Object soundEvent = SoundTypeProxy.INSTANCE.getBreakSound(soundType);
             Object rawSoundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
             if (BlockStateUtils.isVanillaBlock(state)) {
-                if (BukkitBlockManager.instance().isBreakSoundMissing(rawSoundId)) {
-                    Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(KeyUtils.identifierToKey(rawSoundId));
-                    if (mappedSoundId != null) {
-                        Object packet = ClientboundSoundPacketProxy.INSTANCE.newInstance(
-                                HolderProxy.INSTANCE.direct(SoundEventProxy.INSTANCE.create(KeyUtils.toIdentifier(mappedSoundId), Optional.empty())),
-                                SoundSourceProxy.BLOCKS,
-                                blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
-                                RandomUtils.generateRandomLong()
-                        );
-                        user.sendPacket(packet, true);
+                if (state != 0) {
+                    if (BukkitBlockManager.instance().isBreakSoundMissing(rawSoundId)) {
+                        Key mappedSoundId = BukkitBlockManager.instance().replaceSoundIfExist(KeyUtils.identifierToKey(rawSoundId));
+                        if (mappedSoundId != null) {
+                            Object packet = ClientboundSoundPacketProxy.INSTANCE.newInstance(
+                                    HolderProxy.INSTANCE.direct(SoundEventProxy.INSTANCE.create(KeyUtils.toIdentifier(mappedSoundId), Optional.empty())),
+                                    SoundSourceProxy.BLOCKS,
+                                    blockPos.x() + 0.5, blockPos.y() + 0.5, blockPos.z() + 0.5, 1f, 0.8F,
+                                    RandomUtils.generateRandomLong()
+                            );
+                            user.sendPacket(packet, true);
+                        }
                     }
                 }
             } else {

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.injector;
 
 import net.bytebuddy.implementation.bind.annotation.This;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.display.BukkitDestroyStageDisplayRecorder;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.LightUtils;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
@@ -9,6 +10,8 @@ import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntitySetting;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayRecorder;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.SectionPosUtils;
@@ -91,7 +94,18 @@ public final class WorldStorageInjector {
             // 处理  自定义块到自定义块或原版块到自定义块
             CEChunk chunk = holder.chunk();
             chunk.setUnsaved(true);
-
+            // 尽量还是减少判断逻辑，性能为上，允许存在小幅破坏进度不同步
+            DestroyStageDisplayEntitySetting destroyStages = previousImmutableBlockState.settings().destroyStageDisplay();
+            if (destroyStages != null) {
+                BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                DestroyStageDisplayRecorder.PosKey key = new DestroyStageDisplayRecorder.PosKey(chunk.world.uuid(), pos.asLong());
+                DestroyStageDisplayEntitySetting newDestroyStages = newImmutableBlockState.settings().destroyStageDisplay();
+                if (newDestroyStages == null) {
+                    BukkitDestroyStageDisplayRecorder.INSTANCE.remove(key);
+                } else {
+                    BukkitDestroyStageDisplayRecorder.INSTANCE.swap(key, newDestroyStages);
+                }
+            }
             ConstantBlockEntityRenderer previousRenderer = null;
             // 如果两个方块没有相同的主人 且 旧方块有方块实体
             if (!previousImmutableBlockState.isEmpty()) {
@@ -168,6 +182,11 @@ public final class WorldStorageInjector {
                 if (previous.hasConstantBlockEntityRenderer()) {
                     BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                     chunk.removeConstantBlockEntityRenderer(pos);
+                }
+                DestroyStageDisplayEntitySetting destroyStages = previous.settings().destroyStageDisplay();
+                if (destroyStages != null) {
+                    BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                    BukkitDestroyStageDisplayRecorder.INSTANCE.remove(new DestroyStageDisplayRecorder.PosKey(chunk.world.uuid(), pos.asLong()));
                 }
                 if (Config.enableBlockLightSystem() && chunk.isLoaded()) {
                     // 自定义块到原版块，只需要判断旧块是否和客户端一直

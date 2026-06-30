@@ -698,6 +698,9 @@ misc:
   # Forces PacketEvents registry injection to resolve plugin compatibility issues
   # If errors occur after enabling, please report immediately
   inject-packetevents: true
+  # Enables AxiomPaper integration to register custom items as Axiom display items
+  # This option requires a restart to apply.
+  hook-axiompaper: true
 
 debug:
   common: false

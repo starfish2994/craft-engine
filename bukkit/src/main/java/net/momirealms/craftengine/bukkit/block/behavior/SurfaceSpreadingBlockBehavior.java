@@ -95,12 +95,12 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior imp
             return false;
         } else {
             if (VersionHelper.isOrAbove1_21_2) {
-                return LightEngineProxy.INSTANCE.getLightBlockInto(
+                return LightEngineProxy.INSTANCE.getLightDampeningInto(
                         state, blockState, DirectionProxy.UP,
                         BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getLightDampening$1(blockState)
                 ) < 15;
             } else {
-                return LightEngineProxy.INSTANCE.getLightBlockInto(
+                return LightEngineProxy.INSTANCE.getLightDampeningInto(
                         level, state, pos, blockState, blockPos, DirectionProxy.UP,
                         BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getLightBlock(blockState, level, pos)
                 ) < 15;

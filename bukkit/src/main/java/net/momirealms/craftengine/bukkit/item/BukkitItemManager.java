@@ -364,10 +364,9 @@ public final class BukkitItemManager extends AbstractItemManager {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public BukkitItem fromBytes(byte[] bytes) {
-        return wrap(Bukkit.getUnsafe().deserializeItem(bytes));
+        return wrap(ItemStack.deserializeBytes(bytes));
     }
 
     @Override

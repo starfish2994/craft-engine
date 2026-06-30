@@ -8,8 +8,7 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -25,7 +24,7 @@ public final class TextDisplayBlockEntityElement extends AbstractConstantBlockEn
     public final int entityId;
 
     TextDisplayBlockEntityElement(TextDisplayBlockEntityElementConfig config, BlockPos pos) {
-        this(config, pos, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+        this(config, pos, EntityUtils.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
     TextDisplayBlockEntityElement(TextDisplayBlockEntityElementConfig config, BlockPos pos, int entityId, boolean posChanged) {
@@ -33,7 +32,7 @@ public final class TextDisplayBlockEntityElement extends AbstractConstantBlockEn
         Vector3f position = config.position();
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
-                config.xRot(), config.yRot(), EntityTypeProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                config.xRot(), config.yRot(), EntityTypesProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.config = config;
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));

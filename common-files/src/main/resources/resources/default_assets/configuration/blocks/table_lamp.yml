@@ -18,6 +18,8 @@ items:
             is_redstone_conductor: false
             is_suffocating: false
             support_shape: cobweb
+            destroy_stages:
+              template: internal:destroy_stages
         behaviors:
           - type: toggleable_lamp_block
             can_toggle_with_hand: true
