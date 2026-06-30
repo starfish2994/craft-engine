@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -24,7 +23,6 @@ import net.momirealms.sparrow.reflection.field.matcher.FieldMatcher;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -365,12 +363,12 @@ public final class AdventureHelper {
                     .collect(Collectors.joining("|"));
             pattern = Objects.requireNonNull(PATTERN_CACHE.get(patternString, Pattern::compile));
         }
-        return replaceText(text, pattern, (result, b) ->
+        return replaceText(text, pattern, result ->
                 Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'")).apply(context)
         );
     }
 
-    private static Component replaceText(Component text, Pattern pattern, BiFunction<MatchResult, TextComponent.Builder, ComponentLike> replacement) {
-        return FixedTextReplacementRenderer.INSTANCE.render(text, new FixedTextReplacementRenderer.State(pattern, replacement, true));
+    private static Component replaceText(Component text, Pattern pattern, Function<MatchResult, Component> replacement) {
+        return FixedTextReplacementRenderer.INSTANCE.render(text, new FixedTextReplacementRenderer.State(pattern, replacement));
     }
 }

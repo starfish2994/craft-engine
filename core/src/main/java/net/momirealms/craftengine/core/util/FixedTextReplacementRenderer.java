@@ -1,32 +1,20 @@
 package net.momirealms.craftengine.core.util;
 
-import net.kyori.adventure.text.*;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.renderer.ComponentRenderer;
-import org.jspecify.annotations.NonNull;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.renderer.ComponentRenderer;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * A port of adventure's {@code TextReplacementRenderer} with one fix: when an entire
- * text component is matched (start == 0 and end == content length), the original node's
- * style is preserved and the replacement is pushed down into a child instead of replacing
- * the node in place.
- *
- * <p>adventure's original implementation swaps the node for the replacement and then merges
- * the original style onto it with {@code IF_ABSENT_ON_TARGET}. When the replacement carries
- * its own style (e.g. a color), that style wins and becomes the node's style, which then
- * leaks into the node's existing children. Keeping the original node (as an empty-text node
- * with the original style) and inserting the replacement as a child isolates the replacement
- * style while remaining visually equivalent for the replacement's own text (it inherits the
- * original style through the tree when it does not override it).</p>
- */
 final class FixedTextReplacementRenderer implements ComponentRenderer<FixedTextReplacementRenderer.State> {
     static final FixedTextReplacementRenderer INSTANCE = new FixedTextReplacementRenderer();
 
@@ -34,10 +22,7 @@ final class FixedTextReplacementRenderer implements ComponentRenderer<FixedTextR
     }
 
     @Override
-    public @NonNull Component render(final Component component, final State state) {
-        final boolean prevFirstMatch = state.firstMatch;
-        state.firstMatch = true;
-
+    public @NotNull Component render(final Component component, final @NotNull State state) {
         final List<Component> oldChildren = component.children();
         final int oldChildrenSize = oldChildren.size();
         Style oldStyle = component.style();
@@ -47,75 +32,61 @@ final class FixedTextReplacementRenderer implements ComponentRenderer<FixedTextR
         if (component instanceof TextComponent tc) {
             final String content = tc.content();
             final Matcher matcher = state.pattern.matcher(content);
-            int replacedUntil = 0; // last index handled
+            int replacedUntil = 0;
+            boolean firstMatch = true;
             while (matcher.find()) {
                 if (matcher.start() == 0) {
                     if (matcher.end() == content.length()) {
-                        // Full match: preserve this node's style and push the replacement into a child
-                        // so the replacement's own style cannot leak into the existing children.
-                        final ComponentLike replacement = state.replacement.apply(matcher, Component.text().content(matcher.group()).style(component.style()));
-                        modified = Component.text("", component.style());
-                        if (replacement == null) {
-                            if (children == null) {
-                                children = new ArrayList<>(oldChildrenSize);
+                        final Component replacement = state.replacement.apply(matcher)
+                                .style(s -> s.merge(component.style(), Style.Merge.Strategy.IF_ABSENT_ON_TARGET));
+                        if (oldChildrenSize == 0) {
+                            modified = replacement;
+                            if (replacement.style().hoverEvent() != null) {
+                                oldStyle = oldStyle.hoverEvent(null);
                             }
                         } else {
-                            final Component replaced = replacement.asComponent();
-                            if (replaced.style().hoverEvent() != null) {
-                                // the replacement brings its own hover event; drop the original one to avoid a collision
-                                oldStyle = oldStyle.hoverEvent(null);
-                                modified = modified.style(s -> s.hoverEvent(null));
-                            }
+                            modified = Component.text("", component.style());
                             if (children == null) {
-                                children = new ArrayList<>(oldChildrenSize + 1 + replaced.children().size());
+                                children = new ArrayList<>(oldChildrenSize + 1 + replacement.children().size());
                             }
-                            children.add(replaced);
+                            children.add(replacement);
                         }
                     } else {
-                        // match at the start but not the whole content: work on a child of the root node
                         modified = Component.text("", component.style());
-                        final ComponentLike child = state.replacement.apply(matcher, Component.text().content(matcher.group()));
-                        if (child != null) {
-                            if (children == null) {
-                                children = new ArrayList<>(oldChildrenSize + 1);
-                            }
-                            children.add(child.asComponent());
+                        final Component child = state.replacement.apply(matcher);
+                        if (children == null) {
+                            children = new ArrayList<>(oldChildrenSize + 1);
                         }
+                        children.add(child);
                     }
                 } else {
                     if (children == null) {
                         children = new ArrayList<>(oldChildrenSize + 2);
                     }
-                    if (state.firstMatch) {
-                        // truncate parent to content before match
-                        modified = ((TextComponent) component).content(content.substring(0, matcher.start()));
+                    if (firstMatch) {
+                        modified = tc.content(content.substring(0, matcher.start()));
                     } else if (replacedUntil < matcher.start()) {
                         children.add(Component.text(content.substring(replacedUntil, matcher.start())));
                     }
-                    final ComponentLike builder = state.replacement.apply(matcher, Component.text().content(matcher.group()));
-                    if (builder != null) {
-                        children.add(builder.asComponent());
-                    }
+                    children.add(state.replacement.apply(matcher));
                 }
-                state.firstMatch = false;
+                firstMatch = false;
                 replacedUntil = matcher.end();
             }
-            if (replacedUntil < content.length()) {
-                // append trailing content
-                if (replacedUntil > 0) {
-                    if (children == null) {
-                        children = new ArrayList<>(oldChildrenSize);
-                    }
-                    children.add(Component.text(content.substring(replacedUntil)));
+            if (replacedUntil > 0 && replacedUntil < content.length()) {
+                if (children == null) {
+                    children = new ArrayList<>(oldChildrenSize);
                 }
-                // otherwise, we haven't modified the component, so nothing to change
+                children.add(Component.text(content.substring(replacedUntil)));
             }
-        } else if (modified instanceof TranslatableComponent) { // get TranslatableComponent with() args
-            final List<TranslationArgument> args = ((TranslatableComponent) modified).arguments();
+        } else if (modified instanceof TranslatableComponent translatable) {
+            final List<TranslationArgument> args = translatable.arguments();
             List<TranslationArgument> newArgs = null;
             for (int i = 0, size = args.size(); i < size; i++) {
                 final TranslationArgument original = args.get(i);
-                final TranslationArgument replaced = original.value() instanceof Component ? TranslationArgument.component(this.render((Component) original.value(), state)) : original;
+                final TranslationArgument replaced = original.value() instanceof Component
+                        ? TranslationArgument.component(this.render((Component) original.value(), state))
+                        : original;
                 if (replaced != original) {
                     if (newArgs == null) {
                         newArgs = new ArrayList<>(size);
@@ -129,22 +100,18 @@ final class FixedTextReplacementRenderer implements ComponentRenderer<FixedTextR
                 }
             }
             if (newArgs != null) {
-                modified = ((TranslatableComponent) modified).arguments(newArgs);
+                modified = translatable.arguments(newArgs);
             }
         }
 
-        // hover event
-        if (state.replaceInsideHoverEvents) {
-            final HoverEvent<?> event = oldStyle.hoverEvent();
-            if (event != null) {
-                final HoverEvent<?> rendered = event.withRenderedValue(this, state);
-                if (event != rendered) {
-                    modified = modified.style(s -> s.hoverEvent(rendered));
-                }
+        final HoverEvent<?> event = oldStyle.hoverEvent();
+        if (event != null) {
+            final HoverEvent<?> rendered = event.withRenderedValue(this, state);
+            if (event != rendered) {
+                modified = modified.style(s -> s.hoverEvent(rendered));
             }
         }
 
-        // children
         boolean first = true;
         for (int i = 0; i < oldChildrenSize; i++) {
             final Component child = oldChildren.get(i);
@@ -164,26 +131,12 @@ final class FixedTextReplacementRenderer implements ComponentRenderer<FixedTextR
             }
         }
 
-        state.firstMatch = prevFirstMatch;
-        // update the modified component with new children
         if (children != null) {
             return modified.children(children);
         }
         return modified;
     }
 
-    static final class State {
-        final Pattern pattern;
-        final BiFunction<MatchResult, TextComponent.Builder, ComponentLike> replacement;
-        final boolean replaceInsideHoverEvents;
-        boolean firstMatch = true;
-
-        State(final Pattern pattern,
-              final BiFunction<MatchResult, TextComponent.Builder, ComponentLike> replacement,
-              final boolean replaceInsideHoverEvents) {
-            this.pattern = pattern;
-            this.replacement = replacement;
-            this.replaceInsideHoverEvents = replaceInsideHoverEvents;
-        }
+    record State(Pattern pattern, Function<MatchResult, Component> replacement) {
     }
 }
