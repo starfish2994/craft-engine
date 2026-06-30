@@ -73,6 +73,9 @@ public final class ConfigValue {
     }
 
     public boolean is(Class<?> type) {
+        if (this.value == null) {
+            return false;
+        }
         return type.isAssignableFrom(this.value.getClass());
     }
 
