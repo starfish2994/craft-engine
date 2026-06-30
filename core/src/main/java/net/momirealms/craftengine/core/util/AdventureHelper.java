@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -23,7 +24,9 @@ import net.momirealms.sparrow.reflection.field.matcher.FieldMatcher;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -353,23 +356,21 @@ public final class AdventureHelper {
     public static Component replaceText(Component text, Map<String, ComponentProvider> replacements, Context context) {
         int size = replacements.size();
         if (size == 0) return text;
+        final Pattern pattern;
         if (size == 1) {
-            return text.replaceText(builder ->
-                    builder.matchLiteral(replacements.keySet().iterator().next())
-                            .replacement((result, b) ->
-                                    Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'")).apply(context)
-                            )
-            );
+            pattern = Pattern.compile(Pattern.quote(replacements.keySet().iterator().next()));
         } else {
             String patternString = replacements.keySet().stream()
                     .map(Pattern::quote)
                     .collect(Collectors.joining("|"));
-            return text.replaceText(builder ->
-                    builder.match(Objects.requireNonNull(PATTERN_CACHE.get(patternString, Pattern::compile)))
-                            .replacement((result, b) ->
-                                    Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'")).apply(context)
-                            )
-            );
+            pattern = Objects.requireNonNull(PATTERN_CACHE.get(patternString, Pattern::compile));
         }
+        return replaceText(text, pattern, (result, b) ->
+                Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'")).apply(context)
+        );
+    }
+
+    private static Component replaceText(Component text, Pattern pattern, BiFunction<MatchResult, TextComponent.Builder, ComponentLike> replacement) {
+        return FixedTextReplacementRenderer.INSTANCE.render(text, new FixedTextReplacementRenderer.State(pattern, replacement, true));
     }
 }
