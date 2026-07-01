@@ -299,6 +299,7 @@ item:
     click-in-inventory: false # this option won't work for players in creative mode
     drop: false
     pick-up: false
+    attack: false
 
   # Decide the starting value for automatic custom model data assignment.
   custom-model-data-starting-value:

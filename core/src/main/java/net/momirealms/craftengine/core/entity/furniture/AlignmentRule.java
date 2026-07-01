@@ -25,6 +25,13 @@ public enum AlignmentRule {
         double p1 = Math.round(pair.left() * 4) / 4.0;
         double p2 = Math.round(pair.right() * 4) / 4.0;
         return new Pair<>(p1, p2);
+    }),
+    CENTER_QUARTER(pair -> {
+        double frac1 = pair.left() - Math.floor(pair.left());
+        double frac2 = pair.right() - Math.floor(pair.right());
+        double p1 = Math.floor(pair.left()) + (Math.abs(frac1 - 0.25) <= Math.abs(frac1 - 0.75) ? 0.25 : 0.75);
+        double p2 = Math.floor(pair.right()) + (Math.abs(frac2 - 0.25) <= Math.abs(frac2 - 0.75) ? 0.25 : 0.75);
+        return new Pair<>(p1, p2);
     });
 
     private final Function<Pair<Double, Double>, Pair<Double, Double>> function;
