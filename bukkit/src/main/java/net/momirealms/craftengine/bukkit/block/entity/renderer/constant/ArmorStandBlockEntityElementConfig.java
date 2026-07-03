@@ -3,7 +3,6 @@ package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 import com.google.common.base.Objects;
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.entity.data.decoration.ArmorStandData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
@@ -115,9 +114,9 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
     }
 
     public Item item(Player player, BlockEntityTintSource ts) {
-        Item wrappedItem = BukkitItemManager.instance().createWrappedItem(this.itemId, player);
+        Item wrappedItem = Item.byId(this.itemId, player);
         if (wrappedItem == null) {
-            wrappedItem = BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player);
+            wrappedItem = Item.byId(ItemKeys.BARRIER, player);
         }
         if (ts != null) {
             ts.applyTint(wrappedItem);

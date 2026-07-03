@@ -1,7 +1,5 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
-import net.momirealms.craftengine.bukkit.item.BukkitItem;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -53,7 +51,7 @@ public final class PickItemFromBlockListener implements ByteBufferPacketListener
         if (item == null) {
             Key itemId = blockState.settings().itemId();
             if (itemId == null) return;
-            BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
+            Item wrappedItem = Item.byId(itemId);
             if (wrappedItem == null) return;
             itemStack = wrappedItem.minecraftItem();
         } else {

@@ -2,7 +2,6 @@ package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.entity.data.decoration.ArmorStandData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfigFactory;
@@ -83,11 +82,11 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
     }
 
     public Item item(Player player, FurnitureTintSource tintSource) {
-        Item wrappedItem = BukkitItemManager.instance().createWrappedItem(this.itemId, player);
+        Item wrappedItem = Item.byId(this.itemId, player);
         if (tintSource != null && wrappedItem != null) {
             tintSource.applyTint(wrappedItem);
         }
-        return Optional.ofNullable(wrappedItem).orElseGet(() -> BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, null));
+        return Optional.ofNullable(wrappedItem).orElseGet(() -> Item.byId(ItemKeys.BARRIER));
     }
 
     public FurnitureTintSource createTintSource(@NotNull Furniture furniture) {

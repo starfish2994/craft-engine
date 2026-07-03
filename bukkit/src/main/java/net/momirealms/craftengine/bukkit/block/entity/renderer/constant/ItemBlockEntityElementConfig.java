@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import net.momirealms.craftengine.bukkit.entity.data.item.ItemEntityData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
@@ -48,9 +47,9 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
         this.predicate = predicate;
         this.lazyMetadataPacket = (player, ts) -> {
             List<Object> dataValues = new ArrayList<>();
-            Item wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
+            Item wrappedItem = Item.byId(itemId, player);
             if (wrappedItem == null) {
-                wrappedItem = Objects.requireNonNull(BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player));
+                wrappedItem = Objects.requireNonNull(Item.byId(ItemKeys.BARRIER, player));
             }
             if (ts != null) {
                 ts.applyTint(wrappedItem);

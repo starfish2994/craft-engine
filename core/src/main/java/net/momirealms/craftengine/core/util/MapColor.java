@@ -92,14 +92,14 @@ public final class MapColor {
         }
     }
 
-    public static MapColor get(String name) {
+    public static MapColor byName(String name) {
         if (name == null) {
             return CLEAR;
         }
         return BY_NAME.getOrDefault(name.toLowerCase(Locale.ROOT), CLEAR);
     }
 
-    public static MapColor get(int id) {
+    public static MapColor byId(int id) {
         Preconditions.checkPositionIndex(id, COLORS.length, "material id");
         return getUnchecked(id);
     }
@@ -107,5 +107,40 @@ public final class MapColor {
     private static MapColor getUnchecked(int id) {
         MapColor mapColor = COLORS[id];
         return mapColor != null ? mapColor : CLEAR;
+    }
+
+    public static MapColor byColor(Color color) {
+        if (color == null) {
+            return CLEAR;
+        }
+        return byColor(color.color());
+    }
+
+    public static MapColor byColor(int rgb) {
+        int targetRed = Color.red(rgb);
+        int targetGreen = Color.green(rgb);
+        int targetBlue = Color.blue(rgb);
+        MapColor nearest = CLEAR;
+        double bestDistance = Double.MAX_VALUE;
+        for (MapColor candidate : COLORS) {
+            if (candidate == null) continue;
+            double distance = colorDistance(targetRed, targetGreen, targetBlue,
+                    Color.red(candidate.color), Color.green(candidate.color), Color.blue(candidate.color));
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                nearest = candidate;
+            }
+        }
+        return nearest;
+    }
+
+    private static double colorDistance(int r1, int g1, int b1, int r2, int g2, int b2) {
+        double redAverage = (r1 + r2) / 2.0;
+        int deltaR = r1 - r2;
+        int deltaG = g1 - g2;
+        int deltaB = b1 - b2;
+        double redWeight = 2.0 + redAverage / 256.0;
+        double blueWeight = 2.0 + (255.0 - redAverage) / 256.0;
+        return redWeight * deltaR * deltaR + 4.0 * deltaG * deltaG + blueWeight * deltaB * deltaB;
     }
 }

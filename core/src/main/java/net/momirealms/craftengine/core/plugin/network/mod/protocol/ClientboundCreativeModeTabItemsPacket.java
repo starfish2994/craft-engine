@@ -45,7 +45,7 @@ public record ClientboundCreativeModeTabItemsPacket(Action action, List<Item> it
         List<Key> itemIds = itemManager.orderedItemIds();
         for (Key itemId : itemIds) {
             if (itemManager.isVanillaItem(itemId)) continue;
-            Item item = itemManager.createCustomWrappedItem(itemId, player);
+            Item item = Item.byId(itemId, player);
             if (item == null) continue;
             itemStacks.add(itemManager.s2c(item, player).orElse(item));
         }

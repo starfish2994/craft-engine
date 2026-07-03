@@ -2,7 +2,6 @@ package net.momirealms.craftengine.bukkit.block.entity.renderer.display;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntity;
 import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntitySetting;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -76,9 +75,9 @@ public final class BukkitDestroyStageDisplayEntity extends DestroyStageDisplayEn
     private Object resolveItem(int index, Player player) {
         Key itemKey = this.config.itemForIndex(index);
         if (itemKey == null) return ItemStackProxy.EMPTY;
-        Item wrapped = BukkitItemManager.instance().createWrappedItem(itemKey, player);
+        Item wrapped = Item.byId(itemKey, player);
         if (wrapped == null) {
-            wrapped = BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player);
+            wrapped = Item.byId(ItemKeys.BARRIER, player);
         }
         return wrapped == null ? ItemStackProxy.EMPTY : wrapped.minecraftItem();
     }

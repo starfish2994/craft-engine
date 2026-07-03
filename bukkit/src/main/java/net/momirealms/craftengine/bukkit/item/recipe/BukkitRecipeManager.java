@@ -73,7 +73,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
             if (buildableItem.isPresent()) {
                 itemStacks.add(buildableItem.get().buildItem(ItemBuildContext.empty(), ingredient.count()).minecraftItem());
             } else {
-                Item barrier = BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, null);
+                Item barrier = Item.byId(ItemKeys.BARRIER);
                 assert barrier != null;
                 barrier.customNameJson(AdventureHelper.componentToJson(Component.text(holder.key().asString()).color(NamedTextColor.RED)));
                 itemStacks.add(barrier.minecraftItem());

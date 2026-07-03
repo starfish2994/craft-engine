@@ -290,7 +290,7 @@ public final class RecipeEventListener implements Listener {
                         int litTimeRemaining = AbstractFurnaceBlockEntityProxy.INSTANCE.getLitTimeRemaining(blockEntity);
                         // 准备开始燃烧
                         if (litTimeRemaining <= 0) {
-                            Item remainderItem = this.itemManager.createWrappedItem(remainder, null);
+                            Item remainderItem = Item.byId(remainder);
                             if (remainderItem == null) return;
                             List<Object> items = AbstractFurnaceBlockEntityProxy.INSTANCE.getItems(blockEntity);
                             event.setConsumeFuel(false);

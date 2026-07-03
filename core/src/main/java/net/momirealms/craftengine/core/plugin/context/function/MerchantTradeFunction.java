@@ -133,9 +133,9 @@ public final class MerchantTradeFunction<CTX extends Context> extends AbstractCo
         public record TempItem(Key id, NumberProvider count, ComponentsProcessor components, TagsProcessor nbt) {
 
             public Item build(Player player, Context context) {
-                Item item = CraftEngine.instance().itemManager().createWrappedItem(this.id, player);
+                Item item = Item.byId(this.id, player);
                 if (item == null) {
-                    item = CraftEngine.instance().itemManager().createWrappedItem(ItemKeys.STONE, player);
+                    item = Item.byId(ItemKeys.STONE, player);
                     assert item != null;
                     item.itemNameComponent(Component.text(this.id.asString()).color(NamedTextColor.RED));
                 } else {

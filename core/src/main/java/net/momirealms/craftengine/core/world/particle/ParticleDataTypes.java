@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.world.particle;
 
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -60,7 +61,7 @@ public final class ParticleDataTypes {
                 ParticleTypes.DUST_COLOR_TRANSITION);
         registerParticleData(section -> {
                     final Key itemId = section.getNonNullIdentifier("item");
-                    return new ItemStackData(LazyReference.lazyReference(() -> CraftEngine.instance().itemManager().createWrappedItem(itemId, null)));
+                    return new ItemStackData(LazyReference.lazyReference(() -> Item.byId(itemId)));
                 },
                 ParticleTypes.ITEM);
         registerParticleData(section -> new VibrationData(

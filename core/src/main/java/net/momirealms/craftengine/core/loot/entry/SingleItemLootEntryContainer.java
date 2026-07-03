@@ -25,7 +25,7 @@ public class SingleItemLootEntryContainer extends AbstractSingleLootEntryContain
 
     @Override
     protected void createItem(Consumer<Item> lootConsumer, LootContext context) {
-        Item tItem = CraftEngine.instance().itemManager().createWrappedItem(this.item, context.getOptionalParameter(DirectContextParameters.PLAYER).orElse(null));
+        Item tItem = Item.byId(this.item, context.getOptionalParameter(DirectContextParameters.PLAYER).orElse(null));
         if (tItem != null) {
             lootConsumer.accept(tItem);
         } else {

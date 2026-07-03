@@ -114,7 +114,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
 
     public List<Object> createCustomProjectileEntityDataValues(Player player) {
         List<Object> itemDisplayValues = new ArrayList<>();
-        Item displayedItem = BukkitItemManager.instance().createWrappedItem(this.display.item(), player);
+        Item displayedItem = Item.byId(this.display.item(), player);
         if (displayedItem == null) return itemDisplayValues;
         displayedItem = BukkitItemManager.instance().s2c(displayedItem, player).orElse(displayedItem);
 

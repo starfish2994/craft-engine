@@ -134,7 +134,7 @@ public abstract class Furniture implements Cullable {
         if (itemId == null) {
             return null;
         }
-        return CraftEngine.instance().itemManager().createWrappedItem(itemId, null);
+        return Item.byId(itemId);
     }
 
     /**
