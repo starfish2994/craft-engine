@@ -374,11 +374,13 @@ public final class BukkitItemManager extends AbstractItemManager {
         return wrap(ItemStackUtils.parseMinecraftItem(tag, VersionHelper.WORLD_VERSION));
     }
 
+    @Deprecated
     @Override
     public BukkitItem createCustomWrappedItem(Key id, Player player) {
         return Optional.ofNullable(itemDefinitionById.get(id)).map(it -> (BukkitItem) it.buildItem(player)).orElse(null);
     }
 
+    @Deprecated
     @Override
     public BukkitItem createWrappedItem(Key id, @Nullable Player player) {
         ItemDefinition itemDefinition = this.itemDefinitionById.get(id);
