@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.mcmeta;
 import com.google.gson.JsonArray;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record PackVersion(int major, int minor) implements Comparable<PackVersion> {
@@ -99,7 +100,7 @@ public record PackVersion(int major, int minor) implements Comparable<PackVersio
     }
 
     public static PackVersion parse(float num) {
-        String str = String.valueOf(num);
+        String str = new BigDecimal(String.valueOf(num)).toPlainString();
         String[] parts = str.split("\\.");
         int integerPart = Integer.parseInt(parts[0]);
         int decimalPart = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
