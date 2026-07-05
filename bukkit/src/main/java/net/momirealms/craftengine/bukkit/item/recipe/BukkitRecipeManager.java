@@ -93,6 +93,10 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     // 换成的数据包配方
     private Map<Key, JsonObject> lastDatapackRecipes = Map.of();
     private Object lastRecipeManager = null;
+    // 进入服务器时自动解锁全部配方的缓存
+    private List<NamespacedKey> cachedAllRecipeKeys;
+    // 进入服务器时自动解锁指定配方的缓存（全局 list 与单配方 unlock_on_join 合并）
+    private List<NamespacedKey> cachedUnlockOnJoinKeys;
 
     public BukkitRecipeManager(BukkitCraftEngine plugin) {
         super(createRecipeRegistry(), plugin);
@@ -140,6 +144,8 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         if (!Config.enableRecipeSystem()) return;
         // 安排卸载任务，这些任务会在load后执行。如果没有load说明服务器已经关闭了，那就不需要管卸载了。
         if (!this.plugin.isStopping()) {
+            this.cachedAllRecipeKeys = null;
+            this.cachedUnlockOnJoinKeys = null;
             for (Recipe recipe : this.nativeRecipes) {
                 Key id = recipe.id();
                 // 不要卸载数据包配方，只记录自定义的配方
@@ -326,11 +332,53 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
                 }
                 Recipe recipe = serializer.readJson(id, jsonObject);
                 markAsDataPackRecipe(id);
-                registerRecipeInternal(recipe, false);
+                registerRecipeInternal(recipe, false, false);
             } catch (Throwable e) {
                 this.plugin.logger().warn("Failed to load data pack recipe " + id + ". Json: " + jsonObject, e);
             }
         }
+    }
+
+    public boolean shouldUnlockRecipesOnJoin() {
+        return Config.unlockAllRecipesOnJoin()
+                || !Config.unlockRecipesOnJoinList().isEmpty()
+                || !this.unlockOnJoinRecipes.isEmpty();
+    }
+
+    public void unlockRecipesOnJoin(org.bukkit.entity.Player player) {
+        List<NamespacedKey> keys;
+        if (Config.unlockAllRecipesOnJoin()) {
+            keys = getAllRecipeKeys();
+        } else {
+            keys = getUnlockOnJoinKeys();
+        }
+        if (!keys.isEmpty()) {
+            player.discoverRecipes(keys);
+        }
+    }
+
+    private List<NamespacedKey> getUnlockOnJoinKeys() {
+        if (this.cachedUnlockOnJoinKeys == null) {
+            LinkedHashSet<Key> merged = new LinkedHashSet<>(Config.unlockRecipesOnJoinList());
+            merged.addAll(this.unlockOnJoinRecipes);
+            List<NamespacedKey> keys = new ArrayList<>(merged.size());
+            for (Key key : merged) {
+                keys.add(KeyUtils.toNamespacedKey(key));
+            }
+            this.cachedUnlockOnJoinKeys = keys;
+        }
+        return this.cachedUnlockOnJoinKeys;
+    }
+
+    private List<NamespacedKey> getAllRecipeKeys() {
+        if (this.cachedAllRecipeKeys == null) {
+            List<NamespacedKey> keys = new ArrayList<>(super.byId.size());
+            for (Key key : super.byId.keySet()) {
+                keys.add(KeyUtils.toNamespacedKey(key));
+            }
+            this.cachedAllRecipeKeys = keys;
+        }
+        return this.cachedAllRecipeKeys;
     }
 
     private Map<Key, JsonObject> scanResources() {

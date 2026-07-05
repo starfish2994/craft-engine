@@ -196,6 +196,8 @@ public final class Config {
     private boolean recipe$disable_vanilla_recipes$all;
     private boolean recipe$unlock_on_ingredient_obtained;
     private Set<Key> recipe$disable_vanilla_recipes$list;
+    private boolean recipe$unlock_on_join$all;
+    private Set<Key> recipe$unlock_on_join$list;
     private List<String> recipe$ingredient_sources;
     private boolean recipe$inject_block_entities;
 
@@ -659,6 +661,8 @@ public final class Config {
         this.recipe$disable_vanilla_recipes$list = config.getStringList("recipe.disable-vanilla-recipes.list").stream().map(Key::of).collect(Collectors.toSet());
         this.recipe$ingredient_sources = config.getStringList("recipe.ingredient-sources");
         this.recipe$unlock_on_ingredient_obtained = config.getBoolean("recipe.unlock-on-ingredient-obtained", true);
+        this.recipe$unlock_on_join$all = config.getBoolean("recipe.unlock-on-join.all", false);
+        this.recipe$unlock_on_join$list = config.getStringList("recipe.unlock-on-join.list").stream().map(Key::of).collect(Collectors.toSet());
         if (this.firstTime) {
             this.recipe$inject_block_entities = config.getBoolean("recipe.inject-block-entities", true);
         }
@@ -1393,6 +1397,14 @@ public final class Config {
 
     public static boolean unlockOnIngredientObtained() {
         return instance.recipe$unlock_on_ingredient_obtained;
+    }
+
+    public static boolean unlockAllRecipesOnJoin() {
+        return instance.recipe$unlock_on_join$all;
+    }
+
+    public static Set<Key> unlockRecipesOnJoinList() {
+        return instance.recipe$unlock_on_join$list;
     }
 
     public static boolean triggerUpdateAttack() {

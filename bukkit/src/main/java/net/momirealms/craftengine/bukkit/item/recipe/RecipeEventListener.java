@@ -54,6 +54,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.view.AnvilView;
 import org.bukkit.persistence.PersistentDataType;
@@ -74,6 +75,13 @@ public final class RecipeEventListener implements Listener {
         this.itemManager = itemManager;
         this.recipeManager = recipeManager;
         this.plugin = plugin;
+    }
+
+    // 进入服务器时自动解锁配方
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!this.recipeManager.shouldUnlockRecipesOnJoin()) return;
+        this.recipeManager.unlockRecipesOnJoin(event.getPlayer());
     }
 
     @SuppressWarnings("deprecation")
