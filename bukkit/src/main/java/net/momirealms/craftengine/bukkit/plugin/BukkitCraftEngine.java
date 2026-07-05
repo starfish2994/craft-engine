@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.momirealms.antigrieflib.AntiGriefCompatibility;
 import net.momirealms.antigrieflib.AntiGriefLib;
 import net.momirealms.craftengine.bukkit.advancement.BukkitAdvancementManager;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
@@ -57,6 +58,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
@@ -69,6 +71,7 @@ public final class BukkitCraftEngine extends CraftEngine {
     private SchedulerTask tickTask;
     private boolean successfullyLoaded = false;
     private boolean successfullyEnabled = false;
+    private final List<AntiGriefCompatibility> antiGriefProviders = new ArrayList<>(1);
     private AntiGriefLib antiGrief;
     private JavaPlugin javaPlugin;
     private final Path dataFolderPath;
@@ -473,13 +476,26 @@ public final class BukkitCraftEngine extends CraftEngine {
         }
     }
 
+    /**
+     * Register custom protection logics
+     *
+     * @param provider protection provider
+     */
+    public void registerProtectionProvider(AntiGriefCompatibility provider) {
+        this.antiGriefProviders.add(provider);
+        this.antiGrief = null;
+    }
+
     public AntiGriefLib antiGriefProvider() {
         if (this.antiGrief == null) {
-            this.antiGrief = AntiGriefLib.builder(this.javaPlugin)
+            AntiGriefLib.Builder builder = AntiGriefLib.builder(this.javaPlugin)
                     .ignoreOP(true)
                     .silentLogs(false)
-                    .bypassPermission("craftengine.antigrief.bypass")
-                    .build();
+                    .bypassPermission("craftengine.antigrief.bypass");
+            for (AntiGriefCompatibility compatibility : this.antiGriefProviders) {
+                builder.register(compatibility);
+            }
+            this.antiGrief = builder.build();
         }
         return this.antiGrief;
     }
