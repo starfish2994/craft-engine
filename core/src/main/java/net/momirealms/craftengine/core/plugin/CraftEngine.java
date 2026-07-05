@@ -212,7 +212,6 @@ public abstract class CraftEngine implements Plugin {
         this.projectileManager.reload();
         this.seatManager.reload();
         this.networkManager.reload();
-        this.proxyMessageManager.reload();
     }
 
     private void runDelayTasks(boolean reloadRecipe) {
@@ -240,6 +239,8 @@ public abstract class CraftEngine implements Plugin {
             // 转换数据包配方
             delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.recipeManager.delayedLoad(), this.scheduler.async()));
         }
+        // 代理消息
+        delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.proxyMessageManager.delayedLoad(), this.scheduler.async()));
         CompletableFutures.allOf(delayedLoadTasks).join();
     }
 
