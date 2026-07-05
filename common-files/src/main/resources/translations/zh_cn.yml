@@ -63,6 +63,8 @@ command.search_usage.no_item: <red>请手持物品后再执行此命令</red>
 command.totem_animation.failure.not_totem: <red>“<arg:0>”不是不死图腾或者找不到该物品</red>
 command.totem_animation.success.single: <white>已将图腾动画<arg:0>播放给<arg:1></white>
 command.totem_animation.success.multiple: <white>已将图腾动画<arg:0>播放给<arg:1>名玩家</white>
+command.toast.failure.item_not_exist: <red>物品 '<arg:0>' 不存在</red>
+command.toast.success.single: <white>已将提示<arg:0>发送给<arg:1></white>
 command.resource.enable.success: <white>已启用资源<arg:0>。运行<click:run_command:/ce reload all><u>/ce reload all</u></click>以应用更改</white>
 command.resource.enable.failure.unknown: <red>未知的资源 “<arg:0>”</red>
 command.resource.disable.success: <white>已禁用资源<arg:0>。运行<click:run_command:/ce reload all><u>/ce reload all</u></click>以应用更改</white>

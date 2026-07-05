@@ -408,7 +408,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     }
                     if (itemDefinition.isVanillaItem()) continue;
                     // cache command suggestions
-                    AbstractItemManager.this.cachedCustomItemSuggestions.add(Suggestion.suggestion(id.asString()));
+                    Suggestion suggestion = Suggestion.suggestion(id.asString());
+                    AbstractItemManager.this.cachedCustomItemSuggestions.add(suggestion);
                     // totem animations
                     if (VersionHelper.isOrAbove1_21_2) {
                         AbstractItemManager.this.cachedTotemSuggestions.add(Suggestion.suggestion(id.asString()));

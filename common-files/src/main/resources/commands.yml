@@ -94,6 +94,13 @@ totem_animation:
     - /craftengine feature totem-animation
     - /ce feature totem-animation
 
+toast:
+  enable: true
+  permission: ce.command.admin.toast
+  usage:
+    - /craftengine feature toast
+    - /ce feature toast
+
 enable_resource:
   enable: true
   permission: ce.command.admin.resource

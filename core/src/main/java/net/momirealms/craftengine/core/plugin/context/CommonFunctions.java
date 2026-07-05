@@ -63,6 +63,7 @@ public final class CommonFunctions {
     public static final CommonFunctionType<SetExpFunction<Context>> SET_EXP = register(Key.ce("set_exp"), SetExpFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<SetLevelFunction<Context>> SET_LEVEL = register(Key.ce("set_level"), SetLevelFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<PlayTotemAnimationFunction<Context>> PLAY_TOTEM_ANIMATION = register(Key.ce("play_totem_animation"), PlayTotemAnimationFunction.factory(CommonConditions::fromConfig));
+    public static final CommonFunctionType<TotemAnimationFunction<Context>> TOTEM_ANIMATION = register(Key.ce("totem_animation"), TotemAnimationFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<CloseInventoryFunction<Context>> CLOSE_INVENTORY = register(Key.ce("close_inventory"), CloseInventoryFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<ClearItemFunction<Context>> CLEAR_ITEM = register(Key.ce("clear_item"), ClearItemFunction.factory(CommonConditions::fromConfig));
 
