@@ -77,6 +77,15 @@ repositories {
 dependencies {
     compileOnly("net.momirealms:craft-engine-core:26.7")
     compileOnly("net.momirealms:craft-engine-bukkit:26.7")
-    compileOnly("net.momirealms:craft-engine-adventure:26.7") // import this if you want to use the adventure library shaded by CraftEngine
+}
+```
+
+Some optional dependencies
+```kotlin
+dependencies {
+    // If you want to use the shaded adventure library
+    compileOnly("net.momirealms:craft-engine-adventure:26.7")
+    // This dependency is used to access certain NMS code, which is not a stable API.
+    compileOnly("net.momirealms:craft-engine-bukkit-proxy:26.7")
 }
 ```

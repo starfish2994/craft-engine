@@ -17,7 +17,9 @@ dependencies {
     paperServer(project)
 
     implementation(project(":core"))
-    implementation(project(":bukkit"))
+    implementation(project(":bukkit")) {
+        exclude(group = "net.momirealms", module = "antigrieflib")
+    }
     implementation(project(":bukkit:legacy"))
     implementation(project(":bukkit:compatibility"))
     implementation(project(":bukkit:compatibility:legacy"))
@@ -27,7 +29,6 @@ dependencies {
     implementation(files("${rootProject.rootDir}/libs/leafpile-${rootProject.properties["leafpile_version"]}.jar"))
 
     implementation("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
-    implementation("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
     implementation("net.momirealms:craft-engine-nms-helper:${rootProject.properties["nms_helper_version"]}")
     implementation("cn.gtemc:itembridge:${rootProject.properties["itembridge_version"]}")
     implementation("cn.gtemc:levelerbridge:${rootProject.properties["levelerbridge_version"]}")
