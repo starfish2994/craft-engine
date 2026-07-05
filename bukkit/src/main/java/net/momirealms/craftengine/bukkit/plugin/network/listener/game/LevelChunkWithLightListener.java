@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import net.momirealms.craftengine.bukkit.entity.furniture.behavior.GlowingFurnitureBehaviorTemplate;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
@@ -102,7 +103,7 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
 
             PalettedContainer<Integer> container = mcSection.blockStateContainer();
             // 重定向生物群系
-            if (biomeRemapper.remap(user, mcSection.biomeContainer())) {
+            if (biomeRemapper.remap(player, chunkPos, mcSection.biomeContainer())) {
                 hasChangedAnyBlock = true;
             }
 
@@ -335,26 +336,26 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
     }
 
     public interface BiomeRemapper {
-        BiomeRemapper DUMMY = (user, biomes) -> false;
+        BiomeRemapper DUMMY = (player, pos, biomes) -> false;
 
-        boolean remap(NetWorkUser user, PalettedContainer<Integer> biomes);
+        boolean remap(Player player, ChunkPos pos, PalettedContainer<Integer> biomes);
     }
 
     private record DualBiomeRemapper(BiomeRemapper first, BiomeRemapper second) implements BiomeRemapper {
 
         @Override
-        public boolean remap(NetWorkUser user, PalettedContainer<Integer> biomes) {
-            return this.first.remap(user, biomes) || this.second.remap(user, biomes);
+        public boolean remap(Player player, ChunkPos pos, PalettedContainer<Integer> biomes) {
+            return this.first.remap(player, pos, biomes) || this.second.remap(player, pos, biomes);
         }
     }
 
     private record CompositeBiomeRemapper(BiomeRemapper[] remappers) implements BiomeRemapper {
 
         @Override
-        public boolean remap(NetWorkUser user, PalettedContainer<Integer> biomes) {
+        public boolean remap(Player player, ChunkPos pos, PalettedContainer<Integer> biomes) {
             boolean anyChanged = false;
             for (BiomeRemapper remapper : this.remappers) {
-                if (remapper.remap(user, biomes)) {
+                if (remapper.remap(player, pos, biomes)) {
                     anyChanged = true;
                 }
             }
