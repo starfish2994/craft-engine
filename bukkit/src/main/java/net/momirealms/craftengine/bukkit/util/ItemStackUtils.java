@@ -32,6 +32,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+
 public final class ItemStackUtils {
     private ItemStackUtils() {}
 
@@ -69,6 +71,9 @@ public final class ItemStackUtils {
 
     public static ItemStack fromBytes(byte[] bytes) {
         CompoundTag compoundTag = NBT.readCompressed(bytes, false);
+        if (compoundTag.isEmpty()) {
+            compoundTag = NBT.readCompressed(bytes, true);
+        }
         return parseBukkitItem(compoundTag, compoundTag.getInt("DataVersion", Config.itemDataFixerUpperFallbackVersion()));
     }
 
