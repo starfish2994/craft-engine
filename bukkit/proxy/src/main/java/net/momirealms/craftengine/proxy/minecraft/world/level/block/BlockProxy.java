@@ -27,6 +27,9 @@ public interface BlockProxy extends BlockBehaviourProxy {
     @FieldSetter(name = "stateDefinition")
     void setStateDefinition(Object target, Object value);
 
+    @FieldGetter(name = "descriptionId", activeIf = "max_version=1.21.1")
+    String getDescriptionId(Object target);
+
     @FieldSetter(name = "descriptionId", activeIf = "max_version=1.21.1")
     void setDescriptionId(Object target, String descriptionId);
 

@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.ItemWrapper;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -19,13 +18,12 @@ public abstract class BukkitItemWrapper implements ItemWrapper {
     }
 
     protected BukkitItemWrapper(final ItemStack itemStack) {
-        ItemStack item = ItemStackUtils.ensureCraftItemStack(itemStack);
-        this.itemStack = CraftItemStackProxy.INSTANCE.unwrap(item);
+        this.itemStack = ItemStackUtils.unwrap(itemStack);
     }
 
     @Override
     public ItemStack platformItem() {
-        return ItemStackProxy.INSTANCE.getBukkitStack(minecraftItem());
+        return ItemStackUtils.getBukkitStack(minecraftItem());
     }
 
     @Override

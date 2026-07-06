@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
 import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.entity.display.Billboard;
 import net.momirealms.craftengine.core.entity.display.ItemDisplayContext;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
@@ -97,11 +96,11 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
         this.predicate = predicate;
         this.hasCondition = hasCondition;
         BiFunction<Player, FurnitureTintSource, Item> itemFunction = (player, tintSource) -> {
-            Item wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
+            Item wrappedItem = Item.byId(itemId, player);
             if (tintSource != null && wrappedItem != null) {
                 tintSource.applyTint(wrappedItem);
             }
-            return Optional.ofNullable(wrappedItem).orElseGet(() -> BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, null));
+            return Optional.ofNullable(wrappedItem).orElseGet(() -> Item.byId(ItemKeys.BARRIER));
         };
         this.metadata = (player, source) -> {
             List<Object> dataValues = new ArrayList<>();

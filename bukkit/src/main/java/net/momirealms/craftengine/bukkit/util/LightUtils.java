@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.util;
 
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundLightUpdatePacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.*;
@@ -36,7 +37,14 @@ public final class LightUtils {
             long chunkKey = entry.getKey();
             Object chunkHolder = ChunkMapProxy.INSTANCE.getVisibleChunkIfPresent(chunkMap, chunkKey);
             if (chunkHolder == null) continue;
-            List<Object> players = ChunkHolderProxy.INSTANCE.getPlayers(chunkHolder, false);
+            List<Object> players;
+            if (VersionHelper.hasPaperPatch) {
+                players = ChunkHolderProxy.INSTANCE.getPlayers(chunkHolder, false);
+            } else {
+                Object playerProvider = ChunkHolderProxy.INSTANCE.getPlayerProvider(chunkHolder);
+                ChunkPos chunkPos = new ChunkPos(chunkKey);
+                players = ChunkHolderProxy.PlayerProviderProxy.INSTANCE.getPlayers(playerProvider, ChunkPosProxy.INSTANCE.newInstance(chunkPos.x, chunkPos.z), false);
+            }
             if (players.isEmpty()) continue;
             Object lightEngine = ChunkSourceProxy.INSTANCE.getLightEngine(chunkSource);
             Object chunkPos = ChunkPosProxy.INSTANCE.newInstance((int) chunkKey, (int) (chunkKey >> 32));

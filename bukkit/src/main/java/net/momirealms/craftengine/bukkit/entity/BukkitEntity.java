@@ -27,17 +27,17 @@ public class BukkitEntity extends AbstractEntity {
 
     @Override
     public double x() {
-        return platformEntity().getX();
+        return EntityProxy.INSTANCE.getX(serverEntity());
     }
 
     @Override
     public double y() {
-        return platformEntity().getY();
+        return EntityProxy.INSTANCE.getY(serverEntity());
     }
 
     @Override
     public double z() {
-        return platformEntity().getZ();
+        return EntityProxy.INSTANCE.getZ(serverEntity());
     }
 
     @Override
@@ -56,12 +56,12 @@ public class BukkitEntity extends AbstractEntity {
 
     @Override
     public float xRot() {
-        return platformEntity().getYaw();
+        return EntityProxy.INSTANCE.getXRot(serverEntity());
     }
 
     @Override
     public float yRot() {
-        return platformEntity().getPitch();
+        return EntityProxy.INSTANCE.getYRot(serverEntity());
     }
 
     @Override

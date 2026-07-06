@@ -2,6 +2,7 @@ package net.momirealms.craftengine.proxy.minecraft.server;
 
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.chat.ComponentProxy;
+import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
@@ -43,6 +44,12 @@ public interface MinecraftServerProxy {
 
     @MethodInvoker(name = "isUnderSpawnProtection")
     boolean isUnderSpawnProtection(Object target, @Type(clazz = ServerLevelProxy.class) Object level, @Type(clazz = BlockPosProxy.class) Object pos, @Type(clazz = PlayerProxy.class) Object player);
+
+    @MethodInvoker(name = "getLevel")
+    Object getLevel(Object target, @Type(clazz = ResourceKeyProxy.class) Object dimension);
+
+    @MethodInvoker(name = "hasStopped")
+    boolean hasStopped(Object target);
 
     @ReflectionProxy(name = "net.minecraft.server.MinecraftServer$ServerResourcePackInfo")
     interface ServerResourcePackInfoProxy {

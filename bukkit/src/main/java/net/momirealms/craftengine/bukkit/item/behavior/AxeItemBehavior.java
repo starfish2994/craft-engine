@@ -96,7 +96,7 @@ public final class AxeItemBehavior extends ItemBehavior {
         BlockPos pos = context.getClickedPos();
         context.getLevel().playBlockSound(Vec3d.atCenterOf(pos), AXE_STRIP_SOUND, 1, 1);
         LevelWriterProxy.INSTANCE.setBlock(context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(pos), newState.minecraftState(), UpdateFlags.UPDATE_ALL_IMMEDIATE);
-        clicked.block().getWorld().sendGameEvent(bukkitPlayer, GameEvent.BLOCK_CHANGE, new Vector(pos.x(), pos.y(), pos.z()));
+        LevelUtils.sendGameEvent(clicked.block().getWorld(), bukkitPlayer, GameEvent.BLOCK_CHANGE, new Vector(pos.x(), pos.y(), pos.z()));
         Material material = MaterialUtils.getMaterial(item.vanillaId());
         if (bukkitPlayer != null) {
             bukkitPlayer.setStatistic(Statistic.USE_ITEM, material, bukkitPlayer.getStatistic(Statistic.USE_ITEM, material) + 1);

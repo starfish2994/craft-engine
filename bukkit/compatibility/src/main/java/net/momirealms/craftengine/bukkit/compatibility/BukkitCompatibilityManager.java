@@ -353,7 +353,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     @SuppressWarnings({"deprecation", "DataFlowIssue"})
     private void initFastAsyncWorldEditHook() {
         Plugin fastAsyncWorldEdit = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit");
-        String version = VersionHelper.isPaper ? fastAsyncWorldEdit.getPluginMeta().getVersion() : fastAsyncWorldEdit.getDescription().getVersion();
+        String version = VersionHelper.hasPaperPatch ? fastAsyncWorldEdit.getPluginMeta().getVersion() : fastAsyncWorldEdit.getDescription().getVersion();
         if (!WorldEditBlockRegister.checkFAWECompatible(version)) {
             if (VersionHelper.isOrAbove1_20_3) {
                 this.plugin.logger().error("");

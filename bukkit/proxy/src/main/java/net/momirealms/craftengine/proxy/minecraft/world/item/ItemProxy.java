@@ -36,4 +36,7 @@ public interface ItemProxy {
 
     @MethodInvoker(name = "useOn")
     Object useOn(Object target, @Type(clazz = UseOnContextProxy.class) Object context);
+
+    @MethodInvoker(name = "getDescriptionId")
+    String getDescriptionId(Object target);
 }

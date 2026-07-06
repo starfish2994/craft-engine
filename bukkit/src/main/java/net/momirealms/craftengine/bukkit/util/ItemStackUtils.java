@@ -17,6 +17,7 @@ import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.DataFixersProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.datafix.fixes.ReferencesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.component.ToolProxy;
@@ -24,11 +25,14 @@ import net.momirealms.craftengine.proxy.spottedleaf.dataconverter.minecraft.MCDa
 import net.momirealms.craftengine.proxy.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistryProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
+import net.momirealms.sparrow.nbt.NBT;
 import net.momirealms.sparrow.nbt.Tag;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 
 public final class ItemStackUtils {
     private ItemStackUtils() {}
@@ -36,8 +40,11 @@ public final class ItemStackUtils {
     @Contract("null -> true")
     public static boolean isEmpty(final ItemStack item) {
         if (item == null) return true;
+        if (VersionHelper.hasPaperPatch) {
+            return item.isEmpty();
+        }
         if (item.getType() == Material.AIR) return true;
-        return item.getAmount() == 0;
+        return item.getAmount() <= 0;
     }
 
     public static BukkitItem wrap(final Object itemStack) {
@@ -62,6 +69,23 @@ public final class ItemStackUtils {
         return false;
     }
 
+    public static ItemStack fromBytes(byte[] bytes) {
+        CompoundTag compoundTag = NBT.readCompressed(bytes, false);
+        if (compoundTag.isEmpty()) {
+            compoundTag = NBT.readCompressed(bytes, true);
+        }
+        return parseBukkitItem(compoundTag, compoundTag.getInt("DataVersion", Config.itemDataFixerUpperFallbackVersion()));
+    }
+
+    public static byte[] toBytes(ItemStack itemStack) {
+        CompoundTag tag = saveBukkitItemAsTag(itemStack);
+        if (tag == null) {
+            throw new IllegalStateException("Could not save item: " + itemStack);
+        }
+        tag.putInt("DataVersion", VersionHelper.WORLD_VERSION);
+        return NBT.writeCompressed(tag, false);
+    }
+
     public static ItemStack ensureCraftItemStack(ItemStack itemStack) {
         if (CraftItemStackProxy.CLASS.isInstance(itemStack)) {
             return itemStack;
@@ -75,15 +99,25 @@ public final class ItemStackUtils {
     }
 
     public static ItemStack asCraftMirror(Object itemStack) {
-        return getBukkitStack(itemStack);
+        return CraftItemStackProxy.INSTANCE.asCraftMirror(itemStack);
     }
 
     public static ItemStack getBukkitStack(Object itemStack) {
-        return ItemStackProxy.INSTANCE.getBukkitStack(itemStack);
+        if (VersionHelper.hasPaperPatch) {
+            return ItemStackProxy.INSTANCE.getBukkitStack(itemStack);
+        } else {
+            return asCraftMirror(itemStack);
+        }
     }
 
     public static ItemStack getBukkitStack(Item item) {
         return getBukkitStack(item.minecraftItem());
+    }
+
+    public static Object unwrap(ItemStack itemStack) {
+        ItemStack craftItemStack = ensureCraftItemStack(itemStack);
+        Object handle = CraftItemStackProxy.INSTANCE.getHandle(craftItemStack);
+        return handle == null ? ItemStackProxy.EMPTY : handle;
     }
 
     @Nullable
@@ -99,8 +133,8 @@ public final class ItemStackUtils {
     }
 
     @Nullable
-    public static Tag saveBukkitItemAsTag(ItemStack itemStack) {
-        return saveMinecraftItemStackAsTag(CraftItemStackProxy.INSTANCE.unwrap(ensureCraftItemStack(itemStack)));
+    public static CompoundTag saveBukkitItemAsTag(ItemStack itemStack) {
+        return (CompoundTag) saveMinecraftItemStackAsTag(ItemStackUtils.unwrap(ensureCraftItemStack(itemStack)));
     }
 
     @Nullable
@@ -108,7 +142,7 @@ public final class ItemStackUtils {
         Tag itemTag = tag;
         int currentVersion = VersionHelper.WORLD_VERSION;
         if (Config.enableItemDataFixerUpper() && dataVersion != currentVersion) {
-            if (VersionHelper.isPaper && VersionHelper.MINECRAFT_VERSION != MinecraftVersion.V1_21_5) {
+            if (VersionHelper.hasPaperPatch && VersionHelper.MINECRAFT_VERSION != MinecraftVersion.V1_21_5) {
                 Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, itemTag);
                 Object converted = MCDataConverterProxy.INSTANCE.convertTag(MCTypeRegistryProxy.ITEM_STACK, nmsTag, dataVersion, currentVersion);
                 itemTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, converted);
@@ -194,5 +228,11 @@ public final class ItemStackUtils {
                     && (!VersionHelper.isOrAbove1_20_5 || material != MaterialUtils.MACE)
                     && !item.hasVanillaTag(ItemTags.SWORDS);
         }
+    }
+
+    public static String getDescriptionId(ItemStack itemStack) {
+        Object unwrap = unwrap(itemStack);
+        Object item = ItemStackProxy.INSTANCE.getItem(unwrap);
+        return ItemProxy.INSTANCE.getDescriptionId(item);
     }
 }

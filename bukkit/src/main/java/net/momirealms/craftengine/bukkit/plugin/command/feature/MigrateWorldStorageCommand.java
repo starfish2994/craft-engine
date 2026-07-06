@@ -68,6 +68,11 @@ public final class MigrateWorldStorageCommand extends BukkitCommandFeature<Comma
                             }
                         }))
                 .handler(context -> {
+                    if (!VersionHelper.hasPaperPatch) {
+                        context.sender().sendMessage("Spigot is not supported");
+                        return;
+                    }
+
                     // 检查是否已有迁移任务在进行
                     if (migrationInProgress) {
                         context.sender().sendMessage("Another migration is already in progress. Please wait until it finishes.");
@@ -129,18 +134,18 @@ public final class MigrateWorldStorageCommand extends BukkitCommandFeature<Comma
 
     private Path getRegionFolder(World world, StorageType sourceType) {
         return switch (sourceType) {
-            case MCA -> world.getWorldPath().resolve("craftengine");
-            case PDC -> world.getWorldPath().resolve("region");
+            case MCA -> world.getWorldFolder().toPath().resolve("craftengine");
+            case PDC -> world.getWorldFolder().toPath().resolve("region");
             default -> throw new IllegalArgumentException("Unsupported source storage type: " + sourceType);
         };
     }
 
     private WorldDataStorage createSourceStorage(StorageType sourceType, World world, BukkitWorld adaptedWorld) {
         return switch (sourceType) {
-            case MCA -> new DefaultRegionFileStorage(world.getWorldPath().resolve("craftengine"),
-                    VersionHelper.isFolia ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
+            case MCA -> new DefaultRegionFileStorage(world.getWorldFolder().toPath().resolve("craftengine"),
+                    VersionHelper.hasFoliaPatch ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
             case PDC -> new PersistentDataContainerStorage(adaptedWorld,
-                    VersionHelper.isFolia ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
+                    VersionHelper.hasFoliaPatch ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
             default -> throw new IllegalArgumentException("Unsupported source storage type: " + sourceType);
         };
     }

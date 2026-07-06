@@ -32,8 +32,13 @@ public final class FurnitureItemLootEntryContainer extends SingleItemLootEntryCo
     protected void createItem(Consumer<Item> lootConsumer, LootContext context) {
         Optional<Item> optionalItem = context.getOptionalParameter(DirectContextParameters.FURNITURE_ITEM);
         if (optionalItem.isPresent()) {
-            lootConsumer.accept(optionalItem.get());
-        } else if (this.hasFallback) {
+            Item item = optionalItem.get();
+            if (!item.isEmpty()) {
+                lootConsumer.accept(item);
+                return;
+            }
+        }
+        if (this.hasFallback) {
             super.createItem(lootConsumer, context);
         }
     }

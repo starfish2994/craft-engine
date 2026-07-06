@@ -35,7 +35,7 @@ public final class BukkitPlatform implements Platform {
 
     @Override
     public void dispatchCommand(String command) {
-        if (VersionHelper.isFolia) {
+        if (VersionHelper.hasFoliaPatch) {
             Bukkit.getGlobalRegionScheduler().run(this.plugin.javaPlugin(), (t) -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
         } else {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
@@ -115,13 +115,16 @@ public final class BukkitPlatform implements Platform {
     @Override
     public boolean hasProxy() {
         boolean bungee = SpigotConfigProxy.INSTANCE.getBungee();
-        boolean velocity = GlobalConfigurationProxy.ProxiesProxy.VelocityProxy.INSTANCE.getEnabled(
-                GlobalConfigurationProxy.ProxiesProxy.INSTANCE.getVelocity(
-                        GlobalConfigurationProxy.INSTANCE.getProxies(
-                                GlobalConfigurationProxy.INSTANCE.get()
-                        )
-                )
-        );
+        boolean velocity = false;
+        if (VersionHelper.hasPaperPatch) {
+            velocity = GlobalConfigurationProxy.ProxiesProxy.VelocityProxy.INSTANCE.getEnabled(
+                    GlobalConfigurationProxy.ProxiesProxy.INSTANCE.getVelocity(
+                            GlobalConfigurationProxy.INSTANCE.getProxies(
+                                    GlobalConfigurationProxy.INSTANCE.get()
+                            )
+                    )
+            );
+        }
         return bungee || velocity;
     }
 

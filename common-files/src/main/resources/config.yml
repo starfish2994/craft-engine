@@ -299,6 +299,7 @@ item:
     click-in-inventory: false # this option won't work for players in creative mode
     drop: false
     pick-up: false
+    attack: false
 
   # Decide the starting value for automatic custom model data assignment.
   custom-model-data-starting-value:
@@ -540,6 +541,14 @@ recipe:
   # Whether to automatically unlock the corresponding recipe when the player obtains its required ingredients.
   # This option can be set individually for each recipe to override the global setting.
   unlock-on-ingredient-obtained: true
+
+  # Automatically unlock recipes for players when they join the server.
+  unlock-on-join:
+    # Unlock all recipes (vanilla + custom) for players on join
+    all: false
+    # Selective recipe unlocking (only takes effect when 'all' is false)
+    # Example: ["minecraft:wooden_sword", "craftengine:my_recipe"]
+    list: []
 
   # Inject furnace block entities to support custom condition. This option requires a restart to apply.
   inject-block-entities: true

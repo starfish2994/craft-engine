@@ -2,7 +2,6 @@ package net.momirealms.craftengine.bukkit.block.entity.renderer.constant;
 
 import com.google.common.base.Objects;
 import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintSource;
@@ -100,9 +99,9 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
                 DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x0, dataValues);
                 DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(-1, dataValues);
             }
-            Item wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
+            Item wrappedItem = Item.byId(itemId, player);
             if (wrappedItem == null) {
-                wrappedItem = java.util.Objects.requireNonNull(BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, player));
+                wrappedItem = java.util.Objects.requireNonNull(Item.byId(ItemKeys.BARRIER, player));
             }
             if (ts != null) {
                 ts.applyTint(wrappedItem);

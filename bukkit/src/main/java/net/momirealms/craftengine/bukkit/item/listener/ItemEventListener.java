@@ -1,7 +1,5 @@
 package net.momirealms.craftengine.bukkit.item.listener;
 
-import com.destroystokyo.paper.event.player.PlayerReadyArrowEvent;
-import io.papermc.paper.event.block.CompostItemEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackGenerateEvent;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent;
@@ -168,7 +166,7 @@ public final class ItemEventListener implements Listener {
         Object blockState = BlockStateUtils.blockDataToBlockState(blockData);
         ImmutableBlockState immutableBlockState = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
         Item itemInHand = serverPlayer.getItemInHand(hand);
-        Location interactionPoint = event.getInteractionPoint();
+        Location interactionPoint = EventUtils.getInteractionPoint(event);
 
         BlockHitResult hitResult = null;
         if (action == Action.RIGHT_CLICK_BLOCK && interactionPoint != null) {
@@ -186,7 +184,7 @@ public final class ItemEventListener implements Listener {
             CustomBlockInteractEvent interactEvent = new CustomBlockInteractEvent(
                     player, block.getLocation(), interactionPoint, immutableBlockState,
                     block, event.getBlockFace(), hand,
-                    action.isRightClick() ? CustomBlockInteractEvent.Action.RIGHT_CLICK : CustomBlockInteractEvent.Action.LEFT_CLICK,
+                    action == Action.RIGHT_CLICK_BLOCK ? CustomBlockInteractEvent.Action.RIGHT_CLICK : CustomBlockInteractEvent.Action.LEFT_CLICK,
                     event.getItem(), contextBuilder
             );
             if (EventUtils.fireAndCheckCancel(interactEvent)) {
@@ -195,7 +193,7 @@ public final class ItemEventListener implements Listener {
             }
 
             // fix client side issues
-            if (action.isRightClick() && hitResult != null &&
+            if (action == Action.RIGHT_CLICK_BLOCK && hitResult != null &&
                     InteractUtils.canPlaceVisualBlock(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().minecraftState()), hitResult, itemInHand)) {
                 player.updateInventory();
             }
@@ -211,7 +209,7 @@ public final class ItemEventListener implements Listener {
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
                     .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand)
             );
-            if (action.isRightClick()) blockDefinition.execute(context, EventTrigger.RIGHT_CLICK);
+            if (action == Action.RIGHT_CLICK_BLOCK) blockDefinition.execute(context, EventTrigger.RIGHT_CLICK);
             else blockDefinition.execute(context, EventTrigger.LEFT_CLICK);
             if (dummy.isCancelled()) {
                 event.setCancelled(true);
@@ -503,7 +501,7 @@ public final class ItemEventListener implements Listener {
                     .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(player.getLocation()))
             );
             ItemDefinition itemDefinition = optionalCustomItem.get();
-            if (action.isRightClick()) itemDefinition.execute(context, EventTrigger.RIGHT_CLICK);
+            if (action == Action.RIGHT_CLICK_AIR) itemDefinition.execute(context, EventTrigger.RIGHT_CLICK);
             else itemDefinition.execute(context, EventTrigger.LEFT_CLICK);
         }
 
@@ -512,7 +510,7 @@ public final class ItemEventListener implements Listener {
             return;
         }
 
-        if (action.isRightClick()) {
+        if (action == Action.RIGHT_CLICK_AIR) {
             Optional<ItemBehavior> optionalItemBehavior = itemInHand.getBehavior();
             if (optionalItemBehavior.isPresent()) {
                 InteractionResult useResult = optionalItemBehavior.get().use(serverPlayer.world(), serverPlayer, hand);
@@ -555,8 +553,8 @@ public final class ItemEventListener implements Listener {
         if (event.getPlayer().getGameMode() != GameMode.CREATIVE) {
             Key replacement = itemDefinition.settings().consumeReplacement();
             if (wrapped.count() == 1) {
-                if (replacement != null) {
-                    BukkitItem replacementItem = this.plugin.itemManager().createWrappedItem(replacement, serverPlayer);
+                if (replacement != null && VersionHelper.hasPaperPatch) {
+                    BukkitItem replacementItem = (BukkitItem) Item.byId(replacement, serverPlayer);
                     if (replacementItem != null) {
                         event.setReplacement(replacementItem.getBukkitItem());
                     }
@@ -564,7 +562,7 @@ public final class ItemEventListener implements Listener {
             } else {
                 // fixme 如何取消堆叠数量>1的物品的默认replacement
                 if (replacement != null) {
-                    Item replacementItem = this.plugin.itemManager().createWrappedItem(replacement, serverPlayer);
+                    Item replacementItem = Item.byId(replacement, serverPlayer);
                     if (replacementItem != null) {
                         PlayerUtils.giveItem(serverPlayer, 1, replacementItem, false);
                     }
@@ -645,16 +643,6 @@ public final class ItemEventListener implements Listener {
         if (!itemDefinition.settings().canEnchant()) {
             event.setCancelled(true);
         }
-    }
-
-    // 自定义堆肥改了
-    @EventHandler(ignoreCancelled = true)
-    public void onCompost(CompostItemEvent event) {
-        ItemStack itemToCompost = event.getItem();
-        Item wrapped = this.plugin.itemManager().wrap(itemToCompost);
-        Optional<ItemDefinition> optionalCustomItem = wrapped.getDefinition();
-        if (optionalCustomItem.isEmpty()) return;
-        event.setWillRaiseLevel(RandomUtils.generateRandomFloat(0, 1) < optionalCustomItem.get().settings().compostProbability());
     }
 
     // 用于附魔台纠正
@@ -773,6 +761,9 @@ public final class ItemEventListener implements Listener {
     @SuppressWarnings("DuplicatedCode")
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
+        // 依赖 paper api实现
+        if (!VersionHelper.hasPaperPatch) return;
+
         BukkitItemManager instance = BukkitItemManager.instance();
 
         // 处理损毁物品
@@ -943,19 +934,6 @@ public final class ItemEventListener implements Listener {
                     arrow.setJavaComponent(DataComponentKeys.INTANGIBLE_PROJECTILE, Map.of());
                     p1.setItemStack(arrow.getBukkitItem());
                 }
-            }
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onReadyArrow(PlayerReadyArrowEvent event) {
-        BukkitItem bowItem = this.plugin.itemManager().wrap(event.getBow());
-        Optional<ItemDefinition> bowItemDefinition = bowItem.getDefinition();
-        if (bowItemDefinition.isPresent()) {
-            ItemDefinition itemDefinition = bowItemDefinition.get();
-            Set<Key> ammo = itemDefinition.settings().allowedProjectiles();
-            if (!ammo.isEmpty() && !ammo.contains(this.plugin.itemManager().wrap(event.getArrow()).id())) {
-                event.setCancelled(true);
             }
         }
     }

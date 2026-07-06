@@ -21,9 +21,12 @@ public interface ServerChunkCacheProxy extends ChunkSourceProxy {
     @MethodInvoker(name = "blockChanged")
     void blockChanged(Object target, @Type(clazz = BlockPosProxy.class) Object blockPos);
 
-    @MethodInvoker(name = "getChunkAtIfLoadedMainThread", activeIf = "max_version=1.20.6")
+    @MethodInvoker(name = {"getChunkAtIfLoadedMainThread"}, activeIf = "max_version=1.20.6 && has_patch=paper")
     Object getChunkAtIfLoadedMainThread(Object target, int chunkX, int chunkZ);
 
-    @MethodInvoker(name = "getChunkAtIfLoadedImmediately")
+    @MethodInvoker(name = {"getChunkAtIfLoadedImmediately"}, activeIf = "has_patch=paper")
     Object getChunkAtIfLoadedImmediately(Object target, int chunkX, int chunkZ);
+
+    @MethodInvoker(name = "getChunkNow")
+    Object getChunkNow(Object target, int chunkX, int chunkZ);
 }

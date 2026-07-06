@@ -96,7 +96,7 @@ public final class SetCreativeModeSlotListener implements ByteBufferPacketListen
         Key addItemId = item.vanillaId();
         Key blockItemId = KeyUtils.identifierToKey(RegistryProxy.INSTANCE.getKey(BuiltInRegistriesProxy.ITEM, vanillaBlockItem));
         if (!addItemId.equals(blockItemId)) return;
-        BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
+        BukkitItem wrappedItem = (BukkitItem) Item.byId(itemId, player);
         if (wrappedItem == null || wrappedItem.isEmpty()) {
             CraftEngine.instance().logger().warn("Item: " + itemId + " is not a valid item");
             return;

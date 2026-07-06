@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
+import net.momirealms.craftengine.bukkit.util.InventoryUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
@@ -129,7 +130,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
 
         @Override
         public void loadCustomData(CompoundTag customData) {
-            this.inventory.close();
+            InventoryUtils.close(this.inventory);
             CompoundTag data = Optional.ofNullable(customData.getCompound(Optional.ofNullable(this.template.customDataKey).orElse(DEFAULT_DATA_KEY))).orElseGet(CompoundTag::new);
             int dataVersion = data.getInt("data_version", Config.itemDataFixerUpperFallbackVersion());
             ListTag items = Optional.ofNullable(data.getList("items")).orElseGet(ListTag::new);
@@ -138,7 +139,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
 
         @Override
         public void saveCustomData(CompoundTag customData) {
-            this.inventory.close();
+            InventoryUtils.close(this.inventory);
             CompoundTag data = new CompoundTag();
             data.put("items", ItemStackUtils.saveBukkitItemsAsListTag(this.inventory.getStorageContents()));
             data.putInt("data_version", VersionHelper.WORLD_VERSION);
@@ -147,7 +148,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
 
         @Override
         public void preRemove(Player player) {
-            this.inventory.close();
+            InventoryUtils.close(this.inventory);
             Location dropLocation = ((BukkitFurniture) this.furniture).getDropLocation();
             for (ItemStack stack : this.inventory.getContents()) {
                 if (stack != null) {

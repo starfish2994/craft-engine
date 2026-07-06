@@ -274,7 +274,7 @@ public final class InteractListener {
                     Object nmsPlayer = serverPlayer.serverPlayer();
                     Object serverLevel = ServerPlayerProxy.INSTANCE.getLevel(nmsPlayer);
                     Object blockPos = LocationUtils.toBlockPos(hitResult.blockPos());
-                    Object previousBlockState = ServerLevelProxy.INSTANCE.getBlockStateIfLoaded(serverLevel, blockPos);
+                    Object previousBlockState = ServerLevelProxy.INSTANCE.getBlockState(serverLevel, blockPos);
                     if (previousBlockState != null) {
                         Object clickedPoint = Vec3Proxy.INSTANCE.newInstance(hitResult.hitLocation().x, hitResult.hitLocation().y, hitResult.hitLocation().z);
                         Object nmsDirection = DirectionUtils.toNMSDirection(hitResult.direction());

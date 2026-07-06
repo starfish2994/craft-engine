@@ -30,14 +30,14 @@ public abstract class AbstractProxyMessageManager implements ProxyMessageManager
     }
 
     @Override
-    public void load() {
+    public void delayedLoad() {
         this.networkTagDataVersion = System.currentTimeMillis();
         ProxyboundNetworkTagDataPacket.rebuildDataCache();
         for (Map<UUID, Object> set : this.proxyPlayers.values()) {
             for (UUID playerUUID : set.keySet()) {
                 NetWorkUser user = CraftEngine.instance().networkManager().getOnlineUser(playerUUID);
                 if (user == null) continue;
-                ProxyboundNetworkTagDataPacket.sendData(user);
+                user.sendCustomPackets(ProxyboundNetworkTagDataPacket.cachedPackets());
             }
         }
     }

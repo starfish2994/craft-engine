@@ -3,13 +3,14 @@ package net.momirealms.craftengine.core.plugin.proxy.packet;
 import io.netty.buffer.Unpooled;
 import net.momirealms.craftengine.core.font.NetworkTagDataSerializer;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.codec.NetworkCodec;
 import net.momirealms.craftengine.core.plugin.network.mod.ClientCustomPacket;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public record ProxyboundNetworkTagDataPacket(long networkTagDataVersion, int total, int index, byte[] data) implements ClientCustomPacket {
     public static final Key ID = Key.ce("tag_data");
@@ -29,7 +30,7 @@ public record ProxyboundNetworkTagDataPacket(long networkTagDataVersion, int tot
             }
     );
     private static final int PAGE_LENGTH = 30000; // https://docs.papermc.io/velocity/reference/system-properties/#velocitymax-plugin-message-payload-size
-    private static volatile ProxyboundNetworkTagDataPacket[] CACHED_PACKETS = null;
+    private static volatile List<ProxyboundNetworkTagDataPacket> CACHED_PACKETS = List.of();
 
     public static void rebuildDataCache() {
         byte[] rawData = serializeTagData();
@@ -49,24 +50,20 @@ public record ProxyboundNetworkTagDataPacket(long networkTagDataVersion, int tot
         }
     }
 
-    private static ProxyboundNetworkTagDataPacket[] buildPackets(byte[] data) {
+    private static List<ProxyboundNetworkTagDataPacket> buildPackets(byte[] data) {
         long version = CraftEngine.instance().proxyMessageManager().networkTagDataVersion();
         int total = Math.max(1, (data.length + PAGE_LENGTH - 1) / PAGE_LENGTH);
-        ProxyboundNetworkTagDataPacket[] packets = new ProxyboundNetworkTagDataPacket[total];
+        List<ProxyboundNetworkTagDataPacket> packets = new ArrayList<>(total);
         for (int i = 0; i < total; i++) {
             int from = i * PAGE_LENGTH;
             byte[] chunk = Arrays.copyOfRange(data, from, Math.min(from + PAGE_LENGTH, data.length));
-            packets[i] = new ProxyboundNetworkTagDataPacket(version, total, i, chunk);
+            packets.add(i, new ProxyboundNetworkTagDataPacket(version, total, i, chunk));
         }
         return packets;
     }
 
-    public static void sendData(NetWorkUser user) {
-        ProxyboundNetworkTagDataPacket[] packets = CACHED_PACKETS;
-        if (packets == null) return;
-        for (ProxyboundNetworkTagDataPacket packet : packets) {
-            user.sendCustomPacket(packet);
-        }
+    public static List<ProxyboundNetworkTagDataPacket> cachedPackets() {
+        return CACHED_PACKETS;
     }
 
     @Override

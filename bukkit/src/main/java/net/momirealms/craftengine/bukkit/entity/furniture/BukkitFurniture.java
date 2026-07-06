@@ -5,16 +5,19 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.util.CollisionUtils;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.QuaternionUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
@@ -51,10 +54,10 @@ public final class BukkitFurniture extends Furniture {
 
     @Override
     protected FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements,
-                                                             List<FurnitureHitBox> hitboxes,
-                                                             Int2ObjectMap<FurnitureHitBox> hitboxMap,
-                                                             List<Collider> colliders,
-                                                             Map<CustomDataType<?>, Object> customData) {
+                                                    List<FurnitureHitBox> hitboxes,
+                                                    Int2ObjectMap<FurnitureHitBox> hitboxMap,
+                                                    List<Collider> colliders,
+                                                    Map<CustomDataType<?>, Object> customData) {
         return new BukkitVariantSnapshot(elements, hitboxes, hitboxMap, colliders, customData);
     }
 
@@ -102,7 +105,7 @@ public final class BukkitFurniture extends Furniture {
         {
             BukkitFurnitureManager.instance().initFurniture(this);
             this.addCollidersToWorld();
-            for (Player  player : trackedBy) {
+            for (Player player : trackedBy) {
                 super.snapshot.showHitboxes(player);
             }
         }
@@ -155,27 +158,43 @@ public final class BukkitFurniture extends Furniture {
             }
 
             Location location = LocationUtils.toLocation(position);
-            return itemDisplay.teleportAsync(location).handle((result, throwable) -> {
-                try {
-                    if (result != null && result && throwable == null) {
-                        this.location = location;
-                        super.setVariantInternal(currentVariant());
-                        BukkitFurnitureManager.instance().initFurniture(this);
-                        this.addCollidersToWorld();
-                        List<Player> afterTrackedBy = trackedBy();
-                        for (Player player : afterTrackedBy) {
-                            if (previousTrackedBy.contains(player)) {
-                                super.snapshot.showHitboxes(player);
+            if (VersionHelper.hasPaperPatch) {
+                return itemDisplay.teleportAsync(location).handle((result, throwable) -> {
+                    try {
+                        if (result != null && result && throwable == null) {
+                            this.location = location;
+                            super.setVariantInternal(currentVariant());
+                            BukkitFurnitureManager.instance().initFurniture(this);
+                            this.addCollidersToWorld();
+                            List<Player> afterTrackedBy = trackedBy();
+                            for (Player player : afterTrackedBy) {
+                                if (previousTrackedBy.contains(player)) {
+                                    super.snapshot.showHitboxes(player);
+                                }
                             }
+                            return true;
+                        } else {
+                            return false;
                         }
-                        return true;
-                    } else {
-                        return false;
+                    } finally {
+                        this.isMoving.set(false); // 解锁
                     }
-                } finally {
-                    this.isMoving.set(false); // 解锁
+                });
+            } else {
+                itemDisplay.teleport(location);
+                this.location = location;
+                super.setVariantInternal(currentVariant());
+                BukkitFurnitureManager.instance().initFurniture(this);
+                this.addCollidersToWorld();
+                List<Player> afterTrackedBy = trackedBy();
+                for (Player player : afterTrackedBy) {
+                    if (previousTrackedBy.contains(player)) {
+                        super.snapshot.showHitboxes(player);
+                    }
                 }
-            });
+                this.isMoving.set(false);
+                return CompletableFuture.completedFuture(true);
+            }
         } catch (Throwable e) {
             this.isMoving.set(false); // 因发生异常而解锁
             return CompletableFuture.failedFuture(e);
@@ -187,8 +206,9 @@ public final class BukkitFurniture extends Furniture {
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return;
         Object removePacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), l -> l.add(itemDisplay.getEntityId())));
+        Location displayLocation = itemDisplay.getLocation();
         Object addPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(itemDisplay.getEntityId(), itemDisplay.getUniqueId(),
-                itemDisplay.getX(), itemDisplay.getY(), itemDisplay.getZ(), itemDisplay.getPitch(), itemDisplay.getYaw(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0);
+                displayLocation.getX(), displayLocation.getY(), displayLocation.getZ(), displayLocation.getPitch(), displayLocation.getYaw(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0);
         for (Player player : trackedBy()) {
             player.sendPacket(removePacket, false);
             player.sendPacket(addPacket, false);
@@ -200,8 +220,9 @@ public final class BukkitFurniture extends Furniture {
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return;
         Object removePacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), l -> l.add(itemDisplay.getEntityId())));
+        Location displayLocation = itemDisplay.getLocation();
         Object addPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(itemDisplay.getEntityId(), itemDisplay.getUniqueId(),
-                itemDisplay.getX(), itemDisplay.getY(), itemDisplay.getZ(), itemDisplay.getPitch(), itemDisplay.getYaw(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0);
+                displayLocation.getX(), displayLocation.getY(), displayLocation.getZ(), displayLocation.getPitch(), displayLocation.getYaw(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0);
         player.sendPacket(removePacket, false);
         player.sendPacket(addPacket, false);
     }
@@ -215,6 +236,7 @@ public final class BukkitFurniture extends Furniture {
             for (Collider entity : super.snapshot.colliders()) {
                 entity.destroy();
             }
+            destroySeats();
             this.controller.postRemove(player);
         }
     }
@@ -247,30 +269,18 @@ public final class BukkitFurniture extends Furniture {
         return bukkitEntity();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public List<Player> trackedBy() {
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return List.of();
-        Set<org.bukkit.entity.Player> trackedPlayers = itemDisplay.getTrackedPlayers();
-        List<Player> players = new ArrayList<>();
-        for (org.bukkit.entity.Player player : trackedPlayers) {
-            players.add(BukkitAdaptor.adapt(player));
-        }
-        return players;
+        return new ArrayList<>(EntityUtils.getTrackedBy(itemDisplay, BukkitAdaptor::adapt));
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public Set<Player> getTrackedBy() {
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return Set.of();
-        Set<org.bukkit.entity.Player> trackedPlayers = itemDisplay.getTrackedPlayers();
-        Set<Player> players = new HashSet<>();
-        for (org.bukkit.entity.Player player : trackedPlayers) {
-            players.add(BukkitAdaptor.adapt(player));
-        }
-        return players;
+        return EntityUtils.getTrackedBy(itemDisplay, BukkitAdaptor::adapt);
     }
 
     @Override

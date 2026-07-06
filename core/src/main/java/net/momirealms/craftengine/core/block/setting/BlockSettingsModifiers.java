@@ -30,13 +30,18 @@ public final class BlockSettingsModifiers {
         return settings -> settings.luminance(luminance);
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> MAP_COLOR = register(Key.ce("map_color"), value -> {
-        String stringName = value.getAsString();
-        MapColor mapColor = MapColor.get(stringName);
-        if (mapColor != MapColor.CLEAR) {
-            return settings -> settings.mapColor(mapColor);
+        if (value.is(Number.class)) {
+            int color = value.getAsInt();
+            return settings -> settings.mapColor(MapColor.byId(color));
+        } else {
+            String stringName = value.getAsString();
+            MapColor mapColor = MapColor.byName(stringName);
+            if (mapColor != MapColor.CLEAR) {
+                return settings -> settings.mapColor(mapColor);
+            }
+            Color color = value.getAsColor();
+            return settings -> settings.mapColor(MapColor.byColor(color));
         }
-        int color = value.getAsInt();
-        return settings -> settings.mapColor(MapColor.get(color));
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> BURN_CHANCE = register(Key.ce("burn_chance"), value -> {
         int burnChance = value.getAsInt();

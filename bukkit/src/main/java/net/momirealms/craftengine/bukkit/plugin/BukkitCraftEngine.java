@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.momirealms.antigrieflib.AntiGriefCompatibility;
 import net.momirealms.antigrieflib.AntiGriefLib;
 import net.momirealms.craftengine.bukkit.advancement.BukkitAdvancementManager;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
@@ -31,6 +32,7 @@ import net.momirealms.craftengine.bukkit.plugin.scheduler.BukkitSchedulerAdapter
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
+import net.momirealms.craftengine.bukkit.util.ServerUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.classpath.ClassPathAppender;
@@ -57,6 +59,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
@@ -69,6 +72,7 @@ public final class BukkitCraftEngine extends CraftEngine {
     private SchedulerTask tickTask;
     private boolean successfullyLoaded = false;
     private boolean successfullyEnabled = false;
+    private final List<AntiGriefCompatibility> antiGriefProviders = new ArrayList<>(1);
     private AntiGriefLib antiGrief;
     private JavaPlugin javaPlugin;
     private final Path dataFolderPath;
@@ -254,7 +258,7 @@ public final class BukkitCraftEngine extends CraftEngine {
     public void onPluginDisable() {
         super.onPluginDisable();
         if (this.tickTask != null) this.tickTask.cancel();
-        if (VersionHelper.isPaper && !Bukkit.getServer().isStopping()) {
+        if (VersionHelper.hasPaperPatch && !ServerUtils.isStopping()) {
             logger().error(" ");
             logger().error(" ");
             logger().error(" ");
@@ -272,7 +276,7 @@ public final class BukkitCraftEngine extends CraftEngine {
             new Metrics(this.javaPlugin(), 24333);
         }
         // tick task
-        if (!VersionHelper.isFolia) {
+        if (!VersionHelper.hasFoliaPatch) {
             this.tickTask = this.scheduler().platform().runRepeating(() -> {
                 for (BukkitServerPlayer serverPlayer : networkManager().onlineUsers()) {
                     serverPlayer.tick();
@@ -321,15 +325,15 @@ public final class BukkitCraftEngine extends CraftEngine {
 
     private List<String> getPatches() {
         List<String> patches = new ObjectArrayList<>();
-        if (VersionHelper.isPaper)
+        if (VersionHelper.hasPaperPatch)
             patches.add("paper");
-        if (VersionHelper.isFolia)
+        if (VersionHelper.hasFoliaPatch)
             patches.add("folia");
-        if (VersionHelper.isLeaves)
+        if (VersionHelper.hasLeavesPatch)
             patches.add("leaves");
-        if (VersionHelper.isCanvas)
+        if (VersionHelper.hasCanvasPatch)
             patches.add("canvas");
-        if (VersionHelper.isLeaf)
+        if (VersionHelper.hasLeafPatch)
             patches.add("leaf");
         return patches;
     }
@@ -473,13 +477,26 @@ public final class BukkitCraftEngine extends CraftEngine {
         }
     }
 
+    /**
+     * Register custom protection logics
+     *
+     * @param provider protection provider
+     */
+    public void registerProtectionProvider(AntiGriefCompatibility provider) {
+        this.antiGriefProviders.add(provider);
+        this.antiGrief = null;
+    }
+
     public AntiGriefLib antiGriefProvider() {
         if (this.antiGrief == null) {
-            this.antiGrief = AntiGriefLib.builder(this.javaPlugin)
+            AntiGriefLib.Builder builder = AntiGriefLib.builder(this.javaPlugin)
                     .ignoreOP(true)
                     .silentLogs(false)
-                    .bypassPermission("craftengine.antigrief.bypass")
-                    .build();
+                    .bypassPermission("craftengine.antigrief.bypass");
+            for (AntiGriefCompatibility compatibility : this.antiGriefProviders) {
+                builder.register(compatibility);
+            }
+            this.antiGrief = builder.build();
         }
         return this.antiGrief;
     }

@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.item.processor;
 
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -19,7 +18,7 @@ public final class UseRemainderProcessor implements ItemProcessor {
 
     @Override
     public Item apply(Item item, ItemBuildContext context) {
-        Item wrappedItem = CraftEngine.instance().itemManager().createWrappedItem(data, context.player());
+        Item wrappedItem = Item.byId(data, context.player());
         if (wrappedItem != null) {
             return item.useRemainder(wrappedItem, count);
         } else {

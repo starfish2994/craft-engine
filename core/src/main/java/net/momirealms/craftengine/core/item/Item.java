@@ -33,6 +33,24 @@ import java.util.Optional;
  */
 public interface Item {
 
+    static Item byId(final Key id) {
+        return CraftEngine.instance().itemManager().getBuildableItem(id)
+                .map(item -> item.buildItem((Player) null))
+                .orElse(null);
+    }
+
+    static Item byId(final Key id, ItemBuildContext context) {
+        return CraftEngine.instance().itemManager().getBuildableItem(id)
+                .map(item -> item.buildItem(context))
+                .orElse(null);
+    }
+
+    static Item byId(final Key id, Player player) {
+        return CraftEngine.instance().itemManager().getBuildableItem(id)
+                .map(item -> item.buildItem(player))
+                .orElse(null);
+    }
+
     static Item empty() {
         return CraftEngine.instance().itemManager().emptyItem();
     }

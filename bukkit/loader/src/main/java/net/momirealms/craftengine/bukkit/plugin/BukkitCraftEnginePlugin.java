@@ -9,6 +9,7 @@ public final class BukkitCraftEnginePlugin extends JavaPlugin {
         this.plugin = new BukkitCraftEngine(this);
         this.plugin.applyDependencies();
         this.plugin.setUpConfigAndLocale();
+        this.plugin.setupProxy();
     }
 
     @Override

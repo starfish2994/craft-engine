@@ -48,7 +48,7 @@ public final class CollisionUtils {
         if (CollisionGetterProxy.INSTANCE.getBlockCollisions(level, null, bounds).iterator().hasNext()) {
             return false;
         }
-        if (VersionHelper.isFolia && !(VersionHelper.isOrAbove1_21 ? TickThreadProxy.INSTANCE.isTickThreadFor$1(level, bounds) : TickThreadProxy.INSTANCE.isTickThreadFor$0(level, bounds))) {
+        if (VersionHelper.hasFoliaPatch && !(VersionHelper.isOrAbove1_21 ? TickThreadProxy.INSTANCE.isTickThreadFor$1(level, bounds) : TickThreadProxy.INSTANCE.isTickThreadFor$0(level, bounds))) {
             return false;
         }
         List<Object> entities = EntityGetterProxy.INSTANCE.getEntities(level, null, bounds);

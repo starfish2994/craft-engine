@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.item.recipe;
 
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.item.recipe.CustomCraftingTableRecipe;
@@ -11,6 +12,7 @@ import net.momirealms.craftengine.core.item.recipe.UniqueIdItem;
 import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Crafter;
 import org.bukkit.event.EventHandler;
@@ -38,7 +40,7 @@ public final class CrafterEventListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCrafterCraft(CrafterCraftEvent event) {
         CraftingRecipe recipe = event.getRecipe();
-        Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+        Key recipeId = KeyUtils.namespacedKeyToKey(recipe.getKey());
         Optional<Recipe> optionalRecipe = this.recipeManager.recipeById(recipeId);
         // 也许是其他插件注册的配方，直接无视
         if (optionalRecipe.isEmpty()) {
@@ -55,7 +57,7 @@ public final class CrafterEventListener implements Listener {
             // 不要处理染色配方
             if (ceRecipe instanceof CustomDyeRecipe) return;
             if (ceRecipe.requiresInput()) {
-                BlockState state = event.getBlock().getState(false);
+                BlockState state = VersionHelper.hasPaperPatch ? event.getBlock().getState(false) : event.getBlock().getState();
                 if (state instanceof Crafter crafter) {
                     Inventory inventory = crafter.getInventory();
                     event.setResult(ItemStackUtils.getBukkitStack(ceRecipe.assemble(getCraftingInput(inventory), ItemBuildContext.empty())));

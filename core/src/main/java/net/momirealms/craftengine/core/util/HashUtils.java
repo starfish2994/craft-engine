@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HexFormat;
 
 public final class HashUtils {
@@ -23,6 +24,20 @@ public final class HashUtils {
             return HexFormat.of().formatHex(digest);
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new RuntimeException("Failed to calculate SHA1", e);
+        }
+    }
+
+    private static String calculateSHA256(Path filePath) {
+        try (InputStream is = Files.newInputStream(filePath)) {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[8192];
+            int len;
+            while ((len = is.read(buffer)) != -1) {
+                md.update(buffer, 0, len);
+            }
+            return Base64.getEncoder().encodeToString(md.digest());
+        } catch (IOException | NoSuchAlgorithmException e) {
+            throw new RuntimeException("Failed to calculate SHA256", e);
         }
     }
 }

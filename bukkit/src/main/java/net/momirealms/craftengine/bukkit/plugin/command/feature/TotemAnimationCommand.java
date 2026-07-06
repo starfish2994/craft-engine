@@ -2,14 +2,13 @@ package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.PlayerUtils;
-import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.item.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.FlagKeys;
@@ -37,9 +36,7 @@ import org.incendo.cloud.parser.standard.FloatParser;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSender> {
@@ -58,7 +55,15 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                 .required("id", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
-                        return CompletableFuture.completedFuture(plugin().itemManager().cachedTotemSuggestions());
+                        if (VersionHelper.isOrAbove1_21_2) {
+                            List<Suggestion> suggestions = new ArrayList<>(BukkitItemManager.instance().cachedTotemSuggestions());
+                            for (Key vanillaItem : BukkitItemManager.instance().vanillaItems()) {
+                                suggestions.add(Suggestion.suggestion(vanillaItem.asString()));
+                            }
+                            return CompletableFuture.completedFuture(suggestions);
+                        } else {
+                            return CompletableFuture.completedFuture(BukkitItemManager.instance().cachedTotemSuggestions());
+                        }
                     }
                 }))
                 .optional("sound", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
@@ -75,11 +80,22 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                     MultiplePlayerSelector selector = context.get("players");
                     Collection<Player> players = selector.values();
                     NamespacedKey namespacedKey = context.get("id");
-                    Key key = Key.of(namespacedKey.namespace(), namespacedKey.value());
-                    ItemDefinition itemDefinition = plugin().itemManager().getItemDefinition(key).orElse(null);
-                    if (itemDefinition == null || (!VersionHelper.isOrAbove1_21_2 && itemDefinition.material().equals(ItemKeys.TOTEM_OF_UNDYING))) {
-                        handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.toString()));
+                    Key key = KeyUtils.namespacedKeyToKey(namespacedKey);
+                    Optional<? extends BuildableItem> buildableItem = plugin().itemManager().getBuildableItem(key);
+                    if (buildableItem.isEmpty()) {
+                        handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.asString()));
                         return;
+                    }
+                    if (!VersionHelper.isOrAbove1_21_2) {
+                        if (buildableItem.get() instanceof ItemDefinition definition) {
+                            if (!definition.material().equals(ItemKeys.TOTEM_OF_UNDYING)) {
+                                handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.asString()));
+                                return;
+                            }
+                        } else if (!buildableItem.get().buildItem(ItemBuildContext.EMPTY).vanillaId().equals(ItemKeys.TOTEM_OF_UNDYING)) {
+                            handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.asString()));
+                            return;
+                        }
                     }
                     Optional<NamespacedKey> soundKey = context.optional("sound");
                     SoundData soundData = null;
@@ -94,7 +110,7 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                     for (Player player : players) {
                         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                         if (serverPlayer == null) continue;
-                        Item item = itemDefinition.buildItem(serverPlayer);
+                        Item item = buildableItem.get().buildItem(serverPlayer);
                         if (VersionHelper.isOrAbove1_21_2) {
                             item.setJavaComponent(DataComponentTypes.DEATH_PROTECTION, Map.of());
                         }

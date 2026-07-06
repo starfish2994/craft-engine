@@ -234,10 +234,10 @@ public interface BlockBehaviourProxy {
         @FieldSetter(name = {"lightDampening", "lightBlock"}, activeIf = "min_version=1.21.2")
         void setLightDampening(Object target, int lightBlock);
 
-        @FieldGetter(name = "shapeExceedsCube")
+        @FieldGetter(name = "shapeExceedsCube", activeIf = "has_patch=paper")
         boolean isShapeExceedsCube(Object target);
 
-        @FieldSetter(name = "shapeExceedsCube")
+        @FieldSetter(name = "shapeExceedsCube", activeIf = "has_patch=paper")
         void setShapeExceedsCube(Object target, boolean shapeExceedsCube);
 
         @FieldGetter(name = "cache")
@@ -321,7 +321,7 @@ public interface BlockBehaviourProxy {
         @MethodInvoker(name = "hasBlockEntity")
         boolean hasBlockEntity(Object target);
 
-        @MethodInvoker(name = {"asBlockData", "createCraftBlockData"})
+        @MethodInvoker(name = {"asBlockData", "createCraftBlockData"}, activeIf = "has_patch=paper")
         BlockData asBlockData(Object target);
 
         @ReflectionProxy(name = "net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase$Cache")

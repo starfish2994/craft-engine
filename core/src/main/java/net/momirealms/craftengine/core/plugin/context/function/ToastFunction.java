@@ -3,7 +3,6 @@ package net.momirealms.craftengine.core.plugin.context.function;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -64,7 +63,7 @@ public final class ToastFunction<CTX extends Context> extends AbstractConditiona
                     getPredicates(section),
                     getPlayerSelector(section),
                     AdventureHelper.legacyToMiniMessage(section.getNonNullString(TOAST)),
-                    player -> CraftEngine.instance().itemManager().createWrappedItem(item, player),
+                    player -> Item.byId(item, player),
                     section.getEnum(ADVANCEMENT_TYPE, AdvancementType.class, AdvancementType.GOAL)
             );
         }

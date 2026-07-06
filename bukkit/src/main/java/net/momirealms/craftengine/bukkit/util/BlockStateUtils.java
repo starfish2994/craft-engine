@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.block.data.CraftBlockDataProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.IdMapProxy;
@@ -64,7 +65,11 @@ public final class BlockStateUtils {
     }
 
     public static BlockData fromBlockData(Object blockState) {
-        return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.asBlockData(blockState);
+        if (VersionHelper.hasPaperPatch) {
+            return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.asBlockData(blockState);
+        } else {
+            return CraftBlockDataProxy.INSTANCE.fromData(blockState);
+        }
     }
 
     public static int blockDataToId(BlockData blockData) {
@@ -144,5 +149,13 @@ public final class BlockStateUtils {
 
     public static boolean isBurnable(Object blockState) {
         return BukkitBlockManager.instance().isBurnable(blockState);
+    }
+
+    public static String getDescriptionId(Object blockState) {
+        if (VersionHelper.isOrAbove1_21_2) {
+            return BlockBehaviourProxy.INSTANCE.getDescriptionId(getBlockOwner(blockState));
+        } else {
+            return BlockProxy.INSTANCE.getDescriptionId(getBlockOwner(blockState));
+        }
     }
 }

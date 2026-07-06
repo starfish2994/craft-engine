@@ -29,9 +29,11 @@ public interface ItemManager extends Manageable, ModelGenerator {
 
     Collection<Key> vanillaItems();
 
+    @Deprecated
     @Nullable
     Item createCustomWrappedItem(Key id, @Nullable Player player);
 
+    @Deprecated
     @Nullable
     Item createWrappedItem(Key id, @Nullable Player player);
 

@@ -35,7 +35,7 @@ public class EntityLootContext extends BukkitLootContext {
         Object lastDamageSource = LivingEntityProxy.INSTANCE.getLastDamageSource(serverEntity);
         // 必须参数
         LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.THIS_ENTITY, serverEntity);
-        LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.ORIGIN, Vec3Proxy.INSTANCE.newInstance(pos.x(), pos.y(), pos.z()));
+        LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.ORIGIN, Vec3Proxy.INSTANCE.newInstance(pos.getX(), pos.getY(), pos.getZ()));
         LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.DAMAGE_SOURCE, lastDamageSource);
         // 可选参数
         if (LivingEntityProxy.CLASS.isInstance(serverEntity)) {

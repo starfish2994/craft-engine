@@ -1,11 +1,5 @@
 package net.momirealms.craftengine.core.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -14,6 +8,13 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.renderer.ComponentRenderer;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 final class FixedTextReplacementRenderer implements ComponentRenderer<FixedTextReplacementRenderer.State> {
     static final FixedTextReplacementRenderer INSTANCE = new FixedTextReplacementRenderer();

@@ -6,6 +6,7 @@ import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.PlayerUtils;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
@@ -52,7 +53,7 @@ public final class GetItemCommand extends BukkitCommandFeature<CommandSender> {
                     if (serverPlayer == null) return;
                     int amount = context.getOrDefault("amount", 1);
                     NamespacedKey namespacedKey = context.get("id");
-                    Key itemId = Key.of(namespacedKey.namespace(), namespacedKey.value());
+                    Key itemId = KeyUtils.namespacedKeyToKey(namespacedKey);
                     ItemDefinition itemDefinition = CraftEngineItems.byId(itemId);
                     if (itemDefinition == null) {
                         itemDefinition = BukkitItemManager.instance().getItemDefinitionByPath(itemId.value()).orElse(null);

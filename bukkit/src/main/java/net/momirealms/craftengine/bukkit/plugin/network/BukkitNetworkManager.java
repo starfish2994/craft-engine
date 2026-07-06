@@ -174,7 +174,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             ServerConnectionListenerProxy.INSTANCE.setChannels(serverConnection, monitor);
         }
         // Inject Leaves bot list
-        if (VersionHelper.isLeaves) {
+        if (VersionHelper.hasLeavesPatch) {
             this.injectLeavesBotList();
         }
     }
@@ -498,8 +498,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             this.onlineUsers.put(player.getUniqueId(), user);
             this.resetUserArray();
             // folia在此tick每个玩家
-            if (VersionHelper.isFolia) {
-                player.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> user.tick(), null, 1, 1);
+            if (VersionHelper.hasFoliaPatch) {
+                this.plugin.scheduler().platform().runRepeating(user::tick, null, 1, 1, player);
             }
             // 发送修复图腾音效
             user.sendPacket(TotemAnimationCommand.FIX_TOTEM_SOUND_PACKET, false);

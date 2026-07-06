@@ -10,10 +10,10 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
-public final class SlotChangeListener implements Listener {
+public final class PaperSlotChangeListener implements Listener {
     private final BukkitItemManager itemManager;
 
-    public SlotChangeListener(BukkitItemManager itemManager) {
+    public PaperSlotChangeListener(BukkitItemManager itemManager) {
         this.itemManager = itemManager;
     }
 

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.world;
 
 import com.google.gson.JsonElement;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -30,6 +31,7 @@ import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftChunkProxy;
+import net.momirealms.craftengine.proxy.lithium.chunk.LithiumHashPaletteProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
@@ -135,14 +137,14 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         for (World world : Bukkit.getWorlds()) {
             BukkitWorld wrappedWorld = wrap(world);
             try {
-                CEWorld ceWorld = this.worlds.computeIfAbsent(world.getUID(), k -> VersionHelper.isFolia ? new FoliaCEWorld(wrappedWorld, this.storageAdaptor) : new BukkitCEWorld(wrappedWorld, this.storageAdaptor));
+                CEWorld ceWorld = this.worlds.computeIfAbsent(world.getUID(), k -> VersionHelper.hasFoliaPatch ? new FoliaCEWorld(wrappedWorld, this.storageAdaptor) : new BukkitCEWorld(wrappedWorld, this.storageAdaptor));
                 injectWorld(ceWorld);
                 for (Chunk chunk : world.getLoadedChunks()) {
-                    if (VersionHelper.isFolia) {
+                    if (VersionHelper.hasFoliaPatch) {
                         this.plugin.scheduler().platform().run(() -> {
                             if (chunk.isLoaded()) {
                                 handleChunkLoad(ceWorld, chunk);
-                                CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
+                                CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
                                 if (loadedChunk != null) {
                                     loadedChunk.setEntitiesLoaded(true);
                                 }
@@ -150,7 +152,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                         }, world, chunk.getX(), chunk.getZ());
                     } else {
                         handleChunkLoad(ceWorld, chunk);
-                        CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
+                        CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
                         if (loadedChunk != null) {
                             loadedChunk.setEntitiesLoaded(true);
                         }
@@ -275,7 +277,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         World world = event.getWorld();
         UUID uuid = world.getUID();
         if (this.worlds.containsKey(uuid)) return;
-        CEWorld ceWorld = VersionHelper.isFolia ? new FoliaCEWorld(wrap(world), this.storageAdaptor) : new BukkitCEWorld(wrap(world), this.storageAdaptor);
+        CEWorld ceWorld = VersionHelper.hasFoliaPatch ? new FoliaCEWorld(wrap(world), this.storageAdaptor) : new BukkitCEWorld(wrap(world), this.storageAdaptor);
         this.worlds.put(uuid, ceWorld);
         this.resetWorldArray();
         this.injectWorld(ceWorld);
@@ -289,7 +291,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             CEWorld ceWorld = this.worlds.get(uuid);
             for (Chunk chunk : world.getLoadedChunks()) {
                 handleChunkLoad(ceWorld, chunk);
-                CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getChunkKey());
+                CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
                 if (loadedChunk != null) {
                     loadedChunk.setEntitiesLoaded(true);
                 }
@@ -333,7 +335,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public CEWorld getWorld(UUID uuid) {
-        if (!VersionHelper.isFolia && (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID))) {
+        if (!VersionHelper.hasFoliaPatch && (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID))) {
             return this.lastWorld;
         }
         CEWorld world = this.worlds.get(uuid);
@@ -364,7 +366,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         if (this.worlds.containsKey(uuid)) {
             return this.worlds.get(uuid);
         }
-        CEWorld ceWorld = VersionHelper.isFolia ? new FoliaCEWorld(world, this.storageAdaptor) : new BukkitCEWorld(world, this.storageAdaptor);
+        CEWorld ceWorld = VersionHelper.hasFoliaPatch ? new FoliaCEWorld(world, this.storageAdaptor) : new BukkitCEWorld(world, this.storageAdaptor);
         this.worlds.put(uuid, ceWorld);
         this.resetWorldArray();
         this.injectWorld(ceWorld);
@@ -393,6 +395,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private void injectWorld(CEWorld world) {
+        if (!VersionHelper.hasPaperPatch) return; // only paper support these
         Object serverLevel = world.world.minecraftWorld();
         Object serverChunkCache = ServerLevelProxy.INSTANCE.getChunkSource(serverLevel);
         Object chunkMap = ServerChunkCacheProxy.INSTANCE.getChunkMap(serverChunkCache);
@@ -432,19 +435,14 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 ChunkMapProxy.INSTANCE.setGenerator(chunkMap, customGenerator);
             }
         }
-        if (!VersionHelper.isFolia) {
+        if (!VersionHelper.hasFoliaPatch) {
             this.injectWorldCallback(serverLevel);
         }
     }
 
     // 用于从实体tick列表中移除家具实体以降低遍历开销
     private void injectWorldCallback(Object serverLevel) {
-        Object entityLookup;
-        if (VersionHelper.isOrAbove1_21) {
-            entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(serverLevel);
-        } else {
-            entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(serverLevel);
-        }
+        Object entityLookup = LevelUtils.getEntityLookup(serverLevel);
         Object worldCallback = EntityLookupProxy.INSTANCE.getWorldCallback(entityLookup);
         if (!(worldCallback instanceof InjectedWorldCallback)) {
             Object injectedWorldCallback = FastNMS.INSTANCE.createInjectedWorldCallbacks(worldCallback, entityLookup);
@@ -454,7 +452,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @Override
     public CEWorld createWorld(net.momirealms.craftengine.core.world.World world, WorldDataStorage storage) {
-        return VersionHelper.isFolia ? new FoliaCEWorld(world, storage) : new BukkitCEWorld(world, storage);
+        return VersionHelper.hasFoliaPatch ? new FoliaCEWorld(world, storage) : new BukkitCEWorld(world, storage);
     }
 
     @Override
@@ -519,11 +517,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             if (levelChunk == null) {
                 Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
                 Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
-                if (VersionHelper.isOrAbove1_21) {
-                    levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunk.getX(), chunk.getZ());
-                } else {
-                    levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
-                }
+                levelChunk = LevelUtils.getChunkAtIfLoaded(chunkSource, chunk.getX(), chunk.getZ());
             }
 
             CESection[] ceSections = ceChunk.sections();
@@ -615,12 +609,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
         Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
-        Object levelChunk;
-        if (VersionHelper.isOrAbove1_21) {
-            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunkX, chunkZ);
-        } else {
-            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
-        }
+        Object levelChunk = LevelUtils.getChunkAtIfLoaded(chunkSource, chunkX, chunkZ);
 
         if (levelChunk == null) {
             this.plugin.logger().warn("Cannot get LevelChunk at ( world: " + ceWorld.name() + " | chunk: " + chunkX + "," + chunkZ + " )");
@@ -665,13 +654,25 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                                 }
                             }
                         } else if (HashMapPaletteProxy.CLASS.isInstance(palette)) {
-                            Object biMap = HashMapPaletteProxy.INSTANCE.getValues(palette);
-                            Object[] blockStates = CrudeIncrementalIntIdentityHashBiMapProxy.INSTANCE.getKeys(biMap);
-                            for (Object blockState : blockStates) {
-                                if (blockState != null) {
-                                    if (BlockStateUtils.isCustomBlock(blockState)) {
-                                        requiresSync = true;
-                                        break;
+                            if (VersionHelper.hasLithiumPatch && LithiumHashPaletteProxy.CLASS.isInstance(palette)) {
+                                Reference2IntOpenHashMap<Object> table = LithiumHashPaletteProxy.INSTANCE.getTable(palette);
+                                for (Object blockState : table.keySet()) {
+                                    if (blockState != null) {
+                                        if (BlockStateUtils.isCustomBlock(blockState)) {
+                                            requiresSync = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                Object biMap = HashMapPaletteProxy.INSTANCE.getValues(palette);
+                                Object[] blockStates = CrudeIncrementalIntIdentityHashBiMapProxy.INSTANCE.getKeys(biMap);
+                                for (Object blockState : blockStates) {
+                                    if (blockState != null) {
+                                        if (BlockStateUtils.isCustomBlock(blockState)) {
+                                            requiresSync = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -737,7 +738,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private static void injectBlockEntities(Object levelChunk) {
-        if (VersionHelper.isOrAbove1_21_11 && VersionHelper.isCanvas) {
+        if (VersionHelper.isOrAbove1_21_11 && VersionHelper.hasCanvasPatch) {
             Object[] blockEntities = ChunkAccessProxy.INSTANCE.canvas$getAllBlockEntities(levelChunk);
             for (Object blockEntity : blockEntities) {
                 BukkitRecipeManager.injectFurnaceBlockEntity(blockEntity);

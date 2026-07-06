@@ -57,16 +57,16 @@ public class BukkitStorageAdaptor implements StorageAdaptor {
             case MCA -> {
                 Path path = world.directory().resolve(CEWorld.REGION_DIRECTORY);
                 if (Config.enableChunkCache()) {
-                    return new CachedStorage<>(new DefaultRegionFileStorage(path, VersionHelper.isFolia ? FOLIA_FACTORY : BUKKIT_FACTORY));
+                    return new CachedStorage<>(new DefaultRegionFileStorage(path, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY));
                 } else {
-                    return new DefaultRegionFileStorage(path, VersionHelper.isFolia ? FOLIA_FACTORY : BUKKIT_FACTORY);
+                    return new DefaultRegionFileStorage(path, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY);
                 }
             }
             case PDC -> {
                 if (Config.enableChunkCache()) {
-                    return new CachedStorage<>(new PersistentDataContainerStorage(world, VersionHelper.isFolia ? FOLIA_FACTORY : BUKKIT_FACTORY));
+                    return new CachedStorage<>(new PersistentDataContainerStorage(world, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY));
                 } else {
-                    return new PersistentDataContainerStorage(world, VersionHelper.isFolia ? FOLIA_FACTORY : BUKKIT_FACTORY);
+                    return new PersistentDataContainerStorage(world, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY);
                 }
             }
             default -> throw new UnsupportedOperationException("Unsupported chunk storage type: " + Config.chunkStorageType());

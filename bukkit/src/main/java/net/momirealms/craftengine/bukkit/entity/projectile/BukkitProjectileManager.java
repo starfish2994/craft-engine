@@ -1,8 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity.projectile;
 
-import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
-import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
-import com.destroystokyo.paper.event.player.PlayerLaunchProjectileEvent;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.BlockDispenseProjectileEvent;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
@@ -10,6 +8,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.game.LevelEventListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.game.SoundListener;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
+import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
@@ -25,9 +24,12 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ChunkMapProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.projectile.AbstractArrowProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.projectile.FireworkRocketEntityProxy;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
@@ -49,16 +51,16 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class BukkitProjectileManager implements Listener, ProjectileManager {
-    private static final NamespacedKey PROJECTILE_ITEM = new NamespacedKey("craftengine", "projectile_item");
-
-
+    static final NamespacedKey PROJECTILE_ITEM = new NamespacedKey("craftengine", "projectile_item");
     private static BukkitProjectileManager instance;
     private final BukkitCraftEngine plugin;
+    private final PaperProjectileEventListener paperProjectileEventListener;
     // 会被netty线程访问
-    private final Map<Integer, BukkitCustomProjectile> projectiles = new ConcurrentHashMap<>();
+    final Map<Integer, BukkitCustomProjectile> projectiles = new ConcurrentHashMap<>();
 
     public BukkitProjectileManager(BukkitCraftEngine plugin) {
         this.plugin = plugin;
+        this.paperProjectileEventListener = VersionHelper.hasPaperPatch ? new PaperProjectileEventListener(this) : null;
         instance = this;
     }
 
@@ -69,6 +71,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+        if (this.paperProjectileEventListener != null) Bukkit.getPluginManager().registerEvents(this.paperProjectileEventListener, this.plugin.javaPlugin());
         for (World world : Bukkit.getWorlds()) {
             List<Entity> entities = world.getEntities();
             for (Entity entity : entities) {
@@ -82,6 +85,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
     @Override
     public void disable() {
         HandlerList.unregisterAll(this);
+        if (this.paperProjectileEventListener != null) HandlerList.unregisterAll(this.paperProjectileEventListener);
     }
 
     @Override
@@ -89,32 +93,23 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         return Optional.ofNullable(this.projectiles.get(entityId));
     }
 
-    private ItemStack getItemFromProjectile(Projectile projectile, boolean readPdc) {
+    ItemStack getItemFromProjectile(Projectile projectile, boolean readPdc) {
         if (projectile instanceof ThrowableProjectile throwableProjectile) {
             return throwableProjectile.getItem();
         } else if (projectile instanceof AbstractArrow abstractArrow) {
-            return abstractArrow.getItemStack();
+            return ItemStackUtils.getBukkitStack(AbstractArrowProxy.INSTANCE.getPickupItem(CraftEntityProxy.INSTANCE.getEntity(abstractArrow)));
         } else if (projectile instanceof Firework firework) {
-            return firework.getItem();
+            return ItemStackUtils.getBukkitStack(FireworkRocketEntityProxy.INSTANCE.getItem(CraftEntityProxy.INSTANCE.getEntity(firework)));
         } else if (projectile instanceof SizedFireball sizedFireball) {
             return sizedFireball.getDisplayItem();
-        } if (readPdc) {
+        }
+        if (readPdc) {
             byte[] bytes = projectile.getPersistentDataContainer().get(PROJECTILE_ITEM, PersistentDataType.BYTE_ARRAY);
             if (bytes != null) {
                 return this.plugin.itemManager().fromBytes(bytes).getBukkitItem();
             }
         }
         return null;
-    }
-
-    // 如果物品不直接支持存储物品，使用pdc存储
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    public void onPlayerThrowProjectile(PlayerLaunchProjectileEvent event) {
-        Projectile projectile = event.getProjectile();
-        ItemStack storedItem = getItemFromProjectile(projectile, false);
-        if (storedItem == null) {
-            projectile.getPersistentDataContainer().set(PROJECTILE_ITEM, PersistentDataType.BYTE_ARRAY, BukkitItemManager.instance().wrap(event.getItemStack()).toBytes());
-        }
     }
 
     // 发射器里射出的弹射物，这里特指风弹
@@ -140,26 +135,12 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         this.projectiles.remove(event.getEntity().getEntityId());
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    public void onEntityAdd(EntityAddToWorldEvent event) {
-        if (event.getEntity() instanceof Projectile projectile) {
-            handleProjectileLoad(projectile, false);
-        }
-    }
-
     @EventHandler(ignoreCancelled = true,  priority = EventPriority.HIGHEST)
     public void onEntitiesLoad(EntitiesLoadEvent event) {
         for (Entity entity : event.getEntities()) {
             if (entity instanceof Projectile projectile) {
                 handleProjectileLoad(projectile, false);
             }
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    public void onEntityRemove(EntityRemoveFromWorldEvent event) {
-        if (event.getEntity() instanceof Projectile projectile) {
-            this.projectiles.remove(projectile.getEntityId());
         }
     }
 
@@ -202,7 +183,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         }
     }
 
-    private void handleProjectileLoad(Projectile projectile, boolean launch) {
+    void handleProjectileLoad(Projectile projectile, boolean launch) {
         if (this.projectiles.containsKey(projectile.getEntityId())) return;
         ItemStack projectileItem = getItemFromProjectile(projectile, true);
         if (projectileItem == null) return;
@@ -284,11 +265,20 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
             Object nmsEntity = CraftEntityProxy.INSTANCE.getEntity(this.projectile);
             // 获取server entity
             if (this.cachedServerEntity == null) {
-                Object trackedEntity = EntityProxy.INSTANCE.getTrackedEntity(nmsEntity);
-                if (trackedEntity == null) return;
-                Object serverEntity = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getServerEntity(trackedEntity);
-                if (serverEntity == null) return;
-                this.cachedServerEntity = serverEntity;
+                if (VersionHelper.hasPaperPatch) {
+                    Object trackedEntity = EntityProxy.INSTANCE.getTrackedEntity(nmsEntity);
+                    if (trackedEntity == null) return;
+                    Object serverEntity = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getServerEntity(trackedEntity);
+                    if (serverEntity == null) return;
+                    this.cachedServerEntity = serverEntity;
+                } else {
+                    Int2ObjectMap<Object> entityMap = ChunkMapProxy.INSTANCE.getEntityMap(ServerChunkCacheProxy.INSTANCE.getChunkMap(ServerLevelProxy.INSTANCE.getChunkSource(EntityProxy.INSTANCE.getLevel(nmsEntity))));
+                    Object trackedEntity = entityMap.get(this.projectile.getEntityId());
+                    if (trackedEntity == null) return;
+                    Object serverEntity = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getServerEntity(trackedEntity);
+                    if (serverEntity == null) return;
+                    this.cachedServerEntity = serverEntity;
+                }
             }
 
             if (!AbstractArrowProxy.CLASS.isInstance(nmsEntity)) {
@@ -317,7 +307,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         }
 
         private void updateProjectileUpdateInterval(int updateInterval) {
-            if (this.lastInjectedInterval == updateInterval) return;
+            if (this.lastInjectedInterval == updateInterval || this.cachedServerEntity == null) return;
             ServerEntityProxy.INSTANCE.setUpdateInterval(this.cachedServerEntity, updateInterval);
             this.lastInjectedInterval = updateInterval;
         }

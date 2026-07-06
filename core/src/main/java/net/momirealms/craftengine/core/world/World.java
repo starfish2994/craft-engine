@@ -44,6 +44,8 @@ public interface World extends WorldAccessor {
 
     String name();
 
+    Key dimension();
+
     Path directory();
 
     UUID uuid();

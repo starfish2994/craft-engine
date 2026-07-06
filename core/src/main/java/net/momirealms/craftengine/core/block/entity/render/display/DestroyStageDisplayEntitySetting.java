@@ -11,7 +11,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.List;
-import java.util.Objects;
 
 public final class DestroyStageDisplayEntitySetting {
     private static final String[] DISPLAY_CONTEXT = new String[]{"display_context", "display_transform", "display-context", "display-transform"};

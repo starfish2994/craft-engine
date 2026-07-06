@@ -18,6 +18,21 @@ public interface EntityProxy {
     @FieldGetter(name = "ENTITY_COUNTER", isStatic = true, activeIf = "max_version=26.1.2")
     AtomicInteger getEntityCounter();
 
+    @FieldGetter(name = "yRot")
+    float getYRot(Object target);
+
+    @FieldGetter(name = "xRot")
+    float getXRot(Object target);
+
+    @MethodInvoker(name = "getX")
+    double getX(Object target);
+
+    @MethodInvoker(name = "getY")
+    double getY(Object target);
+
+    @MethodInvoker(name = "getZ")
+    double getZ(Object target);
+
     @FieldGetter(name = "xo")
     double getXo(Object target);
 
@@ -57,10 +72,10 @@ public interface EntityProxy {
     @FieldSetter(name = "hurtMarked")
     void setHurtMarked(Object target, boolean hurtMarked);
 
-    @FieldGetter(name = {"trackedEntity", "tracker"})
+    @FieldGetter(name = {"trackedEntity", "tracker"}, activeIf = "has_patch=paper")
     Object getTrackedEntity(Object target);
 
-    @FieldSetter(name = {"trackedEntity", "tracker"})
+    @FieldSetter(name = {"trackedEntity", "tracker"}, activeIf = "has_patch=paper")
     void setTrackedEntity(Object target, Object trackedEntity);
 
     @FieldGetter(name = "wasTouchingWater")
@@ -158,4 +173,7 @@ public interface EntityProxy {
 
     @MethodInvoker(name = "setRot")
     void setRot(Object target, float yRot, float xRot);
+
+    @MethodInvoker(name = "setPose")
+    void setPose(Object target, @Type(clazz = PoseProxy.class) Object pose);
 }
