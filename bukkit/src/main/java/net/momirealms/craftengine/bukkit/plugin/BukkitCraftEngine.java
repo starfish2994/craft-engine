@@ -257,7 +257,7 @@ public final class BukkitCraftEngine extends CraftEngine {
     public void onPluginDisable() {
         super.onPluginDisable();
         if (this.tickTask != null) this.tickTask.cancel();
-        if (VersionHelper.isPaper && !Bukkit.getServer().isStopping()) {
+        if (VersionHelper.hasPaperPatch && !Bukkit.getServer().isStopping()) {
             logger().error(" ");
             logger().error(" ");
             logger().error(" ");
@@ -275,7 +275,7 @@ public final class BukkitCraftEngine extends CraftEngine {
             new Metrics(this.javaPlugin(), 24333);
         }
         // tick task
-        if (!VersionHelper.isFolia) {
+        if (!VersionHelper.hasFoliaPatch) {
             this.tickTask = this.scheduler().platform().runRepeating(() -> {
                 for (BukkitServerPlayer serverPlayer : networkManager().onlineUsers()) {
                     serverPlayer.tick();
@@ -324,15 +324,15 @@ public final class BukkitCraftEngine extends CraftEngine {
 
     private List<String> getPatches() {
         List<String> patches = new ObjectArrayList<>();
-        if (VersionHelper.isPaper)
+        if (VersionHelper.hasPaperPatch)
             patches.add("paper");
-        if (VersionHelper.isFolia)
+        if (VersionHelper.hasFoliaPatch)
             patches.add("folia");
-        if (VersionHelper.isLeaves)
+        if (VersionHelper.hasLeavesPatch)
             patches.add("leaves");
-        if (VersionHelper.isCanvas)
+        if (VersionHelper.hasCanvasPatch)
             patches.add("canvas");
-        if (VersionHelper.isLeaf)
+        if (VersionHelper.hasLeafPatch)
             patches.add("leaf");
         return patches;
     }

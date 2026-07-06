@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -58,7 +59,7 @@ public final class ToastCommand extends BukkitCommandFeature<CommandSender> {
                 .handler(context -> {
                     AdvancementType type = context.get("type");
                     NamespacedKey namespacedKey = context.get("item");
-                    Key key = Key.of(namespacedKey.namespace(), namespacedKey.value());
+                    Key key = KeyUtils.namespacedKeyToKey(namespacedKey);
                     String message = context.get("message");
                     BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(context.sender());
                     if (serverPlayer == null) return;

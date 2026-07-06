@@ -85,6 +85,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     private final BukkitCraftEngine plugin;
     private final RecipeEventListener recipeEventListener;
     private final CrafterEventListener crafterEventListener;
+    private final PaperRecipeEventListener paperRecipeEventListener;
     // 需要在主线程卸载的配方
     private final List<Key> nativeRecipesToUnregister = new ArrayList<>();
     private final List<Key> brewingRecipesToUnregister = new ArrayList<>();
@@ -104,6 +105,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         this.plugin = plugin;
         this.recipeEventListener = new RecipeEventListener(plugin, this, plugin.itemManager());
         this.crafterEventListener = VersionHelper.isOrAbove1_21 ? new CrafterEventListener(plugin, this, plugin.itemManager()) : null;
+        this.paperRecipeEventListener = VersionHelper.hasPaperPatch ? new PaperRecipeEventListener() : null;
     }
 
     public static RecipeRegistry createRecipeRegistry() {
@@ -129,9 +131,8 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.recipeEventListener, this.plugin.javaPlugin());
-        if (this.crafterEventListener != null) {
-            Bukkit.getPluginManager().registerEvents(this.crafterEventListener, this.plugin.javaPlugin());
-        }
+        if (this.crafterEventListener != null) Bukkit.getPluginManager().registerEvents(this.crafterEventListener, this.plugin.javaPlugin());
+        if (this.paperRecipeEventListener != null) Bukkit.getPluginManager().registerEvents(this.paperRecipeEventListener, this.plugin.javaPlugin());
     }
 
     @Override
@@ -237,7 +238,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
             RecipeManagerProxy.INSTANCE.finalizeRecipeLoading(manager, RecipeManagerProxy.INSTANCE.getEnabledFlags(manager));
         }
         // 1.21.6以下直接发包
-        if (!VersionHelper.isOrAbove1_21_6 || VersionHelper.isFolia) {
+        if (!VersionHelper.isOrAbove1_21_6 || VersionHelper.hasFoliaPatch) {
             PlayerListProxy.INSTANCE.reloadRecipeData(CraftServerProxy.INSTANCE.getPlayerList(Bukkit.getServer()));
         }
 
@@ -251,7 +252,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         if (!Config.enableRecipeSystem()) return;
 
         // 处理酿造配方
-        if (VersionHelper.isOrAbove1_20_2 && VersionHelper.isPaper) {
+        if (VersionHelper.isOrAbove1_20_2 && VersionHelper.hasPaperPatch) {
             PotionBrewer potionBrewer = Bukkit.getPotionBrewer();
             if (!this.brewingRecipesToUnregister.isEmpty()) {
                 for (Key potion : this.brewingRecipesToUnregister) {
@@ -278,7 +279,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         }
 
         // 重载资源
-        if (VersionHelper.isOrAbove1_21_6 && !VersionHelper.isFolia) {
+        if (VersionHelper.isOrAbove1_21_6 && !VersionHelper.hasFoliaPatch) {
             for (BukkitServerPlayer player : this.plugin.networkManager().onlineUsers()) {
                 Object serverPlayer = player.serverPlayer();
                 Object advancements = ServerPlayerProxy.INSTANCE.getAdvancements(serverPlayer);
@@ -294,6 +295,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     public void disable() {
         unload();
         HandlerList.unregisterAll(this.recipeEventListener);
+        if (this.paperRecipeEventListener != null) HandlerList.unregisterAll(this.paperRecipeEventListener);
     }
 
     @Override

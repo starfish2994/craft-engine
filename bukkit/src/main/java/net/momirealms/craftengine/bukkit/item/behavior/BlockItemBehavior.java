@@ -264,7 +264,7 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
         }
         Object world = CraftWorldProxy.INSTANCE.getWorld((World) context.getLevel().platformWorld());
         boolean defaultReturn = ((!this.checkStatePlacement() || BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(blockState, world, blockPos)) &&
-                (VersionHelper.isPaper ?
+                (VersionHelper.hasPaperPatch ?
                         LevelProxy.INSTANCE.checkEntityCollision(world, blockState, player, voxelShape, blockPos, true) : // paper
                         CollisionGetterProxy.INSTANCE.isUnobstructed(world, blockState, blockPos, CollisionContextProxy.INSTANCE.placementContext(player)))); // spigot
         Block block = CraftBlockProxy.INSTANCE.at(world, blockPos);

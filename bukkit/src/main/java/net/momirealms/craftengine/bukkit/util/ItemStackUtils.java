@@ -36,8 +36,11 @@ public final class ItemStackUtils {
     @Contract("null -> true")
     public static boolean isEmpty(final ItemStack item) {
         if (item == null) return true;
+        if (VersionHelper.hasPaperPatch) {
+            return item.isEmpty();
+        }
         if (item.getType() == Material.AIR) return true;
-        return item.getAmount() == 0;
+        return item.getAmount() <= 0;
     }
 
     public static BukkitItem wrap(final Object itemStack) {
@@ -79,7 +82,7 @@ public final class ItemStackUtils {
     }
 
     public static ItemStack getBukkitStack(Object itemStack) {
-        if (VersionHelper.isPaper) {
+        if (VersionHelper.hasPaperPatch) {
             return ItemStackProxy.INSTANCE.getBukkitStack(itemStack);
         } else {
             return asCraftMirror(itemStack);
@@ -118,7 +121,7 @@ public final class ItemStackUtils {
         Tag itemTag = tag;
         int currentVersion = VersionHelper.WORLD_VERSION;
         if (Config.enableItemDataFixerUpper() && dataVersion != currentVersion) {
-            if (VersionHelper.isPaper && VersionHelper.MINECRAFT_VERSION != MinecraftVersion.V1_21_5) {
+            if (VersionHelper.hasPaperPatch && VersionHelper.MINECRAFT_VERSION != MinecraftVersion.V1_21_5) {
                 Object nmsTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, itemTag);
                 Object converted = MCDataConverterProxy.INSTANCE.convertTag(MCTypeRegistryProxy.ITEM_STACK, nmsTag, dataVersion, currentVersion);
                 itemTag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, converted);

@@ -26,7 +26,7 @@ public final class RecipeRegistry1_21_2 implements RecipeRegistry {
     public void prepareRegistration() {
         Object previousRecipeMap = RecipeManagerProxy.INSTANCE.getRecipes(BukkitRecipeManager.minecraftRecipeManager());
         Multimap<Object, Object> byType = LinkedHashMultimap.create(RecipeMapProxy.INSTANCE.getByType(previousRecipeMap));
-        if (VersionHelper.isPaper) {
+        if (VersionHelper.hasPaperPatch) {
             Map<Object, Object> byKey = Maps.newHashMap(RecipeMapProxy.INSTANCE.getByKey(previousRecipeMap));
             this.mirrorRecipeMap = RecipeMapProxy.INSTANCE.newInstance$paper(byType, byKey);
         } else {

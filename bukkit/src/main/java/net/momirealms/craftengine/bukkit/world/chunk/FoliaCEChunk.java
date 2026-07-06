@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Objects;
 
 public final class FoliaCEChunk extends BukkitCEChunk {
-    private final TickersList<TickingBlockEntity> tickingBlockEntities = VersionHelper.isFolia ? new TickersList<>() : null;
-    private final List<TickingBlockEntity> pendingTickingBlockEntities = VersionHelper.isFolia ? new ArrayList<>() : null;
+    private final TickersList<TickingBlockEntity> tickingBlockEntities = VersionHelper.hasFoliaPatch ? new TickersList<>() : null;
+    private final List<TickingBlockEntity> pendingTickingBlockEntities = VersionHelper.hasFoliaPatch ? new ArrayList<>() : null;
     private volatile boolean isTickingBlockEntities = false;
 
     public FoliaCEChunk(CEWorld world, ChunkPos chunkPos) {

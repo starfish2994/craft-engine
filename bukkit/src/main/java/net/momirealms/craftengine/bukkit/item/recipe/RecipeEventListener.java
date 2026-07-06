@@ -317,7 +317,7 @@ public final class RecipeEventListener implements Listener {
         if (!Config.recipeInjectBlockEntities()) return; // 功能未开启.
         Inventory inventory = event.getInventory();
         if (!(inventory instanceof FurnaceInventory furnaceInventory)) return;
-        InventoryHolder inventoryHolder = furnaceInventory.getHolder(false);
+        InventoryHolder inventoryHolder = InventoryUtils.getInventoryHolder(furnaceInventory);
         if (!(inventoryHolder instanceof Furnace furnace)) return;
         Inventory clickedInventory = event.getClickedInventory();
 
@@ -418,16 +418,6 @@ public final class RecipeEventListener implements Listener {
                 if (!result) {
                     event.setCancelled(true);
                 }
-            }
-        }
-    }
-
-    // Paper only
-    @EventHandler
-    public void onPrepareResult(PrepareResultEvent event) {
-        if (event.getInventory() instanceof CartographyInventory cartographyInventory) {
-            if (ItemStackUtils.hasCustomItem(cartographyInventory.getStorageContents())) {
-                event.setResult(new ItemStack(Material.AIR));
             }
         }
     }
@@ -1021,7 +1011,7 @@ public final class RecipeEventListener implements Listener {
                 }
             }
 
-            Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+            Key recipeId = KeyUtils.namespacedKeyToKey(recipe.getKey());
             Optional<Recipe> optionalRecipe = this.recipeManager.recipeById(recipeId);
             if (optionalRecipe.isEmpty()) {
                 return;
@@ -1039,7 +1029,7 @@ public final class RecipeEventListener implements Listener {
             Item result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
             event.setResult(ItemStackUtils.getBukkitStack(result));
         } else if (smithingRecipe instanceof SmithingTransformRecipe recipe) {
-            Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+            Key recipeId = KeyUtils.namespacedKeyToKey(recipe.getKey());
             Optional<Recipe> optionalRecipe = this.recipeManager.recipeById(recipeId);
             if (optionalRecipe.isEmpty()) {
                 return;

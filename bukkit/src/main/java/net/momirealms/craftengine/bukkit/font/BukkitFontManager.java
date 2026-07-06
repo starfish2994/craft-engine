@@ -48,7 +48,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
     public BukkitFontManager(BukkitCraftEngine plugin) {
         super(plugin);
         this.plugin = plugin;
-        this.chatListener = VersionHelper.isPaper ? new ChatListener(this) : null;
+        this.chatListener = VersionHelper.hasPaperPatch ? new ChatListener(this) : null;
         instance = this;
     }
 
@@ -144,7 +144,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onSignChange(SignChangeEvent event) {
         if (!Config.allowEmojiSign()) return;
-        if (!VersionHelper.isPaper) return; // TODO Add a delayed task in future
+        if (!VersionHelper.hasPaperPatch) return; // TODO Add a delayed task in future
         Player player = event.getPlayer();
         List<Object> lines = SignChangeEventProxy.INSTANCE.getAdventure$lines(event);
         for (int i = 0; i < lines.size(); i++) {
@@ -167,7 +167,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
     public void onPlayerEditBook(PlayerEditBookEvent event) {
         if (!event.isSigning()) return;
         if (!Config.allowEmojiBook()) return;
-        if (!VersionHelper.isPaper) return; // TODO Add a delayed task in future
+        if (!VersionHelper.hasPaperPatch) return; // TODO Add a delayed task in future
         Player player = event.getPlayer();
         BookMeta newBookMeta = event.getNewBookMeta();
         List<?> pages = newBookMeta.pages();

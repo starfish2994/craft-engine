@@ -65,7 +65,7 @@ public final class BlockStateUtils {
     }
 
     public static BlockData fromBlockData(Object blockState) {
-        if (VersionHelper.isPaper) {
+        if (VersionHelper.hasPaperPatch) {
             return BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.asBlockData(blockState);
         } else {
             return CraftBlockDataProxy.INSTANCE.fromData(blockState);

@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.item.recipe;
 
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.item.recipe.CustomCraftingTableRecipe;
@@ -38,7 +39,7 @@ public final class CrafterEventListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCrafterCraft(CrafterCraftEvent event) {
         CraftingRecipe recipe = event.getRecipe();
-        Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+        Key recipeId = KeyUtils.namespacedKeyToKey(recipe.getKey());
         Optional<Recipe> optionalRecipe = this.recipeManager.recipeById(recipeId);
         // 也许是其他插件注册的配方，直接无视
         if (optionalRecipe.isEmpty()) {

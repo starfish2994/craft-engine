@@ -6,6 +6,7 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInvent
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -17,6 +18,14 @@ public final class InventoryUtils {
             return (Player) event.getView().getPlayer();
         } else {
             return LegacyInventoryUtils.getPlayerFromInventoryEvent(event);
+        }
+    }
+
+    public static InventoryHolder getInventoryHolder(Inventory inventory) {
+        if (VersionHelper.hasPaperPatch) {
+            return inventory.getHolder(false);
+        } else {
+            return inventory.getHolder();
         }
     }
 

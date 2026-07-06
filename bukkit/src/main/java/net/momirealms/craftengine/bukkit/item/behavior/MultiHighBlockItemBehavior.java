@@ -75,7 +75,7 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
                 voxelShape = CollisionContextProxy.INSTANCE.empty();
             }
             Object world = CraftWorldProxy.INSTANCE.getWorld((World) context.getLevel().platformWorld());
-            boolean defaultReturn = VersionHelper.isPaper ?
+            boolean defaultReturn = VersionHelper.hasPaperPatch ?
                     ServerLevelProxy.INSTANCE.checkEntityCollision(world, blockState, player, voxelShape, blockPos, true) :  // paper
                     CollisionGetterProxy.INSTANCE.isUnobstructed(world, blockState, blockPos, CollisionContextProxy.INSTANCE.placementContext(player)); // spigot
             Block block = CraftBlockProxy.INSTANCE.at(world, blockPos);

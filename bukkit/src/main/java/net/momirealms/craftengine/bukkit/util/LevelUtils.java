@@ -50,7 +50,7 @@ public final class LevelUtils {
     }
 
     public static Object getChunkAtIfLoaded(Object chunkSource, int chunkX, int chunkZ) {
-        if (VersionHelper.isPaper) {
+        if (VersionHelper.hasPaperPatch) {
             if (VersionHelper.isOrAbove1_21) {
                 return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunkX, chunkZ);
             } else {

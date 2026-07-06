@@ -138,9 +138,9 @@ public final class MigrateWorldStorageCommand extends BukkitCommandFeature<Comma
     private WorldDataStorage createSourceStorage(StorageType sourceType, World world, BukkitWorld adaptedWorld) {
         return switch (sourceType) {
             case MCA -> new DefaultRegionFileStorage(world.getWorldPath().resolve("craftengine"),
-                    VersionHelper.isFolia ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
+                    VersionHelper.hasFoliaPatch ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
             case PDC -> new PersistentDataContainerStorage(adaptedWorld,
-                    VersionHelper.isFolia ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
+                    VersionHelper.hasFoliaPatch ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
             default -> throw new IllegalArgumentException("Unsupported source storage type: " + sourceType);
         };
     }

@@ -19,11 +19,12 @@ public final class VersionHelper {
     public static final int majorVersion;
     public static final int minorVersion;
     public static final boolean isMojmap;
-    public static final boolean isFolia;
-    public static final boolean isPaper;
-    public static final boolean isLeaves;
-    public static final boolean isCanvas;
-    public static final boolean isLeaf;
+    public static final boolean hasFoliaPatch;
+    public static final boolean hasPaperPatch;
+    public static final boolean hasLeavesPatch;
+    public static final boolean hasCanvasPatch;
+    public static final boolean hasLeafPatch;
+    public static final boolean hasLithiumPatch;
     public static final boolean isOrAbove1_20;
     public static final boolean isOrAbove1_20_1;
     public static final boolean isOrAbove1_20_2;
@@ -110,11 +111,12 @@ public final class VersionHelper {
             COMPONENT_RELEASE = isOrAbove1_20_5;
 
             isMojmap = checkMojMap() || isOrAbove26_1;
-            isFolia = checkFolia();
-            isPaper = checkPaper();
-            isLeaves = checkLeaves();
-            isCanvas = checkCanvas();
-            isLeaf = checkLeaf();
+            hasFoliaPatch = checkFolia();
+            hasPaperPatch = checkPaper();
+            hasLeavesPatch = checkLeaves();
+            hasCanvasPatch = checkCanvas();
+            hasLeafPatch = checkLeaf();
+            hasLithiumPatch = checkLithium();
         } catch (Exception e) {
             throw new RuntimeException("Failed to init VersionHelper", e);
         }
@@ -189,5 +191,9 @@ public final class VersionHelper {
 
     private static boolean checkLeaf() {
         return exists("org.dreeam.leaf.config.LeafConfig");
+    }
+
+    private static boolean checkLithium() {
+        return exists("net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette");
     }
 }

@@ -622,7 +622,7 @@ public class BukkitServerPlayer extends Player {
         this.sendPacket(kickPacket, false, () -> ConnectionProxy.INSTANCE.disconnect(this.connection(), reason));
         this.channel.config().setAutoRead(false);
         Runnable handleDisconnection = () -> ConnectionProxy.INSTANCE.handleDisconnection(this.connection());
-        if (VersionHelper.isFolia) {
+        if (VersionHelper.hasFoliaPatch) {
             this.plugin.scheduler().platform().run(handleDisconnection);
         } else {
             BlockableEventLoopProxy.INSTANCE.scheduleOnMain(MinecraftServerProxy.INSTANCE.getServer(), handleDisconnection);
@@ -664,6 +664,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void resendChunks() {
+        if (!VersionHelper.hasPaperPatch) return;
         Object chunkLoader = ServerPlayerProxy.INSTANCE.getChunkLoader(serverPlayer());
         LongOpenHashSet sentChunks = RegionizedPlayerChunkLoaderProxy.PlayerChunkLoaderDataProxy.INSTANCE.getSentChunks(chunkLoader);
         if (sentChunks.isEmpty()) {
@@ -764,18 +765,17 @@ public class BukkitServerPlayer extends Player {
 
         // 实体剔除更新相机位置
         if (Config.enableEntityCulling()) {
-            org.bukkit.entity.Player player = platformPlayer();
             this.firstPersonCameraVec3 = this.eyeLocation;
             int distance = 4;
             if (VersionHelper.isOrAbove1_21_6) {
-                Entity vehicle = player.getVehicle();
+                Entity vehicle = platformPlayer().getVehicle();
                 if (vehicle != null && vehicle.getType() == EntityType.HAPPY_GHAST) {
                     distance = 8;
                 }
             }
 
-            float rotX = player.getYaw();
-            float rotY = player.getPitch();
+            float rotX = EntityProxy.INSTANCE.getXRot(serverPlayer);
+            float rotY = EntityProxy.INSTANCE.getYRot(serverPlayer);
             float y = -MiscUtils.sin(MiscUtils.toRadians(rotY));
             float xz = MiscUtils.cos(MiscUtils.toRadians(rotY));
             float x = -xz * MiscUtils.sin(MiscUtils.toRadians(rotX));
@@ -1165,15 +1165,12 @@ public class BukkitServerPlayer extends Player {
         return customState.settings().destroyStageDisplay();
     }
 
-    @SuppressWarnings("deprecation")
     private void broadcastDestroyProgressVanilla(BlockPos hitPos, int stage) {
         Object packet = ClientboundBlockDestructionPacketProxy.INSTANCE.newInstance(Integer.MAX_VALUE - entityId(), LocationUtils.toBlockPos(hitPos), stage);
         sendPacket(packet, false);
-        for (org.bukkit.entity.Player other : platformPlayer().getTrackedPlayers()) {
+        for (Player other : getTrackedBy()) {
             if (!isWithinDestroyRange(hitPos, other)) continue;
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
-            if (serverPlayer == null) continue;
-            serverPlayer.sendPacket(packet, false);
+            other.sendPacket(packet, false);
         }
     }
 
@@ -1201,10 +1198,10 @@ public class BukkitServerPlayer extends Player {
         DestroyStageDisplayEntity entity = entry.entity;
         Set<UUID> current = new HashSet<>();
         current.add(this.uuid);
-        Set<org.bukkit.entity.Player> trackedPlayers = platformPlayer().getTrackedPlayers();
-        for (org.bukkit.entity.Player other : trackedPlayers) {
+        Set<Player> trackedPlayers = getTrackedBy();
+        for (Player other : trackedPlayers) {
             if (isWithinDestroyRange(hitPos, other)) {
-                current.add(other.getUniqueId());
+                current.add(other.uuid());
             }
         }
         Object removePacket = entity.removePacket();
@@ -1215,15 +1212,13 @@ public class BukkitServerPlayer extends Player {
             serverPlayer.sendPacket(removePacket, false);
         });
         showDestroyStageDisplayTo(this, entity, newIndex);
-        for (org.bukkit.entity.Player other : trackedPlayers) {
+        for (Player other : trackedPlayers) {
             if (!isWithinDestroyRange(hitPos, other)) continue;
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
-            if (serverPlayer == null) continue;
-            showDestroyStageDisplayTo(serverPlayer, entity, newIndex);
+            showDestroyStageDisplayTo(other, entity, newIndex);
         }
     }
 
-    private void showDestroyStageDisplayTo(BukkitServerPlayer viewer, DestroyStageDisplayEntity entity, int index) {
+    private void showDestroyStageDisplayTo(Player viewer, DestroyStageDisplayEntity entity, int index) {
         entity.ensureSpawned(viewer, index, packet -> viewer.sendPacket(packet, false));
     }
 
@@ -1267,10 +1262,10 @@ public class BukkitServerPlayer extends Player {
         BukkitDestroyStageDisplayRecorder.INSTANCE.remove(entry.key);
     }
 
-    private boolean isWithinDestroyRange(BlockPos hitPos, org.bukkit.entity.Player other) {
-        double d0 = (double) hitPos.x() - other.getX();
-        double d1 = (double) hitPos.y() - other.getY();
-        double d2 = (double) hitPos.z() - other.getZ();
+    private boolean isWithinDestroyRange(BlockPos hitPos, Player other) {
+        double d0 = (double) hitPos.x() - other.x();
+        double d1 = (double) hitPos.y() - other.y();
+        double d2 = (double) hitPos.z() - other.z();
         return d0 * d0 + d1 * d1 + d2 * d2 < 32 * 32;
     }
 
@@ -1317,12 +1312,12 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public float yRot() {
-        return platformPlayer().getYaw();
+        return EntityProxy.INSTANCE.getYRot(this.serverPlayer());
     }
 
     @Override
     public float xRot() {
-        return platformPlayer().getPitch();
+        return EntityProxy.INSTANCE.getXRot(this.serverPlayer());
     }
 
     @Override
@@ -1363,17 +1358,17 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public double x() {
-        return platformPlayer().getX();
+        return EntityProxy.INSTANCE.getX(serverPlayer());
     }
 
     @Override
     public double y() {
-        return platformPlayer().getY();
+        return EntityProxy.INSTANCE.getY(serverPlayer());
     }
 
     @Override
     public double z() {
-        return platformPlayer().getZ();
+        return EntityProxy.INSTANCE.getZ(serverPlayer());
     }
 
     @Override
@@ -2009,5 +2004,10 @@ public class BukkitServerPlayer extends Player {
             }
         }
         return 0;
+    }
+
+    @Override
+    public Set<Player> getTrackedBy() {
+        return EntityUtils.getTrackedBy(this.platformPlayer(), BukkitAdaptor::adapt);
     }
 }

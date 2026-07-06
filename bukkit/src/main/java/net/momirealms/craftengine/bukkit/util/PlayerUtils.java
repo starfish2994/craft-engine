@@ -103,7 +103,7 @@ public final class PlayerUtils {
             AbstractContainerMenuProxy.INSTANCE.broadcastChanges(PlayerProxy.INSTANCE.getContainerMenu(serverPlayer));
         } else {
             Object droppedItem;
-            if (VersionHelper.isOrAbove1_21_4) {
+            if (VersionHelper.isOrAbove1_21_4 && VersionHelper.hasPaperPatch) {
                 droppedItem = ServerPlayerProxy.INSTANCE.drop(serverPlayer, item.minecraftItem(), false, false, !VersionHelper.isOrAbove1_21_5, null);
             } else if (VersionHelper.isOrAbove1_20_3) {
                 droppedItem = ServerPlayerProxy.INSTANCE.drop$1(serverPlayer, item.minecraftItem(), false, false, true);

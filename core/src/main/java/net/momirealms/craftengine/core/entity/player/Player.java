@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public abstract class Player extends AbstractEntity implements NetWorkUser {
@@ -300,4 +301,6 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract void setItemCooldown(Key id, int ticks);
 
     public abstract int getItemCooldown(Key id);
+
+    public abstract Set<Player> getTrackedBy();
 }

@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.plugin.gui;
 
-import io.papermc.paper.event.player.PlayerPurchaseEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -18,8 +17,6 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.Clientbo
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -40,20 +37,24 @@ public final class BukkitGuiManager implements GuiManager, Listener {
     public static final int CRAFT_ENGINE_MAGIC_MERCHANT_NUMBER = 1821981731;
     private static BukkitGuiManager instance;
     private final BukkitCraftEngine plugin;
+    private final PaperGuiEventListener paperGuiEventListener;
 
     public BukkitGuiManager(BukkitCraftEngine plugin) {
         this.plugin = plugin;
+        this.paperGuiEventListener = VersionHelper.hasPaperPatch ? new PaperGuiEventListener() : null;
         instance = this;
     }
 
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this, plugin.javaPlugin());
+        if (this.paperGuiEventListener != null) Bukkit.getPluginManager().registerEvents(this.paperGuiEventListener, plugin.javaPlugin());
     }
 
     @Override
     public void disable() {
         HandlerList.unregisterAll(this);
+        if (this.paperGuiEventListener != null) HandlerList.unregisterAll(this.paperGuiEventListener);
     }
 
     @Override
@@ -92,7 +93,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
-        if (!(inventory.getHolder(false) instanceof CraftEngineGUIHolder craftEngineGUIHolder)) {
+        if (!(InventoryUtils.getInventoryHolder(inventory) instanceof CraftEngineGUIHolder craftEngineGUIHolder)) {
             return;
         }
         AbstractGui gui = (AbstractGui) craftEngineGUIHolder.gui();
@@ -108,7 +109,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
     public void onInventoryDrag(InventoryDragEvent event) {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
-        if (!(inventory.getHolder(false) instanceof CraftEngineGUIHolder)) {
+        if (!(InventoryUtils.getInventoryHolder(inventory) instanceof CraftEngineGUIHolder)) {
             return;
         }
         for (int raw : event.getRawSlots()) {
@@ -125,7 +126,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
         org.bukkit.inventory.Inventory inventory = event.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
         if (!(event.getPlayer() instanceof Player player)) return;
-        InventoryHolder holder = inventory.getHolder(false);
+        InventoryHolder holder = InventoryUtils.getInventoryHolder(inventory);
         if (holder instanceof WorldlyContainerHolder furnitureInventoryHolder) {
             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
             if (serverPlayer == null) return;
@@ -138,26 +139,11 @@ public final class BukkitGuiManager implements GuiManager, Listener {
         Player player = event.getPlayer();
         org.bukkit.inventory.Inventory inventory = player.getInventory();
         if (!InventoryUtils.isCustomContainer(inventory)) return;
-        InventoryHolder holder = inventory.getHolder(false);
+        InventoryHolder holder = InventoryUtils.getInventoryHolder(inventory);
         if (holder instanceof WorldlyContainerHolder furnitureInventoryHolder) {
             BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
             if (serverPlayer == null) return;
             furnitureInventoryHolder.onClose(serverPlayer);
-        }
-    }
-
-    // 为了修复没有经验的问题
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onMerchantTrade(PlayerPurchaseEvent event) {
-        MerchantRecipe trade = event.getTrade();
-        if (trade.getMaxUses() == CRAFT_ENGINE_MAGIC_MERCHANT_NUMBER) {
-            Player player = event.getPlayer();
-            int exp = trade.getVillagerExperience();
-            if (exp <= 0) return;
-            EntityUtils.spawnEntity(player.getWorld(), player.getLocation(), EntityType.EXPERIENCE_ORB, entity -> {
-                ExperienceOrb orb = (ExperienceOrb) entity;
-                orb.setExperience(exp);
-            });
         }
     }
 

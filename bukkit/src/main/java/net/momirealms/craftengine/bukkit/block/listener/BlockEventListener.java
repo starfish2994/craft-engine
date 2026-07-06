@@ -1,10 +1,10 @@
-package net.momirealms.craftengine.bukkit.block;
+package net.momirealms.craftengine.bukkit.block.listener;
 
-import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockBreakEvent;
+import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.loot.BlockLootContext;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -259,35 +259,6 @@ public final class BlockEventListener implements Listener {
                     player.playSound(block.getLocation().add(0.5, 0.5, 0.5), soundId.toString(), SoundCategory.BLOCKS, 1f, 0.8f);
                 }
             }
-        }
-    }
-
-    // BlockBreakBlockEvent = liquid + piston
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onBlockBreakBlock(BlockBreakBlockEvent event) {
-        Block block = event.getBlock();
-        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(CraftWorldProxy.INSTANCE.getWorld(block.getWorld()), LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ()));
-        if (BlockStateUtils.isVanillaBlock(blockState)) {
-            // override vanilla block loots
-            this.plugin.lootManager().getBlockLoot(BlockStateUtils.blockStateToId(blockState)).ifPresent(it -> {
-                if (it.override()) {
-                    event.getDrops().clear();
-                    event.setExpToDrop(0);
-                }
-                Location location = block.getLocation();
-                net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(location.getWorld());
-                WorldPosition position = new WorldPosition(world, location.getBlockX() + 0.5, location.getBlockY() + 0.5, location.getBlockZ() + 0.5);
-                ContextHolder contextHolder = ContextHolder.builder()
-                        .withParameter(DirectContextParameters.POSITION, position)
-                        .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
-                        .build();
-                BlockLootContext blockLootContext = new BlockLootContext(world, null, 1.0f, contextHolder, BukkitAdaptor.adapt(block), null, null);
-                for (Loot loot : it.loots()) {
-                    for (Item item : loot.getRandomItems(blockLootContext)) {
-                        world.dropItemNaturally(position, item);
-                    }
-                }
-            });
         }
     }
 

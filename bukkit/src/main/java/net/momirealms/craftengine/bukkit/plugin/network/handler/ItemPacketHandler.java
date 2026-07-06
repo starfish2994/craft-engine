@@ -113,7 +113,7 @@ public final class ItemPacketHandler implements EntityPacketHandler {
                     }
                     packedItems.add(BaseEntityData.SharedFlags.createEntityData((byte) 0x40));
                 }
-                if (VersionHelper.isPaper) {
+                if (VersionHelper.hasPaperPatch) {
                     Object level = user.clientSideWorld().minecraftWorld();
                     Object entity = EntityLookupProxy.INSTANCE.get(LevelUtils.getEntityLookup(level), id);
                     if (entity != null) {

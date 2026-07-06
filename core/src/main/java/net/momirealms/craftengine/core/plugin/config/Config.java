@@ -520,7 +520,7 @@ public final class Config {
 
         if (this.firstTime) {
             this.chunk_system$injection$target = config.getString("chunk-system.injection.target", "palette").equalsIgnoreCase("palette")
-                    || (VersionHelper.isLeaf && !VersionHelper.isOrAbove1_21_11);
+                    || (VersionHelper.hasLeafPatch && !VersionHelper.isOrAbove1_21_11);
         }
 
         this.chunk_system$process_invalid_furniture$enable = config.getBoolean("chunk-system.process-invalid-furniture.enable", false);

@@ -80,7 +80,7 @@ public final class TotemAnimationCommand extends BukkitCommandFeature<CommandSen
                     MultiplePlayerSelector selector = context.get("players");
                     Collection<Player> players = selector.values();
                     NamespacedKey namespacedKey = context.get("id");
-                    Key key = Key.of(namespacedKey.namespace(), namespacedKey.value());
+                    Key key = KeyUtils.namespacedKeyToKey(namespacedKey);
                     Optional<? extends BuildableItem> buildableItem = plugin().itemManager().getBuildableItem(key);
                     if (buildableItem.isEmpty()) {
                         handleFeedback(context, MessageConstants.COMMAND_TOTEM_NOT_TOTEM, Component.text(key.asString()));

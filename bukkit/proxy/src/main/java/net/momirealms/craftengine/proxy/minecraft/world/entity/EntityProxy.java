@@ -18,6 +18,21 @@ public interface EntityProxy {
     @FieldGetter(name = "ENTITY_COUNTER", isStatic = true, activeIf = "max_version=26.1.2")
     AtomicInteger getEntityCounter();
 
+    @FieldGetter(name = "yRot")
+    float getYRot(Object target);
+
+    @FieldGetter(name = "xRot")
+    float getXRot(Object target);
+
+    @MethodInvoker(name = "getX")
+    double getX(Object target);
+
+    @MethodInvoker(name = "getY")
+    double getY(Object target);
+
+    @MethodInvoker(name = "getZ")
+    double getZ(Object target);
+
     @FieldGetter(name = "xo")
     double getXo(Object target);
 

@@ -2,6 +2,8 @@ package net.momirealms.craftengine.bukkit.entity.furniture;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.InteractionFurnitureHitboxConfig;
+import net.momirealms.craftengine.bukkit.entity.furniture.listener.FurnitureEventListener;
+import net.momirealms.craftengine.bukkit.entity.furniture.listener.PaperFurnitureEventListener;
 import net.momirealms.craftengine.bukkit.nms.CollisionEntity;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
@@ -15,6 +17,7 @@ import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.core.entity.furniture.tick.TickingFurnitureImpl;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Key;
@@ -61,6 +64,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     private final Map<Integer, BukkitFurniture> byColliderEntityId = new ConcurrentHashMap<>(512, 0.5f);
     // Event listeners
     private final FurnitureEventListener furnitureEventListener;
+    private final PaperFurnitureEventListener paperFurnitureEventListener;
 
     public static BukkitFurnitureManager instance() {
         return instance;
@@ -71,6 +75,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         instance = this;
         this.plugin = plugin;
         this.furnitureEventListener = new FurnitureEventListener(this, plugin.worldManager());
+        this.paperFurnitureEventListener = VersionHelper.hasPaperPatch ? new PaperFurnitureEventListener(this) : null;
     }
 
     @Override
@@ -112,9 +117,10 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
         // 注册事件
         Bukkit.getPluginManager().registerEvents(this.furnitureEventListener, this.plugin.javaPlugin());
+        if (this.paperFurnitureEventListener != null) Bukkit.getPluginManager().registerEvents(this.paperFurnitureEventListener, this.plugin.javaPlugin());
 
         // 对世界上已有实体的记录
-        if (VersionHelper.isFolia) {
+        if (VersionHelper.hasFoliaPatch) {
             BiConsumer<Entity, Runnable> taskExecutor = (entity, runnable) -> entity.getScheduler().run(this.plugin.javaPlugin(), (t) -> runnable.run(), () -> {});
             for (World world : Bukkit.getWorlds()) {
                 List<Entity> entities = world.getEntities();
@@ -158,6 +164,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         }
         super.disable();
         HandlerList.unregisterAll(this.furnitureEventListener);
+        if (this.paperFurnitureEventListener != null) HandlerList.unregisterAll(this.paperFurnitureEventListener);
         unload();
     }
 
@@ -185,7 +192,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     // 当元数据实体被卸载了
-    void handleMetaEntityUnload(ItemDisplay entity, boolean isStopping) {
+    public void handleMetaEntityUnload(ItemDisplay entity, boolean isStopping) {
         // 不是持久化的
         if (!entity.isPersistent()) {
             return;
@@ -218,7 +225,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     // 保险起见，collision实体卸载也移除一下
-    void handleCollisionEntityUnload(Entity entity) {
+    public void handleCollisionEntityUnload(Entity entity) {
         int id = entity.getEntityId();
         this.byColliderEntityId.remove(id);
     }
@@ -232,7 +239,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         return ceChunk.isEntitiesLoaded();
     }
 
-    void handleMetaEntityDuringChunkLoad(ItemDisplay entity) {
+    public void handleMetaEntityDuringChunkLoad(ItemDisplay entity) {
         // 实体可能不是持久的
         if (!entity.isPersistent()) {
             return;
@@ -279,7 +286,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     @SuppressWarnings("deprecation")
-    void handleMetaEntityAfterChunkLoad(ItemDisplay entity) {
+    public void handleMetaEntityAfterChunkLoad(ItemDisplay entity) {
         // 实体可能不是持久的
         if (!entity.isPersistent()) {
             return;
@@ -308,17 +315,15 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         createFurnitureInstance(entity, furnitureDefinition);
 
         // 补发一次包，修复
-        for (Player player : entity.getTrackedPlayers()) {
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
-            if (serverPlayer == null) continue;
-            serverPlayer.sendPacket(ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
+        for (Player player : EntityUtils.getTrackedBy(entity, BukkitAdaptor::adapt)) {
+            player.sendPacket(ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                     entity.getEntityId(), entity.getUniqueId(), location.getX(), location.getY(), location.getZ(), location.getPitch(), location.getYaw(),
                     EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
             ), false);
         }
     }
 
-    void handleCollisionEntityAfterChunkLoad(Entity entity) {
+    public void handleCollisionEntityAfterChunkLoad(Entity entity) {
         // 如果是碰撞实体，那么就忽略
         if (CraftEntityProxy.INSTANCE.getEntity(entity) instanceof CollisionEntity) {
             return;
@@ -394,7 +399,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             if (ticker != null) {
                 TickingFurnitureImpl<FurnitureController> tickingFurniture = new TickingFurnitureImpl<>(furniture, ticker);
                 this.syncTickers.put(entityId, tickingFurniture);
-                if (VersionHelper.isFolia) {
+                if (VersionHelper.hasFoliaPatch) {
                     furniture.bukkitEntity().getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> {
                         if (tickingFurniture.isValid()) {
                             tickingFurniture.tick();

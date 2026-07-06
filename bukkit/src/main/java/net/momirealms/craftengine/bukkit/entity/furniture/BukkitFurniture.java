@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.util.CollisionUtils;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
@@ -15,6 +16,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.QuaternionUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
@@ -187,8 +189,9 @@ public final class BukkitFurniture extends Furniture {
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return;
         Object removePacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), l -> l.add(itemDisplay.getEntityId())));
+        Location displayLocation = itemDisplay.getLocation();
         Object addPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(itemDisplay.getEntityId(), itemDisplay.getUniqueId(),
-                itemDisplay.getX(), itemDisplay.getY(), itemDisplay.getZ(), itemDisplay.getPitch(), itemDisplay.getYaw(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0);
+                displayLocation.getX(), displayLocation.getY(), displayLocation.getZ(), displayLocation.getPitch(), displayLocation.getYaw(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0);
         for (Player player : trackedBy()) {
             player.sendPacket(removePacket, false);
             player.sendPacket(addPacket, false);
@@ -200,8 +203,9 @@ public final class BukkitFurniture extends Furniture {
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return;
         Object removePacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), l -> l.add(itemDisplay.getEntityId())));
+        Location displayLocation = itemDisplay.getLocation();
         Object addPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(itemDisplay.getEntityId(), itemDisplay.getUniqueId(),
-                itemDisplay.getX(), itemDisplay.getY(), itemDisplay.getZ(), itemDisplay.getPitch(), itemDisplay.getYaw(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0);
+                displayLocation.getX(), displayLocation.getY(), displayLocation.getZ(), displayLocation.getPitch(), displayLocation.getYaw(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0);
         player.sendPacket(removePacket, false);
         player.sendPacket(addPacket, false);
     }
@@ -247,30 +251,20 @@ public final class BukkitFurniture extends Furniture {
         return bukkitEntity();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public List<Player> trackedBy() {
+        if (!VersionHelper.hasPaperPatch) return List.of();
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return List.of();
-        Set<org.bukkit.entity.Player> trackedPlayers = itemDisplay.getTrackedPlayers();
-        List<Player> players = new ArrayList<>();
-        for (org.bukkit.entity.Player player : trackedPlayers) {
-            players.add(BukkitAdaptor.adapt(player));
-        }
-        return players;
+        return new ArrayList<>(EntityUtils.getTrackedBy(itemDisplay, BukkitAdaptor::adapt));
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public Set<Player> getTrackedBy() {
+        if (!VersionHelper.hasPaperPatch) return Set.of();
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return Set.of();
-        Set<org.bukkit.entity.Player> trackedPlayers = itemDisplay.getTrackedPlayers();
-        Set<Player> players = new HashSet<>();
-        for (org.bukkit.entity.Player player : trackedPlayers) {
-            players.add(BukkitAdaptor.adapt(player));
-        }
-        return players;
+        return EntityUtils.getTrackedBy(itemDisplay, BukkitAdaptor::adapt);
     }
 
     @Override

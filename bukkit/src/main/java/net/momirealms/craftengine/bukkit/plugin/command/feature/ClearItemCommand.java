@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.command.FlagKeys;
@@ -58,7 +59,7 @@ public final class ClearItemCommand extends BukkitCommandFeature<CommandSender> 
                     Collection<Player> players = selector.values();
                     int amount = context.getOrDefault("amount", -1);
                     NamespacedKey namespacedKey = context.get("id");
-                    Key idOrTag = Key.of(namespacedKey.namespace(), namespacedKey.value());
+                    Key idOrTag = KeyUtils.namespacedKeyToKey(namespacedKey);
                     Predicate<Object> predicate = !context.flags().hasFlag(FlagKeys.MATCH_TAG) ?
                             nmsStack -> {
                                 Key id = BukkitItemManager.instance().wrap(ItemStackUtils.getBukkitStack(nmsStack)).id();

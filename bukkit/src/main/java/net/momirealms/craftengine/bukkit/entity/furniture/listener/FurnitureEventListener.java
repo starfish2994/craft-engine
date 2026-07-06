@@ -1,13 +1,11 @@
-package net.momirealms.craftengine.bukkit.entity.furniture;
+package net.momirealms.craftengine.bukkit.entity.furniture.listener;
 
-import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
-import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
-import io.papermc.paper.event.player.PlayerTrackEntityEvent;
-import io.papermc.paper.event.player.PlayerUntrackEntityEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureHitEvent;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
+import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
+import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
 import net.momirealms.craftengine.bukkit.entity.furniture.behavior.GlowingFurnitureBehaviorTemplate;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BukkitItemUtils;
@@ -21,6 +19,7 @@ import net.momirealms.craftengine.core.item.customdata.FurnitureDebugStickData;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSystemChatPacketProxy;
+import org.bukkit.Chunk;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
@@ -64,7 +63,8 @@ public final class FurnitureEventListener implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntitiesLoadEarly(EntitiesLoadEvent event) {
-        if (!event.getChunk().isLoaded()) {
+        Chunk chunk = event.getChunk();
+        if (!chunk.isLoaded()) {
             return;
         }
         List<Entity> entities = event.getEntities();
@@ -77,7 +77,8 @@ public final class FurnitureEventListener implements Listener {
             }
         }
         CEWorld world = this.worldManager.getWorld(event.getWorld());
-        CEChunk ceChunk = world.getChunkAtIfLoaded(event.getChunk().getChunkKey());
+
+        CEChunk ceChunk = world.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
         if (ceChunk != null) {
             ceChunk.setEntitiesLoaded(true);
         }
@@ -129,59 +130,6 @@ public final class FurnitureEventListener implements Listener {
                 this.manager.handleCollisionEntityUnload(entity);
                 entity.remove();
             }
-        }
-    }
-
-    /*
-
-
-    Paper 事件
-
-
-     */
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onTrackFurniture(PlayerTrackEntityEvent event) {
-        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
-            int entityId = furnitureEntity.getEntityId();
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
-            if (furniture == null) return;
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
-            if (serverPlayer == null) return;
-            furniture.controller.onPlayerTrack(serverPlayer);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onUntrackFurniture(PlayerUntrackEntityEvent event) {
-        if (event.getEntity() instanceof ItemDisplay furnitureEntity) {
-            int entityId = furnitureEntity.getEntityId();
-            BukkitFurniture furniture = BukkitFurnitureManager.instance().loadedFurnitureByMetaEntityId(entityId);
-            if (furniture == null) return;
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(event.getPlayer());
-            if (serverPlayer == null) return;
-            furniture.controller.onPlayerUntrack(serverPlayer);
-        }
-    }
-
-    // 主要是为了辅助监听 WorldEdit 添加的实体
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onEntityLoad(EntityAddToWorldEvent event) {
-        Entity entity = event.getEntity();
-        if (entity instanceof ItemDisplay itemDisplay) {
-            this.manager.handleMetaEntityAfterChunkLoad(itemDisplay);
-        } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
-            this.manager.handleCollisionEntityAfterChunkLoad(entity);
-        }
-    }
-
-    // 主要是为了辅助监听 WorldEdit 移除的实体或被kill的实体
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onEntityUnload(EntityRemoveFromWorldEvent event) {
-        Entity entity = event.getEntity();
-        if (entity instanceof ItemDisplay itemDisplay) {
-            this.manager.handleMetaEntityUnload(itemDisplay, false);
-        } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
-            this.manager.handleCollisionEntityUnload(entity);
         }
     }
 

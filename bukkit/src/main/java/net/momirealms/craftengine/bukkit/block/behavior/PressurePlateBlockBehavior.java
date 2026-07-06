@@ -101,7 +101,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     public void entityInside(Object thisBlock, Object[] args) {
         Entity entity = EntityProxy.INSTANCE.getBukkitEntity(args[3]);
         Block block = CraftBlockProxy.INSTANCE.at(args[1], args[2]);
-        if (VersionHelper.isPaper) {
+        if (VersionHelper.hasPaperPatch) {
             if (EventUtils.fireAndCheckCancel(PaperEventUtils.entityInside(entity, block))) {
                 return;
             }

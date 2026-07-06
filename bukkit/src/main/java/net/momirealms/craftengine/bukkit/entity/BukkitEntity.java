@@ -27,17 +27,17 @@ public class BukkitEntity extends AbstractEntity {
 
     @Override
     public double x() {
-        return platformEntity().getX();
+        return EntityProxy.INSTANCE.getX(serverEntity());
     }
 
     @Override
     public double y() {
-        return platformEntity().getY();
+        return EntityProxy.INSTANCE.getY(serverEntity());
     }
 
     @Override
     public double z() {
-        return platformEntity().getZ();
+        return EntityProxy.INSTANCE.getZ(serverEntity());
     }
 
     @Override
