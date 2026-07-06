@@ -205,11 +205,15 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
             // 区块还在加载的时候，就重复卸载了。为极其特殊情况
             if (!isStopping) {
-                Location location = entity.getLocation();
-                Object entityLookup = LevelUtils.getEntityLookup(location.getWorld());
-                Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
-                boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
-                if (!isPreventing) {
+                if (VersionHelper.hasPaperPatch) {
+                    Location location = entity.getLocation();
+                    Object entityLookup = LevelUtils.getEntityLookup(location.getWorld());
+                    Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
+                    boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
+                    if (!isPreventing) {
+                        furniture.destroySeats();
+                    }
+                } else {
                     furniture.destroySeats();
                 }
             }
@@ -284,7 +288,6 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         furnitureInstance.controller.onLoad();
     }
 
-    @SuppressWarnings("deprecation")
     public void handleMetaEntityAfterChunkLoad(ItemDisplay entity) {
         // 实体可能不是持久的
         if (!entity.isPersistent()) {
@@ -439,21 +442,27 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     private void tryRemoveCollider(Collider collider) {
-        Object entity = collider.handle();
-        Object level = EntityProxy.INSTANCE.getLevel(entity);
-        Object entityLookup = LevelUtils.getEntityLookup(level);
-        if (!EntityLookupProxy.INSTANCE.canRemoveEntity(entityLookup, entity)) return;
+        if (VersionHelper.hasPaperPatch) {
+            Object entity = collider.handle();
+            Object level = EntityProxy.INSTANCE.getLevel(entity);
+            Object entityLookup = LevelUtils.getEntityLookup(level);
+            if (!EntityLookupProxy.INSTANCE.canRemoveEntity(entityLookup, entity)) return;
+        }
         collider.destroy();
     }
 
     private void runSafeEntityOperation(Chunk chunk, Runnable action) {
         if (!chunk.isLoaded()) return;
-        Object world = CraftWorldProxy.INSTANCE.getWorld(chunk.getWorld());
-        Object entityLookup = LevelUtils.getEntityLookup(world);
-        Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, chunk.getX(), chunk.getZ());
-        boolean preventChange = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
-        if (preventChange) {
-            this.plugin.scheduler().platform().runLater(action, 1, chunk.getWorld(), chunk.getX(), chunk.getZ());
+        if (VersionHelper.hasPaperPatch) {
+            Object world = CraftWorldProxy.INSTANCE.getWorld(chunk.getWorld());
+            Object entityLookup = LevelUtils.getEntityLookup(world);
+            Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, chunk.getX(), chunk.getZ());
+            boolean preventChange = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
+            if (preventChange) {
+                this.plugin.scheduler().platform().runLater(action, 1, chunk.getWorld(), chunk.getX(), chunk.getZ());
+            } else {
+                action.run();
+            }
         } else {
             action.run();
         }

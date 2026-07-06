@@ -15,14 +15,14 @@ import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 public interface ServerGamePacketListenerImplProxy extends ServerCommonPacketListenerImplProxy {
     ServerGamePacketListenerImplProxy INSTANCE = ASMProxyFactory.create(ServerGamePacketListenerImplProxy.class);
 
-    @MethodInvoker(name = "tryPickItem", activeIf = "min_version=1.21.5")
+    @MethodInvoker(name = "tryPickItem", activeIf = "min_version=1.21.5 && has_patch=paper")
     void tryPickItem(Object target,
                      @Type(clazz = ItemStackProxy.class) Object item,
                      @Type(clazz = BlockPosProxy.class) Object pos,
                      @Type(clazz = EntityProxy.class) Object entity,
                      boolean includeData);
 
-    @MethodInvoker(name = "tryPickItem", activeIf = "version=1.21.4")
+    @MethodInvoker(name = "tryPickItem", activeIf = "version=1.21.4 || !has_patch=paper")
     void tryPickItem(Object target,
                      @Type(clazz = ItemStackProxy.class) Object item);
 

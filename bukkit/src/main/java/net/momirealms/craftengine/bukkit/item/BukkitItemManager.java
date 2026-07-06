@@ -371,7 +371,7 @@ public final class BukkitItemManager extends AbstractItemManager {
 
     @Override
     public BukkitItem fromBytes(byte[] bytes) {
-        return wrap(ItemStack.deserializeBytes(bytes));
+        return wrap(ItemStackUtils.fromBytes(bytes));
     }
 
     @Override

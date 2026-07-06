@@ -69,7 +69,7 @@ public final class ItemStackUtils {
 
     public static ItemStack fromBytes(byte[] bytes) {
         CompoundTag compoundTag = NBT.readCompressed(bytes, false);
-        return parseBukkitItem(compoundTag, compoundTag.getInt("DataVersion"));
+        return parseBukkitItem(compoundTag, compoundTag.getInt("DataVersion", Config.itemDataFixerUpperFallbackVersion()));
     }
 
     public static byte[] toBytes(ItemStack itemStack) {
@@ -77,6 +77,7 @@ public final class ItemStackUtils {
         if (tag == null) {
             throw new IllegalStateException("Could not save item: " + itemStack);
         }
+        tag.putInt("DataVersion", VersionHelper.WORLD_VERSION);
         return NBT.writeCompressed(tag, false);
     }
 

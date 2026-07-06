@@ -7,7 +7,7 @@ import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
-@ReflectionProxy(name = "net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette")
+@ReflectionProxy(name = "net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette", optional = true)
 public interface LithiumHashPaletteProxy extends HashMapPaletteProxy {
     LithiumHashPaletteProxy INSTANCE = ASMProxyFactory.create(LithiumHashPaletteProxy.class);
     Class<?> CLASS = SparrowClass.find("net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette");
