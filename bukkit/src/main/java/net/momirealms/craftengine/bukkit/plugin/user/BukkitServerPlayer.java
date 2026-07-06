@@ -1835,7 +1835,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public int clearOrCountMatchingInventoryItems(Predicate<Item> predicate, int count) {
-        Predicate<Object> nmsPredicate = nmsStack -> predicate.test(this.plugin.itemManager().wrap(ItemStackUtils.asCraftMirror(nmsStack)));
+        Predicate<Object> nmsPredicate = nmsStack -> predicate.test(this.plugin.itemManager().wrap(ItemStackUtils.getBukkitStack(nmsStack)));
         Object inventory = PlayerProxy.INSTANCE.getInventory(serverPlayer());
         Object inventoryMenu = PlayerProxy.INSTANCE.getInventoryMenu(serverPlayer());
         Object craftSlots = InventoryMenuProxy.INSTANCE.getCraftSlots(inventoryMenu);

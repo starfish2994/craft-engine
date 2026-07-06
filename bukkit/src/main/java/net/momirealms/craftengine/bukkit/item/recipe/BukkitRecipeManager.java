@@ -251,7 +251,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         if (!Config.enableRecipeSystem()) return;
 
         // 处理酿造配方
-        if (VersionHelper.isOrAbove1_20_2) {
+        if (VersionHelper.isOrAbove1_20_2 && VersionHelper.isPaper) {
             PotionBrewer potionBrewer = Bukkit.getPotionBrewer();
             if (!this.brewingRecipesToUnregister.isEmpty()) {
                 for (Key potion : this.brewingRecipesToUnregister) {

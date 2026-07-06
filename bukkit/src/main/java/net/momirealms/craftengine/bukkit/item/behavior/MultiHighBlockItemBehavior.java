@@ -23,6 +23,7 @@ import net.momirealms.craftengine.proxy.bukkit.craftbukkit.block.CraftBlockProxy
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.CollisionGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
@@ -74,7 +75,9 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
                 voxelShape = CollisionContextProxy.INSTANCE.empty();
             }
             Object world = CraftWorldProxy.INSTANCE.getWorld((World) context.getLevel().platformWorld());
-            boolean defaultReturn = ServerLevelProxy.INSTANCE.checkEntityCollision(world, blockState, player, voxelShape, blockPos, true); // paper only
+            boolean defaultReturn = VersionHelper.isPaper ?
+                    ServerLevelProxy.INSTANCE.checkEntityCollision(world, blockState, player, voxelShape, blockPos, true) :  // paper
+                    CollisionGetterProxy.INSTANCE.isUnobstructed(world, blockState, blockPos, CollisionContextProxy.INSTANCE.placementContext(player)); // spigot
             Block block = CraftBlockProxy.INSTANCE.at(world, blockPos);
             BlockData blockData = BlockStateUtils.fromBlockData(blockState);
             BlockCanBuildEvent canBuildEvent = new BlockCanBuildEvent(

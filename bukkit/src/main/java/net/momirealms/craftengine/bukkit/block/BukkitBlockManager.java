@@ -310,12 +310,14 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             shapeHolder.bindValue(new BukkitBlockShape(nmsVisualState, Optional.ofNullable(state.settings().supportShapeBlockState()).map(it -> Objects.requireNonNull(createVanillaBlockState(it), "Illegal block state: " + it).minecraftState()).orElse(null)));
             ObjectHolder<BlockBehavior> behaviorHolder = nmsBlock.behaviorDelegate();
             behaviorHolder.bindValue(state.behavior());
-            if (VersionHelper.isOrAbove1_21_2) {
-                BlockBehaviourProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
-            } else {
-                BlockProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
+            if (VersionHelper.isPaper) {
+                if (VersionHelper.isOrAbove1_21_2) {
+                    BlockBehaviourProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
+                } else {
+                    BlockProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
+                }
             }
-
+  
             BlockBehaviourProxy.INSTANCE.setExplosionResistance(nmsBlock, settings.resistance());
             BlockBehaviourProxy.INSTANCE.setFriction(nmsBlock, settings.friction());
             BlockBehaviourProxy.INSTANCE.setSpeedFactor(nmsBlock, settings.speedFactor());

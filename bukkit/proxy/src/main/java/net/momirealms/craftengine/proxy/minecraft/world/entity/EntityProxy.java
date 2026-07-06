@@ -57,10 +57,10 @@ public interface EntityProxy {
     @FieldSetter(name = "hurtMarked")
     void setHurtMarked(Object target, boolean hurtMarked);
 
-    @FieldGetter(name = {"trackedEntity", "tracker"})
+    @FieldGetter(name = {"trackedEntity", "tracker"}, activeIf = "has_patch=paper")
     Object getTrackedEntity(Object target);
 
-    @FieldSetter(name = {"trackedEntity", "tracker"})
+    @FieldSetter(name = {"trackedEntity", "tracker"}, activeIf = "has_patch=paper")
     void setTrackedEntity(Object target, Object trackedEntity);
 
     @FieldGetter(name = "wasTouchingWater")

@@ -7,8 +7,8 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.util.WorldUtils;
 import net.momirealms.craftengine.core.entity.furniture.*;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
@@ -25,10 +25,8 @@ import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.EntityLookupProxy;
 import net.momirealms.craftengine.proxy.paper.world.ChunkEntitySlicesProxy;
@@ -202,7 +200,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
             // 区块还在加载的时候，就重复卸载了。为极其特殊情况
             if (!isStopping) {
                 Location location = entity.getLocation();
-                Object entityLookup = WorldUtils.getEntityLookup(location.getWorld());
+                Object entityLookup = LevelUtils.getEntityLookup(location.getWorld());
                 Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, location.getBlockX() >> 4, location.getBlockZ() >> 4);
                 boolean isPreventing = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
                 if (!isPreventing) {
@@ -439,12 +437,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     private void tryRemoveCollider(Collider collider) {
         Object entity = collider.handle();
         Object level = EntityProxy.INSTANCE.getLevel(entity);
-        Object entityLookup;
-        if (VersionHelper.isOrAbove1_21) {
-            entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(level);
-        } else {
-            entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(level);
-        }
+        Object entityLookup = LevelUtils.getEntityLookup(level);
         if (!EntityLookupProxy.INSTANCE.canRemoveEntity(entityLookup, entity)) return;
         collider.destroy();
     }
@@ -452,12 +445,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     private void runSafeEntityOperation(Chunk chunk, Runnable action) {
         if (!chunk.isLoaded()) return;
         Object world = CraftWorldProxy.INSTANCE.getWorld(chunk.getWorld());
-        Object entityLookup;
-        if (VersionHelper.isOrAbove1_21) {
-            entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(world);
-        } else {
-            entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(world);
-        }
+        Object entityLookup = LevelUtils.getEntityLookup(world);
         Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, chunk.getX(), chunk.getZ());
         boolean preventChange = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
         if (preventChange) {

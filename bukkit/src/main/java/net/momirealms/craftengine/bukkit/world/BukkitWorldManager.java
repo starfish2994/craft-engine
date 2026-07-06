@@ -393,6 +393,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private void injectWorld(CEWorld world) {
+        if (!VersionHelper.isPaper) return; // only paper support these
         Object serverLevel = world.world.minecraftWorld();
         Object serverChunkCache = ServerLevelProxy.INSTANCE.getChunkSource(serverLevel);
         Object chunkMap = ServerChunkCacheProxy.INSTANCE.getChunkMap(serverChunkCache);
@@ -439,12 +440,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     // 用于从实体tick列表中移除家具实体以降低遍历开销
     private void injectWorldCallback(Object serverLevel) {
-        Object entityLookup;
-        if (VersionHelper.isOrAbove1_21) {
-            entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(serverLevel);
-        } else {
-            entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(serverLevel);
-        }
+        Object entityLookup = LevelUtils.getEntityLookup(serverLevel);
         Object worldCallback = EntityLookupProxy.INSTANCE.getWorldCallback(entityLookup);
         if (!(worldCallback instanceof InjectedWorldCallback)) {
             Object injectedWorldCallback = FastNMS.INSTANCE.createInjectedWorldCallbacks(worldCallback, entityLookup);
@@ -519,11 +515,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             if (levelChunk == null) {
                 Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
                 Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
-                if (VersionHelper.isOrAbove1_21) {
-                    levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunk.getX(), chunk.getZ());
-                } else {
-                    levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunk.getX(), chunk.getZ());
-                }
+                levelChunk = LevelUtils.getChunkAtIfLoaded(chunkSource, chunk.getX(), chunk.getZ());
             }
 
             CESection[] ceSections = ceChunk.sections();
@@ -615,12 +607,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
         Object worldServer = CraftChunkProxy.INSTANCE.getWorld(chunk);
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
-        Object levelChunk;
-        if (VersionHelper.isOrAbove1_21) {
-            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunkX, chunkZ);
-        } else {
-            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
-        }
+        Object levelChunk = LevelUtils.getChunkAtIfLoaded(chunkSource, chunkX, chunkZ);
 
         if (levelChunk == null) {
             this.plugin.logger().warn("Cannot get LevelChunk at ( world: " + ceWorld.name() + " | chunk: " + chunkX + "," + chunkZ + " )");

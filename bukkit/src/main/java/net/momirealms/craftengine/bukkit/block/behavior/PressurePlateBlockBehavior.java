@@ -1,12 +1,8 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
-import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.DirectionUtils;
-import net.momirealms.craftengine.bukkit.util.EventUtils;
-import net.momirealms.craftengine.bukkit.util.LocationUtils;
+import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -102,13 +98,13 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public void entityInside(Object thisBlock, Object[] args) {
         Entity entity = EntityProxy.INSTANCE.getBukkitEntity(args[3]);
         Block block = CraftBlockProxy.INSTANCE.at(args[1], args[2]);
-        EntityInsideBlockEvent event = new EntityInsideBlockEvent(entity, block);
-        if (EventUtils.fireAndCheckCancel(event)) {
-            return;
+        if (VersionHelper.isPaper) {
+            if (EventUtils.fireAndCheckCancel(PaperEventUtils.entityInside(entity, block))) {
+                return;
+            }
         }
         boolean cannotInteract = entity instanceof Player p && !BukkitCraftEngine.instance().antiGriefProvider().test(p, Flag.USE_PRESSURE_PLATE, block.getLocation());
         if (cannotInteract) {

@@ -11,8 +11,10 @@ public final class EventUtils {
         Bukkit.getPluginManager().callEvent(event);
     }
 
-    public static <T extends Event & Cancellable> boolean fireAndCheckCancel(T event) {
+    public static boolean fireAndCheckCancel(Event event) {
+        if (!(event instanceof Cancellable cancellable))
+            throw new IllegalArgumentException("Only cancellable events are allowed here");
         Bukkit.getPluginManager().callEvent(event);
-        return event.isCancelled();
+        return cancellable.isCancelled();
     }
 }

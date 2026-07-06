@@ -75,15 +75,25 @@ public final class ItemStackUtils {
     }
 
     public static ItemStack asCraftMirror(Object itemStack) {
-        return getBukkitStack(itemStack);
+        return CraftItemStackProxy.INSTANCE.asCraftMirror(itemStack);
     }
 
     public static ItemStack getBukkitStack(Object itemStack) {
-        return ItemStackProxy.INSTANCE.getBukkitStack(itemStack);
+        if (VersionHelper.isPaper) {
+            return ItemStackProxy.INSTANCE.getBukkitStack(itemStack);
+        } else {
+            return asCraftMirror(itemStack);
+        }
     }
 
     public static ItemStack getBukkitStack(Item item) {
         return getBukkitStack(item.minecraftItem());
+    }
+
+    public static Object unwrap(ItemStack itemStack) {
+        ItemStack craftItemStack = ensureCraftItemStack(itemStack);
+        Object handle = CraftItemStackProxy.INSTANCE.getHandle(craftItemStack);
+        return handle == null ? ItemStackProxy.EMPTY : handle;
     }
 
     @Nullable
@@ -100,7 +110,7 @@ public final class ItemStackUtils {
 
     @Nullable
     public static Tag saveBukkitItemAsTag(ItemStack itemStack) {
-        return saveMinecraftItemStackAsTag(CraftItemStackProxy.INSTANCE.unwrap(ensureCraftItemStack(itemStack)));
+        return saveMinecraftItemStackAsTag(ItemStackUtils.unwrap(ensureCraftItemStack(itemStack)));
     }
 
     @Nullable

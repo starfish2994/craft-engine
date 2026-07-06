@@ -6,12 +6,14 @@ import com.google.common.collect.Multimap;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.recipe.RecipeRegistry;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.RegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeHolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeManagerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.crafting.RecipeMapProxy;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class RecipeRegistry1_21_2 implements RecipeRegistry {
@@ -24,8 +26,13 @@ public final class RecipeRegistry1_21_2 implements RecipeRegistry {
     public void prepareRegistration() {
         Object previousRecipeMap = RecipeManagerProxy.INSTANCE.getRecipes(BukkitRecipeManager.minecraftRecipeManager());
         Multimap<Object, Object> byType = LinkedHashMultimap.create(RecipeMapProxy.INSTANCE.getByType(previousRecipeMap));
-        Map<Object, Object> byKey = Maps.newHashMap(RecipeMapProxy.INSTANCE.getByKey(previousRecipeMap));
-        this.mirrorRecipeMap = RecipeMapProxy.INSTANCE.newInstance(byType, byKey);
+        if (VersionHelper.isPaper) {
+            Map<Object, Object> byKey = Maps.newHashMap(RecipeMapProxy.INSTANCE.getByKey(previousRecipeMap));
+            this.mirrorRecipeMap = RecipeMapProxy.INSTANCE.newInstance$paper(byType, byKey);
+        } else {
+            LinkedHashMap<Object, Object> byKey = Maps.newLinkedHashMap(RecipeMapProxy.INSTANCE.getByKey(previousRecipeMap));
+            this.mirrorRecipeMap = RecipeMapProxy.INSTANCE.newInstance(byType, byKey);
+        }
     }
 
     @Override

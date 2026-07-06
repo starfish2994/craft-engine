@@ -86,12 +86,7 @@ public final class BukkitWorld implements World {
     @Override
     public Chunk getChunkIfLoaded(int x, int z) {
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(this.minecraftWorld());
-        Object levelChunk;
-        if (VersionHelper.isOrAbove1_21) {
-            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, x, z);
-        } else {
-            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, x, z);
-        }
+        Object levelChunk = LevelUtils.getChunkAtIfLoaded(chunkSource, x, z);
         if (levelChunk == null) return null;
         return new BukkitChunkAccess(levelChunk);
     }

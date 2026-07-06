@@ -61,11 +61,11 @@ public final class ClearItemCommand extends BukkitCommandFeature<CommandSender> 
                     Key idOrTag = Key.of(namespacedKey.namespace(), namespacedKey.value());
                     Predicate<Object> predicate = !context.flags().hasFlag(FlagKeys.MATCH_TAG) ?
                             nmsStack -> {
-                                Key id = BukkitItemManager.instance().wrap(ItemStackUtils.asCraftMirror(nmsStack)).id();
+                                Key id = BukkitItemManager.instance().wrap(ItemStackUtils.getBukkitStack(nmsStack)).id();
                                 return id.equals(idOrTag);
                             } :
                             nmsStack -> {
-                                Key id = BukkitItemManager.instance().wrap(ItemStackUtils.asCraftMirror(nmsStack)).id();
+                                Key id = BukkitItemManager.instance().wrap(ItemStackUtils.getBukkitStack(nmsStack)).id();
                                 for (UniqueKey key : BukkitItemManager.instance().itemIdsByTag(idOrTag)) {
                                     if (key.key().equals(id)) {
                                         return true;

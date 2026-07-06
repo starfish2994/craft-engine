@@ -1,9 +1,16 @@
 package net.momirealms.craftengine.bukkit.util;
 
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftChunkProxy;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
-
-import javax.annotation.Nullable;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
+import org.bukkit.Chunk;
+import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class LevelUtils {
     private LevelUtils() {}
@@ -13,6 +20,40 @@ public final class LevelUtils {
             LevelAccessorProxy.INSTANCE.levelEvent$0(target, source, eventId, pos, data);
         } else {
             LevelAccessorProxy.INSTANCE.levelEvent$1(target, source, eventId, pos, data);
+        }
+    }
+
+    public static Object getEntityLookup(Object level) {
+        Object entityLookup;
+        if (VersionHelper.isOrAbove1_21) {
+            entityLookup = LevelProxy.INSTANCE.moonrise$getEntityLookup(level);
+        } else {
+            entityLookup = ServerLevelProxy.INSTANCE.getEntityLookup(level);
+        }
+        return entityLookup;
+    }
+
+    @org.jetbrains.annotations.Nullable
+    public static Object getMinecraftChunk(@NotNull Chunk bukkitChunk) {
+        Object worldServer = CraftChunkProxy.INSTANCE.getWorld(bukkitChunk);
+        Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
+        return getChunkAtIfLoaded(chunkSource, bukkitChunk.getX(), bukkitChunk.getZ());
+    }
+
+    public static Object getEntityLookup(World world) {
+        Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(world);
+        return LevelUtils.getEntityLookup(serverLevel);
+    }
+
+    public static Object getChunkAtIfLoaded(Object chunkSource, int chunkX, int chunkZ) {
+        if (VersionHelper.isPaper) {
+            if (VersionHelper.isOrAbove1_21) {
+                return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, chunkX, chunkZ);
+            } else {
+                return ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, chunkX, chunkZ);
+            }
+        } else {
+            return ServerChunkCacheProxy.INSTANCE.getChunkNow(chunkSource, chunkX, chunkZ);
         }
     }
 }

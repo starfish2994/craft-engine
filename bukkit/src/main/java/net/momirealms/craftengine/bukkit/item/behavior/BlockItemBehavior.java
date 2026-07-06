@@ -41,6 +41,7 @@ import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.block.CraftBlockProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.CollisionGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.shapes.CollisionContextProxy;
@@ -262,8 +263,10 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
             voxelShape = CollisionContextProxy.INSTANCE.empty();
         }
         Object world = CraftWorldProxy.INSTANCE.getWorld((World) context.getLevel().platformWorld());
-        boolean defaultReturn = ((!this.checkStatePlacement() || BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(blockState, world, blockPos))
-                && LevelProxy.INSTANCE.checkEntityCollision(world, blockState, player, voxelShape, blockPos, true)); // paper only
+        boolean defaultReturn = ((!this.checkStatePlacement() || BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.canSurvive(blockState, world, blockPos)) &&
+                (VersionHelper.isPaper ?
+                        LevelProxy.INSTANCE.checkEntityCollision(world, blockState, player, voxelShape, blockPos, true) : // paper
+                        CollisionGetterProxy.INSTANCE.isUnobstructed(world, blockState, blockPos, CollisionContextProxy.INSTANCE.placementContext(player)))); // spigot
         Block block = CraftBlockProxy.INSTANCE.at(world, blockPos);
         BlockData blockData = BlockStateUtils.fromBlockData(blockState);
         BlockCanBuildEvent canBuildEvent = new BlockCanBuildEvent(

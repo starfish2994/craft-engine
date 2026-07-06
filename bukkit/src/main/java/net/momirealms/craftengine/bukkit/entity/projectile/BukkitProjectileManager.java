@@ -283,7 +283,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
 
             Object nmsEntity = CraftEntityProxy.INSTANCE.getEntity(this.projectile);
             // 获取server entity
-            if (this.cachedServerEntity == null) {
+            if (this.cachedServerEntity == null && VersionHelper.isPaper) {
                 Object trackedEntity = EntityProxy.INSTANCE.getTrackedEntity(nmsEntity);
                 if (trackedEntity == null) return;
                 Object serverEntity = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getServerEntity(trackedEntity);
@@ -317,7 +317,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         }
 
         private void updateProjectileUpdateInterval(int updateInterval) {
-            if (this.lastInjectedInterval == updateInterval) return;
+            if (this.lastInjectedInterval == updateInterval || this.cachedServerEntity == null) return;
             ServerEntityProxy.INSTANCE.setUpdateInterval(this.cachedServerEntity, updateInterval);
             this.lastInjectedInterval = updateInterval;
         }

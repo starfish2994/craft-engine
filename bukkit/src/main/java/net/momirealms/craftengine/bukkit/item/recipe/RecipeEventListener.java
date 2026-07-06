@@ -20,7 +20,6 @@ import net.momirealms.craftengine.core.item.recipe.input.SingleItemInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.item.setting.value.AnvilRepairItem;
 import net.momirealms.craftengine.core.item.setting.value.ItemEquipment;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
@@ -366,7 +365,7 @@ public final class RecipeEventListener implements Listener {
             UUID uniqueId = player.getUniqueId();
             // 清理 QuickCache 的缓存.
             Chunk chunk = furnace.getBlock().getChunk();
-            Object chunkAccess = WorldUtils.getMinecraftChunk(chunk);
+            Object chunkAccess = LevelUtils.getMinecraftChunk(chunk);
             Object blockEntity = BlockGetterProxy.INSTANCE.getBlockEntity(chunkAccess, LocationUtils.toBlockPos(furnace.getX(), furnace.getY(), furnace.getZ()));
             if (AbstractFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
                 Object quickCheck = AbstractFurnaceBlockEntityProxy.INSTANCE.getQuickCheck(blockEntity);
