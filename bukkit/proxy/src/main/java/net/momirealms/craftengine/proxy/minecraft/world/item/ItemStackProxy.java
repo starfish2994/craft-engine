@@ -130,4 +130,7 @@ public interface ItemStackProxy extends DataComponentHolderProxy, ItemInstancePr
 
     @MethodInvoker(name = "isSameItemSameComponents", isStatic = true, activeIf = "min_version=1.20.5")
     boolean isSameItemSameComponents(@Type(clazz = ItemStackProxy.class) Object stack, @Type(clazz = ItemStackProxy.class) Object otherStack);
+
+    @MethodInvoker(name = "isValidRepairItem", activeIf = "min_version=1.21.2")
+    boolean isValidRepairItem(Object target, @Type(clazz = ItemStackProxy.class) Object repairItem);
 }

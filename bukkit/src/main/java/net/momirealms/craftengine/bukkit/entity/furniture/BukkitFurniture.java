@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.entity.seat.Seat;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -53,10 +54,10 @@ public final class BukkitFurniture extends Furniture {
 
     @Override
     protected FurnitureSnapshotState createSnapshot(List<FurnitureElement> elements,
-                                                             List<FurnitureHitBox> hitboxes,
-                                                             Int2ObjectMap<FurnitureHitBox> hitboxMap,
-                                                             List<Collider> colliders,
-                                                             Map<CustomDataType<?>, Object> customData) {
+                                                    List<FurnitureHitBox> hitboxes,
+                                                    Int2ObjectMap<FurnitureHitBox> hitboxMap,
+                                                    List<Collider> colliders,
+                                                    Map<CustomDataType<?>, Object> customData) {
         return new BukkitVariantSnapshot(elements, hitboxes, hitboxMap, colliders, customData);
     }
 
@@ -104,7 +105,7 @@ public final class BukkitFurniture extends Furniture {
         {
             BukkitFurnitureManager.instance().initFurniture(this);
             this.addCollidersToWorld();
-            for (Player  player : trackedBy) {
+            for (Player player : trackedBy) {
                 super.snapshot.showHitboxes(player);
             }
         }
@@ -157,27 +158,43 @@ public final class BukkitFurniture extends Furniture {
             }
 
             Location location = LocationUtils.toLocation(position);
-            return itemDisplay.teleportAsync(location).handle((result, throwable) -> {
-                try {
-                    if (result != null && result && throwable == null) {
-                        this.location = location;
-                        super.setVariantInternal(currentVariant());
-                        BukkitFurnitureManager.instance().initFurniture(this);
-                        this.addCollidersToWorld();
-                        List<Player> afterTrackedBy = trackedBy();
-                        for (Player player : afterTrackedBy) {
-                            if (previousTrackedBy.contains(player)) {
-                                super.snapshot.showHitboxes(player);
+            if (VersionHelper.hasPaperPatch) {
+                return itemDisplay.teleportAsync(location).handle((result, throwable) -> {
+                    try {
+                        if (result != null && result && throwable == null) {
+                            this.location = location;
+                            super.setVariantInternal(currentVariant());
+                            BukkitFurnitureManager.instance().initFurniture(this);
+                            this.addCollidersToWorld();
+                            List<Player> afterTrackedBy = trackedBy();
+                            for (Player player : afterTrackedBy) {
+                                if (previousTrackedBy.contains(player)) {
+                                    super.snapshot.showHitboxes(player);
+                                }
                             }
+                            return true;
+                        } else {
+                            return false;
                         }
-                        return true;
-                    } else {
-                        return false;
+                    } finally {
+                        this.isMoving.set(false); // 解锁
                     }
-                } finally {
-                    this.isMoving.set(false); // 解锁
+                });
+            } else {
+                itemDisplay.teleport(location);
+                this.location = location;
+                super.setVariantInternal(currentVariant());
+                BukkitFurnitureManager.instance().initFurniture(this);
+                this.addCollidersToWorld();
+                List<Player> afterTrackedBy = trackedBy();
+                for (Player player : afterTrackedBy) {
+                    if (previousTrackedBy.contains(player)) {
+                        super.snapshot.showHitboxes(player);
+                    }
                 }
-            });
+                this.isMoving.set(false);
+                return CompletableFuture.completedFuture(true);
+            }
         } catch (Throwable e) {
             this.isMoving.set(false); // 因发生异常而解锁
             return CompletableFuture.failedFuture(e);
@@ -219,6 +236,7 @@ public final class BukkitFurniture extends Furniture {
             for (Collider entity : super.snapshot.colliders()) {
                 entity.destroy();
             }
+            destroySeats();
             this.controller.postRemove(player);
         }
     }
@@ -253,7 +271,6 @@ public final class BukkitFurniture extends Furniture {
 
     @Override
     public List<Player> trackedBy() {
-        if (!VersionHelper.hasPaperPatch) return List.of();
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return List.of();
         return new ArrayList<>(EntityUtils.getTrackedBy(itemDisplay, BukkitAdaptor::adapt));
@@ -261,7 +278,6 @@ public final class BukkitFurniture extends Furniture {
 
     @Override
     public Set<Player> getTrackedBy() {
-        if (!VersionHelper.hasPaperPatch) return Set.of();
         ItemDisplay itemDisplay = this.metaEntity.get();
         if (itemDisplay == null) return Set.of();
         return EntityUtils.getTrackedBy(itemDisplay, BukkitAdaptor::adapt);

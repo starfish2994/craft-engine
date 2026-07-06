@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity.projectile;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.event.BlockDispenseProjectileEvent;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
@@ -7,6 +8,8 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.game.LevelEventListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.game.SoundListener;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
+import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
@@ -20,11 +23,15 @@ import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Tristate;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldEvents;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftChunkProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ChunkMapProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.projectile.AbstractArrowProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.projectile.FireworkRocketEntityProxy;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
@@ -92,12 +99,13 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         if (projectile instanceof ThrowableProjectile throwableProjectile) {
             return throwableProjectile.getItem();
         } else if (projectile instanceof AbstractArrow abstractArrow) {
-            return abstractArrow.getItemStack();
+            return ItemStackUtils.getBukkitStack(AbstractArrowProxy.INSTANCE.getPickupItemStack(CraftEntityProxy.INSTANCE.getEntity(abstractArrow)));
         } else if (projectile instanceof Firework firework) {
-            return firework.getItem();
+            return ItemStackUtils.getBukkitStack(FireworkRocketEntityProxy.INSTANCE.getItem(CraftEntityProxy.INSTANCE.getEntity(firework)));
         } else if (projectile instanceof SizedFireball sizedFireball) {
             return sizedFireball.getDisplayItem();
-        } if (readPdc) {
+        }
+        if (readPdc) {
             byte[] bytes = projectile.getPersistentDataContainer().get(PROJECTILE_ITEM, PersistentDataType.BYTE_ARRAY);
             if (bytes != null) {
                 return this.plugin.itemManager().fromBytes(bytes).getBukkitItem();
@@ -258,12 +266,21 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
 
             Object nmsEntity = CraftEntityProxy.INSTANCE.getEntity(this.projectile);
             // 获取server entity
-            if (this.cachedServerEntity == null && VersionHelper.hasPaperPatch) {
-                Object trackedEntity = EntityProxy.INSTANCE.getTrackedEntity(nmsEntity);
-                if (trackedEntity == null) return;
-                Object serverEntity = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getServerEntity(trackedEntity);
-                if (serverEntity == null) return;
-                this.cachedServerEntity = serverEntity;
+            if (this.cachedServerEntity == null) {
+                if (VersionHelper.hasPaperPatch) {
+                    Object trackedEntity = EntityProxy.INSTANCE.getTrackedEntity(nmsEntity);
+                    if (trackedEntity == null) return;
+                    Object serverEntity = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getServerEntity(trackedEntity);
+                    if (serverEntity == null) return;
+                    this.cachedServerEntity = serverEntity;
+                } else {
+                    Int2ObjectMap<Object> entityMap = ChunkMapProxy.INSTANCE.getEntityMap(ServerChunkCacheProxy.INSTANCE.getChunkMap(ServerLevelProxy.INSTANCE.getChunkSource(EntityProxy.INSTANCE.getLevel(nmsEntity))));
+                    Object trackedEntity = entityMap.get(this.projectile.getEntityId());
+                    if (trackedEntity == null) return;
+                    Object serverEntity = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getServerEntity(trackedEntity);
+                    if (serverEntity == null) return;
+                    this.cachedServerEntity = serverEntity;
+                }
             }
 
             if (!AbstractArrowProxy.CLASS.isInstance(nmsEntity)) {

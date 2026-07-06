@@ -63,6 +63,7 @@ import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ClientboundResourcePackPopPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
@@ -80,6 +81,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerRe
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.thread.BlockableEventLoopProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
@@ -1582,7 +1584,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void setFoodLevel(int foodLevel) {
-        this.platformPlayer().setFoodLevel(Math.min(Math.max(0, foodLevel), 20));
+        this.platformPlayer().setFoodLevel(Math.clamp(foodLevel, 0, 20));
     }
 
     @Override
@@ -1596,25 +1598,39 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void addPotionEffect(Key potionEffectType, int duration, int amplifier, boolean ambient, boolean particles) {
-        // todo NMS
-        PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(KeyUtils.toNamespacedKey(potionEffectType));
-        if (type == null) return;
-        this.platformPlayer().addPotionEffect(new PotionEffect(type, duration, amplifier, ambient, particles));
+    public void addPotionEffect(Key potionEffectType, int duration, int amplifier, boolean ambient, boolean particles, boolean showIcon) {
+        if (VersionHelper.isOrAbove1_20_5) {
+            Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (holder != null) {
+                Object mobEffect = MobEffectInstanceProxy.INSTANCE.newInstance(holder, duration, amplifier, ambient, particles, showIcon);
+                LivingEntityProxy.INSTANCE.addEffect(serverPlayer(), mobEffect);
+            }
+        } else {
+            Object mobEffect = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (mobEffect != null) {
+                LivingEntityProxy.INSTANCE.addEffect(serverPlayer(), MobEffectInstanceProxy.INSTANCE.newInstance$legacy(mobEffect, duration, amplifier, ambient, particles, showIcon));
+            }
+        }
     }
 
     @Override
     public void removePotionEffect(Key potionEffectType) {
-        // todo NMS
-        PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(KeyUtils.toNamespacedKey(potionEffectType));
-        if (type == null) return;
-        this.platformPlayer().removePotionEffect(type);
+        if (VersionHelper.isOrAbove1_20_5) {
+            Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (holder != null) {
+                LivingEntityProxy.INSTANCE.removeEffect(serverPlayer(), holder);
+            }
+        } else {
+            Object mobEffect = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (mobEffect != null) {
+                LivingEntityProxy.INSTANCE.removeEffect$legacy(serverPlayer(), mobEffect);
+            }
+        }
     }
 
     @Override
     public void clearPotionEffects() {
-        // todo NMS
-        this.platformPlayer().clearActivePotionEffects();
+        LivingEntityProxy.INSTANCE.removeAllEffects(serverPlayer());
     }
 
     @Override
@@ -1895,7 +1911,11 @@ public class BukkitServerPlayer extends Player {
     public void playParticle(Key particleId, double x, double y, double z) {
         Particle particle = Registry.PARTICLE_TYPE.get(KeyUtils.toNamespacedKey(particleId));
         if (particle != null) {
-            platformPlayer().getWorld().spawnParticle(particle, List.of(platformPlayer()), null, x, y, z, 1, 0, 0,0, 0, null, false);
+            if (VersionHelper.hasPaperPatch) {
+                platformPlayer().getWorld().spawnParticle(particle, List.of(platformPlayer()), null, x, y, z, 1, 0, 0,0, 0, null, false);
+            } else {
+                platformPlayer().spawnParticle(particle, x, y, z, 1);
+            }
         }
     }
 

@@ -457,7 +457,7 @@ public final class RecipeEventListener implements Listener {
         // 被修的是自定义，材料不是自定义
         if (firstCustom.isPresent() && secondCustom.isEmpty()) {
             if (firstCustom.get().settings().respectRepairableComponent()) {
-                if (second.canRepair(first)) return; // 尊重原版的repairable
+                if (canRepair(second, first)) return; // 尊重原版的repairable
             } else {
                 event.setResult(null);
                 return;
@@ -467,7 +467,7 @@ public final class RecipeEventListener implements Listener {
         // 被修的是原版，材料是自定义
         if (firstCustom.isEmpty() && secondCustom.isPresent()) {
             if (secondCustom.get().settings().respectRepairableComponent()) {
-                if (second.canRepair(first)) return;
+                if (canRepair(second, first)) return;
             } else {
                 event.setResult(null);
                 return;
@@ -496,6 +496,14 @@ public final class RecipeEventListener implements Listener {
                     wrappedResult.resetComponent(DataComponentTypes.ENCHANTMENTS);
                 }
             }
+        }
+    }
+
+    private boolean canRepair(ItemStack ingredient, ItemStack toRepair) {
+        if (VersionHelper.hasPaperPatch) {
+            return ingredient.canRepair(toRepair);
+        } else {
+            return ItemStackProxy.INSTANCE.isValidRepairItem(ItemStackUtils.unwrap(toRepair), ItemStackUtils.unwrap(ingredient));
         }
     }
 
