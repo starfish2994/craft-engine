@@ -32,6 +32,7 @@ import net.momirealms.craftengine.bukkit.plugin.scheduler.BukkitSchedulerAdapter
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
+import net.momirealms.craftengine.bukkit.util.ServerUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.classpath.ClassPathAppender;
@@ -257,7 +258,7 @@ public final class BukkitCraftEngine extends CraftEngine {
     public void onPluginDisable() {
         super.onPluginDisable();
         if (this.tickTask != null) this.tickTask.cancel();
-        if (VersionHelper.hasPaperPatch && !Bukkit.getServer().isStopping()) {
+        if (VersionHelper.hasPaperPatch && !ServerUtils.isStopping()) {
             logger().error(" ");
             logger().error(" ");
             logger().error(" ");

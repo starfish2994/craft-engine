@@ -96,7 +96,7 @@ public final class BlockEventListener implements Listener {
         if (serverPlayer == null) return;
         // send swing if player is clicking a replaceable block
         if (serverPlayer.shouldResendSwing()) {
-            player.swingHand(event.getHand());
+            serverPlayer.swingHand(event.getHand() == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
         }
         // send sound if the placed block's sounds are removed
         if (Config.enableSoundSystem()) {

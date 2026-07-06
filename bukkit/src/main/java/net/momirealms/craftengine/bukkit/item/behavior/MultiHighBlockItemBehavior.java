@@ -50,7 +50,7 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
         super(blockId);
     }
 
-    @SuppressWarnings({"UnstableApiUsage", "DuplicatedCode"})
+    @SuppressWarnings({"UnstableApiUsage", "DuplicatedCode", "removal"})
     @Override
     protected boolean canPlace(BlockPlaceContext context, ImmutableBlockState state) {
         if (!super.canPlace(context, state)) {
@@ -80,10 +80,15 @@ public final class MultiHighBlockItemBehavior extends BlockItemBehavior {
                     CollisionGetterProxy.INSTANCE.isUnobstructed(world, blockState, blockPos, CollisionContextProxy.INSTANCE.placementContext(player)); // spigot
             Block block = CraftBlockProxy.INSTANCE.at(world, blockPos);
             BlockData blockData = BlockStateUtils.fromBlockData(blockState);
-            BlockCanBuildEvent canBuildEvent = new BlockCanBuildEvent(
-                    block, cePlayer != null ? (org.bukkit.entity.Player) cePlayer.platformPlayer() : null, blockData, defaultReturn,
-                    context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND
-            );
+            BlockCanBuildEvent canBuildEvent;
+            if (VersionHelper.hasPaperPatch) {
+                canBuildEvent = new BlockCanBuildEvent(
+                        block, cePlayer != null ? (org.bukkit.entity.Player) cePlayer.platformPlayer() : null, blockData, defaultReturn,
+                        context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND
+                );
+            } else {
+                canBuildEvent = new BlockCanBuildEvent(block, cePlayer != null ? (org.bukkit.entity.Player) cePlayer.platformPlayer() : null, blockData, defaultReturn);
+            }
             Bukkit.getPluginManager().callEvent(canBuildEvent);
             if (!canBuildEvent.isBuildable()) {
                 return false;

@@ -63,7 +63,7 @@ public abstract class BukkitItemFactory<W extends BukkitItemWrapper> extends Ite
 
     @Override
     protected byte[] toByteArray(W item) {
-        return item.platformItem().serializeAsBytes();
+        return ItemStackUtils.toBytes(item.platformItem());
     }
 
     @Override

@@ -48,6 +48,9 @@ public interface MinecraftServerProxy {
     @MethodInvoker(name = "getLevel")
     Object getLevel(Object target, @Type(clazz = ResourceKeyProxy.class) Object dimension);
 
+    @MethodInvoker(name = "hasStopped")
+    boolean hasStopped(Object target);
+
     @ReflectionProxy(name = "net.minecraft.server.MinecraftServer$ServerResourcePackInfo")
     interface ServerResourcePackInfoProxy {
         ServerResourcePackInfoProxy INSTANCE = ASMProxyFactory.create(ServerResourcePackInfoProxy.class);

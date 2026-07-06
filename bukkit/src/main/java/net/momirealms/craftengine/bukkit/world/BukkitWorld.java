@@ -123,7 +123,7 @@ public final class BukkitWorld implements World {
 
     @Override
     public void dropItemNaturally(Position location, Item item) {
-        ItemStack itemStack = ItemStackProxy.INSTANCE.getBukkitStack(item.minecraftItem());
+        ItemStack itemStack = (ItemStack) item.platformItem();
         if (ItemStackUtils.isEmpty(itemStack)) return;
         if (VersionHelper.isOrAbove1_21_2) {
             platformWorld().dropItemNaturally(new Location(null, location.x(), location.y(), location.z()), itemStack);
@@ -188,7 +188,13 @@ public final class BukkitWorld implements World {
         Object chunkMap = ServerChunkCacheProxy.INSTANCE.getChunkMap(chunkSource);
         Object chunkHolder = ChunkMapProxy.INSTANCE.getVisibleChunkIfPresent(chunkMap, pos.longKey);
         if (chunkHolder == null) return Collections.emptyList();
-        List<Object> players = ChunkHolderProxy.INSTANCE.getPlayers(chunkHolder, false);
+        List<Object> players;
+        if (VersionHelper.hasPaperPatch) {
+            players = ChunkHolderProxy.INSTANCE.getPlayers(chunkHolder, false);
+        } else {
+            Object playerProvider = ChunkHolderProxy.INSTANCE.getPlayerProvider(chunkHolder);
+            players = ChunkHolderProxy.PlayerProviderProxy.INSTANCE.getPlayers(playerProvider, ChunkPosProxy.INSTANCE.newInstance(pos.x, pos.z), false);
+        }
         if (players.isEmpty()) return Collections.emptyList();
         List<Player> tracked = new ArrayList<>(players.size());
         for (Object player : players) {

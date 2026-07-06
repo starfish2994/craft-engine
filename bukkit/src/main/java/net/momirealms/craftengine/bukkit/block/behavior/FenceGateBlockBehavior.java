@@ -3,10 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.antigrieflib.Flag;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.DirectionUtils;
-import net.momirealms.craftengine.bukkit.util.InteractUtils;
-import net.momirealms.craftengine.bukkit.util.LocationUtils;
+import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -222,7 +219,9 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
 
         if (changed) {
             customState = customState.with(this.openProperty, hasSignal);
-            LevelProxy.INSTANCE.getWorld(level).sendGameEvent(null,
+            LevelUtils.sendGameEvent(
+                    LevelProxy.INSTANCE.getWorld(level),
+                    null,
                     hasSignal ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE,
                     new Vector(Vec3iProxy.INSTANCE.getX(blockPos), Vec3iProxy.INSTANCE.getY(blockPos), Vec3iProxy.INSTANCE.getZ(blockPos))
             );
@@ -248,7 +247,8 @@ public final class FenceGateBlockBehavior extends BukkitBlockBehavior implements
         }
         LevelWriterProxy.INSTANCE.setBlock(world.minecraftWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         boolean open = isOpen(newState);
-        ((org.bukkit.World) world.platformWorld()).sendGameEvent(
+        LevelUtils.sendGameEvent(
+                (org.bukkit.World) world.platformWorld(),
                 player != null ? (org.bukkit.entity.Player) player.platformPlayer() : null,
                 open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE,
                 new Vector(pos.x(), pos.y(), pos.z())

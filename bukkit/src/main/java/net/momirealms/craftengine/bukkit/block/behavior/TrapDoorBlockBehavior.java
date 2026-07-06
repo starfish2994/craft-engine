@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.InteractUtils;
+import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -204,7 +205,9 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
 
         if (changed) {
             customState = customState.with(this.openProperty, hasSignal);
-            LevelProxy.INSTANCE.getWorld(level).sendGameEvent(null,
+            LevelUtils.sendGameEvent(
+                    LevelProxy.INSTANCE.getWorld(level),
+                    null,
                     hasSignal ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE,
                     new Vector(Vec3iProxy.INSTANCE.getX(blockPos), Vec3iProxy.INSTANCE.getY(blockPos), Vec3iProxy.INSTANCE.getZ(blockPos))
             );
@@ -221,7 +224,8 @@ public final class TrapDoorBlockBehavior extends BukkitBlockBehavior implements 
         ImmutableBlockState newState = state.cycle(this.openProperty);
         LevelWriterProxy.INSTANCE.setBlock(world.minecraftWorld(), LocationUtils.toBlockPos(pos), newState.customBlockState().minecraftState(), UpdateFlags.UPDATE_ALL);
         boolean open = newState.get(this.openProperty);
-        ((org.bukkit.World) world.platformWorld()).sendGameEvent(
+        LevelUtils.sendGameEvent(
+                (org.bukkit.World) world.platformWorld(),
                 player != null ? (org.bukkit.entity.Player) player.platformPlayer() : null,
                 open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE,
                 new Vector(pos.x(), pos.y(), pos.z())

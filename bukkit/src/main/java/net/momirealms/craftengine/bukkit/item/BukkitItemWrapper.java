@@ -23,7 +23,7 @@ public abstract class BukkitItemWrapper implements ItemWrapper {
 
     @Override
     public ItemStack platformItem() {
-        return ItemStackProxy.INSTANCE.getBukkitStack(minecraftItem());
+        return ItemStackUtils.getBukkitStack(minecraftItem());
     }
 
     @Override

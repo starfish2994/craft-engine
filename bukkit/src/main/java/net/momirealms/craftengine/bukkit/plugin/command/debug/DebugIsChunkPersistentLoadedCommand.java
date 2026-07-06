@@ -24,7 +24,7 @@ public final class DebugIsChunkPersistentLoadedCommand extends BukkitCommandFeat
                 .senderType(Player.class)
                 .handler(context -> {
                     Player player = context.sender();
-                    Chunk chunk = player.getChunk();
+                    Chunk chunk = player.getLocation().getChunk();
                     Sender sender = plugin().senderFactory().wrap(player);
                     if (VersionHelper.hasFoliaPatch) {
                         sender.sendMessage(Component.text("This feature is not available on the Folia server.").color(NamedTextColor.RED));

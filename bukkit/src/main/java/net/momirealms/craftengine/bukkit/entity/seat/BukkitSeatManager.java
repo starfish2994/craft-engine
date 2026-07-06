@@ -87,7 +87,7 @@ public final class BukkitSeatManager implements SeatManager, Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Player player = event.getPlayer();
+        Player player = event.getEntity();
         Entity entity = player.getVehicle();
         if (entity == null) return;
         if (this.isSeatEntityType(entity)) {

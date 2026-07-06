@@ -51,4 +51,7 @@ public interface LivingEntityProxy extends EntityProxy {
 
     @MethodInvoker(name = "getLastHurtByPlayer", activeIf = "min_version=1.21.5")
     Object getLastHurtByPlayer(Object target);
+
+    @MethodInvoker(name = "swing")
+    void swing(Object target, @Type(clazz = InteractionHandProxy.class) Object hand, boolean updateSelf);
 }

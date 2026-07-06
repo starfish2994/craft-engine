@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.item.recipe.UniqueIdItem;
 import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Crafter;
 import org.bukkit.event.EventHandler;
@@ -56,7 +57,7 @@ public final class CrafterEventListener implements Listener {
             // 不要处理染色配方
             if (ceRecipe instanceof CustomDyeRecipe) return;
             if (ceRecipe.requiresInput()) {
-                BlockState state = event.getBlock().getState(false);
+                BlockState state = VersionHelper.hasPaperPatch ? event.getBlock().getState(false) : event.getBlock().getState();
                 if (state instanceof Crafter crafter) {
                     Inventory inventory = crafter.getInventory();
                     event.setResult(ItemStackUtils.getBukkitStack(ceRecipe.assemble(getCraftingInput(inventory), ItemBuildContext.empty())));

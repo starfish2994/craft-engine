@@ -1,8 +1,10 @@
 package net.momirealms.craftengine.bukkit.util;
 
+import com.google.common.collect.Lists;
 import net.momirealms.craftengine.bukkit.nms.DelegatingContainer;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.inventory.Inventory;
@@ -67,5 +69,11 @@ public final class InventoryUtils {
         Object container = CraftInventoryProxy.INSTANCE.getInventory(inventory);
         if (container == null) return false;
         return container instanceof DelegatingContainer;
+    }
+
+    public static int close(Inventory inventory) {
+        int size = inventory.getViewers().size();
+        Lists.newArrayList(inventory.getViewers()).forEach(HumanEntity::closeInventory);
+        return size;
     }
 }

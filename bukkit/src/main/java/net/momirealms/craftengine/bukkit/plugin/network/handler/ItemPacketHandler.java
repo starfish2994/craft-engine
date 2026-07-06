@@ -79,7 +79,7 @@ public final class ItemPacketHandler implements EntityPacketHandler {
                     if (optionalHoverComponent.isPresent()) {
                         hoverComponent = optionalHoverComponent.get();
                     } else {
-                        hoverComponent = Component.translatable(itemStack.translationKey());
+                        hoverComponent = Component.translatable(ItemStackUtils.getDescriptionId(itemStack));
                     }
                     // 展示名称为空，则显示其hover name
                     if (showName.isEmpty()) {

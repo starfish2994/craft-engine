@@ -79,6 +79,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.network.config.JoinWorl
 import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerResourcePackConfigurationTaskProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.thread.BlockableEventLoopProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
@@ -462,7 +463,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void swingHand(InteractionHand hand) {
-        platformPlayer().swingHand(hand == InteractionHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND);
+        LivingEntityProxy.INSTANCE.swing(serverPlayer(), hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND, true);
     }
 
     @Override
@@ -1596,6 +1597,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void addPotionEffect(Key potionEffectType, int duration, int amplifier, boolean ambient, boolean particles) {
+        // todo NMS
         PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(KeyUtils.toNamespacedKey(potionEffectType));
         if (type == null) return;
         this.platformPlayer().addPotionEffect(new PotionEffect(type, duration, amplifier, ambient, particles));
@@ -1603,6 +1605,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void removePotionEffect(Key potionEffectType) {
+        // todo NMS
         PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(KeyUtils.toNamespacedKey(potionEffectType));
         if (type == null) return;
         this.platformPlayer().removePotionEffect(type);
@@ -1610,6 +1613,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void clearPotionEffects() {
+        // todo NMS
         this.platformPlayer().clearActivePotionEffects();
     }
 
@@ -1649,7 +1653,11 @@ public class BukkitServerPlayer extends Player {
     @Override
     public void teleport(WorldPosition worldPosition) {
         Location location = new Location((org.bukkit.World) worldPosition.world().platformWorld(), worldPosition.x(), worldPosition.y(), worldPosition.z(), worldPosition.yRot(), worldPosition.xRot());
-        this.platformPlayer().teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        if (VersionHelper.hasFoliaPatch) {
+            this.platformPlayer().teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        } else {
+            this.platformPlayer().teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        }
     }
 
     @Override
@@ -1716,14 +1724,14 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void setEntityCullingDistanceScale(double value) {
-        value = Math.min(Math.max(0.125, value), 8);
+        value = Math.clamp(value, 0.125, 8);
         this.culling.setDistanceScale(value);
         platformPlayer().getPersistentDataContainer().set(KeyUtils.toNamespacedKey(ENTITY_CULLING_DISTANCE_SCALE), PersistentDataType.DOUBLE, value);
     }
 
     @Override
     public void setDisplayEntityViewDistanceScale(double value) {
-        value = Math.min(Math.max(0.125, value), 8);
+        value = Math.clamp(value, 0.125, 8);
         this.displayEntityViewDistance = value;
         platformPlayer().getPersistentDataContainer().set(KeyUtils.toNamespacedKey(DISPLAY_ENTITY_VIEW_DISTANCE_SCALE), PersistentDataType.DOUBLE, value);
     }
@@ -1767,7 +1775,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public int getXpNeededForNextLevel() {
-        return platformPlayer().getExperiencePointsNeededForNextLevel();
+        return PlayerProxy.INSTANCE.getXpNeededForNextLevel(serverPlayer());
     }
 
     @Override

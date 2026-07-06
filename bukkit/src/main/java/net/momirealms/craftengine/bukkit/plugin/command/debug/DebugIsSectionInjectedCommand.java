@@ -25,7 +25,7 @@ public final class DebugIsSectionInjectedCommand extends BukkitCommandFeature<Co
                 .senderType(Player.class)
                 .handler(context -> {
                     Player player = context.sender();
-                    Chunk chunk = player.getChunk();
+                    Chunk chunk = player.getLocation().getChunk();
                     Object levelChunk = LevelUtils.getMinecraftChunk(chunk);
                     Object[] sections = ChunkAccessProxy.INSTANCE.getSections(levelChunk);
                     int i = 0;

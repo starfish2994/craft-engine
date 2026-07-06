@@ -167,7 +167,8 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     private void handleDeactivation(Object entity, org.bukkit.World craftWorld, Object pos, Vector positionVector) {
         World world = BukkitWorldManager.instance().getWorld(craftWorld).world();
         world.playBlockSound(LocationUtils.toVec3d(LocationUtils.fromBlockPos(pos)), this.offSound);
-        craftWorld.sendGameEvent(
+        LevelUtils.sendGameEvent(
+                craftWorld,
                 entity != null ? EntityProxy.INSTANCE.getBukkitEntity(entity) : null,
                 GameEvent.BLOCK_DEACTIVATE,
                 positionVector
@@ -177,7 +178,8 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     private void handleActivation(Object entity, org.bukkit.World craftWorld, Object pos, Vector positionVector) {
         World world = BukkitWorldManager.instance().getWorld(craftWorld).world();
         world.playBlockSound(LocationUtils.toVec3d(LocationUtils.fromBlockPos(pos)), this.onSound);
-        craftWorld.sendGameEvent(
+        LevelUtils.sendGameEvent(
+                craftWorld,
                 entity != null ? EntityProxy.INSTANCE.getBukkitEntity(entity) : null,
                 GameEvent.BLOCK_ACTIVATE,
                 positionVector

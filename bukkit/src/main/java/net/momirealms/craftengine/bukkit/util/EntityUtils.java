@@ -27,7 +27,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.PositionMoveRotat
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.vehicle.DismountHelperProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkSourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.AABBProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.bukkit.Location;
@@ -35,8 +34,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Pose;
-import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import java.util.List;
 import java.util.Set;
@@ -89,7 +86,7 @@ public final class EntityUtils {
 
     public static Entity spawnEntity(World world, Location loc, EntityType type, Consumer<Entity> function) {
         if (VersionHelper.isOrAbove1_20_2) {
-            return world.spawnEntity(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function);
+            return world.spawn(loc, type.getEntityClass(), function);
         } else {
             return LegacyEntityUtils.spawnEntity(world, loc, type, function);
         }
@@ -97,7 +94,7 @@ public final class EntityUtils {
 
     public static <T extends Entity> T spawnEntity(World world, Location loc, Class<T> type, Consumer<T> function) {
         if (VersionHelper.isOrAbove1_20_2) {
-            return world.spawn(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function);
+            return world.spawn(loc, type, function);
         } else {
             return LegacyEntityUtils.spawn(world, loc, type, function);
         }
@@ -145,12 +142,13 @@ public final class EntityUtils {
                 } else {
                     player.teleport(new Location(player.getWorld(), x, pos.y() + floorHeight, z, playerLocation.getYaw(), playerLocation.getPitch()));
                 }
+
                 if (pose == PoseProxy.STANDING) {
-                    player.setPose(Pose.STANDING);
+                    EntityProxy.INSTANCE.setPose(serverPlayer, PoseProxy.STANDING);
                 } else if (pose == PoseProxy.CROUCHING) {
-                    player.setPose(Pose.SNEAKING);
+                    EntityProxy.INSTANCE.setPose(serverPlayer, PoseProxy.CROUCHING);
                 } else if (pose == PoseProxy.SWIMMING) {
-                    player.setPose(Pose.SWIMMING);
+                    EntityProxy.INSTANCE.setPose(serverPlayer, PoseProxy.SWIMMING);
                 }
             }
         }

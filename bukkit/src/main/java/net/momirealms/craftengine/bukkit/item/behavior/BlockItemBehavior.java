@@ -218,7 +218,7 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
         }
 
         context.getLevel().playBlockSound(position, blockStateToPlace.settings().sounds().placeSound());
-        world.sendGameEvent(bukkitPlayer, GameEvent.BLOCK_PLACE, new Vector(pos.x(), pos.y(), pos.z()));
+        LevelUtils.sendGameEvent(world, bukkitPlayer, GameEvent.BLOCK_PLACE, new Vector(pos.x(), pos.y(), pos.z()));
         return InteractionResult.SUCCESS;
     }
 
@@ -248,7 +248,7 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
         return true;
     }
 
-    @SuppressWarnings("UnstableApiUsage")
+    @SuppressWarnings({"UnstableApiUsage", "removal"})
     protected boolean canPlace(BlockPlaceContext context, ImmutableBlockState state) {
         Player cePlayer = context.getPlayer();
         Object player = cePlayer != null ? cePlayer.serverPlayer() : null;
@@ -269,10 +269,17 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
                         CollisionGetterProxy.INSTANCE.isUnobstructed(world, blockState, blockPos, CollisionContextProxy.INSTANCE.placementContext(player)))); // spigot
         Block block = CraftBlockProxy.INSTANCE.at(world, blockPos);
         BlockData blockData = BlockStateUtils.fromBlockData(blockState);
-        BlockCanBuildEvent canBuildEvent = new BlockCanBuildEvent(
-                block, cePlayer != null ? (org.bukkit.entity.Player) cePlayer.platformPlayer() : null, blockData, defaultReturn,
-                context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND
-        );
+        BlockCanBuildEvent canBuildEvent;
+        if (VersionHelper.hasPaperPatch) {
+            canBuildEvent = new BlockCanBuildEvent(
+                    block, cePlayer != null ? (org.bukkit.entity.Player) cePlayer.platformPlayer() : null, blockData, defaultReturn,
+                    context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND
+            );
+        } else {
+            canBuildEvent = new BlockCanBuildEvent(
+                    block, cePlayer != null ? (org.bukkit.entity.Player) cePlayer.platformPlayer() : null, blockData, defaultReturn
+            );
+        }
         Bukkit.getPluginManager().callEvent(canBuildEvent);
         return canBuildEvent.isBuildable();
     }

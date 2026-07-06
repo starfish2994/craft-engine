@@ -150,4 +150,12 @@ public final class BlockStateUtils {
     public static boolean isBurnable(Object blockState) {
         return BukkitBlockManager.instance().isBurnable(blockState);
     }
+
+    public static String getDescriptionId(Object blockState) {
+        if (VersionHelper.isOrAbove1_21_2) {
+            return BlockBehaviourProxy.INSTANCE.getDescriptionId(getBlockOwner(blockState));
+        } else {
+            return BlockProxy.INSTANCE.getDescriptionId(getBlockOwner(blockState));
+        }
+    }
 }

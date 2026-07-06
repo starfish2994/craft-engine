@@ -56,12 +56,12 @@ public class BukkitEntity extends AbstractEntity {
 
     @Override
     public float xRot() {
-        return platformEntity().getYaw();
+        return EntityProxy.INSTANCE.getXRot(serverEntity());
     }
 
     @Override
     public float yRot() {
-        return platformEntity().getPitch();
+        return EntityProxy.INSTANCE.getYRot(serverEntity());
     }
 
     @Override

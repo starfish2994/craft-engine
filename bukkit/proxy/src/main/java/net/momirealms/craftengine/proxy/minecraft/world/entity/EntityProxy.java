@@ -173,4 +173,7 @@ public interface EntityProxy {
 
     @MethodInvoker(name = "setRot")
     void setRot(Object target, float yRot, float xRot);
+
+    @MethodInvoker(name = "setPose")
+    void setPose(Object target, @Type(clazz = PoseProxy.class) Object pose);
 }

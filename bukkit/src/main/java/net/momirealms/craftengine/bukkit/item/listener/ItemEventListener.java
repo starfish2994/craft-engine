@@ -166,7 +166,7 @@ public final class ItemEventListener implements Listener {
         Object blockState = BlockStateUtils.blockDataToBlockState(blockData);
         ImmutableBlockState immutableBlockState = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
         Item itemInHand = serverPlayer.getItemInHand(hand);
-        Location interactionPoint = event.getInteractionPoint();
+        Location interactionPoint = EventUtils.getInteractionPoint(event);
 
         BlockHitResult hitResult = null;
         if (action == Action.RIGHT_CLICK_BLOCK && interactionPoint != null) {
@@ -553,7 +553,7 @@ public final class ItemEventListener implements Listener {
         if (event.getPlayer().getGameMode() != GameMode.CREATIVE) {
             Key replacement = itemDefinition.settings().consumeReplacement();
             if (wrapped.count() == 1) {
-                if (replacement != null) {
+                if (replacement != null && VersionHelper.hasPaperPatch) {
                     BukkitItem replacementItem = (BukkitItem) Item.byId(replacement, serverPlayer);
                     if (replacementItem != null) {
                         event.setReplacement(replacementItem.getBukkitItem());
@@ -761,6 +761,9 @@ public final class ItemEventListener implements Listener {
     @SuppressWarnings("DuplicatedCode")
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
+        // 依赖 paper api实现
+        if (!VersionHelper.hasPaperPatch) return;
+
         BukkitItemManager instance = BukkitItemManager.instance();
 
         // 处理损毁物品

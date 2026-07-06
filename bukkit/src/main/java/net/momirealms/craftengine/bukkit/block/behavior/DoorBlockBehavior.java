@@ -271,7 +271,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior
         if (isOpen(state) != isOpen) {
             org.bukkit.World world = LevelProxy.INSTANCE.getWorld(serverLevel);
             LevelWriterProxy.INSTANCE.setBlock(serverLevel, LocationUtils.toBlockPos(pos), state.with(this.openProperty, isOpen).customBlockState().minecraftState(), UPDATE_CLIENTS | UPDATE_IMMEDIATE);
-            world.sendGameEvent(player == null ? null : (org.bukkit.entity.Player) player.platformPlayer(), isOpen ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, new Vector(pos.x(), pos.y(), pos.z()));
+            LevelUtils.sendGameEvent(world, player == null ? null : (org.bukkit.entity.Player) player.platformPlayer(), isOpen ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, new Vector(pos.x(), pos.y(), pos.z()));
             SoundData soundData = isOpen ? this.openSound : this.closeSound;
             if (soundData != null) {
                 BukkitAdaptor.adapt(world).playBlockSound(
@@ -332,7 +332,7 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior
             boolean flag = event.getNewCurrent() > 0;
             if (flag != customState.get(this.openProperty)) {
                 org.bukkit.World world = LevelProxy.INSTANCE.getWorld(level);
-                world.sendGameEvent(null, flag ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, new Vector(bukkitBlock.getX(), bukkitBlock.getY(), bukkitBlock.getZ()));
+                LevelUtils.sendGameEvent(world, null, flag ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, new Vector(bukkitBlock.getX(), bukkitBlock.getY(), bukkitBlock.getZ()));
                 SoundData soundData = flag ? this.openSound : this.closeSound;
                 if (soundData != null) {
                     BukkitAdaptor.adapt(world).playBlockSound(

@@ -6,7 +6,6 @@ import net.momirealms.craftengine.bukkit.entity.furniture.listener.FurnitureEven
 import net.momirealms.craftengine.bukkit.entity.furniture.listener.PaperFurnitureEventListener;
 import net.momirealms.craftengine.bukkit.nms.CollisionEntity;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.LevelUtils;
