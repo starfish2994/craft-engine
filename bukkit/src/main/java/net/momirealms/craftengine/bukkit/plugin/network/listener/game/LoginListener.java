@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -53,7 +54,7 @@ public final class LoginListener implements ByteBufferPacketListener {
             if (VersionHelper.isOrAbove1_20_5) {
                 int dimensionType = buf.readVarInt();
                 Key dimension = buf.readKey();
-                World world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+                World world = LevelUtils.getWorld(dimension);
                 if (world != null) {
                     player.setClientSideWorld(BukkitAdaptor.adapt(world));
                 }
@@ -97,7 +98,7 @@ public final class LoginListener implements ByteBufferPacketListener {
             } else { // 1.20.2~1.20.4
                 /*dimensionType*/ buf.readKey();
                 Key dimension = buf.readKey();
-                World world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+                World world = LevelUtils.getWorld(dimension);
                 if (world != null) {
                     player.setClientSideWorld(BukkitAdaptor.adapt(world));
                 }
@@ -111,7 +112,7 @@ public final class LoginListener implements ByteBufferPacketListener {
             /*registryHolder*/ buf.readNbt(true);
             /*dimensionType*/ buf.readKey();
             Key dimension = buf.readKey();
-            World world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+            World world = LevelUtils.getWorld(dimension);
             if (world != null) {
                 player.setClientSideWorld(BukkitAdaptor.adapt(world));
             }

@@ -1,8 +1,12 @@
 package net.momirealms.craftengine.bukkit.util;
 
+import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftChunkProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.registries.RegistriesProxy;
+import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.MinecraftServerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
@@ -55,5 +59,12 @@ public final class LevelUtils {
         } else {
             return ServerChunkCacheProxy.INSTANCE.getChunkNow(chunkSource, chunkX, chunkZ);
         }
+    }
+
+    public static World getWorld(Key dimension) {
+        Object server = MinecraftServerProxy.INSTANCE.getServer();
+        Object level = MinecraftServerProxy.INSTANCE.getLevel(server, ResourceKeyProxy.INSTANCE.create(RegistriesProxy.DIMENSION, KeyUtils.toIdentifier(dimension)));
+        if (level == null) return null;
+        return LevelProxy.INSTANCE.getWorld(level);
     }
 }

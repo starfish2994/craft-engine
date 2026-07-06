@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
@@ -27,11 +28,11 @@ public final class RespawnListener implements ByteBufferPacketListener {
         if (VersionHelper.isOrAbove1_20_5) {
             /*dimensionType*/ buf.readVarInt();
             Key dimension = buf.readKey();
-            world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+            world = LevelUtils.getWorld(dimension);
         } else { // 1.20~1.20.4
             /*dimensionType*/ buf.readKey();
             Key dimension = buf.readKey();
-            world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+            world = LevelUtils.getWorld(dimension);
         }
         if (world != null) {
             player.setClientSideWorld(BukkitAdaptor.adapt(world));

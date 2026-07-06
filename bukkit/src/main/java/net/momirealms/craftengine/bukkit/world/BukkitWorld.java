@@ -17,12 +17,10 @@ import net.momirealms.craftengine.core.world.particle.ParticleData;
 import net.momirealms.craftengine.core.world.particle.ParticleType;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
+import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.*;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelReaderProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.*;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.SoundCategory;
@@ -105,6 +103,12 @@ public final class BukkitWorld implements World {
     @Override
     public String name() {
         return this.worldName;
+    }
+
+    @Override
+    public Key dimension() {
+        Object dimension = LevelProxy.INSTANCE.getDimension(this.minecraftWorld());
+        return KeyUtils.identifierToKey(ResourceKeyProxy.INSTANCE.getIdentifier(dimension));
     }
 
     @Override
