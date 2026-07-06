@@ -9,7 +9,6 @@ import net.momirealms.craftengine.bukkit.plugin.network.listener.game.LevelEvent
 import net.momirealms.craftengine.bukkit.plugin.network.listener.game.SoundListener;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
-import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.bukkit.util.ParticleUtils;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
@@ -23,7 +22,6 @@ import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Tristate;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldEvents;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftChunkProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ChunkMapProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheProxy;
@@ -99,7 +97,7 @@ public final class BukkitProjectileManager implements Listener, ProjectileManage
         if (projectile instanceof ThrowableProjectile throwableProjectile) {
             return throwableProjectile.getItem();
         } else if (projectile instanceof AbstractArrow abstractArrow) {
-            return ItemStackUtils.getBukkitStack(AbstractArrowProxy.INSTANCE.getPickupItemStack(CraftEntityProxy.INSTANCE.getEntity(abstractArrow)));
+            return ItemStackUtils.getBukkitStack(AbstractArrowProxy.INSTANCE.getPickupItem(CraftEntityProxy.INSTANCE.getEntity(abstractArrow)));
         } else if (projectile instanceof Firework firework) {
             return ItemStackUtils.getBukkitStack(FireworkRocketEntityProxy.INSTANCE.getItem(CraftEntityProxy.INSTANCE.getEntity(firework)));
         } else if (projectile instanceof SizedFireball sizedFireball) {

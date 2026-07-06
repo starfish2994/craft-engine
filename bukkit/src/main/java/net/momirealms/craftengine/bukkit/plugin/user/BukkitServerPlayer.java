@@ -1914,7 +1914,7 @@ public class BukkitServerPlayer extends Player {
             if (VersionHelper.hasPaperPatch) {
                 platformPlayer().getWorld().spawnParticle(particle, List.of(platformPlayer()), null, x, y, z, 1, 0, 0,0, 0, null, false);
             } else {
-                platformPlayer().spawnParticle(particle, x, y, z, 1);
+                platformPlayer().spawnParticle(particle, x, y, z, 1, 0, 0, 0, 0);
             }
         }
     }
