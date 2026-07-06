@@ -91,6 +91,18 @@ public final class WorldPosition implements Position {
     }
 
     @Override
+    public String toString() {
+        return "WorldPosition{" +
+                "world=" + world +
+                ", x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                ", xRot=" + xRot +
+                ", yRot=" + yRot +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

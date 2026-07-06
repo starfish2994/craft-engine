@@ -34,6 +34,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import java.util.List;
 import java.util.Set;
@@ -86,7 +87,14 @@ public final class EntityUtils {
 
     public static Entity spawnEntity(World world, Location loc, EntityType type, Consumer<Entity> function) {
         if (VersionHelper.isOrAbove1_20_2) {
-            return world.spawn(loc, type.getEntityClass(), function);
+            if (VersionHelper.hasPaperPatch) {
+                return world.spawnEntity(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function);
+            } else {
+                return world.spawn(loc, type.getEntityClass(), (e) -> {
+                    EntityProxy.INSTANCE.setRot(CraftEntityProxy.INSTANCE.getEntity(e), loc.getYaw(), loc.getPitch());
+                    function.accept(e);
+                });
+            }
         } else {
             return LegacyEntityUtils.spawnEntity(world, loc, type, function);
         }
@@ -94,7 +102,14 @@ public final class EntityUtils {
 
     public static <T extends Entity> T spawnEntity(World world, Location loc, Class<T> type, Consumer<T> function) {
         if (VersionHelper.isOrAbove1_20_2) {
-            return world.spawn(loc, type, function);
+            if (VersionHelper.hasPaperPatch) {
+                return world.spawn(loc, type, function);
+            } else {
+                return world.spawn(loc, type, (e) -> {
+                    EntityProxy.INSTANCE.setRot(CraftEntityProxy.INSTANCE.getEntity(e), loc.getYaw(), loc.getPitch());
+                    function.accept(e);
+                });
+            }
         } else {
             return LegacyEntityUtils.spawn(world, loc, type, function);
         }
