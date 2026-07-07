@@ -96,15 +96,18 @@ public final class WorldStorageInjector {
             CEChunk chunk = holder.chunk();
             chunk.setUnsaved(true);
             // 尽量还是减少判断逻辑，性能为上，允许存在小幅破坏进度不同步
-            DestroyStageDisplayEntitySetting destroyStages = previousImmutableBlockState.settings().destroyStageDisplay();
-            if (destroyStages != null) {
-                BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
-                DestroyStageDisplayRecorder.PosKey key = new DestroyStageDisplayRecorder.PosKey(chunk.world.uuid(), pos.asLong());
-                DestroyStageDisplayEntitySetting newDestroyStages = newImmutableBlockState.settings().destroyStageDisplay();
-                if (newDestroyStages == null) {
-                    BukkitDestroyStageDisplayRecorder.INSTANCE.remove(key);
-                } else {
-                    BukkitDestroyStageDisplayRecorder.INSTANCE.swap(key, newDestroyStages);
+            BlockSettings settings = previousImmutableBlockState.settings();
+            if (settings != null) {
+                DestroyStageDisplayEntitySetting destroyStages = settings.destroyStageDisplay();
+                if (destroyStages != null) {
+                    BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                    DestroyStageDisplayRecorder.PosKey key = new DestroyStageDisplayRecorder.PosKey(chunk.world.uuid(), pos.asLong());
+                    DestroyStageDisplayEntitySetting newDestroyStages = newImmutableBlockState.settings().destroyStageDisplay();
+                    if (newDestroyStages == null) {
+                        BukkitDestroyStageDisplayRecorder.INSTANCE.remove(key);
+                    } else {
+                        BukkitDestroyStageDisplayRecorder.INSTANCE.swap(key, newDestroyStages);
+                    }
                 }
             }
             ConstantBlockEntityRenderer previousRenderer = null;
