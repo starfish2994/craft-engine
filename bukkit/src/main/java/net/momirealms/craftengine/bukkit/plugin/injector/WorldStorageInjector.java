@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntitySetting;
 import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayRecorder;
+import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.SectionPosUtils;
@@ -183,10 +184,13 @@ public final class WorldStorageInjector {
                     BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
                     chunk.removeConstantBlockEntityRenderer(pos);
                 }
-                DestroyStageDisplayEntitySetting destroyStages = previous.settings().destroyStageDisplay();
-                if (destroyStages != null) {
-                    BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
-                    BukkitDestroyStageDisplayRecorder.INSTANCE.remove(new DestroyStageDisplayRecorder.PosKey(chunk.world.uuid(), pos.asLong()));
+                BlockSettings settings = previous.settings();
+                if (settings != null) {
+                    DestroyStageDisplayEntitySetting destroyStages = settings.destroyStageDisplay();
+                    if (destroyStages != null) {
+                        BlockPos pos = new BlockPos(chunk.chunkPos.x * 16 + x, section.sectionY * 16 + y, chunk.chunkPos.z * 16 + z);
+                        BukkitDestroyStageDisplayRecorder.INSTANCE.remove(new DestroyStageDisplayRecorder.PosKey(chunk.world.uuid(), pos.asLong()));
+                    }
                 }
                 if (Config.enableBlockLightSystem() && chunk.isLoaded()) {
                     // 自定义块到原版块，只需要判断旧块是否和客户端一直
