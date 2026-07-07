@@ -65,6 +65,7 @@ command.totem_animation.success.single: <white>Totem-Animation <arg:0> an <arg:1
 command.totem_animation.success.multiple: <white>Totem-Animation <arg:0> an <arg:1> Spieler abgespielt</white>
 command.toast.failure.item_not_exist: <red>Item '<arg:0>' existiert nicht</red>
 command.toast.success.single: <white>Toast <arg:0> an <arg:1> gesendet</white>
+command.toast.success.multiple: <white>Toast <arg:0> an <arg:1> Spieler gesendet</white>
 command.resource.enable.success: <white>Ressource <arg:0> aktiviert. Führe <click:run_command:/ce reload all><u>/ce reload all</u></click> aus, um Änderungen anzuwenden</white>
 command.resource.enable.failure.unknown: <red>Unbekannte Ressource <arg:0></red>
 command.resource.disable.success: <white>Ressource <arg:0> deaktiviert. Führe <click:run_command:/ce reload all><u>/ce reload all</u></click> aus, um Änderungen anzuwenden</white>
