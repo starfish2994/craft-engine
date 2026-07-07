@@ -64,6 +64,7 @@ command.totem_animation.success.single: '<white><arg:0> 토템 애니메이션�
 command.totem_animation.success.multiple: '<white><arg:0> 토템 애니메이션을 <arg:1>명에게 재생했습니다.</white>'
 command.toast.failure.item_not_exist: '<red>아이템 ''<arg:0>''을(를) 찾을 수 없습니다.</red>'
 command.toast.success.single: '<white><arg:1>에게 <arg:0> 토스트를 보냈습니다.</white>'
+command.toast.success.multiple: '<white><arg:1>명에게 <arg:0> 토스트를 보냈습니다.</white>'
 command.resource.enable.success: '<white>리소스 <arg:0>를 활성화했습니다. 변경 사항 적용을 위해 <click:run_command:/ce reload all><u>/ce reload all</u></click> 실행</white>'
 command.resource.enable.failure.unknown: '<red>알 수 없는 리소스 <arg:0></red>'
 command.resource.disable.success: '<white>리소스 <arg:0>를 비활성화했습니다. 변경 사항 적용을 위해 <click:run_command:/ce reload all><u>/ce reload all</u></click> 실행</white>'

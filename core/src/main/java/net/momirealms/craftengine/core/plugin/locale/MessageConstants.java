@@ -42,7 +42,8 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_TOTEM_SUCCESS_SINGLE = Component.translatable().key("command.totem_animation.success.single");
     TranslatableComponent.Builder COMMAND_TOTEM_SUCCESS_MULTIPLE = Component.translatable().key("command.totem_animation.success.multiple");
     TranslatableComponent.Builder COMMAND_TOAST_FAILURE_ITEM_NOT_EXIST = Component.translatable().key("command.toast.failure.item_not_exist");
-    TranslatableComponent.Builder COMMAND_TOAST_SUCCESS = Component.translatable().key("command.toast.success.single");
+    TranslatableComponent.Builder COMMAND_TOAST_SUCCESS_SINGLE = Component.translatable().key("command.toast.success.single");
+    TranslatableComponent.Builder COMMAND_TOAST_SUCCESS_MULTIPLE = Component.translatable().key("command.toast.success.multiple");
     TranslatableComponent.Builder COMMAND_LOCALE_SET_FAILURE = Component.translatable().key("command.locale.set.failure");
     TranslatableComponent.Builder COMMAND_LOCALE_SET_SUCCESS = Component.translatable().key("command.locale.set.success");
     TranslatableComponent.Builder COMMAND_LOCALE_UNSET_SUCCESS = Component.translatable().key("command.locale.unset.success");
