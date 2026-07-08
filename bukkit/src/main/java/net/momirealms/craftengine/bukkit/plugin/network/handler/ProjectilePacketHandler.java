@@ -121,6 +121,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
         // 我们应当使用新的展示物品的组件覆盖原物品的组件，以完成附魔，附魔光效等组件的继承.
         Item item = this.projectile.item();
         item.enchantments().ifPresent(displayedItem::setEnchantments);
+        item.trim().ifPresent(displayedItem::trim);
         if (VersionHelper.isOrAbove1_20_5) {
             Optional<Boolean> glint = item.glint();
             if (glint.isPresent()) {
