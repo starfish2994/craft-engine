@@ -49,15 +49,9 @@ dependencies {
     // Skript
     compileOnly("com.github.SkriptLang:Skript:2.15.0")
     // FAWE
-    implementation(platform("com.intellectualsites.bom:bom-newest:1.52"))
-    implementation("com.fastasyncworldedit:FastAsyncWorldEdit-Core")
-    implementation("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") {
-        isTransitive = false
-    }
-    configurations.all {
-        resolutionStrategy {
-            force("com.fastasyncworldedit:FastAsyncWorldEdit-Core:latest.release")
-        }
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core:2.10.3")
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.10.3") { 
+        isTransitive = false 
     }
     // MythicMobs
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
