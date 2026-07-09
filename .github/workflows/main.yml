@@ -3,41 +3,55 @@ name: Build CraftEngine Plugin
 # 触发条件：推送代码或创建 Pull Request 时
 on:
   push:
-    branches: [ main, dev ]  # 根据实际分支名调整
+    branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 使用 Ubuntu 环境
+    runs-on: ubuntu-latest
 
     steps:
       # 步骤1：拉取代码仓库
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 步骤2：配置 JDK 21（代码中指定的 Java 版本）
+      # 步骤2：配置 JDK 21
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'temurin'  # 使用 Eclipse Temurin JDK
-          cache: gradle  # 缓存 Gradle 依赖，加速构建
+          distribution: 'temurin'
+          cache: gradle
 
       # 步骤3：给 Gradle 脚本添加执行权限
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      # 步骤4：配置 Git（如果需要）
       - name: Git config Set
         run: git config --global user.name "starfish2994"
 
-      # 步骤4：执行 Gradle 构建任务（使用 shadowJar 打包）
-      - name: Build with Gradle
-        run: ./gradlew clean build  # 对应代码中 loader 模块的 shadowJar 任务
+      # 步骤5：清理 Gradle 缓存（解决二进制存储问题）
+      - name: Clean Gradle cache
+        run: |
+          rm -rf ~/.gradle/caches/
+          rm -rf ~/.gradle/.tmp/
 
-      # 步骤5：上传构建产物（插件 JAR）
-      - name: Upload plugin JAR
+      # 步骤6：执行 Gradle 构建任务
+      - name: Build with Gradle
+        run: |
+          ./gradlew clean
+          ./gradlew build --no-daemon --refresh-dependencies --stacktrace
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048m -Dorg.gradle.daemon=false"
+
+      # 步骤7：查找并上传构建产物
+      - name: Find and upload plugin JAR
         uses: actions/upload-artifact@v4
         with:
           name: craftengine-plugin
-          path: target/*.jar  # 代码中 shadowJar 输出目录为 rootDir/target
+          path: |
+            **/build/libs/*.jar
+            **/target/*.jar
+          if-no-files-found: warn
