@@ -29,6 +29,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.vehicle.DismountH
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.AABBProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -193,18 +194,28 @@ public final class EntityUtils {
         return getTrackedBy(entity, p -> p);
     }
 
+    @SuppressWarnings("deprecation")
     public static <T> Set<T> getTrackedBy(Entity entity, Function<Player, T> function) {
         ImmutableSet.Builder<T> players = ImmutableSet.builder();
-        Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(entity.getWorld());
-        Int2ObjectMap<Object> entityMap = ChunkMapProxy.INSTANCE.getEntityMap(ServerChunkCacheProxy.INSTANCE.getChunkMap(ServerLevelProxy.INSTANCE.getChunkSource(serverLevel)));
-        Object tracker = entityMap.get(entity.getEntityId());
-        if (tracker != null) {
-            Set<Object> seenBy = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getSeenBy(tracker);
-            for (Object connection : seenBy) {
-                Object player = ServerPlayerConnectionProxy.INSTANCE.getPlayer(connection);
-                T adapted = function.apply((Player) PlayerProxy.INSTANCE.getBukkitEntity(player));
+        if (VersionHelper.hasPaperPatch) {
+            for (Player player : entity.getTrackedPlayers()) {
+                T adapted = function.apply(player);
                 if (adapted != null) {
                     players.add(adapted);
+                }
+            }
+        } else {
+            Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(entity.getWorld());
+            Int2ObjectMap<Object> entityMap = ChunkMapProxy.INSTANCE.getEntityMap(ServerChunkCacheProxy.INSTANCE.getChunkMap(ServerLevelProxy.INSTANCE.getChunkSource(serverLevel)));
+            Object tracker = entityMap.get(entity.getEntityId());
+            if (tracker != null) {
+                Set<Object> seenBy = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getSeenBy(tracker);
+                for (Object connection : seenBy) {
+                    Object player = ServerPlayerConnectionProxy.INSTANCE.getPlayer(connection);
+                    T adapted = function.apply((Player) PlayerProxy.INSTANCE.getBukkitEntity(player));
+                    if (adapted != null) {
+                        players.add(adapted);
+                    }
                 }
             }
         }
