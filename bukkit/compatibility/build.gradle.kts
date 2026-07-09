@@ -50,7 +50,7 @@ dependencies {
     // Skript
     compileOnly("com.github.SkriptLang:Skript:2.15.0")
     // FAWE
-    compileOnly(platform("com.intellectualsites.bom:bom-newest:1.56"))
+    compileOnly(platform("com.intellectualsites.bom:bom-newest:1.52"))
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
     // MythicMobs
