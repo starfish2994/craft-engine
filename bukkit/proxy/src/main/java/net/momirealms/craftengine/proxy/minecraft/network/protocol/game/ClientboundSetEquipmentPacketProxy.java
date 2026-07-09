@@ -5,6 +5,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.PacketProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.ConstructorInvoker;
+import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
 import java.util.List;
@@ -15,5 +16,11 @@ public interface ClientboundSetEquipmentPacketProxy extends PacketProxy {
     Class<?> CLASS = SparrowClass.find("net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket");
 
     @ConstructorInvoker
-    Object newInstance(int entityId, List<Pair<?, ?>> equipmentList);
+    Object newInstance(int entityId, List<Pair<Object, Object>> equipmentList);
+
+    @FieldGetter(name = "entity")
+    int getEntityId(Object target);
+
+    @FieldGetter(name = "slots")
+    List<Pair<Object, Object>> getSlots(Object target);
 }

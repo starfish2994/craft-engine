@@ -165,6 +165,8 @@ paper {
         register("hClaims") { required = false }
         register("Factions") { required = false }
         register("NoBuildPlus") { required = false }
+        register("SimpleClaimSystem") { required = false }
+        register("LandClaimPlugin") { required = false }
     }
 }
 

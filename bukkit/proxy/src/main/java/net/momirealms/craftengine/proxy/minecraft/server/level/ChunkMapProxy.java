@@ -28,7 +28,7 @@ public interface ChunkMapProxy {
     @FieldSetter(name = "generator", activeIf = "max_version=1.20.6")
     void setGenerator(Object target, Object generator);
 
-    @FieldGetter(name = "entityMap")
+    @FieldGetter(name = "entityMap", optional = true)
     Int2ObjectMap<Object> getEntityMap(Object target);
 
     @ReflectionProxy(name = "net.minecraft.server.level.ChunkMap$TrackedEntity")

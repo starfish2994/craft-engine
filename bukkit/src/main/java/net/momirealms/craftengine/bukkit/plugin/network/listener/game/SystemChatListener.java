@@ -98,7 +98,7 @@ public final class SystemChatListener {
         }
     }
 
-    @SuppressWarnings({"deprecation", "PatternValidation"})
+    @SuppressWarnings("PatternValidation")
     private static HoverEvent.ShowItem replaceShowItem(HoverEvent.ShowItem showItem, BukkitServerPlayer player) {
         Object nmsItemStack;
         if (VersionHelper.COMPONENT_RELEASE) {
