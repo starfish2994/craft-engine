@@ -12,8 +12,7 @@ import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,8 +41,8 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
 
     public DynamicDisplayItemBlockEntityElement(@NotNull DisplayItemBlockEntityController controller, @NotNull WorldPosition displayItemPosition) {
         this.controller = controller;
-        this.vehicleId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
-        this.passengerId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
+        this.vehicleId = EntityUtils.ENTITY_COUNTER.incrementAndGet();
+        this.passengerId = EntityUtils.ENTITY_COUNTER.incrementAndGet();
         // 包缓存
         this.ridePacket = PacketUtils.createClientboundSetPassengersPacket(this.vehicleId, this.passengerId);
         this.despawnVehiclePacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(MiscUtils.init(new IntArrayList(), a -> a.add(vehicleId)));
@@ -69,11 +68,11 @@ public final class DynamicDisplayItemBlockEntityElement implements BlockEntityEl
     public void refreshSpawnVehicleAndPassengerPacket(WorldPosition displayItemPosition) {
         this.spawnVehiclePacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 vehicleId, vehicleUUID, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
-                0, 0, EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                0, 0, EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.spawnPassengerPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 passengerId, passengeUUID, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
-                0, 0, EntityTypeProxy.ITEM, 0, Vec3Proxy.ZERO, 0
+                0, 0, EntityTypesProxy.ITEM, 0, Vec3Proxy.ZERO, 0
         );
         this.updatePosPacket = EntityUtils.createUpdatePosPacket(this.vehicleId, displayItemPosition.x, displayItemPosition.y, displayItemPosition.z,
                 0.0f, 0.0f, true

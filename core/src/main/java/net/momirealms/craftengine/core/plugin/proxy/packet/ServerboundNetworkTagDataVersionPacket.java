@@ -43,7 +43,7 @@ public record ServerboundNetworkTagDataVersionPacket(long proxyTagDataVersion, U
         ProxyMessageManager manager = CraftEngine.instance().proxyMessageManager();
         manager.addUser(user.uuid(), this.proxyUuid);
         if (this.proxyTagDataVersion != manager.networkTagDataVersion()) {
-            ProxyboundNetworkTagDataPacket.sendData(user);
+            user.sendCustomPackets(ProxyboundNetworkTagDataPacket.cachedPackets());
         }
     }
 }

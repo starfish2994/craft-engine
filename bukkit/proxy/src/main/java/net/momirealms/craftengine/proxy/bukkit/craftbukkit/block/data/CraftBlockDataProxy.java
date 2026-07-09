@@ -14,6 +14,6 @@ public interface CraftBlockDataProxy {
     @MethodInvoker(name = "getState")
     Object getState(BlockData target);
 
-    @MethodInvoker(name = "fromData", isStatic = true, activeIf = "max_version=1.21.11")
+    @MethodInvoker(name = "fromData", isStatic = true, activeIf = "max_version=1.21.11 || !has_patch=paper")
     BlockData fromData(@Type(clazz = BlockStateProxy.class) Object data);
 }

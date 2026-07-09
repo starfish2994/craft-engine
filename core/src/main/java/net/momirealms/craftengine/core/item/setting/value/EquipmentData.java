@@ -2,13 +2,16 @@ package net.momirealms.craftengine.core.item.setting.value;
 
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.Pair;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
+import java.util.Map;
 
 // todo 自定义装备声音
 public final class EquipmentData {
@@ -25,6 +28,10 @@ public final class EquipmentData {
     private boolean canBeSheared;
     @Nullable
     private Key cameraOverlay;
+    @Nullable
+    private Pair<Key, @Nullable Float> equipSound;
+    @Nullable
+    private Pair<Key, @Nullable Float> shearingSound;
 
     public EquipmentData(@NotNull EquipmentSlot slot,
                          @Nullable Key assetId,
@@ -33,7 +40,9 @@ public final class EquipmentData {
                          boolean damageOnHurt,
                          boolean equipOnInteract,
                          boolean canBeSheared,
-                         @Nullable Key cameraOverlay) {
+                         @Nullable Key cameraOverlay,
+                         @Nullable Pair<Key, Float> equipSound,
+                         @Nullable Pair<Key, Float> shearingSound) {
         this.slot = slot;
         this.assetId = assetId;
         this.dispensable = dispensable;
@@ -42,6 +51,8 @@ public final class EquipmentData {
         this.equipOnInteract = equipOnInteract;
         this.canBeSheared = canBeSheared;
         this.cameraOverlay = cameraOverlay;
+        this.equipSound = equipSound;
+        this.shearingSound = shearingSound;
     }
 
     private static final String[] ASSET_ID = new String[] {"asset_id", "asset-id"};
@@ -49,9 +60,12 @@ public final class EquipmentData {
     private static final String[] EQUIP_ON_INTERACT = new String[] {"equip_on_interact", "equip-on-interact"};
     private static final String[] DAMAGE_ON_HURT = new String[] {"damage_on_hurt", "damage-on-hurt"};
     private static final String[] CAN_BE_SHEARED = new String[] {"can_be_sheared", "can-be-sheared"};
+    private static final String[] EQUIP_SOUND = new String[] {"equip_sound", "equip-sound"};
+    private static final String[] SHEARING_SOUND = new String[] {"shearing_sound", "shearing-sound"};
+    private static final String[] SOUND_ID = new String[] {"sound_id", "sound-id"};
 
     public static EquipmentData fromConfig(@NotNull final ConfigSection section) {
-        EquipmentSlot slot = section.getNonNullEnum("slot", EquipmentSlot.class);
+        EquipmentSlot slot = section.getNonNullEnum("slot", EquipmentSlot.class, EquipmentSlot::byId);
         Key assetId = section.getIdentifier(ASSET_ID);
         Key cameraOverlay = section.getIdentifier(CAMERA_OVERLAY);
         boolean dispensable = section.getBoolean("dispensable", true);
@@ -59,7 +73,20 @@ public final class EquipmentData {
         boolean equipOnInteract = section.getBoolean(EQUIP_ON_INTERACT);
         boolean damageOnHurt = section.getBoolean(DAMAGE_ON_HURT, true);
         boolean canBeSheared = section.getBoolean(CAN_BE_SHEARED);
-        return new EquipmentData(slot, assetId, dispensable, swappable, damageOnHurt, equipOnInteract, canBeSheared, cameraOverlay);
+        Pair<Key, Float> equipSound = section.getValue(EQUIP_SOUND, EquipmentData::parseSound);
+        Pair<Key, Float> shearingSound = section.getValue(SHEARING_SOUND, EquipmentData::parseSound);
+        return new EquipmentData(slot, assetId, dispensable, swappable, damageOnHurt, equipOnInteract, canBeSheared, cameraOverlay, equipSound, shearingSound);
+    }
+
+    private static Pair<Key, @Nullable Float> parseSound(ConfigValue value) {
+        if (value.is(Map.class)) {
+            ConfigSection configSection = value.getAsSection();
+            Key id = configSection.getNonNullIdentifier(SOUND_ID);
+            Float range = configSection.containsKey("range") ? configSection.getFloat("range") : null;
+            return Pair.of(id, range);
+        } else {
+            return Pair.of(value.getAsIdentifier(), null);
+        }
     }
 
     public EquipmentSlot slot() {
@@ -96,6 +123,16 @@ public final class EquipmentData {
         return this.cameraOverlay;
     }
 
+    @Nullable
+    public Pair<Key, @Nullable Float> equipSound() {
+        return this.equipSound;
+    }
+
+    @Nullable
+    public Pair<Key, @Nullable Float> shearingSound() {
+        return this.shearingSound;
+    }
+
     public void setSlot(@NotNull EquipmentSlot slot) {
         this.slot = slot;
     }
@@ -128,6 +165,14 @@ public final class EquipmentData {
         this.cameraOverlay = cameraOverlay;
     }
 
+    public void setEquipSound(@Nullable Pair<Key, @Nullable Float> equipSound) {
+        this.equipSound = equipSound;
+    }
+
+    public void setShearingSound(@Nullable Pair<Key, @Nullable Float> shearingSound) {
+        this.shearingSound = shearingSound;
+    }
+
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
         tag.putString("slot", this.slot.toString().toLowerCase(Locale.ROOT));
@@ -150,6 +195,30 @@ public final class EquipmentData {
         if (this.cameraOverlay != null) {
             tag.putString("camera_overlay", this.cameraOverlay.asString());
         }
+        if (this.equipSound != null) {
+            Key id = this.equipSound.left();
+            Float range = this.equipSound.right();
+            if (range == null) {
+                tag.putString("equip_sound", id.asString());
+            } else {
+                CompoundTag compoundTag = new CompoundTag();
+                compoundTag.putString("sound_id", id.asString());
+                compoundTag.putFloat("range", range);
+                tag.put("equip_sound", compoundTag);
+            }
+        }
+        if (this.shearingSound != null) {
+            Key id = this.shearingSound.left();
+            Float range = this.shearingSound.right();
+            if (range == null) {
+                tag.putString("shearing_sound", id.asString());
+            } else {
+                CompoundTag compoundTag = new CompoundTag();
+                compoundTag.putString("sound_id", id.asString());
+                compoundTag.putFloat("range", range);
+                tag.put("shearing_sound", compoundTag);
+            }
+        }
         return tag;
     }
 
@@ -167,6 +236,8 @@ public final class EquipmentData {
         private boolean equipOnInteract = false;
         private boolean canBeSheared = false;
         private Key cameraOverlay;
+        private Pair<Key, Float> equipSound;
+        private Pair<Key, Float> shearingSound;
 
         public Builder() {
         }
@@ -211,8 +282,18 @@ public final class EquipmentData {
             return this;
         }
 
+        public Builder equipSound(Pair<Key, Float> equipSound) {
+            this.equipSound = equipSound;
+            return this;
+        }
+
+        public Builder shearingSound(Pair<Key, Float> shearingSound) {
+            this.shearingSound = shearingSound;
+            return this;
+        }
+
         public EquipmentData build() {
-            return new EquipmentData(this.slot, this.assetId, this.dispensable, this.swappable, this.damageOnHurt, this.equipOnInteract, this.canBeSheared, this.cameraOverlay);
+            return new EquipmentData(this.slot, this.assetId, this.dispensable, this.swappable, this.damageOnHurt, this.equipOnInteract, this.canBeSheared, this.cameraOverlay, this.equipSound, this.shearingSound);
         }
     }
 }

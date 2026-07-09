@@ -393,4 +393,9 @@ public final class PacketIds1_20_5 implements PacketIds {
     public int clientboundShowDialogPacket$configuration() {
         return PacketIdHelper.byName("minecraft:show_dialog", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
     }
+
+    @Override
+    public int clientboundUpdateAttributesPacket() {
+        return PacketIdHelper.byName("minecraft:update_attributes", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
 }

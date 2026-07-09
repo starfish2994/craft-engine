@@ -153,7 +153,7 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
                 entityPredicate = EntityProxy.INSTANCE::getBlocksBuilding;
             }
             if (!CollisionUtils.test(context.getLevel().minecraftWorld(), aabbs.stream().map(it -> AABBProxy.INSTANCE.newInstance(it.minX, it.minY, it.minZ, it.maxX, it.maxY, it.maxZ)).toList(), entityPredicate)) {
-                if (player != null && player.enableFurnitureDebug() && VersionHelper.isPaper) {
+                if (player != null && player.enableFurnitureDebug()) {
                     player.playSound(Key.of("minecraft:entity.villager.no"));
                     Key flame = Key.of("flame");
                     for (AABB aabb : aabbs) {
@@ -173,7 +173,7 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
         ContextHolder.Builder contextBuilder = ContextHolder.builder();
         // 触发尝试放置的事件
         if (player != null) {
-            FurnitureAttemptPlaceEvent attemptPlaceEvent = new FurnitureAttemptPlaceEvent(bukkitPlayer, furnitureDefinition, variant, furnitureLocation.clone(), context.getHand(), world.getBlockAt(context.getClickedPos().x(), context.getClickedPos().y(), context.getClickedPos().z()), contextBuilder);
+            FurnitureAttemptPlaceEvent attemptPlaceEvent = new FurnitureAttemptPlaceEvent(bukkitPlayer, furnitureDefinition, variant, furnitureLocation, context.getHand(), world.getBlockAt(context.getClickedPos().x(), context.getClickedPos().y(), context.getClickedPos().z()), contextBuilder);
             if (EventUtils.fireAndCheckCancel(attemptPlaceEvent)) {
                 return InteractionResult.FAIL;
             }
@@ -185,7 +185,7 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
         dataAccessor.setVariant(variant.name());
         dataAccessor.setItem(item.copyWithCount(1));
         // 放置家具
-        BukkitFurniture bukkitFurniture = BukkitFurnitureManager.instance().place(furnitureLocation.clone(), furnitureDefinition, dataAccessor, false, player);
+        BukkitFurniture bukkitFurniture = BukkitFurnitureManager.instance().place(furnitureLocation, furnitureDefinition, dataAccessor, false, player);
         // 触发放置事件
         if (player != null) {
             FurniturePlaceEvent placeEvent = new FurniturePlaceEvent(bukkitPlayer, bukkitFurniture, furnitureLocation, context.getHand(), contextBuilder);

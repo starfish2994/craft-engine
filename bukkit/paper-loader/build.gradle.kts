@@ -23,17 +23,18 @@ dependencies {
     nbt(project)
 
     implementation(project(":core"))
-    implementation(project(":bukkit"))
+    implementation(project(":bukkit")) {
+        exclude(group = "net.momirealms", module = "antigrieflib")
+    }
     implementation(project(":bukkit:legacy"))
     implementation(project(":bukkit:compatibility"))
     implementation(project(":bukkit:compatibility:legacy"))
     implementation(project(":common-files"))
 
-    // concurrentutil
-    implementation(files("${rootProject.rootDir}/libs/concurrentutil-${rootProject.properties["concurrent_util_version"]}.jar"))
+    // leafpile
+    implementation(files("${rootProject.rootDir}/libs/leafpile-${rootProject.properties["leafpile_version"]}.jar"))
 
     implementation("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
-    implementation("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
     implementation("net.momirealms:craft-engine-nms-helper-mojmap:${rootProject.properties["nms_helper_version"]}")
     implementation("cn.gtemc:itembridge:${rootProject.properties["itembridge_version"]}")
     implementation("cn.gtemc:levelerbridge:${rootProject.properties["levelerbridge_version"]}")
@@ -66,6 +67,7 @@ paper {
         register("Skript") { required = false }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
+        register("AxiomPaper") { required = false }
         register("QuickShop-Hikari") { required = false }
 
         // PacketEvents
@@ -89,8 +91,11 @@ paper {
         register("BetterModel") { required = false }
 
         // external items
+        register("AdvancedItems") { required = false }
         register("AzureFlow") { required = false }
         register("Baikiruto") { required = false }
+        register("CrazyVouchers") { required = false }
+        register("CustomCrafting") { required = false }
         register("CustomFishing") { required = false }
         register("DragonArmourers") { required = false }
         register("EcoArmor") { required = false }
@@ -99,10 +104,14 @@ paper {
         register("EcoMobs") { required = false }
         register("EcoPets") { required = false }
         register("EcoScrolls") { required = false }
+        register("EmakiItem") { required = false }
+        register("ExecutableBlocks") { required = false }
         register("ExecutableItems") { required = false }
         register("HeadDatabase") { required = false }
         register("HMCCosmetics") { required = false }
+        register("ItemEdit") { required = false }
         register("ItemsAdder") { required = false }
+        register("ItemsXL") { required = false }
         register("MagicGem") { required = false }
         register("MMOItems") { required = false }
         register("MythicMobs") { required = false }
@@ -177,6 +186,7 @@ tasks {
 
 listOf(
     "26.1.2",
+    "26.2"
 ).forEach {
     registerPaperTask(it, javaVersion = 25)
 }

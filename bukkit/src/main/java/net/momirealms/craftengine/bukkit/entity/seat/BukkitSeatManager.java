@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.seat;
 
 import net.momirealms.craftengine.bukkit.entity.furniture.DismountListener1_20;
-import net.momirealms.craftengine.bukkit.entity.furniture.DismountListener1_20_3;
+import net.momirealms.craftengine.bukkit.entity.furniture.listener.DismountListener1_20_3;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
@@ -87,7 +87,7 @@ public final class BukkitSeatManager implements SeatManager, Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Player player = event.getPlayer();
+        Player player = event.getEntity();
         Entity entity = player.getVehicle();
         if (entity == null) return;
         if (this.isSeatEntityType(entity)) {

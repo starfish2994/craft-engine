@@ -32,6 +32,7 @@ public abstract class AbstractRecipeManager implements RecipeManager {
     protected final List<Recipe> nativeRecipes = new ArrayList<>();
     protected final List<CustomBrewingRecipe> brewingRecipes = new ArrayList<>();
     protected final Set<Key> dataPackRecipes = new HashSet<>();
+    protected final Set<Key> unlockOnJoinRecipes = new HashSet<>();
     protected final ConfigParser recipeParser;
     protected final RecipeRegistry recipeRegistry;
 
@@ -56,6 +57,7 @@ public abstract class AbstractRecipeManager implements RecipeManager {
         this.ingredientUnlockable.clear();
         this.nativeRecipes.clear();
         this.brewingRecipes.clear();
+        this.unlockOnJoinRecipes.clear();
     }
 
     protected void markAsDataPackRecipe(Key key) {
@@ -123,7 +125,7 @@ public abstract class AbstractRecipeManager implements RecipeManager {
 
     protected abstract void loadDataPackRecipes();
 
-    protected synchronized void registerRecipeInternal(Recipe recipe, boolean unlockOnIngredientObtained) {
+    protected synchronized void registerRecipeInternal(Recipe recipe, boolean unlockOnIngredientObtained, boolean unlockOnJoin) {
         // 原版配方被覆写了
         if (this.byId.containsKey(recipe.id())) return;
         this.byType.computeIfAbsent(recipe.type(), k -> new ArrayList<>()).add(recipe);
@@ -164,6 +166,9 @@ public abstract class AbstractRecipeManager implements RecipeManager {
             for (UniqueKey usedKey : usedKeys) {
                 this.ingredientUnlockable.computeIfAbsent(usedKey.key(), l -> new ArrayList<>()).add(unlockable);
             }
+        }
+        if (unlockOnJoin) {
+            this.unlockOnJoinRecipes.add(recipe.id());
         }
     }
 
@@ -266,7 +271,7 @@ public abstract class AbstractRecipeManager implements RecipeManager {
                                         1
                                 ),
                                 null, null, false, false
-                        ), Config.unlockOnIngredientObtained());
+                        ), Config.unlockOnIngredientObtained(), false);
                     }
                 }
             }
@@ -274,17 +279,17 @@ public abstract class AbstractRecipeManager implements RecipeManager {
 
         @Override
         public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE, LoadingStages.ITEM);
+            return List.of(LoadingStages.ITEM);
         }
 
         private static final String[] UNLOCK_ON_INGREDIENT_OBTAINED = new String[] {"unlock_on_ingredient_obtained", "unlock-on-ingredient-obtained"};
+        private static final String[] UNLOCK_ON_JOIN = new String[] {"unlock_on_join", "unlock-on-join"};
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
             if (!Config.enableRecipeSystem()) return;
-            boolean unlockOnIngredientObtained = section.getBoolean(UNLOCK_ON_INGREDIENT_OBTAINED, Config.unlockOnIngredientObtained());
             Recipe recipe = RecipeSerializers.fromConfig(id, section);
-            registerRecipeInternal(recipe, unlockOnIngredientObtained);
+            registerRecipeInternal(recipe, section.getBoolean(UNLOCK_ON_INGREDIENT_OBTAINED, Config.unlockOnIngredientObtained()), section.getBoolean(UNLOCK_ON_JOIN, false));
             this.count.incrementAndGet();
         }
     }

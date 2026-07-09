@@ -28,6 +28,21 @@ public record Transformation(List<Float> matrix) {
 
     public static Transformation fromConfig(ConfigValue value) {
         if (value.is(List.class)) {
+            List<Object> rawList = value.getAsList();
+            if (rawList.size() == 4 && rawList.getFirst() instanceof String) {
+                List<Float> matrix = new java.util.ArrayList<>(16);
+                for (int i = 0; i < 4; i++) {
+                    String row = rawList.get(i).toString().replace("_", "");
+                    String[] parts = row.split(",");
+                    if (parts.length != 4) {
+                        throw new IllegalArgumentException("Each row of transformation matrix must have exactly 4 values, got " + parts.length + " in row " + i);
+                    }
+                    for (String part : parts) {
+                        matrix.add(Float.parseFloat(part.trim()));
+                    }
+                }
+                return new Transformation(Collections.unmodifiableList(matrix));
+            }
             return new Transformation(Collections.unmodifiableList(value.getAsFixedSizeList(16, ConfigValue::getAsFloat)));
         }
         ConfigSection section = value.getAsSection();
@@ -40,7 +55,24 @@ public record Transformation(List<Float> matrix) {
 
     public static Transformation fromJson(JsonElement json) {
         if (json.isJsonArray()) {
-            List<Float> list = json.getAsJsonArray().asList().stream().map(JsonElement::getAsFloat).toList();
+            JsonArray jsonArray = json.getAsJsonArray();
+            if (!jsonArray.isEmpty() && jsonArray.get(0).isJsonArray()) {
+                if (jsonArray.size() != 4) {
+                    throw new IllegalArgumentException("Invalid transformation matrix: expected 4 rows, got " + jsonArray.size());
+                }
+                List<Float> matrix = new java.util.ArrayList<>(16);
+                for (int i = 0; i < 4; i++) {
+                    JsonArray row = jsonArray.get(i).getAsJsonArray();
+                    if (row.size() != 4) {
+                        throw new IllegalArgumentException("Invalid transformation matrix: each row must have 4 values, row " + i + " has " + row.size());
+                    }
+                    for (int j = 0; j < 4; j++) {
+                        matrix.add(row.get(j).getAsFloat());
+                    }
+                }
+                return new Transformation(matrix);
+            }
+            List<Float> list = jsonArray.asList().stream().map(JsonElement::getAsFloat).toList();
             if (list.size() != 16) throw new IllegalArgumentException("Invalid transformation matrix");
             return new Transformation(list);
         }

@@ -15,24 +15,24 @@ public interface RecipeTypeProxy {
     Object STONECUTTING = INSTANCE.getStonecutting();
     Object SMITHING = INSTANCE.getSmithing();
 
-    @FieldGetter(name = "CRAFTING")
+    @FieldGetter(name = "CRAFTING", isStatic = true)
     Object getCrafting();
 
-    @FieldGetter(name = "SMELTING")
+    @FieldGetter(name = "SMELTING", isStatic = true)
     Object getSmelting();
 
-    @FieldGetter(name = "BLASTING")
+    @FieldGetter(name = "BLASTING", isStatic = true)
     Object getBlasting();
 
-    @FieldGetter(name = "SMOKING")
+    @FieldGetter(name = "SMOKING", isStatic = true)
     Object getSmoking();
 
-    @FieldGetter(name = "CAMPFIRE_COOKING")
+    @FieldGetter(name = "CAMPFIRE_COOKING", isStatic = true)
     Object getCampfireCooking();
 
-    @FieldGetter(name = "STONECUTTING")
+    @FieldGetter(name = "STONECUTTING", isStatic = true)
     Object getStonecutting();
 
-    @FieldGetter(name = "SMITHING")
+    @FieldGetter(name = "SMITHING", isStatic = true)
     Object getSmithing();
 }

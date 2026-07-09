@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.command.feature;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.item.recipe.Recipe;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
@@ -48,7 +49,7 @@ public final class SearchUsageAdminCommand extends BukkitCommandFeature<CommandS
                     for (Player player : players) {
                         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                         if (serverPlayer == null) continue;
-                        Key itemId = Key.of(namespacedKey.namespace(), namespacedKey.value());
+                        Key itemId = KeyUtils.namespacedKeyToKey(namespacedKey);
                         List<Recipe> inRecipes = plugin().recipeManager().recipeByIngredient(itemId);
                         if (!inRecipes.isEmpty()) {
                             plugin().itemBrowserManager().openRecipePage(serverPlayer, null, inRecipes, 0, 0, false);

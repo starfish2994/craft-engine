@@ -24,7 +24,7 @@ import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenera
 import net.momirealms.craftengine.core.pack.model.legacy.LegacyItemModel;
 import net.momirealms.craftengine.core.pack.model.legacy.LegacyModelPredicate;
 import net.momirealms.craftengine.core.pack.model.legacy.LegacyOverridesModel;
-import net.momirealms.craftengine.core.pack.model.simplified.SimplifiedModelReader;
+import net.momirealms.craftengine.core.pack.model.simplified.item.SimplifiedItemModelReader;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
@@ -292,11 +292,6 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         }
 
         @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
-        }
-
-        @Override
         public int count() {
             return AbstractItemManager.this.equipments.size();
         }
@@ -317,6 +312,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         public static final String[] CONFIG_SECTION_NAME = new String[] {"items", "item"};
         private final Map<Key, IdAllocator> idAllocators = new HashMap<>();
         private final List<CompletableFuture<?>> futures = Collections.synchronizedList(new ArrayList<>());
+        private final Map<Key, List<Key>> tempCategories = new ConcurrentHashMap<>();
 
         @Override
         public int count() {
@@ -367,6 +363,9 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             if (!this.futures.isEmpty()) {
                 this.futures.clear();
             }
+            if (!this.tempCategories.isEmpty()) {
+                this.tempCategories.clear();
+            }
             ObfuscatedItemModelProcessor.CAN_OBF.clear();
         }
 
@@ -403,9 +402,14 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 if (itemDefinition != null) {
                     Key id = itemDefinition.id();
                     AbstractItemManager.this.orderedItemIds.add(id);
+                    List<Key> categories = this.tempCategories.get(id);
+                    if (categories != null) {
+                        AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, categories);
+                    }
                     if (itemDefinition.isVanillaItem()) continue;
                     // cache command suggestions
-                    AbstractItemManager.this.cachedCustomItemSuggestions.add(Suggestion.suggestion(id.asString()));
+                    Suggestion suggestion = Suggestion.suggestion(id.asString());
+                    AbstractItemManager.this.cachedCustomItemSuggestions.add(suggestion);
                     // totem animations
                     if (VersionHelper.isOrAbove1_21_2) {
                         AbstractItemManager.this.cachedTotemSuggestions.add(Suggestion.suggestion(id.asString()));
@@ -695,7 +699,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
                 // 如果有类别，则添加
                 if (section.containsKey("category")) {
-                    AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, section.getList(CATEGORIES, ConfigValue::getAsIdentifier));
+                    this.tempCategories.put(id, section.getList(CATEGORIES, ConfigValue::getAsIdentifier));
                 }
 
                 if (!hasModelSection) {
@@ -723,7 +727,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 if (isModernFormatRequired() || (needsLegacyCompatibility() && legacyModelSection == null)) {
                     if (textureValue != null) {
                         Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
-                        SimplifiedModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
+                        SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
                         modernModel = simplifiedModelReader.read(textureValue, Optional.ofNullable(modelValue).map(it -> {
                             if (it.is(Map.class)) {
                                 ConfigSection modelSection = it.getAsSection();
@@ -734,7 +738,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                     } else if (modelValue != null) {
                         if (modelValue.is(List.class)) {
                             Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
-                            SimplifiedModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
+                            SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
                             modernModel = simplifiedModelReader.read(modelValue);
                         } else {
                             modernModel = ItemModels.fromConfig(modelValue);

@@ -118,7 +118,12 @@ resource-pack:
       seed: 0 # 0 = random seed
       # Whether to obfuscate the item model component
       # This only takes effect when you enable the client-bound-model.
-      obfuscate-item-model: false
+      item-model:
+        enable: false
+        # Prioritize using cached obfuscation results when generating the resource pack,
+        # instead of re-generating all obfuscation from scratch every time.
+        # If the cache entry for a file is missing, it will be generated and saved for future use.
+        use-cache: true
       # Determines the length of obfuscated overlay directories
       overlay:
         length: 3~6 # 0 = disable
@@ -294,6 +299,7 @@ item:
     click-in-inventory: false # this option won't work for players in creative mode
     drop: false
     pick-up: false
+    attack: false
 
   # Decide the starting value for automatic custom model data assignment.
   custom-model-data-starting-value:
@@ -338,17 +344,10 @@ block:
     # If set to empty, the plugin will set an empty sound list, but at the cost of some warning logs appearing on the client side
     silent-sound-path: "internal/silence.ogg"
 
-  # Adventure mode requires correct tools to break custom blocks.
-  # Vanilla clients cannot recognize custom block IDs (e.g., craftengine:custom_100).
-  #
-  # ENABLED:
-  # - Tools that can break vanilla equivalents also break custom variants.
-  #   Example: A "note_block" tool breaks custom blocks based on note blocks
-  #
-  # DISABLED:
-  # ⚠️  Server MUST specify SERVERSIDE CUSTOM BLOCK IDs in item's `can_break`.
-  # ⚠️  Sending custom block IDs to vanilla clients WILL CAUSE CRASHES!
-  # ✅  Recommended: Use `client-bound-data` for safe client synchronization.
+  # Adventure mode requires correct tools to break blocks.
+  # While vanilla clients cannot recognize custom block IDs (e.g., craftengine:custom_100).
+  # When enabled, tools that can break vanilla equivalents also break custom variants.
+  # Example: A "note_block" tool breaks custom blocks based on note blocks
   simplify-adventure-break-check: false
   # Similar to the option above, but designed for block placement
   simplify-adventure-place-check: false
@@ -543,6 +542,14 @@ recipe:
   # This option can be set individually for each recipe to override the global setting.
   unlock-on-ingredient-obtained: true
 
+  # Automatically unlock recipes for players when they join the server.
+  unlock-on-join:
+    # Unlock all recipes (vanilla + custom) for players on join
+    all: false
+    # Selective recipe unlocking (only takes effect when 'all' is false)
+    # Example: ["minecraft:wooden_sword", "craftengine:my_recipe"]
+    list: []
+
   # Inject furnace block entities to support custom condition. This option requires a restart to apply.
   inject-block-entities: true
 
@@ -700,6 +707,9 @@ misc:
   # Forces PacketEvents registry injection to resolve plugin compatibility issues
   # If errors occur after enabling, please report immediately
   inject-packetevents: true
+  # Enables AxiomPaper integration to register custom items as Axiom display items
+  # This option requires a restart to apply.
+  hook-axiompaper: true
 
 debug:
   common: false

@@ -1,10 +1,11 @@
 package net.momirealms.craftengine.bukkit.plugin.user;
 
-import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
+import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.properties.PropertyMap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -12,6 +13,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
+import net.momirealms.craftengine.bukkit.block.entity.renderer.display.BukkitDestroyStageDisplayRecorder;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
@@ -24,6 +26,9 @@ import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntity;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntitySetting;
+import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayRecorder;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
@@ -58,6 +63,7 @@ import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ClientboundResourcePackPopPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
@@ -74,11 +80,12 @@ import net.momirealms.craftengine.proxy.minecraft.server.network.config.JoinWorl
 import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerResourcePackConfigurationTaskProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.thread.BlockableEventLoopProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeModifierProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.AbilitiesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.InventoryProxy;
@@ -117,9 +124,10 @@ import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public class BukkitServerPlayer extends Player {
@@ -138,6 +146,7 @@ public class BukkitServerPlayer extends Player {
     private InetAddress address;
     private String name;
     private UUID uuid;
+    private int entityId;
     private PropertyMap propertyMap;
     private boolean isNameVerified;
     private boolean isUUIDVerified;
@@ -164,6 +173,9 @@ public class BukkitServerPlayer extends Player {
     private Object destroyedState;
     private boolean isDestroyingBlock;
     private boolean isDestroyingCustomBlock;
+    // client-side ItemDisplay used to visualize custom-block destroy progress when the
+    // block has a destroy_stages setting; null when no such display is active
+    private DestroyStageDisplayRecorder.Entry destroyStageEntry;
     private boolean swingHandAck;
     private int lastSwingHandTick;
     private float miningProgress;
@@ -186,7 +198,7 @@ public class BukkitServerPlayer extends Player {
     // cooldown data
     private CooldownData cooldownData;
     // tracked chunks
-    private ConcurrentLong2ReferenceChainedHashTable<ClientChunk> trackedChunks;
+    private ConcurrentChainedLong2ReferenceHashTable<ClientChunk> trackedChunks;
     // entity view
     private Map<Integer, EntityPacketHandler> entityTypeView;
     // 通过指令或api设定的语言
@@ -231,6 +243,9 @@ public class BukkitServerPlayer extends Player {
     private FurnitureHitData furnitureHitData;
     // 缓存可见的家具光源数据
     private FurnitureLightData furnitureLightData;
+    // 是否正在模拟客户端可能缺失的交互逻辑
+    // 比如客户端觉得音符盒可以交互，但实际上不可，导致副手的交互包并未发出，最终导致副手的物品逻辑不执行
+    private boolean isSimulatingInteraction;
 
     public BukkitServerPlayer(BukkitCraftEngine plugin, @Nullable Channel channel) {
         this.channel = channel;
@@ -253,6 +268,7 @@ public class BukkitServerPlayer extends Player {
         this.uuid = player.getUniqueId();
         this.isUUIDVerified = true;
         this.name = player.getName();
+        this.entityId = player.getEntityId();
         this.isNameVerified = true;
         this.initPlayStageFields();
         byte[] bytes = player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(CooldownData.COOLDOWN_KEY), PersistentDataType.BYTE_ARRAY);
@@ -281,14 +297,14 @@ public class BukkitServerPlayer extends Player {
     private void initPlayStageFields() {
         this.trackedBlockEntityRenderers = new ConcurrentHashMap<>(64);
         this.trackedEntities = new ConcurrentHashMap<>(64);
-        this.trackedChunks = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(512, 0.5f);
+        this.trackedChunks = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(512, 0.5f);
         this.entityTypeView = new ConcurrentHashMap<>(256);
         this.obtainedItems = new HashSet<>(32);
         this.furnitureHitData = new FurnitureHitData();
         this.furnitureLightData = new FurnitureLightData();
         this.receivedMapData = CacheBuilder.newBuilder()
                 .weakKeys()
-                .expireAfterAccess(30, TimeUnit.MINUTES)
+                .expireAfterAccess(Duration.of(30, ChronoUnit.MINUTES))
                 .concurrencyLevel(4)
                 .build();
     }
@@ -395,6 +411,16 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
+    public void setIsSimulatingInteraction(boolean isSimulating) {
+        this.isSimulatingInteraction = isSimulating;
+    }
+
+    @Override
+    public boolean isSimulatingInteraction() {
+        return this.isSimulatingInteraction;
+    }
+
+    @Override
     public boolean updateLastSuccessfulInteractionTick(int tick) {
         if (this.lastSuccessfulInteraction != tick) {
             this.lastSuccessfulInteraction = tick;
@@ -439,7 +465,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void swingHand(InteractionHand hand) {
-        platformPlayer().swingHand(hand == InteractionHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND);
+        LivingEntityProxy.INSTANCE.swing(serverPlayer(), hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND, true);
     }
 
     @Override
@@ -575,6 +601,15 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
+    public void sendByteBufPacket(ByteBuf buf, boolean immediately) {
+        if (immediately) {
+            this.channel.writeAndFlush(buf);
+        } else {
+            this.channel.write(buf);
+        }
+    }
+
+    @Override
     public void kick(@Nullable Component message) {
         Object reason = message != null ? ComponentUtils.adventureToMinecraft(message) : null;
         if (this.encoderState == ConnectionState.HANDSHAKING || this.encoderState == ConnectionState.STATUS) {
@@ -590,7 +625,7 @@ public class BukkitServerPlayer extends Player {
         this.sendPacket(kickPacket, false, () -> ConnectionProxy.INSTANCE.disconnect(this.connection(), reason));
         this.channel.config().setAutoRead(false);
         Runnable handleDisconnection = () -> ConnectionProxy.INSTANCE.handleDisconnection(this.connection());
-        if (VersionHelper.isFolia) {
+        if (VersionHelper.hasFoliaPatch) {
             this.plugin.scheduler().platform().run(handleDisconnection);
         } else {
             BlockableEventLoopProxy.INSTANCE.scheduleOnMain(MinecraftServerProxy.INSTANCE.getServer(), handleDisconnection);
@@ -632,6 +667,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void resendChunks() {
+        if (!VersionHelper.hasPaperPatch) return;
         Object chunkLoader = ServerPlayerProxy.INSTANCE.getChunkLoader(serverPlayer());
         LongOpenHashSet sentChunks = RegionizedPlayerChunkLoaderProxy.PlayerChunkLoaderDataProxy.INSTANCE.getSentChunks(chunkLoader);
         if (sentChunks.isEmpty()) {
@@ -732,18 +768,17 @@ public class BukkitServerPlayer extends Player {
 
         // 实体剔除更新相机位置
         if (Config.enableEntityCulling()) {
-            org.bukkit.entity.Player player = platformPlayer();
             this.firstPersonCameraVec3 = this.eyeLocation;
             int distance = 4;
             if (VersionHelper.isOrAbove1_21_6) {
-                Entity vehicle = player.getVehicle();
+                Entity vehicle = platformPlayer().getVehicle();
                 if (vehicle != null && vehicle.getType() == EntityType.HAPPY_GHAST) {
                     distance = 8;
                 }
             }
 
-            float rotX = player.getYaw();
-            float rotY = player.getPitch();
+            float rotX = EntityProxy.INSTANCE.getXRot(serverPlayer);
+            float rotY = EntityProxy.INSTANCE.getYRot(serverPlayer);
             float y = -MiscUtils.sin(MiscUtils.toRadians(rotY));
             float xz = MiscUtils.cos(MiscUtils.toRadians(rotY));
             float x = -xz * MiscUtils.sin(MiscUtils.toRadians(rotX));
@@ -867,7 +902,7 @@ public class BukkitServerPlayer extends Player {
         } else {
             BlockPos previousPos = this.destroyPos;
             if (previousPos != null && !pos.equals(previousPos)) {
-                this.broadcastDestroyProgress(previousPos, -1);
+                this.broadcastDestroyProgress(previousPos, -1f);
             }
             this.destroyPos = pos;
             this.destroyedState = state;
@@ -908,37 +943,24 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void setClientSideCanBreakBlock(boolean canBreak) {
-        try {
-            // 超过1秒就强制同步一次属性
-            if (this.clientSideCanBreak == canBreak && !shouldSyncAttribute()) {
-                return;
-            }
-            this.clientSideCanBreak = canBreak;
+        // 超过1秒就强制同步一次属性
+        if (this.clientSideCanBreak == canBreak && !shouldSyncAttribute()) {
+            return;
+        }
+        this.clientSideCanBreak = canBreak;
+        if (VersionHelper.isOrAbove1_20_5) {
+            Object serverPlayer = serverPlayer();
+            Object attributeInstance = LivingEntityProxy.INSTANCE.getAttribute(serverPlayer, AttributesProxy.BLOCK_BREAK_SPEED);
+            sendPacket(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId(), Lists.newArrayList(attributeInstance)), true);
+        } else {
             if (canBreak) {
-                if (VersionHelper.isOrAbove1_20_5) {
-                    Object serverPlayer = serverPlayer();
-                    Object attributeInstance = LivingEntityProxy.INSTANCE.getAttribute(serverPlayer, AttributesProxy.BLOCK_BREAK_SPEED);
-                    sendPacket(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId(), Lists.newArrayList(attributeInstance)), true);
-                } else {
-                    resetEffect(MobEffectsProxy.MINING_FATIGUE);
-                    resetEffect(MobEffectsProxy.HASTE);
-                }
+                resetEffect(MobEffectsProxy.MINING_FATIGUE);
+                resetEffect(MobEffectsProxy.HASTE);
             } else {
-                if (VersionHelper.isOrAbove1_20_5) {
-                    Object attributeModifier = VersionHelper.isOrAbove1_21 ?
-                            AttributeModifierProxy.INSTANCE.newInstance(KeyUtils.toIdentifier(Key.CRAFTENGINE_NAMESPACE, "custom_hardness"), -9999d, AttributeModifierProxy.OperationProxy.ADD_VALUE) :
-                            AttributeModifierProxy.INSTANCE.newInstance(UUID.randomUUID(), Key.CRAFTENGINE_NAMESPACE + ":custom_hardness", -9999d, AttributeModifierProxy.OperationProxy.ADD_VALUE);
-                    Object attributeSnapshot = ClientboundUpdateAttributesPacketProxy.AttributeSnapshotProxy.INSTANCE.newInstance(AttributesProxy.BLOCK_BREAK_SPEED, 1d, Lists.newArrayList(attributeModifier));
-                    Object newPacket = ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$1(entityId(), Lists.newArrayList(attributeSnapshot));
-                    sendPacket(newPacket, true);
-                } else {
-                    Object fatiguePacket = MobEffectUtils.createPacket(MobEffectsProxy.MINING_FATIGUE, entityId(), (byte) 9, -1, false, false, false);
-                    Object hastePacket = MobEffectUtils.createPacket(MobEffectsProxy.HASTE, entityId(), (byte) 0, -1, false, false, false);
-                    sendPackets(List.of(fatiguePacket, hastePacket), true);
-                }
+                Object fatiguePacket = MobEffectUtils.createPacket(MobEffectsProxy.MINING_FATIGUE, entityId(), (byte) 9, -1, false, false, false);
+                Object hastePacket = MobEffectUtils.createPacket(MobEffectsProxy.HASTE, entityId(), (byte) 0, -1, false, false, false);
+                sendPackets(List.of(fatiguePacket, hastePacket), true);
             }
-        } catch (Throwable e) {
-            this.plugin.logger().warn("Failed to set attribute for player " + platformPlayer().getName(), e);
         }
     }
 
@@ -948,6 +970,7 @@ public class BukkitServerPlayer extends Player {
         this.miningProgress = 0f;
         this.isDestroyingBlock = false;
         this.swingHandAck = false;
+        clearDestroyStageDisplay();
         this.destroyedState = null;
         this.destroyPos = null;
         this.isDestroyingCustomBlock = false;
@@ -960,6 +983,7 @@ public class BukkitServerPlayer extends Player {
         this.miningProgress = 0f;
         this.isDestroyingBlock = false;
         this.swingHandAck = false;
+        clearDestroyStageDisplay();
         this.destroyedState = null;
         this.destroyPos = null;
         this.isDestroyingCustomBlock = false;
@@ -978,7 +1002,7 @@ public class BukkitServerPlayer extends Player {
         BlockPos pos = this.destroyPos;
         if (pos != null && this.isDestroyingCustomBlock) {
             // 只纠正自定义方块的破坏进度
-            this.broadcastDestroyProgress(pos, -1);
+            this.broadcastDestroyProgress(pos, -1f);
         }
     }
 
@@ -990,6 +1014,11 @@ public class BukkitServerPlayer extends Player {
         this.destroyedState = null;
         this.destroyPos = null;
         this.isDestroyingCustomBlock = false;
+    }
+
+    @Override
+    public boolean clientSideCanBreak() {
+        return this.clientSideCanBreak;
     }
 
     private void resetEffect(Object mobEffect) {
@@ -1005,7 +1034,6 @@ public class BukkitServerPlayer extends Player {
 
     private void tickBlockDestroy() {
         int currentTick = gameTicks();
-        // 如果没有正在被挖掘的对象，那么不继续
         Object destroyedState = this.destroyedState;
         if (destroyedState == null) return;
 
@@ -1036,7 +1064,7 @@ public class BukkitServerPlayer extends Player {
         // 发送破坏中音效
         if (currentTick - this.lastHitBlockTime > 3) {
             // 手上物品不是debug棒
-            if (!BukkitItemUtils.isDebugStick(item)) {
+            if (!BukkitItemUtils.isDebugStick(item) && !canInstabuild()) {
                 Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(destroyedState);
                 Object soundEvent = SoundTypeProxy.INSTANCE.getHitSound(soundType);
                 Object soundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
@@ -1064,12 +1092,8 @@ public class BukkitServerPlayer extends Player {
                 ImmutableBlockState customState = optionalCustomState.get();
                 // accumulate progress
                 this.miningProgress = progressToAdd + miningProgress;
-                int packetStage = (int) (this.miningProgress * 10.0F);
-                if (packetStage != this.lastSentState) {
-                    this.lastSentState = packetStage;
-                    // broadcast changes
-                    broadcastDestroyProgress(hitPos, packetStage);
-                }
+                // broadcast changes; dedup (vanilla 0~10 stage or custom item index) happens inside
+                broadcastDestroyProgress(hitPos, this.miningProgress);
 
                 // can break now
                 if (this.miningProgress >= 1f) {
@@ -1094,6 +1118,7 @@ public class BukkitServerPlayer extends Player {
                     // send break particle + (removed sounds)
                     if (breakResult) {
                         sendPacket(ClientboundLevelEventPacketProxy.INSTANCE.newInstance(WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId(), false), false);
+                        clearDestroyStageDisplayForAll();
                         this.destroyPos = null;
                         this.miningProgress = 0;
                         this.isDestroyingBlock = false;
@@ -1102,6 +1127,7 @@ public class BukkitServerPlayer extends Player {
                         this.isDestroyingCustomBlock = false;
                     } else {
                         // 事件被取消了，重置挖掘进度
+                        clearDestroyStageDisplay();
                         this.miningProgress = 0;
                         this.isDestroyingCustomBlock = true;
                         this.isDestroyingBlock = true;
@@ -1120,20 +1146,130 @@ public class BukkitServerPlayer extends Player {
         platformPlayer().breakBlock(new Location(platformPlayer().getWorld(), x, y, z).getBlock());
     }
 
-    @SuppressWarnings("deprecation")
-    private void broadcastDestroyProgress(BlockPos hitPos, int stage) {
+    private void broadcastDestroyProgress(BlockPos hitPos, float progress) {
+        DestroyStageDisplayEntitySetting display = currentDestroyStageDisplay();
+        int key = progress < 0 ? -1 : (display != null ? display.itemIndexForProgress(progress) : (int) (progress * 10.0F));
+        if (key == this.lastSentState) {
+            return;
+        }
+        this.lastSentState = key;
+        if (display != null) {
+            broadcastDestroyProgressViaDisplay(hitPos, progress, display);
+        } else {
+            broadcastDestroyProgressVanilla(hitPos, key);
+        }
+    }
+
+    private DestroyStageDisplayEntitySetting currentDestroyStageDisplay() {
+        Object state = this.destroyedState;
+        if (state == null) return null;
+        ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
+        if (customState == null) return null;
+        return customState.settings().destroyStageDisplay();
+    }
+
+    private void broadcastDestroyProgressVanilla(BlockPos hitPos, int stage) {
         Object packet = ClientboundBlockDestructionPacketProxy.INSTANCE.newInstance(Integer.MAX_VALUE - entityId(), LocationUtils.toBlockPos(hitPos), stage);
         sendPacket(packet, false);
-        for (org.bukkit.entity.Player other : platformPlayer().getTrackedPlayers()) {
-            double d0 = (double) hitPos.x() - other.getX();
-            double d1 = (double) hitPos.y() - other.getY();
-            double d2 = (double) hitPos.z() - other.getZ();
-            if (d0 * d0 + d1 * d1 + d2 * d2 < 32 * 32) {
-                BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(other);
-                if (serverPlayer == null) continue;
-                serverPlayer.sendPacket(packet, false);
+        for (Player other : getTrackedBy()) {
+            if (!isWithinDestroyRange(hitPos, other)) continue;
+            other.sendPacket(packet, false);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    public void broadcastDestroyProgressViaDisplay(BlockPos hitPos, float progress, DestroyStageDisplayEntitySetting display) {
+        if (progress < 0) {
+            clearDestroyStageDisplay();
+            return;
+        }
+        DestroyStageDisplayRecorder.PosKey posKey = new DestroyStageDisplayRecorder.PosKey(platformPlayer().getWorld().getUID(), hitPos.asLong());
+        DestroyStageDisplayRecorder.Entry entry = BukkitDestroyStageDisplayRecorder.INSTANCE.getOrCreate(posKey, display, hitPos);
+        this.destroyStageEntry = entry;
+
+        entry.minerProgress.put(this.uuid, progress);
+        float maxProgress = 0f;
+        for (Float p : entry.minerProgress.values()) {
+            if (p != null && p > maxProgress) maxProgress = p;
+        }
+        int newIndex = display.itemIndexForProgress(maxProgress);
+        if (newIndex == entry.displayedIndex()) {
+            return;
+        }
+        entry.displayedIndex(newIndex);
+
+        DestroyStageDisplayEntity entity = entry.entity;
+        Set<UUID> current = new HashSet<>();
+        current.add(this.uuid);
+        Set<Player> trackedPlayers = getTrackedBy();
+        for (Player other : trackedPlayers) {
+            if (isWithinDestroyRange(hitPos, other)) {
+                current.add(other.uuid());
             }
         }
+        Object removePacket = entity.removePacket();
+        entity.removeLeftViewers(current, viewerId -> {
+            if (viewerId.equals(this.uuid)) return;
+            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) BukkitNetworkManager.instance().getOnlineUser(viewerId);
+            if (serverPlayer == null) return;
+            serverPlayer.sendPacket(removePacket, false);
+        });
+        showDestroyStageDisplayTo(this, entity, newIndex);
+        for (Player other : trackedPlayers) {
+            if (!isWithinDestroyRange(hitPos, other)) continue;
+            showDestroyStageDisplayTo(other, entity, newIndex);
+        }
+    }
+
+    private void showDestroyStageDisplayTo(Player viewer, DestroyStageDisplayEntity entity, int index) {
+        entity.ensureSpawned(viewer, index, packet -> viewer.sendPacket(packet, false));
+    }
+
+    public void clearDestroyStageDisplay() {
+        DestroyStageDisplayRecorder.Entry entry = this.destroyStageEntry;
+        if (entry == null) return;
+        DestroyStageDisplayEntity entity = entry.entity;
+        this.destroyStageEntry = null;
+        this.lastSentState = -1;
+        entry.minerProgress.remove(this.uuid);
+        if (entry.minerProgress.isEmpty()) {
+            BukkitDestroyStageDisplayRecorder.INSTANCE.remove(entry.key);
+        } else {
+            float maxProgress = 0f;
+            for (Float p : entry.minerProgress.values()) {
+                if (p != null && p > maxProgress) maxProgress = p;
+            }
+            int newIndex = entry.display.itemIndexForProgress(maxProgress);
+            if (newIndex != entry.displayedIndex()) {
+                entry.displayedIndex(newIndex);
+                for (UUID viewerId : entity.spawnedViewers()) {
+                    BukkitServerPlayer serverPlayer = (BukkitServerPlayer) this.plugin.networkManager().getOnlineUser(viewerId);
+                    if (serverPlayer == null) continue;
+                    showDestroyStageDisplayTo(serverPlayer, entity, newIndex);
+                }
+            }
+        }
+    }
+
+    public void clearDestroyStageDisplayForAll() {
+        DestroyStageDisplayRecorder.Entry entry = this.destroyStageEntry;
+        if (entry == null) {
+            return;
+        }
+        for (UUID minerId : entry.minerProgress.keys()) {
+            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) this.plugin.networkManager().getOnlineUser(minerId);
+            if (serverPlayer == null) continue;
+            serverPlayer.destroyStageEntry = null;
+            serverPlayer.lastSentState = -1;
+        }
+        BukkitDestroyStageDisplayRecorder.INSTANCE.remove(entry.key);
+    }
+
+    private boolean isWithinDestroyRange(BlockPos hitPos, Player other) {
+        double d0 = (double) hitPos.x() - other.x();
+        double d1 = (double) hitPos.y() - other.y();
+        double d2 = (double) hitPos.z() - other.z();
+        return d0 * d0 + d1 * d1 + d2 * d2 < 32 * 32;
     }
 
     @Override
@@ -1167,7 +1303,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public int entityId() {
-        return platformPlayer().getEntityId();
+        return this.entityId;
     }
 
     @Override
@@ -1179,12 +1315,12 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public float yRot() {
-        return platformPlayer().getYaw();
+        return EntityProxy.INSTANCE.getYRot(this.serverPlayer());
     }
 
     @Override
     public float xRot() {
-        return platformPlayer().getPitch();
+        return EntityProxy.INSTANCE.getXRot(this.serverPlayer());
     }
 
     @Override
@@ -1225,17 +1361,17 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public double x() {
-        return platformPlayer().getX();
+        return EntityProxy.INSTANCE.getX(serverPlayer());
     }
 
     @Override
     public double y() {
-        return platformPlayer().getY();
+        return EntityProxy.INSTANCE.getY(serverPlayer());
     }
 
     @Override
     public double z() {
-        return platformPlayer().getZ();
+        return EntityProxy.INSTANCE.getZ(serverPlayer());
     }
 
     @Override
@@ -1371,7 +1507,7 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void clearView() {
+    public void clearEntityView() {
         this.entityTypeView.clear();
     }
 
@@ -1448,7 +1584,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void setFoodLevel(int foodLevel) {
-        this.platformPlayer().setFoodLevel(Math.min(Math.max(0, foodLevel), 20));
+        this.platformPlayer().setFoodLevel(Math.clamp(foodLevel, 0, 20));
     }
 
     @Override
@@ -1462,22 +1598,39 @@ public class BukkitServerPlayer extends Player {
     }
 
     @Override
-    public void addPotionEffect(Key potionEffectType, int duration, int amplifier, boolean ambient, boolean particles) {
-        PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(KeyUtils.toNamespacedKey(potionEffectType));
-        if (type == null) return;
-        this.platformPlayer().addPotionEffect(new PotionEffect(type, duration, amplifier, ambient, particles));
+    public void addPotionEffect(Key potionEffectType, int duration, int amplifier, boolean ambient, boolean particles, boolean showIcon) {
+        if (VersionHelper.isOrAbove1_20_5) {
+            Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (holder != null) {
+                Object mobEffect = MobEffectInstanceProxy.INSTANCE.newInstance(holder, duration, amplifier, ambient, particles, showIcon);
+                LivingEntityProxy.INSTANCE.addEffect(serverPlayer(), mobEffect);
+            }
+        } else {
+            Object mobEffect = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (mobEffect != null) {
+                LivingEntityProxy.INSTANCE.addEffect(serverPlayer(), MobEffectInstanceProxy.INSTANCE.newInstance$legacy(mobEffect, duration, amplifier, ambient, particles, showIcon));
+            }
+        }
     }
 
     @Override
     public void removePotionEffect(Key potionEffectType) {
-        PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(KeyUtils.toNamespacedKey(potionEffectType));
-        if (type == null) return;
-        this.platformPlayer().removePotionEffect(type);
+        if (VersionHelper.isOrAbove1_20_5) {
+            Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (holder != null) {
+                LivingEntityProxy.INSTANCE.removeEffect(serverPlayer(), holder);
+            }
+        } else {
+            Object mobEffect = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (mobEffect != null) {
+                LivingEntityProxy.INSTANCE.removeEffect$legacy(serverPlayer(), mobEffect);
+            }
+        }
     }
 
     @Override
     public void clearPotionEffects() {
-        this.platformPlayer().clearActivePotionEffects();
+        LivingEntityProxy.INSTANCE.removeAllEffects(serverPlayer());
     }
 
     @Override
@@ -1516,7 +1669,11 @@ public class BukkitServerPlayer extends Player {
     @Override
     public void teleport(WorldPosition worldPosition) {
         Location location = new Location((org.bukkit.World) worldPosition.world().platformWorld(), worldPosition.x(), worldPosition.y(), worldPosition.z(), worldPosition.yRot(), worldPosition.xRot());
-        this.platformPlayer().teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        if (VersionHelper.hasFoliaPatch) {
+            this.platformPlayer().teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        } else {
+            this.platformPlayer().teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        }
     }
 
     @Override
@@ -1583,14 +1740,14 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public void setEntityCullingDistanceScale(double value) {
-        value = Math.min(Math.max(0.125, value), 8);
+        value = Math.clamp(value, 0.125, 8);
         this.culling.setDistanceScale(value);
         platformPlayer().getPersistentDataContainer().set(KeyUtils.toNamespacedKey(ENTITY_CULLING_DISTANCE_SCALE), PersistentDataType.DOUBLE, value);
     }
 
     @Override
     public void setDisplayEntityViewDistanceScale(double value) {
-        value = Math.min(Math.max(0.125, value), 8);
+        value = Math.clamp(value, 0.125, 8);
         this.displayEntityViewDistance = value;
         platformPlayer().getPersistentDataContainer().set(KeyUtils.toNamespacedKey(DISPLAY_ENTITY_VIEW_DISTANCE_SCALE), PersistentDataType.DOUBLE, value);
     }
@@ -1634,7 +1791,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public int getXpNeededForNextLevel() {
-        return platformPlayer().getExperiencePointsNeededForNextLevel();
+        return PlayerProxy.INSTANCE.getXpNeededForNextLevel(serverPlayer());
     }
 
     @Override
@@ -1697,7 +1854,7 @@ public class BukkitServerPlayer extends Player {
 
     @Override
     public int clearOrCountMatchingInventoryItems(Predicate<Item> predicate, int count) {
-        Predicate<Object> nmsPredicate = nmsStack -> predicate.test(this.plugin.itemManager().wrap(ItemStackUtils.asCraftMirror(nmsStack)));
+        Predicate<Object> nmsPredicate = nmsStack -> predicate.test(this.plugin.itemManager().wrap(ItemStackUtils.getBukkitStack(nmsStack)));
         Object inventory = PlayerProxy.INSTANCE.getInventory(serverPlayer());
         Object inventoryMenu = PlayerProxy.INSTANCE.getInventoryMenu(serverPlayer());
         Object craftSlots = InventoryMenuProxy.INSTANCE.getCraftSlots(inventoryMenu);
@@ -1710,6 +1867,11 @@ public class BukkitServerPlayer extends Player {
             this.gameEdition = this.plugin.compatibilityManager().isBedrockPlayer(this) ? GameEdition.BEDROCK : GameEdition.JAVA;
         }
         return this.gameEdition;
+    }
+
+    @Override
+    public CullableHolder getTrackedEntity(int entityId) {
+        return this.trackedEntities.get(entityId);
     }
 
     @Override
@@ -1749,7 +1911,11 @@ public class BukkitServerPlayer extends Player {
     public void playParticle(Key particleId, double x, double y, double z) {
         Particle particle = Registry.PARTICLE_TYPE.get(KeyUtils.toNamespacedKey(particleId));
         if (particle != null) {
-            platformPlayer().getWorld().spawnParticle(particle, List.of(platformPlayer()), null, x, y, z, 1, 0, 0,0, 0, null, false);
+            if (VersionHelper.hasPaperPatch) {
+                platformPlayer().getWorld().spawnParticle(particle, List.of(platformPlayer()), null, x, y, z, 1, 0, 0,0, 0, null, false);
+            } else {
+                platformPlayer().spawnParticle(particle, x, y, z, 1, 0, 0, 0, 0);
+            }
         }
     }
 
@@ -1866,5 +2032,10 @@ public class BukkitServerPlayer extends Player {
             }
         }
         return 0;
+    }
+
+    @Override
+    public Set<Player> getTrackedBy() {
+        return EntityUtils.getTrackedBy(this.platformPlayer(), BukkitAdaptor::adapt);
     }
 }

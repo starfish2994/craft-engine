@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 public interface ServerPlayerProxy extends PlayerProxy {
     ServerPlayerProxy INSTANCE = ASMProxyFactory.create(ServerPlayerProxy.class);
 
-    @FieldGetter(name = "chunkLoader")
+    @FieldGetter(name = "chunkLoader", activeIf = "has_patch=paper")
     Object getChunkLoader(Object target);
 
     @FieldGetter(name = "connection")
@@ -27,10 +27,10 @@ public interface ServerPlayerProxy extends PlayerProxy {
     @MethodInvoker(name = "nextContainerCounter")
     int nextContainerCounter(Object target);
 
-    @MethodInvoker(name = "drop", activeIf = "min_version=1.21.4")
+    @MethodInvoker(name = "drop", activeIf = "min_version=1.21.4 && has_patch=paper")
     Object drop(Object target, @Type(clazz = ItemStackProxy.class) Object droppedItem, boolean dropAround, boolean traceItem, boolean callEvent, @Nullable Consumer<Item> entityOperation);
 
-    @MethodInvoker(name = "drop", activeIf = "min_version=1.20.3 && max_version=1.21.3")
+    @MethodInvoker(name = "drop", activeIf = "(min_version=1.20.3 && max_version=1.21.3) || !has_patch=paper")
     Object drop$1(Object target, @Type(clazz = ItemStackProxy.class) Object droppedItem, boolean dropAround, boolean traceItem, boolean callEvent);
 
     @MethodInvoker(name = "getBukkitEntity")

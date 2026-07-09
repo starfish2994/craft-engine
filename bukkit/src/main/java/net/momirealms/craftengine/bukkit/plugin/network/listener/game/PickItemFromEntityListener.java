@@ -2,8 +2,6 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
-import net.momirealms.craftengine.bukkit.item.BukkitItem;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
@@ -52,7 +50,7 @@ public final class PickItemFromEntityListener implements ByteBufferPacketListene
         if (item == null) {
             Key itemId = furniture.config().settings().itemId();
             if (itemId == null) return;
-            BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
+            Item wrappedItem = Item.byId(itemId, player);
             if (wrappedItem == null) return;
             itemStack = wrappedItem.minecraftItem();
         } else {
@@ -62,7 +60,7 @@ public final class PickItemFromEntityListener implements ByteBufferPacketListene
     }
 
     private static void tryPickItem(Player player, Object itemStack, Object entity) {
-        if (VersionHelper.isOrAbove1_21_5) {
+        if (VersionHelper.isOrAbove1_21_5 && VersionHelper.hasPaperPatch) {
             ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack, null, entity, true);
         } else if (VersionHelper.isOrAbove1_21_4) {
             ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack);

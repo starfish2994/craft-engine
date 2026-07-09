@@ -122,7 +122,7 @@ public final class BukkitSeat<O extends SeatOwner> implements Seat<O> {
                     armorStand.setSilent(true);
                     armorStand.setInvulnerable(true);
                     armorStand.setArms(false);
-                    armorStand.setCanTick(false);
+                    if (VersionHelper.hasPaperPatch) armorStand.setCanTick(false);
                     armorStand.setAI(false);
                     armorStand.setGravity(false);
                     armorStand.setPersistent(false);

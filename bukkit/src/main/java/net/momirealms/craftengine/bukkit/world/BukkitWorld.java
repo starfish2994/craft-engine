@@ -17,12 +17,10 @@ import net.momirealms.craftengine.core.world.particle.ParticleData;
 import net.momirealms.craftengine.core.world.particle.ParticleType;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
+import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.*;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelReaderProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.*;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.SoundCategory;
@@ -86,12 +84,7 @@ public final class BukkitWorld implements World {
     @Override
     public Chunk getChunkIfLoaded(int x, int z) {
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(this.minecraftWorld());
-        Object levelChunk;
-        if (VersionHelper.isOrAbove1_21) {
-            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedImmediately(chunkSource, x, z);
-        } else {
-            levelChunk = ServerChunkCacheProxy.INSTANCE.getChunkAtIfLoadedMainThread(chunkSource, x, z);
-        }
+        Object levelChunk = LevelUtils.getChunkAtIfLoaded(chunkSource, x, z);
         if (levelChunk == null) return null;
         return new BukkitChunkAccess(levelChunk);
     }
@@ -113,6 +106,12 @@ public final class BukkitWorld implements World {
     }
 
     @Override
+    public Key dimension() {
+        Object dimension = LevelProxy.INSTANCE.getDimension(this.minecraftWorld());
+        return KeyUtils.identifierToKey(ResourceKeyProxy.INSTANCE.getIdentifier(dimension));
+    }
+
+    @Override
     public Path directory() {
         return this.worldFolder;
     }
@@ -124,7 +123,7 @@ public final class BukkitWorld implements World {
 
     @Override
     public void dropItemNaturally(Position location, Item item) {
-        ItemStack itemStack = ItemStackProxy.INSTANCE.getBukkitStack(item.minecraftItem());
+        ItemStack itemStack = (ItemStack) item.platformItem();
         if (ItemStackUtils.isEmpty(itemStack)) return;
         if (VersionHelper.isOrAbove1_21_2) {
             platformWorld().dropItemNaturally(new Location(null, location.x(), location.y(), location.z()), itemStack);
@@ -189,7 +188,13 @@ public final class BukkitWorld implements World {
         Object chunkMap = ServerChunkCacheProxy.INSTANCE.getChunkMap(chunkSource);
         Object chunkHolder = ChunkMapProxy.INSTANCE.getVisibleChunkIfPresent(chunkMap, pos.longKey);
         if (chunkHolder == null) return Collections.emptyList();
-        List<Object> players = ChunkHolderProxy.INSTANCE.getPlayers(chunkHolder, false);
+        List<Object> players;
+        if (VersionHelper.hasPaperPatch) {
+            players = ChunkHolderProxy.INSTANCE.getPlayers(chunkHolder, false);
+        } else {
+            Object playerProvider = ChunkHolderProxy.INSTANCE.getPlayerProvider(chunkHolder);
+            players = ChunkHolderProxy.PlayerProviderProxy.INSTANCE.getPlayers(playerProvider, ChunkPosProxy.INSTANCE.newInstance(pos.x, pos.z), false);
+        }
         if (players.isEmpty()) return Collections.emptyList();
         List<Player> tracked = new ArrayList<>(players.size());
         for (Object player : players) {

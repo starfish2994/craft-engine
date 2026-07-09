@@ -3,6 +3,8 @@ package net.momirealms.craftengine.bukkit.block;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.bukkit.block.behavior.*;
+import net.momirealms.craftengine.bukkit.block.listener.BlockEventListener;
+import net.momirealms.craftengine.bukkit.block.listener.PaperBlockEventListener;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
@@ -64,6 +66,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private final BukkitCraftEngine plugin;
     // 事件监听器
     private final BlockEventListener blockEventListener;
+    private final PaperBlockEventListener paperBlockEventListener;
     // 用于缓存string形式的方块状态到原版方块状态
     private final Map<String, BlockStateWrapper> blockStateCache = new ConcurrentHashMap<>(1024);
     // 用于临时存储可燃烧自定义方块的列表
@@ -87,6 +90,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
         this.plugin = plugin;
         this.blockEventListener = new BlockEventListener(plugin, this);
+        this.paperBlockEventListener = VersionHelper.hasPaperPatch ? new PaperBlockEventListener() : null;
         this.registerServerSideCustomBlocks(Config.serverSideBlocks());
         EmptyBlockDefinition.init();
         EmptyBlockDefinition.STATE.setBehavior(EmptyBlockBehavior.INSTANCE);
@@ -112,6 +116,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.blockEventListener, this.plugin.javaPlugin());
+        if (this.paperBlockEventListener != null) Bukkit.getPluginManager().registerEvents(this.paperBlockEventListener, this.plugin.javaPlugin());
     }
 
     @Override
@@ -139,6 +144,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void disable() {
         this.unload();
         HandlerList.unregisterAll(this.blockEventListener);
+        if (this.paperBlockEventListener != null) HandlerList.unregisterAll(this.paperBlockEventListener);
     }
 
     @Override
@@ -282,7 +288,12 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setDestroySpeed(nmsState, settings.hardness());
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setReplaceable(nmsState, settings.replaceable());
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setMapColor(nmsState, MapColorProxy.INSTANCE.byId(settings.mapColor().id));
-            BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.VALUES[settings.instrument().ordinal()]);
+            try {
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.INSTANCE.valueOf(settings.instrument().toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException e) {
+                this.plugin.logger().warn("Invalid note block instrument '" + settings.instrument() + "'", e);
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setInstrument(nmsState, NoteBlockInstrumentProxy.HARP);
+            }
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setPushReaction(nmsState, PushReactionProxy.VALUES[settings.pushReaction().ordinal()]);
             boolean canOcclude = settings.canOcclude() == Tristate.UNDEFINED ? BlockStateUtils.isOcclude(nmsVisualState) : settings.canOcclude().asBoolean();
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.setCanOcclude(nmsState, canOcclude);
@@ -305,10 +316,12 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             shapeHolder.bindValue(new BukkitBlockShape(nmsVisualState, Optional.ofNullable(state.settings().supportShapeBlockState()).map(it -> Objects.requireNonNull(createVanillaBlockState(it), "Illegal block state: " + it).minecraftState()).orElse(null)));
             ObjectHolder<BlockBehavior> behaviorHolder = nmsBlock.behaviorDelegate();
             behaviorHolder.bindValue(state.behavior());
-            if (VersionHelper.isOrAbove1_21_2) {
-                BlockBehaviourProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
-            } else {
-                BlockProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
+            if (VersionHelper.hasPaperPatch) {
+                if (VersionHelper.isOrAbove1_21_2) {
+                    BlockBehaviourProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
+                } else {
+                    BlockProxy.INSTANCE.setDescriptionId(nmsBlock, block.translationKey());
+                }
             }
 
             BlockBehaviourProxy.INSTANCE.setExplosionResistance(nmsBlock, settings.resistance());
@@ -316,6 +329,9 @@ public final class BukkitBlockManager extends AbstractBlockManager {
             BlockBehaviourProxy.INSTANCE.setSpeedFactor(nmsBlock, settings.speedFactor());
             BlockBehaviourProxy.INSTANCE.setJumpFactor(nmsBlock, settings.jumpFactor());
             BlockBehaviourProxy.INSTANCE.setSoundType(nmsBlock, SoundUtils.toNMSSoundType(settings.sounds()));
+            if (VersionHelper.isOrAbove26_2) {
+                BlockBehaviourProxy.INSTANCE.setBounceRestitution(nmsBlock, settings.bounceRestitution());
+            }
 
             BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.initCache(nmsState);
             boolean isConditionallyFullOpaque = canOcclude & useShapeForLightOcclusion;

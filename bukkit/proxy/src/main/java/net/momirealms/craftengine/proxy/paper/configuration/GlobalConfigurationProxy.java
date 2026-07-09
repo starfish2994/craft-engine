@@ -15,7 +15,6 @@ public interface GlobalConfigurationProxy {
     @FieldGetter(name = "proxies")
     Object getProxies(Object target);
 
-
     @ReflectionProxy(name = "io.papermc.paper.configuration.GlobalConfiguration$Proxies")
     interface ProxiesProxy {
         ProxiesProxy INSTANCE = ASMProxyFactory.create(ProxiesProxy.class);

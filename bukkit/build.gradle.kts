@@ -25,7 +25,7 @@ dependencies {
     paperServer(project)
     cloud(project)
     // Anti Grief
-    compileOnly("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
+    implementation("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
     // Reflection
     compileOnly("net.momirealms:sparrow-reflection:${rootProject.properties["sparrow_reflection_version"]}")
     compileOnly(files("${rootProject.rootDir}/libs/jni-internal-lookup-1.9.jar"))

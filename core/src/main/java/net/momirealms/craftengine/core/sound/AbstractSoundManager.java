@@ -142,11 +142,6 @@ public abstract class AbstractSoundManager implements SoundManager {
             return LoadingStages.SOUND;
         }
 
-        @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
-        }
-
         private static final String[] SOUNDS = new String[] {"sounds", "sound"};
 
         @Override

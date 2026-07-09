@@ -51,19 +51,19 @@ import java.util.function.Function;
 public final class BukkitRecipeManager extends AbstractRecipeManager {
     private static BukkitRecipeManager instance;
     public static final NamespacedKey FURNACE_LAST_USER = new NamespacedKey("craftengine", "furnace_last_user");
-
-    public static final Map<Key, Function<Recipe, Object>> RECIPE_GENERATOR = Map.of(
-            RecipeSerializers.SHAPED, recipe -> FastNMS.INSTANCE.createShapedRecipe((CustomShapedRecipe) recipe),
-            RecipeSerializers.SHAPELESS, recipe -> FastNMS.INSTANCE.createShapelessRecipe((CustomShapelessRecipe) recipe),
-            RecipeSerializers.SMELTING, recipe -> FastNMS.INSTANCE.createSmeltingRecipe((CustomSmeltingRecipe) recipe),
-            RecipeSerializers.BLASTING, recipe -> FastNMS.INSTANCE.createBlastingRecipe((CustomBlastingRecipe) recipe),
-            RecipeSerializers.SMOKING, recipe -> FastNMS.INSTANCE.createSmokingRecipe((CustomSmokingRecipe) recipe),
-            RecipeSerializers.CAMPFIRE_COOKING, recipe -> FastNMS.INSTANCE.createCampfireRecipe((CustomCampfireRecipe) recipe),
-            RecipeSerializers.STONECUTTING, recipe -> FastNMS.INSTANCE.createStonecuttingRecipe((CustomStoneCuttingRecipe) recipe),
-            RecipeSerializers.SMITHING_TRIM, recipe -> FastNMS.INSTANCE.createSmithingTrimRecipe((CustomSmithingTrimRecipe) recipe),
-            RecipeSerializers.SMITHING_TRANSFORM, recipe -> FastNMS.INSTANCE.createSmithingTransformRecipe((CustomSmithingTransformRecipe) recipe),
-            RecipeSerializers.DYE, recipe -> FastNMS.INSTANCE.createDyeRecipe((CustomDyeRecipe) recipe)
-    );
+    public static final Map<Key, Function<Recipe, Object>> RECIPE_GENERATOR = MiscUtils.init(new HashMap<>(), it -> {
+        it.put(RecipeSerializers.SHAPED, recipe -> FastNMS.INSTANCE.createShapedRecipe((CustomShapedRecipe) recipe));
+        it.put(RecipeSerializers.SHAPED_TRANSFORM, recipe -> FastNMS.INSTANCE.createShapedRecipe((CustomShapedTransformRecipe) recipe));
+        it.put(RecipeSerializers.SHAPELESS, recipe -> FastNMS.INSTANCE.createShapelessRecipe((CustomShapelessRecipe) recipe));
+        it.put(RecipeSerializers.SMELTING, recipe -> FastNMS.INSTANCE.createSmeltingRecipe((CustomSmeltingRecipe) recipe));
+        it.put(RecipeSerializers.BLASTING, recipe -> FastNMS.INSTANCE.createBlastingRecipe((CustomBlastingRecipe) recipe));
+        it.put(RecipeSerializers.SMOKING, recipe -> FastNMS.INSTANCE.createSmokingRecipe((CustomSmokingRecipe) recipe));
+        it.put(RecipeSerializers.CAMPFIRE_COOKING, recipe -> FastNMS.INSTANCE.createCampfireRecipe((CustomCampfireRecipe) recipe));
+        it.put(RecipeSerializers.STONECUTTING, recipe -> FastNMS.INSTANCE.createStonecuttingRecipe((CustomStoneCuttingRecipe) recipe));
+        it.put(RecipeSerializers.SMITHING_TRIM, recipe -> FastNMS.INSTANCE.createSmithingTrimRecipe((CustomSmithingTrimRecipe) recipe));
+        it.put(RecipeSerializers.SMITHING_TRANSFORM, recipe -> FastNMS.INSTANCE.createSmithingTransformRecipe((CustomSmithingTransformRecipe) recipe));
+        it.put(RecipeSerializers.DYE, recipe -> FastNMS.INSTANCE.createDyeRecipe((CustomDyeRecipe) recipe));
+    });
 
     // nms 模块需要使用此方法
     public static List<Object> getIngredientLooks(Ingredient ingredient) {
@@ -73,7 +73,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
             if (buildableItem.isPresent()) {
                 itemStacks.add(buildableItem.get().buildItem(ItemBuildContext.empty(), ingredient.count()).minecraftItem());
             } else {
-                Item barrier = BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, null);
+                Item barrier = Item.byId(ItemKeys.BARRIER);
                 assert barrier != null;
                 barrier.customNameJson(AdventureHelper.componentToJson(Component.text(holder.key().asString()).color(NamedTextColor.RED)));
                 itemStacks.add(barrier.minecraftItem());
@@ -85,6 +85,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     private final BukkitCraftEngine plugin;
     private final RecipeEventListener recipeEventListener;
     private final CrafterEventListener crafterEventListener;
+    private final PaperRecipeEventListener paperRecipeEventListener;
     // 需要在主线程卸载的配方
     private final List<Key> nativeRecipesToUnregister = new ArrayList<>();
     private final List<Key> brewingRecipesToUnregister = new ArrayList<>();
@@ -93,6 +94,10 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     // 换成的数据包配方
     private Map<Key, JsonObject> lastDatapackRecipes = Map.of();
     private Object lastRecipeManager = null;
+    // 进入服务器时自动解锁全部配方的缓存
+    private List<NamespacedKey> cachedAllRecipeKeys;
+    // 进入服务器时自动解锁指定配方的缓存（全局 list 与单配方 unlock_on_join 合并）
+    private List<NamespacedKey> cachedUnlockOnJoinKeys;
 
     public BukkitRecipeManager(BukkitCraftEngine plugin) {
         super(createRecipeRegistry(), plugin);
@@ -100,6 +105,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         this.plugin = plugin;
         this.recipeEventListener = new RecipeEventListener(plugin, this, plugin.itemManager());
         this.crafterEventListener = VersionHelper.isOrAbove1_21 ? new CrafterEventListener(plugin, this, plugin.itemManager()) : null;
+        this.paperRecipeEventListener = VersionHelper.hasPaperPatch ? new PaperRecipeEventListener() : null;
     }
 
     public static RecipeRegistry createRecipeRegistry() {
@@ -125,9 +131,8 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.recipeEventListener, this.plugin.javaPlugin());
-        if (this.crafterEventListener != null) {
-            Bukkit.getPluginManager().registerEvents(this.crafterEventListener, this.plugin.javaPlugin());
-        }
+        if (this.crafterEventListener != null) Bukkit.getPluginManager().registerEvents(this.crafterEventListener, this.plugin.javaPlugin());
+        if (this.paperRecipeEventListener != null) Bukkit.getPluginManager().registerEvents(this.paperRecipeEventListener, this.plugin.javaPlugin());
     }
 
     @Override
@@ -140,6 +145,8 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         if (!Config.enableRecipeSystem()) return;
         // 安排卸载任务，这些任务会在load后执行。如果没有load说明服务器已经关闭了，那就不需要管卸载了。
         if (!this.plugin.isStopping()) {
+            this.cachedAllRecipeKeys = null;
+            this.cachedUnlockOnJoinKeys = null;
             for (Recipe recipe : this.nativeRecipes) {
                 Key id = recipe.id();
                 // 不要卸载数据包配方，只记录自定义的配方
@@ -231,7 +238,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
             RecipeManagerProxy.INSTANCE.finalizeRecipeLoading(manager, RecipeManagerProxy.INSTANCE.getEnabledFlags(manager));
         }
         // 1.21.6以下直接发包
-        if (!VersionHelper.isOrAbove1_21_6 || VersionHelper.isFolia) {
+        if (!VersionHelper.isOrAbove1_21_6 || VersionHelper.hasFoliaPatch) {
             PlayerListProxy.INSTANCE.reloadRecipeData(CraftServerProxy.INSTANCE.getPlayerList(Bukkit.getServer()));
         }
 
@@ -245,7 +252,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         if (!Config.enableRecipeSystem()) return;
 
         // 处理酿造配方
-        if (VersionHelper.isOrAbove1_20_2) {
+        if (VersionHelper.isOrAbove1_20_2 && VersionHelper.hasPaperPatch) {
             PotionBrewer potionBrewer = Bukkit.getPotionBrewer();
             if (!this.brewingRecipesToUnregister.isEmpty()) {
                 for (Key potion : this.brewingRecipesToUnregister) {
@@ -272,7 +279,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         }
 
         // 重载资源
-        if (VersionHelper.isOrAbove1_21_6 && !VersionHelper.isFolia) {
+        if (VersionHelper.isOrAbove1_21_6 && !VersionHelper.hasFoliaPatch) {
             for (BukkitServerPlayer player : this.plugin.networkManager().onlineUsers()) {
                 Object serverPlayer = player.serverPlayer();
                 Object advancements = ServerPlayerProxy.INSTANCE.getAdvancements(serverPlayer);
@@ -288,6 +295,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     public void disable() {
         unload();
         HandlerList.unregisterAll(this.recipeEventListener);
+        if (this.paperRecipeEventListener != null) HandlerList.unregisterAll(this.paperRecipeEventListener);
     }
 
     @Override
@@ -326,11 +334,53 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
                 }
                 Recipe recipe = serializer.readJson(id, jsonObject);
                 markAsDataPackRecipe(id);
-                registerRecipeInternal(recipe, false);
+                registerRecipeInternal(recipe, false, false);
             } catch (Throwable e) {
                 this.plugin.logger().warn("Failed to load data pack recipe " + id + ". Json: " + jsonObject, e);
             }
         }
+    }
+
+    public boolean shouldUnlockRecipesOnJoin() {
+        return Config.unlockAllRecipesOnJoin()
+                || !Config.unlockRecipesOnJoinList().isEmpty()
+                || !this.unlockOnJoinRecipes.isEmpty();
+    }
+
+    public void unlockRecipesOnJoin(org.bukkit.entity.Player player) {
+        List<NamespacedKey> keys;
+        if (Config.unlockAllRecipesOnJoin()) {
+            keys = getAllRecipeKeys();
+        } else {
+            keys = getUnlockOnJoinKeys();
+        }
+        if (!keys.isEmpty()) {
+            player.discoverRecipes(keys);
+        }
+    }
+
+    private List<NamespacedKey> getUnlockOnJoinKeys() {
+        if (this.cachedUnlockOnJoinKeys == null) {
+            LinkedHashSet<Key> merged = new LinkedHashSet<>(Config.unlockRecipesOnJoinList());
+            merged.addAll(this.unlockOnJoinRecipes);
+            List<NamespacedKey> keys = new ArrayList<>(merged.size());
+            for (Key key : merged) {
+                keys.add(KeyUtils.toNamespacedKey(key));
+            }
+            this.cachedUnlockOnJoinKeys = keys;
+        }
+        return this.cachedUnlockOnJoinKeys;
+    }
+
+    private List<NamespacedKey> getAllRecipeKeys() {
+        if (this.cachedAllRecipeKeys == null) {
+            List<NamespacedKey> keys = new ArrayList<>(super.byId.size());
+            for (Key key : super.byId.keySet()) {
+                keys.add(KeyUtils.toNamespacedKey(key));
+            }
+            this.cachedAllRecipeKeys = keys;
+        }
+        return this.cachedAllRecipeKeys;
     }
 
     private Map<Key, JsonObject> scanResources() {

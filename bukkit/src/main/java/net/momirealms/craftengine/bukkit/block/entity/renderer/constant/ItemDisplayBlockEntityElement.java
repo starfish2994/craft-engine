@@ -9,8 +9,7 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,17 +27,17 @@ public final class ItemDisplayBlockEntityElement extends AbstractConstantBlockEn
     @Nullable
     public BlockEntityTintSource tintSource;
 
-    public ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
-        this(config, pos, tintSource, EntityProxy.ENTITY_COUNTER.incrementAndGet(), false);
+    ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos, BlockEntityTintSource tintSource) {
+        this(config, pos, tintSource, EntityUtils.ENTITY_COUNTER.incrementAndGet(), false);
     }
 
-    public ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
+    ItemDisplayBlockEntityElement(ItemDisplayBlockEntityElementConfig config, BlockPos pos, @Nullable BlockEntityTintSource tintSource, int entityId, boolean posChanged) {
         super(config.predicate, config.hasCondition);
         Vector3f position = config.position();
         this.tintSource = tintSource;
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
-                config.xRot(), config.yRot(), EntityTypeProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
+                config.xRot(), config.yRot(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.config = config;
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));

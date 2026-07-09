@@ -4,9 +4,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.behavior.SimpleStorageBlockBehavior;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
-import net.momirealms.craftengine.bukkit.util.LocationUtils;
+import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.bukkit.world.inventory.BukkitWorldlyStorageContainer;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -55,7 +53,7 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
     @Override
     public void saveCustomData(CompoundTag tag) {
         // 保存前先把所有打开此容器的玩家界面关闭
-        this.inventory.close();
+        InventoryUtils.close(this.inventory);
         CompoundTag data = new CompoundTag();
         data.putInt("data_version", VersionHelper.WORLD_VERSION);
         data.put("items", ItemStackUtils.saveBukkitItemsAsListTag(this.inventory.getStorageContents()));
@@ -114,11 +112,7 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
     private void setOpen(@Nullable Player player) {
         this.updateOpenBlockState(true);
         org.bukkit.World bukkitWorld = (org.bukkit.World) super.blockEntity.world.world().platformWorld();
-        if (player != null) {
-            bukkitWorld.sendGameEvent((org.bukkit.entity.Player) player.platformPlayer(), GameEvent.CONTAINER_OPEN, new Vector(super.blockEntity.pos.x(), super.blockEntity.pos.y(), super.blockEntity.pos.z()));
-        } else {
-            bukkitWorld.sendGameEvent(null, GameEvent.CONTAINER_OPEN, new Vector(super.blockEntity.pos.x(), super.blockEntity.pos.y(), super.blockEntity.pos.z()));
-        }
+        LevelUtils.sendGameEvent(bukkitWorld, player == null ? null : (org.bukkit.entity.Player) player.platformPlayer(), GameEvent.CONTAINER_OPEN, new Vector(super.blockEntity.pos.x(), super.blockEntity.pos.y(), super.blockEntity.pos.z()));
         this.openState = true;
         SoundData soundData = this.behavior.openSound;
         if (soundData != null) {
@@ -129,11 +123,7 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
     private void setClose(@Nullable Player player) {
         this.updateOpenBlockState(false);
         org.bukkit.World bukkitWorld = (org.bukkit.World) super.blockEntity.world.world().platformWorld();
-        if (player != null) {
-            bukkitWorld.sendGameEvent((org.bukkit.entity.Player) player.platformPlayer(), GameEvent.CONTAINER_CLOSE, new Vector(super.blockEntity.pos.x(), super.blockEntity.pos.y(), super.blockEntity.pos.z()));
-        } else {
-            bukkitWorld.sendGameEvent(null, GameEvent.CONTAINER_CLOSE, new Vector(super.blockEntity.pos.x(), super.blockEntity.pos.y(), super.blockEntity.pos.z()));
-        }
+        LevelUtils.sendGameEvent(bukkitWorld, player == null ? null : (org.bukkit.entity.Player) player.platformPlayer(), GameEvent.CONTAINER_CLOSE, new Vector(super.blockEntity.pos.x(), super.blockEntity.pos.y(), super.blockEntity.pos.z()));
         this.openState = false;
         SoundData soundData = this.behavior.closeSound;
         if (soundData != null) {
@@ -192,7 +182,7 @@ public final class SimpleStorageBlockEntityController extends BlockEntityControl
 
     @Override
     public void onRemove() {
-        this.inventory.close();
+        InventoryUtils.close(this.inventory);
         Vec3d pos = Vec3d.atCenterOf(super.blockEntity.pos);
         for (ItemStack stack : this.inventory.getContents()) {
             if (stack != null) {

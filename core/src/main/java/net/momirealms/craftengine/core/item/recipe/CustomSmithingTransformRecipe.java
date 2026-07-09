@@ -31,7 +31,6 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
     private final Ingredient template;
     private final Ingredient addition;
     private final boolean mergeComponents;
-    private final boolean mergeEnchantments;
     private final List<ItemTransformDataProcessor> processors;
     private final Predicate<Context> condition;
     private final Function<Context>[] smithingFunctions;
@@ -47,7 +46,6 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
                                          @Nullable CustomRecipeResult visualResult,
                                          List<ItemTransformDataProcessor> processors,
                                          boolean mergeComponents,
-                                         boolean mergeEnchantments,
                                          Function<Context>[] smithingFunctions,
                                          Predicate<Context> condition,
                                          boolean ingredientCountSupport
@@ -58,7 +56,6 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
         this.addition = addition;
         this.processors = processors;
         this.mergeComponents = mergeComponents;
-        this.mergeEnchantments = mergeEnchantments;
         this.condition = condition;
         this.smithingFunctions = smithingFunctions;
         this.visualResult = visualResult;
@@ -71,10 +68,6 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
 
     public boolean mergeComponents() {
         return this.mergeComponents;
-    }
-
-    public boolean mergeEnchantments() {
-        return this.mergeEnchantments;
     }
 
     @Override
@@ -165,9 +158,11 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
     }
 
     private Item createSmithingResult(Item base, Item result) {
-        Item finalResult = result;
+        Item finalResult;
         if (this.mergeComponents) {
             finalResult = base.mergeCopy(result);
+        } else {
+            finalResult = result.copy();
         }
         if (this.processors != null) {
             for (ItemTransformDataProcessor processor : this.processors) {
@@ -221,9 +216,8 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
                     additionIngredient,
                     super.parseResult(section.getNonNullValue("result", ConfigConstants.ARGUMENT_SECTION)),
                     section.getValue(VISUAL_RESULT, super::parseResult),
-                    section.getList(POST_PROCESSOR, ItemTransformDataProcessors::fromConfig),
+                    section.getList(TRANSFORM_PROCESSOR, ItemTransformDataProcessors::fromConfig),
                     section.getBoolean(MERGE_COMPONENTS, true),
-                    section.getBoolean(MERGE_ENCHANTMENTS, false),
                     section.getList(FUNCTIONS, CommonFunctions::fromConfig).toArray(new Function[0]),
                     MiscUtils.allOf(section.getList(CONDITIONS, CommonConditions::fromConfig)),
                     countSupport
@@ -242,7 +236,6 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
                     null,
                     null,
                     true,
-                    false,
                     null,
                     null,
                     false

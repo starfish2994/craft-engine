@@ -1,5 +1,7 @@
 package net.momirealms.craftengine.bukkit.util;
 
+import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.core.entity.data.EntityData;
 import net.momirealms.craftengine.core.util.Key;
@@ -7,16 +9,22 @@ import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundTeleportEntityPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.syncher.SynchedEntityDataProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ChunkMapProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.network.ServerPlayerConnectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.PoseProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.PositionMoveRotationProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.vehicle.DismountHelperProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.AABBProxy;
@@ -26,13 +34,17 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Pose;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class EntityUtils {
+    public static final AtomicInteger ENTITY_COUNTER = VersionHelper.isOrAbove26_2 ? ServerLevelProxy.INSTANCE.getEntityCounter() : EntityProxy.INSTANCE.getEntityCounter();
+
     private EntityUtils() {}
 
     public static Object createUpdatePosPacket(int entityId, double x, double y, double z, float yRot, float xRot, boolean onGround) {
@@ -75,7 +87,14 @@ public final class EntityUtils {
 
     public static Entity spawnEntity(World world, Location loc, EntityType type, Consumer<Entity> function) {
         if (VersionHelper.isOrAbove1_20_2) {
-            return world.spawnEntity(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function);
+            if (VersionHelper.hasPaperPatch) {
+                return world.spawnEntity(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function);
+            } else {
+                return world.spawn(loc, type.getEntityClass(), (e) -> {
+                    EntityProxy.INSTANCE.setRot(CraftEntityProxy.INSTANCE.getEntity(e), loc.getYaw(), loc.getPitch());
+                    function.accept(e);
+                });
+            }
         } else {
             return LegacyEntityUtils.spawnEntity(world, loc, type, function);
         }
@@ -83,7 +102,14 @@ public final class EntityUtils {
 
     public static <T extends Entity> T spawnEntity(World world, Location loc, Class<T> type, Consumer<T> function) {
         if (VersionHelper.isOrAbove1_20_2) {
-            return world.spawn(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM, function);
+            if (VersionHelper.hasPaperPatch) {
+                return world.spawn(loc, type, function);
+            } else {
+                return world.spawn(loc, type, (e) -> {
+                    EntityProxy.INSTANCE.setRot(CraftEntityProxy.INSTANCE.getEntity(e), loc.getYaw(), loc.getPitch());
+                    function.accept(e);
+                });
+            }
         } else {
             return LegacyEntityUtils.spawn(world, loc, type, function);
         }
@@ -98,8 +124,9 @@ public final class EntityUtils {
 
     public static void safeDismount(Player player, Location location) {
         double boundBoxWidth = player.getBoundingBox().getWidthX();
+        Location playerLocation = player.getLocation();
         for (int i = 0; i < 8; i++) {
-            Vec3d direction = getHorizontalDirection(i * 0.25, boundBoxWidth, player.getYaw());
+            Vec3d direction = getHorizontalDirection(i * 0.25, boundBoxWidth, playerLocation.getYaw());
             double x = location.getX() + direction.x;
             double y = location.getY();
             double z = location.getZ() + direction.z;
@@ -125,17 +152,18 @@ public final class EntityUtils {
                 if (!CollisionUtils.test(serverLevel, List.of(newAABB), o -> true)) {
                     continue;
                 }
-                if (VersionHelper.isFolia) {
-                    player.teleportAsync(new Location(player.getWorld(), x, pos.y() + floorHeight, z, player.getYaw(), player.getPitch()));
+                if (VersionHelper.hasFoliaPatch) {
+                    player.teleportAsync(new Location(player.getWorld(), x, pos.y() + floorHeight, z, playerLocation.getYaw(), playerLocation.getPitch()));
                 } else {
-                    player.teleport(new Location(player.getWorld(), x, pos.y() + floorHeight, z, player.getYaw(), player.getPitch()));
+                    player.teleport(new Location(player.getWorld(), x, pos.y() + floorHeight, z, playerLocation.getYaw(), playerLocation.getPitch()));
                 }
+
                 if (pose == PoseProxy.STANDING) {
-                    player.setPose(Pose.STANDING);
+                    EntityProxy.INSTANCE.setPose(serverPlayer, PoseProxy.STANDING);
                 } else if (pose == PoseProxy.CROUCHING) {
-                    player.setPose(Pose.SNEAKING);
+                    EntityProxy.INSTANCE.setPose(serverPlayer, PoseProxy.CROUCHING);
                 } else if (pose == PoseProxy.SWIMMING) {
-                    player.setPose(Pose.SWIMMING);
+                    EntityProxy.INSTANCE.setPose(serverPlayer, PoseProxy.SWIMMING);
                 }
             }
         }
@@ -159,5 +187,27 @@ public final class EntityUtils {
         } catch (ClassCastException e) {
             throw new IllegalArgumentException("Expected " + data + ", but got " + dataValue, e);
         }
+    }
+
+    public static Set<Player> getTrackedBy(Entity entity) {
+        return getTrackedBy(entity, p -> p);
+    }
+
+    public static <T> Set<T> getTrackedBy(Entity entity, Function<Player, T> function) {
+        ImmutableSet.Builder<T> players = ImmutableSet.builder();
+        Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(entity.getWorld());
+        Int2ObjectMap<Object> entityMap = ChunkMapProxy.INSTANCE.getEntityMap(ServerChunkCacheProxy.INSTANCE.getChunkMap(ServerLevelProxy.INSTANCE.getChunkSource(serverLevel)));
+        Object tracker = entityMap.get(entity.getEntityId());
+        if (tracker != null) {
+            Set<Object> seenBy = ChunkMapProxy.TrackedEntityProxy.INSTANCE.getSeenBy(tracker);
+            for (Object connection : seenBy) {
+                Object player = ServerPlayerConnectionProxy.INSTANCE.getPlayer(connection);
+                T adapted = function.apply((Player) PlayerProxy.INSTANCE.getBukkitEntity(player));
+                if (adapted != null) {
+                    players.add(adapted);
+                }
+            }
+        }
+        return players.build();
     }
 }

@@ -48,7 +48,7 @@ public class Vec3i implements Comparable<Vec3i> {
 
     @Override
     public String toString() {
-        return "Vec3i{" +
+        return this.getClass().getSimpleName() + "{" +
                 "x=" + x +
                 ", y=" + y +
                 ", z=" + z +

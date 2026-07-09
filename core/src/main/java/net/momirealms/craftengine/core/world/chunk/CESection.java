@@ -15,7 +15,7 @@ public final class CESection {
 
     @ApiStatus.Internal
     public ImmutableBlockState setBlockState(BlockPos pos, ImmutableBlockState state) {
-        return this.setBlockState(pos.x() & 15, pos.y() & 15, pos.z() & 15, state);
+        return this.setBlockState(pos.x & 15, pos.y & 15, pos.z & 15, state);
     }
 
     @ApiStatus.Internal
@@ -30,7 +30,7 @@ public final class CESection {
 
     @ApiStatus.Internal
     public ImmutableBlockState getBlockState(BlockPos pos) {
-        return getBlockState(pos.x() & 15, pos.y() & 15, pos.z() & 15);
+        return getBlockState(pos.x & 15, pos.y & 15, pos.z & 15);
     }
 
     @ApiStatus.Internal

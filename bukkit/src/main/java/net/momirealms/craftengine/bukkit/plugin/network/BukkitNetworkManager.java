@@ -29,7 +29,6 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.bukkit.util.TagUtils;
-import net.momirealms.craftengine.bukkit.world.score.BukkitTeamManager;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -43,6 +42,7 @@ import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketL
 import net.momirealms.craftengine.core.plugin.network.listener.NMSPacketListener;
 import net.momirealms.craftengine.core.plugin.network.mod.protocol.ClientboundCreativeModeTabItemsPacket;
 import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.leaves.bot.BotListProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.RegistriesProxy;
@@ -174,7 +174,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             ServerConnectionListenerProxy.INSTANCE.setChannels(serverConnection, monitor);
         }
         // Inject Leaves bot list
-        if (VersionHelper.isLeaves) {
+        if (VersionHelper.hasLeavesPatch) {
             this.injectLeavesBotList();
         }
     }
@@ -486,6 +486,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(RegistryDataListener.INSTANCE, PACKET_IDS.clientboundRegistryDataPacket(), "ClientboundRegistryDataPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(ShowDialogListener.INSTANCE, PACKET_IDS.clientboundShowDialogPacket$play(), "ClientboundShowDialogPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(ShowDialogListener.INSTANCE, PACKET_IDS.clientboundShowDialogPacket$configuration(), "ClientboundShowDialogPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(UpdateAttributesListener.INSTANCE, PACKET_IDS.clientboundUpdateAttributesPacket(), "ClientboundUpdateAttributesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -497,14 +498,14 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             this.onlineUsers.put(player.getUniqueId(), user);
             this.resetUserArray();
             // folia在此tick每个玩家
-            if (VersionHelper.isFolia) {
-                player.getScheduler().runAtFixedRate(plugin.javaPlugin(), (t) -> user.tick(), null, 1, 1);
+            if (VersionHelper.hasFoliaPatch) {
+                this.plugin.scheduler().platform().runRepeating(user::tick, null, 1, 1, player);
             }
             // 发送修复图腾音效
             user.sendPacket(TotemAnimationCommand.FIX_TOTEM_SOUND_PACKET, false);
             // 发送颜色队伍
-            for (Object packet : BukkitTeamManager.instance().addTeamsPackets()) {
-                user.sendPacket(packet, false);
+            for (ByteBuf packet : TeamManagerImpl.instance().addTeamsPackets()) {
+                user.sendByteBufPacket(packet.copy(), false);
             }
             if (user.hasClientMod() && user.protocolVersion().isVersionNewerThan(ProtocolVersion.V1_20_2)) {
                 user.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(user));
@@ -526,6 +527,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         Player player = event.getPlayer();
         BukkitServerPlayer serverPlayer = this.onlineUsers.remove(player.getUniqueId());
         if (serverPlayer != null) {
+            serverPlayer.clearDestroyStageDisplay();
             this.resetUserArray();
             this.saveCooldown(player, serverPlayer.cooldown());
         }

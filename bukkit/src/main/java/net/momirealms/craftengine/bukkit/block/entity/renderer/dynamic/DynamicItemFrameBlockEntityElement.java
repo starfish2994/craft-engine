@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block.entity.renderer.dynamic;
 import com.google.common.cache.Cache;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.momirealms.craftengine.bukkit.block.entity.ItemFrameBlockEntityController;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -15,8 +16,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.Clientbo
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundMapItemDataPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.MapItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.saveddata.maps.MapItemSavedDataProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
@@ -32,7 +32,7 @@ public final class DynamicItemFrameBlockEntityElement implements BlockEntityElem
     public final int entityId;
 
     public DynamicItemFrameBlockEntityElement(ItemFrameBlockEntityController controller, BlockPos pos) {
-        this.entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
+        this.entityId = EntityUtils.ENTITY_COUNTER.incrementAndGet();
         this.controller = controller;
         Vector3f position = controller.behavior.position;
         Direction direction = controller.blockEntity().blockState().get(controller.behavior.directionProperty);
@@ -50,7 +50,7 @@ public final class DynamicItemFrameBlockEntityElement implements BlockEntityElem
         }
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, UUID.randomUUID(), worldX, worldY, worldZ, 0, 0,
-                controller.behavior.glow ? EntityTypeProxy.GLOW_ITEM_FRAME : EntityTypeProxy.ITEM_FRAME,
+                controller.behavior.glow ? EntityTypesProxy.GLOW_ITEM_FRAME : EntityTypesProxy.ITEM_FRAME,
                 direction.ordinal(), Vec3Proxy.ZERO, 0
         );
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));

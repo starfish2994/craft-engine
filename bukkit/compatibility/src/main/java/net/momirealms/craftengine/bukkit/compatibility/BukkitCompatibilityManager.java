@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.BukkitBlockEntityElementConfigs;
+import net.momirealms.craftengine.bukkit.compatibility.axiom.AxiomCraftEngineDisplay;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.FloodgateUtils;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.GeyserUtils;
 import net.momirealms.craftengine.bukkit.compatibility.entity.MythicMobsEntityProvider;
@@ -77,6 +78,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     private final Set<String> loggedPlugins;
     private ModelProvider[] modelProviderArray;
     private TagResolverProvider[] tagResolverProviderArray = null;
+    private AxiomCraftEngineDisplay axiomCraftEngineDisplay;
     private JsonObject blueMapBlockColors = new JsonObject();
     private boolean hasPlaceholderAPI;
     private boolean hasGeyser;
@@ -262,7 +264,17 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.isPluginEnabled("BlueMap")) {
             runCatchingHook(this::initBlueMapHook, "BlueMap");
         }
+        if (Config.hookAxiomPaper() && this.isPluginEnabled("AxiomPaper")) {
+            runCatchingHook(() -> axiomCraftEngineDisplay = new AxiomCraftEngineDisplay(this.plugin), "AxiomPaper");
+        }
         this.loggedPlugins.clear();
+    }
+
+    @Override
+    public void runDelayedSyncTasks() {
+        if (axiomCraftEngineDisplay != null) {
+            axiomCraftEngineDisplay.registerAllItems();
+        }
     }
 
     private void runCatchingHook(ThrowableRunnable runnable, String plugin) {
@@ -341,7 +353,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     @SuppressWarnings({"deprecation", "DataFlowIssue"})
     private void initFastAsyncWorldEditHook() {
         Plugin fastAsyncWorldEdit = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit");
-        String version = VersionHelper.isPaper ? fastAsyncWorldEdit.getPluginMeta().getVersion() : fastAsyncWorldEdit.getDescription().getVersion();
+        String version = VersionHelper.hasPaperPatch ? fastAsyncWorldEdit.getPluginMeta().getVersion() : fastAsyncWorldEdit.getDescription().getVersion();
         if (!WorldEditBlockRegister.checkFAWECompatible(version)) {
             if (VersionHelper.isOrAbove1_20_3) {
                 this.plugin.logger().error("");

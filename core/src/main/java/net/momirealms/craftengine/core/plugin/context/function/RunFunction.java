@@ -33,7 +33,7 @@ public final class RunFunction<CTX extends Context> extends AbstractConditionalF
             }
         } else {
             Optional<WorldPosition> position = ctx.getOptionalParameter(DirectContextParameters.POSITION);
-            if (!VersionHelper.isFolia || position.isEmpty()) {
+            if (!VersionHelper.hasFoliaPatch || position.isEmpty()) {
                 CraftEngine.instance().scheduler().platform().runLater(() -> {
                     for (Function<CTX> function : functions) {
                         function.run(ctx);

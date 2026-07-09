@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public abstract class Player extends AbstractEntity implements NetWorkUser {
@@ -59,6 +60,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void abortMiningBlock();
 
+    public abstract boolean clientSideCanBreak();
+
     public abstract void breakBlock(int x, int y, int z);
 
     public abstract double getCachedInteractionRange();
@@ -94,6 +97,10 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract void sendMessage(Component text, boolean overlay);
 
     public abstract void sendTitle(Component title, Component subtitle, int fadeIn, int stay, int fadeOut);
+
+    public abstract void setIsSimulatingInteraction(boolean isSimulating);
+
+    public abstract boolean isSimulatingInteraction();
 
     public abstract boolean updateLastSuccessfulInteractionTick(int tick);
 
@@ -147,7 +154,7 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void closeInventory();
 
-    public abstract void clearView();
+    public abstract void clearEntityView();
 
     public abstract void unloadCurrentResourcePack();
 
@@ -198,7 +205,7 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void setSaturation(float saturation);
 
-    public abstract void addPotionEffect(Key potionEffectType, int duration, int amplifier, boolean ambient, boolean particles);
+    public abstract void addPotionEffect(Key potionEffectType, int duration, int amplifier, boolean ambient, boolean particles, boolean showIcon);
 
     public abstract void removePotionEffect(Key potionEffectType);
 
@@ -252,6 +259,8 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
 
     public abstract void removeTrackedBlockEntities(Collection<BlockPos> renders);
 
+    public abstract CullableHolder getTrackedEntity(int entityId);
+
     public abstract void addTrackedEntity(int entityId, Cullable cullable);
 
     public abstract void removeTrackedBlockEntities(BlockPos pos);
@@ -292,4 +301,6 @@ public abstract class Player extends AbstractEntity implements NetWorkUser {
     public abstract void setItemCooldown(Key id, int ticks);
 
     public abstract int getItemCooldown(Key id);
+
+    public abstract Set<Player> getTrackedBy();
 }

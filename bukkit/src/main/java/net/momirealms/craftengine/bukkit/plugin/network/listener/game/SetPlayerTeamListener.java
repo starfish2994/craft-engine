@@ -13,12 +13,15 @@ import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.sparrow.nbt.Tag;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
 
 public final class SetPlayerTeamListener {
-    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3 ? new V1_20_3() : new V1_20();
+    public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove26_2 ? new V26_2() : VersionHelper.isOrAbove1_20_3 ? new V1_20_3() : new V1_20();
+    private static final int METHOD_ADD = 0;
+    private static final int METHOD_CHANGE = 2;
 
     private SetPlayerTeamListener() {}
 
@@ -31,7 +34,7 @@ public final class SetPlayerTeamListener {
             FriendlyByteBuf buf = event.getBuffer();
             String name = buf.readUtf();
             byte method = buf.readByte();
-            if (method != 2 && method != 0)
+            if (method != METHOD_ADD && method != METHOD_CHANGE)
                 return;
             String displayName = buf.readUtf();
             byte friendlyFlags = buf.readByte();
@@ -49,7 +52,7 @@ public final class SetPlayerTeamListener {
             event.setChanged(true);
             NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
 
-            List<String> entities = method == 0 ? buf.readStringList() : null;
+            List<String> entities = method == METHOD_ADD ? buf.readStringList() : null;
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
@@ -77,7 +80,7 @@ public final class SetPlayerTeamListener {
             FriendlyByteBuf buf = event.getBuffer();
             String name = buf.readUtf();
             byte method = buf.readByte();
-            if (method != 2 && method != 0) return;
+            if (method != METHOD_ADD && method != METHOD_CHANGE) return;
             Tag displayName = buf.readNbt(false);
             if (displayName == null) return;
             byte friendlyFlags = buf.readByte();
@@ -94,7 +97,7 @@ public final class SetPlayerTeamListener {
             Map<String, ComponentProvider> tokens3 = networkManager.matchNetworkTags(suffix);
             if (tokens1.isEmpty() && tokens2.isEmpty() && tokens3.isEmpty()) return;
             NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
-            List<String> entities = method == 0 ? buf.readStringList() : null;
+            List<String> entities = method == METHOD_ADD ? buf.readStringList() : null;
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
@@ -109,6 +112,51 @@ public final class SetPlayerTeamListener {
             buf.writeNbt(tokens3.isEmpty() ? suffix : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(suffix), tokens3, context)), false);
             if (entities != null) {
                 buf.writeStringList(entities);
+            }
+        }
+    }
+
+    private static class V26_2 implements ByteBufferPacketListener {
+        private V26_2() {}
+
+        @Override
+        public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
+            if (!Config.interceptTeam()) return;
+            FriendlyByteBuf buf = event.getBuffer();
+            String name = buf.readUtf();
+            byte method = buf.readByte();
+            if (method != METHOD_ADD && method != METHOD_CHANGE) return;
+            Tag displayName = buf.readNbt(false);
+            if (displayName == null) return;
+            Tag prefix = buf.readNbt(false);
+            if (prefix == null) return;
+            Tag suffix = buf.readNbt(false);
+            if (suffix == null) return;
+            int visibility = buf.readVarInt();
+            int collisionRule = buf.readVarInt();
+            @Nullable Integer color = buf.readNullable(FriendlyByteBuf::readVarInt);
+            byte options = buf.readByte();
+            List<String> players = method == METHOD_ADD ? buf.readStringList() : null;
+            BukkitNetworkManager networkManager = BukkitNetworkManager.instance();
+            Map<String, ComponentProvider> tokens1 = networkManager.matchNetworkTags(displayName);
+            Map<String, ComponentProvider> tokens2 = networkManager.matchNetworkTags(prefix);
+            Map<String, ComponentProvider> tokens3 = networkManager.matchNetworkTags(suffix);
+            if (tokens1.isEmpty() && tokens2.isEmpty() && tokens3.isEmpty()) return;
+            NetworkTextReplaceContext context = NetworkTextReplaceContext.of((BukkitServerPlayer) user);
+            event.setChanged(true);
+            buf.clear();
+            buf.writeVarInt(event.packetID());
+            buf.writeUtf(name);
+            buf.writeByte(method);
+            buf.writeNbt(tokens1.isEmpty() ? displayName : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(displayName), tokens1, context)), false);
+            buf.writeNbt(tokens2.isEmpty() ? prefix : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(prefix), tokens2, context)), false);
+            buf.writeNbt(tokens3.isEmpty() ? suffix : AdventureHelper.componentToTag(AdventureHelper.replaceText(AdventureHelper.tagToComponent(suffix), tokens3, context)), false);
+            buf.writeVarInt(visibility);
+            buf.writeVarInt(collisionRule);
+            buf.writeNullable(color, FriendlyByteBuf::writeVarInt);
+            buf.writeByte(options);
+            if (players != null) {
+                buf.writeStringList(players);
             }
         }
     }

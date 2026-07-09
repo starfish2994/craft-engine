@@ -9,12 +9,15 @@ import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.util.Pair;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.world.item.component.UseRemainderProxy;
+import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.StringTag;
+import net.momirealms.sparrow.nbt.Tag;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 
 public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
@@ -85,19 +88,29 @@ public class ComponentItemFactory1_21_2 extends ComponentItemFactory1_21 {
 
     @Override
     protected Optional<EquipmentData> equippable(ComponentItemWrapper item) {
-        Optional<Object> optionalData = item.getComponentAsJava(DataComponentTypes.EQUIPPABLE);
-        if (optionalData.isEmpty()) return Optional.empty();
-        Map<String, Object> data = MiscUtils.castToMap(optionalData.get());
-        String slot = data.get("slot").toString();
+        Optional<Tag> optionalData = item.getComponentAsSparrowTag(DataComponentTypes.EQUIPPABLE);
+        if (optionalData.isEmpty() || !(optionalData.get() instanceof CompoundTag tag)) return Optional.empty();
         return Optional.of(new EquipmentData(
-                EquipmentSlot.valueOf(slot.toUpperCase(Locale.ROOT)),
-                data.containsKey("asset_id") ? Key.of((String) data.get("asset_id")) : null,
-                (boolean) data.getOrDefault("dispensable", true),
-                (boolean) data.getOrDefault("swappable", true),
-                (boolean) data.getOrDefault("damage_on_hurt", true),
-                (boolean) data.getOrDefault("equip_on_interact", false),
-                (boolean) data.getOrDefault("can_be_sheared", false),
-                data.containsKey("camera_overlay") ? Key.of((String) data.get("camera_overlay")) : null
+                EquipmentSlot.valueOf(tag.getString("slot").toUpperCase(Locale.ROOT)),
+                tag.containsKey("asset_id") ? Key.of(tag.getString("asset_id")) : null,
+                tag.getBoolean("dispensable", true),
+                tag.getBoolean("swappable", true),
+                tag.getBoolean("damage_on_hurt", true),
+                tag.getBoolean("equip_on_interact", false),
+                tag.getBoolean("can_be_sheared", false),
+                tag.containsKey("camera_overlay") ? Key.of(tag.getString("camera_overlay")) : null,
+                tag.containsKey("equip_sound") ? parseSound(tag.get("equip_sound")) : null,
+                tag.containsKey("shearing_sound") ? parseSound(tag.get("shearing_sound")) : null
         ));
+    }
+
+    private static Pair<Key, @Nullable Float> parseSound(Tag tag) {
+        if (tag instanceof StringTag stringTag) {
+            return Pair.of(Key.of(stringTag.value()), null);
+        } else if (tag instanceof CompoundTag compoundTag) {
+            String id = compoundTag.getString("sound_id");
+            Float range = compoundTag.containsKey("range") ? compoundTag.getFloat("range") : null;
+            return Pair.of(Key.of(id), range);
+        } else return null;
     }
 }

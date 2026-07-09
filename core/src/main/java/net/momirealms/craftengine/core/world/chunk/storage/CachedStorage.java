@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class CachedStorage<T extends WorldDataStorage> implements WorldDataStorage {
     private final T storage;
-    private final Cache<ChunkPos, CEChunk> chunkCache;
+    private final Cache<Long, CEChunk> chunkCache;
 
     public CachedStorage(T storage) {
         this.storage = storage;
@@ -47,12 +47,12 @@ public final class CachedStorage<T extends WorldDataStorage> implements WorldDat
 
     @Override
     public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) throws IOException {
-        CEChunk chunk = this.chunkCache.getIfPresent(pos);
+        CEChunk chunk = this.chunkCache.getIfPresent(pos.longKey);
         if (chunk != null) {
             return chunk;
         }
         chunk = this.storage.readChunkAt(world, pos, chunkAccess);
-        this.chunkCache.put(pos, chunk);
+        this.chunkCache.put(pos.longKey, chunk);
         return chunk;
     }
 
@@ -73,7 +73,7 @@ public final class CachedStorage<T extends WorldDataStorage> implements WorldDat
 
     @Override
     public void clearChunkAt(@NotNull ChunkPos pos) throws IOException {
-        this.chunkCache.invalidate(pos);
+        this.chunkCache.invalidate(pos.longKey);
         this.storage.clearChunkAt(pos);
     }
 

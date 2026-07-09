@@ -18,8 +18,6 @@ import net.momirealms.craftengine.core.item.network.encrypt.AESGCM;
 import net.momirealms.craftengine.core.item.network.encrypt.ChaCha20;
 import net.momirealms.craftengine.core.item.network.encrypt.ItemCrypto;
 import net.momirealms.craftengine.core.item.network.encrypt.Xor;
-import net.momirealms.craftengine.core.item.processor.ItemProcessor;
-import net.momirealms.craftengine.core.item.processor.ItemProcessors;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ConditionalResolution;
 import net.momirealms.craftengine.core.pack.host.HttpClientManager;
@@ -58,6 +56,7 @@ public final class Config {
     private boolean misc$delayConfigurationLoad;
     private boolean misc$multi_threaded_configuration_load;
     private boolean misc$inject_packet_vents;
+    private boolean misc$hook_axiom_paper = true;
 
     private boolean debug$common;
     private boolean debug$packet;
@@ -120,7 +119,8 @@ public final class Config {
     private String resource_pack$protection$obfuscation$path$item_source;
     private NumberProvider resource_pack$protection$obfuscation$path$depth;
     private NumberProvider resource_pack$protection$obfuscation$path$length;
-    private boolean resource_pack$protection$obfuscation$obfuscate_item_model;
+    private boolean resource_pack$protection$obfuscation$item_model$enable;
+    private boolean resource_pack$protection$obfuscation$item_model$use_cache;
     private int resource_pack$protection$obfuscation$atlas$images_per_canvas;
     private String resource_pack$protection$obfuscation$atlas$prefix;
     private List<String> resource_pack$protection$obfuscation$bypass_textures;
@@ -196,6 +196,8 @@ public final class Config {
     private boolean recipe$disable_vanilla_recipes$all;
     private boolean recipe$unlock_on_ingredient_obtained;
     private Set<Key> recipe$disable_vanilla_recipes$list;
+    private boolean recipe$unlock_on_join$all;
+    private Set<Key> recipe$unlock_on_join$list;
     private List<String> recipe$ingredient_sources;
     private boolean recipe$inject_block_entities;
 
@@ -363,6 +365,7 @@ public final class Config {
         this.misc$delayConfigurationLoad = config.getBoolean("misc.delay-configuration-load", true);
         this.misc$multi_threaded_configuration_load = config.getBoolean("misc.multi-threaded-configuration-load", true);
         this.misc$inject_packet_vents = config.getBoolean("misc.inject-packetevents", false);
+        this.misc$hook_axiom_paper = config.getBoolean("misc.hook-axiompaper", true);
 
         // basics
         this.metrics = config.getBoolean("metrics", false);
@@ -446,7 +449,8 @@ public final class Config {
         this.resource_pack$protection$obfuscation$path$depth = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.path.depth", config.get("resource-pack.protection.obfuscation.path.depth", 4)));
         this.resource_pack$protection$obfuscation$path$length = NumberProviders.fromConfig(ConfigValue.of("resource-pack.protection.obfuscation.path.length", config.get("resource-pack.protection.obfuscation.path.length", 2)));
         this.resource_pack$protection$obfuscation$path$anti_unzip = config.getBoolean("resource-pack.protection.obfuscation.path.anti-unzip", false);
-        this.resource_pack$protection$obfuscation$obfuscate_item_model = config.getBoolean("resource-pack.protection.obfuscation.obfuscate-item-model", false) && this.resource_pack$protection$obfuscation$enable;
+        this.resource_pack$protection$obfuscation$item_model$enable = config.getBoolean("resource-pack.protection.obfuscation.item-model.enable", false) && this.resource_pack$protection$obfuscation$enable;
+        this.resource_pack$protection$obfuscation$item_model$use_cache = config.getBoolean("resource-pack.protection.obfuscation.item-model.use-cache", true);
         this.resource_pack$protection$obfuscation$path$block_source = config.getString("resource-pack.protection.obfuscation.path.block-source", "obf_block");
         this.resource_pack$protection$obfuscation$path$item_source = config.getString("resource-pack.protection.obfuscation.path.block-source", "obf_item");
         this.resource_pack$protection$obfuscation$atlas$images_per_canvas = Math.max(0, config.getInt("resource-pack.protection.obfuscation.atlas.images-per-canvas", 256));
@@ -515,7 +519,8 @@ public final class Config {
         this.chunk_system$cache_system = config.getBoolean("chunk-system.cache-system", true);
 
         if (this.firstTime) {
-            this.chunk_system$injection$target = config.getString("chunk-system.injection.target", "palette").equalsIgnoreCase("palette");
+            this.chunk_system$injection$target = config.getString("chunk-system.injection.target", "palette").equalsIgnoreCase("palette")
+                    || (VersionHelper.hasLeafPatch && !VersionHelper.isOrAbove1_21_11);
         }
 
         this.chunk_system$process_invalid_furniture$enable = config.getBoolean("chunk-system.process-invalid-furniture.enable", false);
@@ -656,6 +661,8 @@ public final class Config {
         this.recipe$disable_vanilla_recipes$list = config.getStringList("recipe.disable-vanilla-recipes.list").stream().map(Key::of).collect(Collectors.toSet());
         this.recipe$ingredient_sources = config.getStringList("recipe.ingredient-sources");
         this.recipe$unlock_on_ingredient_obtained = config.getBoolean("recipe.unlock-on-ingredient-obtained", true);
+        this.recipe$unlock_on_join$all = config.getBoolean("recipe.unlock-on-join.all", false);
+        this.recipe$unlock_on_join$list = config.getStringList("recipe.unlock-on-join.list").stream().map(Key::of).collect(Collectors.toSet());
         if (this.firstTime) {
             this.recipe$inject_block_entities = config.getBoolean("recipe.inject-block-entities", true);
         }
@@ -776,6 +783,10 @@ public final class Config {
 
     public static boolean injectPacketEvents() {
         return instance.misc$inject_packet_vents;
+    }
+
+    public static boolean hookAxiomPaper() {
+        return instance.misc$hook_axiom_paper;
     }
 
     public static boolean debugCommon() {
@@ -973,6 +984,7 @@ public final class Config {
     public static boolean autoUpload() {
         return instance.resource_pack$delivery$auto_upload;
     }
+
     public static boolean strictPlayerUuidValidation() {
         return instance.resource_pack$delivery$strict_player_uuid_validation;
     }
@@ -1066,7 +1078,11 @@ public final class Config {
     }
 
     public static boolean obfuscateItemModel() {
-        return instance.resource_pack$protection$obfuscation$obfuscate_item_model;
+        return instance.resource_pack$protection$obfuscation$item_model$enable;
+    }
+
+    public static boolean obfuscateItemModelUseCache() {
+        return instance.resource_pack$protection$obfuscation$item_model$use_cache;
     }
 
     public static NumberProvider overlayLength() {
@@ -1381,6 +1397,14 @@ public final class Config {
 
     public static boolean unlockOnIngredientObtained() {
         return instance.recipe$unlock_on_ingredient_obtained;
+    }
+
+    public static boolean unlockAllRecipesOnJoin() {
+        return instance.recipe$unlock_on_join$all;
+    }
+
+    public static Set<Key> unlockRecipesOnJoinList() {
+        return instance.recipe$unlock_on_join$list;
     }
 
     public static boolean triggerUpdateAttack() {

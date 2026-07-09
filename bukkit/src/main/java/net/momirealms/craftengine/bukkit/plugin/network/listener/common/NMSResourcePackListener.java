@@ -50,7 +50,7 @@ public final class NMSResourcePackListener implements NMSPacketListener {
                 try {
                     // 当客户端发出多次成功包的时候，finish会报错，我们忽略他
                     ServerCommonPacketListenerProxy.INSTANCE.handleResourcePackResponse(packetListener, packet);
-                    if (VersionHelper.isPaper && VersionHelper.isOrAbove1_21_7) { // paper在1.21.7+增加了判断不会主动结束任务
+                    if (VersionHelper.hasPaperPatch && VersionHelper.isOrAbove1_21_7) { // paper在1.21.7+增加了判断不会主动结束任务
                         ServerConfigurationPacketListenerImplProxy.INSTANCE.finishCurrentTask(packetListener, ServerResourcePackConfigurationTaskProxy.TYPE);
                     }
                 } catch (Throwable e) {

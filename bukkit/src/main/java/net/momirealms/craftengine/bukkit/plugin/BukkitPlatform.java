@@ -5,10 +5,7 @@ import io.netty.buffer.ByteBuf;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
-import net.momirealms.craftengine.bukkit.util.PacketUtils;
-import net.momirealms.craftengine.bukkit.util.ParticleUtils;
-import net.momirealms.craftengine.bukkit.util.RegistryOps;
-import net.momirealms.craftengine.bukkit.util.RegistryUtils;
+import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitContainer;
 import net.momirealms.craftengine.bukkit.world.particle.BukkitParticleType;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -27,6 +24,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class BukkitPlatform implements Platform {
     private final BukkitCraftEngine plugin;
@@ -37,7 +35,7 @@ public final class BukkitPlatform implements Platform {
 
     @Override
     public void dispatchCommand(String command) {
-        if (VersionHelper.isFolia) {
+        if (VersionHelper.hasFoliaPatch) {
             Bukkit.getGlobalRegionScheduler().run(this.plugin.javaPlugin(), (t) -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
         } else {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
@@ -52,6 +50,11 @@ public final class BukkitPlatform implements Platform {
     @Override
     public Tag javaToSparrowNBT(Object object) {
         return RegistryOps.JAVA.convertTo(RegistryOps.SPARROW_NBT, object);
+    }
+
+    @Override
+    public JsonElement sparrowNBTToJson(Tag tag) {
+        return RegistryOps.SPARROW_NBT.convertTo(RegistryOps.JSON, tag);
     }
 
     @Override
@@ -112,13 +115,21 @@ public final class BukkitPlatform implements Platform {
     @Override
     public boolean hasProxy() {
         boolean bungee = SpigotConfigProxy.INSTANCE.getBungee();
-        boolean velocity = GlobalConfigurationProxy.ProxiesProxy.VelocityProxy.INSTANCE.getEnabled(
-                GlobalConfigurationProxy.ProxiesProxy.INSTANCE.getVelocity(
-                        GlobalConfigurationProxy.INSTANCE.getProxies(
-                                GlobalConfigurationProxy.INSTANCE.get()
-                        )
-                )
-        );
+        boolean velocity = false;
+        if (VersionHelper.hasPaperPatch) {
+            velocity = GlobalConfigurationProxy.ProxiesProxy.VelocityProxy.INSTANCE.getEnabled(
+                    GlobalConfigurationProxy.ProxiesProxy.INSTANCE.getVelocity(
+                            GlobalConfigurationProxy.INSTANCE.getProxies(
+                                    GlobalConfigurationProxy.INSTANCE.get()
+                            )
+                    )
+            );
+        }
         return bungee || velocity;
+    }
+
+    @Override
+    public AtomicInteger getEntityCounter() {
+        return EntityUtils.ENTITY_COUNTER;
     }
 }

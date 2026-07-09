@@ -2,7 +2,6 @@ package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
 import net.momirealms.craftengine.bukkit.entity.data.BaseEntityData;
 import net.momirealms.craftengine.bukkit.entity.data.decoration.ArmorStandData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfigFactory;
@@ -22,8 +21,11 @@ import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LegacyChatFormatter;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,11 +82,11 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
     }
 
     public Item item(Player player, FurnitureTintSource tintSource) {
-        Item wrappedItem = BukkitItemManager.instance().createWrappedItem(this.itemId, player);
+        Item wrappedItem = Item.byId(this.itemId, player);
         if (tintSource != null && wrappedItem != null) {
             tintSource.applyTint(wrappedItem);
         }
-        return Optional.ofNullable(wrappedItem).orElseGet(() -> BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, null));
+        return Optional.ofNullable(wrappedItem).orElseGet(() -> Item.byId(ItemKeys.BARRIER));
     }
 
     public FurnitureTintSource createTintSource(@NotNull Furniture furniture) {
@@ -93,7 +95,33 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
 
     @Override
     public ArmorStandFurnitureElement create(@NotNull Furniture furniture) {
-        return new ArmorStandFurnitureElement(furniture, this);
+        return new ArmorStandFurnitureElement(furniture, this, getPos(furniture));
+    }
+
+    @Override
+    public ArmorStandFurnitureElement create(@NotNull Furniture furniture, @NonNull ArmorStandFurnitureElement previous) {
+        WorldPosition pos = getPos(furniture);
+        return new ArmorStandFurnitureElement(furniture, this, pos, previous.entityId, !pos.equals(previous.position));
+    }
+
+    @Override
+    public ArmorStandFurnitureElement createExact(@NotNull Furniture furniture, @NonNull ArmorStandFurnitureElement previous) {
+        WorldPosition pos = getPos(furniture);
+        if (!pos.equals(previous.position)) {
+            return null;
+        }
+        return new ArmorStandFurnitureElement(furniture, this, pos, previous.entityId, false);
+    }
+
+    @Override
+    public Class<ArmorStandFurnitureElement> elementClass() {
+        return ArmorStandFurnitureElement.class;
+    }
+
+    public WorldPosition getPos(Furniture furniture) {
+        WorldPosition furniturePos = furniture.position();
+        Vec3d position = Furniture.getRelativePosition(furniturePos, this.position);
+        return new WorldPosition(furniturePos.world, position.x, position.y, position.z, furniturePos.xRot + xRot, furniturePos.yRot + yRot);
     }
 
     private static class Factory implements FurnitureElementConfigFactory<ArmorStandFurnitureElement> {

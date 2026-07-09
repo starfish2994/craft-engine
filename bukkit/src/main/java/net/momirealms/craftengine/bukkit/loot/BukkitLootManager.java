@@ -144,7 +144,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
     }
 
     private final class VanillaLootParser extends IdSectionConfigParser {
-        private static final String[] CONFIG_SECTION_NAME = new String[] {"vanilla-loots", "vanilla-loot"};
+        private static final String[] CONFIG_SECTION_NAME = new String[] {"vanilla-loots", "vanilla-loot", "vanilla_loots", "vanilla_loot"};
         private static final String[] LOOT_SECTION = new String[] {"loot", "loots"};
         private int count;
 
@@ -175,7 +175,7 @@ public final class BukkitLootManager extends AbstractLootManager implements List
 
         @Override
         public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE, LoadingStages.LOOT_TABLE);
+            return List.of(LoadingStages.LOOT_TABLE);
         }
 
         @Override

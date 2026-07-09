@@ -11,8 +11,7 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
@@ -41,7 +40,7 @@ public final class HappyGhastFurnitureHitbox extends AbstractFurnitureHitBox {
         double bbSize = 4 * config.scale();
         AABB aabb = AABB.makeBoundingBox(this.pos, bbSize, bbSize);
         this.yaw = position.yRot;
-        this.entityId = EntityProxy.ENTITY_COUNTER.incrementAndGet();
+        this.entityId = EntityUtils.ENTITY_COUNTER.incrementAndGet();
         this.packets = new ArrayList<>(3);
         this.packets.add(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, config.cachedValues()));
         if (config.scale() != 1) {
@@ -70,7 +69,7 @@ public final class HappyGhastFurnitureHitbox extends AbstractFurnitureHitBox {
         List<Object> packets = new ArrayList<>();
         packets.add(ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, UUID.randomUUID(), this.pos.x, player.y() - (this.config.scale() * 4 + 16), this.pos.z, 0, this.yaw,
-                EntityTypeProxy.HAPPY_GHAST, 0, Vec3Proxy.ZERO, 0
+                EntityTypesProxy.HAPPY_GHAST, 0, Vec3Proxy.ZERO, 0
         ));
         packets.addAll(this.packets);
         player.sendPacket(ClientboundBundlePacketProxy.INSTANCE.newInstance(packets), false);

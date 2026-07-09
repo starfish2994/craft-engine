@@ -15,7 +15,6 @@ import net.momirealms.craftengine.core.plugin.context.NetworkTextReplaceContext;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.Pair;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.nbt.ByteTagProxy;
 import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
 import net.momirealms.craftengine.proxy.minecraft.nbt.ListTagProxy;
@@ -51,7 +50,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
                 Object previousItem = ItemStackProxy.INSTANCE.of(tag);
                 Optional<ItemStack> itemStack = BukkitItemManager.instance().c2s(ItemStackUtils.getBukkitStack(previousItem));
                 if (itemStack.isPresent()) {
-                    newItems.add(CraftItemStackProxy.INSTANCE.unwrap(itemStack.get()));
+                    newItems.add(ItemStackUtils.unwrap(itemStack.get()));
                     changed = true;
                 } else {
                     newItems.add(previousItem);
@@ -79,7 +78,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
                     Optional<ItemStack> itemStack = BukkitItemManager.instance().c2s(ItemStackUtils.getBukkitStack(previousItem));
                     byte slot = ByteTagProxy.INSTANCE.value(CompoundTagProxy.INSTANCE.get(tag, "Slot"));
                     if (itemStack.isPresent()) {
-                        newItems.add(Pair.of(slot, CraftItemStackProxy.INSTANCE.unwrap(itemStack.get())));
+                        newItems.add(Pair.of(slot, ItemStackUtils.unwrap(itemStack.get())));
                         changed = true;
                     } else {
                         newItems.add(Pair.of(slot, previousItem));
@@ -137,7 +136,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
                 Object previousItem = ItemStackProxy.INSTANCE.of(tag);
                 Optional<ItemStack> itemStack = BukkitItemManager.instance().s2c(ItemStackUtils.getBukkitStack(previousItem), player);
                 if (itemStack.isPresent()) {
-                    newItems.add(CraftItemStackProxy.INSTANCE.unwrap(itemStack.get()));
+                    newItems.add(ItemStackUtils.unwrap(itemStack.get()));
                     changed = true;
                 } else {
                     newItems.add(previousItem);
@@ -165,7 +164,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
                     Optional<ItemStack> itemStack = BukkitItemManager.instance().s2c(ItemStackUtils.getBukkitStack(previousItem), player);
                     byte slot = ByteTagProxy.INSTANCE.value(CompoundTagProxy.INSTANCE.get(tag, "Slot"));
                     if (itemStack.isPresent()) {
-                        newItems.add(Pair.of(slot, CraftItemStackProxy.INSTANCE.unwrap(itemStack.get())));
+                        newItems.add(Pair.of(slot, ItemStackUtils.unwrap(itemStack.get())));
                         changed = true;
                     } else {
                         newItems.add(Pair.of(slot, previousItem));

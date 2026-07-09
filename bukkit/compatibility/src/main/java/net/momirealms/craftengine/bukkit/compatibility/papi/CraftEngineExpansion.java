@@ -36,11 +36,11 @@ public final class CraftEngineExpansion extends PlaceholderExpansion {
         return "1.0";
     }
 
-    /**
-     * 用法:（小括号括起来的为必填，中括号括起来的为选填）
-     * <p>
-     * %ce_cd_(key)|[format]%
-     */
+    @Override
+    public boolean persist() {
+        return true;
+    }
+
     @Override
     public @Nullable String onPlaceholderRequest(Player bukkitPlayer, @NotNull String params) {
         BukkitServerPlayer player = bukkitPlayer != null ? BukkitAdaptor.adapt(bukkitPlayer) : null;

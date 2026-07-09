@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.world.chunk;
 
-import ca.spottedleaf.concurrentutil.map.ConcurrentLong2ReferenceChainedHashTable;
+import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
@@ -36,7 +36,7 @@ public class CEChunk {
     public final ChunkPos chunkPos;
     protected final CESection[] sections;
     protected final WorldHeight worldHeightAccessor;
-    protected final ConcurrentLong2ReferenceChainedHashTable<BlockEntity> blockEntities;  // 从区域线程上访问，也可能被意外访问，尽可能用安全类型
+    protected final ConcurrentChainedLong2ReferenceHashTable<BlockEntity> blockEntities;  // 从区域线程上访问，也可能被意外访问，尽可能用安全类型
     protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingSyncBlockEntitiesByPos; // 从区域线程上访问，安全
     protected final Map<BlockPos, ReplaceableTickingBlockEntity> tickingAsyncBlockEntitiesByPos; // 从区域线程上访问，安全
     protected final Map<BlockPos, ConstantBlockEntityRenderer> constantBlockEntityRenderers; // 会从区域线程上读写，异步线程上读取
@@ -54,7 +54,7 @@ public class CEChunk {
         this.chunkPos = chunkPos;
         this.worldHeightAccessor = world.worldHeight();
         this.sections = new CESection[this.worldHeightAccessor.getSectionsCount()];
-        this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
+        this.blockEntities = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
         this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         this.dynamicBlockEntityRenderers = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
         this.tickingSyncBlockEntitiesByPos = new Object2ObjectOpenHashMap<>(DEFAULT_MAP_SIZE, 0.5f);
@@ -74,21 +74,21 @@ public class CEChunk {
         if (sections != null) {
             for (CESection section : sections) {
                 if (section != null) {
-                    int index = sectionIndex(section.sectionY());
+                    int index = sectionIndex(section.sectionY);
                     this.sections[index] = section;
                 }
             }
         }
         this.fillEmptySection();
         if (blockEntitiesTag != null) {
-            this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
+            this.blockEntities = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
             List<BlockEntity> blockEntities = DefaultBlockEntitySerializer.deserialize(this, blockEntitiesTag);
             for (int i = 0, size = blockEntities.size(); i < size; i++) {
                 BlockEntity blockEntity = blockEntities.get(i);
                 this.setBlockEntity(blockEntity);
             }
         } else {
-            this.blockEntities = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
+            this.blockEntities = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(DEFAULT_MAP_SIZE, 0.5f);
         }
         if (blockEntityRenders != null) {
             this.constantBlockEntityRenderers = new Object2ObjectOpenHashMap<>(Math.max(blockEntityRenders.size(), DEFAULT_MAP_SIZE), 0.5f);
@@ -250,7 +250,8 @@ public class CEChunk {
                                     CullableHolder holder = player.getTrackedBlockEntity(pos);
                                     if (holder != null) {
                                         if (holder.isShown) {
-                                            holder.setShown(player, false);
+                                            previousElement.hide(player);
+                                            element.show(player);
                                         }
                                         holder.cullable = renderer;
                                     } else {
@@ -278,6 +279,8 @@ public class CEChunk {
                         }
                     }
 
+                    boolean[] transformed = new boolean[renderers.length];
+
                     outer: for (int i = 0; i < elements.length; i++) {
                         BlockEntityElementConfig<? extends ConstantBlockEntityElement> config = renderers[i];
                         /*
@@ -289,6 +292,7 @@ public class CEChunk {
                                 ConstantBlockEntityElement newElement = ((BlockEntityElementConfig) config).createExact(this, pos, previousElement);
                                 if (newElement != null) {
                                     previousElements[j] = null;
+                                    transformed[i] = true;
                                     elements[i] = newElement;
                                     if (hasTrackedBy) {
                                         for (int k = 0; k < trackedBy.size(); k++) {
@@ -303,6 +307,12 @@ public class CEChunk {
                                 }
                             }
                         }
+                    }
+
+                    outer: for (int i = 0; i < elements.length; i++) {
+                        BlockEntityElementConfig<? extends ConstantBlockEntityElement> config = renderers[i];
+                        if (transformed[i]) continue;
+
                         /*
                          * 可变换部分
                          */
@@ -341,6 +351,8 @@ public class CEChunk {
                             }
                         }
                     }
+
+
                     if (hasTrackedBy) {
                         /*
                          * 未能完成变化的，需要直接删除
@@ -649,7 +661,7 @@ public class CEChunk {
     public boolean isEmpty() {
         if (!this.blockEntities.isEmpty()) return false;
         for (CESection section : this.sections) {
-            if (section != null && !section.statesContainer().isEmpty()) {
+            if (section != null && !section.statesContainer.isEmpty()) {
                 return false;
             }
         }

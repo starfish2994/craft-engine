@@ -56,6 +56,8 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
     // CustomNameplates
     compileOnly("net.momirealms:custom-nameplates:3.0.33")
+    // Axiom
+    compileOnly(files("${rootProject.rootDir}/libs/AxiomPaperPlugin-5.0.4.jar"))
     // WorldGuard
     compileOnly(files("${rootProject.rootDir}/libs/worldguard-bukkit-7.0.14-dist.jar"))
     // QuickShop

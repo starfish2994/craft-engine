@@ -37,6 +37,50 @@ public final class Color {
         return new Color(decimal);
     }
 
+    public static Color fromHex(String hex) {
+        if (hex == null || hex.isEmpty()) {
+            throw new IllegalArgumentException("Hex string cannot be null or empty");
+        }
+        String cleanHex = hex.startsWith("#") ? hex.substring(1) : hex;
+        int length = cleanHex.length();
+        int a, r, g, b;
+        try {
+            if (length == 3) {
+                r = Integer.parseInt(cleanHex.substring(0, 1), 16);
+                g = Integer.parseInt(cleanHex.substring(1, 2), 16);
+                b = Integer.parseInt(cleanHex.substring(2, 3), 16);
+                r = (r << 4) | r;
+                g = (g << 4) | g;
+                b = (b << 4) | b;
+                a = DEFAULT_ALPHA & BIT_MASK;
+            } else if (length == 4) {
+                a = Integer.parseInt(cleanHex.substring(0, 1), 16);
+                r = Integer.parseInt(cleanHex.substring(1, 2), 16);
+                g = Integer.parseInt(cleanHex.substring(2, 3), 16);
+                b = Integer.parseInt(cleanHex.substring(3, 4), 16);
+                a = (a << 4) | a;
+                r = (r << 4) | r;
+                g = (g << 4) | g;
+                b = (b << 4) | b;
+            } else if (length == 6) {
+                r = Integer.parseInt(cleanHex.substring(0, 2), 16);
+                g = Integer.parseInt(cleanHex.substring(2, 4), 16);
+                b = Integer.parseInt(cleanHex.substring(4, 6), 16);
+                a = DEFAULT_ALPHA & BIT_MASK;
+            } else if (length == 8) {
+                a = Integer.parseInt(cleanHex.substring(0, 2), 16);
+                r = Integer.parseInt(cleanHex.substring(2, 4), 16);
+                g = Integer.parseInt(cleanHex.substring(4, 6), 16);
+                b = Integer.parseInt(cleanHex.substring(6, 8), 16);
+            } else {
+                throw new IllegalArgumentException("Invalid hex format: " + hex + ". Expected 3, 4, 6, or 8 digits (with optional # prefix)");
+            }
+            return new Color(a, r, g, b);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid hex string: " + hex, e);
+        }
+    }
+
     @SuppressWarnings("PointlessBitwiseExpression")
     public static Color fromVector3f(Vector3f vec) {
         return new Color(0 << 24 /*不可省略*/ | MiscUtils.floor(vec.x) << 16 | MiscUtils.floor(vec.y) << 8 | MiscUtils.floor(vec.z));

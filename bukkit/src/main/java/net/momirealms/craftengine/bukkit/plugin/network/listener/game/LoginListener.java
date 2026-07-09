@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 import com.google.common.collect.Sets;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
-import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.bukkit.util.LevelUtils;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.ConnectionState;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -13,7 +13,6 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.GlobalPos;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.Optional;
@@ -53,7 +52,7 @@ public final class LoginListener implements ByteBufferPacketListener {
             if (VersionHelper.isOrAbove1_20_5) {
                 int dimensionType = buf.readVarInt();
                 Key dimension = buf.readKey();
-                World world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+                World world = LevelUtils.getWorld(dimension);
                 if (world != null) {
                     player.setClientSideWorld(BukkitAdaptor.adapt(world));
                 }
@@ -67,6 +66,7 @@ public final class LoginListener implements ByteBufferPacketListener {
                     Optional<GlobalPos> lastDeathLocation = buf.readOptional(FriendlyByteBuf::readGlobalPos);
                     int portalCooldown = buf.readVarInt();
                     int seaLevel = VersionHelper.isOrAbove1_21_2 ? buf.readVarInt() : 0;
+                    boolean onlineMode = VersionHelper.isOrAbove26_2 && buf.readBoolean();
                     boolean enforcesSecureChat = true;
                     event.setChanged(true);
                     buf.clear();
@@ -90,12 +90,13 @@ public final class LoginListener implements ByteBufferPacketListener {
                     buf.writeOptional(lastDeathLocation, FriendlyByteBuf::writeGlobalPos);
                     buf.writeVarInt(portalCooldown);
                     if (VersionHelper.isOrAbove1_21_2) buf.writeVarInt(seaLevel);
+                    if (VersionHelper.isOrAbove26_2) buf.writeBoolean(onlineMode);
                     buf.writeBoolean(enforcesSecureChat);
                 }
             } else { // 1.20.2~1.20.4
                 /*dimensionType*/ buf.readKey();
                 Key dimension = buf.readKey();
-                World world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+                World world = LevelUtils.getWorld(dimension);
                 if (world != null) {
                     player.setClientSideWorld(BukkitAdaptor.adapt(world));
                 }
@@ -109,7 +110,7 @@ public final class LoginListener implements ByteBufferPacketListener {
             /*registryHolder*/ buf.readNbt(true);
             /*dimensionType*/ buf.readKey();
             Key dimension = buf.readKey();
-            World world = Bukkit.getWorld(KeyUtils.toNamespacedKey(dimension));
+            World world = LevelUtils.getWorld(dimension);
             if (world != null) {
                 player.setClientSideWorld(BukkitAdaptor.adapt(world));
             }

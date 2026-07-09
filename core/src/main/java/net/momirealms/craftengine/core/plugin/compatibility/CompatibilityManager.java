@@ -18,6 +18,8 @@ public interface CompatibilityManager {
 
     void onDelayedEnable();
 
+    void runDelayedSyncTasks();
+
     void registerTagResolverProvider(TagResolverProvider provider);
 
     ExternalModel createModel(String id);

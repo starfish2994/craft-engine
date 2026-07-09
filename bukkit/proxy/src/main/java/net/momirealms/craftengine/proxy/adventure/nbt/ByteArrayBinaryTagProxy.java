@@ -4,7 +4,7 @@ import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
-@ReflectionProxy(name = "net{}kyori{}adventure{}nbt{}ByteArrayBinaryTag", ignoreRelocation = true, nullable = true, activeIf = "has_patch=paper")
+@ReflectionProxy(name = "net{}kyori{}adventure{}nbt{}ByteArrayBinaryTag", ignoreRelocation = true, optional = true, activeIf = "has_patch=paper")
 public interface ByteArrayBinaryTagProxy {
     ByteArrayBinaryTagProxy INSTANCE = ASMProxyFactory.create(ByteArrayBinaryTagProxy.class);
 

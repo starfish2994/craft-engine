@@ -16,7 +16,7 @@ import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketL
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
-import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -28,42 +28,42 @@ public final class AddEntityListener implements ByteBufferPacketListener {
     private AddEntityListener() {
         this.handlers = new EntityTypeHandler[RegistryUtils.currentEntityTypeRegistrySize()];
         Arrays.fill(this.handlers, EntityTypeHandler.DoNothing.INSTANCE);
-        this.handlers[EntityTypeProxy.BLOCK_DISPLAY$registryId] = simpleAddEntityHandler(BlockDisplayPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.TEXT_DISPLAY$registryId] = simpleAddEntityHandler(TextDisplayPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.ARMOR_STAND$registryId] = simpleAddEntityHandler(ArmorStandPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.ITEM$registryId] = simpleAddEntityHandler(ItemPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.ITEM_FRAME$registryId] = simpleAddEntityHandler(ItemFramePacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.GLOW_ITEM_FRAME$registryId] = simpleAddEntityHandler(ItemFramePacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.ENDERMAN$registryId] = simpleAddEntityHandler(EndermanPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.CHEST_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.COMMAND_BLOCK_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.FURNACE_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.HOPPER_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.SPAWNER_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.TNT_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
-        this.handlers[EntityTypeProxy.FIREBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.EYE_OF_ENDER$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.FIREWORK_ROCKET$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.SMALL_FIREBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.EGG$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.ENDER_PEARL$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.EXPERIENCE_BOTTLE$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.SNOWBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.POTION$registryId] = createOptionalCustomProjectileEntityHandler(true);
-        this.handlers[EntityTypeProxy.TRIDENT$registryId] = createOptionalCustomProjectileEntityHandler(false);
-        this.handlers[EntityTypeProxy.ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
-        this.handlers[EntityTypeProxy.SPECTRAL_ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
+        this.handlers[EntityTypesProxy.BLOCK_DISPLAY$registryId] = simpleAddEntityHandler(BlockDisplayPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.TEXT_DISPLAY$registryId] = simpleAddEntityHandler(TextDisplayPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.ARMOR_STAND$registryId] = simpleAddEntityHandler(ArmorStandPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.ITEM$registryId] = simpleAddEntityHandler(ItemPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.ITEM_FRAME$registryId] = simpleAddEntityHandler(ItemFramePacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.GLOW_ITEM_FRAME$registryId] = simpleAddEntityHandler(ItemFramePacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.ENDERMAN$registryId] = simpleAddEntityHandler(EndermanPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.CHEST_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.COMMAND_BLOCK_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.FURNACE_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.HOPPER_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.SPAWNER_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.TNT_MINECART$registryId] = simpleAddEntityHandler(MinecartPacketHandler.INSTANCE);
+        this.handlers[EntityTypesProxy.FIREBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.EYE_OF_ENDER$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.FIREWORK_ROCKET$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.SMALL_FIREBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.EGG$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.ENDER_PEARL$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.EXPERIENCE_BOTTLE$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.SNOWBALL$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.POTION$registryId] = createOptionalCustomProjectileEntityHandler(true);
+        this.handlers[EntityTypesProxy.TRIDENT$registryId] = createOptionalCustomProjectileEntityHandler(false);
+        this.handlers[EntityTypesProxy.ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
+        this.handlers[EntityTypesProxy.SPECTRAL_ARROW$registryId] = createOptionalCustomProjectileEntityHandler(false);
         if (VersionHelper.isOrAbove1_21) {
-            this.handlers[EntityTypeProxy.WIND_CHARGE$registryId] = createOptionalCustomProjectileEntityHandler(false);
+            this.handlers[EntityTypesProxy.WIND_CHARGE$registryId] = createOptionalCustomProjectileEntityHandler(false);
         }
         if (VersionHelper.isOrAbove1_20_3) {
-            this.handlers[EntityTypeProxy.TNT$registryId] = simpleAddEntityHandler(PrimedTNTPacketHandler.INSTANCE);
+            this.handlers[EntityTypesProxy.TNT$registryId] = simpleAddEntityHandler(PrimedTNTPacketHandler.INSTANCE);
         }
         if (VersionHelper.isOrAbove1_20_5) {
-            this.handlers[EntityTypeProxy.OMINOUS_ITEM_SPAWNER$registryId] = simpleAddEntityHandler(ItemPacketHandler.INSTANCE);
+            this.handlers[EntityTypesProxy.OMINOUS_ITEM_SPAWNER$registryId] = simpleAddEntityHandler(ItemPacketHandler.INSTANCE);
         }
-        this.handlers[EntityTypeProxy.FALLING_BLOCK$registryId] = (user, event) -> {
+        this.handlers[EntityTypesProxy.FALLING_BLOCK$registryId] = (user, event) -> {
             FriendlyByteBuf buf = event.getBuffer();
             int id = buf.readVarInt();
             UUID uuid = buf.readUUID();
@@ -101,7 +101,7 @@ public final class AddEntityListener implements ByteBufferPacketListener {
                 if (!VersionHelper.isOrAbove1_21_9) buf.writeShort(za);
             }
         };
-        this.handlers[EntityTypeProxy.ITEM_DISPLAY$registryId] = (user, event) -> {
+        this.handlers[EntityTypesProxy.ITEM_DISPLAY$registryId] = (user, event) -> {
             FriendlyByteBuf buf = event.getBuffer();
             int id = buf.readVarInt();
             BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
@@ -126,8 +126,8 @@ public final class AddEntityListener implements ByteBufferPacketListener {
                 user.entityPacketHandlers().putIfAbsent(id, ItemDisplayPacketHandler.INSTANCE);
             }
         };
-        this.handlers[EntityTypeProxy.INTERACTION$registryId] = (user, event) -> {
-            if (BukkitFurnitureManager.NMS_COLLISION_ENTITY_TYPE != EntityTypeProxy.INTERACTION) return;
+        this.handlers[EntityTypesProxy.INTERACTION$registryId] = (user, event) -> {
+            if (BukkitFurnitureManager.NMS_COLLISION_ENTITY_TYPE != EntityTypesProxy.INTERACTION) return;
             FriendlyByteBuf buf = event.getBuffer();
             int id = buf.readVarInt();
             // Cancel collider entity packet
@@ -137,8 +137,8 @@ public final class AddEntityListener implements ByteBufferPacketListener {
                 user.entityPacketHandlers().put(id, FurnitureCollisionPacketHandler.INSTANCE);
             }
         };
-        this.handlers[EntityTypeProxy.OAK_BOAT$registryId] = (user, event) -> {
-            if (BukkitFurnitureManager.NMS_COLLISION_ENTITY_TYPE != EntityTypeProxy.OAK_BOAT) return;
+        this.handlers[EntityTypesProxy.OAK_BOAT$registryId] = (user, event) -> {
+            if (BukkitFurnitureManager.NMS_COLLISION_ENTITY_TYPE != EntityTypesProxy.OAK_BOAT) return;
             FriendlyByteBuf buf = event.getBuffer();
             int id = buf.readVarInt();
             // Cancel collider entity packet

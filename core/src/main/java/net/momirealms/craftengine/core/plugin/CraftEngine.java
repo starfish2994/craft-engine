@@ -45,6 +45,7 @@ import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.dis
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplayTypes;
 import net.momirealms.craftengine.core.plugin.proxy.ProxyMessageManager;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
+import net.momirealms.craftengine.core.plugin.text.component.NBTDataComponentConverter;
 import net.momirealms.craftengine.core.sound.SoundManager;
 import net.momirealms.craftengine.core.util.CompletableFutures;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -52,6 +53,7 @@ import net.momirealms.craftengine.core.util.Timestamp;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldManager;
 import net.momirealms.craftengine.core.world.score.TeamManager;
+import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.jetbrains.annotations.ApiStatus;
@@ -141,6 +143,7 @@ public abstract class CraftEngine implements Plugin {
         BlockSettingsModifiers.init();
         FurnitureSettingsModifiers.init();
         ItemProcessors.init();
+        NBTDataComponentConverter.register();
 
         // 初始化模板管理器
         this.templateManager = TemplateManager.INSTANCE;
@@ -150,6 +153,10 @@ public abstract class CraftEngine implements Plugin {
         this.itemBrowserManager = new ItemBrowserManagerImpl(this);
         // 初始化实体剔除器
         this.entityCullingManager = EntityCullingManager.INSTANCE;
+        // 初始化队伍管理器
+        this.teamManager = new TeamManagerImpl(this);
+        // 初始化虚拟队伍
+        this.teamManager.init();
 
         // 迁移缓存
         try {
@@ -205,7 +212,6 @@ public abstract class CraftEngine implements Plugin {
         this.projectileManager.reload();
         this.seatManager.reload();
         this.networkManager.reload();
-        this.proxyMessageManager.reload();
     }
 
     private void runDelayTasks(boolean reloadRecipe) {
@@ -233,6 +239,8 @@ public abstract class CraftEngine implements Plugin {
             // 转换数据包配方
             delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.recipeManager.delayedLoad(), this.scheduler.async()));
         }
+        // 代理消息
+        delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.proxyMessageManager.delayedLoad(), this.scheduler.async()));
         CompletableFutures.allOf(delayedLoadTasks).join();
     }
 
@@ -296,6 +304,7 @@ public abstract class CraftEngine implements Plugin {
                         }
                         // 同步修改进度
                         this.advancementManager.runDelayedSyncTasks();
+                        this.compatibilityManager.runDelayedSyncTasks();
                         long syncTime = timestamp.deltaMillis();
                         this.reloadEventDispatcher.accept(this);
                         future.complete(ReloadResult.success(finalAsyncTime, syncTime, finalIssues));
@@ -383,6 +392,7 @@ public abstract class CraftEngine implements Plugin {
                 this.paintingManager.runDelayedSyncTasks();
                 // 同步注册配方
                 this.recipeManager.runDelayedSyncTasks();
+                this.compatibilityManager.runDelayedSyncTasks();
             } else {
                 try {
                     this.reloadPlugin(Runnable::run, Runnable::run, true);
@@ -448,8 +458,8 @@ public abstract class CraftEngine implements Plugin {
     }
 
     private boolean compareVer(String v1, String v2) {
-        String[] parts1 = v1.split("\\.");
-        String[] parts2 = v2.split("\\.");
+        String[] parts1 = v1.split("-", 2)[0].split("\\.");
+        String[] parts2 = v2.split("-", 2)[0].split("\\.");
         int maxLength = Math.max(parts1.length, parts2.length);
         for (int i = 0; i < maxLength; i++) {
             int num1 = i < parts1.length ? Integer.parseInt(parts1[i]) : 0;
@@ -463,7 +473,7 @@ public abstract class CraftEngine implements Plugin {
 
     @Nullable
     private static String getLatestVersion() throws Exception {
-        String apiUrl = "https://api.spiget.org/v2/resources/128871/versions/latest";
+        String apiUrl = "https://api.voxel.shop/v1/getResourceInfo?resource_id=7624";
         URL url = new URI(apiUrl).toURL();
         // 创建HTTP连接
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -483,9 +493,12 @@ public abstract class CraftEngine implements Plugin {
             }
             in.close();
             JsonObject jsonResponse = GsonHelper.get().fromJson(response.toString(), JsonObject.class);
-            if (jsonResponse.has("name")) {
-                return jsonResponse.get("name").getAsString();
-            }
+            return jsonResponse.getAsJsonObject("response")
+                    .getAsJsonObject("resource")
+                    .getAsJsonObject("updates")
+                    .getAsJsonObject("latest")
+                    .get("version")
+                    .getAsString();
         }
         return null;
     }
@@ -546,7 +559,7 @@ public abstract class CraftEngine implements Plugin {
         // register loot parser
         this.packManager.registerConfigSectionParsers(this.lootManager.parsers());
         // register skip-optimization parser
-        this.packManager.registerConfigSectionParser(this.packManager.parser());
+        this.packManager.registerConfigSectionParsers(this.packManager.parsers());
         // register feature parser
         this.packManager.registerConfigSectionParsers(this.worldManager.parsers());
         // register painting parser

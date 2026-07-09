@@ -27,6 +27,7 @@ import net.momirealms.craftengine.proxy.minecraft.tags.TagKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -57,8 +58,9 @@ public final class DebugTargetBlockCommand extends BukkitCommandFeature<CommandS
                         block = player.getTargetBlockExact(10);
                         if (block == null) return;
                     }
-                    String bData = block.getBlockData().getAsString();
-                    Object blockState = BlockStateUtils.blockDataToBlockState(block.getBlockData());
+                    BlockData blockData = block.getBlockData();
+                    String bData = blockData.getAsString();
+                    Object blockState = BlockStateUtils.blockDataToBlockState(blockData);
                     Sender sender = plugin().senderFactory().wrap(context.sender());
                     sender.sendMessage(Component.text("minecraft state: " + bData)
                             .hoverEvent(Component.text("Copy", NamedTextColor.YELLOW))
@@ -75,9 +77,9 @@ public final class DebugTargetBlockCommand extends BukkitCommandFeature<CommandS
                         sender.sendMessage(Component.text("visual state: " + immutableBlockState.visualBlockState().getAsString())
                                 .hoverEvent(Component.text("Copy", NamedTextColor.YELLOW))
                                 .clickEvent(ClickEvent.suggestCommand(immutableBlockState.visualBlockState().getAsString())));
-                        sender.sendMessage(Component.text("name: ").append(Component.translatable(block.translationKey())
+                        sender.sendMessage(Component.text("name: ").append(Component.translatable(BlockStateUtils.getDescriptionId(blockState))
                                 .hoverEvent(Component.text("Copy", NamedTextColor.YELLOW))
-                                .clickEvent(ClickEvent.suggestCommand(block.translationKey()))));
+                                .clickEvent(ClickEvent.suggestCommand(BlockStateUtils.getDescriptionId(blockState)))));
                         List<BlockBehavior> behaviors = new ArrayList<>();
                         immutableBlockState.behavior().let(BlockBehavior.class, behaviors::add);
                         if (!behaviors.isEmpty()) {

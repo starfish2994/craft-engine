@@ -20,6 +20,14 @@ public interface ConditionalFurnitureElement extends FurnitureElement {
 
     boolean hasCondition();
 
+    default boolean canSee(PlayerContext context) {
+        if (hasCondition()) {
+            return condition().test(context);
+        } else {
+            return true;
+        }
+    }
+
     @Override
     default void show(Player player) {
         if (hasCondition()) {

@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.ItemUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.TintSource;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -34,7 +35,7 @@ public final class TintSourceBlockEntityController extends BlockEntityController
     public void saveCustomData(CompoundTag tag) {
         if (ItemUtils.isEmpty(sourceItem)) return;
         CompoundTag data = new CompoundTag();
-        data.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+        data.put("data_version", new IntTag(VersionHelper.WORLD_VERSION));
         data.put("tint_source_item", ItemStackUtils.saveMinecraftItemStackAsTag(this.sourceItem.minecraftItem()));
         tag.put(behavior.customDataKey, data);
     }

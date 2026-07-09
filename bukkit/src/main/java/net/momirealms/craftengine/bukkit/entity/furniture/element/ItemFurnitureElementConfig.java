@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity.furniture.element;
 
 import net.momirealms.craftengine.bukkit.entity.data.item.ItemEntityData;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfigFactory;
@@ -20,8 +19,11 @@ import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,11 +51,11 @@ public final class ItemFurnitureElementConfig implements FurnitureElementConfig<
         this.hasCondition = hasCondition;
         this.predicate = predicate;
         BiFunction<Player, FurnitureTintSource, Item> itemFunction = (player, tintSource) -> {
-            Item wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
+            Item wrappedItem = Item.byId(itemId, player);
             if (tintSource != null && wrappedItem != null) {
                 tintSource.applyTint(wrappedItem);
             }
-            return Optional.ofNullable(wrappedItem).orElseGet(() -> BukkitItemManager.instance().createWrappedItem(ItemKeys.BARRIER, null));
+            return Optional.ofNullable(wrappedItem).orElseGet(() -> Item.byId(ItemKeys.BARRIER));
         };
         this.metadata = (player, source) -> {
             List<Object> dataValues = new ArrayList<>();
@@ -65,7 +67,32 @@ public final class ItemFurnitureElementConfig implements FurnitureElementConfig<
 
     @Override
     public ItemFurnitureElement create(@NotNull Furniture furniture) {
-        return new ItemFurnitureElement(furniture, this);
+        return new ItemFurnitureElement(furniture, this, getPos(furniture));
+    }
+
+    @Override
+    public ItemFurnitureElement create(@NotNull Furniture furniture, @NonNull ItemFurnitureElement previous) {
+        Vec3d pos = getPos(furniture);
+        return new ItemFurnitureElement(furniture, this, pos, previous.entityId1, previous.entityId2, !pos.equals(previous.position));
+    }
+
+    @Override
+    public ItemFurnitureElement createExact(@NotNull Furniture furniture, @NonNull ItemFurnitureElement previous) {
+        Vec3d pos = getPos(furniture);
+        if (!pos.equals(previous.position)) {
+            return null;
+        }
+        return new ItemFurnitureElement(furniture, this, pos, previous.entityId1, previous.entityId2, false);
+    }
+
+    @Override
+    public Class<ItemFurnitureElement> elementClass() {
+        return ItemFurnitureElement.class;
+    }
+
+    public Vec3d getPos(Furniture furniture) {
+        WorldPosition furniturePos = furniture.position();
+        return Furniture.getRelativePosition(furniturePos, this.position);
     }
 
     public FurnitureTintSource createTintSource(@NotNull Furniture furniture) {

@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class GlobalVariableManager implements Manageable {
@@ -70,11 +69,6 @@ public final class GlobalVariableManager implements Manageable {
         @Override
         public LoadingStage loadingStage() {
             return LoadingStages.GLOBAL_VARIABLE;
-        }
-
-        @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.TEMPLATE);
         }
     }
 }

@@ -5,14 +5,18 @@ import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ReflectionProxy(name = "net.minecraft.world.item.crafting.RecipeMap", activeIf = "min_version=1.21.2")
 public interface RecipeMapProxy {
     RecipeMapProxy INSTANCE = ASMProxyFactory.create(RecipeMapProxy.class);
 
-    @ConstructorInvoker
-    Object newInstance(Multimap<Object, Object> byType, Map<Object, Object> byKey);
+    @ConstructorInvoker(activeIf = "has_patch=paper")
+    Object newInstance$paper(Multimap<Object, Object> byType, Map<Object, Object> byKey);
+
+    @ConstructorInvoker(activeIf = "!has_patch=paper")
+    Object newInstance(Multimap<Object, Object> byType, LinkedHashMap<Object, Object> byKey);
 
     @MethodInvoker(name = "removeRecipe")
     boolean removeRecipe(Object target, @Type(clazz = ResourceKeyProxy.class) Object id);

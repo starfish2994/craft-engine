@@ -76,7 +76,18 @@ public final class CommonFunctions {
     }
 
     public static Function<Context> fromConfig(ConfigValue value) {
-        return fromConfig(value.getAsSection());
+        if (value.is(List.class)) {
+            List<Function<Context>> list = value.getAsList(v -> fromConfig(v.getAsSection()));
+            if (list.isEmpty()) {
+                return DummyFunction.INSTANCE;
+            }
+            if (list.size() == 1) {
+                return list.getFirst();
+            }
+            return AllOfFunction.allOf(list);
+        } else {
+            return fromConfig(value.getAsSection());
+        }
     }
 
     public static Function<Context> fromConfig(ConfigSection section) {

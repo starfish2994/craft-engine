@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.bukkit.item.recipe;
 
-import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
@@ -54,6 +53,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.view.AnvilView;
 import org.bukkit.persistence.PersistentDataType;
@@ -74,6 +74,13 @@ public final class RecipeEventListener implements Listener {
         this.itemManager = itemManager;
         this.recipeManager = recipeManager;
         this.plugin = plugin;
+    }
+
+    // 进入服务器时自动解锁配方
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!this.recipeManager.shouldUnlockRecipesOnJoin()) return;
+        this.recipeManager.unlockRecipesOnJoin(event.getPlayer());
     }
 
     @SuppressWarnings("deprecation")
@@ -281,7 +288,7 @@ public final class RecipeEventListener implements Listener {
                 // 自定义燃烧时间
                 event.setBurnTime(fuelTime);
                 Key remainder = itemDefinition.settings().fuelRemainder();
-                if (remainder != null && item.count() == 1) {
+                if (VersionHelper.hasPaperPatch && remainder != null && item.count() == 1) {
                     Block block = event.getBlock();
                     Object blockPos = LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ());
                     // 先获取方块实体
@@ -290,7 +297,7 @@ public final class RecipeEventListener implements Listener {
                         int litTimeRemaining = AbstractFurnaceBlockEntityProxy.INSTANCE.getLitTimeRemaining(blockEntity);
                         // 准备开始燃烧
                         if (litTimeRemaining <= 0) {
-                            Item remainderItem = this.itemManager.createWrappedItem(remainder, null);
+                            Item remainderItem = Item.byId(remainder);
                             if (remainderItem == null) return;
                             List<Object> items = AbstractFurnaceBlockEntityProxy.INSTANCE.getItems(blockEntity);
                             event.setConsumeFuel(false);
@@ -309,7 +316,7 @@ public final class RecipeEventListener implements Listener {
         if (!Config.recipeInjectBlockEntities()) return; // 功能未开启.
         Inventory inventory = event.getInventory();
         if (!(inventory instanceof FurnaceInventory furnaceInventory)) return;
-        InventoryHolder inventoryHolder = furnaceInventory.getHolder(false);
+        InventoryHolder inventoryHolder = InventoryUtils.getInventoryHolder(furnaceInventory);
         if (!(inventoryHolder instanceof Furnace furnace)) return;
         Inventory clickedInventory = event.getClickedInventory();
 
@@ -357,7 +364,7 @@ public final class RecipeEventListener implements Listener {
             UUID uniqueId = player.getUniqueId();
             // 清理 QuickCache 的缓存.
             Chunk chunk = furnace.getBlock().getChunk();
-            Object chunkAccess = WorldUtils.getMinecraftChunk(chunk);
+            Object chunkAccess = LevelUtils.getMinecraftChunk(chunk);
             Object blockEntity = BlockGetterProxy.INSTANCE.getBlockEntity(chunkAccess, LocationUtils.toBlockPos(furnace.getX(), furnace.getY(), furnace.getZ()));
             if (AbstractFurnaceBlockEntityProxy.CLASS.isInstance(blockEntity)) {
                 Object quickCheck = AbstractFurnaceBlockEntityProxy.INSTANCE.getQuickCheck(blockEntity);
@@ -414,16 +421,6 @@ public final class RecipeEventListener implements Listener {
         }
     }
 
-    // Paper only
-    @EventHandler
-    public void onPrepareResult(PrepareResultEvent event) {
-        if (event.getInventory() instanceof CartographyInventory cartographyInventory) {
-            if (ItemStackUtils.hasCustomItem(cartographyInventory.getStorageContents())) {
-                event.setResult(new ItemStack(Material.AIR));
-            }
-        }
-    }
-
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onAnvilEvent(PrepareAnvilEvent event) {
         preProcess(event);
@@ -437,13 +434,13 @@ public final class RecipeEventListener implements Listener {
     private void preProcess(PrepareAnvilEvent event) {
         if (event.getResult() == null) return;
         AnvilInventory inventory = event.getInventory();
-        ItemStack first = inventory.getFirstItem();
-        ItemStack second = inventory.getSecondItem();
+        ItemStack first = inventory.getItem(0);
+        ItemStack second = inventory.getItem(1);
         if (first == null || second == null) return;
         Item wrappedFirst = BukkitItemManager.instance().wrap(first);
         Optional<ItemDefinition> firstCustom = wrappedFirst.getDefinition();
         Item wrappedSecond = BukkitItemManager.instance().wrap(second);
-        Optional<ItemDefinition> secondCustom = wrappedFirst.getDefinition();
+        Optional<ItemDefinition> secondCustom = wrappedSecond.getDefinition();
         // 两个都是原版物品
         if (firstCustom.isEmpty() && secondCustom.isEmpty()) {
             return;
@@ -460,7 +457,7 @@ public final class RecipeEventListener implements Listener {
         // 被修的是自定义，材料不是自定义
         if (firstCustom.isPresent() && secondCustom.isEmpty()) {
             if (firstCustom.get().settings().respectRepairableComponent()) {
-                if (second.canRepair(first)) return; // 尊重原版的repairable
+                if (canRepair(second, first)) return; // 尊重原版的repairable
             } else {
                 event.setResult(null);
                 return;
@@ -470,7 +467,7 @@ public final class RecipeEventListener implements Listener {
         // 被修的是原版，材料是自定义
         if (firstCustom.isEmpty() && secondCustom.isPresent()) {
             if (secondCustom.get().settings().respectRepairableComponent()) {
-                if (second.canRepair(first)) return;
+                if (canRepair(second, first)) return;
             } else {
                 event.setResult(null);
                 return;
@@ -502,6 +499,14 @@ public final class RecipeEventListener implements Listener {
         }
     }
 
+    private boolean canRepair(ItemStack ingredient, ItemStack toRepair) {
+        if (VersionHelper.hasPaperPatch) {
+            return ingredient.canRepair(toRepair);
+        } else {
+            return ItemStackProxy.INSTANCE.isValidRepairItem(ItemStackUtils.unwrap(toRepair), ItemStackUtils.unwrap(ingredient));
+        }
+    }
+
     /*
     处理item settings中repair item属性。如果修补材料不是自定义物品，则不会参与后续逻辑。
     这会忽略preprocess里event.setResult(null);
@@ -509,8 +514,8 @@ public final class RecipeEventListener implements Listener {
     @SuppressWarnings("UnstableApiUsage")
     private void processRepairable(PrepareAnvilEvent event) {
         AnvilInventory inventory = event.getInventory();
-        ItemStack first = inventory.getFirstItem();
-        ItemStack second = inventory.getSecondItem();
+        ItemStack first = inventory.getItem(0);
+        ItemStack second = inventory.getItem(1);
         if (ItemStackUtils.isEmpty(first) || ItemStackUtils.isEmpty(second)) return;
 
         Item wrappedSecond = BukkitItemManager.instance().wrap(second);
@@ -538,6 +543,7 @@ public final class RecipeEventListener implements Listener {
         Optional<ItemDefinition> optionalCustomTool = wrappedFirst.getDefinition();
         // 物品无法被修复
         if (optionalCustomTool.isPresent() && optionalCustomTool.get().settings().repairable().anvilRepair() == Tristate.FALSE) {
+            event.setResult(null);
             return;
         }
 
@@ -658,7 +664,7 @@ public final class RecipeEventListener implements Listener {
     private void processRename(PrepareAnvilEvent event) {
         if (event.getResult() == null) return;
         AnvilInventory inventory = event.getInventory();
-        ItemStack first = inventory.getFirstItem();
+        ItemStack first = inventory.getItem(0); // paper -> getFirstItem
         if (ItemStackUtils.isEmpty(first)) {
             return;
         }
@@ -795,8 +801,8 @@ public final class RecipeEventListener implements Listener {
         } else {
             if (craftingTableRecipe.alwaysRebuildOutput()) {
                 ItemBuildContext itemBuildContext = ItemBuildContext.of(serverPlayer);
-                if (craftingTableRecipe instanceof CustomDyeRecipe dyeRecipe) {
-                    inventory.setResult(ItemStackUtils.getBukkitStack(dyeRecipe.assemble(getCraftingInput(inventory), itemBuildContext)));
+                if (craftingTableRecipe.requiresInput()) {
+                    inventory.setResult(ItemStackUtils.getBukkitStack(craftingTableRecipe.assemble(getCraftingInput(inventory), itemBuildContext)));
                 } else {
                     inventory.setResult(ItemStackUtils.getBukkitStack(craftingTableRecipe.assemble(null, itemBuildContext)));
                 }
@@ -997,7 +1003,7 @@ public final class RecipeEventListener implements Listener {
         if (ItemStackUtils.isEmpty(inventory.getResult())) return;
         org.bukkit.inventory.Recipe smithingRecipe = inventory.getRecipe();
         if (smithingRecipe instanceof SmithingTrimRecipe recipe) {
-            ItemStack equipment = inventory.getInputEquipment();
+            ItemStack equipment = inventory.getItem(1); // paper -> getInputEquipment
             if (!ItemStackUtils.isEmpty(equipment)) {
                 Item wrappedEquipment = this.itemManager.wrap(equipment);
                 Optional<ItemDefinition> optionalCustomItem = wrappedEquipment.getDefinition();
@@ -1012,7 +1018,7 @@ public final class RecipeEventListener implements Listener {
                 }
             }
 
-            Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+            Key recipeId = KeyUtils.namespacedKeyToKey(recipe.getKey());
             Optional<Recipe> optionalRecipe = this.recipeManager.recipeById(recipeId);
             if (optionalRecipe.isEmpty()) {
                 return;
@@ -1030,7 +1036,7 @@ public final class RecipeEventListener implements Listener {
             Item result = smithingTrimRecipe.assemble(getSmithingInput(inventory), itemBuildContext);
             event.setResult(ItemStackUtils.getBukkitStack(result));
         } else if (smithingRecipe instanceof SmithingTransformRecipe recipe) {
-            Key recipeId = Key.of(recipe.getKey().namespace(), recipe.getKey().value());
+            Key recipeId = KeyUtils.namespacedKeyToKey(recipe.getKey());
             Optional<Recipe> optionalRecipe = this.recipeManager.recipeById(recipeId);
             if (optionalRecipe.isEmpty()) {
                 return;
@@ -1318,9 +1324,9 @@ public final class RecipeEventListener implements Listener {
 
     private SmithingInput getSmithingInput(SmithingInventory inventory) {
         return new SmithingInput(
-                ItemStackUtils.getUniqueIdItem(inventory.getInputEquipment()),
-                ItemStackUtils.getUniqueIdItem(inventory.getInputTemplate()),
-                ItemStackUtils.getUniqueIdItem(inventory.getInputMineral())
+                ItemStackUtils.getUniqueIdItem(inventory.getItem(1)), // getInputEquipment
+                ItemStackUtils.getUniqueIdItem(inventory.getItem(0)), // getInputTemplate
+                ItemStackUtils.getUniqueIdItem(inventory.getItem(2)) // getInputMineral
         );
     }
 

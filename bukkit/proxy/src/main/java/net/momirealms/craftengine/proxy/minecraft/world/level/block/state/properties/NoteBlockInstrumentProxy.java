@@ -7,8 +7,11 @@ import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 @ReflectionProxy(name = "net.minecraft.world.level.block.state.properties.NoteBlockInstrument")
 public interface NoteBlockInstrumentProxy {
     NoteBlockInstrumentProxy INSTANCE = ASMProxyFactory.create(NoteBlockInstrumentProxy.class);
-    Enum<?>[] VALUES = INSTANCE.values();
+    Enum<?> HARP = INSTANCE.valueOf("HARP");
 
     @MethodInvoker(name = "values", isStatic = true)
     Enum<?>[] values();
+
+    @MethodInvoker(name = "valueOf", isStatic = true)
+    Enum<?> valueOf(String name);
 }

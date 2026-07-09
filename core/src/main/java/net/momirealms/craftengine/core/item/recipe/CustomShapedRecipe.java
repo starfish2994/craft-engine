@@ -20,11 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.function.Predicate;
 
-public final class CustomShapedRecipe extends CustomCraftingTableRecipe {
+public class CustomShapedRecipe extends CustomCraftingTableRecipe {
     public static final Serializer SERIALIZER = new Serializer();
-    private final ParsedPattern parsedPattern;
-    private final Pattern pattern;
-    private final boolean ingredientCountSupport;
+    protected final ParsedPattern parsedPattern;
+    protected final Pattern pattern;
+    protected final boolean ingredientCountSupport;
 
     public CustomShapedRecipe(Key id,
                               boolean showNotification,
@@ -75,22 +75,36 @@ public final class CustomShapedRecipe extends CustomCraftingTableRecipe {
         return this.pattern;
     }
 
-    public record Pattern(String[] pattern, Map<Character, Ingredient> ingredients) {
+    public static class Pattern {
+        protected final String[] pattern;
+        protected final Map<Character, Ingredient> ingredients;
+
+        public Pattern(String[] pattern, Map<Character, Ingredient> ingredients) {
+            this.pattern = pattern;
+            this.ingredients = ingredients;
+        }
+
+        public String[] pattern() {
+            return this.pattern;
+        }
+
+        public Map<Character, Ingredient> ingredients() {
+            return this.ingredients;
+        }
 
         public ParsedPattern parse() {
-                String[] shrunk = shrink(this.pattern);
-                return new ParsedPattern(shrunk[0].length(), shrunk.length,
-                        toIngredientArray(shrunk, this.ingredients));
+            String[] shrunk = shrink(this.pattern);
+            return new ParsedPattern(shrunk[0].length(), shrunk.length, toIngredientArray(shrunk, this.ingredients));
         }
     }
 
     public static class ParsedPattern {
-        private final int width;
-        private final int height;
-        private final Optional<Ingredient>[] ingredients;
-        private final Optional<Ingredient>[] mirroredIngredients;
-        private final int ingredientCount;
-        private final boolean symmetrical;
+        protected final int width;
+        protected final int height;
+        protected final Optional<Ingredient>[] ingredients;
+        protected final Optional<Ingredient>[] mirroredIngredients;
+        protected final int ingredientCount;
+        protected final boolean symmetrical;
 
         @SuppressWarnings("unchecked")
         public ParsedPattern(int width, int height, Optional<Ingredient>[] ingredients) {

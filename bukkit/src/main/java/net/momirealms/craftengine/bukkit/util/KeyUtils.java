@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.util;
 
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.proxy.adventure.key.AdventureKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.resources.IdentifierProxy;
 import org.bukkit.NamespacedKey;
 
@@ -22,6 +23,10 @@ public final class KeyUtils {
     @SuppressWarnings("PatternValidation")
     public static net.kyori.adventure.key.Key toAdventureKey(Key key) {
         return net.kyori.adventure.key.Key.key(key.namespace(), key.value());
+    }
+
+    public static Object toPaperAdventureKey(Key key) {
+        return AdventureKeyProxy.INSTANCE.key(key.namespace(), key.value());
     }
 
     public static Object toIdentifier(String namespace, String path) {

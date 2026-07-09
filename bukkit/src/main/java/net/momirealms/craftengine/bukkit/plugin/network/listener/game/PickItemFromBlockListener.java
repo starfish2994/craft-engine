@@ -1,9 +1,8 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
-import net.momirealms.craftengine.bukkit.item.BukkitItem;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.item.Item;
@@ -45,13 +44,14 @@ public final class PickItemFromBlockListener implements ByteBufferPacketListener
     private static void handlePickItemFromBlockPacketOnMainThread(BukkitServerPlayer player, BlockPos pos) {
         CEWorld serverLevel = player.world().ceWorld();
         ImmutableBlockState blockState = serverLevel.getBlockStateAtIfLoaded(pos);
-        if (blockState == null) return;
+        if (blockState == null || blockState.customBlockState() == null) return;
+        if (!BlockStateUtils.isCustomBlock(blockState.customBlockState().minecraftState())) return;
         Item item = blockState.behavior().itemToPickup(player.world(), pos, blockState, player);
         Object itemStack;
         if (item == null) {
             Key itemId = blockState.settings().itemId();
             if (itemId == null) return;
-            BukkitItem wrappedItem = BukkitItemManager.instance().createWrappedItem(itemId, player);
+            Item wrappedItem = Item.byId(itemId);
             if (wrappedItem == null) return;
             itemStack = wrappedItem.minecraftItem();
         } else {
@@ -61,7 +61,7 @@ public final class PickItemFromBlockListener implements ByteBufferPacketListener
     }
 
     private static void tryPickItem(Player player, Object itemStack, Object blockPos) {
-        if (VersionHelper.isOrAbove1_21_5) {
+        if (VersionHelper.isOrAbove1_21_5 && VersionHelper.hasPaperPatch) {
             ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack, blockPos, null, true);
         } else if (VersionHelper.isOrAbove1_21_4) {
             ServerGamePacketListenerImplProxy.INSTANCE.tryPickItem(ServerPlayerProxy.INSTANCE.getConnection(CraftEntityProxy.INSTANCE.getEntity(player)), itemStack);

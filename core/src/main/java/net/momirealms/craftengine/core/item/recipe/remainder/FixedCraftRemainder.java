@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.core.item.recipe.remainder;
 
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
@@ -21,7 +20,7 @@ public final class FixedCraftRemainder implements CraftRemainder {
 
     @Override
     public Item remainder(Key recipeId, Item item) {
-        Item wrappedItem = CraftEngine.instance().itemManager().createWrappedItem(this.item, null);
+        Item wrappedItem = Item.byId(this.item);
         if (wrappedItem != null) {
             wrappedItem.count(this.count.getInt(ThreadLocalRandomSource.INSTANCE));
         }

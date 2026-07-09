@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.WorldlyContainer;
@@ -470,7 +471,7 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
         public void saveCustomData(CompoundTag tag) {
             if (isEmpty() || this.itemCount() <= 0) return;
             CompoundTag data = new CompoundTag();
-            data.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
+            data.put("data_version", new IntTag(VersionHelper.WORLD_VERSION));
             data.put("count", new IntTag(this.itemCount()));
             data.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.item().minecraftItem()));
             tag.put(behavior.customDataKey, data);
