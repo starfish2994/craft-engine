@@ -49,10 +49,9 @@ dependencies {
     // Skript
     compileOnly("com.github.SkriptLang:Skript:2.15.0")
     // FAWE
-    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core:2.10.3")
-    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.10.3") { 
-        isTransitive = false 
-    }
+    compileOnly(platform("com.intellectualsites.bom:bom-newest:1.52"))
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
     // MythicMobs
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
     // CustomNameplates
