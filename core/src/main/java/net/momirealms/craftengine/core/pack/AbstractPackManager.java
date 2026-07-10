@@ -590,6 +590,9 @@ public abstract class AbstractPackManager implements PackManager {
             this.plugin.logger().error("Invalid YAML file found: " + path + ".\n" + e.getMessage() +
                     "\nIt is recommended to use Visual Studio Code as your YAML editor to fix problems more quickly.");
             return null;
+        } catch (Exception e) {
+            this.plugin.logger().error("Error while reading config file: " + path, e);
+            return null;
         }
     }
 
