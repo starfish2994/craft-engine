@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.world.BlockHitResult;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -35,14 +36,15 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class LiquidCollisionFurnitureItemBehavior extends FurnitureItemBehavior {
     public static final ItemBehaviorFactory<LiquidCollisionFurnitureItemBehavior> FACTORY = new Factory();
     private final List<String> liquidTypes;
     private final boolean sourceOnly;
 
-    private LiquidCollisionFurnitureItemBehavior(Key id, Map<String, Rule> rules, boolean ignorePlacer, boolean ignoreEntities, boolean sourceOnly, List<String> liquidTypes) {
-        super(id, rules, ignorePlacer, ignoreEntities);
+    private LiquidCollisionFurnitureItemBehavior(Key id, Map<String, Rule> rules, boolean ignorePlacer, boolean ignoreEntities, boolean sourceOnly, List<String> liquidTypes, List<Object> tagsCanPlaceAgainst, LazyReference<Set<Object>> blockStatesCanPlaceAgainst, boolean blacklistMode) {
+        super(id, rules, ignorePlacer, ignoreEntities, tagsCanPlaceAgainst, blockStatesCanPlaceAgainst, blacklistMode);
         this.liquidTypes = liquidTypes;
         this.sourceOnly = sourceOnly;
     }
@@ -130,13 +132,17 @@ public final class LiquidCollisionFurnitureItemBehavior extends FurnitureItemBeh
                     rules.put(variant, new Rule(alignmentRule, rotationRule));
                 }
             }
+            FurnitureItemBehavior.TagsAndState againstTagsAndState = FurnitureItemBehavior.readAgainstBlockConfig(section);
             return new LiquidCollisionFurnitureItemBehavior(
                     furnitureId,
                     rules,
                     section.getBoolean(IGNORE_PLACER),
                     section.getBoolean(IGNORE_ENTITIES),
                     section.getBoolean(SOURCE_ONLY, true),
-                    section.getStringList(LIQUID_TYPE)
+                    section.getStringList(LIQUID_TYPE),
+                    againstTagsAndState.tags(),
+                    againstTagsAndState.blockStates(),
+                    section.getBoolean("blacklist", true)
             );
         }
 
