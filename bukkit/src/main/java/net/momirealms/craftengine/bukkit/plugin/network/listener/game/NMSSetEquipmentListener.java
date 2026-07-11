@@ -6,6 +6,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -38,7 +39,7 @@ public final class NMSSetEquipmentListener implements NMSPacketListener {
             newSlots.add(Pair.of(pair.getFirst(), item));
         }
         if (changed) {
-            event.replacePacket(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(
+            PacketUtils.replacePacket(event, packet, ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(
                     ClientboundSetEquipmentPacketProxy.INSTANCE.getEntityId(packet),
                     newSlots
             ));
