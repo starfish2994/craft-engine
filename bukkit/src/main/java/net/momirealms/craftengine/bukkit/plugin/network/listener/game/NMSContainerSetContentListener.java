@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -57,14 +58,14 @@ public final class NMSContainerSetContentListener implements NMSPacketListener {
         }
         if (changed) {
             if (VersionHelper.isOrAbove1_21_5) {
-                event.replacePacket(ClientboundContainerSetContentPacketProxy.INSTANCE.newInstance(
+                PacketUtils.replacePacket(event, packet, ClientboundContainerSetContentPacketProxy.INSTANCE.newInstance(
                         ClientboundContainerSetContentPacketProxy.INSTANCE.getContainerId(packet),
                         ClientboundContainerSetContentPacketProxy.INSTANCE.getStateId(packet),
                         newItems,
                         newCarriedItem
                 ));
             } else {
-                event.replacePacket(ClientboundContainerSetContentPacketProxy.INSTANCE.newInstance$legacy(
+                PacketUtils.replacePacket(event, packet, ClientboundContainerSetContentPacketProxy.INSTANCE.newInstance$legacy(
                         ClientboundContainerSetContentPacketProxy.INSTANCE.getContainerId(packet),
                         ClientboundContainerSetContentPacketProxy.INSTANCE.getStateId(packet),
                         newItems,

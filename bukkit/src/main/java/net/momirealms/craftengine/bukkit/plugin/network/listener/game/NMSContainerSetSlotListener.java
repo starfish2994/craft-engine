@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -18,7 +19,7 @@ public final class NMSContainerSetSlotListener implements NMSPacketListener {
         if (Config.disableItemOperations()) return;
         BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
         Item item = ItemStackUtils.wrap(ClientboundContainerSetSlotPacketProxy.INSTANCE.getItemStack(packet));
-        BukkitItemManager.instance().s2c(item.copy(), serverPlayer).ifPresent(newItem -> event.replacePacket(ClientboundContainerSetSlotPacketProxy.INSTANCE.newInstance(
+        BukkitItemManager.instance().s2c(item.copy(), serverPlayer).ifPresent(newItem -> PacketUtils.replacePacket(event, packet, ClientboundContainerSetSlotPacketProxy.INSTANCE.newInstance(
                 ClientboundContainerSetSlotPacketProxy.INSTANCE.getContainerId(packet),
                 ClientboundContainerSetSlotPacketProxy.INSTANCE.getStateId(packet),
                 ClientboundContainerSetSlotPacketProxy.INSTANCE.getSlot(packet),

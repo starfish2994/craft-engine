@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.util.PacketUtils;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -32,7 +33,7 @@ public final class NMSSetCursorItemListener implements NMSPacketListener {
                     Object actualItem = AbstractContainerMenuProxy.INSTANCE.getCarried(containerMenu);
                     // 但服务端上实际确是空气，就把它写成空气，避免因为其他插件导致手感问题
                     if (ItemStackProxy.INSTANCE.isEmpty(actualItem)) {
-                        event.replacePacket(ClientboundSetCursorItemPacketProxy.INSTANCE.newInstance(actualItem));
+                        PacketUtils.replacePacket(event, packet, (ClientboundSetCursorItemPacketProxy.INSTANCE.newInstance(actualItem)));
                         return;
                     }
                 }
@@ -40,7 +41,7 @@ public final class NMSSetCursorItemListener implements NMSPacketListener {
         }
 
         BukkitItemManager.instance().s2c(item.copy(),  serverPlayer).ifPresent(newItem -> {
-            event.replacePacket(ClientboundSetCursorItemPacketProxy.INSTANCE.newInstance(newItem.minecraftItem()));
+            PacketUtils.replacePacket(event, packet, ClientboundSetCursorItemPacketProxy.INSTANCE.newInstance(newItem.minecraftItem()));
         });
     }
 }
