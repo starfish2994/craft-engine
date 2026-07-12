@@ -19,6 +19,7 @@ public final class VersionHelper {
     public static final int majorVersion;
     public static final int minorVersion;
     public static final boolean isMojmap;
+    public static final boolean hasSpigotPatch;
     public static final boolean hasFoliaPatch;
     public static final boolean hasPaperPatch;
     public static final boolean hasLeavesPatch;
@@ -111,6 +112,7 @@ public final class VersionHelper {
             COMPONENT_RELEASE = isOrAbove1_20_5;
 
             isMojmap = checkMojMap() || isOrAbove26_1;
+            hasSpigotPatch = checkSpigot();
             hasFoliaPatch = checkFolia();
             hasPaperPatch = checkPaper();
             hasLeavesPatch = checkLeaves();
@@ -171,6 +173,10 @@ public final class VersionHelper {
     private static boolean checkMojMap() {
         // Check if the server is Mojmap
         return exists("net.neoforged.art.internal.RenamerImpl");
+    }
+
+    private static boolean checkSpigot() {
+        return exists("org.spigotmc.SpigotConfig");
     }
 
     private static boolean checkFolia() {

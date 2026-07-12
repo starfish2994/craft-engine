@@ -482,6 +482,11 @@ network:
   # ⚠️ This option will disable client-bound-data/material and the functionality of replacing tags in item name and lore.
   disable-item-operations: false
 
+  # Apply targeted optimizations to reduce Netty codec overhead.
+  # If you encounter any problems or find that it is incompatible with the server core you are using, please let us know.
+  # Requires a restart to apply.
+  optimize-item-codec: true
+
   # Allow <image> <shift> <global> tags in third-party plugins via packet manipulation
   # ⚠️ Disable unused handlers to reduce netty thread workload
   intercept-packets:
@@ -503,13 +508,14 @@ network:
     player-chat: true
     dialog: true
 
-  # Settings related to communication with CraftEngineMod
+  # Settings related to communication with CraftEngine Mod
   mod-channel:
     requires-permission: false
     logging-permission-denied: true
     creative-tab-max-items-per-packet: 10
 
-  # Encrypt the raw component information before sending it to the client. This option requires a restart to apply.
+  # Encrypt the raw component information before sending it to the client.
+  # Requires a restart to apply.
   item-crypto:
     enable: true
     # Encryption algorithm for item data

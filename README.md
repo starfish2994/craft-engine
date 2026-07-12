@@ -62,8 +62,9 @@ The code you contribute will be open-sourced under the GPLv3 license. If you pre
 ### 💖 Support the Developer
 Help sustain CraftEngine's development by going Premium!
 
-- **Polymart**: [Support via Polymart](https://polymart.org/product/7624/craftengine)
+- **VoxelShop**: [Support via Voxelshop](https://voxel.shop/product/7624/craftengine)
 - **BuiltByBit**: [Support via BuiltByBit](https://builtbybit.com/resources/craftengine.82674/)
+- **NMCrate**: [Support via NMCrate](https://nmcrate.com/products/craftengine-1)
 - **Afdian**: [Support via Afdian](https://afdian.com/@xiaomomi/)
 
 ## CraftEngine API

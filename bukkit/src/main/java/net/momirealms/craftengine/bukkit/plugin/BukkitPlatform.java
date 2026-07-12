@@ -114,7 +114,7 @@ public final class BukkitPlatform implements Platform {
 
     @Override
     public boolean hasProxy() {
-        boolean bungee = SpigotConfigProxy.INSTANCE.getBungee();
+        boolean bungee = VersionHelper.hasSpigotPatch && SpigotConfigProxy.INSTANCE.getBungee();
         boolean velocity = false;
         if (VersionHelper.hasPaperPatch) {
             velocity = GlobalConfigurationProxy.ProxiesProxy.VelocityProxy.INSTANCE.getEnabled(

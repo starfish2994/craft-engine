@@ -50,6 +50,7 @@ abstract class GenerateScopedResourceIndexTask : DefaultTask() {
 }
 
 val generateScopedIndex = tasks.register<GenerateScopedResourceIndexTask>("generateScopedResourceIndex") {
+    description = ""
     sourceResources.set(layout.projectDirectory.dir("src/main/resources"))
     outputDir.set(layout.buildDirectory.dir("generated/resource-indexes"))
 }

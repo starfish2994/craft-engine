@@ -3,15 +3,19 @@ package net.momirealms.craftengine.bukkit.util;
 import io.netty.buffer.ByteBuf;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.network.FriendlyByteBufProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.RegistryFriendlyByteBufProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamDecoderProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamEncoderProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.BundlePacketProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundBundlePacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetPassengersPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class PacketUtils {
@@ -77,5 +81,24 @@ public final class PacketUtils {
     public static void writeUntrustedItem(ByteBuf buf, Item item) {
         if (!VersionHelper.isOrAbove1_20_5) throw new UnsupportedOperationException("This feature is only available on 1.20.5+");
         StreamEncoderProxy.INSTANCE.encode(UNTRUSTED_ITEM_CODEC, ensureNMSFriendlyByteBuf(buf), item.minecraftItem());
+    }
+
+    public static void replacePacket(NMSPacketEvent event, Object oldPacket, Object newPacket) {
+        Object packet = event.optionalNewPacket();
+        if (packet == null) packet = event.getPacket();
+        if (ClientboundBundlePacketProxy.CLASS.isInstance(packet)) {
+            List<Object> newPackets = new ArrayList<>(4);
+            Iterable<Object> packets = BundlePacketProxy.INSTANCE.getPackets(packet);
+            for (Object packetInBundle : packets) {
+                if (packetInBundle == oldPacket) {
+                    newPackets.add(newPacket);
+                } else {
+                    newPackets.add(packetInBundle);
+                }
+            }
+            event.replacePacket(ClientboundBundlePacketProxy.INSTANCE.newInstance(newPackets));
+        } else {
+            event.replacePacket(newPacket);
+        }
     }
 }
