@@ -51,6 +51,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.levelgen.placement
 import net.momirealms.craftengine.proxy.minecraft.world.level.levelgen.placement.PlacementModifierProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.lighting.LightEventListenerProxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.EntityLookupProxy;
+import net.momirealms.craftengine.proxy.universeprojects.util.palette.CompactHashPaletteProxy;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -658,6 +659,16 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                             if (VersionHelper.hasLithiumPatch && LithiumHashPaletteProxy.CLASS.isInstance(palette)) {
                                 Reference2IntOpenHashMap<Object> table = LithiumHashPaletteProxy.INSTANCE.getTable(palette);
                                 for (Object blockState : table.keySet()) {
+                                    if (blockState != null) {
+                                        if (BlockStateUtils.isCustomBlock(blockState)) {
+                                            requiresSync = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else if (VersionHelper.hasUniverseSpigotPatch && CompactHashPaletteProxy.CLASS.isInstance(palette)) {
+                                Object[] blockStates = CompactHashPaletteProxy.INSTANCE.getEntries(palette);
+                                for (Object blockState : blockStates) {
                                     if (blockState != null) {
                                         if (BlockStateUtils.isCustomBlock(blockState)) {
                                             requiresSync = true;

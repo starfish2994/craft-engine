@@ -26,6 +26,7 @@ public final class VersionHelper {
     public static final boolean hasCanvasPatch;
     public static final boolean hasLeafPatch;
     public static final boolean hasLithiumPatch;
+    public static final boolean hasUniverseSpigotPatch;
     public static final boolean isOrAbove1_20;
     public static final boolean isOrAbove1_20_1;
     public static final boolean isOrAbove1_20_2;
@@ -119,6 +120,7 @@ public final class VersionHelper {
             hasCanvasPatch = checkCanvas();
             hasLeafPatch = checkLeaf();
             hasLithiumPatch = checkLithium();
+            hasUniverseSpigotPatch = checkUniverseSpigot();
         } catch (Exception e) {
             throw new RuntimeException("Failed to init VersionHelper", e);
         }
@@ -201,5 +203,9 @@ public final class VersionHelper {
 
     private static boolean checkLithium() {
         return exists("net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette");
+    }
+
+    private static boolean checkUniverseSpigot() {
+        return exists("com.universeprojects.util.palette.CompactHashPalette");
     }
 }
