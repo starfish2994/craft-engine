@@ -39,6 +39,7 @@ fun DependencyHandlerScope.common(project: Project, configuration: String = Java
     configuration("com.bucket4j:bucket4j_jdk17-core:${v("bucket4j_version")}")
     configuration("com.ezylang:EvalEx:${v("evalex_version")}")
     configuration("com.google.jimfs:jimfs:${v("jimfs_version")}")
+    configuration("org.graalvm.polyglot:polyglot:${v("graaljs_version")}")
 }
 
 fun DependencyHandlerScope.netty(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {

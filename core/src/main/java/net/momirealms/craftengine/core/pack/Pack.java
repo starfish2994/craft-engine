@@ -61,6 +61,14 @@ public final class Pack {
         return this.folder.resolve("configuration");
     }
 
+    /**
+     * Returns the 'script' folder within the specified directory,
+     * used for storing js scripts.
+     */
+    public Path scriptFolder() {
+        return this.folder.resolve("script");
+    }
+
     public Path[] resourcePackFolders() {
         if (this.subpacks.length == 0) return new Path[] {resourcePackFolder()};
         Path[] folders = new Path[1 + this.subpacks.length];
@@ -77,6 +85,16 @@ public final class Pack {
         folders[0] = configurationFolder();
         for (int i = 1; i <= this.subpacks.length; i++) {
             folders[i] = this.folder.resolve("subpacks").resolve(this.subpacks[i - 1]).resolve("configuration");
+        }
+        return folders;
+    }
+
+    public Path[] scriptFolders() {
+        if (this.subpacks.length == 0) return new Path[] {scriptFolder()};
+        Path[] folders = new Path[1 + this.subpacks.length];
+        folders[0] = scriptFolder();
+        for (int i = 1; i <= this.subpacks.length; i++) {
+            folders[i] = this.folder.resolve("subpacks").resolve(this.subpacks[i - 1]).resolve("script");
         }
         return folders;
     }

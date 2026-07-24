@@ -76,7 +76,7 @@ public final class BukkitGuiManager implements GuiManager, Listener {
 
     @Override
     public void updateInventoryTitle(net.momirealms.craftengine.core.entity.player.Player player, Component component) {
-        Object nmsPlayer = player.serverPlayer();
+        Object nmsPlayer = player.minecraftPlayer();
         Object containerMenu = PlayerProxy.INSTANCE.getContainerMenu(nmsPlayer);
         int containerId = AbstractContainerMenuProxy.INSTANCE.getContainerId(containerMenu);
         Object menuType = AbstractContainerMenuProxy.INSTANCE.getMenuType(containerMenu);

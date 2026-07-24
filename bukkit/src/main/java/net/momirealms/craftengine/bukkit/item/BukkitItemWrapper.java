@@ -53,6 +53,6 @@ public abstract class BukkitItemWrapper implements ItemWrapper {
 
     @Override
     public void hurtAndBreak(int amount, @NotNull Player player, @Nullable EquipmentSlot slot) {
-        ItemStackUtils.hurtAndBreak(this.itemStack, amount, player.serverPlayer(), slot == null ? null : EquipmentSlotUtils.toNMSEquipmentSlot(slot));
+        ItemStackUtils.hurtAndBreak(this.itemStack, amount, player.minecraftPlayer(), slot == null ? null : EquipmentSlotUtils.toNMSEquipmentSlot(slot));
     }
 }

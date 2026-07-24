@@ -58,6 +58,12 @@ public final class Config {
     private boolean misc$inject_packet_vents;
     private boolean misc$hook_axiom_paper = true;
 
+    private boolean scripting$js$enable;
+    private boolean scripting$js$nashorn_compat;
+    private boolean scripting$js$strict;
+    private String scripting$js$ecmascript_version;
+    private boolean scripting$js$allow_all_access;
+
     private boolean debug$common;
     private boolean debug$packet;
     private boolean debug$item;
@@ -370,6 +376,13 @@ public final class Config {
         this.misc$multi_threaded_configuration_load = config.getBoolean("misc.multi-threaded-configuration-load", true);
         this.misc$inject_packet_vents = config.getBoolean("misc.inject-packetevents", false);
         this.misc$hook_axiom_paper = config.getBoolean("misc.hook-axiompaper", true);
+
+        // scripting
+        this.scripting$js$enable = config.getBoolean("scripting.js.enable", false);
+        this.scripting$js$nashorn_compat = config.getBoolean("scripting.js.nashorn-compat", true);
+        this.scripting$js$strict = config.getBoolean("scripting.js.strict", true);
+        this.scripting$js$ecmascript_version = config.getString("scripting.js.ecmascript-version", "latest");
+        this.scripting$js$allow_all_access = config.getBoolean("scripting.js.allow-all-access", true);
 
         // basics
         this.metrics = config.getBoolean("metrics", false);
@@ -792,6 +805,26 @@ public final class Config {
 
     public static boolean injectPacketEvents() {
         return instance.misc$inject_packet_vents;
+    }
+
+    public static boolean enableJsScripting() {
+        return instance.scripting$js$enable;
+    }
+
+    public static boolean jsNashornCompat() {
+        return instance.scripting$js$nashorn_compat;
+    }
+
+    public static boolean jsStrictMode() {
+        return instance.scripting$js$strict;
+    }
+
+    public static String jsEcmascriptVersion() {
+        return instance.scripting$js$ecmascript_version;
+    }
+
+    public static boolean jsAllowAllAccess() {
+        return instance.scripting$js$allow_all_access;
     }
 
     public static boolean hookAxiomPaper() {

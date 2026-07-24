@@ -199,7 +199,7 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
                 context.getLevel().minecraftWorld(),
                 LocationUtils.toBlockPos(context.getClickedPos()),
                 blockStateToPlace.customBlockState().minecraftState(),
-                Optional.ofNullable(context.getPlayer()).map(Player::serverPlayer).orElse(null),
+                Optional.ofNullable(context.getPlayer()).map(Player::minecraftPlayer).orElse(null),
                 context.getItem().minecraftItem()
         });
 
@@ -251,7 +251,7 @@ public class BlockItemBehavior extends ItemBehavior implements BlockItem {
     @SuppressWarnings({"UnstableApiUsage", "removal"})
     protected boolean canPlace(BlockPlaceContext context, ImmutableBlockState state) {
         Player cePlayer = context.getPlayer();
-        Object player = cePlayer != null ? cePlayer.serverPlayer() : null;
+        Object player = cePlayer != null ? cePlayer.minecraftPlayer() : null;
         Object blockState = state.customBlockState().minecraftState();
         Object blockPos = LocationUtils.toBlockPos(context.getClickedPos());
         Object voxelShape;

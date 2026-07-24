@@ -74,7 +74,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
         if (!state.get(this.poweredProperty)) {
             press(BlockStateUtils.getBlockOwner(state.customBlockState().minecraftState()),
                     state, world.minecraftWorld(), LocationUtils.toBlockPos(pos),
-                    player != null ? player.serverPlayer() : null);
+                    player != null ? player.minecraftPlayer() : null);
         }
         return InteractionResult.SUCCESS_AND_CANCEL;
     }

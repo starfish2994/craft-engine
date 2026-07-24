@@ -283,7 +283,7 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         // 重载资源
         if (VersionHelper.isOrAbove1_21_6 && !VersionHelper.hasFoliaPatch) {
             for (BukkitServerPlayer player : this.plugin.networkManager().onlineUsers()) {
-                Object serverPlayer = player.serverPlayer();
+                Object serverPlayer = player.minecraftPlayer();
                 Object advancements = ServerPlayerProxy.INSTANCE.getAdvancements(serverPlayer);
                 if (advancements != null) {
                     PlayerAdvancementsProxy.INSTANCE.save(advancements);

@@ -65,6 +65,7 @@ public final class CommonFunctions {
     public static final CommonFunctionType<PlayTotemAnimationFunction<Context>> PLAY_TOTEM_ANIMATION = register(Key.ce("play_totem_animation"), PlayTotemAnimationFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<CloseInventoryFunction<Context>> CLOSE_INVENTORY = register(Key.ce("close_inventory"), CloseInventoryFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<ClearItemFunction<Context>> CLEAR_ITEM = register(Key.ce("clear_item"), ClearItemFunction.factory(CommonConditions::fromConfig));
+    public static final CommonFunctionType<JsFunction<Context>> JS = register(Key.ce("js"), JsFunction.factory(CommonConditions::fromConfig));
 
     private CommonFunctions() {}
 

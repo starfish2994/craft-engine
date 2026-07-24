@@ -145,8 +145,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     private ConnectionState encoderState = ConnectionState.HANDSHAKING; // outbound(encode|s2c)
     private boolean shouldProcessFinishConfiguration = true;
     // some references
-    private Reference<org.bukkit.entity.Player> playerRef;
-    private Reference<Object> serverPlayerRef;
+    private Reference<org.bukkit.entity.Player> bukkitPlayerRef;
+    private Reference<Object> nmsPlayerRef;
     // client side dimension info
     private World clientSideWorld;
     // check main hand/offhand interaction
@@ -253,8 +253,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     }
 
     public void setPlayer(org.bukkit.entity.Player player) {
-        this.playerRef = new WeakReference<>(player);
-        this.serverPlayerRef = new WeakReference<>(CraftEntityProxy.INSTANCE.getEntity(player));
+        this.bukkitPlayerRef = new WeakReference<>(player);
+        this.nmsPlayerRef = new WeakReference<>(CraftEntityProxy.INSTANCE.getEntity(player));
         this.uuid = player.getUniqueId();
         this.isUUIDVerified = true;
         this.name = player.getName();
@@ -435,7 +435,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public void swingHand(InteractionHand hand) {
-        LivingEntityProxy.INSTANCE.swing(serverPlayer(), hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND, true);
+        LivingEntityProxy.INSTANCE.swing(minecraftPlayer(), hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND, true);
     }
 
     @Override
@@ -445,7 +445,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public boolean canInstabuild() {
-        Object abilities = PlayerProxy.INSTANCE.getAbilities(serverPlayer());
+        Object abilities = PlayerProxy.INSTANCE.getAbilities(minecraftPlayer());
         return AbilitiesProxy.INSTANCE.isInstantBuild(abilities);
     }
 
@@ -638,7 +638,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public void resendChunks() {
         if (!VersionHelper.hasPaperPatch) return;
-        Object chunkLoader = ServerPlayerProxy.INSTANCE.getChunkLoader(serverPlayer());
+        Object chunkLoader = ServerPlayerProxy.INSTANCE.getChunkLoader(minecraftPlayer());
         LongOpenHashSet sentChunks = RegionizedPlayerChunkLoaderProxy.PlayerChunkLoaderDataProxy.INSTANCE.getSentChunks(chunkLoader);
         if (sentChunks.isEmpty()) {
             return;
@@ -658,7 +658,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     public void tick() {
         // 还没上线或是已经离线
-        Object serverPlayer = serverPlayer();
+        Object serverPlayer = minecraftPlayer();
         if (serverPlayer == null) return;
 
         // 更新玩家游戏刻
@@ -845,7 +845,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public float getDestroyProgress(Object blockState, BlockPos pos) {
         Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
-        float progress = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getDestroyProgress(blockState, serverPlayer(), CraftWorldProxy.INSTANCE.getWorld(platformPlayer().getWorld()), LocationUtils.toBlockPos(pos));
+        float progress = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getDestroyProgress(blockState, minecraftPlayer(), CraftWorldProxy.INSTANCE.getWorld(platformPlayer().getWorld()), LocationUtils.toBlockPos(pos));
         if (optionalCustomState.isPresent()) {
             ImmutableBlockState customState = optionalCustomState.get();
             Item tool = getItemInHand(InteractionHand.MAIN_HAND);
@@ -919,7 +919,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         }
         this.clientSideCanBreak = canBreak;
         if (VersionHelper.isOrAbove1_20_5) {
-            Object serverPlayer = serverPlayer();
+            Object serverPlayer = minecraftPlayer();
             Object attributeInstance = LivingEntityProxy.INSTANCE.getAttribute(serverPlayer, AttributesProxy.BLOCK_BREAK_SPEED);
             sendPacket(ClientboundUpdateAttributesPacketProxy.INSTANCE.newInstance$0(entityId(), Lists.newArrayList(attributeInstance)), true);
         } else {
@@ -992,7 +992,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     }
 
     private void resetEffect(Object mobEffect) {
-        Object effectInstance = ServerPlayerProxy.INSTANCE.getEffect$legacy(serverPlayer(), mobEffect);
+        Object effectInstance = ServerPlayerProxy.INSTANCE.getEffect$legacy(minecraftPlayer(), mobEffect);
         Object packet;
         if (effectInstance != null) {
             packet = ClientboundUpdateMobEffectPacketProxy.INSTANCE.newInstance(entityId(), effectInstance);
@@ -1026,7 +1026,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         }
 
         Object blockPos = LocationUtils.toBlockPos(hitPos);
-        Object serverPlayer = serverPlayer();
+        Object serverPlayer = minecraftPlayer();
 
         // check item in hand
         BukkitItem item = this.getItemInHand(InteractionHand.MAIN_HAND);
@@ -1248,7 +1248,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
             if (this.lastUpdateInteractionRangeTick + 20 > gameTicks()) {
                 return this.cachedInteractionRange;
             }
-            Object attribute = LivingEntityProxy.INSTANCE.getAttribute(serverPlayer(), AttributesProxy.BLOCK_INTERACTION_RANGE);
+            Object attribute = LivingEntityProxy.INSTANCE.getAttribute(minecraftPlayer(), AttributesProxy.BLOCK_INTERACTION_RANGE);
             if (attribute == null) {
                 this.cachedInteractionRange = 4.5d;
             } else {
@@ -1285,12 +1285,12 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public float yRot() {
-        return EntityProxy.INSTANCE.getYRot(this.serverPlayer());
+        return EntityProxy.INSTANCE.getYRot(this.minecraftPlayer());
     }
 
     @Override
     public float xRot() {
-        return EntityProxy.INSTANCE.getXRot(this.serverPlayer());
+        return EntityProxy.INSTANCE.getXRot(this.minecraftPlayer());
     }
 
     @Override
@@ -1310,35 +1310,35 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public double x() {
-        return EntityProxy.INSTANCE.getX(serverPlayer());
+        return EntityProxy.INSTANCE.getX(minecraftPlayer());
     }
 
     @Override
     public double y() {
-        return EntityProxy.INSTANCE.getY(serverPlayer());
+        return EntityProxy.INSTANCE.getY(minecraftPlayer());
     }
 
     @Override
     public double z() {
-        return EntityProxy.INSTANCE.getZ(serverPlayer());
+        return EntityProxy.INSTANCE.getZ(minecraftPlayer());
     }
 
     @Override
-    public Object serverPlayer() {
-        if (this.serverPlayerRef == null) return null;
-        return this.serverPlayerRef.get();
+    public Object minecraftPlayer() {
+        if (this.nmsPlayerRef == null) return null;
+        return this.nmsPlayerRef.get();
     }
 
     @Override
     public org.bukkit.entity.Player platformPlayer() {
-        if (this.playerRef == null) return null;
-        return this.playerRef.get();
+        if (this.bukkitPlayerRef == null) return null;
+        return this.bukkitPlayerRef.get();
     }
 
     @Override
     public ChannelHandler connection() {
         if (this.connection == null) {
-            Object serverPlayer = serverPlayer();
+            Object serverPlayer = minecraftPlayer();
             if (serverPlayer != null) {
                 if (VersionHelper.isOrAbove1_20_2) {
                     this.connection = ServerCommonPacketListenerImplProxy.INSTANCE.getConnection(ServerPlayerProxy.INSTANCE.getConnection(serverPlayer));
@@ -1364,7 +1364,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public Object minecraftEntity() {
-        return serverPlayer();
+        return minecraftPlayer();
     }
 
     @Override
@@ -1639,7 +1639,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public int getXpNeededForNextLevel() {
-        return PlayerProxy.INSTANCE.getXpNeededForNextLevel(serverPlayer());
+        return PlayerProxy.INSTANCE.getXpNeededForNextLevel(minecraftPlayer());
     }
 
     @Override
@@ -1703,8 +1703,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public int clearOrCountMatchingInventoryItems(Predicate<Item> predicate, int count) {
         Predicate<Object> nmsPredicate = nmsStack -> predicate.test(this.plugin.itemManager().wrap(ItemStackUtils.getBukkitStack(nmsStack)));
-        Object inventory = PlayerProxy.INSTANCE.getInventory(serverPlayer());
-        Object inventoryMenu = PlayerProxy.INSTANCE.getInventoryMenu(serverPlayer());
+        Object inventory = PlayerProxy.INSTANCE.getInventory(minecraftPlayer());
+        Object inventoryMenu = PlayerProxy.INSTANCE.getInventoryMenu(minecraftPlayer());
         Object craftSlots = InventoryMenuProxy.INSTANCE.getCraftSlots(inventoryMenu);
         return InventoryProxy.INSTANCE.clearOrCountMatchingItems(inventory, nmsPredicate, count, craftSlots);
     }
@@ -1836,7 +1836,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public void setItemCooldown(Key id, int ticks) {
         if (VersionHelper.isOrAbove1_21_2) {
-            Object serverPlayer = serverPlayer();
+            Object serverPlayer = minecraftPlayer();
             Object cooldowns = PlayerProxy.INSTANCE.getCooldowns(serverPlayer);
             ItemCooldownsProxy.INSTANCE.addCooldown(cooldowns, KeyUtils.toIdentifier(id), ticks);
         }
@@ -1845,7 +1845,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public int getItemCooldown(Key id) {
         if (VersionHelper.isOrAbove1_21_2) {
-            Object serverPlayer = serverPlayer();
+            Object serverPlayer = minecraftPlayer();
             Object cooldowns = PlayerProxy.INSTANCE.getCooldowns(serverPlayer);
             Map<Object, Object> instanceById = ItemCooldownsProxy.INSTANCE.getCooldowns(cooldowns);
             Object instance = instanceById.get(KeyUtils.toIdentifier(id));

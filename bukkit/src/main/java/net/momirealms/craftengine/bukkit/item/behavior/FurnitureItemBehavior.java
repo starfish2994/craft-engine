@@ -172,7 +172,7 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
             if (this.ignoreEntities) {
                 entityPredicate = (o) -> false;
             } else if (this.ignorePlacer) {
-                entityPredicate = player != null ? (o) -> o != player.serverPlayer() && EntityProxy.INSTANCE.getBlocksBuilding(o) : EntityProxy.INSTANCE::getBlocksBuilding;
+                entityPredicate = player != null ? (o) -> o != player.minecraftPlayer() && EntityProxy.INSTANCE.getBlocksBuilding(o) : EntityProxy.INSTANCE::getBlocksBuilding;
             } else {
                 entityPredicate = EntityProxy.INSTANCE::getBlocksBuilding;
             }

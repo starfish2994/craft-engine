@@ -46,6 +46,8 @@ import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.dis
 import net.momirealms.craftengine.core.plugin.network.protocol.recipe.modern.display.slot.SlotDisplayTypes;
 import net.momirealms.craftengine.core.plugin.proxy.ProxyMessageManager;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
+import net.momirealms.craftengine.core.plugin.script.ScriptManager;
+import net.momirealms.craftengine.core.plugin.script.ScriptManagerImpl;
 import net.momirealms.craftengine.core.plugin.text.component.NBTDataComponentConverter;
 import net.momirealms.craftengine.core.sound.SoundManager;
 import net.momirealms.craftengine.core.util.CompletableFutures;
@@ -107,6 +109,7 @@ public abstract class CraftEngine implements Plugin {
     protected PaintingManager paintingManager;
     protected ProxyMessageManager proxyMessageManager;
     protected AttributeManager attributeManager;
+    protected ScriptManager scriptManager;
 
     private final PluginTaskRegistry preEnableTaskRegistry = new PluginTaskRegistry();
     private final PluginTaskRegistry postEnableTaskRegistry = new PluginTaskRegistry();
@@ -155,6 +158,12 @@ public abstract class CraftEngine implements Plugin {
         this.itemBrowserManager = new ItemBrowserManagerImpl(this);
         // 初始化实体剔除器
         this.entityCullingManager = EntityCullingManager.INSTANCE;
+        // 初始化脚本管理器（GraalJS 依赖缺失时自动降级为不可用）
+        try {
+            this.scriptManager = new ScriptManagerImpl(this);
+        } catch (Throwable t) {
+            this.logger.warn("Failed to initialize script manager, js scripting is disabled", t);
+        }
         // 初始化队伍管理器
         this.teamManager = new TeamManagerImpl(this);
         // 初始化虚拟队伍
@@ -282,6 +291,15 @@ public abstract class CraftEngine implements Plugin {
                     future.complete(ReloadResult.failure());
                     return;
                 }
+                try {
+                    // pack 列表就绪后再加载脚本（pack 内 script 目录依赖 pack 扫描结果）
+                    if (this.scriptManager != null) this.scriptManager.reload();
+                } catch (Throwable e) {
+                    this.logger().warn("Failed to load scripts", e);
+                    future.complete(ReloadResult.failure());
+                    return;
+                }
+
                 // 执行延迟任务
                 this.runDelayTasks(reloadRecipe);
                 // 重新发送tags，需要等待tags更新完成
@@ -368,6 +386,12 @@ public abstract class CraftEngine implements Plugin {
             this.packManager.updateCachedConfigFiles();
             // 不要加载配方和进度
             this.packManager.loadResources((p) -> p.loadingStage() != LoadingStages.RECIPE);
+            try {
+                // pack 列表就绪后再加载脚本（pack 内 script 目录依赖 pack 扫描结果）
+                if (this.scriptManager != null) this.scriptManager.reload();
+            } catch (Throwable e) {
+                this.logger().warn("Failed to load scripts", e);
+            }
             this.runDelayTasks(false);
         }
 
@@ -534,6 +558,7 @@ public abstract class CraftEngine implements Plugin {
         if (this.globalVariableManager != null) this.globalVariableManager.disable();
         if (this.projectileManager != null) this.projectileManager.disable();
         if (this.entityCullingManager != null) this.entityCullingManager.disable();
+        if (this.scriptManager != null) this.scriptManager.unload();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
         if (this.commandManager != null) this.commandManager.unregisterFeatures();
@@ -695,6 +720,11 @@ public abstract class CraftEngine implements Plugin {
     @Override
     public AttributeManager attributeManager() {
         return this.attributeManager;
+    }
+
+    @Override
+    public ScriptManager scriptManager() {
+        return this.scriptManager;
     }
 
     @Override

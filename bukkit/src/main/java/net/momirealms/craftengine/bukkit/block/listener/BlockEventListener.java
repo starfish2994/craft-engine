@@ -175,7 +175,7 @@ public final class BlockEventListener implements Listener {
             if (!state.isEmpty()) {
                 if (!event.isCancelled()) {
                     // double check adventure mode to prevent dupe
-                    Object abilities = PlayerProxy.INSTANCE.getAbilities(serverPlayer.serverPlayer());
+                    Object abilities = PlayerProxy.INSTANCE.getAbilities(serverPlayer.minecraftPlayer());
                     if (!AbilitiesProxy.INSTANCE.isMayBuild(abilities) && !serverPlayer.canBreak(blockPos, null)) {
                         return;
                     }
@@ -233,7 +233,7 @@ public final class BlockEventListener implements Listener {
                             .withParameter(DirectContextParameters.POSITION, position)
                             .withParameter(DirectContextParameters.PLAYER, serverPlayer)
                             .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand).build();
-                    BlockLootContext blockLootContext = new BlockLootContext(world, serverPlayer, ((float) serverPlayer.luck()), lootContext, BukkitAdaptor.adapt(block), itemInHand, serverPlayer.serverPlayer());
+                    BlockLootContext blockLootContext = new BlockLootContext(world, serverPlayer, ((float) serverPlayer.luck()), lootContext, BukkitAdaptor.adapt(block), itemInHand, serverPlayer.minecraftPlayer());
                     for (Loot loot : it.loots()) {
                         for (Item item : loot.getRandomItems(blockLootContext)) {
                             world.dropItemNaturally(position, item);

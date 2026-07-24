@@ -458,7 +458,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
 
     @Override
     public boolean hasPermission(NetWorkUser user, String permission) {
-        if (user.platformPlayer() instanceof org.bukkit.entity.Player player) {
+        if (((Player) user).platformPlayer() instanceof org.bukkit.entity.Player player) {
             return player.hasPermission(permission);
         }
         if (this.hasLuckPerms) {

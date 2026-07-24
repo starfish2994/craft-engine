@@ -707,6 +707,22 @@ client-optimization:
       # Controls how quickly the bucket refills
       restore-per-tick: 25
 
+scripting:
+  js:
+    # Enables the GraalJS-based JavaScript scripting system
+    # Downloads ~68MB of dependencies from Maven Central on first enable. Requires restart.
+    enable: false
+    # ECMAScript version (e.g. latest, 2022, 2023)
+    ecmascript-version: latest
+    # Strict mode: throws on common JS mistakes (undeclared variables etc.)
+    strict: true
+    # Nashorn compatibility mode: bean getter mapping (event.block -> getBlock()) etc.
+    # Recommended when migrating scripts from Nashorn-based plugins
+    nashorn-compat: true
+    # Grants scripts full access to host classes (Java.type, all public members)
+    # Disable to run scripts in explicit-export-only mode (breaks most scripts)
+    allow-all-access: true
+
 misc:
   # Suppresses connection logs during server configuration phase
   filter-configuration-phase-disconnect: false

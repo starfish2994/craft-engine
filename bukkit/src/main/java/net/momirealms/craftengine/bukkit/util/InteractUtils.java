@@ -1091,7 +1091,7 @@ public final class InteractUtils {
     public static Object toNMSBlockPlaceContext(BlockPlaceContext context) {
         return BlockPlaceContextProxy.INSTANCE.newInstance(
                 context.getLevel().minecraftWorld(),
-                Optional.ofNullable(context.getPlayer()).map(net.momirealms.craftengine.core.entity.player.Player::serverPlayer).orElse(null),
+                Optional.ofNullable(context.getPlayer()).map(net.momirealms.craftengine.core.entity.player.Player::minecraftPlayer).orElse(null),
                 context.getHand() == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND,
                 context.getItem().minecraftItem(),
                 toNMSHitResult(context.getHitResult())

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
@@ -15,7 +16,7 @@ public final class EntityEventListener implements ByteBufferPacketListener {
 
     @Override
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-        Object player = user.serverPlayer();
+        Object player = ((Player) user).minecraftPlayer();
         if (player == null) return;
         FriendlyByteBuf buf = event.getBuffer();
         int entityId = buf.readInt();

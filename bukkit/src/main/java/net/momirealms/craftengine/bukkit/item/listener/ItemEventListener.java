@@ -443,7 +443,7 @@ public final class ItemEventListener implements Listener {
                         // 先尝试 useOn
                         result = ItemProxy.INSTANCE.useOn(item, UseOnContextProxy.INSTANCE.newInstance(
                                 world.minecraftWorld(),
-                                serverPlayer.serverPlayer(),
+                                serverPlayer.minecraftPlayer(),
                                 hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND,
                                 itemInHand.minecraftItem(),
                                 nmsHitResult
@@ -455,7 +455,7 @@ public final class ItemEventListener implements Listener {
                         result = ItemProxy.INSTANCE.use(
                                 item,
                                 serverPlayer.world().minecraftWorld(),
-                                serverPlayer.serverPlayer(),
+                                serverPlayer.minecraftPlayer(),
                                 hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND
                         );
                     } finally {
@@ -694,7 +694,7 @@ public final class ItemEventListener implements Listener {
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return;
         this.plugin.scheduler().platform().runDelayed(() -> {
-            Object container = PlayerProxy.INSTANCE.getContainerMenu(serverPlayer.serverPlayer());
+            Object container = PlayerProxy.INSTANCE.getContainerMenu(serverPlayer.minecraftPlayer());
             if (!EnchantmentMenuProxy.CLASS.isInstance(container)) return;
             Object secondSlotItem = SlotProxy.INSTANCE.getItem(AbstractContainerMenuProxy.INSTANCE.getSlot(container, 1));
             if (secondSlotItem == null || ItemStackProxy.INSTANCE.isEmpty(secondSlotItem)) return;

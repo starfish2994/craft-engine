@@ -28,7 +28,7 @@ public final class NMSSetCursorItemListener implements NMSPacketListener {
         if (VersionHelper.isOrAbove1_21_5) {
             // 发出来的是非空物品
             if (!item.isEmpty()) {
-                Object containerMenu = PlayerProxy.INSTANCE.getContainerMenu(serverPlayer.serverPlayer());
+                Object containerMenu = PlayerProxy.INSTANCE.getContainerMenu(serverPlayer.minecraftPlayer());
                 if (containerMenu != null) {
                     Object actualItem = AbstractContainerMenuProxy.INSTANCE.getCarried(containerMenu);
                     // 但服务端上实际确是空气，就把它写成空气，避免因为其他插件导致手感问题

@@ -48,7 +48,7 @@ public final class PlayerActionListener implements ByteBufferPacketListener {
         if (action == 0/*START_DESTROY_BLOCK*/) {
             Object serverLevel = CraftWorldProxy.INSTANCE.getWorld(world);
             Object blockPos = LocationUtils.toBlockPos(pos);
-            Object serverPlayer = player.serverPlayer();
+            Object serverPlayer = player.minecraftPlayer();
             if (MinecraftServerProxy.INSTANCE.isUnderSpawnProtection(MinecraftServerProxy.INSTANCE.getServer(), serverLevel, blockPos, serverPlayer)) {
                 player.setClientSideCanBreakBlock(false);
                 return;

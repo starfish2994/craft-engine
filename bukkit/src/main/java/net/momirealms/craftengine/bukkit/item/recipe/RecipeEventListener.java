@@ -853,7 +853,7 @@ public final class RecipeEventListener implements Listener {
             }
         }
 
-        Object mcPlayer = serverPlayer.serverPlayer();
+        Object mcPlayer = serverPlayer.minecraftPlayer();
         Object craftingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
 
         ClickType click = event.getClick();
@@ -1109,7 +1109,7 @@ public final class RecipeEventListener implements Listener {
 
             ClickType click = event.getClick();
 
-            Object mcPlayer = serverPlayer.serverPlayer();
+            Object mcPlayer = serverPlayer.minecraftPlayer();
             Object smithingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
 
             if (click == ClickType.CONTROL_DROP) {
@@ -1273,7 +1273,7 @@ public final class RecipeEventListener implements Listener {
                 // 由插件自己处理多次合成
                 event.setResult(Event.Result.DENY);
 
-                Object mcPlayer = serverPlayer.serverPlayer();
+                Object mcPlayer = serverPlayer.minecraftPlayer();
                 Object smithingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
 
                 for (;;) {

@@ -24,10 +24,7 @@ import net.momirealms.craftengine.core.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 public interface Player extends NetWorkUser, LivingEntity {
@@ -43,11 +40,13 @@ public interface Player extends NetWorkUser, LivingEntity {
     @NotNull
     Item getItemBySlot(int slot);
 
-    @Override
     Object platformPlayer();
 
-    @Override
-    Object serverPlayer();
+    Object minecraftPlayer();
+
+    default Object serverPlayer() {
+        return minecraftPlayer();
+    }
 
     void setClientSideWorld(World world);
 

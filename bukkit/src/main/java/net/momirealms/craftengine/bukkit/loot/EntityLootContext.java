@@ -50,7 +50,7 @@ public class EntityLootContext extends BukkitLootContext {
         }
         // 额外参数
         this.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(data -> {
-            LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, data.serverPlayer());
+            LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, data.minecraftPlayer());
         });
         this.getOptionalParameter(DirectContextParameters.ITEM_IN_HAND).ifPresent(data -> {
             LootParamsProxy.BuilderProxy.INSTANCE.withParameter(lootParamsBuilder, LootContextParamsProxy.TOOL, data.minecraftItem());

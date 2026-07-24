@@ -272,7 +272,7 @@ public final class InteractListener {
                 serverPlayer.setResendSound();
 
                 {
-                    Object nmsPlayer = serverPlayer.serverPlayer();
+                    Object nmsPlayer = serverPlayer.minecraftPlayer();
                     Object serverLevel = ServerPlayerProxy.INSTANCE.getLevel(nmsPlayer);
                     Object blockPos = LocationUtils.toBlockPos(hitResult.blockPos());
                     Object previousBlockState = ServerLevelProxy.INSTANCE.getBlockState(serverLevel, blockPos);

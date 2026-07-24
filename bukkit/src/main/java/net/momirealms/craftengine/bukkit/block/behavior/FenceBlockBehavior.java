@@ -110,7 +110,7 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements Pat
         if (!BukkitCraftEngine.instance().antiGriefProvider().test((org.bukkit.entity.Player) player.platformPlayer(), Flag.INTERACT, location)) {
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
-        Object interactionResult = LeadItemProxy.INSTANCE.bindPlayerMobs(player.serverPlayer(), context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(pos));
+        Object interactionResult = LeadItemProxy.INSTANCE.bindPlayerMobs(player.minecraftPlayer(), context.getLevel().minecraftWorld(), LocationUtils.toBlockPos(pos));
         if (interactionResult == InteractionResult$SUCCESS_SERVER) {
             player.swingHand(InteractionHand.MAIN_HAND);
             return InteractionResult.SUCCESS;
