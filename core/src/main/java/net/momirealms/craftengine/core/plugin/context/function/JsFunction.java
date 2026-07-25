@@ -16,7 +16,7 @@ public final class JsFunction<CTX extends Context> extends AbstractConditionalFu
 
     private JsFunction(List<Condition<CTX>> predicates, String script, String function, List<String> args) {
         super(predicates);
-        this.script = script.endsWith(".js") ? script.substring(script.length() - 3) : script;
+        this.script = script.endsWith(".js") ? script.substring(0, script.length() - 3) : script;
         this.function = function;
         this.args = args;
     }

@@ -15,7 +15,7 @@ public final class JsCondition<CTX extends Context> implements Condition<CTX> {
     private final List<String> args;
 
     private JsCondition(String script, String function, List<String> args) {
-        this.script = script.endsWith(".js") ? script.substring(script.length() - 3) : script;
+        this.script = script.endsWith(".js") ? script.substring(0, script.length() - 3) : script;
         this.function = function;
         this.args = args;
     }

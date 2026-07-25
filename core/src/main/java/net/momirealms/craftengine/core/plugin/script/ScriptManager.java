@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.script;
 
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.script.binding.ScriptBinding;
+import net.momirealms.craftengine.core.plugin.script.placeholder.ScriptPlaceholderManager;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,4 +29,6 @@ public interface ScriptManager {
     Object invoke(String id, String function, Context context, Map<String, Object> extras);
 
     boolean test(String id, String function, Context context, Map<String, Object> extras, boolean def);
+
+    ScriptPlaceholderManager placeholderManager();
 }

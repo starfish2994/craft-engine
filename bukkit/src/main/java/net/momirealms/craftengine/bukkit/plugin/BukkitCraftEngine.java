@@ -32,6 +32,7 @@ import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.proxy.BukkitProxyMessageManager;
 import net.momirealms.craftengine.bukkit.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.craftengine.bukkit.plugin.script.BukkitScriptEventManager;
+import net.momirealms.craftengine.bukkit.plugin.script.BukkitScriptPlaceholderManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
@@ -215,6 +216,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         // 脚本事件订阅挂到 Bukkit 事件总线
         if (super.scriptManager instanceof ScriptManagerImpl scriptManager) {
             scriptManager.setEventSubscriber(new BukkitScriptEventManager(this));
+            scriptManager.setPlaceholderManager(new BukkitScriptPlaceholderManager());
         }
         // 完成加载
         this.successfullyLoaded = true;

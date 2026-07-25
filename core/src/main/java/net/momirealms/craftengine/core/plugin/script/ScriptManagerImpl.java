@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.plugin.script.binding.LogBinding;
 import net.momirealms.craftengine.core.plugin.script.binding.SchedulerBinding;
 import net.momirealms.craftengine.core.plugin.script.binding.ScriptBinding;
 import net.momirealms.craftengine.core.plugin.script.event.ScriptEventSubscriber;
+import net.momirealms.craftengine.core.plugin.script.placeholder.ScriptPlaceholderManager;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +48,7 @@ public final class ScriptManagerImpl implements ScriptManager {
     private final List<PendingEnable> pendingEnables = new ArrayList<>();
     private JsEngine engine;
     private ScriptEventSubscriber eventSubscriber;
+    private ScriptPlaceholderManager placeholderManager;
     private boolean available;
 
     public ScriptManagerImpl(Plugin plugin) {
@@ -56,6 +58,8 @@ public final class ScriptManagerImpl implements ScriptManager {
         registerAnnotationHandler(new SubscribeAnnotationHandler(this));
         registerAnnotationHandler(new EnableAnnotationHandler(this));
         registerAnnotationHandler(new DisableAnnotationHandler());
+        registerAnnotationHandler(new PlaceholderAnnotationHandler(this));
+        registerAnnotationHandler(new RelationalPlaceholderAnnotationHandler(this));
         if (!Config.enableJsScripting()) {
             this.available = false;
             return;
@@ -172,6 +176,23 @@ public final class ScriptManagerImpl implements ScriptManager {
         this.eventSubscriber = eventSubscriber;
     }
 
+    public void setPlaceholderManager(ScriptPlaceholderManager placeholderManager) {
+        this.placeholderManager = placeholderManager;
+    }
+
+    @Override
+    public ScriptPlaceholderManager placeholderManager() {
+        return this.placeholderManager;
+    }
+
+    public void registerPlaceholder(ScriptFile script, String placeholder, String function, boolean relational) {
+        if (this.placeholderManager == null) {
+            this.plugin.logger().warn("Script '" + script.id() + "' tried to register placeholder '" + placeholder + "', but placeholder registration is not supported on this platform");
+            return;
+        }
+        this.placeholderManager.register(script, placeholder, function, relational);
+    }
+
     public void subscribeEvent(ScriptFile script, String eventClass, String function, @Nullable Map<String, Object> options) {
         if (this.eventSubscriber == null) {
             this.plugin.logger().warn("Script '" + script.id() + "' tried to subscribe event '" + eventClass + "', but event subscription is not supported on this platform");
@@ -188,7 +209,10 @@ public final class ScriptManagerImpl implements ScriptManager {
                     .sorted()
                     .forEach(path -> {
                         String replaced = directory.relativize(path).toString().replace('\\', '/');
-                        loadScript(path, Key.of(namespace, replaced.substring(replaced.length() - 3)));
+                        String id = replaced.substring(0, replaced.length() - 3);
+                        if (!id.isBlank()) {
+                            loadScript(path, Key.of(namespace, id));
+                        }
                     });
         } catch (IOException | RuntimeException e) {
             this.plugin.logger().warn("Failed to scan scripts directory " + directory, e);
