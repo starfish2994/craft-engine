@@ -82,4 +82,14 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
     public SchedulerTask runRepeating(Runnable r, Runnable retired, long delay, long period, Entity entity) {
         return new FoliaTask(entity.getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> r.run(), retired, delay, period));
     }
+
+    @Override
+    public SchedulerTask runAsyncLater(Runnable r, long delayTicks) {
+        return new FoliaTask(Bukkit.getAsyncScheduler().runDelayed(this.plugin.javaPlugin(), t -> r.run(), delayTicks * 50, java.util.concurrent.TimeUnit.MILLISECONDS));
+    }
+
+    @Override
+    public SchedulerTask runAsyncRepeating(Runnable r, long delayTicks, long periodTicks) {
+        return new FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(this.plugin.javaPlugin(), t -> r.run(), delayTicks * 50, periodTicks * 50, java.util.concurrent.TimeUnit.MILLISECONDS));
+    }
 }

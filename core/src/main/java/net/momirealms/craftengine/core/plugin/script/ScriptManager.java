@@ -1,23 +1,19 @@
 package net.momirealms.craftengine.core.plugin.script;
 
+import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.script.binding.ScriptBinding;
 import net.momirealms.craftengine.core.plugin.script.placeholder.ScriptPlaceholderManager;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public interface ScriptManager {
+public interface ScriptManager extends Manageable {
 
     Optional<ScriptFile> script(Key id);
-
-    void load();
-
-    void unload();
-
-    void disable();
 
     boolean isAvailable();
 
@@ -26,9 +22,19 @@ public interface ScriptManager {
     Optional<ScriptFile> script(String id);
 
     @Nullable
-    Object invoke(String id, String function, Context context, Map<String, Object> extras);
+    Object invoke(String id, String function, Map<String, Object> injected);
 
-    boolean test(String id, String function, Context context, Map<String, Object> extras, boolean def);
+    boolean test(String id, String function, Map<String, Object> injected, boolean def);
 
     ScriptPlaceholderManager placeholderManager();
+
+    static Map<String, Object> flattenContext(Context context) {
+        Map<String, Object> map = new HashMap<>();
+        context.contexts().params().forEach((key, supplier) -> {
+            Object value = supplier.get();
+            if (value != null) map.put(key.node(), value);
+        });
+        map.put("ctx", context);
+        return map;
+    }
 }

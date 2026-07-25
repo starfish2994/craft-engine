@@ -3,13 +3,11 @@ package net.momirealms.craftengine.core.plugin.script;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.Plugin;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.dependency.Dependencies;
 import net.momirealms.craftengine.core.plugin.dependency.Dependency;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.script.annotation.*;
 import net.momirealms.craftengine.core.plugin.script.binding.LogBinding;
-import net.momirealms.craftengine.core.plugin.script.binding.SchedulerBinding;
 import net.momirealms.craftengine.core.plugin.script.binding.ScriptBinding;
 import net.momirealms.craftengine.core.plugin.script.event.ScriptEventSubscriber;
 import net.momirealms.craftengine.core.plugin.script.placeholder.ScriptPlaceholderManager;
@@ -44,7 +42,6 @@ public final class ScriptManagerImpl implements ScriptManager {
     private final Map<String, ScriptAnnotationHandler> annotationHandlers = new LinkedHashMap<>();
     private final Map<Key, ScriptFile> scripts = new ConcurrentHashMap<>();
     private final Map<String, ScriptFile> scriptsByName = new ConcurrentHashMap<>();
-    private final Set<String> missingScriptWarned = ConcurrentHashMap.newKeySet();
     private final List<PendingEnable> pendingEnables = new ArrayList<>();
     private JsEngine engine;
     private ScriptEventSubscriber eventSubscriber;
@@ -53,13 +50,13 @@ public final class ScriptManagerImpl implements ScriptManager {
 
     public ScriptManagerImpl(Plugin plugin) {
         this.plugin = plugin;
-        registerBinding(new SchedulerBinding(plugin));
         registerBinding(new LogBinding(plugin));
         registerAnnotationHandler(new SubscribeAnnotationHandler(this));
         registerAnnotationHandler(new EnableAnnotationHandler(this));
         registerAnnotationHandler(new DisableAnnotationHandler());
         registerAnnotationHandler(new PlaceholderAnnotationHandler(this));
         registerAnnotationHandler(new RelationalPlaceholderAnnotationHandler(this));
+        registerAnnotationHandler(new TaskAnnotationHandler(this));
         if (!Config.enableJsScripting()) {
             this.available = false;
             return;
@@ -151,6 +148,7 @@ public final class ScriptManagerImpl implements ScriptManager {
             }
         }
         this.pendingEnables.clear();
+        this.scripts.values().forEach(ScriptFile::startAutoTasks);
     }
 
     @Override
@@ -251,34 +249,24 @@ public final class ScriptManagerImpl implements ScriptManager {
         this.scripts.values().forEach(ScriptFile::unload);
         this.scripts.clear();
         this.scriptsByName.clear();
-        this.missingScriptWarned.clear();
         this.pendingEnables.clear();
     }
 
+    @Nullable
     @Override
-    public @Nullable Object invoke(String id, String function, Context context, Map<String, Object> extras) {
+    public Object invoke(String id, String function, Map<String, Object> injected) {
         if (!this.available) return null;
         Optional<ScriptFile> script = this.script(id);
         if (script.isEmpty()) {
-            // 缺失脚本只告警一次，避免热路径刷屏
-            if (this.missingScriptWarned.add(id)) {
-                this.plugin.logger().warn("Script '" + id + "' not found");
-            }
+            this.plugin.logger().warn("Script '" + id + "' not found");
             return null;
         }
-        Map<String, Object> injected = new HashMap<>();
-        context.contexts().params().forEach((key, supplier) -> {
-            Object value = supplier.get();
-            if (value != null) injected.put(key.node(), value);
-        });
-        injected.put("ctx", context);
-        injected.putAll(extras);
         return script.get().invoke(function, injected);
     }
 
     @Override
-    public boolean test(String id, String function, Context context, Map<String, Object> extras, boolean def) {
-        Object result = invoke(id, function, context, extras);
+    public boolean test(String id, String function, Map<String, Object> injected, boolean def) {
+        Object result = invoke(id, function, injected);
         if (result instanceof Boolean bool) {
             return bool;
         }

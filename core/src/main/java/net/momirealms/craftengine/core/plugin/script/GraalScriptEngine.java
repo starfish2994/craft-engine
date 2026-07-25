@@ -9,9 +9,6 @@ import org.graalvm.polyglot.Source;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,5 +60,6 @@ public final class GraalScriptEngine implements JsEngine {
         this.engine.close();
     }
 
-    private record CachedSource(String sha1, Source source) {}
+    private record CachedSource(String sha1, Source source) {
+    }
 }

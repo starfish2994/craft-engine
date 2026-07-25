@@ -1,25 +1,18 @@
 package net.momirealms.craftengine.core.plugin.script.binding;
 
 import net.momirealms.craftengine.core.plugin.Plugin;
-import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
+import net.momirealms.craftengine.core.plugin.script.ScriptFile;
+import net.momirealms.craftengine.core.plugin.script.ScriptTaskHandle;
 
-import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-public final class SchedulerBinding implements ScriptBinding {
+public final class SchedulerBinding {
     private final Plugin plugin;
+    private final ScriptFile script;
 
-    public SchedulerBinding(Plugin plugin) {
+    public SchedulerBinding(Plugin plugin, ScriptFile script) {
         this.plugin = plugin;
-    }
-
-    @Override
-    public String name() {
-        return "scheduler";
-    }
-
-    @Override
-    public Object value() {
-        return this;
+        this.script = script;
     }
 
     public void sync(Runnable task) {
@@ -30,19 +23,37 @@ public final class SchedulerBinding implements ScriptBinding {
         this.plugin.scheduler().async().execute(task);
     }
 
-    public SchedulerTask later(Runnable task, long delayTicks) {
-        return this.plugin.scheduler().platform().runLater(task, delayTicks);
+    public ScriptTaskHandle later(Runnable task, long delayTicks) {
+        ScriptTaskHandle handle = new ScriptTaskHandle(this.script);
+        handle.init(this.plugin.scheduler().platform().runLater(wrapOnce(handle, task), delayTicks));
+        return handle;
     }
 
-    public SchedulerTask timer(Runnable task, long delayTicks, long periodTicks) {
-        return this.plugin.scheduler().platform().runRepeating(task, delayTicks, periodTicks);
+    public ScriptTaskHandle timer(Consumer<ScriptTaskHandle> task, long delayTicks, long periodTicks) {
+        ScriptTaskHandle handle = new ScriptTaskHandle(this.script);
+        handle.init(this.plugin.scheduler().platform().runRepeating(() -> task.accept(handle), delayTicks, periodTicks));
+        return handle;
     }
 
-    public SchedulerTask asyncLater(Runnable task, long delayTicks) {
-        return this.plugin.scheduler().asyncLater(task, delayTicks * 50, TimeUnit.MILLISECONDS);
+    public ScriptTaskHandle asyncLater(Runnable task, long delayTicks) {
+        ScriptTaskHandle handle = new ScriptTaskHandle(this.script);
+        handle.init(this.plugin.scheduler().platform().runAsyncLater(wrapOnce(handle, task), delayTicks));
+        return handle;
     }
 
-    public SchedulerTask asyncTimer(Runnable task, long delayTicks, long periodTicks) {
-        return this.plugin.scheduler().asyncRepeating(task, delayTicks * 50, periodTicks * 50, TimeUnit.MILLISECONDS);
+    public ScriptTaskHandle asyncTimer(Consumer<ScriptTaskHandle> task, long delayTicks, long periodTicks) {
+        ScriptTaskHandle handle = new ScriptTaskHandle(this.script);
+        handle.init(this.plugin.scheduler().platform().runAsyncRepeating(() -> task.accept(handle), delayTicks, periodTicks));
+        return handle;
+    }
+
+    private Runnable wrapOnce(ScriptTaskHandle handle, Runnable task) {
+        return () -> {
+            try {
+                task.run();
+            } finally {
+                this.script.untrackTask(handle);
+            }
+        };
     }
 }

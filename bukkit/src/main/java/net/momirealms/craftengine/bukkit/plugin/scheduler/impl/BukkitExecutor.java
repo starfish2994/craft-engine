@@ -138,4 +138,14 @@ public final class BukkitExecutor extends AbstractBukkitExecutor {
     public SchedulerTask runRepeating(Runnable r, Runnable retired, long delay, long period, net.momirealms.craftengine.core.entity.Entity entity) {
         return new BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin.javaPlugin(), r, delay, period));
     }
+
+    @Override
+    public SchedulerTask runAsyncLater(Runnable r, long delayTicks) {
+        return new BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(this.plugin.javaPlugin(), r, delayTicks));
+    }
+
+    @Override
+    public SchedulerTask runAsyncRepeating(Runnable r, long delayTicks, long periodTicks) {
+        return new BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin.javaPlugin(), r, delayTicks, periodTicks));
+    }
 }
