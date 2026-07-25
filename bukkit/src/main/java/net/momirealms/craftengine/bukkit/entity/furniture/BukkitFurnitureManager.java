@@ -238,6 +238,13 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         this.byColliderEntityId.remove(id);
     }
 
+    public boolean isCollisionEntity(Entity entity) {
+       if (COLLISION_ENTITY_CLASS.isInstance(entity)) {
+
+       }
+       return false;
+    }
+
     // 检查这个区块的实体是否已经被加载了
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isEntitiesLoaded(Location location) {

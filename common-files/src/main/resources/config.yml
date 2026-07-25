@@ -561,7 +561,7 @@ recipe:
 
 attribute:
   # Master switch for attribute system
-  enable: true
+  enable: false
   # By default, custom attribute settings only apply to players. Turn on this option to apply them to all entities
   apply-to-all-entities: false
 
