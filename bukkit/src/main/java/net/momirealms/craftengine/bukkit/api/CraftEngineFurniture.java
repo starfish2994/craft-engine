@@ -218,6 +218,9 @@ public final class CraftEngineFurniture {
      * @return is collision entity or not
      */
     public static boolean isCollisionEntity(@NotNull Entity entity) {
+        if (!BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
+            return false;
+        }
         Object nmsEntity = CraftEntityProxy.INSTANCE.getEntity(entity);
         return nmsEntity instanceof CollisionEntity;
     }

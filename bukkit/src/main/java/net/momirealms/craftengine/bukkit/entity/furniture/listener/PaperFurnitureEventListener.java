@@ -5,6 +5,7 @@ import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.paper.event.player.PlayerTrackEntityEvent;
 import io.papermc.paper.event.player.PlayerUntrackEntityEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
@@ -38,7 +39,7 @@ public final class PaperFurnitureEventListener implements Listener {
         Entity entity = event.getEntity();
         if (entity instanceof ItemDisplay itemDisplay) {
             this.manager.handleMetaEntityUnload(itemDisplay, false);
-        } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
+        } else if (CraftEngineFurniture.isCollisionEntity(entity)) {
             this.manager.handleCollisionEntityUnload(entity);
         }
     }

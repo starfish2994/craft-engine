@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.entity.furniture;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.InteractionFurnitureHitboxConfig;
 import net.momirealms.craftengine.bukkit.entity.furniture.listener.FurnitureEventListener;
 import net.momirealms.craftengine.bukkit.entity.furniture.listener.PaperFurnitureEventListener;
@@ -157,7 +158,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
                 try {
                     if (entity instanceof ItemDisplay itemDisplay) {
                         handleMetaEntityUnload(itemDisplay, true);
-                    } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
+                    } else if (CraftEngineFurniture.isCollisionEntity(entity)) {
                         handleCollisionEntityUnload(entity);
                         entity.remove();
                     }
@@ -236,13 +237,6 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     public void handleCollisionEntityUnload(Entity entity) {
         int id = entity.getEntityId();
         this.byColliderEntityId.remove(id);
-    }
-
-    public boolean isCollisionEntity(Entity entity) {
-       if (COLLISION_ENTITY_CLASS.isInstance(entity)) {
-
-       }
-       return false;
     }
 
     // 检查这个区块的实体是否已经被加载了

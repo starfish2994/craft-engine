@@ -116,7 +116,7 @@ public final class FurnitureEventListener implements Listener {
             Entity entity = entities.get(i);
             if (entity instanceof ItemDisplay itemDisplay) {
                 this.manager.handleMetaEntityUnload(itemDisplay, false);
-            } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity) && CraftEngineFurniture.isCollisionEntity(entity)) {
+            } else if (CraftEngineFurniture.isCollisionEntity(entity)) {
                 this.manager.handleCollisionEntityUnload(entity);
                 entity.remove();
             }
@@ -131,7 +131,7 @@ public final class FurnitureEventListener implements Listener {
             Entity entity = entities.get(i);
             if (entity instanceof ItemDisplay itemDisplay) {
                 this.manager.handleMetaEntityUnload(itemDisplay, false);
-            } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity) && CraftEngineFurniture.isCollisionEntity(entity)) {
+            } else if (CraftEngineFurniture.isCollisionEntity(entity)) {
                 this.manager.handleCollisionEntityUnload(entity);
                 entity.remove();
             }
