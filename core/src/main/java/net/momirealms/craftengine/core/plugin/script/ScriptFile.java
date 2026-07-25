@@ -1,47 +1,41 @@
 package net.momirealms.craftengine.core.plugin.script;
 
-import net.momirealms.craftengine.core.plugin.script.binding.EventsBinding;
-import net.momirealms.craftengine.core.plugin.script.event.ScriptEventHandler;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
+import net.momirealms.craftengine.core.plugin.script.annotation.AnnotatedFunction;
+import net.momirealms.craftengine.core.plugin.script.annotation.ScriptAnnotationParser;
+import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class ScriptFile {
     private final ScriptManagerImpl manager;
-    private final GraalScriptEngine engine;
-    private final String id;
-    private final Source source;
+    private final Key id;
+    private final JsCompiledScript compiled;
     private final Object lock = new Object();
     private final List<Runnable> unloadCallbacks = new CopyOnWriteArrayList<>();
-    private List<String> lastInjectedKeys = List.of();
-    private Context context;
+    private final List<AnnotatedFunction> annotatedFunctions;
+    private final Set<String> missingFunctionWarned = ConcurrentHashMap.newKeySet();
 
-    ScriptFile(ScriptManagerImpl manager, GraalScriptEngine engine, String id, byte[] code) throws IOException {
+    ScriptFile(ScriptManagerImpl manager, JsEngine engine, Key id, byte[] code) throws Exception {
         this.manager = manager;
-        this.engine = engine;
         this.id = id;
-        this.source = engine.source(id, code);
+        this.compiled = engine.compile(id, code);
+        this.compiled.putGlobal("__script", this);
+        manager.bindings().forEach((name, binding) -> this.compiled.putGlobal(name, binding.value()));
+        this.annotatedFunctions = ScriptAnnotationParser.parse(new String(code, StandardCharsets.UTF_8));
     }
 
-    @Nullable
-    private static Object unwrap(Value value) {
-        if (value == null || value.isNull()) return null;
-        if (value.isBoolean()) return value.asBoolean();
-        if (value.isString()) return value.asString();
-        if (value.fitsInLong()) return value.asLong();
-        if (value.fitsInDouble()) return value.asDouble();
-        return value.as(Object.class);
-    }
-
-    public String id() {
+    public Key id() {
         return this.id;
+    }
+
+    public List<AnnotatedFunction> annotatedFunctions() {
+        return this.annotatedFunctions;
     }
 
     public void onUnload(Runnable callback) {
@@ -49,58 +43,30 @@ public final class ScriptFile {
     }
 
     @Nullable
-    Object invoke(String function, Map<String, Object> injected) {
+    public Object invoke(String function, Map<String, Object> injected, Object... args) {
         synchronized (this.lock) {
-            Value bindings = graalContext().getBindings("js");
-            // 注入的键在调用后不清除（延时任务的闭包可能引用），下次调用前清上一轮的
-            this.lastInjectedKeys.forEach(bindings::removeMember);
-            injected.forEach(bindings::putMember);
-            this.lastInjectedKeys = List.copyOf(injected.keySet());
             try {
-                Value fn = bindings.getMember(function);
-                if (fn == null || !fn.canExecute()) {
-                    this.manager.plugin().logger().warn("Script '" + this.id + "' has no executable function '" + function + "'");
+                this.compiled.eval();
+                if (!this.compiled.hasFunction(function)) {
+                    // 缺失函数只告警一次，避免热路径刷屏
+                    if (this.missingFunctionWarned.add(function)) {
+                        this.manager.plugin().logger().warn("Script '" + this.id + "' has no executable function '" + function + "'");
+                    }
                     return null;
                 }
-                return unwrap(fn.execute());
-            } catch (PolyglotException e) {
+                return this.compiled.invoke(function, injected, args);
+            } catch (Exception e) {
                 this.manager.plugin().logger().warn("Error executing script '" + this.id + "::" + function + "'", e);
                 return null;
             }
         }
     }
 
-    public void invokeHandler(ScriptEventHandler handler, Object event) {
-        synchronized (this.lock) {
-            graalContext();
-            try {
-                handler.handle(event);
-            } catch (PolyglotException e) {
-                this.manager.plugin().logger().warn("Error executing event handler of script '" + this.id + "'", e);
-            }
-        }
-    }
-
-    private Context graalContext() {
-        if (this.context == null) {
-            this.context = this.engine.newContext();
-            Value bindings = this.context.getBindings("js");
-            this.manager.bindings().forEach((name, binding) -> bindings.putMember(name, binding.value()));
-            bindings.putMember("__script", this);
-            bindings.putMember("events", new EventsBinding(this.manager, this));
-            this.context.eval(this.source);
-        }
-        return this.context;
-    }
-
-    /**
-     * 强制执行一次顶层代码（触发事件订阅等顶层副作用）
-     */
     void warmUp() {
         synchronized (this.lock) {
             try {
-                graalContext();
-            } catch (PolyglotException e) {
+                this.compiled.eval();
+            } catch (Exception e) {
                 this.manager.plugin().logger().warn("Error evaluating script '" + this.id + "'", e);
             }
         }
@@ -116,13 +82,7 @@ public final class ScriptFile {
                 }
             }
             this.unloadCallbacks.clear();
-            if (this.context != null) {
-                try {
-                    this.context.close(true);
-                } catch (Throwable ignored) {
-                }
-                this.context = null;
-            }
+            this.compiled.close();
         }
     }
 }

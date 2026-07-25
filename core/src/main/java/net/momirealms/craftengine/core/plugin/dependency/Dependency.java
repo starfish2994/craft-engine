@@ -46,9 +46,6 @@ public class Dependency {
             this.artifactId = artifactId;
         }
 
-        /**
-         * 版本号在 craft-engine.properties 中的键，默认与 id 相同（同族依赖共享版本时使用）
-         */
         public Builder versionKey(String versionKey) {
             this.versionKey = versionKey;
             return this;
@@ -87,9 +84,6 @@ public class Dependency {
         return this.id;
     }
 
-    /**
-     * 版本号在 craft-engine.properties 中的键，默认与 {@link #id()} 相同
-     */
     public String versionKey() {
         return this.versionKey;
     }

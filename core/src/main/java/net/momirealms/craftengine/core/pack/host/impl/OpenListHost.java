@@ -163,7 +163,7 @@ public final class OpenListHost implements ResourcePackHost {
                 HttpClientManager.get().sendAsync(request, HttpResponse.BodyHandlers.ofString())
                         .thenAccept(resp -> {
                             if (resp.statusCode() == 200) {
-                                this.cachedSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
+                                this.cachedSha1 = HashUtils.sha1(resourcePackPath);
                                 saveCacheToDisk();
                                 future.complete(null);
                             } else {

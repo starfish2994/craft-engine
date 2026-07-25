@@ -30,4 +30,8 @@ public final class LogBinding implements ScriptBinding {
     public void severe(String message) {
         this.plugin.logger().error(message);
     }
+
+    public void error(String message) {
+        this.plugin.logger().error(message);
+    }
 }

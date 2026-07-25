@@ -2,12 +2,15 @@ package net.momirealms.craftengine.core.plugin.script;
 
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.script.binding.ScriptBinding;
+import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Optional;
 
 public interface ScriptManager {
+
+    Optional<ScriptFile> script(Key id);
 
     void reload();
 

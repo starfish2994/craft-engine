@@ -131,7 +131,7 @@ public final class OneDriveHost implements ResourcePackHost {
                     return;
                 }
 
-                String localSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
+                String localSha1 = HashUtils.sha1(resourcePackPath);
 
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create("https://graph.microsoft.com/v1.0/drive/root:/" + this.uploadPath + ":/content"))

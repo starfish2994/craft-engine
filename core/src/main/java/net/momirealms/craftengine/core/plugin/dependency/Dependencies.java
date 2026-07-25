@@ -11,6 +11,11 @@ public final class Dependencies {
             .build();
 
     public static final Dependency ASM_COMMONS = Dependency.of("asm-commons", "org.ow2.asm", "asm-commons")
+            .versionKey("asm")
+            .build();
+
+    public static final Dependency ASM_UTIL = Dependency.of("asm-util", "org.ow2.asm", "asm-util")
+            .versionKey("asm")
             .build();
 
     public static final Dependency JAR_RELOCATOR = Dependency.of("jar-relocator", "me.lucko", "jar-relocator")
@@ -34,14 +39,16 @@ public final class Dependencies {
             )
             .build();
 
-    public static final Dependency CLOUD_BRIGADIER = Dependency.of("cloud-brigadier", "org{}incendo", "cloud-brigadier")
+    public static final Dependency CLOUD_SERVICES = Dependency.of("cloud-services", "org{}incendo", "cloud-services")
+            .versionKey("cloud-core")
             .relocations(
                     Relocation.of("cloud", "org{}incendo{}cloud"),
                     Relocation.of("geantyref", "io{}leangen{}geantyref")
             )
             .build();
 
-    public static final Dependency CLOUD_SERVICES = Dependency.of("cloud-services", "org{}incendo", "cloud-services")
+    public static final Dependency CLOUD_BRIGADIER = Dependency.of("cloud-brigadier", "org{}incendo", "cloud-brigadier")
+            .versionKey("cloud-platform")
             .relocations(
                     Relocation.of("cloud", "org{}incendo{}cloud"),
                     Relocation.of("geantyref", "io{}leangen{}geantyref")
@@ -49,6 +56,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency CLOUD_BUKKIT = Dependency.of("cloud-bukkit", "org{}incendo", "cloud-bukkit")
+            .versionKey("cloud-platform")
             .relocations(
                     Relocation.of("cloud", "org{}incendo{}cloud"),
                     Relocation.of("geantyref", "io{}leangen{}geantyref"),
@@ -57,6 +65,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency CLOUD_PAPER = Dependency.of("cloud-paper", "org{}incendo", "cloud-paper")
+            .versionKey("cloud-platform")
             .relocations(
                     Relocation.of("cloud", "org{}incendo{}cloud"),
                     Relocation.of("geantyref", "io{}leangen{}geantyref"),
@@ -66,6 +75,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency CLOUD_MINECRAFT_EXTRAS = Dependency.of("cloud-minecraft-extras", "org{}incendo", "cloud-minecraft-extras")
+            .versionKey("cloud-platform")
             .relocations(
                     Relocation.of("cloud", "org{}incendo{}cloud"),
                     Relocation.of("geantyref", "io{}leangen{}geantyref"),
@@ -242,7 +252,6 @@ public final class Dependencies {
             )
             .build();
 
-    // GraalJS 全家桶（community 版，共 9 个 jar，版本统一为 graaljs，不做 relocation）
     public static final Dependency GRAALJS_POLYGLOT = Dependency.of("graaljs-polyglot", "org.graalvm.polyglot", "polyglot")
             .versionKey("graaljs")
             .build();
@@ -252,6 +261,7 @@ public final class Dependencies {
     public static final Dependency GRAALJS_TRUFFLE_RUNTIME = Dependency.of("graaljs-truffle-runtime", "org.graalvm.truffle", "truffle-runtime")
             .versionKey("graaljs")
             .build();
+    // Community Edition
     public static final Dependency GRAALJS_TRUFFLE_COMPILER = Dependency.of("graaljs-truffle-compiler", "org.graalvm.truffle", "truffle-compiler")
             .versionKey("graaljs")
             .build();
@@ -269,6 +279,8 @@ public final class Dependencies {
             .build();
     public static final Dependency GRAALJS_ICU4J = Dependency.of("graaljs-icu4j", "org.graalvm.shadowed", "icu4j")
             .versionKey("graaljs")
+            .build();
+    public static final Dependency NASHORN_CORE = Dependency.of("nashorn", "org.openjdk.nashorn", "nashorn-core")
             .build();
 
     public static final Dependency JIMFS = Dependency.of("jimfs", "com{}google{}jimfs", "jimfs")

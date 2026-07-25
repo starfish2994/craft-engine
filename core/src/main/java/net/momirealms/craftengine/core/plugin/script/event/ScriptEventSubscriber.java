@@ -7,5 +7,5 @@ import java.util.Map;
 
 public interface ScriptEventSubscriber {
 
-    void subscribe(ScriptFile script, Class<?> eventClass, ScriptEventHandler handler, @Nullable Map<String, Object> options);
+    void subscribe(ScriptFile script, String eventClass, String function, @Nullable Map<String, Object> options);
 }

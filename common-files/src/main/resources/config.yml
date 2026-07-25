@@ -709,19 +709,16 @@ client-optimization:
 
 scripting:
   js:
-    # Enables the GraalJS-based JavaScript scripting system
-    # Downloads ~68MB of dependencies from Maven Central on first enable. Requires restart.
+    # Enables the JavaScript scripting system
+    # Requires server restart to fully apply
     enable: false
-    # ECMAScript version (e.g. latest, 2022, 2023)
-    ecmascript-version: latest
+    # JS engine implementation: graaljs (~68MB) or nashorn (~2.4MB)
+    engine: nashorn
     # Strict mode: throws on common JS mistakes (undeclared variables etc.)
     strict: true
+    # Applicable only when GraalJS is in use
     # Nashorn compatibility mode: bean getter mapping (event.block -> getBlock()) etc.
-    # Recommended when migrating scripts from Nashorn-based plugins
-    nashorn-compat: true
-    # Grants scripts full access to host classes (Java.type, all public members)
-    # Disable to run scripts in explicit-export-only mode (breaks most scripts)
-    allow-all-access: true
+    nashorn-compat: false
 
 misc:
   # Suppresses connection logs during server configuration phase

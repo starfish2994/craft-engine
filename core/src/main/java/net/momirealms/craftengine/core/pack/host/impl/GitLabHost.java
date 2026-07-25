@@ -66,7 +66,7 @@ public final class GitLabHost implements ResourcePackHost {
 
         CraftEngine.instance().scheduler().executeAsync(() -> {
             try {
-                String localSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
+                String localSha1 = HashUtils.sha1(resourcePackPath);
                 String boundary = "CraftEngineBoundary" + System.currentTimeMillis();
 
                 HttpRequest request = HttpRequest.newBuilder()

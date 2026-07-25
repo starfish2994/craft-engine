@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.plugin.text.component;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
-import com.google.gson.stream.JsonToken;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.api.BinaryTagHolder;
 import net.kyori.adventure.text.event.DataComponentValueConverterRegistry;

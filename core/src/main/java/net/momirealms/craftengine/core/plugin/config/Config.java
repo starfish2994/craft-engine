@@ -59,10 +59,9 @@ public final class Config {
     private boolean misc$hook_axiom_paper = true;
 
     private boolean scripting$js$enable;
+    private String scripting$js$engine;
     private boolean scripting$js$nashorn_compat;
     private boolean scripting$js$strict;
-    private String scripting$js$ecmascript_version;
-    private boolean scripting$js$allow_all_access;
 
     private boolean debug$common;
     private boolean debug$packet;
@@ -379,10 +378,9 @@ public final class Config {
 
         // scripting
         this.scripting$js$enable = config.getBoolean("scripting.js.enable", false);
+        this.scripting$js$engine = config.getString("scripting.js.engine", "nashorn");
         this.scripting$js$nashorn_compat = config.getBoolean("scripting.js.nashorn-compat", true);
         this.scripting$js$strict = config.getBoolean("scripting.js.strict", true);
-        this.scripting$js$ecmascript_version = config.getString("scripting.js.ecmascript-version", "latest");
-        this.scripting$js$allow_all_access = config.getBoolean("scripting.js.allow-all-access", true);
 
         // basics
         this.metrics = config.getBoolean("metrics", false);
@@ -811,20 +809,16 @@ public final class Config {
         return instance.scripting$js$enable;
     }
 
+    public static String jsEngine() {
+        return instance.scripting$js$engine;
+    }
+
     public static boolean jsNashornCompat() {
         return instance.scripting$js$nashorn_compat;
     }
 
     public static boolean jsStrictMode() {
         return instance.scripting$js$strict;
-    }
-
-    public static String jsEcmascriptVersion() {
-        return instance.scripting$js$ecmascript_version;
-    }
-
-    public static boolean jsAllowAllAccess() {
-        return instance.scripting$js$allow_all_access;
     }
 
     public static boolean hookAxiomPaper() {

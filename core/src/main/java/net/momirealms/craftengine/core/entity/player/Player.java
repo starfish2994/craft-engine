@@ -24,7 +24,10 @@ import net.momirealms.craftengine.core.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public interface Player extends NetWorkUser, LivingEntity {

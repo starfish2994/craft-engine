@@ -2,14 +2,9 @@ package net.momirealms.craftengine.bukkit.plugin.script;
 
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.core.plugin.script.ScriptFile;
-import net.momirealms.craftengine.core.plugin.script.event.ScriptEventHandler;
 import net.momirealms.craftengine.core.plugin.script.event.ScriptEventSubscriber;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -27,21 +22,21 @@ public final class BukkitScriptEventManager implements ScriptEventSubscriber {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void subscribe(ScriptFile script, Class<?> eventClass, ScriptEventHandler handler, @Nullable Map<String, Object> options) {
-        if (!Event.class.isAssignableFrom(eventClass)) {
-            this.plugin.logger().warn("Script '" + script.id() + "' tried to subscribe non-event class '" + eventClass.getName() + "'");
+    public void subscribe(ScriptFile script, String eventClass, String function, @Nullable Map<String, Object> options) {
+        Class<? extends Event> clazz = resolveEventClass(eventClass);
+        if (clazz == null) {
+            this.plugin.logger().warn("Script '" + script.id() + "' tried to subscribe unknown event class '" + eventClass + "'");
             return;
         }
-        Class<? extends Event> clazz = (Class<? extends Event>) eventClass;
         EventPriority priority = parsePriority(options);
         boolean ignoreCancelled = options == null || !Boolean.FALSE.equals(options.get("ignoreCancelled"));
-        Subscription subscription = new Subscription(script, handler, ignoreCancelled);
+        Subscription subscription = new Subscription(script, function, ignoreCancelled);
         EventGroup<?> group = this.groups.computeIfAbsent(clazz, EventGroup::new);
         if (!group.add(priority, subscription)) {
-            return;
+            return; // 重复订阅，忽略
         }
         script.onUnload(() -> removeSubscription(clazz, group, priority, subscription));
+        // HandlerList 非线程安全，注册必须回到主线程
         this.plugin.scheduler().platform().run(() -> group.registerToBukkit(priority));
     }
 
@@ -63,7 +58,26 @@ public final class BukkitScriptEventManager implements ScriptEventSubscriber {
         }
     }
 
-    private record Subscription(ScriptFile script, ScriptEventHandler handler, boolean ignoreCancelled) {}
+    @Nullable
+    @SuppressWarnings("unchecked")
+    private Class<? extends Event> resolveEventClass(String name) {
+        Class<?> clazz = findClass(name);
+        if (clazz != null && Event.class.isAssignableFrom(clazz)) {
+            return (Class<? extends Event>) clazz;
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Class<?> findClass(String name) {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
+    private record Subscription(ScriptFile script, String function, boolean ignoreCancelled) {}
 
     private final class EventGroup<T extends Event> {
         private final Class<T> eventClass;
@@ -100,9 +114,11 @@ public final class BukkitScriptEventManager implements ScriptEventSubscriber {
                         List<Subscription> subs = this.subscribers.get(priority);
                         if (subs == null) return;
                         T casted = this.eventClass.cast(event);
+                        Map<String, Object> injected = Map.of("event", casted);
                         for (Subscription sub : subs) {
                             if (sub.ignoreCancelled() && casted instanceof Cancellable c && c.isCancelled()) continue;
-                            sub.script().invokeHandler(sub.handler(), casted);
+                            // 事件本体既作为首个参数传入，也注入 event 绑定
+                            sub.script().invoke(sub.function(), injected, casted);
                         }
                     },
                     BukkitScriptEventManager.this.plugin.javaPlugin(), false);

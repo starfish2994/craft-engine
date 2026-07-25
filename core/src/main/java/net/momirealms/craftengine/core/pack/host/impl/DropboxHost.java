@@ -80,7 +80,7 @@ public final class DropboxHost implements ResourcePackHost {
                     return;
                 }
 
-                String localSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
+                String localSha1 = HashUtils.sha1(resourcePackPath);
                 JsonObject apiArg = new JsonObject();
                 apiArg.addProperty("path", this.uploadPath);
                 apiArg.addProperty("mode", "overwrite");

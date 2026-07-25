@@ -6,48 +6,63 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.dependency.Dependencies;
 import net.momirealms.craftengine.core.plugin.dependency.Dependency;
+import net.momirealms.craftengine.core.plugin.script.annotation.AnnotatedFunction;
+import net.momirealms.craftengine.core.plugin.script.annotation.ScriptAnnotation;
+import net.momirealms.craftengine.core.plugin.script.annotation.ScriptAnnotationHandler;
+import net.momirealms.craftengine.core.plugin.script.annotation.SubscribeAnnotationHandler;
 import net.momirealms.craftengine.core.plugin.script.binding.LogBinding;
 import net.momirealms.craftengine.core.plugin.script.binding.SchedulerBinding;
 import net.momirealms.craftengine.core.plugin.script.binding.ScriptBinding;
-import net.momirealms.craftengine.core.plugin.script.event.ScriptEventHandler;
 import net.momirealms.craftengine.core.plugin.script.event.ScriptEventSubscriber;
+import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public final class ScriptManagerImpl implements ScriptManager {
     private final Plugin plugin;
     private final Map<String, ScriptBinding> bindings = new LinkedHashMap<>();
-    private final Map<String, ScriptFile> scripts = new ConcurrentHashMap<>();
-    private GraalScriptEngine engine;
+    private final Map<String, ScriptAnnotationHandler> annotationHandlers = new LinkedHashMap<>();
+    private final Map<Key, ScriptFile> scripts = new ConcurrentHashMap<>();
+    private final Map<String, ScriptFile> scriptsByName = new ConcurrentHashMap<>();
+    private final Set<String> missingScriptWarned = ConcurrentHashMap.newKeySet();
+    private JsEngine engine;
     private ScriptEventSubscriber eventSubscriber;
     private boolean available;
 
     public ScriptManagerImpl(Plugin plugin) {
         this.plugin = plugin;
+        registerBinding(new SchedulerBinding(plugin));
+        registerBinding(new LogBinding(plugin));
+        registerAnnotationHandler(new SubscribeAnnotationHandler(this));
         if (!Config.enableJsScripting()) {
             this.available = false;
             return;
         }
+        String engineName = Config.jsEngine().toLowerCase(java.util.Locale.ENGLISH);
         try {
-            this.plugin.dependencyManager().loadDependencies(GRAALJS_DEPENDENCIES);
-            this.engine = new GraalScriptEngine();
+            if (engineName.equalsIgnoreCase("nashorn")) {
+                this.plugin.dependencyManager().loadDependencies(NASHORN_DEPENDENCIES);
+                this.engine = new NashornScriptEngine();
+            } else if (engineName.equalsIgnoreCase("graaljs")) {
+                this.plugin.dependencyManager().loadDependencies(GRAALJS_DEPENDENCIES);
+                this.engine = new GraalScriptEngine();
+            } else {
+                this.available = false;
+                this.plugin.logger().warn("JS engine " + engineName + " not found.");
+                return;
+            }
             this.available = true;
+            this.plugin.logger().info("JS engine: " + engineName);
         } catch (Throwable t) {
-            this.plugin.logger().warn("GraalJS engine is unavailable, js scripting is disabled", t);
+            this.plugin.logger().warn("JS engine '" + engineName + "' is unavailable, js scripting is disabled", t);
             this.available = false;
         }
-        registerBinding(new SchedulerBinding(plugin));
-        registerBinding(new LogBinding(plugin));
     }
 
     private static final List<Dependency> GRAALJS_DEPENDENCIES = List.of(
@@ -62,7 +77,12 @@ public final class ScriptManagerImpl implements ScriptManager {
             Dependencies.GRAALJS_ICU4J
     );
 
-    Plugin plugin() {
+    private static final List<Dependency> NASHORN_DEPENDENCIES = List.of(
+            Dependencies.NASHORN_CORE,
+            Dependencies.ASM_UTIL
+    );
+
+    public Plugin plugin() {
         return this.plugin;
     }
 
@@ -80,8 +100,23 @@ public final class ScriptManagerImpl implements ScriptManager {
         this.bindings.put(binding.name(), binding);
     }
 
+    public void registerAnnotationHandler(ScriptAnnotationHandler handler) {
+        this.annotationHandlers.put(handler.name(), handler);
+    }
+
     @Override
     public Optional<ScriptFile> script(String id) {
+        if (id.indexOf(':') != -1) {
+            Key key = Key.of(id);
+            if (this.scripts.containsKey(key)) {
+                return Optional.of(this.scripts.get(key));
+            }
+        }
+        return Optional.ofNullable(this.scriptsByName.get(id));
+    }
+
+    @Override
+    public Optional<ScriptFile> script(Key id) {
         return Optional.ofNullable(this.scripts.get(id));
     }
 
@@ -92,45 +127,65 @@ public final class ScriptManagerImpl implements ScriptManager {
         for (Pack pack : this.plugin.packManager().loadedPacks()) {
             if (!pack.enabled()) continue;
             for (Path scriptDir : pack.scriptFolders()) {
-                scanScripts(scriptDir, pack.namespace() + "/");
+                scanScripts(scriptDir, pack.namespace());
             }
         }
         this.scripts.values().forEach(ScriptFile::warmUp);
+        if (!this.scripts.isEmpty()) {
+            this.plugin.logger().info("Loaded " + this.scripts.size() + " js script(s)");
+        }
     }
 
     public void setEventSubscriber(ScriptEventSubscriber eventSubscriber) {
         this.eventSubscriber = eventSubscriber;
     }
 
-    public void subscribeEvent(ScriptFile script, Class<?> eventClass, ScriptEventHandler handler, @Nullable Map<String, Object> options) {
+    public void subscribeEvent(ScriptFile script, String eventClass, String function, @Nullable Map<String, Object> options) {
         if (this.eventSubscriber == null) {
-            this.plugin.logger().warn("Script '" + script.id() + "' tried to subscribe event '" + eventClass.getName() + "', but event subscription is not supported on this platform");
+            this.plugin.logger().warn("Script '" + script.id() + "' tried to subscribe event '" + eventClass + "', but event subscription is not supported on this platform");
             return;
         }
-        this.eventSubscriber.subscribe(script, eventClass, handler, options);
+        this.eventSubscriber.subscribe(script, eventClass, function, options);
     }
 
-    private void scanScripts(Path directory, String idPrefix) {
+    private void scanScripts(Path directory, String namespace) {
         if (!Files.isDirectory(directory)) return;
         try (Stream<Path> stream = Files.walk(directory)) {
             stream.filter(Files::isRegularFile)
                     .filter(it -> it.getFileName().toString().endsWith(".js"))
+                    .sorted()
                     .forEach(path -> {
-                        String id = idPrefix + directory.relativize(path).toString().replace('\\', '/');
-                        loadScript(path, id);
+                        String replaced = directory.relativize(path).toString().replace('\\', '/');
+                        loadScript(path, Key.of(namespace, replaced.substring(replaced.length() - 3)));
                     });
         } catch (IOException e) {
             this.plugin.logger().warn("Failed to scan scripts directory " + directory, e);
         }
     }
 
-    private void loadScript(Path path, String id) {
+    private void loadScript(Path path, Key id) {
         if (this.scripts.containsKey(id)) {
             this.plugin.logger().warn("Duplicated script id '" + id + "' (" + path + "), skipped");
             return;
         }
         try {
-            this.scripts.put(id, new ScriptFile(this, this.engine, id, Files.readAllBytes(path)));
+            ScriptFile script = new ScriptFile(this, this.engine, id, Files.readAllBytes(path));
+            this.scripts.put(id, script);
+            this.scriptsByName.put(id.value(), script);
+            for (AnnotatedFunction annotated : script.annotatedFunctions()) {
+                for (ScriptAnnotation annotation : annotated.annotations()) {
+                    ScriptAnnotationHandler handler = this.annotationHandlers.get(annotation.name());
+                    if (handler != null) {
+                        try {
+                            handler.handle(script, annotated.function(), annotation);
+                        } catch (Throwable t) {
+                            this.plugin.logger().warn("Error handling annotation '@" + annotation.name() + "' on function '" + annotated.function() + "' of script '" + id + "'", t);
+                        }
+                    } else {
+                        this.plugin.logger().warn("Script '" + id + "' uses unknown annotation '@" + annotation.name() + "' on function '" + annotated.function() + "'");
+                    }
+                }
+            }
         } catch (Throwable t) {
             this.plugin.logger().warn("Failed to load script '" + id + "'", t);
         }
@@ -148,14 +203,19 @@ public final class ScriptManagerImpl implements ScriptManager {
     private void unloadScripts() {
         this.scripts.values().forEach(ScriptFile::unload);
         this.scripts.clear();
+        this.scriptsByName.clear();
+        this.missingScriptWarned.clear();
     }
 
     @Override
     public @Nullable Object invoke(String id, String function, Context context, Map<String, Object> extras) {
         if (!this.available) return null;
-        ScriptFile script = this.scripts.get(id);
-        if (script == null) {
-            this.plugin.logger().warn("Script '" + id + "' not found");
+        Optional<ScriptFile> script = this.script(id);
+        if (script.isEmpty()) {
+            // 缺失脚本只告警一次，避免热路径刷屏
+            if (this.missingScriptWarned.add(id)) {
+                this.plugin.logger().warn("Script '" + id + "' not found");
+            }
             return null;
         }
         Map<String, Object> injected = new HashMap<>();
@@ -165,7 +225,7 @@ public final class ScriptManagerImpl implements ScriptManager {
         });
         injected.put("ctx", context);
         injected.putAll(extras);
-        return script.invoke(function, injected);
+        return script.get().invoke(function, injected);
     }
 
     @Override
