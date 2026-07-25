@@ -12,9 +12,11 @@ public interface ScriptManager {
 
     Optional<ScriptFile> script(Key id);
 
-    void reload();
+    void load();
 
     void unload();
+
+    void disable();
 
     boolean isAvailable();
 

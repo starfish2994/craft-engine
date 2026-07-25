@@ -73,13 +73,13 @@ import java.util.zip.ZipInputStream;
 public final class BukkitCraftEngine extends CraftEngine {
     private static final String COMPATIBILITY_CLASS = "net.momirealms.craftengine.bukkit.compatibility.BukkitCompatibilityManager";
     private static BukkitCraftEngine instance;
+    private final List<AntiGriefCompatibility> antiGriefProviders = new ArrayList<>(1);
+    private final Path dataFolderPath;
     private SchedulerTask tickTask;
     private boolean successfullyLoaded = false;
     private boolean successfullyEnabled = false;
-    private final List<AntiGriefCompatibility> antiGriefProviders = new ArrayList<>(1);
     private AntiGriefLib antiGrief;
     private JavaPlugin javaPlugin;
-    private final Path dataFolderPath;
     private ServerEventListener serverEventListener;
 
     BukkitCraftEngine(JavaPlugin plugin) {
@@ -108,6 +108,10 @@ public final class BukkitCraftEngine extends CraftEngine {
                 logger().warn("Compatibility class could not be instantiated: " + compatibilityClass.getName());
             }
         }
+    }
+
+    public static BukkitCraftEngine instance() {
+        return instance;
     }
 
     void setJavaPlugin(JavaPlugin javaPlugin) {
@@ -450,10 +454,6 @@ public final class BukkitCraftEngine extends CraftEngine {
 
     public JavaPlugin javaPlugin() {
         return this.javaPlugin;
-    }
-
-    public static BukkitCraftEngine instance() {
-        return instance;
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

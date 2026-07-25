@@ -6,10 +6,8 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.dependency.Dependencies;
 import net.momirealms.craftengine.core.plugin.dependency.Dependency;
-import net.momirealms.craftengine.core.plugin.script.annotation.AnnotatedFunction;
-import net.momirealms.craftengine.core.plugin.script.annotation.ScriptAnnotation;
-import net.momirealms.craftengine.core.plugin.script.annotation.ScriptAnnotationHandler;
-import net.momirealms.craftengine.core.plugin.script.annotation.SubscribeAnnotationHandler;
+import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
+import net.momirealms.craftengine.core.plugin.script.annotation.*;
 import net.momirealms.craftengine.core.plugin.script.binding.LogBinding;
 import net.momirealms.craftengine.core.plugin.script.binding.SchedulerBinding;
 import net.momirealms.craftengine.core.plugin.script.binding.ScriptBinding;
@@ -25,12 +23,28 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public final class ScriptManagerImpl implements ScriptManager {
+    private static final List<Dependency> GRAALJS_DEPENDENCIES = List.of(
+            Dependencies.GRAALJS_POLYGLOT,
+            Dependencies.GRAALJS_JS_LANGUAGE,
+            Dependencies.GRAALJS_TRUFFLE_RUNTIME,
+            Dependencies.GRAALJS_TRUFFLE_COMPILER,
+            Dependencies.GRAALJS_TRUFFLE_API,
+            Dependencies.GRAALJS_REGEX,
+            Dependencies.GRAALJS_COLLECTIONS,
+            Dependencies.GRAALJS_NATIVEIMAGE,
+            Dependencies.GRAALJS_ICU4J
+    );
+    private static final List<Dependency> NASHORN_DEPENDENCIES = List.of(
+            Dependencies.NASHORN_CORE,
+            Dependencies.ASM_UTIL
+    );
     private final Plugin plugin;
     private final Map<String, ScriptBinding> bindings = new LinkedHashMap<>();
     private final Map<String, ScriptAnnotationHandler> annotationHandlers = new LinkedHashMap<>();
     private final Map<Key, ScriptFile> scripts = new ConcurrentHashMap<>();
     private final Map<String, ScriptFile> scriptsByName = new ConcurrentHashMap<>();
     private final Set<String> missingScriptWarned = ConcurrentHashMap.newKeySet();
+    private final List<PendingEnable> pendingEnables = new ArrayList<>();
     private JsEngine engine;
     private ScriptEventSubscriber eventSubscriber;
     private boolean available;
@@ -40,6 +54,8 @@ public final class ScriptManagerImpl implements ScriptManager {
         registerBinding(new SchedulerBinding(plugin));
         registerBinding(new LogBinding(plugin));
         registerAnnotationHandler(new SubscribeAnnotationHandler(this));
+        registerAnnotationHandler(new EnableAnnotationHandler(this));
+        registerAnnotationHandler(new DisableAnnotationHandler());
         if (!Config.enableJsScripting()) {
             this.available = false;
             return;
@@ -64,23 +80,6 @@ public final class ScriptManagerImpl implements ScriptManager {
             this.available = false;
         }
     }
-
-    private static final List<Dependency> GRAALJS_DEPENDENCIES = List.of(
-            Dependencies.GRAALJS_POLYGLOT,
-            Dependencies.GRAALJS_JS_LANGUAGE,
-            Dependencies.GRAALJS_TRUFFLE_RUNTIME,
-            Dependencies.GRAALJS_TRUFFLE_COMPILER,
-            Dependencies.GRAALJS_TRUFFLE_API,
-            Dependencies.GRAALJS_REGEX,
-            Dependencies.GRAALJS_COLLECTIONS,
-            Dependencies.GRAALJS_NATIVEIMAGE,
-            Dependencies.GRAALJS_ICU4J
-    );
-
-    private static final List<Dependency> NASHORN_DEPENDENCIES = List.of(
-            Dependencies.NASHORN_CORE,
-            Dependencies.ASM_UTIL
-    );
 
     public Plugin plugin() {
         return this.plugin;
@@ -121,19 +120,52 @@ public final class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public void reload() {
+    public void load() {
         if (!this.available) return;
-        unloadScripts();
+        long t1 = System.nanoTime();
         for (Pack pack : this.plugin.packManager().loadedPacks()) {
             if (!pack.enabled()) continue;
             for (Path scriptDir : pack.scriptFolders()) {
-                scanScripts(scriptDir, pack.namespace());
+                try {
+                    scanScripts(scriptDir, pack.namespace());
+                } catch (Throwable t) {
+                    this.plugin.logger().warn("Failed to scan scripts of pack '" + pack.name() + "' (" + scriptDir + ")", t);
+                }
             }
         }
         this.scripts.values().forEach(ScriptFile::warmUp);
         if (!this.scripts.isEmpty()) {
-            this.plugin.logger().info("Loaded " + this.scripts.size() + " js script(s)");
+            long t2 = System.nanoTime();
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource.config_loaded", "scripts", String.format("%.2f", ((t2 - t1) / 1_000_000.0)), String.valueOf(this.scripts.size())));
         }
+        // 全部脚本加载完成后统一触发 //@Enable
+        for (PendingEnable pending : this.pendingEnables) {
+            try {
+                pending.script().invoke(pending.function(), Map.of());
+            } catch (Throwable t) {
+                this.plugin.logger().warn("Error running //@Enable function '" + pending.function() + "' of script '" + pending.script().id() + "'", t);
+            }
+        }
+        this.pendingEnables.clear();
+    }
+
+    @Override
+    public void unload() {
+        if (!this.available) return;
+        unloadScripts();
+    }
+
+    @Override
+    public void disable() {
+        unloadScripts();
+        if (this.engine != null) {
+            this.engine.close();
+            this.engine = null;
+        }
+    }
+
+    public void addPendingEnable(ScriptFile script, String function) {
+        this.pendingEnables.add(new PendingEnable(script, function));
     }
 
     public void setEventSubscriber(ScriptEventSubscriber eventSubscriber) {
@@ -158,7 +190,7 @@ public final class ScriptManagerImpl implements ScriptManager {
                         String replaced = directory.relativize(path).toString().replace('\\', '/');
                         loadScript(path, Key.of(namespace, replaced.substring(replaced.length() - 3)));
                     });
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             this.plugin.logger().warn("Failed to scan scripts directory " + directory, e);
         }
     }
@@ -191,20 +223,12 @@ public final class ScriptManagerImpl implements ScriptManager {
         }
     }
 
-    @Override
-    public void unload() {
-        unloadScripts();
-        if (this.engine != null) {
-            this.engine.close();
-            this.engine = null;
-        }
-    }
-
     private void unloadScripts() {
         this.scripts.values().forEach(ScriptFile::unload);
         this.scripts.clear();
         this.scriptsByName.clear();
         this.missingScriptWarned.clear();
+        this.pendingEnables.clear();
     }
 
     @Override
@@ -235,5 +259,8 @@ public final class ScriptManagerImpl implements ScriptManager {
             return bool;
         }
         return result != null || def;
+    }
+
+    private record PendingEnable(ScriptFile script, String function) {
     }
 }

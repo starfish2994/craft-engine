@@ -276,6 +276,8 @@ public abstract class CraftEngine implements Plugin {
                 if (reloadRecipe) {
                     this.recipeManager.reload();
                 }
+                // 卸载旧脚本（触发 //@Disable、退订事件），在新配置加载前完成
+                if (this.scriptManager != null) this.scriptManager.unload();
                 try {
                     // 加载全部配置资源
                     this.packManager.loadPacks();
@@ -293,7 +295,7 @@ public abstract class CraftEngine implements Plugin {
                 }
                 try {
                     // pack 列表就绪后再加载脚本（pack 内 script 目录依赖 pack 扫描结果）
-                    if (this.scriptManager != null) this.scriptManager.reload();
+                    if (this.scriptManager != null) this.scriptManager.load();
                 } catch (Throwable e) {
                     this.logger().warn("Failed to load scripts", e);
                     future.complete(ReloadResult.failure());
@@ -381,14 +383,18 @@ public abstract class CraftEngine implements Plugin {
         if (!Config.delayConfigurationLoad()) {
             // 清理缓存，初始化一些东西，不需要读config和translation，因为boostrap阶段已经读取过了
             this.reloadManagers();
-            // 加载packs
-            this.packManager.loadPacks();
-            this.packManager.updateCachedConfigFiles();
-            // 不要加载配方和进度
-            this.packManager.loadResources((p) -> p.loadingStage() != LoadingStages.RECIPE);
+            try {
+                // 加载packs
+                this.packManager.loadPacks();
+                this.packManager.updateCachedConfigFiles();
+                // 不要加载配方和进度
+                this.packManager.loadResources((p) -> p.loadingStage() != LoadingStages.RECIPE);
+            } catch (Throwable e) {
+                this.logger().warn("Failed to load resources folder", e);
+            }
             try {
                 // pack 列表就绪后再加载脚本（pack 内 script 目录依赖 pack 扫描结果）
-                if (this.scriptManager != null) this.scriptManager.reload();
+                if (this.scriptManager != null) this.scriptManager.load();
             } catch (Throwable e) {
                 this.logger().warn("Failed to load scripts", e);
             }
@@ -558,7 +564,7 @@ public abstract class CraftEngine implements Plugin {
         if (this.globalVariableManager != null) this.globalVariableManager.disable();
         if (this.projectileManager != null) this.projectileManager.disable();
         if (this.entityCullingManager != null) this.entityCullingManager.disable();
-        if (this.scriptManager != null) this.scriptManager.unload();
+        if (this.scriptManager != null) this.scriptManager.disable();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
         if (this.commandManager != null) this.commandManager.unregisterFeatures();
