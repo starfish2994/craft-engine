@@ -30,6 +30,8 @@ public abstract class IdConfigParser extends AbstractConfigParser {
     @Override
     public void clearConfigs() {
         super.clearConfigs();
-        this.loadedConfigs.clear();
+        if (!this.loadedConfigs.isEmpty()) {
+            this.loadedConfigs.clear();
+        }
     }
 }

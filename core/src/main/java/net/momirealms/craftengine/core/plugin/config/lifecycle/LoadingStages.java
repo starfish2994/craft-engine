@@ -23,6 +23,7 @@ public final class LoadingStages {
     public static final LoadingStage ADVANCEMENT = new LoadingStage("advancements");
     public static final LoadingStage LANG = new LoadingStage("lang");
     public static final LoadingStage SKIP_OPTIMIZATION = new LoadingStage("skip optimization");
+    public static final LoadingStage ATLAS = new LoadingStage("atlases");
     public static final LoadingStage CONFIGURED_FEATURE = new LoadingStage("configured features");
     public static final LoadingStage PLACED_FEATURE = new LoadingStage("placed features");
     public static final LoadingStage PAINTING = new LoadingStage("painting");
