@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.CEWorld;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.WorldlyContainer;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -46,7 +47,7 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
     protected WorldPosition itemPosition;
     protected WorldPosition textPosition;
     protected float entityYRot;
-    protected final Vector3f blockCenter;
+    protected final Vec3d blockCenter;
     protected Item lastUpdateItem = Item.empty(); // 最后一次包发送的物品
     protected int lastUpdateCount = 0; // 最后一次包发送的物品数量
     protected UUID lastClickPlayer;
@@ -55,7 +56,7 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
     protected DrawerBlockEntityController(BlockEntity blockEntity, DrawerBlockBehavior behavior) {
         super(blockEntity);
         this.behavior = behavior;
-        this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
+        this.blockCenter = new Vec3d(blockEntity.pos.x + 0.5, blockEntity.pos.y + 0.5, blockEntity.pos.z + 0.5);
         this.itemPosition = this.calculateDisplayPosition(blockEntity.blockState, this.behavior.itemPosition);
         this.textPosition = this.calculateDisplayPosition(blockEntity.blockState, this.behavior.textPosition);
         this.entityYRot = this.calculateYRot(blockEntity.blockState);
