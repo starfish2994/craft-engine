@@ -292,9 +292,14 @@ public abstract class Furniture implements Cullable, ChainParameterSource {
         }
 
         // 行为提供的元素
+        // 变体切换时行为会重新创建元素（全新 entityId），需要记录下来，事后补发 show 包
+        List<FurnitureElement> behaviorElements = previousVariant != null ? new ArrayList<>() : null;
         this.controller.gatherElements(element -> {
             elements.add(element);
             element.gatherInteractableEntityId(interactableEntityIds::addLast);
+            if (behaviorElements != null) {
+                behaviorElements.add(element);
+            }
         });
 
         // 初始化碰撞箱
@@ -351,6 +356,23 @@ public abstract class Furniture implements Cullable, ChainParameterSource {
 
         // 触发变体变化
         if (previousVariant != null) {
+            // 行为元素在变体切换时被重建，旧实例已在 updateElements 中 hide，
+            // 这里给正在观察的玩家补发新实例的 show，否则只有重新加载家具才能看到它们
+            if (!behaviorElements.isEmpty()) {
+                List<Player> trackedBy = trackedBy();
+                if (!trackedBy.isEmpty()) {
+                    boolean culling = Config.enableEntityCulling();
+                    for (Player player : trackedBy) {
+                        if (culling) {
+                            CullableHolder holder = player.getTrackedEntity(this.metaDataEntityId);
+                            if (holder == null || !holder.isShown) continue;
+                        }
+                        for (FurnitureElement element : behaviorElements) {
+                            element.show(player);
+                        }
+                    }
+                }
+            }
             this.controller.onVariantChange(previousVariant);
         }
     }
