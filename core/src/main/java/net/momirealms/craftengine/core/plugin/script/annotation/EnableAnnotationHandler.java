@@ -3,8 +3,6 @@ package net.momirealms.craftengine.core.plugin.script.annotation;
 import net.momirealms.craftengine.core.plugin.script.ScriptFile;
 import net.momirealms.craftengine.core.plugin.script.ScriptManagerImpl;
 
-import java.util.Map;
-
 public final class EnableAnnotationHandler implements ScriptAnnotationHandler {
     private final ScriptManagerImpl manager;
 

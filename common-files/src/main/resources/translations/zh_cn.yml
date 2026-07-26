@@ -137,6 +137,10 @@ player_selector.unknown_type: 未知的玩家选择器类型“<arg:0>”
 loot.entry.unknown_type: 未知的战利品条目类型“<arg:0>”
 loot.function.unknown_type: 未知的战利品函数类型“<arg:0>”
 loot.function.formula.unknown_type: 未知的公式类型“<arg:0>”
+loot.source.unknown_type: 未知的战利品来源类型“<arg:0>”
+loot.source.unknown_overwrite_mode: 未知的战利品来源覆写模式“<arg:0>”
+loot.source.target_not_allowed: 战利品来源类型“<arg:0>”不支持配置“target”
+loot.source.invalid_target: 无效的战利品来源目标“<arg:0>”
 host.unknown_type: 未知的资源包托管类型“<arg:0>”
 host.missing_environment_variable: 缺少环境变量“<arg:0>”
 host.get_url_failed: 获取玩家<arg:0>的资源包下载链接失败

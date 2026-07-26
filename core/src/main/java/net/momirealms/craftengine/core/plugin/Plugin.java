@@ -103,7 +103,7 @@ public interface Plugin {
     SoundManager soundManager();
 
     LootManager lootManager();
-
+    
     CompatibilityManager compatibilityManager();
 
     GlobalVariableManager globalVariableManager();

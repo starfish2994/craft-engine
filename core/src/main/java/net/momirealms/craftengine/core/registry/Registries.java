@@ -45,6 +45,8 @@ import net.momirealms.craftengine.core.loot.function.LootFunction;
 import net.momirealms.craftengine.core.loot.function.LootFunctionType;
 import net.momirealms.craftengine.core.loot.function.formula.Formula;
 import net.momirealms.craftengine.core.loot.function.formula.FormulaType;
+import net.momirealms.craftengine.core.loot.source.LootSource;
+import net.momirealms.craftengine.core.loot.source.LootSourceType;
 import net.momirealms.craftengine.core.pack.conflict.PathContext;
 import net.momirealms.craftengine.core.pack.conflict.matcher.PathMatcherType;
 import net.momirealms.craftengine.core.pack.conflict.resolution.Resolution;
@@ -134,6 +136,7 @@ public final class Registries {
     public static final ResourceKey<Registry<ItemSettingsModifierType<? extends ItemSettingsModifier>>> ITEM_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_settings_type"));
     public static final ResourceKey<Registry<LootFunctionType<? extends LootFunction>>> LOOT_FUNCTION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_function_type"));
     public static final ResourceKey<Registry<LootEntryContainerType<? extends LootEntryContainer>>> LOOT_ENTRY_CONTAINER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_entry_container_type"));
+    public static final ResourceKey<Registry<LootSourceType<? extends LootSource>>> LOOT_SOURCE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_source_type"));
     public static final ResourceKey<Registry<Dialog.Type<? extends Dialog>>> DIALOG_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("dialog_type"));
     public static final ResourceKey<Registry<DialogBody.Type<? extends DialogBody>>> DIALOG_BODY_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("dialog_body_type"));
     public static final ResourceKey<Registry<DialogAction.Type<? extends DialogAction>>> DIALOG_ACTION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("dialog_action_type"));

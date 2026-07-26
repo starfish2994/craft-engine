@@ -29,7 +29,7 @@ import net.momirealms.craftengine.core.world.chunk.client.occlusion.UniformOcclu
 import net.momirealms.craftengine.core.world.chunk.packet.MCSection;
 import net.momirealms.sparrow.nbt.Tag;
 
-import java.util.*;
+import java.util.Arrays;
 import java.util.function.Predicate;
 
 public final class LevelChunkWithLightListener implements ByteBufferPacketListener {

@@ -14,5 +14,4 @@ public abstract class BukkitLootContext extends LootContext {
     }
 
     protected abstract Object getMinecraftLootParamsBuilder();
-
 }

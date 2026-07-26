@@ -245,6 +245,7 @@ public abstract class CraftEngine implements Plugin {
         delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.advancementManager.delayedLoad(), this.scheduler.async()));
         // 战利品
         delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.lootManager.delayedLoad(), this.scheduler.async()));
+        // 战利品来源
         // 如果重载配方
         if (reloadRecipe) {
             // 转换数据包配方
@@ -399,6 +400,8 @@ public abstract class CraftEngine implements Plugin {
                 this.logger().warn("Failed to load scripts", e);
             }
             this.runDelayTasks(false);
+            // 重新发送tags，需要等待tags更新完成
+            this.networkManager.delayedLoad();
         }
 
         // 延迟任务
@@ -411,6 +414,9 @@ public abstract class CraftEngine implements Plugin {
 
             // 延迟兼容性任务，比如物品库的支持。保证后续配方正确加载
             this.compatibilityManager.onDelayedEnable();
+            // 再次触发
+            this.itemManager.delayedLoad();
+            this.lootManager.delayedLoad();
 
             if (!Config.delayConfigurationLoad()) {
                 // 单独加载配方
@@ -418,8 +424,6 @@ public abstract class CraftEngine implements Plugin {
                 this.packManager.loadResources((p) -> p.loadingStage() == LoadingStages.RECIPE);
                 this.recipeManager.delayedLoad();
                 this.packManager.clearResourceConfigs();
-                // 重新发送tags，需要等待tags更新完成
-                this.networkManager.delayedLoad();
                 // 注册唱片机音乐
                 this.soundManager.runDelayedSyncTasks();
                 // 注册画

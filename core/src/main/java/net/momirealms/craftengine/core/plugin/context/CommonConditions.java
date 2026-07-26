@@ -39,6 +39,9 @@ public final class CommonConditions {
     public static final CommonConditionType<MatchFurnitureVariantCondition<Context>> MATCH_FURNITURE_VARIANT = register(Key.ce("match_furniture_variant"), MatchFurnitureVariantCondition.factory());
     public static final CommonConditionType<IsBedrockPlayerCondition<Context>> IS_BEDROCK_PLAYER = register(Key.ce("is_bedrock_player"), IsBedrockPlayerCondition.factory());
     public static final CommonConditionType<JsCondition<Context>> JS = register(Key.ce("js"), JsCondition.factory());
+    public static final CommonConditionType<OpenWaterCondition<Context>> OPEN_WATER = register(Key.ce("open_water"), OpenWaterCondition.factory());
+    public static final CommonConditionType<BiomeCondition<Context>> IN_BIOME = register(Key.ce("biome"), BiomeCondition.factory());
+    public static final CommonConditionType<WorldCondition<Context>> IN_WORLD = register(Key.ce("world"), WorldCondition.factory());
 
     private CommonConditions() {}
 

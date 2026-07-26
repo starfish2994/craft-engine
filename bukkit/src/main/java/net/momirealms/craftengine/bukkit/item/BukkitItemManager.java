@@ -28,7 +28,6 @@ import net.momirealms.craftengine.core.item.processor.ObfuscatedItemModelProcess
 import net.momirealms.craftengine.core.item.recipe.DatapackRecipeResult;
 import net.momirealms.craftengine.core.item.recipe.IngredientUnlockable;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.compatibility.ItemSource;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
@@ -117,7 +116,7 @@ public final class BukkitItemManager extends AbstractItemManager {
             this.hasExternalRecipeSource = true;
         }
         if (!ReloadCommand.RELOAD_PACK_FLAG || !Config.obfuscateItemModel()) {
-            for (Player player : CraftEngine.instance().networkManager().onlineUsers()) {
+            for (Player player : this.plugin.networkManager().onlineUsers()) {
                 if (!player.hasClientMod()) continue;
                 player.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(player));
             }

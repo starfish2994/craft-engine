@@ -148,10 +148,6 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     @Override
-    public void onLoad() {
-    }
-
-    @Override
     public void onEnable() {
         this.initSlimeWorldHook();
         // WorldEdit

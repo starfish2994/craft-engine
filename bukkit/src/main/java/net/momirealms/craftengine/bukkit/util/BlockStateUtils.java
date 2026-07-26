@@ -147,6 +147,15 @@ public final class BlockStateUtils {
         return BlockGetterProxy.INSTANCE.getBlockState(CraftWorldProxy.INSTANCE.getWorld(block.getWorld()), LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ()));
     }
 
+    public static Key getBlockOwner(Block block) {
+        Object blockState = getBlockState(block);
+        Optional<ImmutableBlockState> optionalCustomBlockState = getOptionalCustomBlockState(blockState);
+        if (optionalCustomBlockState.isPresent()) {
+            return optionalCustomBlockState.get().owner().value().id();
+        }
+        return getBlockOwnerIdFromState(blockState);
+    }
+
     public static boolean isBurnable(Object blockState) {
         return BukkitBlockManager.instance().isBurnable(blockState);
     }

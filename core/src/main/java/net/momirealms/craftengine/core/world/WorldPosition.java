@@ -3,6 +3,8 @@ package net.momirealms.craftengine.core.world;
 import net.momirealms.craftengine.core.plugin.context.ChainParameterSource;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.parameter.PositionParameterProvider;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.MiscUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -58,6 +60,14 @@ public final class WorldPosition implements Position, ChainParameterSource {
         this.z = z;
         this.xRot = xRot;
         this.yRot = yRot;
+    }
+
+    public ExistingBlock getBlock() {
+        return this.world.getBlock(MiscUtils.floor(this.x), MiscUtils.floor(this.y), MiscUtils.floor(this.z));
+    }
+
+    public Key getBiome() {
+        return this.world.getNoiseBiome(MiscUtils.floor(this.x), MiscUtils.floor(this.y), MiscUtils.floor(this.z));
     }
 
     @Override

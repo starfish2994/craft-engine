@@ -18,7 +18,7 @@ public final class LoadingStages {
     public static final LoadingStage SOUND = new LoadingStage("sounds");
     public static final LoadingStage JUKEBOX_SONG = new LoadingStage("jukebox songs");
     public static final LoadingStage LOOT_TABLE = new LoadingStage("loot tables");
-    public static final LoadingStage VANILLA_LOOT = new LoadingStage("vanilla loots");
+    public static final LoadingStage LOOT_SOURCE = new LoadingStage("loot sources");
     public static final LoadingStage EMOJI = new LoadingStage("emojis");
     public static final LoadingStage ADVANCEMENT = new LoadingStage("advancements");
     public static final LoadingStage LANG = new LoadingStage("lang");

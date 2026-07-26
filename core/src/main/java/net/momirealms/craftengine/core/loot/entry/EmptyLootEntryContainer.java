@@ -9,21 +9,21 @@ import net.momirealms.craftengine.core.plugin.context.Condition;
 import java.util.List;
 import java.util.function.Consumer;
 
-public final class EmptyLoopEntryContainer extends AbstractSingleLootEntryContainer {
-    public static final LootEntryContainerFactory<EmptyLoopEntryContainer> FACTORY = new Factory();
+public final class EmptyLootEntryContainer extends AbstractSingleLootEntryContainer {
+    public static final LootEntryContainerFactory<EmptyLootEntryContainer> FACTORY = new Factory();
 
-    private EmptyLoopEntryContainer(List<Condition<LootContext>> conditions, int weight, int quality) {
+    private EmptyLootEntryContainer(List<Condition<LootContext>> conditions, int weight, int quality) {
         super(conditions, null, weight, quality);
     }
 
     @Override
     protected void createItem(Consumer<Item> lootConsumer, LootContext context) {}
 
-    private static class Factory implements LootEntryContainerFactory<EmptyLoopEntryContainer> {
+    private static class Factory implements LootEntryContainerFactory<EmptyLootEntryContainer> {
 
         @Override
-        public EmptyLoopEntryContainer create(ConfigSection section) {
-            return new EmptyLoopEntryContainer(
+        public EmptyLootEntryContainer create(ConfigSection section) {
+            return new EmptyLootEntryContainer(
                     section.getList("conditions", CommonConditions::fromConfig),
                     section.getInt("weight", 1),
                     section.getInt("quality")

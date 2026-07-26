@@ -179,8 +179,6 @@ public final class BukkitCraftEngine extends CraftEngine {
         BukkitFurnitureElementConfigs.init();
         BukkitDataComponentPredicates.init();
         CommonConditions.register(Key.ce("test_flag"), TestFlagCondition.factory());
-        // 初始化 onload 阶段的兼容性
-        super.compatibilityManager().onLoad();
         // 创建网络管理器
         super.networkManager = new BukkitNetworkManager(this);
         // 初始化方块管理器，获取镜像注册表，初始化网络映射
