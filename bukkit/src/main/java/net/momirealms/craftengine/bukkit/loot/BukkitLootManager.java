@@ -95,6 +95,11 @@ public final class BukkitLootManager extends AbstractLootManager {
     @Override
     public void delayedLoad() {
         super.delayedLoad();
+        this.resetEntityProviders();
+    }
+
+    @Override
+    public void resetEntityProviders() {
         List<EntityProvider> entityProviders = new ArrayList<>();
         for (String source : Config.lootEntitySources()) {
             Optional.ofNullable(this.plugin.compatibilityManager().getEntityProvider(source)).ifPresent(entityProviders::add);

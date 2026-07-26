@@ -251,6 +251,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     protected abstract ItemDefinition.Builder createPlatformItemBuilder(String path, UniqueKey id, Key material, Key clientBoundMaterial);
 
+    public abstract void resetItemProviders();
+
     protected abstract void registerArmorTrimPattern(Collection<Key> equipments);
 
     // 26.1 +

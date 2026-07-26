@@ -33,7 +33,7 @@ public final class HarvestBlockLootListener implements Listener {
         if (sources.isEmpty()) return;
         Player player = event.getPlayer();
         InteractionHand hand = event.getHand() == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-        Location location = event.getHarvestedBlock().getLocation();
+        Location location = LocationUtils.toBlockCenterLocation(event.getHarvestedBlock().getLocation());
         World world = BukkitAdaptor.adapt(location.getWorld());
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return;

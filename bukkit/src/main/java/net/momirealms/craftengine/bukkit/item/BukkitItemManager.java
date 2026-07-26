@@ -100,6 +100,17 @@ public final class BukkitItemManager extends AbstractItemManager {
     @Override
     public void delayedLoad() {
         super.delayedLoad();
+        this.resetItemProviders();
+        if (!ReloadCommand.RELOAD_PACK_FLAG || !Config.obfuscateItemModel()) {
+            for (Player player : this.plugin.networkManager().onlineUsers()) {
+                if (!player.hasClientMod()) continue;
+                player.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(player));
+            }
+        }
+    }
+
+    @Override
+    public void resetItemProviders() {
         List<ItemSource> sources = new ArrayList<>();
         for (String externalSource : Config.recipeIngredientSources()) {
             String sourceId = externalSource.toLowerCase(Locale.ENGLISH);
@@ -114,12 +125,6 @@ public final class BukkitItemManager extends AbstractItemManager {
         } else {
             this.recipeIngredientSources = sources.toArray(new ItemSource[0]);
             this.hasExternalRecipeSource = true;
-        }
-        if (!ReloadCommand.RELOAD_PACK_FLAG || !Config.obfuscateItemModel()) {
-            for (Player player : this.plugin.networkManager().onlineUsers()) {
-                if (!player.hasClientMod()) continue;
-                player.sendCustomPackets(ClientboundCreativeModeTabItemsPacket.create(player));
-            }
         }
     }
 

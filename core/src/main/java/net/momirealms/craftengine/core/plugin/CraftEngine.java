@@ -12,10 +12,12 @@ import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSetting
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.seat.SeatManager;
 import net.momirealms.craftengine.core.font.FontManager;
+import net.momirealms.craftengine.core.item.AbstractItemManager;
 import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.item.processor.ItemProcessors;
 import net.momirealms.craftengine.core.item.recipe.RecipeManager;
 import net.momirealms.craftengine.core.item.setting.ItemSettingsModifiers;
+import net.momirealms.craftengine.core.loot.AbstractLootManager;
 import net.momirealms.craftengine.core.loot.LootManager;
 import net.momirealms.craftengine.core.pack.PackManager;
 import net.momirealms.craftengine.core.painting.PaintingManager;
@@ -327,6 +329,8 @@ public abstract class CraftEngine implements Plugin {
                         }
                         // 同步修改进度
                         this.advancementManager.runDelayedSyncTasks();
+                        // 注册所需的监听器
+                        this.lootManager.runDelayedSyncTasks();
                         this.compatibilityManager.runDelayedSyncTasks();
                         long syncTime = timestamp.deltaMillis();
                         this.reloadEventDispatcher.accept(this);
@@ -415,8 +419,8 @@ public abstract class CraftEngine implements Plugin {
             // 延迟兼容性任务，比如物品库的支持。保证后续配方正确加载
             this.compatibilityManager.onDelayedEnable();
             // 再次触发
-            this.itemManager.delayedLoad();
-            this.lootManager.delayedLoad();
+            ((AbstractItemManager) this.itemManager).resetItemProviders();
+            ((AbstractLootManager) this.lootManager).resetEntityProviders();
 
             if (!Config.delayConfigurationLoad()) {
                 // 单独加载配方
@@ -432,6 +436,8 @@ public abstract class CraftEngine implements Plugin {
                 this.recipeManager.runDelayedSyncTasks();
                 // 同步注册进度
                 this.advancementManager.runDelayedSyncTasks();
+                // 注册所需的监听器
+                this.lootManager.runDelayedSyncTasks();
                 this.compatibilityManager.runDelayedSyncTasks();
             } else {
                 try {
