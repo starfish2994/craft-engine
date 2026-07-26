@@ -29,12 +29,11 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 public final class ItemDisplayBlockEntityElementConfig implements BlockEntityElementConfig<ItemDisplayBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ItemDisplayBlockEntityElement> FACTORY = new Factory();
-    public final BiFunction<Player, BlockEntityTintSource, List<Object>> lazyMetadataPacket;
+    public final BlockEntityMetadataProvider lazyMetadataPacket;
     public final Key itemId;
     public final Vector3f scale;
     public final Vector3f position;
@@ -90,14 +89,14 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         this.hasCondition = hasCondition;
         this.predicate = predicate;
         this.tintSource = tintSource;
-        this.lazyMetadataPacket = (player, ts) -> {
+        this.lazyMetadataPacket = (player, ts, force) -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
                 DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x40, dataValues);
                 DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
             } else {
-                DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x0, dataValues);
-                DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(-1, dataValues);
+                DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x0, dataValues, force);
+                DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(-1, dataValues, force);
             }
             Item wrappedItem = Item.byId(itemId, player);
             if (wrappedItem == null) {
@@ -107,19 +106,19 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
                 ts.applyTint(wrappedItem);
             }
             DisplayData.ItemDisplayData.ItemStack.addEntityData(wrappedItem.minecraftItem(), dataValues);
-            DisplayData.ItemDisplayData.Scale.addEntityData(this.scale, dataValues);
-            DisplayData.ItemDisplayData.LeftRotation.addEntityData(this.rotation, dataValues);
-            DisplayData.ItemDisplayData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues);
-            DisplayData.ItemDisplayData.Translation.addEntityData(this.translation, dataValues);
-            DisplayData.ItemDisplayData.ItemTransform.addEntityData(this.displayContext.id(), dataValues);
-            DisplayData.ItemDisplayData.ShadowRadius.addEntityData(this.shadowRadius, dataValues);
-            DisplayData.ItemDisplayData.ShadowStrength.addEntityData(this.shadowStrength, dataValues);
+            DisplayData.ItemDisplayData.Scale.addEntityData(this.scale, dataValues, force);
+            DisplayData.ItemDisplayData.LeftRotation.addEntityData(this.rotation, dataValues, force);
+            DisplayData.ItemDisplayData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues, force);
+            DisplayData.ItemDisplayData.Translation.addEntityData(this.translation, dataValues, force);
+            DisplayData.ItemDisplayData.ItemTransform.addEntityData(this.displayContext.id(), dataValues, force);
+            DisplayData.ItemDisplayData.ShadowRadius.addEntityData(this.shadowRadius, dataValues, force);
+            DisplayData.ItemDisplayData.ShadowStrength.addEntityData(this.shadowStrength, dataValues, force);
             if (this.blockLight != -1 && this.skyLight != -1) {
                 DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
             } else {
-                DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(-1, dataValues);
+                DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(-1, dataValues, force);
             }
-            DisplayData.ItemDisplayData.ViewRange.addEntityData((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
+            DisplayData.ItemDisplayData.ViewRange.addEntityData((float) (this.viewRange * player.displayEntityViewDistance()), dataValues, force);
             return dataValues;
         };
     }
@@ -206,8 +205,8 @@ public final class ItemDisplayBlockEntityElementConfig implements BlockEntityEle
         return this.shadowStrength;
     }
 
-    public List<Object> metadataValues(Player player, BlockEntityTintSource source) {
-        return this.lazyMetadataPacket.apply(player, source);
+    public List<Object> metadataValues(Player player, BlockEntityTintSource source, boolean force) {
+        return this.lazyMetadataPacket.apply(player, source, force);
     }
 
     public boolean isSamePosition(ItemDisplayBlockEntityElementConfig that) {

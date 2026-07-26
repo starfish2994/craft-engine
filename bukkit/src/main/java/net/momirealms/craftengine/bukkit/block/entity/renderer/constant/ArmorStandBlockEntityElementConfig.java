@@ -25,12 +25,11 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class ArmorStandBlockEntityElementConfig implements BlockEntityElementConfig<ArmorStandBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ArmorStandBlockEntityElement> FACTORY = new Factory();
-    public final Function<Player, List<Object>> lazyMetadataPacket;
+    public final BlockEntityMetadataProvider lazyMetadataPacket;
     public final Key itemId;
     public final float scale;
     public final Vector3f position;
@@ -62,7 +61,7 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         this.tintSource = tintSource;
         this.predicate = predicate;
         this.hasCondition = hasCondition;
-        this.lazyMetadataPacket = player -> {
+        this.lazyMetadataPacket = (player, ts, force) -> {
             List<Object> dataValues = new ArrayList<>(2);
             if (glowColor != null) {
                 BaseEntityData.SharedFlags.addEntityData((byte) 0x60, dataValues);
@@ -71,6 +70,8 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
             }
             if (small) {
                 ArmorStandData.ClientFlags.addEntityData((byte) 0x01, dataValues);
+            } else {
+                ArmorStandData.ClientFlags.addEntityData((byte) 0, dataValues, force);
             }
             return dataValues;
         };
@@ -148,8 +149,8 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         return this.small;
     }
 
-    public List<Object> metadataValues(Player player) {
-        return this.lazyMetadataPacket.apply(player);
+    public List<Object> metadataValues(Player player, boolean force) {
+        return this.lazyMetadataPacket.apply(player, null, force);
     }
 
     public boolean isSamePosition(ArmorStandBlockEntityElementConfig that) {

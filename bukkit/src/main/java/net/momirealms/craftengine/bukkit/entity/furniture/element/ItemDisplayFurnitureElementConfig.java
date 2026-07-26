@@ -39,7 +39,7 @@ import java.util.function.Predicate;
 
 public final class ItemDisplayFurnitureElementConfig implements FurnitureElementConfig<ItemDisplayFurnitureElement> {
     public static final FurnitureElementConfigFactory<ItemDisplayFurnitureElement> FACTORY = new Factory();
-    public final BiFunction<Player, FurnitureTintSource, List<Object>> metadata;
+    public final FurnitureMetadataProvider metadata;
     public final Key itemId;
     public final Vector3f scale;
     public final Vector3f position;
@@ -102,24 +102,29 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
             }
             return Optional.ofNullable(wrappedItem).orElseGet(() -> Item.byId(ItemKeys.BARRIER));
         };
-        this.metadata = (player, source) -> {
+        this.metadata = (player, source, force) -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
                 DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x40, dataValues);
                 DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
+            } else {
+                DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x0, dataValues, force);
+                DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(-1, dataValues, force);
             }
             DisplayData.ItemDisplayData.ItemStack.addEntityData(itemFunction.apply(player, source).minecraftItem(), dataValues);
-            DisplayData.ItemDisplayData.Scale.addEntityDataIfNotDefaultValue(this.scale, dataValues);
-            DisplayData.ItemDisplayData.LeftRotation.addEntityDataIfNotDefaultValue(this.rotation, dataValues);
-            DisplayData.ItemDisplayData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);
-            DisplayData.ItemDisplayData.Translation.addEntityDataIfNotDefaultValue(this.translation, dataValues);
-            DisplayData.ItemDisplayData.ItemTransform.addEntityDataIfNotDefaultValue(this.displayContext.id(), dataValues);
-            DisplayData.ItemDisplayData.ShadowRadius.addEntityDataIfNotDefaultValue(this.shadowRadius, dataValues);
-            DisplayData.ItemDisplayData.ShadowStrength.addEntityDataIfNotDefaultValue(this.shadowStrength, dataValues);
+            DisplayData.ItemDisplayData.Scale.addEntityData(this.scale, dataValues, force);
+            DisplayData.ItemDisplayData.LeftRotation.addEntityData(this.rotation, dataValues, force);
+            DisplayData.ItemDisplayData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues, force);
+            DisplayData.ItemDisplayData.Translation.addEntityData(this.translation, dataValues, force);
+            DisplayData.ItemDisplayData.ItemTransform.addEntityData(this.displayContext.id(), dataValues, force);
+            DisplayData.ItemDisplayData.ShadowRadius.addEntityData(this.shadowRadius, dataValues, force);
+            DisplayData.ItemDisplayData.ShadowStrength.addEntityData(this.shadowStrength, dataValues, force);
             if (this.blockLight != -1 && this.skyLight != -1) {
                 DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
+            } else {
+                DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(-1, dataValues, force);
             }
-            DisplayData.ItemDisplayData.ViewRange.addEntityDataIfNotDefaultValue((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
+            DisplayData.ItemDisplayData.ViewRange.addEntityData((float) (this.viewRange * player.displayEntityViewDistance()), dataValues, force);
             return dataValues;
         };
     }

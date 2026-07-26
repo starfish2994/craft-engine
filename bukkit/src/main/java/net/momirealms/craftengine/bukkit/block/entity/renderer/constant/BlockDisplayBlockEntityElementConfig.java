@@ -25,12 +25,11 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class BlockDisplayBlockEntityElementConfig implements BlockEntityElementConfig<BlockDisplayBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<BlockDisplayBlockEntityElement> FACTORY = new Factory();
-    public final Function<Player, List<Object>> lazyMetadataPacket;
+    public final BlockEntityMetadataProvider lazyMetadataPacket;
     public final LazyReference<BlockStateWrapper> blockState;
     public final Vector3f scale;
     public final Vector3f position;
@@ -80,28 +79,28 @@ public final class BlockDisplayBlockEntityElementConfig implements BlockEntityEl
         this.viewRange = viewRange;
         this.hasCondition = hasCondition;
         this.predicate = predicate;
-        this.lazyMetadataPacket = player -> {
+        this.lazyMetadataPacket = (player, ts, force) -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
                 DisplayData.BlockDisplayData.SharedFlags.addEntityData((byte) 0x40, dataValues);
                 DisplayData.BlockDisplayData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
             } else {
-                DisplayData.BlockDisplayData.SharedFlags.addEntityData((byte) 0x0, dataValues);
-                DisplayData.BlockDisplayData.GlowColorOverride.addEntityData(-1, dataValues);
+                DisplayData.BlockDisplayData.SharedFlags.addEntityData((byte) 0x0, dataValues, force);
+                DisplayData.BlockDisplayData.GlowColorOverride.addEntityData(-1, dataValues, force);
             }
-            DisplayData.BlockDisplayData.BlockState.addEntityData(this.blockState.get().minecraftState(), dataValues);
-            DisplayData.BlockDisplayData.Scale.addEntityData(this.scale, dataValues);
-            DisplayData.BlockDisplayData.LeftRotation.addEntityData(this.rotation, dataValues);
-            DisplayData.BlockDisplayData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues);
-            DisplayData.BlockDisplayData.Translation.addEntityData(this.translation, dataValues);
-            DisplayData.BlockDisplayData.ShadowRadius.addEntityData(this.shadowRadius, dataValues);
-            DisplayData.BlockDisplayData.ShadowStrength.addEntityData(this.shadowStrength, dataValues);
+            DisplayData.BlockDisplayData.BlockState.addEntityData(this.blockState.get().minecraftState(), dataValues, force);
+            DisplayData.BlockDisplayData.Scale.addEntityData(this.scale, dataValues, force);
+            DisplayData.BlockDisplayData.LeftRotation.addEntityData(this.rotation, dataValues, force);
+            DisplayData.BlockDisplayData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues, force);
+            DisplayData.BlockDisplayData.Translation.addEntityData(this.translation, dataValues, force);
+            DisplayData.BlockDisplayData.ShadowRadius.addEntityData(this.shadowRadius, dataValues, force);
+            DisplayData.BlockDisplayData.ShadowStrength.addEntityData(this.shadowStrength, dataValues, force);
             if (this.blockLight != -1 && this.skyLight != -1) {
                 DisplayData.BlockDisplayData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
             } else {
-                DisplayData.BlockDisplayData.BrightnessOverride.addEntityData(-1, dataValues);
+                DisplayData.BlockDisplayData.BrightnessOverride.addEntityData(-1, dataValues, force);
             }
-            DisplayData.BlockDisplayData.ViewRange.addEntityData((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
+            DisplayData.BlockDisplayData.ViewRange.addEntityData((float) (this.viewRange * player.displayEntityViewDistance()), dataValues, force);
             return dataValues;
         };
     }
@@ -165,8 +164,8 @@ public final class BlockDisplayBlockEntityElementConfig implements BlockEntityEl
         return this.blockState;
     }
 
-    public List<Object> metadataValues(Player player) {
-        return this.lazyMetadataPacket.apply(player);
+    public List<Object> metadataValues(Player player, boolean force) {
+        return this.lazyMetadataPacket.apply(player, null, force);
     }
 
     public boolean isSamePosition(BlockDisplayBlockEntityElementConfig that) {
