@@ -58,5 +58,4 @@ public class EntityLootContext extends BukkitLootContext {
         LootParamsProxy.BuilderProxy.INSTANCE.withLuck(lootParamsBuilder, this.luck());
         return lootParamsBuilder;
     }
-
 }

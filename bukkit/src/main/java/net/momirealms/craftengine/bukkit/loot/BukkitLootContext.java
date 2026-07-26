@@ -13,5 +13,6 @@ public abstract class BukkitLootContext extends LootContext {
         super(world, player, luck, contexts);
     }
 
+    // TODO 如何设计使其更好满足原版战利品所需的上下文
     protected abstract Object getMinecraftLootParamsBuilder();
 }
