@@ -45,14 +45,14 @@ public final class ArmorStandBlockEntityElement extends AbstractConstantBlockEnt
         super(config.predicate, config.hasCondition);
         Vector3f position = config.position();
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
-                entityId, this.uuid, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
+                entityId, this.uuid, pos.x() + (double) position.x, pos.y() + (double) position.y, pos.z() + (double) position.z,
                 config.xRot(), config.yRot(), EntityTypesProxy.ARMOR_STAND, 0, Vec3Proxy.ZERO, config.yRot()
         );
         this.config = config;
         this.tintSource = tintSource;
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));
         this.entityId = entityId;
-        this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z, config.yRot(), config.xRot(), false) : null;
+        this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, pos.x() + (double) position.x, pos.y() + (double) position.y, pos.z() + (double) position.z, config.yRot(), config.xRot(), false) : null;
         if (VersionHelper.isOrAbove1_20_5 && config.scale() != 1) {
             Object attributeIns = AttributeInstanceProxy.INSTANCE.newInstance$0(AttributesProxy.SCALE, $ -> {});
             AttributeInstanceProxy.INSTANCE.setBaseValue(attributeIns, config.scale());

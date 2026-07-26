@@ -27,9 +27,9 @@ public final class BukkitDestroyStageDisplayEntity extends DestroyStageDisplayEn
 
     public BukkitDestroyStageDisplayEntity(DestroyStageDisplayEntitySetting config, int entityId, BlockPos pos) {
         super(config, entityId, pos);
-        double x = pos.x() + config.position.x;
-        double y = pos.y() + config.position.y;
-        double z = pos.z() + config.position.z;
+        double x = pos.x() + (double) config.position.x;
+        double y = pos.y() + (double) config.position.y;
+        double z = pos.z() + (double) config.position.z;
         this.spawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId, UUID.randomUUID(),
                 x, y, z, config.pitch, config.yaw,

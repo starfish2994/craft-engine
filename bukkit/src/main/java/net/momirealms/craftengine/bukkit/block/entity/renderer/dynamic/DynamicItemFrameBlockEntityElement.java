@@ -40,13 +40,13 @@ public final class DynamicItemFrameBlockEntityElement implements BlockEntityElem
         Vec3i axisX = direction.axis().isVertical() ? Direction.EAST.vector() : direction.clockWise().vector();
         double worldX, worldY, worldZ;
         if (direction.axis().isVertical()) {
-            worldX = pos.x + position.x * axisX.x;
-            worldY = pos.y + position.z * axisZ.y;
-            worldZ = pos.z + position.y * (direction == Direction.UP ? -1 : 1);
+            worldX = pos.x + (double) position.x * axisX.x;
+            worldY = pos.y + (double) position.z * axisZ.y;
+            worldZ = pos.z + (double) position.y * (direction == Direction.UP ? -1 : 1);
         } else {
-            worldX = pos.x + (axisX.x * position.x) + (axisZ.x * position.z);
-            worldY = pos.y + position.y;
-            worldZ = pos.z + (axisX.z * position.x) + (axisZ.z * position.z);
+            worldX = pos.x + ((double) axisX.x * position.x) + ((double) axisZ.x * position.z);
+            worldY = pos.y + (double) position.y;
+            worldZ = pos.z + ((double) axisX.z * position.x) + ((double) axisZ.z * position.z);
         }
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, UUID.randomUUID(), worldX, worldY, worldZ, 0, 0,

@@ -41,18 +41,18 @@ public final class ItemBlockEntityElement extends AbstractConstantBlockEntityEle
         this.config = config;
         Vector3f position = config.position();
         this.cachedSpawnPacket1 = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
-                entityId1, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
+                entityId1, UUID.randomUUID(), pos.x() + (double) position.x, pos.y() + (double) position.y, pos.z() + (double) position.z,
                 0, 0, EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.cachedSpawnPacket2 = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
-                entityId2, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
+                entityId2, UUID.randomUUID(), pos.x() + (double) position.x, pos.y() + (double) position.y, pos.z() + (double) position.z,
                 0, 0, EntityTypesProxy.ITEM, 0, Vec3Proxy.ZERO, 0
         );
         this.cachedRidePacket = PacketUtils.createClientboundSetPassengersPacket(entityId1, entityId2);
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId1, entityId2));
         this.entityId1 = entityId1;
         this.entityId2 = entityId2;
-        this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId1, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z, 0, 0, false) : null;
+        this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId1, pos.x() + (double) position.x, pos.y() + (double) position.y, pos.z() + (double) position.z, 0, 0, false) : null;
     }
 
     @Override
