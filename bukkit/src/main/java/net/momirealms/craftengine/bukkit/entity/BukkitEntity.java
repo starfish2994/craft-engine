@@ -183,4 +183,9 @@ public class BukkitEntity implements net.momirealms.craftengine.core.entity.Enti
         }
         return new Location(platformEntity().getWorld(), EntityProxy.INSTANCE.getXo(entity), EntityProxy.INSTANCE.getEyeY(entity), EntityProxy.INSTANCE.getZo(entity), EntityProxy.INSTANCE.getYRot(entity), EntityProxy.INSTANCE.getXRot(entity));
     }
+
+    @Override
+    public int fireTicks() {
+        return platformEntity().getFireTicks();
+    }
 }

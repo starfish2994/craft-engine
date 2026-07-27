@@ -72,4 +72,5 @@ public final class DirectContextParameters {
     public static final ContextKey<Double> MOB_LEVEL = ContextKey.direct("mob_level");
     public static final ContextKey<Boolean> OPEN_WATER = ContextKey.direct("open_water");
     public static final ContextKey<Key> BIOME = ContextKey.direct("biome");
+    public static final ContextKey<Key> FIRE_TICKS = ContextKey.direct("fire_ticks");
 }

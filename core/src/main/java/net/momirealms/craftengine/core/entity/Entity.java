@@ -69,4 +69,6 @@ public interface Entity extends ChainParameterSource {
     default <T> Optional<T> getParameter(ContextKey<T> key) {
         return EntityParameterProvider.INSTANCE.getOptionalParameter(key, this);
     }
+
+    int fireTicks();
 }
