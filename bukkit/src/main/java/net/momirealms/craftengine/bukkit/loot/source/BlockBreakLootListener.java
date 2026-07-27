@@ -1,12 +1,12 @@
 package net.momirealms.craftengine.bukkit.loot.source;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.loot.BlockLootContext;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.loot.LootManager;
 import net.momirealms.craftengine.core.loot.source.LootOutcome;
 import net.momirealms.craftengine.core.loot.source.LootSource;
@@ -49,10 +49,11 @@ public final class BlockBreakLootListener implements Listener {
                 .withParameter(DirectContextParameters.BLOCK, bukkitExistingBlock)
                 .withParameter(DirectContextParameters.POSITION, position)
                 .withParameter(DirectContextParameters.PLAYER, serverPlayer)
+                .withParameter(DirectContextParameters.ENTITY, serverPlayer)
                 .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand)
                 .build();
-        BlockLootContext blockLootContext = new BlockLootContext(world, serverPlayer, (float) serverPlayer.luck(), holder, bukkitExistingBlock, itemInHand, serverPlayer.minecraftPlayer());
-        LootOutcome outcome = LootManager.eval(sources, blockLootContext);
+        LootContext lootContext = new LootContext(world, serverPlayer, (float) serverPlayer.luck(), holder);
+        LootOutcome outcome = LootManager.eval(sources, lootContext);
         if (!outcome.matched()) return;
         if (outcome.overwriteItems()) {
             event.setDropItems(false);

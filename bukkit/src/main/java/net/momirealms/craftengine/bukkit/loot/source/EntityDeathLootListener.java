@@ -2,10 +2,12 @@ package net.momirealms.craftengine.bukkit.loot.source;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
+import net.momirealms.craftengine.bukkit.loot.BukkitLootContextParameters;
 import net.momirealms.craftengine.bukkit.loot.BukkitLootManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.loot.LootManager;
 import net.momirealms.craftengine.core.loot.source.LootOutcome;
 import net.momirealms.craftengine.core.loot.source.LootSource;
@@ -14,6 +16,7 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -42,7 +45,9 @@ public final class EntityDeathLootListener implements Listener {
         WorldPosition position = new WorldPosition(world, location.getX(), location.getY(), location.getZ());
         ContextHolder.Builder builder = ContextHolder.builder()
                 .withParameter(DirectContextParameters.ENTITY, bukkitEntity)
-                .withParameter(DirectContextParameters.POSITION, position);
+                .withParameter(DirectContextParameters.POSITION, position)
+                // 实体死亡必有致死伤害源, die() 已将其写入 lastDamageSource
+                .withOptionalParameter(BukkitLootContextParameters.DAMAGE_SOURCE, LivingEntityProxy.INSTANCE.getLastDamageSource(bukkitEntity.minecraftEntity()));
         BukkitServerPlayer optionalPlayer = null;
         float luck = 1.0f;
         if (event.getDamageSource().getCausingEntity() instanceof Player player) {
@@ -54,9 +59,8 @@ public final class EntityDeathLootListener implements Listener {
                 builder.withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand);
             }
         }
-        net.momirealms.craftengine.bukkit.loot.EntityLootContext entityLootContext =
-                new net.momirealms.craftengine.bukkit.loot.EntityLootContext(world, optionalPlayer, luck, builder.build(), entity);
-        LootOutcome outcome = LootManager.eval(sources, entityLootContext);
+        LootContext lootContext = new LootContext(world, optionalPlayer, luck, builder.build());
+        LootOutcome outcome = LootManager.eval(sources, lootContext);
         if (!outcome.matched()) return;
         if (outcome.overwriteItems()) {
             event.getDrops().clear();

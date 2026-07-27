@@ -24,6 +24,8 @@ public final class PositionParameterProvider implements ChainParameterProvider<W
         CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_X, p -> MiscUtils.floor(p.x()));
         CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_Y, p -> MiscUtils.floor(p.y()));
         CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK_Z, p -> MiscUtils.floor(p.z()));
+        CONTEXT_FUNCTIONS.put(DirectContextParameters.BIOME, WorldPosition::getBiome);
+        CONTEXT_FUNCTIONS.put(DirectContextParameters.BLOCK, WorldPosition::getBlock);
     }
 
     @SuppressWarnings("unchecked")

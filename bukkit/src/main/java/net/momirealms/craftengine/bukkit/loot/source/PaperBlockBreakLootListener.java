@@ -2,11 +2,10 @@ package net.momirealms.craftengine.bukkit.loot.source;
 
 import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.loot.BlockLootContext;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.loot.LootManager;
 import net.momirealms.craftengine.core.loot.source.LootOutcome;
 import net.momirealms.craftengine.core.loot.source.LootSource;
@@ -15,8 +14,6 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.WorldPosition;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -41,8 +38,8 @@ public final class PaperBlockBreakLootListener implements Listener {
                 .withParameter(DirectContextParameters.POSITION, position)
                 .withParameter(DirectContextParameters.BLOCK, bukkitExistingBlock)
                 .build();
-        BlockLootContext blockLootContext = new BlockLootContext(world, null, 1.0f, holder, bukkitExistingBlock, null, null);
-        LootOutcome outcome = LootManager.eval(sources, blockLootContext);
+        LootContext lootContext = new LootContext(world, null, 1.0f, holder);
+        LootOutcome outcome = LootManager.eval(sources, lootContext);
         if (!outcome.matched()) return;
         if (outcome.overwriteItems()) {
             event.getDrops().clear();

@@ -75,14 +75,12 @@ public class DatapackLootTable implements Loot {
 
     @Override
     public void getRandomItems(LootContext context, Consumer<Item> lootConsumer) {
-        if (context instanceof BukkitLootContext bukkitLootContext) {
-            Object minecraftLootParamsBuilder = bukkitLootContext.getMinecraftLootParamsBuilder();
-            Object lootParams = LootParamsProxy.BuilderProxy.INSTANCE.create(minecraftLootParamsBuilder, ALL_OPTIONAL_PARAMS);
-            Object lootTable = minecraftLootTable.get();
-            List<Object> dropItems = LootTableProxy.INSTANCE.getRandomItems(lootTable, lootParams);
-            for (int i = 0; i < dropItems.size(); i++) {
-                lootConsumer.accept(ItemStackUtils.wrap(dropItems.get(i)));
-            }
+        Object minecraftLootParamsBuilder = BukkitLootManager.instance().createMinecraftLootParamsBuilder(context);
+        Object lootParams = LootParamsProxy.BuilderProxy.INSTANCE.create(minecraftLootParamsBuilder, ALL_OPTIONAL_PARAMS);
+        Object lootTable = minecraftLootTable.get();
+        List<Object> dropItems = LootTableProxy.INSTANCE.getRandomItems(lootTable, lootParams);
+        for (int i = 0; i < dropItems.size(); i++) {
+            lootConsumer.accept(ItemStackUtils.wrap(dropItems.get(i)));
         }
     }
 
