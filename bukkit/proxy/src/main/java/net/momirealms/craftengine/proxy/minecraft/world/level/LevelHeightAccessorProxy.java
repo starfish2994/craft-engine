@@ -15,4 +15,10 @@ public interface LevelHeightAccessorProxy {
 
     @MethodInvoker(name = "isOutsideBuildHeight")
     boolean isOutsideBuildHeight(Object target, int posY);
+
+    @MethodInvoker(name = {"getMinY", "getMinBuildHeight"})
+    int getMinY(Object target);
+
+    @MethodInvoker(name = {"getMaxY", "getMaxBuildHeight"})
+    int getMaxY(Object target);
 }

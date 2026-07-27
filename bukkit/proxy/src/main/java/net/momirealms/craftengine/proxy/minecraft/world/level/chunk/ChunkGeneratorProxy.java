@@ -1,10 +1,13 @@
 package net.momirealms.craftengine.proxy.minecraft.world.level.chunk;
 
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
+import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
 @ReflectionProxy(name = "net.minecraft.world.level.chunk.ChunkGenerator")
 public interface ChunkGeneratorProxy {
     ChunkGeneratorProxy INSTANCE = ASMProxyFactory.create(ChunkGeneratorProxy.class);
 
+    @FieldGetter(name = "biomeSource")
+    Object getBiomeSource(Object target);
 }

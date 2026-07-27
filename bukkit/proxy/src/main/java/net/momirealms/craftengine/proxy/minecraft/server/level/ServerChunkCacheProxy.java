@@ -29,4 +29,7 @@ public interface ServerChunkCacheProxy extends ChunkSourceProxy {
 
     @MethodInvoker(name = "getChunkNow")
     Object getChunkNow(Object target, int chunkX, int chunkZ);
+
+    @MethodInvoker(name = "randomState")
+    Object randomState(Object target);
 }
