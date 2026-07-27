@@ -27,6 +27,7 @@ public interface RegistriesProxy {
     Object RECIPE = INSTANCE.getRecipe();
     Object LOOT_TABLE = INSTANCE.getLootTable();
     Object PAINTING_VARIANT = INSTANCE.getPaintingVariant();
+    Object STRUCTURE = INSTANCE.getStructure();
 
     @FieldGetter(name = "ROOT_REGISTRY_NAME", isStatic = true, activeIf = "min_version=1.20.4")
     Object getRootRegistryName();
@@ -96,4 +97,7 @@ public interface RegistriesProxy {
 
     @FieldGetter(name = "PAINTING_VARIANT", isStatic = true)
     Object getPaintingVariant();
+
+    @FieldGetter(name = "STRUCTURE", isStatic = true)
+    Object getStructure();
 }

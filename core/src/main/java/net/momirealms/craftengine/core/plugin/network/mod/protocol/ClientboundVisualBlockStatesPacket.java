@@ -45,7 +45,6 @@ public record ClientboundVisualBlockStatesPacket(int startIndex, int[] data) imp
                 return new ClientboundVisualBlockStatesPacket(startIndex, data);
             }
     );
-    private static final int PER_PACKET_SIZE = 5000;
 
     public static List<ClientCustomPacket> create() {
         int vanillaBlockStateCount = CraftEngine.instance().blockManager().vanillaBlockStateCount();
@@ -60,8 +59,9 @@ public record ClientboundVisualBlockStatesPacket(int startIndex, int[] data) imp
 
         List<ClientCustomPacket> packets = new ArrayList<>();
         packets.add(new ClientboundVisualBlockStateBatchStartPacket(serverSideBlockCount));
-        for (int start = 0; start < serverSideBlockCount; start += PER_PACKET_SIZE) {
-            int end = Math.min(start + PER_PACKET_SIZE, serverSideBlockCount);
+        final int perPacketSize = Config.modChannelVisualBlockStatesMaxPerPacket();
+        for (int start = 0; start < serverSideBlockCount; start += perPacketSize) {
+            int end = Math.min(start + perPacketSize, serverSideBlockCount);
             packets.add(new ClientboundVisualBlockStatesPacket(start, Arrays.copyOfRange(mappings, start, end)));
         }
         packets.add(ClientboundVisualBlockStateBatchFinishedPacket.INSTANCE);

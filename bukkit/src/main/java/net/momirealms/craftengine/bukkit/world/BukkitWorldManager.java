@@ -233,6 +233,12 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     @Nullable
+    public Object structureHolderById(Key id) {
+        Object registry = RegistryUtils.lookupOrThrow(RegistriesProxy.STRUCTURE);
+        return RegistryUtils.getHolder(registry, ResourceKeyProxy.INSTANCE.create(RegistriesProxy.STRUCTURE, KeyUtils.toIdentifier(id)));
+    }
+
+    @Nullable
     public Object configuredFeatureHolderById(Key id) {
         Object holder = this.configuredFeatures.get(id);
         if (holder == null) {

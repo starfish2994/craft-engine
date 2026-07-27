@@ -513,6 +513,7 @@ network:
     requires-permission: false
     logging-permission-denied: true
     creative-tab-max-items-per-packet: 10
+    visual-block-states-max-per-packet: 5000
 
   # Encrypt the raw component information before sending it to the client.
   # Requires a restart to apply.

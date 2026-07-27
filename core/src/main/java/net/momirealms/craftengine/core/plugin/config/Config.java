@@ -240,7 +240,8 @@ public final class Config {
     private boolean network$disable_chat_report;
     private boolean network$mod_channel$requires_permission;
     private boolean network$mod_channel$logging_permission_denied;
-    private int network$mod_channel$creative_tab_max_items_per_packet;
+    private int network$mod_channel$creative_tab_max_items_per_packet = 10;
+    private int network$mod_channel$visual_block_states_max_per_packet = 5000;
     private boolean network$item_crypto$enable;
     private boolean network$optimize_item_codec;
 
@@ -737,6 +738,7 @@ public final class Config {
         this.network$mod_channel$requires_permission = config.getBoolean("network.mod-channel.requires-permission", true);
         this.network$mod_channel$logging_permission_denied = config.getBoolean("network.mod-channel.logging-permission-denied", true);
         this.network$mod_channel$creative_tab_max_items_per_packet = Math.max(config.getInt("network.mod-channel.creative-tab-max-items-per-packet", 10), 1);
+        this.network$mod_channel$visual_block_states_max_per_packet = Math.max(config.getInt("network.mod-channel.visual-block-states-max-per-packet", 5000), 1);
         if (this.firstTime) {
             this.network$item_crypto$enable = config.getBoolean("network.item-crypto.enable", false);
             if (this.network$item_crypto$enable) {
@@ -1241,6 +1243,10 @@ public final class Config {
 
     public static int modChannelCreativeTabMaxItemsPerPacket() {
         return instance.network$mod_channel$creative_tab_max_items_per_packet;
+    }
+
+    public static int modChannelVisualBlockStatesMaxPerPacket() {
+        return instance.network$mod_channel$visual_block_states_max_per_packet;
     }
 
     public static boolean enableItemCrypto() {
