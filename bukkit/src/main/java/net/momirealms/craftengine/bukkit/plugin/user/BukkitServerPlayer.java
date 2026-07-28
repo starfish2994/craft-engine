@@ -596,7 +596,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         this.channel.config().setAutoRead(false);
         Runnable handleDisconnection = () -> ConnectionProxy.INSTANCE.handleDisconnection(this.connection());
         if (VersionHelper.hasFoliaPatch) {
-            this.plugin.scheduler().platform().run(handleDisconnection);
+            this.plugin.scheduler().platform().run(handleDisconnection, null, platformPlayer());
         } else {
             BlockableEventLoopProxy.INSTANCE.scheduleOnMain(MinecraftServerProxy.INSTANCE.getServer(), handleDisconnection);
         }
@@ -604,12 +604,12 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public ConnectionState decoderState() {
-        return decoderState;
+        return this.decoderState;
     }
 
     @Override
     public ConnectionState encoderState() {
-        return encoderState;
+        return this.encoderState;
     }
 
     @Override
