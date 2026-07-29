@@ -13,6 +13,7 @@ import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCo
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
+import net.momirealms.craftengine.bukkit.plugin.injector.HashedStackGenerator;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.common.*;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.FinishConfigurationListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.NMSFinishConfigurationListener;
@@ -430,6 +431,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         // 状态切换相关监听器 - 结束
 
         // nms - 需要在服务器处理前处理的请放这里
+        if (NMSContainerClickListener.INSTANCE != null) {
+            HashedStackGenerator.init();
+        }
         registerNMSPacketConsumer(NMSContainerClickListener.INSTANCE, ServerboundContainerClickPacketProxy.CLASS);
         registerNMSPacketConsumer(NMSFinishConfigurationListener.INSTANCE, ClientboundFinishConfigurationPacketProxy.CLASS);
         registerNMSPacketConsumer(NMSResourcePackListener.INSTANCE, ServerboundResourcePackPacketProxy.CLASS);

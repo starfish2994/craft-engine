@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.momirealms.craftengine.bukkit.nms.FastNMS;
+import net.momirealms.craftengine.bukkit.plugin.injector.HashedStackGenerator;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -25,9 +25,9 @@ public final class NMSContainerClickListener implements NMSPacketListener {
         Int2ObjectMap<Object> changedSlots = ServerboundContainerClickPacketProxy.INSTANCE.getChangedSlots(packet);
         Int2ObjectMap<Object> newChangedSlots = new Int2ObjectOpenHashMap<>(changedSlots.size());
         for (Int2ObjectMap.Entry<Object> entry : changedSlots.int2ObjectEntrySet()) {
-            newChangedSlots.put(entry.getIntKey(), FastNMS.INSTANCE.createInjectedHashedStack(entry.getValue(), player));
+            newChangedSlots.put(entry.getIntKey(), HashedStackGenerator.create(entry.getValue(), player));
         }
-        Object carriedItem = FastNMS.INSTANCE.createInjectedHashedStack(ServerboundContainerClickPacketProxy.INSTANCE.getCarriedItem(packet), player);
+        Object carriedItem = HashedStackGenerator.create(ServerboundContainerClickPacketProxy.INSTANCE.getCarriedItem(packet), player);
         ServerboundContainerClickPacketProxy.INSTANCE.setCarriedItem(packet, carriedItem);
         ServerboundContainerClickPacketProxy.INSTANCE.setChangedSlots(packet, Int2ObjectMaps.unmodifiable(newChangedSlots));
     }
