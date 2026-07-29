@@ -54,7 +54,7 @@ public final class BlockGenerator {
     private static SBooleanField field$CraftEngineBlock$isTripwire;
 
     public static void init() {
-        ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V17);
+        ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V21);
         // CraftEngine Blocks
         String packageWithName = BlockGenerator.class.getName();
         String generatedClassName = packageWithName.substring(0, packageWithName.lastIndexOf('.')) + ".CraftEngineBlock";

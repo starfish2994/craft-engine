@@ -67,7 +67,7 @@ public final class BlockStateGenerator {
             .build();
 
     public static void init() {
-        ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V17);
+        ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V21);
         String packageWithName = BlockStateGenerator.class.getName();
         String generatedStateClassName = packageWithName.substring(0, packageWithName.lastIndexOf('.')) + ".CraftEngineBlockState";
         DynamicType.Builder<?> stateBuilder = byteBuddy

@@ -131,6 +131,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         try {
             BlockGenerator.init();
             BlockStateGenerator.init();
+            StatePredicateGenerator.init();
             super.blockManager = new BukkitBlockManager(this);
         } catch (Throwable e) {
             throw new InjectionException("Error injecting blocks", e);

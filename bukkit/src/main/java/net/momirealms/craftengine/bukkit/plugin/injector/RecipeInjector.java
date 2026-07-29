@@ -60,7 +60,7 @@ public final class RecipeInjector {
     private RecipeInjector() {}
 
     public static void init() throws ReflectiveOperationException {
-        ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V17);
+        ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V21);
 
         ElementMatcher.Junction<MethodDescription> matches = (VersionHelper.isOrAbove1_21 ?
                 ElementMatchers.takesArguments(CraftingInputProxy.CLASS, LevelProxy.CLASS) :

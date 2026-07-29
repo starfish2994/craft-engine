@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.bukkit.block.behavior.*;
 import net.momirealms.craftengine.bukkit.block.listener.BlockEventListener;
-import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
 import net.momirealms.craftengine.bukkit.plugin.injector.MaterialInjector;
+import net.momirealms.craftengine.bukkit.plugin.injector.StatePredicateGenerator;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
@@ -60,8 +60,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class BukkitBlockManager extends AbstractBlockManager {
     public static final Set<Object> CLIENT_SIDE_NOTE_BLOCKS = new HashSet<>(2048, 0.6f);
-    private static final Object ALWAYS_FALSE = FastNMS.INSTANCE.createAlwaysStatePredicate(false);
-    private static final Object ALWAYS_TRUE = FastNMS.INSTANCE.createAlwaysStatePredicate(true);
+    private static final Object ALWAYS_FALSE = StatePredicateGenerator.alwaysFalse();
+    private static final Object ALWAYS_TRUE = StatePredicateGenerator.alwaysTrue();
     private static BukkitBlockManager instance;
     private final BukkitCraftEngine plugin;
     // 事件监听器
