@@ -43,6 +43,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.FireBlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockStateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.StateDefinitionProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.properties.NoteBlockInstrumentProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
@@ -419,6 +420,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
                 HolderProxy.ReferenceProxy.INSTANCE.setTags(blockHolder, Set.of());
                 DelegatingBlockState newBlockState = (DelegatingBlockState) BlockProxy.INSTANCE.getDefaultBlockState(customBlock);
                 this.customBlockStates[i] = newBlockState;
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.initCache(newBlockState);
                 IdMapperProxy.INSTANCE.add(BlockProxy.BLOCK_STATE_REGISTRY, newBlockState);
                 if (injectBukkitMaterial) {
                     newMaterial[length + i] = MaterialInjector.createMaterial(customBlockId, length + i, customBlock);
