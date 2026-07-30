@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.bukkit.plugin.injector.BiomeFilterGenerator;
 import net.momirealms.craftengine.bukkit.plugin.injector.WorldStorageInjector;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.chunk.BukkitCEChunk;
@@ -909,7 +910,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             List<Object> placements = section.getSectionList("placement", (s -> {
                 String type = s.getString("type");
                 if ("biome".equals(type) || "minecraft:biome".equals(type)) {
-                    return FastNMS.INSTANCE.createBiomePlacementFilter(biomeFilter);
+                    return BiomeFilterGenerator.createBiomePlacementFilter(biomeFilter);
                 }
                 JsonElement json = GsonHelper.get().toJsonTree(s.values());
                 if (VersionHelper.isOrAbove1_20_5) {

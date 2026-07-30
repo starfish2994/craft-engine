@@ -147,6 +147,11 @@ public final class BukkitCraftEngine extends CraftEngine {
             throw new InjectionException("Error injecting features", e);
         }
         try {
+            BiomeFilterGenerator.init();
+        } catch (Throwable e) {
+            throw new InjectionException("Error injecting biome filter", e);
+        }
+        try {
             BlockStateProviderInjector.init();
         } catch (Throwable e) {
             throw new InjectionException("Error injecting block state providers", e);
