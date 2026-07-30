@@ -3,7 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.momirealms.craftengine.bukkit.plugin.injector.HashedStackGenerator;
+import net.momirealms.craftengine.bukkit.plugin.asm.HashedStackGenerator;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;

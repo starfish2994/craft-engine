@@ -23,6 +23,7 @@ import net.momirealms.craftengine.bukkit.item.recipe.predicate.BukkitDataCompone
 import net.momirealms.craftengine.bukkit.loot.BukkitLootManager;
 import net.momirealms.craftengine.bukkit.pack.BukkitPackManager;
 import net.momirealms.craftengine.bukkit.painting.BukkitPaintingManager;
+import net.momirealms.craftengine.bukkit.plugin.asm.*;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandManager;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitSenderFactory;
 import net.momirealms.craftengine.bukkit.plugin.context.condition.TestFlagCondition;

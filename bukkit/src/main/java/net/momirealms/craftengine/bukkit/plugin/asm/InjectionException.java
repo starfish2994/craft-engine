@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.plugin.injector;
+package net.momirealms.craftengine.bukkit.plugin.asm;
 
 public class InjectionException extends RuntimeException {
 

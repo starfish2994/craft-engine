@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.plugin.injector;
+package net.momirealms.craftengine.bukkit.plugin.asm;
 
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.util.VersionHelper;

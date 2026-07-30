@@ -8,7 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.plugin.injector.RecipeInjector;
+import net.momirealms.craftengine.bukkit.plugin.asm.RecipeInjector;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;

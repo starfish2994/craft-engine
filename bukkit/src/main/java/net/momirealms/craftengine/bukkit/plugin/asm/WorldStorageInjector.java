@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.plugin.injector;
+package net.momirealms.craftengine.bukkit.plugin.asm;
 
 import net.bytebuddy.implementation.bind.annotation.This;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.display.BukkitDestroyStageDisplayRecorder;

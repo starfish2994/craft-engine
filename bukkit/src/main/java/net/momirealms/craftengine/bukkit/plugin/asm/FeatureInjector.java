@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.plugin.injector;
+package net.momirealms.craftengine.bukkit.plugin.asm;
 
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
@@ -10,14 +10,14 @@ import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistr
 
 import java.util.Set;
 
-public final class LootEntryInjector {
-    private LootEntryInjector() {}
+public final class FeatureInjector {
+    private FeatureInjector() {}
 
     public static void init() {
-        Object registry = BuiltInRegistriesProxy.LOOT_POOL_ENTRY_TYPE;
+        Object registry = BuiltInRegistriesProxy.FEATURE;
         MappedRegistryProxy.INSTANCE.setFrozen(registry, false);
-        Object identifier = KeyUtils.toIdentifier(Key.ce("item"));
-        Object type = FastNMS.INSTANCE.getCraftEngineLootItemType();
+        Object identifier = KeyUtils.toIdentifier(Key.ce("simple_block"));
+        Object type = FastNMS.INSTANCE.getCraftEngineCustomSimpleBlockFeature();
         Object holder = RegistryProxy.INSTANCE.registerForHolder$1(registry, identifier, type);
         HolderProxy.ReferenceProxy.INSTANCE.bindValue(holder, type);
         HolderProxy.ReferenceProxy.INSTANCE.setTags(holder, Set.of());
