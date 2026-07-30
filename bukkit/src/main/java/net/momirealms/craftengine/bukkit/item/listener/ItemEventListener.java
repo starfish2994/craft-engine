@@ -756,22 +756,27 @@ public final class ItemEventListener implements Listener {
         }
         // 找不到匹配的修复目标
         if (repairItem == null) return;
-        int durabilityPerItem = (int) (repairItem.amount() + repairItem.percent() * maxDamage);
-        if (durabilityPerItem <= 0) return;
-        int consumeAmount = clickType == org.bukkit.event.inventory.ClickType.LEFT
-                ? Math.min((damage + durabilityPerItem - 1) / durabilityPerItem, wrappedMaterial.count())
-                : 1;
+        BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+        PlayerOptionalContext context = serverPlayer != null ? PlayerOptionalContext.of(serverPlayer) : null;
+        // 左键逐个材料采样并修复，直到修满或材料用尽；右键只消耗单个材料
+        int maxConsume = clickType == org.bukkit.event.inventory.ClickType.LEFT ? wrappedMaterial.count() : 1;
+        int remainingDamage = damage;
+        int consumeAmount = 0;
+        while (remainingDamage > 0 && consumeAmount < maxConsume) {
+            int durabilityPerItem = repairItem.durabilityPerItem(maxDamage, context);
+            if (durabilityPerItem <= 0) break;
+            remainingDamage -= durabilityPerItem;
+            consumeAmount++;
+        }
+        if (consumeAmount == 0) return;
         event.setCancelled(true);
-        wrappedTarget.damage(Math.max(damage - consumeAmount * durabilityPerItem, 0));
+        wrappedTarget.damage(Math.max(remainingDamage, 0));
         event.setCurrentItem(ItemStackUtils.getBukkitStack(wrappedTarget.minecraftItem()));
         wrappedMaterial.shrink(consumeAmount);
         player.setItemOnCursor(wrappedMaterial.count() <= 0 ? null : ItemStackUtils.getBukkitStack(wrappedMaterial.minecraftItem()));
         SoundData sound = repairItem.sound();
-        if (sound != null) {
-            BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
-            if (serverPlayer != null) {
-                serverPlayer.playSound(sound.id(), SoundSource.PLAYER, sound.volume().get(), sound.pitch().get());
-            }
+        if (sound != null && serverPlayer != null) {
+            serverPlayer.playSound(sound.id(), SoundSource.PLAYER, sound.volume().get(), sound.pitch().get());
         }
     }
 

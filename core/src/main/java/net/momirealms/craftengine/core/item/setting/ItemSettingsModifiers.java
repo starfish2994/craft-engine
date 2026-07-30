@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.plugin.context.number.NumberProviders;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -67,8 +68,8 @@ public final class ItemSettingsModifiers {
             ConfigSection section = it.getAsSection();
             return new AnvilRepairItem(
                     section.getStringList("target"),
-                    section.getInt("amount"),
-                    section.getDouble("percent")
+                    section.getValue("amount", NumberProviders::fromConfig, NumberProviders.direct(0)),
+                    section.getValue("percent", NumberProviders::fromConfig, NumberProviders.direct(0))
             );
         });
         return settings -> settings.repairItems(anvilRepairItemList);
@@ -78,8 +79,8 @@ public final class ItemSettingsModifiers {
             ConfigSection section = it.getAsSection();
             return new DragRepairItem(
                     section.getStringList("target"),
-                    section.getInt("amount"),
-                    section.getDouble("percent"),
+                    section.getValue("amount", NumberProviders::fromConfig, NumberProviders.direct(0)),
+                    section.getValue("percent", NumberProviders::fromConfig, NumberProviders.direct(0)),
                     section.getValue("sound", v -> SoundData.fromConfig(v, SoundData.SoundValue.FIXED_1, SoundData.SoundValue.FIXED_1), (SoundData) null)
             );
         });

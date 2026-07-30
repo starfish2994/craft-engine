@@ -573,8 +573,12 @@ public final class RecipeEventListener implements Listener {
         }
 
         boolean hasResult = true;
-        
-        int realDurabilityPerItem = (int) (repairItem.amount() + repairItem.percent() * maxDamage);
+
+        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+        BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+        PlayerOptionalContext context = serverPlayer != null ? PlayerOptionalContext.of(serverPlayer) : null;
+
+        int realDurabilityPerItem = repairItem.durabilityPerItem(maxDamage, context);
         if (realDurabilityPerItem == 0) {
             return;
         }
@@ -637,9 +641,6 @@ public final class RecipeEventListener implements Listener {
             LegacyInventoryUtils.setRepairCostAmount(inventory, actualConsumedAmount);
         }
 
-        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-
-        BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return;
         if (finalCost >= maxRepairCost && !serverPlayer.canInstabuild()) {
             hasResult = false;
