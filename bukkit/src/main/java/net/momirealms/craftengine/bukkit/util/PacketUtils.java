@@ -1,12 +1,12 @@
 package net.momirealms.craftengine.bukkit.util;
 
 import io.netty.buffer.ByteBuf;
-import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.network.event.NMSPacketEvent;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.network.FriendlyByteBufProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.RegistryFriendlyByteBufProxy;
+import net.momirealms.craftengine.proxy.minecraft.network.codec.ByteBufCodecsProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamDecoderProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamEncoderProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.BundlePacketProxy;
@@ -20,9 +20,21 @@ import java.util.List;
 
 public final class PacketUtils {
     public static final Object ItemStack$OPTIONAL_STREAM_CODEC = VersionHelper.isOrAbove1_20_5 ? ItemStackProxy.INSTANCE.getOptionalStreamCodec() : null;
-    public static final Object UNTRUSTED_ITEM_CODEC = VersionHelper.isOrAbove1_20_5 ? FastNMS.INSTANCE.createUntrustedItemCodec() : null;
+    public static final Object UNTRUSTED_ITEM_CODEC = VersionHelper.isOrAbove1_20_5 ? createUntrustedItemCodec() : null;
 
     private PacketUtils() {}
+
+    private static Object createUntrustedItemCodec() {
+        Object optionalItemCodec = VersionHelper.isOrAbove1_21_5
+                ? ItemStackProxy.INSTANCE.getOptionalUntrustedStreamCodec()
+                : ItemStackProxy.INSTANCE.getOptionalStreamCodec();
+        Object untrustedItemCodec = ItemStackProxy.INSTANCE.validatedStreamCodec(optionalItemCodec);
+        // 1.21.4+ Paper 需要限制组件反序列化深度，等价于 codec.apply(ByteBufCodecs::trackDepth)
+        if (VersionHelper.isOrAbove1_21_4 && VersionHelper.hasPaperPatch) {
+            untrustedItemCodec = ByteBufCodecsProxy.INSTANCE.trackDepth(untrustedItemCodec);
+        }
+        return untrustedItemCodec;
+    }
 
     public static void clientboundSetEntityDataPacket$pack(List<?> trackedValues, ByteBuf buf) {
         if (VersionHelper.isOrAbove1_20_5) {
