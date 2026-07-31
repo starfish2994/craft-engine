@@ -3,9 +3,7 @@ package net.momirealms.craftengine.core.util;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.JsonElement;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -176,6 +174,18 @@ public final class AdventureHelper {
         if (hoverEvent != null && hoverEvent.action() == HoverEvent.Action.SHOW_ITEM) {
             Object showItem = hoverEvent.value();
             component = component.hoverEvent(HoverEvent.showItem(replacer.apply((HoverEvent.ShowItem) showItem)));
+        }
+        if (component instanceof TranslatableComponent translatableComponent) {
+            List<TranslationArgument> newArgs = new ArrayList<>();
+            for (TranslationArgument argument : translatableComponent.arguments()) {
+                if (argument.value() instanceof Component argComponent) {
+                    Component replaced = replaceShowItem(argComponent, replacer);
+                    newArgs.add(TranslationArgument.component(replaced));
+                } else {
+                    newArgs.add(argument);
+                }
+            }
+            component = translatableComponent.arguments(newArgs);
         }
         List<Component> newChildren = new ArrayList<>();
         for (Component child : component.children()) {
