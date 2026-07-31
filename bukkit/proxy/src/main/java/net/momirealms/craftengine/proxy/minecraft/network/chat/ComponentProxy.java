@@ -2,6 +2,7 @@ package net.momirealms.craftengine.proxy.minecraft.network.chat;
 
 import com.google.gson.JsonElement;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderLookupProxy;
+import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
@@ -12,6 +13,7 @@ import javax.annotation.Nullable;
 @ReflectionProxy(name = "net.minecraft.network.chat.Component")
 public interface ComponentProxy {
     ComponentProxy INSTANCE = ASMProxyFactory.create(ComponentProxy.class);
+    Class<?> CLASS = SparrowClass.find("net.minecraft.network.chat.Component");
 
     @MethodInvoker(name = "empty", isStatic = true)
     Object empty();

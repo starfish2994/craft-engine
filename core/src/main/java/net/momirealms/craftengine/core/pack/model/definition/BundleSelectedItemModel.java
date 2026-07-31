@@ -1,9 +1,9 @@
 package net.momirealms.craftengine.core.pack.model.definition;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
-import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 

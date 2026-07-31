@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.item;
 
+import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
@@ -20,6 +21,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.component.BundleContentsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.component.ItemContainerContentsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.component.ItemLoreProxy;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.nbt.StringTag;
@@ -363,6 +365,11 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
     }
 
     public static boolean processModernItemName(Item item, Supplier<CompoundTag> tag, Context context) {
+        Object itemName = item.getExactComponent(DataComponentTypes.ITEM_NAME);
+        if (itemName == null) return false;
+        if (!ComponentUtils.hasNetworkTag(itemName, false)) {
+            return false;
+        }
         Tag nameTag = item.getComponentAsSparrowTag(DataComponentTypes.ITEM_NAME);
         if (nameTag == null) return false;
         Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(nameTag);
@@ -375,6 +382,11 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
     }
 
     public static boolean processModernCustomName(Item item, Supplier<CompoundTag> tag, Context context) {
+        Object customName = item.getExactComponent(DataComponentTypes.CUSTOM_NAME);
+        if (customName == null) return false;
+        if (!ComponentUtils.hasNetworkTag(customName, false)) {
+            return false;
+        }
         Tag nameTag = item.getComponentAsSparrowTag(DataComponentTypes.CUSTOM_NAME);
         if (nameTag == null) return false;
         Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(nameTag);
@@ -387,11 +399,26 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
     }
 
     public static boolean processModernLore(Item item, Supplier<CompoundTag> tagSupplier, Context context) {
+        Object itemLore = item.getExactComponent(DataComponentTypes.LORE);
+        if (itemLore == null) return false;
+        List<Object> lines = ItemLoreProxy.INSTANCE.getStyleLines(itemLore);
+        if (lines.isEmpty()) return false;
+
+        boolean has = false;
+        for (Object line : lines) {
+            if (ComponentUtils.hasNetworkTag(line, false)) {
+                has = true;
+                break;
+            }
+        }
+        if (!has) return false;
+
         Tag loreTag = item.getComponentAsSparrowTag(DataComponentTypes.LORE);
         boolean changed = false;
         if (!(loreTag instanceof ListTag listTag)) {
             return false;
         }
+
         ListTag newLore = new ListTag();
         for (Tag tag : listTag) {
             Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(tag);
