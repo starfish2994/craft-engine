@@ -306,13 +306,6 @@ debug_clear_cooldown:
     - /craftengine debug clear-cooldown
     - /ce debug clear-cooldown
 
-debug_migrate_templates:
-  enable: true
-  permission: ce.command.debug.migrate_templates
-  usage:
-    - /craftengine debug migrate-templates
-    - /ce debug migrate-templates
-
 debug_is_chunk_persistent_loaded:
   enable: true
   permission: ce.command.debug.is_chunk_persistent_loaded

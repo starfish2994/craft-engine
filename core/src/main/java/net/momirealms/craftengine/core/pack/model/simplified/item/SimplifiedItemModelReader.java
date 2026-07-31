@@ -31,10 +31,10 @@ public interface SimplifiedItemModelReader {
         }
         List<BBModelConverter.Converted> blueprints = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            Path bbmodelFile = BBModelConverter.resolveBlueprint(configFile, files.get(i));
+            BBModelConverter.ResolvedBlueprint blueprint = BBModelConverter.resolveBlueprint(pack, configFile, files.get(i));
             blueprints.add(models != null
-                    ? BBModelConverter.convert(bbmodelFile, models.get(i), blueprintValue.path())
-                    : BBModelConverter.convert(bbmodelFile, pack.namespace(), "item", blueprintValue.path())
+                    ? BBModelConverter.convert(blueprint.file(), models.get(i), blueprintValue.path())
+                    : BBModelConverter.convert(blueprint, pack.namespace(), "item", blueprintValue.path())
             );
         }
         return buildFromBlueprints(blueprints);

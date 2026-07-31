@@ -675,7 +675,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                             ConfigValue modelValue = appearanceSection.getValue(MODELS);
                             ConfigValue blueprintValue = appearanceSection.getValue("blueprint");
                             if (blueprintValue != null) {
-                                BBModelConverter.Converted converted = BBModelConverter.convert(path, pack.namespace(), "block", modelValue, blueprintValue);
+                                BBModelConverter.Converted converted = BBModelConverter.convert(pack, path, "block", modelValue, blueprintValue);
                                 JsonObject json = new JsonObject();
                                 json.addProperty("model", converted.model().asMinimalString());
                                 applyOtherBlockStateProperties(json, appearanceSection);
@@ -944,7 +944,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             ConfigValue blueprintValue = section.getValue("blueprint");
             ConfigValue pathValue = section.getValue(PATH);
             if (blueprintValue != null) {
-                BBModelConverter.Converted converted = BBModelConverter.convert(path, pack.namespace(), "block", pathValue, blueprintValue);
+                BBModelConverter.Converted converted = BBModelConverter.convert(pack, path, "block", pathValue, blueprintValue);
                 modelPath = converted.model();
                 prepareModelGeneration(new ModelGenerationHolder(modelPath, ModelGeneration.raw(converted.json(), converted.textures())));
             }

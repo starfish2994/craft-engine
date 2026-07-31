@@ -126,7 +126,7 @@ public final class BaseItemModel implements ItemModel {
             Transformation transformation = section.getValue("transformation", Transformation::fromConfig);
             ConfigValue blueprintValue = section.getValue("blueprint");
             if (blueprintValue != null) {
-                return BaseItemModel.ofBBModel(BBModelConverter.convert(path, pack.namespace(), "item", section.getValue(PATH), blueprintValue), tints, transformation);
+                return BaseItemModel.ofBBModel(BBModelConverter.convert(pack, path, "item", section.getValue(PATH), blueprintValue), tints, transformation);
             }
             Key modelPath = section.getNonNullAssetPath(PATH);
             ConfigSection generation = section.getSection("generation");

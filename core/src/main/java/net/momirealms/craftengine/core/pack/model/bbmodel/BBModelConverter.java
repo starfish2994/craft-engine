@@ -2,8 +2,10 @@ package net.momirealms.craftengine.core.pack.model.bbmodel;
 
 import com.google.gson.*;
 import net.momirealms.craftengine.core.pack.Identifier;
+import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.util.CharacterUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
@@ -20,31 +22,43 @@ public final class BBModelConverter {
     private BBModelConverter() {
     }
 
-    /**
-     * 解析 blueprint 配置的文件路径（相对配置文件），缺省时自动补 .bbmodel 后缀
-     */
-    public static Path resolveBlueprint(Path configFile, String blueprint) {
-        if (!blueprint.endsWith(EXTENSION)) {
-            blueprint += EXTENSION;
-        }
-        return configFile.getParent().resolve(blueprint).normalize();
+    public record ResolvedBlueprint(Path file, String relativePath) {}
+
+    public static ResolvedBlueprint resolveBlueprint(Pack pack, Path configFile, String blueprint) {
+        boolean hasExtension = blueprint.endsWith(EXTENSION);
+        Path file = blueprintFolderFor(pack, configFile).resolve(hasExtension ? blueprint : blueprint + EXTENSION);
+        String relativePath = CharacterUtils.replaceBackslashWithSlash(hasExtension ? blueprint.substring(0, blueprint.length() - EXTENSION.length()) : blueprint);
+        return new ResolvedBlueprint(file, relativePath);
     }
 
-    public static Converted convert(Path bbmodelFile, String namespace, String folder, String node) {
-        String fileName = bbmodelFile.getFileName().toString();
-        String modelName = fileName.substring(0, fileName.length() - EXTENSION.length());
-        if (!Identifier.isValidPath(folder + "/" + modelName)) {
-            throw new KnownResourceException("resource.model.bbmodel.invalid_name", node, modelName);
+    public static Path blueprintFolderFor(Pack pack, Path configFile) {
+        Path[] configDirs = pack.configurationFolders();
+        Path[] blueprintDirs = pack.blueprintFolders();
+        if (blueprintDirs.length == 1) {
+            return blueprintDirs[0];
         }
-        return convert(bbmodelFile, Key.of(namespace, folder + "/" + modelName), node);
+        for (int i = 0; i < configDirs.length; i++) {
+            if (configFile.startsWith(configDirs[i])) {
+                return blueprintDirs[i];
+            }
+        }
+        return blueprintDirs[0];
     }
 
-    public static Converted convert(Path configFile, String namespace, String folder, @Nullable ConfigValue pathValue, ConfigValue blueprintValue) {
-        Path bbmodelFile = resolveBlueprint(configFile, blueprintValue.getAsString());
+    public static Converted convert(ResolvedBlueprint blueprint, String namespace, String folder, String node) {
+        String modelPath = folder + "/" + blueprint.relativePath();
+        if (!Identifier.isValidPath(modelPath)) {
+            throw new KnownResourceException("resource.model.bbmodel.invalid_name", node, blueprint.relativePath());
+        }
+        return convert(blueprint.file(), Key.of(namespace, modelPath), node);
+    }
+
+    public static Converted convert(Pack pack, Path configFile, String folder, @Nullable ConfigValue pathValue, ConfigValue blueprintValue) {
+        ResolvedBlueprint blueprint = resolveBlueprint(pack, configFile, blueprintValue.getAsString());
         if (pathValue != null) {
-            return convert(bbmodelFile, pathValue.getAsAssetPath(), blueprintValue.path());
+            return convert(blueprint.file(), pathValue.getAsAssetPath(), blueprintValue.path());
         }
-        return convert(bbmodelFile, namespace, folder, blueprintValue.path());
+        return convert(blueprint, pack.namespace(), folder, blueprintValue.path());
     }
 
     public static Converted convert(Path bbmodelFile, Key modelKey, String node) {

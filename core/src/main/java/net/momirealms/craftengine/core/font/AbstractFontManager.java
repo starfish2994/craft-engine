@@ -712,17 +712,19 @@ public abstract class AbstractFontManager implements FontManager {
 
                     int height = section.getInt(HEIGHT, () -> {
                         Key namespacedPath = Key.of(identifier);
-                        Path targetImagePath = pack.resourcePackFolder()
-                                .resolve("assets")
-                                .resolve(namespacedPath.namespace())
-                                .resolve("textures")
-                                .resolve(namespacedPath.value());
-                        if (Files.exists(targetImagePath)) {
-                            try (InputStream in = Files.newInputStream(targetImagePath)) {
-                                BufferedImage image = ImageIO.read(in);
-                                return image.getHeight() / codepointGrid.length;
-                            } catch (IOException e) {
-                                throw new RuntimeException("Could not read image " + targetImagePath, e);
+                        for (Path resourcepackPath : pack.resourcePackFolders()) {
+                            Path targetImagePath = resourcepackPath
+                                    .resolve("assets")
+                                    .resolve(namespacedPath.namespace())
+                                    .resolve("textures")
+                                    .resolve(namespacedPath.value());
+                            if (Files.exists(targetImagePath)) {
+                                try (InputStream in = Files.newInputStream(targetImagePath)) {
+                                    BufferedImage image = ImageIO.read(in);
+                                    return image.getHeight() / codepointGrid.length;
+                                } catch (IOException e) {
+                                    throw new RuntimeException("Could not read image " + targetImagePath, e);
+                                }
                             }
                         }
                         // 会自动触发缺少参数错误
