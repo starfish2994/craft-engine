@@ -20,26 +20,27 @@ import net.momirealms.sparrow.nbt.Tag;
 
 import java.util.Map;
 
-public final class SystemChatListener {
+public final class PlayerCombatKillListener {
     public static final ByteBufferPacketListener INSTANCE = VersionHelper.isOrAbove1_20_3 ? new V1_20_3() : new V1_20();
 
-    private SystemChatListener() {}
+    private PlayerCombatKillListener() {}
 
     private static class V1_20 implements ByteBufferPacketListener {
         private V1_20() {}
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptSystemChat() && Config.disableItemOperations()) return;
+            if (!Config.interceptCombatKill() && Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
+            int playerId = buf.readVarInt();
             String jsonOrPlainString = buf.readUtf();
             Tag tag = RegistryOps.JSON.convertTo(RegistryOps.SPARROW_NBT, GsonHelper.get().fromJson(jsonOrPlainString, JsonElement.class));
             Component component = AdventureHelper.nbtToComponent(tag);
-            boolean overlay = buf.readBoolean();
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
-            if (Config.interceptSystemChat()) {
+            buf.writeVarInt(playerId);
+            if (Config.interceptCombatKill()) {
                 Map<String, ComponentProvider> tokens = BukkitNetworkManager.instance().matchNetworkTags(jsonOrPlainString);
                 if (!tokens.isEmpty()) {
                     component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
@@ -49,7 +50,6 @@ public final class SystemChatListener {
                 component = AdventureHelper.replaceShowItem(component, s -> ComponentUtils.replaceShowItem(s, (BukkitServerPlayer) user));
             }
             buf.writeUtf(RegistryOps.SPARROW_NBT.convertTo(RegistryOps.JSON, AdventureHelper.componentToNbt(component)).toString());
-            buf.writeBoolean(overlay);
         }
     }
 
@@ -58,16 +58,17 @@ public final class SystemChatListener {
 
         @Override
         public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
-            if (!Config.interceptSystemChat() && Config.disableItemOperations()) return;
+            if (!Config.interceptCombatKill() && Config.disableItemOperations()) return;
             FriendlyByteBuf buf = event.getBuffer();
+            int playerId = buf.readVarInt();
             Tag nbt = buf.readNbt(false);
             if (nbt == null) return;
-            boolean overlay = buf.readBoolean();
             event.setChanged(true);
             buf.clear();
             buf.writeVarInt(event.packetID());
+            buf.writeVarInt(playerId);
             Component component = AdventureHelper.tagToComponent(nbt);
-            if (Config.interceptSystemChat()) {
+            if (Config.interceptCombatKill()) {
                 Map<String, ComponentProvider> tokens = BukkitNetworkManager.instance().matchNetworkTags(nbt);
                 if (!tokens.isEmpty()) {
                     component = AdventureHelper.replaceText(component, tokens, NetworkTextReplaceContext.of((BukkitServerPlayer) user));
@@ -77,7 +78,6 @@ public final class SystemChatListener {
                 component = AdventureHelper.replaceShowItem(component, s -> ComponentUtils.replaceShowItem(s, (BukkitServerPlayer) user));
             }
             buf.writeNbt(AdventureHelper.componentToTag(component), false);
-            buf.writeBoolean(overlay);
         }
     }
 }

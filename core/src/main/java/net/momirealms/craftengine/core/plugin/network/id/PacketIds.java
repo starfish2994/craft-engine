@@ -80,6 +80,8 @@ public interface PacketIds {
 
     int clientboundPlayerChatPacket();
 
+    int clientboundPlayerCombatKillPacket();
+
     int clientIntentionPacket();
 
     int clientboundStatusResponsePacket();

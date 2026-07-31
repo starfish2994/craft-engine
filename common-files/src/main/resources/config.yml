@@ -506,6 +506,7 @@ network:
     item: true
     advancement: true   # Toast
     player-chat: true
+    combat-kill: true   # Death messages
     dialog: true
 
   # Settings related to communication with CraftEngine Mod
