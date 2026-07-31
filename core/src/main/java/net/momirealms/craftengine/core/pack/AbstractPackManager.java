@@ -3079,6 +3079,23 @@ public abstract class AbstractPackManager implements PackManager {
             }
             writeJsonSafely(entry.getValue().get(), modelPath);
         }
+        for (Map.Entry<Key, byte[]> entry : generator.texturesToGenerate().entrySet()) {
+            Path texturePath = generatedPackPath
+                    .resolve("assets")
+                    .resolve(entry.getKey().namespace())
+                    .resolve("textures")
+                    .resolve(entry.getKey().value() + ".png");
+            if (Files.exists(texturePath)) {
+                this.plugin.logger().warn(TranslationManager.instance().plainTranslation("resource_pack.texture_generation.conflict", texturePath.toAbsolutePath().toString()));
+                continue;
+            }
+            try {
+                Files.createDirectories(texturePath.getParent());
+                Files.write(texturePath, entry.getValue());
+            } catch (IOException e) {
+                this.plugin.logger().warn("Failed to generate texture " + texturePath.toAbsolutePath(), e);
+            }
+        }
     }
 
     private void generateBlockOverrides(Path generatedPackPath, boolean generateVanillaAsset, boolean generateModAsset) {

@@ -8,5 +8,7 @@ public interface ModelGenerator {
 
     Map<Key, ModelGeneration> modelsToGenerate();
 
+    Map<Key, byte[]> texturesToGenerate();
+
     void clearModelsToGenerate();
 }

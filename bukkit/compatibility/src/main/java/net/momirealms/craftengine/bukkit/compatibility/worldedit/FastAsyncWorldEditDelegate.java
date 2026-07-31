@@ -23,7 +23,7 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
-import net.momirealms.craftengine.bukkit.plugin.asm.WorldStorageInjector;
+import net.momirealms.craftengine.bukkit.plugin.injector.WorldStorageInjector;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.EmptyBlockDefinition;

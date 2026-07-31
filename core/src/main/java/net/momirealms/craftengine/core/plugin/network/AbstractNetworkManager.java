@@ -103,10 +103,35 @@ public abstract class AbstractNetworkManager implements NetworkManager {
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    public Map<String, ComponentProvider> matchNetworkTags(String text) {
-        Map<String, ComponentProvider> tags = new HashMap<>();
+    public boolean hasNetworkTag(String text) {
         List<Token> root = TokenParser.tokenize(text, true);
-        for (final net.kyori.adventure.text.minimessage.internal.parser.Token token : root) {
+        for (final Token token : root) {
+            switch (token.type()) {
+                case TEXT: break;
+                case OPEN_TAG:
+                case CLOSE_TAG:
+                case OPEN_CLOSE_TAG:
+                    if (token.childTokens().isEmpty()) {
+                        continue;
+                    }
+                    final String sanitized = TokenParser.TagProvider.sanitizePlaceholderName(token.childTokens().getFirst().get(text).toString());
+                    if (NETWORK_TAGS.contains(sanitized)) {
+                        return true;
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported token type " + token.type());
+            }
+        }
+        return false;
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Override
+    public Map<String, ComponentProvider> matchNetworkTags(String text) {
+        Map<String, ComponentProvider> tags = null;
+        List<Token> root = TokenParser.tokenize(text, true);
+        for (final Token token : root) {
             switch (token.type()) {
                 case TEXT: break;
                 case OPEN_TAG:
@@ -118,6 +143,9 @@ public abstract class AbstractNetworkManager implements NetworkManager {
                     final String sanitized = TokenParser.TagProvider.sanitizePlaceholderName(token.childTokens().getFirst().get(text).toString());
                     if (NETWORK_TAGS.contains(sanitized)) {
                         String tag = text.substring(token.startIndex(), token.endIndex());
+                        if (tags == null) {
+                            tags = new HashMap<>(4);
+                        }
                         tags.computeIfAbsent(tag, k -> {
                             ComponentProvider provider = this.networkTagMapper.get(k);
                             if (provider != null) {
@@ -131,7 +159,7 @@ public abstract class AbstractNetworkManager implements NetworkManager {
                     throw new IllegalArgumentException("Unsupported token type " + token.type());
             }
         }
-        return tags;
+        return tags == null ? Collections.emptyMap() : tags;
     }
 
     @Override

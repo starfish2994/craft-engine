@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.plugin.asm;
+package net.momirealms.craftengine.bukkit.plugin.injector;
 
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.ClassFileVersion;

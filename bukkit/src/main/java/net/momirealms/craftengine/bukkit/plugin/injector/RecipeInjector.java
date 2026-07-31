@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.plugin.asm;
+package net.momirealms.craftengine.bukkit.plugin.injector;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;

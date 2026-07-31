@@ -54,6 +54,8 @@ public interface NetworkManager extends Manageable {
 
     void simulatePacket(@NotNull NetWorkUser player, Object packet);
 
+    boolean hasNetworkTag(String text);
+
     Map<String, ComponentProvider> matchNetworkTags(String text);
 
     default Map<String, ComponentProvider> matchNetworkTags(Tag nbt) {

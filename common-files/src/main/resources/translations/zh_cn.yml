@@ -171,6 +171,7 @@ resource_pack.malformatted_json: Json文件“<arg:0>”的格式不正确
 resource_pack.not_a_json_object: Json文件“<arg:0>”不是一个json对象
 resource_pack.conflict_resolution.unknown_type: 未知的文件冲突解决方案类型“<arg:0>”
 resource_pack.model_generation.conflict: 无法生成模型，因为模型文件“<arg:0>”已存在
+resource_pack.texture_generation.conflict: 无法生成贴图,因为贴图文件“<arg:0>”已存在
 resource_pack.item_model.conflict: 无法生成物品模型映射“<arg:0>”，因为文件“<arg:1>”已存在
 resource_pack.missing_font_texture: 字体“<arg:0>”缺少纹理“<arg:1>”
 resource_pack.missing_model_texture: 模型“<arg:0>”缺少纹理“<arg:1>”
@@ -286,6 +287,9 @@ resource.item.missing_model_id: 缺少“custom_model_data”或“item_model”
 resource.item.occupied_vanilla_item_model: 物品模型“<arg:0>”已被原版物品占用
 resource.item.invalid_material: 无效的物品类型“<arg:0>”
 resource.model.generation.conflict: 无法为“<arg:0>”生成模型，因为有两个或多个配置试图使用相同的路径生成不同的json模型
+resource.texture.generation.conflict: 无法为“<arg:0>”生成贴图,因为有两个或多个配置试图使用相同的路径生成不同的贴图
+resource.model.bbmodel.invalid_file: 无法读取或解析 bbmodel 文件“<arg:0>”
+resource.model.bbmodel.invalid_name: bbmodel 文件名“<arg:0>”不是有效的资源路径,请仅使用小写字母、数字、_、-、.、/ 重命名
 resource.recipe.transform_processor.unknown_type: 未知的锻造配方后处理器类型“<arg:0>”
 resource.recipe.ingredient.invalid_tag: 物品标签“<arg:0>”不包含任何物品
 resource.recipe.ingredient.item_not_exist: 原料物品“<arg:0>”不存在

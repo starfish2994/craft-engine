@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.pack.model.definition;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
@@ -10,6 +11,7 @@ import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -33,22 +35,21 @@ public final class ItemModels {
         return type;
     }
 
-    public static ItemModel fromConfig(ConfigSection section) {
+    public static ItemModel fromConfig(Pack pack, Path path, ConfigSection section) {
         String typeName = section.getString("type", "minecraft:model");
         Key type = Key.of(typeName);
         ItemModelType<? extends ItemModel> itemModelType = BuiltInRegistries.ITEM_MODEL_TYPE.getValue(type);
         if (itemModelType == null) {
             throw new KnownResourceException("resource.item.model_definition.unknown_type", section.assemblePath("type"), type.asString());
         }
-        return itemModelType.factory().create(section);
+        return itemModelType.factory().create(pack, path, section);
     }
 
-    public static ItemModel fromConfig(ConfigValue value) {
+    public static ItemModel fromConfig(Pack pack, Path path, ConfigValue value) {
         if (value.is(Map.class)) {
-            return fromConfig(value.getAsSection());
-        } else {
-            return new BaseItemModel(value.getAsAssetPath(), List.of(), null, null);
+            return fromConfig(pack, path, value.getAsSection());
         }
+        return new BaseItemModel(value.getAsAssetPath(), List.of(), null, null);
     }
 
     public static ItemModel fromJson(JsonObject json) {

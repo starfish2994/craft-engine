@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.plugin.asm;
+package net.momirealms.craftengine.bukkit.plugin.injector;
 
 import com.google.common.base.Suppliers;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;

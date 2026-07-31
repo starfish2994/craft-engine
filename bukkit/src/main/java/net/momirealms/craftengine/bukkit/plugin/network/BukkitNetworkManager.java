@@ -13,7 +13,7 @@ import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCo
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
-import net.momirealms.craftengine.bukkit.plugin.asm.HashedStackGenerator;
+import net.momirealms.craftengine.bukkit.plugin.injector.HashedStackGenerator;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.common.*;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.FinishConfigurationListener;
 import net.momirealms.craftengine.bukkit.plugin.network.listener.configuration.NMSFinishConfigurationListener;

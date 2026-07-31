@@ -334,7 +334,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         }
 
         private boolean needsItemModelCompatibility() {
-            return Config.packMaxVersion().isAtOrAbove(MinecraftVersion.V1_21_2) && VersionHelper.isOrAbove1_21_2; //todo 能否通过客户端包解决问题
+            return Config.packMaxVersion().isAtOrAbove(MinecraftVersion.V1_21_2) && VersionHelper.isOrAbove1_21_2;
         }
 
         @Override
@@ -464,7 +464,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             });
         }
 
-        private static final String[] MODEL_KEYS = new String[] {"model", "models", "texture", "textures", "legacy-model", "legacy_model"};
+        private static final String[] MODEL_KEYS = new String[] {"model", "models", "texture", "textures", "blueprint", "legacy-model", "legacy_model"};
         private static final String[] CLIENT_BOUND_MATERIAL = new String[] {"client_bound_material", "client-bound-material"};
         private static final String[] CUSTOM_MODEL_DATA = new String[] {"custom_model_data", "custom-model-data"};
         private static final String[] ITEM_MODEL = new String[] {"item_model", "item-model"};
@@ -592,8 +592,9 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 // 模型配置区域，如果这里被配置了，那么用户可以配置custom-model-data或item-model
                 ConfigValue modelValue = section.getValue(MODEL);
                 ConfigValue textureValue = section.getValue(TEXTURES);
+                ConfigValue blueprintValue = section.getValue("blueprint");
                 ConfigSection legacyModelSection = section.getSection(LEGACY_MODEL);
-                boolean hasModelSection = modelValue != null || textureValue != null || legacyModelSection != null;
+                boolean hasModelSection = modelValue != null || textureValue != null || blueprintValue != null || legacyModelSection != null;
 
                 if (customModelData > 0 && (hasModelSection || forceCustomModelData)) {
                     if (clientBoundModel) itemBuilder.clientBoundProcessor(new OverwritableCustomModelDataProcessor(ConstantNumberProvider.constant(customModelData)));
@@ -727,7 +728,11 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 TreeSet<LegacyOverridesModel> legacyOverridesModels;
                 // 如果需要支持新版item model 或者用户需要旧版本兼容，但是没配置legacy-model
                 if (isModernFormatRequired() || (needsLegacyCompatibility() && legacyModelSection == null)) {
-                    if (textureValue != null) {
+                    if (blueprintValue != null) {
+                        Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
+                        SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
+                        modernModel = simplifiedModelReader.readBlueprints(blueprintValue, modelValue, pack, path);
+                    } else if (textureValue != null) {
                         Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
                         SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
                         modernModel = simplifiedModelReader.read(textureValue, Optional.ofNullable(modelValue).map(it -> {
@@ -743,7 +748,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                             SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
                             modernModel = simplifiedModelReader.read(modelValue);
                         } else {
-                            modernModel = ItemModels.fromConfig(modelValue);
+                            modernModel = ItemModels.fromConfig(pack, path, modelValue);
                         }
                     } else {
                         throw KnownResourceException.missingArgument("model", ConfigConstants.ARGUMENT_ITEM_MODEL_DEFINITION);
@@ -755,7 +760,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 // 如果需要旧版本兼容
                 if (needsLegacyCompatibility()) {
                     if (legacyModelSection != null) {
-                        LegacyItemModel legacyItemModel = LegacyItemModel.fromConfig(legacyModelSection, customModelData);
+                        LegacyItemModel legacyItemModel = LegacyItemModel.fromConfig(pack, path, legacyModelSection, customModelData);
                         legacyItemModel.prepareModelGeneration(AbstractItemManager.this::prepareModelGeneration);
                         legacyOverridesModels = new TreeSet<>(legacyItemModel.overrides());
                     } else {

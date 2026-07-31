@@ -23,6 +23,7 @@ import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.allocator.BlockStateCandidate;
 import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.pack.allocator.VisualBlockStateAllocator;
+import net.momirealms.craftengine.core.pack.model.bbmodel.BBModelConverter;
 import net.momirealms.craftengine.core.pack.model.generation.AbstractModelGenerator;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
@@ -440,7 +441,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             if (isVanillaBlock(id)) {
                 parseVanillaBlock(id, section);
             } else {
-                parseCustomBlock(path, id, section);
+                parseCustomBlock(pack, path, id, section);
             }
         }
 
@@ -471,7 +472,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         private static final String[] PATH = new String[] {"path", "model"};
         private static final String[] TEXTURE = new String[]{"texture", "textures"};
 
-        private void parseCustomBlock(Path path, Key id, ConfigSection section) {
+        private void parseCustomBlock(Pack pack, Path path, Key id, ConfigSection section) {
             // 获取共享方块设置 （可异常）
             BlockSettings settings = BlockSettings.of().itemId(id);
             try {
@@ -672,7 +673,15 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                         } else {
                             ConfigValue textureValue = appearanceSection.getValue(TEXTURE);
                             ConfigValue modelValue = appearanceSection.getValue(MODELS);
-                            if (textureValue != null) {
+                            ConfigValue blueprintValue = appearanceSection.getValue("blueprint");
+                            if (blueprintValue != null) {
+                                BBModelConverter.Converted converted = BBModelConverter.convert(path, pack.namespace(), "block", modelValue, blueprintValue);
+                                JsonObject json = new JsonObject();
+                                json.addProperty("model", converted.model().asMinimalString());
+                                applyOtherBlockStateProperties(json, appearanceSection);
+                                prepareModelGeneration(new ModelGenerationHolder(converted.model(), ModelGeneration.raw(converted.json(), converted.textures())));
+                                arrangeModelForStateAndVerify(visualBlockState, json, blueprintValue.path());
+                            } else if (textureValue != null) {
                                 Pair<List<Key>, Key> pair = parseTextures(textureValue);
                                 ConfigValue activeConfigValue;
                                 Key modelPath;
@@ -698,7 +707,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 arrangeModelForStateAndVerify(visualBlockState, json, activeConfigValue.path());
                             } else {
                                 if (modelValue != null) {
-                                    arrangeModelForStateAndVerify(visualBlockState, parseBlockModel(modelValue), modelValue.path());
+                                    arrangeModelForStateAndVerify(visualBlockState, parseBlockModel(pack, path, modelValue), modelValue.path());
                                 }
                             }
                         }
@@ -879,13 +888,13 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         }
 
         @Nullable
-        private JsonElement parseBlockModel(ConfigValue modelOrModels) {
+        private JsonElement parseBlockModel(Pack pack, Path path, ConfigValue modelOrModels) {
             if (modelOrModels == null) return null;
             List<JsonObject> variants;
             if (modelOrModels.is(List.class)) {
-                variants = modelOrModels.getAsNonEmptyList(v -> this.parseAppearanceModelSectionAsJson(v.getAsSection()));
+                variants = modelOrModels.getAsNonEmptyList(v -> this.parseAppearanceModelSectionAsJson(pack, path, v.getAsSection()));
             } else if (modelOrModels.is(Map.class)) {
-                variants = List.of(this.parseAppearanceModelSectionAsJson(modelOrModels.getAsSection()));
+                variants = List.of(this.parseAppearanceModelSectionAsJson(pack, path, modelOrModels.getAsSection()));
             } else {
                 variants = List.of(MiscUtils.init(new JsonObject(), j -> j.addProperty("model", modelOrModels.getAsAssetPath().asMinimalString())));
             }
@@ -921,7 +930,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             AbstractBlockManager.this.tempVanillaBlockStateModels[blockStateWrapper.registryId()] = variant;
         }
 
-        private JsonObject parseAppearanceModelSectionAsJson(ConfigSection section) {
+        private JsonObject parseAppearanceModelSectionAsJson(Pack pack, Path path, ConfigSection section) {
             JsonObject json = new JsonObject();
             // 可选的 textures
             ConfigValue textureValue = section.getValue(TEXTURE);
@@ -931,9 +940,17 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             }
 
             Key modelPath;
+            // 显式指定 bbmodel 源文件：path 可选，用于指定生成 json 的路径
+            ConfigValue blueprintValue = section.getValue("blueprint");
+            ConfigValue pathValue = section.getValue(PATH);
+            if (blueprintValue != null) {
+                BBModelConverter.Converted converted = BBModelConverter.convert(path, pack.namespace(), "block", pathValue, blueprintValue);
+                modelPath = converted.model();
+                prepareModelGeneration(new ModelGenerationHolder(modelPath, ModelGeneration.raw(converted.json(), converted.textures())));
+            }
             // 直接设定了 path
-            if (section.containsKey(PATH)) {
-                modelPath = section.getNonNullIdentifier(PATH);
+            else if (pathValue != null) {
+                modelPath = section.getNonNullAssetPath(PATH);
             }
             // 单贴图生成的情况下，读第一个贴图的路径
             else if (pair != null && pair.left().size() == 1) {
@@ -941,7 +958,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             }
             // 否则强制要 path
             else {
-                modelPath = section.getNonNullIdentifier(PATH);
+                modelPath = section.getNonNullAssetPath(PATH);
             }
             json.addProperty("model", modelPath.asMinimalString());
             // 添加其他的属性
