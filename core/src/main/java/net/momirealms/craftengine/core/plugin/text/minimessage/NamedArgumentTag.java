@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.ParsingException;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
@@ -29,6 +30,9 @@ public class NamedArgumentTag implements TagResolver {
         Object value = optional.orElse(null);
         if (value == null) {
             value = arguments.popOr("No default value provided").toString();
+        }
+        if (value instanceof Component component) {
+            return Tag.selfClosingInserting(component);
         }
         return Tag.selfClosingInserting(ctx.deserialize(String.valueOf(value)));
     }
