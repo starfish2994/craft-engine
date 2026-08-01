@@ -74,6 +74,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     // 其他设置
     protected boolean featureFlag$keepOnDeathChance = false;
     protected boolean featureFlag$destroyOnDeathChance = false;
+    protected boolean featureFlag$preventBreak = false;
     // 用语弩和弓的弹药判定
     protected final ProjectilePredicate ARROW_ONLY = new ProjectilePredicate(k -> k.hasVanillaTag(ItemTags.ARROWS));
     protected final ProjectilePredicate ARROW_OR_FIREWORK = new ProjectilePredicate(k -> k.hasVanillaTag(ItemTags.ARROWS) || k.id().equals(ItemKeys.FIREWORK_ROCKET));
@@ -119,6 +120,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     private void clearFeatureFlags() {
         this.featureFlag$keepOnDeathChance = false;
         this.featureFlag$destroyOnDeathChance = false;
+        this.featureFlag$preventBreak = false;
     }
 
     public boolean isCrossbowAmmo(Item item) {
@@ -247,6 +249,10 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
 
     public boolean featureFlag$destroyOnDeathChance() {
         return featureFlag$destroyOnDeathChance;
+    }
+
+    public boolean featureFlag$preventBreak() {
+        return featureFlag$preventBreak;
     }
 
     protected abstract ItemDefinition.Builder createPlatformItemBuilder(String path, UniqueKey id, Key material, Key clientBoundMaterial);
@@ -404,6 +410,9 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 if (itemDefinition != null) {
                     Key id = itemDefinition.id();
                     AbstractItemManager.this.orderedItemIds.add(id);
+                    if (itemDefinition.settings().preventBreak()) {
+                        AbstractItemManager.this.featureFlag$preventBreak = true;
+                    }
                     List<Key> categories = this.tempCategories.get(id);
                     if (categories != null) {
                         AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, categories);

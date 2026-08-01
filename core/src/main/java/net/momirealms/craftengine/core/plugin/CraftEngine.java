@@ -331,6 +331,7 @@ public abstract class CraftEngine implements Plugin {
                         this.advancementManager.runDelayedSyncTasks();
                         // 注册所需的监听器
                         this.lootManager.runDelayedSyncTasks();
+                        this.itemManager.runDelayedSyncTasks();
                         this.compatibilityManager.runDelayedSyncTasks();
                         long syncTime = timestamp.deltaMillis();
                         this.reloadEventDispatcher.accept(this);
@@ -438,6 +439,7 @@ public abstract class CraftEngine implements Plugin {
                 this.advancementManager.runDelayedSyncTasks();
                 // 注册所需的监听器
                 this.lootManager.runDelayedSyncTasks();
+                this.itemManager.runDelayedSyncTasks();
                 this.compatibilityManager.runDelayedSyncTasks();
             } else {
                 try {

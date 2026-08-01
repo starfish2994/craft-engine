@@ -257,7 +257,7 @@ public final class ItemEventListener implements Listener {
                 boolean hasItem = !serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() || !serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty();
                 BlockBehavior behavior = immutableBlockState.behavior();
                 boolean flag = serverPlayer.isSecondaryUseActive() && hasItem && !behavior.canUseOnBlockIfSecondaryUseActive(useOnContext, immutableBlockState);
-                if (!flag) {
+                if (!flag && (VersionHelper.hasPaperPatch && event.useItemInHand() != Event.Result.DENY)) {
                     InteractionResult result = behavior.useOnBlock(useOnContext, immutableBlockState);
                     if (result.success()) {
                         serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
@@ -620,7 +620,8 @@ public final class ItemEventListener implements Listener {
         int newFoodLevel = MiscUtils.clamp(oldFoodLevel + foodData.nutrition(), 0, 20);
         if (foodData.nutrition() != 0) player.setFoodLevel(newFoodLevel);
         float oldSaturation = player.getSaturation();
-        if (foodData.saturation() != 0) player.setSaturation(MiscUtils.clamp(oldSaturation + foodData.saturation(), 0, newFoodLevel));
+        if (foodData.saturation() != 0)
+            player.setSaturation(MiscUtils.clamp(oldSaturation + foodData.saturation(), 0, newFoodLevel));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -717,7 +718,8 @@ public final class ItemEventListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() != player.getInventory()) return;
         org.bukkit.event.inventory.ClickType clickType = event.getClick();
-        if (clickType != org.bukkit.event.inventory.ClickType.LEFT && clickType != org.bukkit.event.inventory.ClickType.RIGHT) return;
+        if (clickType != org.bukkit.event.inventory.ClickType.LEFT && clickType != org.bukkit.event.inventory.ClickType.RIGHT)
+            return;
         ItemStack cursor = event.getCursor();
         ItemStack current = event.getCurrentItem();
         if (ItemStackUtils.isEmpty(cursor) || ItemStackUtils.isEmpty(current)) return;

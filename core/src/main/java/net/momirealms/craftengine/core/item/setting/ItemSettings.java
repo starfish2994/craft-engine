@@ -23,6 +23,7 @@ public final class ItemSettings {
     List<AnvilRepairItem> anvilRepairItems = List.of();
     List<DragRepairItem> dragRepairItems = List.of();
     boolean renameable = true;
+    boolean preventBreak = false;
     boolean disableVanillaBehavior = true;
     ProjectileMeta projectileMeta;
     Tristate dyeable = Tristate.UNDEFINED;
@@ -129,6 +130,7 @@ public final class ItemSettings {
         newSettings.anvilRepairItems = settings.anvilRepairItems;
         newSettings.dragRepairItems = settings.dragRepairItems;
         newSettings.renameable = settings.renameable;
+        newSettings.preventBreak = settings.preventBreak;
         newSettings.disableVanillaBehavior = settings.disableVanillaBehavior;
         newSettings.projectileMeta = settings.projectileMeta;
         newSettings.dyeable = settings.dyeable;
@@ -207,6 +209,10 @@ public final class ItemSettings {
 
     public boolean renameable() {
         return this.renameable;
+    }
+
+    public boolean preventBreak() {
+        return this.preventBreak;
     }
 
     public Set<Key> tags() {
@@ -368,6 +374,11 @@ public final class ItemSettings {
 
     public ItemSettings renameable(boolean renameable) {
         this.renameable = renameable;
+        return this;
+    }
+
+    public ItemSettings preventBreak(boolean preventBreak) {
+        this.preventBreak = preventBreak;
         return this;
     }
 

@@ -11,6 +11,7 @@ import net.momirealms.craftengine.bukkit.item.listener.ArmorEventListener;
 import net.momirealms.craftengine.bukkit.item.listener.ItemEventListener;
 import net.momirealms.craftengine.bukkit.item.listener.PaperItemEventListener;
 import net.momirealms.craftengine.bukkit.item.listener.PaperSlotChangeListener;
+import net.momirealms.craftengine.bukkit.item.listener.PreventBreakListener;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.ReloadCommand;
@@ -68,6 +69,7 @@ public final class BukkitItemManager extends AbstractItemManager {
     private final BukkitCraftEngine plugin;
     private final ItemEventListener itemEventListener;
     private final ArmorEventListener armorEventListener;
+    private final PreventBreakListener preventBreakListener;
     private final PaperSlotChangeListener slotChangeListener;
     private final PaperItemEventListener paperItemEventListener;
     private final NetworkItemHandler networkItemHandler;
@@ -84,6 +86,7 @@ public final class BukkitItemManager extends AbstractItemManager {
         this.factory = BukkitItemFactory.create(plugin);
         this.itemEventListener = new ItemEventListener(plugin, this);
         this.armorEventListener = new ArmorEventListener();
+        this.preventBreakListener = new PreventBreakListener(this);
         this.slotChangeListener = VersionHelper.isOrAbove1_20_3 && VersionHelper.hasPaperPatch ? new PaperSlotChangeListener(this) : null;
         this.paperItemEventListener = VersionHelper.hasPaperPatch ? new PaperItemEventListener() : null;
         this.networkItemHandler = VersionHelper.isOrAbove1_20_5 ? new ModernNetworkItemHandler(this) : new LegacyNetworkItemHandler();
@@ -219,10 +222,20 @@ public final class BukkitItemManager extends AbstractItemManager {
     }
 
     @Override
+    public void runDelayedSyncTasks() {
+        if (this.featureFlag$preventBreak()) {
+            this.preventBreakListener.register(this.plugin.javaPlugin());
+        } else {
+            this.preventBreakListener.unregister();
+        }
+    }
+
+    @Override
     public void disable() {
         this.unload();
         HandlerList.unregisterAll(this.itemEventListener);
         HandlerList.unregisterAll(this.armorEventListener);
+        this.preventBreakListener.unregister();
         if (this.slotChangeListener != null) HandlerList.unregisterAll(this.slotChangeListener);
         if (this.paperItemEventListener != null) HandlerList.unregisterAll(this.paperItemEventListener);
     }
@@ -414,6 +427,20 @@ public final class BukkitItemManager extends AbstractItemManager {
     public @NotNull BukkitItem wrap(Object itemStack) {
         if (itemStack == null) return this.emptyItem;
         return new BukkitItem((ItemFactory<BukkitItemWrapper>) this.factory, this.factory.wrap(itemStack));
+    }
+
+    public boolean isBrokenItem(@Nullable ItemStack itemStack) {
+        if (ItemStackUtils.isEmpty(itemStack)) return false;
+        return isBrokenItem(wrap(itemStack));
+    }
+
+    public boolean isBrokenItem(Item item) {
+        Optional<ItemDefinition> optionalCustomItem = item.getDefinition();
+        if (optionalCustomItem.isEmpty()) return false;
+        if (!optionalCustomItem.get().settings().preventBreak()) return false;
+        int maxDamage = item.maxDamage();
+        if (maxDamage <= 0) return false;
+        return item.damage().orElse(0) >= maxDamage - 1;
     }
 
     @Override

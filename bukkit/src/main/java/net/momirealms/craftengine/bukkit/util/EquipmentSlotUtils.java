@@ -5,6 +5,8 @@ import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
 
 public final class EquipmentSlotUtils {
+    public static final org.bukkit.inventory.EquipmentSlot[] ARMOR_SLOTS = {org.bukkit.inventory.EquipmentSlot.HEAD, org.bukkit.inventory.EquipmentSlot.CHEST, org.bukkit.inventory.EquipmentSlot.LEGS, org.bukkit.inventory.EquipmentSlot.FEET};
+
     private EquipmentSlotUtils() {}
 
     public static Object toNMSEquipmentSlot(EquipmentSlot equipmentSlot) {

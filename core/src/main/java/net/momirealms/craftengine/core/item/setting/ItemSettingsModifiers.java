@@ -52,6 +52,10 @@ public final class ItemSettingsModifiers {
         boolean renameable = value.getAsBoolean();
         return settings -> settings.renameable(renameable);
     }));
+    public static final ItemSettingsModifierType<ItemSettingsModifier> PREVENT_BREAK = register(Key.ce("prevent_break"), (value -> {
+        boolean preventBreak = value.getAsBoolean();
+        return settings -> settings.preventBreak(preventBreak);
+    }));
     public static final ItemSettingsModifierType<ItemSettingsModifier> DROP_DISPLAY = register(Key.ce("drop_display"), (value -> {
         if (value.is(String.class)) {
             return settings -> settings.dropDisplay(value.getAsString());
