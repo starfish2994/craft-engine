@@ -473,4 +473,8 @@ public abstract class BlockBehavior {
     public InteractionResult useWithoutItem(UseOnContext context, ImmutableBlockState state) {
         return InteractionResult.PASS;
     }
+
+    public boolean canUseOnBlockIfSecondaryUseActive(UseOnContext context, ImmutableBlockState state) {
+        return false;
+    }
 }

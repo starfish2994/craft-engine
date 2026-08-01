@@ -255,10 +255,19 @@ public final class ItemEventListener implements Listener {
             if (hitResult != null) {
                 UseOnContext useOnContext = new UseOnContext(world, serverPlayer, hand, itemInHand, hitResult);
                 boolean hasItem = !serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() || !serverPlayer.getItemInHand(InteractionHand.OFF_HAND).isEmpty();
-                boolean flag = player.isSneaking() && hasItem;
+                BlockBehavior behavior = immutableBlockState.behavior();
+                boolean flag = serverPlayer.isSecondaryUseActive() && hasItem && !behavior.canUseOnBlockIfSecondaryUseActive(useOnContext, immutableBlockState);
                 if (!flag) {
-                    if (immutableBlockState.behavior() instanceof BlockBehavior behavior) {
-                        InteractionResult result = behavior.useOnBlock(useOnContext, immutableBlockState);
+                    InteractionResult result = behavior.useOnBlock(useOnContext, immutableBlockState);
+                    if (result.success()) {
+                        serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
+                        if (result == InteractionResult.SUCCESS_AND_CANCEL) {
+                            event.setCancelled(true);
+                        }
+                        return;
+                    }
+                    if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
+                        result = behavior.useWithoutItem(useOnContext, immutableBlockState);
                         if (result.success()) {
                             serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
                             if (result == InteractionResult.SUCCESS_AND_CANCEL) {
@@ -266,19 +275,9 @@ public final class ItemEventListener implements Listener {
                             }
                             return;
                         }
-                        if (result == InteractionResult.TRY_EMPTY_HAND && hand == InteractionHand.MAIN_HAND) {
-                            result = behavior.useWithoutItem(useOnContext, immutableBlockState);
-                            if (result.success()) {
-                                serverPlayer.updateLastSuccessfulInteractionTick(serverPlayer.gameTicks());
-                                if (result == InteractionResult.SUCCESS_AND_CANCEL) {
-                                    event.setCancelled(true);
-                                }
-                                return;
-                            }
-                        }
-                        if (result == InteractionResult.FAIL) {
-                            return;
-                        }
+                    }
+                    if (result == InteractionResult.FAIL) {
+                        return;
                     }
                 }
             }

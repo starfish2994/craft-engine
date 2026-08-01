@@ -453,4 +453,9 @@ public final class DualBlockBehavior extends BukkitBlockBehavior implements Comb
         if (this.second instanceof RandomTickBlock randomTickBlock && randomTickBlock.canRandomlyTick(state)) return true;
         return false;
     }
+
+    @Override
+    public boolean canUseOnBlockIfSecondaryUseActive(UseOnContext context, ImmutableBlockState state) {
+        return this.first.canUseOnBlockIfSecondaryUseActive(context, state) ||  this.second.canUseOnBlockIfSecondaryUseActive(context, state);
+    }
 }

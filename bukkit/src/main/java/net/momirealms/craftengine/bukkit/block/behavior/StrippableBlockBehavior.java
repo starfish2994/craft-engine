@@ -92,6 +92,12 @@ public final class StrippableBlockBehavior extends BukkitBlockBehavior {
         return false;
     }
 
+    @Override
+    public boolean canUseOnBlockIfSecondaryUseActive(UseOnContext context, ImmutableBlockState state) {
+        Item item = context.getItem();
+        return !ItemUtils.isEmpty(item) && isValidTool(item);
+    }
+
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public InteractionResult useOnBlock(UseOnContext context, ImmutableBlockState state) {
