@@ -288,4 +288,3 @@ resource.recipe.shaped.invalid_pattern: 無效的合成圖案「<arg:0>」
 resource.recipe.shaped.invalid_symbol: 無效的合成圖案符號「<arg:0>」
 resource.recipe.post_processor.unknown_type: 未知的配方結果後處理器類型「<arg:0>」
 resource.recipe.unknown_type: 未知的配方類型「<arg:0>」
-resource.vanilla_loot.block.invalid_target: 無效的方塊目標「<arg:0>」

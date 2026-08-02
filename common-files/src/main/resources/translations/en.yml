@@ -312,4 +312,3 @@ resource.recipe.shapeless_transform.ambigious_source: "Found 2 or more materials
 resource.recipe.shapeless_transform.source_not_found: "Unable to find a material marked as source in recipe"
 resource.recipe.post_processor.unknown_type: Unknown recipe post processor type '<arg:0>'
 resource.recipe.unknown_type: Unknown recipe type '<arg:0>'
-resource.vanilla_loot.block.invalid_target: Invalid block target '<arg:0>'
