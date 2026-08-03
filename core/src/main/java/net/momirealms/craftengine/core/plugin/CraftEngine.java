@@ -258,7 +258,11 @@ public abstract class CraftEngine implements Plugin {
         CompletableFutures.allOf(delayedLoadTasks).join();
     }
 
-    public CompletableFuture<ReloadResult> reloadPlugin(Executor asyncExecutor, Executor syncExecutor, boolean reloadRecipe) {
+    private void callReloadEvent() {
+        this.reloadEventDispatcher.accept(this);
+    }
+
+    public CompletableFuture<ReloadResult> reloadPlugin(Executor asyncExecutor, Executor syncExecutor, boolean reloadRecipe, boolean callEvent) {
         CompletableFuture<ReloadResult> future = new CompletableFuture<>();
         asyncExecutor.execute(() -> {
             long asyncTime = -1;
@@ -333,8 +337,8 @@ public abstract class CraftEngine implements Plugin {
                         this.lootManager.runDelayedSyncTasks();
                         this.itemManager.runDelayedSyncTasks();
                         this.compatibilityManager.runDelayedSyncTasks();
+                        if (callEvent) this.callReloadEvent();
                         long syncTime = timestamp.deltaMillis();
-                        this.reloadEventDispatcher.accept(this);
                         future.complete(ReloadResult.success(finalAsyncTime, syncTime, finalIssues));
                     } catch (Throwable e) {
                         this.logger().warn("Failed to run sync tasks", e);
@@ -443,7 +447,7 @@ public abstract class CraftEngine implements Plugin {
                 this.compatibilityManager.runDelayedSyncTasks();
             } else {
                 try {
-                    this.reloadPlugin(Runnable::run, Runnable::run, true);
+                    this.reloadPlugin(Runnable::run, Runnable::run, true, false);
                     this.worldManager.delayedInit();
                 } catch (Exception e) {
                     this.logger.error("Failed to reload plugin on delayed enable stage", e);
@@ -458,7 +462,7 @@ public abstract class CraftEngine implements Plugin {
             // 异步去缓存资源包相关文件
             this.scheduler.executeAsync(() -> this.packManager.initCachedAssets());
             // 正式完成重载
-            this.reloadEventDispatcher.accept(this);
+            this.callReloadEvent();
             // 检查更新
             if (Config.checkUpdate()) {
                 this.scheduler.executeAsync(this::checkUpdates);

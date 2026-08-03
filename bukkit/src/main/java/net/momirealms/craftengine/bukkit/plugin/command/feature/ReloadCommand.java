@@ -38,7 +38,7 @@ public final class ReloadCommand extends BukkitCommandFeature<CommandSender> {
                         argument = optional.get();
                     }
                     if (argument == ReloadArgument.CONFIG || argument == ReloadArgument.RECIPE) {
-                        plugin().reloadPlugin(plugin().scheduler().async(), r -> plugin().scheduler().platform().run(r), argument == ReloadArgument.RECIPE).thenAccept(reloadResult -> {
+                        plugin().reloadPlugin(plugin().scheduler().async(), r -> plugin().scheduler().platform().run(r), argument == ReloadArgument.RECIPE, true).thenAccept(reloadResult -> {
                             if (reloadResult.success()) {
                                 handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_SUCCESS,
                                         Component.text(reloadResult.asyncTime() + reloadResult.syncTime()),
@@ -65,7 +65,7 @@ public final class ReloadCommand extends BukkitCommandFeature<CommandSender> {
                         });
                     } else if (argument == ReloadArgument.HOST) {
                         RELOAD_HOST_FLAG = true;
-                        plugin().reloadPlugin(plugin().scheduler().async(), r -> plugin().scheduler().platform().run(r), false).thenAccept(reloadResult -> {
+                        plugin().reloadPlugin(plugin().scheduler().async(), r -> plugin().scheduler().platform().run(r), false, true).thenAccept(reloadResult -> {
                             if (reloadResult.success()) {
                                 handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_SUCCESS,
                                         Component.text(reloadResult.asyncTime() + reloadResult.syncTime()),
@@ -82,7 +82,7 @@ public final class ReloadCommand extends BukkitCommandFeature<CommandSender> {
                         });
                     } else if (argument == ReloadArgument.ALL) {
                         RELOAD_PACK_FLAG = true;
-                        plugin().reloadPlugin(plugin().scheduler().async(), r -> plugin().scheduler().platform().run(r), true).thenAcceptAsync(reloadResult -> {
+                        plugin().reloadPlugin(plugin().scheduler().async(), r -> plugin().scheduler().platform().run(r), true, true).thenAcceptAsync(reloadResult -> {
                             if (reloadResult.success()) {
                                 handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_SUCCESS,
                                         Component.text(reloadResult.asyncTime() + reloadResult.syncTime()),
