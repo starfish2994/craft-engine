@@ -160,7 +160,9 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
                         handleMetaEntityUnload(itemDisplay, true);
                     } else if (CraftEngineFurniture.isCollisionEntity(entity)) {
                         handleCollisionEntityUnload(entity);
-                        entity.remove();
+                        if (!VersionHelper.hasFoliaPatch) {
+                            entity.remove();
+                        }
                     }
                 } catch (Throwable t) {
                     Debugger.FURNITURE.warn(() -> "Failed to unload entity " + entity, t);
