@@ -427,7 +427,7 @@ public final class ItemEventListener implements Listener {
             }
 
             // 客户端觉得方块自定义可交互，可实际上未交互。这时候客户端只会发一个主手交互包
-            if (immutableBlockState != null  // 必须是自定义方块才能触发
+            if (VersionHelper.hasPaperPatch && immutableBlockState != null  // 必须是自定义方块才能触发
                     && !serverPlayer.isSecondaryUseActive()  // 没有shift
                     && !canPlaceBlock  // 物品不可放置
                     && InteractUtils.isInteractable(player, BlockStateUtils.fromBlockData(immutableBlockState.visualBlockState().minecraftState()), hitResult, itemInHand)) {
@@ -448,6 +448,7 @@ public final class ItemEventListener implements Listener {
                                 nmsHitResult
                         ));
                         if (result != InteractionResultProxy.INSTANCE.getPass()) {
+                            applyHeldItemTransform(serverPlayer, hand, result);
                             return;
                         }
                         // 再尝试 use
@@ -457,6 +458,7 @@ public final class ItemEventListener implements Listener {
                                 serverPlayer.minecraftPlayer(),
                                 hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND
                         );
+                        applyHeldItemTransform(serverPlayer, hand, result);
                     } finally {
                         serverPlayer.setIsSimulatingInteraction(false);
                     }
@@ -498,6 +500,18 @@ public final class ItemEventListener implements Listener {
             itemDefinition.execute(context, EventTrigger.LEFT_CLICK);
             if (dummy.isCancelled()) {
                 event.setCancelled(true);
+            }
+        }
+    }
+
+    // 模拟执行的 useOn/use 可能就地消耗活体物品堆（如水桶经 ItemUtils.createFilledResult shrink 原堆），
+    // 替换物挂在 InteractionResult.Success#heldItemTransformedTo 上。
+    // 正常流程由 ServerPlayerGameMode 应用该替换，绕过它直接调用 Item 层逻辑时必须自行补回，否则替换物丢失
+    private static void applyHeldItemTransform(BukkitServerPlayer player, InteractionHand hand, Object result) {
+        if (VersionHelper.isOrAbove1_21_2 && InteractionResultProxy.SuccessProxy.CLASS.isInstance(result)) {
+            Object transformed = InteractionResultProxy.SuccessProxy.INSTANCE.heldItemTransformedTo(result);
+            if (transformed != null) {
+                player.setItemInHand(hand, ItemStackUtils.wrap(transformed));
             }
         }
     }

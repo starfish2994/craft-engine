@@ -64,7 +64,10 @@ paper {
         }
 
         register("PlaceholderAPI") { required = false }
-        register("Skript") { required = false }
+        register("Skript") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.AFTER
+        }
         register("Denizen") { required = false }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }

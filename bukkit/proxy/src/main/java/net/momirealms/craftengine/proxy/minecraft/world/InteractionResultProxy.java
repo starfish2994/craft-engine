@@ -28,4 +28,13 @@ public interface InteractionResultProxy {
 
     @MethodInvoker(name = "consumesAction")
     boolean consumesAction(Object target);
+
+    @ReflectionProxy(name = "net.minecraft.world.InteractionResult$Success", activeIf = "min_version=1.21.2")
+    interface SuccessProxy {
+        SuccessProxy INSTANCE = ASMProxyFactory.create(SuccessProxy.class);
+        Class<?> CLASS = SparrowClass.find("net.minecraft.world.InteractionResult$Success");
+
+        @MethodInvoker(name = "heldItemTransformedTo")
+        Object heldItemTransformedTo(Object target);
+    }
 }
