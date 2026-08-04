@@ -68,24 +68,26 @@ templates#settings:
       - default:sound/stone
       - default:settings/solid_1x1x1
     overrides:
-      hardness: 3.0
-      resistance: 3.0
+      hardness: ${hardness:-3.0}
+      resistance: ${resistance:-3.0}
       instrument: basedrum
       map_color: stone
       tags: ["minecraft:mineable/pickaxe"]
-      correct_tools::template: default:pickaxe_power/level_${break_power}
+      correct_tools: ["#minecraft:pickaxes"]
+      required_break_power: ${break_power}
   default:settings/deepslate_ore:
     template:
       - default:sound/deepslate
       - default:settings/solid_1x1x1
       - default:hardness/deepslate
     overrides:
-      hardness: 4.5
-      resistance: 3.0
+      hardness: ${hardness:-4.5}
+      resistance: ${resistance:-3.0}
       instrument: basedrum
       map_color: deepslate
       tags: ["minecraft:mineable/pickaxe"]
-      correct_tools::template: default:pickaxe_power/level_${break_power}
+      correct_tools: ["#minecraft:pickaxes"]
+      required_break_power: ${break_power}
 
 templates#hardness:
   default:hardness/none:

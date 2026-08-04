@@ -94,6 +94,10 @@ public final class ItemSettingsModifiers {
         int fuelTime = value.getAsInt();
         return settings -> settings.fuelTime(fuelTime);
     }));
+    public static final ItemSettingsModifierType<ItemSettingsModifier> BREAK_POWER = register(Key.ce("break_power"), (value -> {
+        int breakPower = value.getAsInt();
+        return settings -> settings.breakPower(breakPower);
+    }));
     public static final ItemSettingsModifierType<ItemSettingsModifier> CONSUME_REPLACEMENT = register(Key.ce("consume_replacement"), (value -> {
         Key itemId = value.getAsIdentifier();
         return settings -> settings.consumeReplacement(itemId);

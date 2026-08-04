@@ -143,6 +143,10 @@ public final class BlockSettingsModifiers {
         boolean respect = value.getAsBoolean();
         return settings -> settings.respectToolComponent(respect);
     });
+    public static final BlockSettingsModifierType<BlockSettingsModifier> REQUIRED_BREAK_POWER = register(Key.ce("required_break_power"), value -> {
+        int power = value.getAsInt();
+        return settings -> settings.requiredBreakPower(power);
+    });
     public static final BlockSettingsModifierType<BlockSettingsModifier> USE_SHAPE_FOR_LIGHT_OCCLUSION = register(Key.ce("use_shape_for_light_occlusion"), value -> {
         boolean use = value.getAsBoolean();
         return settings -> settings.useShapeForLightOcclusion(use);

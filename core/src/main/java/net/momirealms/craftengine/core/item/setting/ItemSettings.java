@@ -18,6 +18,7 @@ import java.util.*;
 
 public final class ItemSettings {
     int fuelTime;
+    int breakPower = -1;
     Set<Key> tags = Set.of();
     Repairable repairable = Repairable.UNDEFINED;
     List<AnvilRepairItem> anvilRepairItems = List.of();
@@ -124,6 +125,7 @@ public final class ItemSettings {
     public static ItemSettings ofFullCopy(ItemSettings settings) {
         ItemSettings newSettings = of();
         newSettings.fuelTime = settings.fuelTime;
+        newSettings.breakPower = settings.breakPower;
         newSettings.tags = settings.tags;
         newSettings.equipment = settings.equipment;
         newSettings.repairable = settings.repairable;
@@ -205,6 +207,10 @@ public final class ItemSettings {
 
     public int fuelTime() {
         return this.fuelTime;
+    }
+
+    public int breakPower() {
+        return this.breakPower;
     }
 
     public boolean renameable() {
@@ -399,6 +405,11 @@ public final class ItemSettings {
 
     public ItemSettings fuelTime(int fuelTime) {
         this.fuelTime = fuelTime;
+        return this;
+    }
+
+    public ItemSettings breakPower(int breakPower) {
+        this.breakPower = breakPower;
         return this;
     }
 

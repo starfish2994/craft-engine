@@ -254,6 +254,7 @@ public final class Config {
     private boolean item$update_triggers$pick_up;
     private int item$custom_model_data_starting_value$default;
     private Map<Key, Integer> item$custom_model_data_starting_value$overrides;
+    private Map<Key, Integer> item$break_power;
     private boolean item$always_use_item_model;
     private boolean item$always_use_custom_model_data;
     private boolean item$always_generate_model_overrides;
@@ -354,6 +355,7 @@ public final class Config {
                             .addIgnoredRoute(PluginProperties.getValue("config"), "chunk-system.process-invalid-blocks.convert", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "chunk-system.process-invalid-furniture.convert", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "item.custom-model-data-starting-value.overrides", '.')
+                            .addIgnoredRoute(PluginProperties.getValue("config"), "item.break-power", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "block.deceive-bukkit-material.overrides", '.')
                             .build());
         }
@@ -638,6 +640,20 @@ public final class Config {
             this.item$custom_model_data_starting_value$overrides = customModelDataOverrides;
         } else {
             this.item$custom_model_data_starting_value$overrides = Map.of();
+        }
+        Section breakPowerSection = config.getSection("item.break-power");
+        if (breakPowerSection != null) {
+            Map<Key, Integer> breakPowerOverrides = new HashMap<>();
+            for (Map.Entry<String, Object> entry : breakPowerSection.getStringRouteMappedValues(false).entrySet()) {
+                if (entry.getValue() instanceof String s) {
+                    breakPowerOverrides.put(Key.of(entry.getKey()), Integer.parseInt(s));
+                } else if (entry.getValue() instanceof Integer i) {
+                    breakPowerOverrides.put(Key.of(entry.getKey()), i);
+                }
+            }
+            this.item$break_power = breakPowerOverrides;
+        } else {
+            this.item$break_power = Map.of();
         }
 
         // block
@@ -1210,6 +1226,10 @@ public final class Config {
             return instance.item$custom_model_data_starting_value$overrides.get(material);
         }
         return instance.item$custom_model_data_starting_value$default;
+    }
+
+    public static Map<Key, Integer> itemBreakPowerOverrides() {
+        return instance.item$break_power;
     }
 
     public static int codepointStartingValue(Key font) {

@@ -289,6 +289,12 @@ item:
   # The default material to use as base item if not specified
   default-material: nether_brick
 
+  # Overrides the hardcoded break power of vanilla items. This only works for custom blocks.
+  # A tool can only break a block with 'required_break_power' when its break power is greater than or equal to the required value.
+  # break-power:
+  #   minecraft:golden_pickaxe: 3
+  break-power: {}
+
   # Defines the trigger condition for the item updater.
   #
   # Warning: This operation is performance-intensive. Enable only if needed.

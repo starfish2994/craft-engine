@@ -8,7 +8,6 @@ import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
@@ -23,7 +22,6 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 
 import java.util.function.Predicate;
@@ -50,17 +48,8 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
             if (state == null) {
                 return;
             }
-            BlockSettings settings = state.settings();
-            if (settings.requireCorrectTool()) {
-                if (item.isEmpty()) {
-                    return;
-                }
-                boolean cannotBreak = !settings.isCorrectTool(item.id())
-                        && (!settings.respectToolComponent()
-                        || !ItemStackProxy.INSTANCE.isCorrectToolForDrops(args[3], state.customBlockState().minecraftState()));
-                if (cannotBreak) {
-                    return;
-                }
+            if (!BlockStateUtils.isCorrectTool(state, item)) {
+                return;
             }
         }
         World world = BukkitWorldManager.instance().wrap(LevelProxy.INSTANCE.getWorld(args[1]));
