@@ -7,7 +7,7 @@ import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 import ch.njol.util.coll.CollectionUtils;
-import net.momirealms.craftengine.bukkit.compatibility.skript.util.FurnitureResolver;
+import net.momirealms.craftengine.bukkit.compatibility.util.FurnitureResolver;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;

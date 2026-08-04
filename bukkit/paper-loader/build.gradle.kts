@@ -65,6 +65,7 @@ paper {
 
         register("PlaceholderAPI") { required = false }
         register("Skript") { required = false }
+        register("Denizen") { required = false }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
         register("AxiomPaper") { required = false }

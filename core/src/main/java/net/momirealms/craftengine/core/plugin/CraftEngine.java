@@ -74,7 +74,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
 
 public abstract class CraftEngine implements Plugin {
     private static CraftEngine instance;
@@ -116,7 +115,6 @@ public abstract class CraftEngine implements Plugin {
     private final PluginTaskRegistry preEnableTaskRegistry = new PluginTaskRegistry();
     private final PluginTaskRegistry postEnableTaskRegistry = new PluginTaskRegistry();
 
-    private final Consumer<CraftEngine> reloadEventDispatcher;
     protected boolean isReloading;
     protected boolean isInitializing;
     protected boolean isStopping;
@@ -128,9 +126,8 @@ public abstract class CraftEngine implements Plugin {
     private String user = "%%__USER__%%";
     private String username = "%%__USERNAME__%%";
 
-    protected CraftEngine(Consumer<CraftEngine> reloadEventDispatcher) {
+    protected CraftEngine() {
         instance = this;
-        this.reloadEventDispatcher = reloadEventDispatcher;
         ((Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
     }
@@ -258,8 +255,7 @@ public abstract class CraftEngine implements Plugin {
         CompletableFutures.allOf(delayedLoadTasks).join();
     }
 
-    private void callReloadEvent() {
-        this.reloadEventDispatcher.accept(this);
+    protected void callReloadEvent() {
     }
 
     public CompletableFuture<ReloadResult> reloadPlugin(Executor asyncExecutor, Executor syncExecutor, boolean reloadRecipe, boolean callEvent) {
@@ -461,19 +457,18 @@ public abstract class CraftEngine implements Plugin {
             this.isInitializing = false;
             // 异步去缓存资源包相关文件
             this.scheduler.executeAsync(() -> this.packManager.initCachedAssets());
-            // 正式完成重载
-            this.callReloadEvent();
             // 检查更新
             if (Config.checkUpdate()) {
                 this.scheduler.executeAsync(this::checkUpdates);
             }
-
             // 用于兼容那些注册群系比较晚的插件，点名批评某R开头的季节插件
             int biomeCount = this.platform.biomeCount();
             this.scheduler.platform().runDelayed(() -> {
                 if (biomeCount != this.platform.biomeCount()) {
                     ((AbstractBlockManager) this.blockManager).registerBlockStatePacketListener();
                 }
+                // 一定等其他插件全部完成加载后再发重载事件
+                this.callReloadEvent();
             });
         });
     }

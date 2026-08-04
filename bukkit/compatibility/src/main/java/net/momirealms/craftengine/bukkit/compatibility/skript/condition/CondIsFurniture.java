@@ -22,6 +22,7 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 @Example("if target entity is a furniture:")
 @Since("1.0")
 public final class CondIsFurniture extends Condition {
+    private Expression<Entity> entities;
 
     public static void register(SkriptAddon addon) {
         SyntaxInfo<CondIsFurniture> condition = SyntaxInfo.builder(CondIsFurniture.class)
@@ -30,8 +31,6 @@ public final class CondIsFurniture extends Condition {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
-
-    private Expression<Entity> entities;
 
     @Override
     public boolean check(Event event) {

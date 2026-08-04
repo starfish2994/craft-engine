@@ -34,6 +34,10 @@ import java.util.List;
         """)
 @Since("26.8")
 public final class EvtAttemptPlace extends SkriptEvent {
+    @Nullable
+    private Literal<?> types;
+    private UnsafeBlockStateMatcher[] blockArray;
+    private List<String> idList;
 
     public static void register(SkriptAddon addon) {
         SyntaxRegistry syntaxRegistry = addon.registry(SyntaxRegistry.class);
@@ -63,11 +67,6 @@ public final class EvtAttemptPlace extends SkriptEvent {
         valueRegistry.register(EventValue.builder(FurnitureAttemptPlaceEvent.class, Block.class).getter(FurnitureAttemptPlaceEvent::clickedBlock).time(EventValue.Time.NOW).build());
         valueRegistry.register(EventValue.builder(FurnitureAttemptPlaceEvent.class, World.class).getter(e -> e.location().getWorld()).time(EventValue.Time.NOW).build());
     }
-
-    @Nullable
-    private Literal<?> types;
-    private UnsafeBlockStateMatcher[] blockArray;
-    private List<String> idList;
 
     @Override
     public boolean init(Literal<?>[] args, int matchedPattern, SkriptParser.ParseResult parser) {

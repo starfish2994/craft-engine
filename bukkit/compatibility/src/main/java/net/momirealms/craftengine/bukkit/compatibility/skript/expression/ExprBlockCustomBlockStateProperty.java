@@ -27,12 +27,14 @@ import java.util.List;
         "Block states are immutable: setting a property replaces the state stored in the variable."
 })
 @Example("""
-        set {_s} to custom block state "mynamespace:pillar"
+        set {_s} to "mynamespace:pillar" parsed as custom block state
         set custom block property "axis" of {_s} to "x"
         place custom block {_s} at target block
         """)
 @Since("26.8")
 public final class ExprBlockCustomBlockStateProperty extends SimpleExpression<String> {
+    private Expression<String> propertyNames;
+    private Expression<ImmutableBlockState> states;
 
     public static void register(SkriptAddon addon) {
         DefaultSyntaxInfos.Expression<ExprBlockCustomBlockStateProperty, String> expression = DefaultSyntaxInfos.Expression.builder(ExprBlockCustomBlockStateProperty.class, String.class)
@@ -41,9 +43,6 @@ public final class ExprBlockCustomBlockStateProperty extends SimpleExpression<St
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
-
-    private Expression<String> propertyNames;
-    private Expression<ImmutableBlockState> states;
 
     @SuppressWarnings("unchecked")
     @Override

@@ -33,6 +33,9 @@ import java.util.List;
         """)
 @Since("1.0")
 public final class EvtCustomFurniture extends SkriptEvent {
+    @Nullable
+    private Literal<String> ids;
+    private List<String> idList;
 
     public static void register(SkriptAddon addon) {
         SyntaxRegistry syntaxRegistry = addon.registry(SyntaxRegistry.class);
@@ -62,10 +65,6 @@ public final class EvtCustomFurniture extends SkriptEvent {
         valueRegistry.register(EventValue.builder(FurniturePlaceEvent.class, Entity.class).getter(e -> e.furniture().bukkitEntity()).time(EventValue.Time.NOW).build());
         valueRegistry.register(EventValue.builder(FurniturePlaceEvent.class, World.class).getter(e -> e.location().getWorld()).time(EventValue.Time.NOW).build());
     }
-
-    @Nullable
-    private Literal<String> ids;
-    private List<String> idList;
 
     @Override
     public boolean init(Literal<?>[] args, int matchedPattern, SkriptParser.ParseResult parser) {

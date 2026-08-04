@@ -15,7 +15,8 @@ import org.skriptlang.skript.addon.SkriptAddon;
 import java.io.StreamCorruptedException;
 
 public final class CraftEngineClasses {
-    private CraftEngineClasses() {}
+    private CraftEngineClasses() {
+    }
 
     public static void register(SkriptAddon addon) {
         Classes.registerClass(new ClassInfo<>(ImmutableBlockState.class, "customblockstate")

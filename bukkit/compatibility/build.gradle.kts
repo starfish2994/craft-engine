@@ -13,6 +13,7 @@ repositories {
     maven("https://mvn.lumine.io/repository/maven-public/") // model engine mythic mobs
     maven("https://repo.viaversion.com") // via
     maven("https://repo.skriptlang.org/releases/") // skript
+    maven("https://maven.citizensnpcs.co/repo/") // denizen
     maven("https://jitpack.io")
     maven("https://repo.codemc.io/repository/maven-public/") // quickshop
     maven("https://repo.opencollab.dev/main/") // geyser
@@ -48,6 +49,8 @@ dependencies {
     compileOnly("com.viaversion:viaversion-bukkit:5.5.1")
     // Skript
     compileOnly("com.github.SkriptLang:Skript:2.16.1")
+    // Denizen
+    compileOnly("com.denizenscript:denizen:1.3.3-SNAPSHOT")
     // FAWE
     compileOnly(platform("com.intellectualsites.bom:bom-newest:1.52"))
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")

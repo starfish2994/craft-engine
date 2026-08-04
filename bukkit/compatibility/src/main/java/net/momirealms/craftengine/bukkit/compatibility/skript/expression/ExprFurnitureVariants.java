@@ -28,15 +28,14 @@ import java.util.List;
         """)
 @Since("26.8")
 public final class ExprFurnitureVariants extends SimpleExpression<String> {
+    private Expression<String> furnitureIds;
 
     public static void register(SkriptAddon addon) {
         DefaultSyntaxInfos.Expression<ExprFurnitureVariants, String> expression = DefaultSyntaxInfos.Expression.builder(ExprFurnitureVariants.class, String.class)
-                .addPattern("(all|the) variants of [(custom|ce|craft-engine)] furniture %strings%")
+                .addPattern("[(all|the)] variants of [(custom|ce|craft-engine)] furniture %strings%")
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
-
-    private Expression<String> furnitureIds;
 
     @SuppressWarnings("unchecked")
     @Override

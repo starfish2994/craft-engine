@@ -24,6 +24,7 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 @Example("remove custom block at target block")
 @Since("26.8")
 public final class EffRemoveCustomBlock extends Effect {
+    private Expression<Location> locations;
 
     public static void register(SkriptAddon addon) {
         SyntaxInfo<EffRemoveCustomBlock> syntaxInfo = SyntaxInfo.builder(EffRemoveCustomBlock.class)
@@ -31,8 +32,6 @@ public final class EffRemoveCustomBlock extends Effect {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EFFECT, syntaxInfo);
     }
-
-    private Expression<Location> locations;
 
     @Override
     protected void execute(Event e) {

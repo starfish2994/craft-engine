@@ -24,6 +24,10 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 @Example("place furniture \"mynamespace:my_furniture\" with variant \"oak\" at target block")
 @Since("1.0")
 public final class EffPlaceFurniture extends Effect {
+    private Expression<String> furniture;
+    @Nullable
+    private Expression<String> variants;
+    private Expression<Location> locations;
 
     public static void register(SkriptAddon addon) {
         SyntaxInfo<EffPlaceFurniture> syntaxInfo = SyntaxInfo.builder(EffPlaceFurniture.class)
@@ -31,11 +35,6 @@ public final class EffPlaceFurniture extends Effect {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EFFECT, syntaxInfo);
     }
-
-    private Expression<String> furniture;
-    @Nullable
-    private Expression<String> variants;
-    private Expression<Location> locations;
 
     @Override
     protected void execute(Event e) {

@@ -90,10 +90,6 @@ public final class BukkitCraftEngine extends CraftEngine {
     }
 
     BukkitCraftEngine(PluginLogger logger, Path dataFolderPath, ClassPathAppender sharedClassPathAppender, ClassPathAppender privateClassPathAppender) {
-        super((p) -> {
-            CraftEngineReloadEvent event = new CraftEngineReloadEvent((BukkitCraftEngine) p);
-            EventUtils.fireAndForget(event);
-        });
         instance = this;
         this.dataFolderPath = dataFolderPath;
         super.sharedClassPathAppender = sharedClassPathAppender;
@@ -109,6 +105,11 @@ public final class BukkitCraftEngine extends CraftEngine {
                 logger().warn("Compatibility class could not be instantiated: " + compatibilityClass.getName());
             }
         }
+    }
+
+    @Override
+    protected void callReloadEvent() {
+        EventUtils.fireAndForget(new CraftEngineReloadEvent(this));
     }
 
     public static BukkitCraftEngine instance() {

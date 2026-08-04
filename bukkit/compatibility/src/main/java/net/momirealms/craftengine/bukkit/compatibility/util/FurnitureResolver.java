@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.compatibility.skript.util;
+package net.momirealms.craftengine.bukkit.compatibility.util;
 
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;

@@ -28,6 +28,7 @@ import java.util.Optional;
 @Example("set {_id} to custom item id of player's tool")
 @Since("1.0")
 public final class ExprItemCustomItemID extends SimpleExpression<String> {
+    private Expression<?> itemStackExpr;
 
     public static void register(SkriptAddon addon) {
         DefaultSyntaxInfos.Expression<ExprItemCustomItemID, String> expression = DefaultSyntaxInfos.Expression.builder(ExprItemCustomItemID.class, String.class)
@@ -37,8 +38,6 @@ public final class ExprItemCustomItemID extends SimpleExpression<String> {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
-
-    private Expression<?> itemStackExpr;
 
     @Override
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {

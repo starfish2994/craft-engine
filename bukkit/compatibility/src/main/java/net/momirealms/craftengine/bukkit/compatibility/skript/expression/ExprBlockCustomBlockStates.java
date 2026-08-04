@@ -30,15 +30,14 @@ import java.util.List;
         """)
 @Since("26.8")
 public final class ExprBlockCustomBlockStates extends SimpleExpression<ImmutableBlockState> {
+    private Expression<String> blockIds;
 
     public static void register(SkriptAddon addon) {
         DefaultSyntaxInfos.Expression<ExprBlockCustomBlockStates, ImmutableBlockState> expression = DefaultSyntaxInfos.Expression.builder(ExprBlockCustomBlockStates.class, ImmutableBlockState.class)
-                .addPattern("(all|the) [possible] [block] states of (custom|ce|craft-engine) block[s] %strings%")
+                .addPattern("[(all|the)] [possible] [block] states of (custom|ce|craft-engine) block[s] %strings%")
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
-
-    private Expression<String> blockIds;
 
     @SuppressWarnings("unchecked")
     @Override

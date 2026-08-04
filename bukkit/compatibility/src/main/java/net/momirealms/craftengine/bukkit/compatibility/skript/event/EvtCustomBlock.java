@@ -31,11 +31,15 @@ import java.util.Arrays;
 @Name("On Custom Block Place And Break")
 @Description({"Fires when a Custom block gets place and broken"})
 @Example("""
-        on break of custom block "mynamespace:my_block":
+        on break of custom block mynamespace:my_block:
             cancel event
         """)
 @Since("1.0")
 public final class EvtCustomBlock extends SkriptEvent {
+    @Nullable
+    private Literal<UnsafeBlockStateMatcher> blocks;
+    private UnsafeBlockStateMatcher[] blockArray;
+    private boolean mine = false;
 
     public static void register(SkriptAddon addon) {
         SyntaxRegistry syntaxRegistry = addon.registry(SyntaxRegistry.class);
@@ -64,11 +68,6 @@ public final class EvtCustomBlock extends SkriptEvent {
         valueRegistry.register(EventValue.builder(CustomBlockPlaceEvent.class, Block.class).getter(CustomBlockPlaceEvent::bukkitBlock).time(EventValue.Time.NOW).build());
         valueRegistry.register(EventValue.builder(CustomBlockPlaceEvent.class, World.class).getter(e -> e.location().getWorld()).time(EventValue.Time.NOW).build());
     }
-
-    @Nullable
-    private Literal<UnsafeBlockStateMatcher> blocks;
-    private UnsafeBlockStateMatcher[] blockArray;
-    private boolean mine = false;
 
     @Override
     public boolean init(Literal<?>[] args, int matchedPattern, SkriptParser.ParseResult parser) {

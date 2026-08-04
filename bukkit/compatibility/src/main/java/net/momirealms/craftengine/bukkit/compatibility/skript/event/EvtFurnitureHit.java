@@ -32,13 +32,16 @@ import java.util.List;
         """)
 @Since("26.8")
 public final class EvtFurnitureHit extends SkriptEvent {
+    @Nullable
+    private Literal<String> ids;
+    private List<String> idList;
 
     public static void register(SkriptAddon addon) {
         SyntaxRegistry syntaxRegistry = addon.registry(SyntaxRegistry.class);
         EventValueRegistry valueRegistry = addon.registry(EventValueRegistry.class);
 
         BukkitSyntaxInfos.Event<EvtFurnitureHit> hitEvent = BukkitSyntaxInfos.Event.builder(EvtFurnitureHit.class, "Hit Furniture")
-                .addPattern("hit[ting] [(custom|ce|craft-engine)] furniture[s] [[of] %-strings%]")
+                .addPattern("hit[ting] [of] [(custom|ce|craft-engine)] furniture[s] [[of] %-strings%]")
                 .addDescription("Called when a player hits a furniture. Cancellable.")
                 .addEvent(FurnitureHitEvent.class)
                 .build();
@@ -49,10 +52,6 @@ public final class EvtFurnitureHit extends SkriptEvent {
         valueRegistry.register(EventValue.builder(FurnitureHitEvent.class, Entity.class).getter(e -> e.furniture().bukkitEntity()).time(EventValue.Time.NOW).build());
         valueRegistry.register(EventValue.builder(FurnitureHitEvent.class, World.class).getter(e -> e.location().getWorld()).time(EventValue.Time.NOW).build());
     }
-
-    @Nullable
-    private Literal<String> ids;
-    private List<String> idList;
 
     @Override
     public boolean init(Literal<?>[] args, int matchedPattern, SkriptParser.ParseResult parser) {

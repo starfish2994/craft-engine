@@ -22,6 +22,7 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 @Example("if target block is a custom block:")
 @Since("1.0")
 public final class CondIsCustomBlock extends Condition {
+    private Expression<Block> blocks;
 
     public static void register(SkriptAddon addon) {
         SyntaxInfo<CondIsCustomBlock> condition = SyntaxInfo.builder(CondIsCustomBlock.class)
@@ -30,8 +31,6 @@ public final class CondIsCustomBlock extends Condition {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
-
-    private Expression<Block> blocks;
 
     @Override
     public boolean check(Event event) {
