@@ -1,5 +1,9 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.core.block.BlockDefinition;
@@ -13,6 +17,10 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 
 import java.util.Optional;
 
+@Name("Custom Block ID")
+@Description({"Get the CraftEngine custom block id of a block, blockdata or custom block state."})
+@Example("set {_id} to custom block id of target block")
+@Since("1.0")
 public final class ExprBlockCustomBlockID extends SimplePropertyExpression<Object, String> {
 
     public static void register(SkriptAddon addon) {

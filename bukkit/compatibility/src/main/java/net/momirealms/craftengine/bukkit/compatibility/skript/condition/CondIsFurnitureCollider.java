@@ -17,16 +17,16 @@ import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
-@Name("Is Furniture")
-@Description({"Checks if the entity is a CraftEngine furniture."})
-@Example("if target entity is a furniture:")
-@Since("1.0")
-public final class CondIsFurniture extends Condition {
+@Name("Is Furniture Collision Entity")
+@Description({"Checks if the entity is a collision entity of a CraftEngine furniture."})
+@Example("if target entity is a furniture collider:")
+@Since("26.8")
+public final class CondIsFurnitureCollider extends Condition {
 
     public static void register(SkriptAddon addon) {
-        SyntaxInfo<CondIsFurniture> condition = SyntaxInfo.builder(CondIsFurniture.class)
-                .addPattern("%entities% (is|are) [a[n]] [(custom|ce|craft-engine)] furniture[s]")
-                .addPattern("%entities% (is|are) (n't| not) [a[n]] [(custom|ce|craft-engine)] furniture[s]")
+        SyntaxInfo<CondIsFurnitureCollider> condition = SyntaxInfo.builder(CondIsFurnitureCollider.class)
+                .addPattern("%entities% (is|are) [a[n]] [(custom|ce|craft-engine)] furniture (collider|collision entit(y|ies))")
+                .addPattern("%entities% (is|are) (n't| not) [a[n]] [(custom|ce|craft-engine)] furniture (collider|collision entit(y|ies))")
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
@@ -35,12 +35,12 @@ public final class CondIsFurniture extends Condition {
 
     @Override
     public boolean check(Event event) {
-        return entities.check(event, CraftEngineFurniture::isFurniture, isNegated());
+        return entities.check(event, CraftEngineFurniture::isCollisionEntity, isNegated());
     }
 
     @Override
     public String toString(@Nullable Event event, boolean debug) {
-        return PropertyCondition.toString(this, PropertyCondition.PropertyType.BE, event, debug, entities, "furniture");
+        return PropertyCondition.toString(this, PropertyCondition.PropertyType.BE, event, debug, entities, "furniture collider");
     }
 
     @SuppressWarnings("unchecked")

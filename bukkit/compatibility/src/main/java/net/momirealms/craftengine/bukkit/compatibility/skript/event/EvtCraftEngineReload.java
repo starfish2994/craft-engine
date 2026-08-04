@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.event;
 
 import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Literal;
@@ -15,6 +16,10 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 
 @Name("On CraftEngine Reload")
 @Description({"Fires when CraftEngine reload"})
+@Example("""
+        on craftengine first load:
+            send "CraftEngine loaded!"
+        """)
 @Since("1.0")
 public final class EvtCraftEngineReload extends SkriptEvent {
 

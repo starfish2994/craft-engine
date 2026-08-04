@@ -67,7 +67,11 @@ public final class CraftEngineClasses {
 
                     @Override
                     public @Nullable ImmutableBlockState parse(String s, ParseContext context) {
-                        return BlockStateParser.deserialize(s);
+                        try {
+                            return BlockStateParser.deserialize(s);
+                        } catch (IllegalArgumentException e) {
+                            return null;
+                        }
                     }
                 })
         );
@@ -121,7 +125,11 @@ public final class CraftEngineClasses {
 
                     @Override
                     public @Nullable UnsafeBlockStateMatcher parse(String s, ParseContext context) {
-                        return UnsafeBlockStateMatcher.deserialize(s);
+                        try {
+                            return UnsafeBlockStateMatcher.deserialize(s);
+                        } catch (IllegalArgumentException e) {
+                            return null;
+                        }
                     }
                 })
         );

@@ -10,50 +10,47 @@ import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.util.Direction;
 import ch.njol.util.Kleenean;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
-import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
-@Name("Place Custom Block")
-@Description({"Places custom blocks at the given locations."})
-@Example("place custom block \"mynamespace:my_block[state=value]\" at target block")
-@Since("1.0")
-public final class EffPlaceCustomBlock extends Effect {
+@Name("Remove Custom Block")
+@Description({"Removes custom blocks at the given locations. Non-custom blocks are ignored."})
+@Example("remove custom block at target block")
+@Since("26.8")
+public final class EffRemoveCustomBlock extends Effect {
 
     public static void register(SkriptAddon addon) {
-        SyntaxInfo<EffPlaceCustomBlock> syntaxInfo = SyntaxInfo.builder(EffPlaceCustomBlock.class)
-                .addPattern("place (custom|ce|craft-engine) block %customblockstates% [at] [%directions% %locations%]")
+        SyntaxInfo<EffRemoveCustomBlock> syntaxInfo = SyntaxInfo.builder(EffRemoveCustomBlock.class)
+                .addPattern("(remove|break) (custom|ce|craft-engine) block[s] [at] [%directions% %locations%]")
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EFFECT, syntaxInfo);
     }
 
-    private Expression<ImmutableBlockState> blocks;
     private Expression<Location> locations;
 
     @Override
     protected void execute(Event e) {
-        ImmutableBlockState[] states = blocks.getArray(e);
+        Player player = e instanceof PlayerEvent playerEvent ? playerEvent.getPlayer() : null;
         for (Location location : locations.getArray(e)) {
-            for (ImmutableBlockState state : states) {
-                CraftEngineBlocks.place(location, state, false);
-            }
+            CraftEngineBlocks.remove(location.getBlock(), player, false, false, true);
         }
     }
 
     @Override
     public String toString(@Nullable Event event, boolean debug) {
-        return "place custom block " + blocks.toString(event, debug) + " " + locations.toString(event, debug);
+        return "remove custom block " + locations.toString(event, debug);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
-        blocks = (Expression<ImmutableBlockState>) expressions[0];
-        locations = Direction.combine((Expression<? extends Direction>) expressions[1], (Expression<? extends Location>) expressions[2]);
+        locations = Direction.combine((Expression<? extends Direction>) expressions[0], (Expression<? extends Location>) expressions[1]);
         return true;
     }
 }

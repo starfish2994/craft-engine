@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.event;
 
 import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Literal;
@@ -26,6 +27,10 @@ import java.util.List;
 @SuppressWarnings({"unchecked"})
 @Name("On Custom Furniture Place And Break")
 @Description({"Fires when a Custom furniture gets place and broken"})
+@Example("""
+        on break of furniture "mynamespace:my_furniture":
+            cancel event
+        """)
 @Since("1.0")
 public final class EvtCustomFurniture extends SkriptEvent {
 

@@ -4,6 +4,7 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.bukkitutil.ClickEventTracker;
 import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Literal;
@@ -21,6 +22,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.bukkit.lang.eventvalue.EventValue;
@@ -32,11 +34,15 @@ import java.util.function.Predicate;
 
 @Name("On Click on Custom Block and Furniture")
 @Description({"Fires when click on custom block and furniture"})
+@Example("""
+        on right click of ce on "mynamespace:my_furniture":
+            send "You clicked the furniture!"
+        """)
 @Since("1.0")
 public final class EvtCustomClick extends SkriptEvent {
 
     private final static int RIGHT = 1, LEFT = 2, ANY = RIGHT | LEFT;
-    public final static ClickEventTracker INTERACT_TRACKER = new ClickEventTracker(Skript.getInstance());
+    public final static ClickEventTracker INTERACT_TRACKER = new ClickEventTracker(JavaPlugin.getPlugin(Skript.class));
 
     @SuppressWarnings("unchecked")
     public static void register(SkriptAddon addon) {
