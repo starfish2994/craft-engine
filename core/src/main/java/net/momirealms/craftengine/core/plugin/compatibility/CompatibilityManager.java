@@ -16,6 +16,8 @@ public interface CompatibilityManager {
 
     void onDelayedEnable();
 
+    default void onInitialResourcesLoaded() {}
+
     void runDelayedSyncTasks();
 
     void registerTagResolverProvider(TagResolverProvider provider);

@@ -10,6 +10,7 @@ import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.BukkitBl
 import net.momirealms.craftengine.bukkit.compatibility.axiom.AxiomCraftEngineDisplay;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.FloodgateUtils;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.GeyserUtils;
+import net.momirealms.craftengine.bukkit.compatibility.denizen.DenizenHook;
 import net.momirealms.craftengine.bukkit.compatibility.entity.MythicMobsEntityProvider;
 import net.momirealms.craftengine.bukkit.compatibility.item.ItemBridgeSource;
 import net.momirealms.craftengine.bukkit.compatibility.legacy.slimeworld.LegacySlimeFormatStorageAdaptor;
@@ -206,6 +207,18 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     @Override
+    public void onInitialResourcesLoaded() {
+        // 初始资源加载完成后（早于 Denizen 首个 tick 的脚本解析），登记命名空间供事件匹配器使用
+        if (this.isPluginEnabled("Denizen")) {
+            try {
+                DenizenHook.registerNamespacesAsNotSwitches();
+            } catch (Throwable e) {
+                this.plugin.logger().warn("Failed to register CraftEngine namespaces to Denizen", e);
+            }
+        }
+    }
+
+    @Override
     public void onDelayedEnable() {
         if (this.isPluginEnabled("PlaceholderAPI")) {
             runCatchingHook(() -> {
@@ -218,6 +231,12 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         }
         if (this.isPluginEnabled("Skript")) {
             runCatchingHook(SkriptHook::register, "Skript");
+        }
+        // 必须在 onDelayedEnable 注册：CraftEngine 是 paper 插件，先于 legacy 插件 Denizen 完成 enable，
+        // 此时尚无法检测到 Denizen；而本方法在首个 tick 执行（Denizen 已 enable），
+        // 且本任务的排队早于 Denizen 同 tick 的脚本解析任务，事件索引构建前注册完成
+        if (this.isPluginEnabled("Denizen")) {
+            runCatchingHook(DenizenHook::register, "Denizen");
         }
         if (this.isPluginEnabled("MythicMobs")) {
             runCatchingHook(() -> {

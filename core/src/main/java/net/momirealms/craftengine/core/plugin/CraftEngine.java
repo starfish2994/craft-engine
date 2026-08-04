@@ -450,6 +450,9 @@ public abstract class CraftEngine implements Plugin {
                 }
             }
 
+            // 初始资源已就绪（无论是否延迟加载），回调兼容性管理器以便其执行依赖注册表的初始化
+            this.compatibilityManager.onInitialResourcesLoaded();
+
             // 必须要在完整重载后再初始化，否则会因为配置不存在，导致家具、弹射物等无法正确被加载
             this.projectileManager.delayedInit();
             this.furnitureManager.delayedInit();

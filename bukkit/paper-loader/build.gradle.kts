@@ -68,7 +68,10 @@ paper {
             required = false
             load = PaperPluginDescription.RelativeLoadOrder.AFTER
         }
-        register("Denizen") { required = false }
+        register("Denizen") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.AFTER
+        }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
         register("AxiomPaper") { required = false }
