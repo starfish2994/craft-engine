@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.core.attribute;
 
 import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.parser.ParseException;
 import net.momirealms.craftengine.core.attribute.formula.CauseToFormula;
+import net.momirealms.craftengine.core.attribute.formula.DamageFormulas;
 import net.momirealms.craftengine.core.attribute.formula.VictimToFormula;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -137,7 +137,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
                 for (int i = section.size() - 1; i >= 0; i--) {
                     ConfigSection configSection = sections.get(i);
                     List<String> targets = configSection.getStringList("target");
-                    DamageFormula formula = configSection.getNonNullValue("formula", ConfigConstants.ARGUMENT_STRING, v -> compile(v.path(), v.getAsString()));
+                    DamageFormula formula = configSection.getNonNullValue("formula", ConfigConstants.ARGUMENT_STRING, DamageFormulas::fromConfig);
                     if (!targets.isEmpty()) {
                         for (String target : targets) {
                             if (target.isEmpty()) continue;
@@ -172,35 +172,6 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         @Override
         public List<LoadingStage> dependencies() {
             return List.of(LoadingStages.ATTRIBUTE);
-        }
-
-        private DamageFormula compile(String path, String formula) {
-            Expression expression = new Expression(formula);
-            Set<String> usedVariables;
-            try {
-                usedVariables = expression.getUsedVariables();
-            } catch (ParseException e) {
-                throw new KnownResourceException("TODO", path, formula);
-            }
-            List<DamageFormula.VariableBinding> bindings = new ArrayList<>();
-            for (String variable : usedVariables) {
-                switch (variable) {
-                    case "damage" ->
-                            bindings.add(DamageFormula.VariableBinding.field(variable, DamageFormula.VariableBinding.FIELD_DAMAGE));
-                    case "is_critical" ->
-                            bindings.add(DamageFormula.VariableBinding.field(variable, DamageFormula.VariableBinding.FIELD_IS_CRITICAL));
-                    default -> {
-                        if (variable.startsWith(DamageFormula.ATTACKER_PREFIX)) {
-                            bindings.add(DamageFormula.VariableBinding.attribute(variable, AttributeSide.ATTACKER, getAttribute(Key.of(variable.substring(DamageFormula.ATTACKER_PREFIX.length()))).orElseThrow(() -> new KnownResourceException("TODO", path, formula, variable))));
-                        } else if (variable.startsWith(DamageFormula.VICTIM_PREFIX)) {
-                            bindings.add(DamageFormula.VariableBinding.attribute(variable, AttributeSide.VICTIM, getAttribute(Key.of(variable.substring(DamageFormula.VICTIM_PREFIX.length()))).orElseThrow(() -> new KnownResourceException("TODO", path, formula, variable))));
-                        } else {
-                            throw new KnownResourceException("attribute.formula.unknown_variable", formula, variable);
-                        }
-                    }
-                }
-            }
-            return new DamageFormula(formula, expression, bindings);
         }
     }
 

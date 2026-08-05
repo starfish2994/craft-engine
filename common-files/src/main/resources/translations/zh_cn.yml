@@ -124,6 +124,7 @@ snbt.parser.incorrect: 应为字面量<arg:0>
 yaml.duplicated_key: 在文件“<arg:0>”中的第“<arg:2>”行发现发现重复的键“<arg:1>”
 yaml.inconsistent_value_type: 在文件“<arg:0>”中的第“<arg:2>”行发现发现重复的键“<arg:1>”且值类型不同
 plugin.compatibility: '[兼容性] 已挂钩 <arg:0>'
+attribute.damage_formula.unknown_type: 未知的伤害公式类型“<arg:0>”
 number.unknown_type: 未知的数字类型“<arg:0>”
 number.fixed.invalid_expression: 无效的表达式“<arg:0>”。https://ezylang.github.io/EvalEx/references/references.html
 number.greater_than: “<arg:0>”应大于“<arg:1>”

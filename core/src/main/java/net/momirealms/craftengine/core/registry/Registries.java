@@ -1,6 +1,8 @@
 package net.momirealms.craftengine.core.registry;
 
 import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.attribute.DamageFormula;
+import net.momirealms.craftengine.core.attribute.DamageFormulaType;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorType;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
@@ -101,6 +103,7 @@ public final class Registries {
     public static final ResourceKey<Registry<BlockBehaviorType<? extends BlockBehavior>>> BLOCK_BEHAVIOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block_behavior_type"));
     public static final ResourceKey<Registry<ItemBehaviorType<? extends ItemBehavior>>> ITEM_BEHAVIOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_behavior_type"));
     public static final ResourceKey<Registry<NumberProviderType<? extends NumberProvider>>> NUMBER_PROVIDER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("number_provider_type"));
+    public static final ResourceKey<Registry<DamageFormulaType<? extends DamageFormula>>> DAMAGE_FORMULA_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("damage_formula_type"));
     public static final ResourceKey<Registry<TemplateArgumentType<? extends TemplateArgument>>> TEMPLATE_ARGUMENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("template_argument_type"));
     public static final ResourceKey<Registry<ItemModelType<? extends ItemModel>>> ITEM_MODEL_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_model_type"));
     public static final ResourceKey<Registry<TintType<? extends Tint>>> TINT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("tint_type"));
