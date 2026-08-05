@@ -1,11 +1,10 @@
 package net.momirealms.craftengine.proxy.minecraft.world.level.chunk;
 
+import net.momirealms.craftengine.proxy.paper.antixray.ChunkPacketInfoProxy;
+import net.momirealms.craftengine.proxy.universeprojects.util.io.DirectChunkWriterProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
-import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
-import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
-import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
-import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
+import net.momirealms.sparrow.reflection.proxy.annotation.*;
 
 @ReflectionProxy(name = "net.minecraft.world.level.chunk.PalettedContainer")
 public interface PalettedContainerProxy {
@@ -23,6 +22,13 @@ public interface PalettedContainerProxy {
 
     @MethodInvoker(name = "getAndSet")
     Object getAndSet(Object target, int x, int y, int z, Object state);
+
+    // universe spigot 26.2+
+    @MethodInvoker(name = "write", optional = true)
+    void write(Object target,
+               @Type(clazz = DirectChunkWriterProxy.class) Object writer,
+               @Type(clazz = ChunkPacketInfoProxy.class) Object chunkPacketInfo,
+               int chunkSectionIndex);
 
     @ReflectionProxy(name = "net.minecraft.world.level.chunk.PalettedContainer$Data")
     interface DataProxy {
