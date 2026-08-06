@@ -159,6 +159,10 @@ public interface Player extends NetWorkUser, LivingEntity {
 
     void performCommandAsEvent(String command);
 
+    void transfer(String server);
+
+    void transfer(String host, int port);
+
     @Override
     default Key type() {
         return TYPE;

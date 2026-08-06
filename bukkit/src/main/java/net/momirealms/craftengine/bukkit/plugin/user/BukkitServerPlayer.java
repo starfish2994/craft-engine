@@ -107,6 +107,8 @@ import org.bukkit.util.RayTraceResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -1496,6 +1498,29 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         String formattedCommand = command.startsWith("/") ? command : "/" + command;
         PlayerCommandPreprocessEvent event = new PlayerCommandPreprocessEvent(platformPlayer(), formattedCommand);
         Bukkit.getPluginManager().callEvent(event);
+    }
+
+    @Override
+    public void transfer(String server) {
+        org.bukkit.entity.Player player = platformPlayer();
+        if (player == null) return;
+        ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(byteArray);
+        try {
+            out.writeUTF("Connect");
+            out.writeUTF(server);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to encode transfer data for " + this.name(), e);
+            return;
+        }
+        player.sendPluginMessage(this.plugin.javaPlugin(), "BungeeCord", byteArray.toByteArray());
+    }
+
+    @Override
+    public void transfer(String host, int port) {
+        org.bukkit.entity.Player player = platformPlayer();
+        if (player == null) return;
+        player.transfer(host, port);
     }
 
     @Override

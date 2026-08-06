@@ -275,6 +275,7 @@ public final class BukkitCraftEngine extends CraftEngine {
             this.logger.error("Failed to enable compatibility manager", t);
         }
         super.onPluginEnable();
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this.javaPlugin(), "BungeeCord");
         if (VersionHelper.hasPaperPatch) {
             this.serverEventListener = new ServerEventListener(this);
             Bukkit.getPluginManager().registerEvents(this.serverEventListener, javaPlugin());
