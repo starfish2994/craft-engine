@@ -14,6 +14,7 @@ public final class CommonConditions {
     public static final CommonConditionType<HasPlayerCondition<Context>> HAS_PLAYER = register(Key.ce("has_player"), HasPlayerCondition.factory());
     public static final CommonConditionType<HasItemCondition<Context>> HAS_ITEM = register(Key.ce("has_item"), HasItemCondition.factory());
     public static final CommonConditionType<MatchItemCondition<Context>> MATCH_ITEM = register(Key.ce("match_item"), MatchItemCondition.factory());
+    public static final CommonConditionType<EquipmentCondition<Context>> EQUIPMENT = register(Key.ce("equipment"), EquipmentCondition.factory());
     public static final CommonConditionType<MatchEntityCondition<Context>> MATCH_ENTITY = register(Key.ce("match_entity"), MatchEntityCondition.factory());
     public static final CommonConditionType<MatchBlockCondition<Context>> MATCH_BLOCK = register(Key.ce("match_block"), MatchBlockCondition.factory());
     public static final CommonConditionType<MatchBlockPropertyCondition<Context>> MATCH_BLOCK_PROPERTY = register(Key.ce("match_block_property"), MatchBlockPropertyCondition.factory());

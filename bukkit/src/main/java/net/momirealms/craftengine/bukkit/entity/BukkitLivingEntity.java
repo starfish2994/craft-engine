@@ -1,10 +1,12 @@
 package net.momirealms.craftengine.bukkit.entity;
 
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
+import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.LegacyAttributeUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
@@ -122,6 +124,12 @@ public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.c
     @Override
     public void setItemInHand(InteractionHand hand, Item item) {
         LivingEntityProxy.INSTANCE.setItemSlot(minecraftEntity(), hand == InteractionHand.MAIN_HAND ? EquipmentSlotProxy.MAINHAND : EquipmentSlotProxy.OFFHAND, item.minecraftItem());
+    }
+
+    @NotNull
+    @Override
+    public BukkitItem getItemByEquipmentSlot(EquipmentSlot slot) {
+        return ItemStackUtils.wrap(LivingEntityProxy.INSTANCE.getItemBySlot(minecraftEntity(), EquipmentSlotUtils.toNMSEquipmentSlot(slot)));
     }
 
     @Override

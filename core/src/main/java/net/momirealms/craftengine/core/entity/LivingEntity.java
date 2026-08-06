@@ -35,6 +35,9 @@ public interface LivingEntity extends Entity {
 
     void setItemInHand(InteractionHand hand, Item item);
 
+    @NotNull
+    Item getItemByEquipmentSlot(EquipmentSlot slot);
+
     boolean isSneaking();
 
     boolean isSwimming();
