@@ -77,8 +77,7 @@ public final class FurnitureEventListener implements Listener {
                 this.manager.handleCollisionEntityDuringChunkLoad(entity);
             }
         }
-        CEWorld world = this.worldManager.getWorld(event.getWorld());
-
+        CEWorld world = BukkitAdaptor.adapt(event.getWorld()).storageWorld();
         CEChunk ceChunk = world.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
         if (ceChunk != null) {
             ceChunk.setEntitiesLoaded(true);

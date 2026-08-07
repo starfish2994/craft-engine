@@ -22,6 +22,7 @@ import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.plugin.injector.WorldStorageInjector;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -61,7 +62,7 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
             requireNonNull(weWorld, "WorldEdit world is null");
             org.bukkit.World world = Bukkit.getWorld(weWorld.getName());
             requireNonNull(world, () -> "WorldEdit world " + weWorld.getName() + " is not a Bukkit world");
-            CEWorld ceWorld = BukkitWorldManager.instance().getWorld(world);
+            CEWorld ceWorld = BukkitAdaptor.adapt(world).storageWorld();
             requireNonNull(ceWorld, () -> "WorldEdit world " + world.getName() + " is not a CraftEngine world");
             return ceWorld;
         });

@@ -8,8 +8,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.core.world.CEWorld;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -45,9 +44,12 @@ public final class BukkitAdaptor {
      */
     @NotNull
     public static BukkitWorld adapt(@NotNull final World world) {
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOffMainThread(world.getUID());
-        if (ceWorld == null) return new BukkitWorld(world);
-        return (BukkitWorld) ceWorld.world;
+        Object worldBorder = CraftWorldProxy.INSTANCE.getWorldBorder(world);
+        if (worldBorder instanceof BukkitWorld bukkitWorld) {
+            return bukkitWorld;
+        }
+        // should not reach here
+        throw new IllegalStateException("Failed to adapt world " + world.getName());
     }
 
     /**

@@ -39,6 +39,7 @@ import net.momirealms.craftengine.bukkit.compatibility.worldguard.WorldGuardRegi
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
+import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
@@ -55,7 +56,6 @@ import net.momirealms.craftengine.core.plugin.text.minimessage.FormattedLine;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
-import net.momirealms.craftengine.core.world.WorldManager;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -334,7 +334,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     private void initSlimeWorldHook() {
-        WorldManager worldManager = this.plugin.worldManager();
+        BukkitWorldManager worldManager = this.plugin.worldManager();
         if (VersionHelper.isOrAbove1_21_4) {
             try {
                 Class.forName("com.infernalsuite.asp.api.AdvancedSlimePaperAPI");

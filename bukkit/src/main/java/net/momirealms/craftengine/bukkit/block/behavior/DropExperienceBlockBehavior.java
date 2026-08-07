@@ -1,10 +1,10 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -52,7 +52,7 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
                 return;
             }
         }
-        World world = BukkitWorldManager.instance().wrap(LevelProxy.INSTANCE.getWorld(args[1]));
+        World world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(args[1]));
         BlockPos pos = LocationUtils.fromBlockPos(args[2]);
         tryDropExperience(world, pos, item);
     }

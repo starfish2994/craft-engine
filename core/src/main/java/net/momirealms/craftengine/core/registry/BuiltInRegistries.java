@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.core.registry;
 
-import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.attribute.DamageFormula;
 import net.momirealms.craftengine.core.attribute.DamageFormulaType;
+import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorType;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;

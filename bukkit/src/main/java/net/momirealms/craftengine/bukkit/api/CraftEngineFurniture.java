@@ -394,5 +394,6 @@ public final class CraftEngineFurniture {
         if (playSound) {
             world.playBlockSound(position, furniture.config.settings().sounds().breakSound());
         }
+        return true;
     }
 }

@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.Scheduler;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
@@ -88,30 +89,27 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     private final BukkitCraftEngine plugin;
     private boolean initialized = false;
     // loaded worlds
-    private final ConcurrentChainedUUID2ReferenceHashTable<CEWorld> loadedWorlds;
-    private final Cache<UUID, CEWorld> unloadedWorlds = Caffeine.newBuilder()
+    private final ConcurrentChainedUUID2ReferenceHashTable<BukkitWorld> loadedWorlds;
+    private final Cache<UUID, BukkitWorld> unloadedWorlds = Caffeine.newBuilder()
             .expireAfterWrite(Duration.of(15, ChronoUnit.SECONDS))
             .executor(CraftEngine.instance().scheduler().async())
             .scheduler(Scheduler.systemScheduler())
-            .removalListener((UUID uuid, CEWorld ceWorld, RemovalCause cause) -> {
-                net.momirealms.craftengine.core.world.World world = ceWorld.world();
+            .removalListener((UUID uuid, BukkitWorld world, RemovalCause cause) -> {
+                World bukkitWorld = world.bukkitWorld();
+                if (bukkitWorld != null) {
+                    // clear ce world
+                    CraftWorldProxy.INSTANCE.setWorldBorder(bukkitWorld, null);
+                }
                 if (Config.fixWorldMemoryLeak()) {
-                    World bukkitWorld = (World) world.platformWorld();
                     if (bukkitWorld != null) {
                         CraftWorldProxy.INSTANCE.setWorld(bukkitWorld, null);
-                        Debugger.CHUNK.debug(() -> "Cleared '" + world.name() + "' level reference");
                     }
                 }
-                world.cleanup();
                 Debugger.CHUNK.debug(() -> "World '" + world.name() + "' has been closed");
             })
             .initialCapacity(16)
             .build();
-    private CEWorld[] worldArray;
     private StorageAdaptor storageAdaptor;
-    // for faster getter
-    private UUID lastWorldUUID = null;
-    private CEWorld lastWorld = null;
     // parsers
     private final ConfigParser configuredFeatureParser = new ConfiguredFeatureParser();
     private final ConfigParser placedFeatureParser = new PlacedFeatureParser();
@@ -164,35 +162,14 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     public void delayedInit() {
         // 此时大概率为空，暂且保留代码
         for (World world : Bukkit.getWorlds()) {
-            BukkitWorld wrappedWorld = wrap(world);
             try {
-                CEWorld ceWorld = this.loadedWorlds.computeIfAbsent(world.getUID(), k -> VersionHelper.hasFoliaPatch ? new FoliaCEWorld(wrappedWorld, this.storageAdaptor) : new BukkitCEWorld(wrappedWorld, this.storageAdaptor));
-                injectWorld(ceWorld);
-                for (Chunk chunk : world.getLoadedChunks()) {
-                    if (VersionHelper.hasFoliaPatch) {
-                        this.plugin.scheduler().platform().run(() -> {
-                            if (chunk.isLoaded()) {
-                                handleChunkLoad(ceWorld, chunk);
-                                CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
-                                if (loadedChunk != null) {
-                                    loadedChunk.setEntitiesLoaded(true);
-                                }
-                            }
-                        }, world, chunk.getX(), chunk.getZ());
-                    } else {
-                        handleChunkLoad(ceWorld, chunk);
-                        CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
-                        if (loadedChunk != null) {
-                            loadedChunk.setEntitiesLoaded(true);
-                        }
-                    }
-                }
-                ceWorld.setTicking(true);
-            } catch (Throwable t) {
-                this.plugin.logger().warn("Error loading world: " + world.getName(), t);
+                BukkitWorld bukkitWorld = this.injectCraftWorld(world);
+                installStorageWorld(bukkitWorld, getOrCreateStorageWorld(bukkitWorld));
+                handleWorldLoad(bukkitWorld);
+            } catch (Throwable e) {
+                this.plugin.logger().warn("Failed to load world " + world.getName(), e);
             }
         }
-        this.resetWorldArray();
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
         this.initialized = true;
     }
@@ -206,27 +183,13 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             HandlerList.unregisterAll(listener);
         }
         for (World world : Bukkit.getWorlds()) {
-            // 避免触发load world
-            if (this.loadedWorlds.containsKey(world.getUID())) {
-                CEWorld ceWorld = getWorld(world.getUID());
-                ceWorld.setTicking(false);
-                for (Chunk chunk : world.getLoadedChunks()) {
-                    try {
-                        handleChunkUnload(ceWorld, chunk);
-                    } catch (Throwable t) {
-                        this.plugin.logger().warn("Failed to unload chunk " + chunk.getX() + "," + chunk.getZ(), t);
-                    }
-                }
-                try {
-                    ceWorld.worldDataStorage().close();
-                } catch (IOException e) {
-                    this.plugin.logger().warn("Error unloading world: " + world.getName(), e);
-                }
+            try {
+                handleWorldUnload(BukkitAdaptor.adapt(world));
+            } catch (Throwable e) {
+                this.plugin.logger().warn("Failed to unload world " + world.getName(), e);
             }
         }
         this.loadedWorlds.clear();
-        this.lastWorld = null;
-        this.lastWorldUUID = null;
     }
 
     /*
@@ -298,172 +261,160 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldUnload(WorldUnloadEvent event) {
-        CEWorld world = this.loadedWorlds.get(event.getWorld().getUID());
-        if (world != null) {
-            unloadWorld(world.world);
-        }
+        handleWorldUnload(BukkitAdaptor.adapt(event.getWorld()));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldSave(WorldSaveEvent event) {
-        for (CEWorld world : this.worldArray) {
-            world.saveChunks();
-        }
+        World world = event.getWorld();
+        BukkitAdaptor.adapt(world).storageWorld().saveChunks();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onWorldInit(WorldInitEvent event) {
         World world = event.getWorld();
-        UUID uuid = world.getUID();
-        if (this.loadedWorlds.containsKey(uuid)) return;
-        CEWorld ceWorld = VersionHelper.hasFoliaPatch ? new FoliaCEWorld(wrap(world), this.storageAdaptor) : new BukkitCEWorld(wrap(world), this.storageAdaptor);
-        this.loadedWorlds.put(uuid, ceWorld);
-        this.resetWorldArray();
-        this.injectWorld(ceWorld);
+        BukkitWorld bukkitWorld = injectCraftWorld(world);
+        installStorageWorld(bukkitWorld, getOrCreateStorageWorld(bukkitWorld));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onWorldLoad(WorldLoadEvent event) {
         World world = event.getWorld();
-        UUID uuid = world.getUID();
-        if (this.loadedWorlds.containsKey(uuid)) {
-            CEWorld ceWorld = this.loadedWorlds.get(uuid);
-            for (Chunk chunk : world.getLoadedChunks()) {
+        BukkitWorld bukkitWorld = injectCraftWorld(world);
+        installStorageWorld(bukkitWorld, getOrCreateStorageWorld(bukkitWorld));
+        handleWorldLoad(bukkitWorld);
+    }
+
+    public void handleWorldLoad(BukkitWorld world) {
+        CEWorld ceWorld = world.storageWorld();
+        for (Chunk chunk : world.bukkitWorld().getLoadedChunks()) {
+            if (VersionHelper.hasFoliaPatch) {
+                this.plugin.scheduler().platform().run(() -> {
+                    if (chunk.isLoaded()) {
+                        handleChunkLoad(ceWorld, chunk);
+                        CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
+                        if (loadedChunk != null) {
+                            loadedChunk.setEntitiesLoaded(true);
+                        }
+                    }
+                }, world, chunk.getX(), chunk.getZ());
+            } else {
                 handleChunkLoad(ceWorld, chunk);
                 CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
                 if (loadedChunk != null) {
                     loadedChunk.setEntitiesLoaded(true);
                 }
             }
-            ceWorld.setTicking(true);
-        } else {
-            this.loadWorld(wrap(world));
         }
+        ceWorld.setTicking(true);
+        this.loadedWorlds.put(world.uuid(), world);
+    }
+
+    public void handleWorldUnload(BukkitWorld world) {
+        this.unloadedWorlds.put(world.uuid(), world);
+        this.loadedWorlds.remove(world.uuid());
+        CEWorld ceWorld = world.storageWorld();
+        ceWorld.setTicking(false);
+        for (Chunk chunk : world.bukkitWorld().getLoadedChunks()) {
+            try {
+                handleChunkUnload(ceWorld, chunk);
+            } catch (Throwable t) {
+                this.plugin.logger().warn("Failed to unload chunk " + chunk.getX() + "," + chunk.getZ(), t);
+            }
+        }
+        try {
+            ceWorld.worldDataStorage().close();
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to close world storage", e);
+        }
+    }
+
+    public BukkitWorld injectCraftWorld(World world) {
+        Object worldBorder = CraftWorldProxy.INSTANCE.getWorldBorder(world);
+        if (worldBorder instanceof BukkitWorld bukkitWorld) {
+            return bukkitWorld;
+        }
+        BukkitWorld injectedWorld = FastNMS.INSTANCE.createInjectedWorld(world);
+        CraftWorldProxy.INSTANCE.setWorldBorder(world, injectedWorld);
+        if (VersionHelper.hasPaperPatch) {
+            injectWorldGeneration(injectedWorld);
+            if (!VersionHelper.hasFoliaPatch) {
+                injectWorldCallback(injectedWorld.minecraftWorld());
+            }
+        }
+        return injectedWorld;
+    }
+
+    public void installStorageWorld(BukkitWorld injectedWorld, CEWorld ceWorld) {
+        CEWorld previous = injectedWorld.storageWorld();
+        if (previous == ceWorld) {
+            return;
+        }
+        if (previous != null) {
+            previous.saveChunks();
+            try {
+                previous.worldDataStorage().close();
+            } catch (IOException e) {
+                this.plugin.logger().warn("Failed to close world storage", e);
+            }
+        }
+        ((WorldHolder) injectedWorld).setStorageWorld(ceWorld);
+    }
+
+    public CEWorld getOrCreateStorageWorld(BukkitWorld injectedWorld) {
+        CEWorld storageWorld = injectedWorld.storageWorld();
+        if (storageWorld != null) {
+            return storageWorld;
+        }
+        return VersionHelper.hasFoliaPatch ? new FoliaCEWorld(injectedWorld, this.storageAdaptor) : new BukkitCEWorld(injectedWorld, this.storageAdaptor);
+    }
+
+    public CEWorld createStorageWorld(BukkitWorld injectedWorld) {
+        return VersionHelper.hasFoliaPatch ? new FoliaCEWorld(injectedWorld, this.storageAdaptor) : new BukkitCEWorld(injectedWorld, this.storageAdaptor);
+    }
+
+    public CEWorld createStorageWorld(BukkitWorld injectedWorld, WorldDataStorage storage) {
+        return VersionHelper.hasFoliaPatch ? new FoliaCEWorld(injectedWorld, storage) : new BukkitCEWorld(injectedWorld, storage);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onChunkLoad(ChunkLoadEvent event) {
-        CEWorld world = this.loadedWorlds.get(event.getWorld().getUID());
-        if (world == null) {
-            return;
-        }
-        handleChunkLoad(world, event.getChunk());
+        BukkitWorld bukkitWorld = BukkitAdaptor.adapt(event.getWorld());
+        handleChunkLoad(bukkitWorld.storageWorld(), event.getChunk());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onChunkUnload(ChunkUnloadEvent event) {
-        CEWorld world = this.loadedWorlds.get(event.getWorld().getUID());
-        if (world == null) {
-            return;
-        }
-        handleChunkUnload(world, event.getChunk());
+        BukkitWorld bukkitWorld = BukkitAdaptor.adapt(event.getWorld());
+        handleChunkUnload(bukkitWorld.storageWorld(), event.getChunk());
     }
 
     @Override
     public void setStorageAdaptor(@NotNull StorageAdaptor storageAdaptor) {
-        this.storageAdaptor = storageAdaptor;
+        this.storageAdaptor = Objects.requireNonNull(storageAdaptor);
     }
 
-    public StorageAdaptor getStorageAdaptor() {
+    @Override
+    public @NotNull StorageAdaptor getStorageAdaptor() {
         return this.storageAdaptor;
     }
 
-    public CEWorld getWorld(World world) {
-        return getWorld(world.getUID());
+    @Override
+    public BukkitWorld getWorldOffMainThread(UUID uuid) {
+        BukkitWorld bukkitWorld = this.loadedWorlds.get(uuid);
+        if (bukkitWorld == null) {
+            bukkitWorld = this.unloadedWorlds.getIfPresent(uuid);
+        }
+        return bukkitWorld;
     }
 
     @Override
-    public CEWorld getWorldOffMainThread(UUID uuid) {
-        CEWorld world = this.loadedWorlds.get(uuid);
-        if (world == null) {
-            world = this.unloadedWorlds.getIfPresent(uuid);
-        }
-        return world;
+    public BukkitWorld getWorld(UUID uuid) {
+        return this.loadedWorlds.get(uuid);
     }
 
-    @Override
-    public CEWorld getWorldOnMainThread(UUID uuid) {
-        if (VersionHelper.hasFoliaPatch) {
-            return this.loadedWorlds.get(uuid);
-        }
-        if (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID)) {
-            return this.lastWorld;
-        }
-        CEWorld world = this.loadedWorlds.get(uuid);
-        if (world != null) {
-            this.lastWorldUUID = uuid;
-            this.lastWorld = world;
-        }
-        return world;
-    }
-
-    @Override
-    public CEWorld getWorld(UUID uuid) {
-        if (!VersionHelper.hasFoliaPatch && (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID))) {
-            return this.lastWorld;
-        }
-        CEWorld world = this.loadedWorlds.get(uuid);
-        if (world != null) {
-            this.lastWorldUUID = uuid;
-            this.lastWorld = world;
-        }
-        // Allow other plugins to access CEWorld on onEnable phase
-        else if (!this.plugin.isFullyLoaded()) {
-            World bukkitWorld = Bukkit.getWorld(uuid);
-            if (bukkitWorld != null) {
-                world = this.loadWorld(wrap(bukkitWorld));
-            }
-        }
-        return world;
-    }
-
-    @Override
-    public CEWorld[] getWorlds() {
-        return this.worldArray;
-    }
-
-    private void resetWorldArray() {
-        this.worldArray = this.loadedWorlds.values().toArray(new CEWorld[0]);
-    }
-
-    @Override
-    public CEWorld loadWorld(net.momirealms.craftengine.core.world.World world) {
-        UUID uuid = world.uuid();
-        if (this.loadedWorlds.containsKey(uuid)) {
-            return this.loadedWorlds.get(uuid);
-        }
-        CEWorld ceWorld = VersionHelper.hasFoliaPatch ? new FoliaCEWorld(world, this.storageAdaptor) : new BukkitCEWorld(world, this.storageAdaptor);
-        this.loadedWorlds.put(uuid, ceWorld);
-        this.unloadedWorlds.invalidate(uuid);
-        this.resetWorldArray();
-        this.injectWorld(ceWorld);
-        for (Chunk chunk : ((World) world.platformWorld()).getLoadedChunks()) {
-            handleChunkLoad(ceWorld, chunk);
-        }
-        ceWorld.setTicking(true);
-        return ceWorld;
-    }
-
-    @Override
-    public void loadWorld(CEWorld world, boolean forceInit) {
-        UUID uuid = world.world().uuid();
-        if (this.loadedWorlds.containsKey(uuid)) {
-            if (!forceInit) {
-                return;
-            }
-        }
-        this.loadedWorlds.put(uuid, world);
-        this.resetWorldArray();
-        this.injectWorld(world);
-        for (Chunk chunk : ((World) world.world().platformWorld()).getLoadedChunks()) {
-            handleChunkLoad(world, chunk);
-        }
-        world.setTicking(true);
-    }
-
-    private void injectWorld(CEWorld world) {
-        if (!VersionHelper.hasPaperPatch) return; // only paper support these
-        Object serverLevel = world.world.minecraftWorld();
+    private void injectWorldGeneration(BukkitWorld world) {
+        Object serverLevel = world.minecraftWorld();
         Object serverChunkCache = ServerLevelProxy.INSTANCE.getChunkSource(serverLevel);
         Object chunkMap = ServerChunkCacheProxy.INSTANCE.getChunkMap(serverChunkCache);
         if (VersionHelper.isOrAbove1_21_2) {
@@ -502,9 +453,6 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 ChunkMapProxy.INSTANCE.setGenerator(chunkMap, customGenerator);
             }
         }
-        if (!VersionHelper.hasFoliaPatch) {
-            this.injectWorldCallback(serverLevel);
-        }
     }
 
     // 用于从实体tick列表中移除家具实体以降低遍历开销
@@ -514,48 +462,6 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         if (!(worldCallback instanceof InjectedWorldCallback)) {
             Object injectedWorldCallback = FastNMS.INSTANCE.createInjectedWorldCallbacks(worldCallback, entityLookup);
             EntityLookupProxy.INSTANCE.setWorldCallback(entityLookup, injectedWorldCallback);
-        }
-    }
-
-    @Override
-    public CEWorld createWorld(net.momirealms.craftengine.core.world.World world, WorldDataStorage storage) {
-        return VersionHelper.hasFoliaPatch ? new FoliaCEWorld(world, storage) : new BukkitCEWorld(world, storage);
-    }
-
-    @Override
-    public void unloadWorld(net.momirealms.craftengine.core.world.World world) {
-        UUID uuid = world.uuid();
-        CEWorld ceWorld = this.loadedWorlds.remove(uuid);
-        if (ceWorld == null) {
-            return;
-        }
-        this.unloadedWorlds.put(uuid, ceWorld);
-        this.resetWorldArray();
-        ceWorld.setTicking(false);
-        for (Chunk chunk : ((World) world.platformWorld()).getLoadedChunks()) {
-            try {
-                handleChunkUnload(ceWorld, chunk);
-            } catch (Throwable t) {
-                this.plugin.logger().warn("Failed to unload chunk " + chunk.getX() + "," + chunk.getZ(), t);
-            }
-        }
-        if (uuid.equals(this.lastWorldUUID)) {
-            this.lastWorld = null;
-            this.lastWorldUUID = null;
-        }
-        try {
-            ceWorld.worldDataStorage().close();
-        } catch (IOException e) {
-            this.plugin.logger().warn("Failed to close world storage", e);
-        }
-    }
-
-    @Override
-    public <T> BukkitWorld wrap(T world) {
-        if (world instanceof World w) {
-            return new BukkitWorld(w);
-        } else {
-            throw new IllegalArgumentException(world.getClass() + " is not a Bukkit World");
         }
     }
 
@@ -631,9 +537,10 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     // for FastNMS chunk generator
-    public Runnable handleChunkGenerate(CEWorld ceWorld, ChunkPos chunkPos, Object chunkAccess, ChunkGenerationStage stage) {
+    public Runnable handleChunkGenerate(BukkitWorld world, ChunkPos chunkPos, Object chunkAccess, ChunkGenerationStage stage) {
         if (!stage.enabled()) return null;
         if (this.disabled) return null;
+        CEWorld ceWorld = world.storageWorld();
         Object[] sections = ChunkAccessProxy.INSTANCE.getSections(chunkAccess);
         CEChunk ceChunk;
         try {

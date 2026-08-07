@@ -1,12 +1,10 @@
 package net.momirealms.craftengine.bukkit.util;
 
-import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.item.behavior.BlockItemBehavior;
 import net.momirealms.craftengine.bukkit.item.behavior.FlintAndSteelItemBehavior;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
-import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.core.block.BlockKeys;
 import net.momirealms.craftengine.core.entity.EntityTypeKeys;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -202,8 +200,7 @@ public final class InteractUtils {
                         && redstoneWire.getFace(BlockFace.WEST).equals(RedstoneWire.Connection.NONE);
                 if (isCross || isDot) {
                     BlockPos blockPos = result.blockPos();
-                    BukkitWorld bukkitWorld = BukkitAdaptor.adapt(player.getWorld());
-                    World world = bukkitWorld.platformWorld();
+                    World world = player.getWorld();
 
                     Direction[] directions = {Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH};
                     for (Direction direction : directions) {

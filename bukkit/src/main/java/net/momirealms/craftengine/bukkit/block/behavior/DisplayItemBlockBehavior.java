@@ -5,7 +5,6 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.DisplayItemBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -80,7 +79,7 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         if (player == null) return InteractionResult.PASS;
         World world = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOnMainThread(world.uuid());
+        CEWorld ceWorld = world.storageWorld();
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) {
             return InteractionResult.PASS;

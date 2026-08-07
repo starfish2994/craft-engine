@@ -6,7 +6,6 @@ import net.momirealms.craftengine.bukkit.block.entity.DrawerBlockEntityControlle
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -100,7 +99,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
 
     @Override
     public Object getContainer(Object thisBlock, Object[] args) {
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOnMainThread(LevelProxy.INSTANCE.getWorld(args[1]).getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(args[1])).storageWorld();
         BlockPos blockPos = LocationUtils.fromBlockPos(args[2]);
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(blockPos);
         if (blockEntity == null) return null;
@@ -224,7 +223,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         org.bukkit.World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOnMainThread(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) {
             return 0;

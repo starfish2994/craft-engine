@@ -1,12 +1,12 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -118,7 +118,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOnMainThread(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) return;
         blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
@@ -133,7 +133,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOnMainThread(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) return 0;
         return blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
@@ -160,7 +160,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
 
     @Override
     public Object getContainer(Object thisBlock, Object[] args) {
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(LevelProxy.INSTANCE.getWorld(args[1]));
+        CEWorld ceWorld = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(args[1])).storageWorld();
         BlockPos blockPos = LocationUtils.fromBlockPos(args[2]);
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(blockPos);
         if (blockEntity == null) return null;

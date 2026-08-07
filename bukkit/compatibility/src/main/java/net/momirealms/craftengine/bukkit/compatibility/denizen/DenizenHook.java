@@ -10,15 +10,7 @@ import net.momirealms.craftengine.bukkit.compatibility.denizen.commands.PlaceCEB
 import net.momirealms.craftengine.bukkit.compatibility.denizen.commands.RemoveCEBlockCommand;
 import net.momirealms.craftengine.bukkit.compatibility.denizen.commands.RemoveCEFurnitureCommand;
 import net.momirealms.craftengine.bukkit.compatibility.denizen.commands.SpawnCEFurnitureCommand;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.CEReloadedScriptEvent;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.PlayerAttemptsPlaceCEBlockScriptEvent;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.PlayerAttemptsPlaceCEFurnitureScriptEvent;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.PlayerBreaksCEBlockScriptEvent;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.PlayerBreaksCEFurnitureScriptEvent;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.PlayerClicksCEBlockScriptEvent;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.PlayerClicksCEFurnitureScriptEvent;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.PlayerPlacesCEBlockScriptEvent;
-import net.momirealms.craftengine.bukkit.compatibility.denizen.events.PlayerPlacesCEFurnitureScriptEvent;
+import net.momirealms.craftengine.bukkit.compatibility.denizen.events.*;
 import net.momirealms.craftengine.bukkit.compatibility.denizen.tags.CraftEngineTags;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.core.util.Key;

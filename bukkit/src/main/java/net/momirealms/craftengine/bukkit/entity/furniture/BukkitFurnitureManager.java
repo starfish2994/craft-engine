@@ -244,7 +244,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     // 检查这个区块的实体是否已经被加载了
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isEntitiesLoaded(Location location) {
-        CEWorld ceWorld = this.plugin.worldManager().getWorld(location.getWorld());
+        CEWorld ceWorld = BukkitAdaptor.adapt(location.getWorld()).storageWorld();
         CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4);
         if (ceChunk == null) return false;
         return ceChunk.isEntitiesLoaded();
