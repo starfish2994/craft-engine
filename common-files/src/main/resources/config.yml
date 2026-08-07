@@ -645,6 +645,9 @@ chunk-system:
   # Once the migration is complete, restart the server.
   #
   storage-type: mca
+  # Worlds whose name matches any of these regex patterns will always use 'none' storage mode (in-memory only)
+  # Useful for temporary or frequently reset worlds where persistence is unnecessary
+  blacklisted-worlds: []
   # Caches serialized chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
   cache-system: true
   # Compression algorithm for chunk data

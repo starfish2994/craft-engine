@@ -46,6 +46,9 @@ public class BukkitStorageAdaptor implements StorageAdaptor {
 
     @Override
     public @NotNull WorldDataStorage adapt(@NotNull World world) {
+        if (Config.isBlacklistedWorld(world.name())) {
+            return new NoneStorage();
+        }
         return adapt(world, Config.chunkStorageType());
     }
 

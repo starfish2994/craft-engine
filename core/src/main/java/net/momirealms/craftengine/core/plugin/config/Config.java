@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
@@ -36,6 +37,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 public final class Config {
@@ -172,6 +175,7 @@ public final class Config {
     private boolean chunk_system$process_invalid_blocks$enable;
     private Map<String, String> chunk_system$process_invalid_blocks$mapping;
     private StorageType chunk_system$storage_type;
+    private List<Pattern> chunk_system$blacklisted_worlds = List.of();
     private boolean chunk_system$generation$noise;
     private boolean chunk_system$generation$structure;
     private boolean chunk_system$generation$surface;
@@ -534,6 +538,15 @@ public final class Config {
         } catch (IllegalArgumentException e) {
             this.chunk_system$storage_type = StorageType.MCA;
         }
+        ImmutableList.Builder<Pattern> blacklistedWorldsBuilder = ImmutableList.builder();
+        for (String regex : config.getStringList("chunk-system.blacklisted-worlds")) {
+            try {
+                blacklistedWorldsBuilder.add(Pattern.compile(regex));
+            } catch (PatternSyntaxException e) {
+                this.plugin.logger().warn("Invalid regex in chunk-system.blacklisted-worlds: " + regex, e);
+            }
+        }
+        this.chunk_system$blacklisted_worlds = blacklistedWorldsBuilder.build();
         this.chunk_system$restore_vanilla_blocks_on_chunk_unload = config.getBoolean("chunk-system.restore-vanilla-blocks-on-chunk-unload", true);
         this.chunk_system$restore_custom_blocks_on_chunk_load = config.getBoolean("chunk-system.restore-custom-blocks-on-chunk-load", true);
         this.chunk_system$sync_custom_blocks_on_chunk_load = config.getBoolean("chunk-system.sync-custom-blocks-on-chunk-load", false);
@@ -1255,6 +1268,15 @@ public final class Config {
 
     public static StorageType chunkStorageType() {
         return instance.chunk_system$storage_type;
+    }
+
+    public static boolean isBlacklistedWorld(String world) {
+        for (Pattern pattern : instance.chunk_system$blacklisted_worlds) {
+            if (pattern.matcher(world).matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean disableChatReport() {
