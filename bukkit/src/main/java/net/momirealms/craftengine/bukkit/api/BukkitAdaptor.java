@@ -3,11 +3,13 @@ package net.momirealms.craftengine.bukkit.api;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import org.bukkit.World;
@@ -48,8 +50,13 @@ public final class BukkitAdaptor {
         if (worldBorder instanceof BukkitWorld bukkitWorld) {
             return bukkitWorld;
         }
-        // should not reach here
-        throw new IllegalStateException("Failed to adapt world " + world.getName());
+        if (BukkitCraftEngine.instance().isFullyLoaded()) {
+            // should not reach here
+            throw new IllegalStateException("Failed to adapt world " + world.getName());
+        } else {
+            // If CraftEngine has not started yet
+            return BukkitWorldManager.instance().ensureStorageWorld(world);
+        }
     }
 
     /**

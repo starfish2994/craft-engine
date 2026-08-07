@@ -62,6 +62,7 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
             requireNonNull(weWorld, "WorldEdit world is null");
             org.bukkit.World world = Bukkit.getWorld(weWorld.getName());
             requireNonNull(world, () -> "WorldEdit world " + weWorld.getName() + " is not a Bukkit world");
+            // 有的插件可能刚开服就使用we操作，这时候ce还没对世界完成注入。就会无法拿到存储世界实例。
             CEWorld ceWorld = BukkitAdaptor.adapt(world).storageWorld();
             requireNonNull(ceWorld, () -> "WorldEdit world " + world.getName() + " is not a CraftEngine world");
             return ceWorld;
@@ -195,14 +196,14 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
         Operation operation = super.commit();
         List<ChunkPos> chunks = new ArrayList<>(this.brokenChunks);
         this.brokenChunks.clear();
-            Object worldServer = this.ceWorld().world().minecraftWorld();
-            Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
-            for (ChunkPos chunk : chunks) {
-                CEChunk loaded = this.ceWorld().getChunkAtIfLoaded(chunk.longKey());
-                // only inject loaded chunks
-                if (loaded == null) continue;
-                injectLevelChunk(chunkSource, loaded);
-            }
+        Object worldServer = this.ceWorld().world().minecraftWorld();
+        Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(worldServer);
+        for (ChunkPos chunk : chunks) {
+            CEChunk loaded = this.ceWorld().getChunkAtIfLoaded(chunk.longKey());
+            // only inject loaded chunks
+            if (loaded == null) continue;
+            injectLevelChunk(chunkSource, loaded);
+        }
         return operation;
     }
 

@@ -192,6 +192,15 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         this.loadedWorlds.clear();
     }
 
+    public BukkitWorld ensureStorageWorld(org.bukkit.World world) {
+        BukkitWorld bukkitWorld = this.injectCraftWorld(world);
+        CEWorld storageWorld = bukkitWorld.storageWorld();
+        if (storageWorld == null) {
+            installStorageWorld(bukkitWorld, createStorageWorld(bukkitWorld));
+        }
+        return bukkitWorld;
+    }
+
     /*
 
     Features, for FastNMS
@@ -261,18 +270,26 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldUnload(WorldUnloadEvent event) {
-        handleWorldUnload(BukkitAdaptor.adapt(event.getWorld()));
+        World world = event.getWorld();
+        Debugger.CHUNK.debug(() -> "WorldUnloadEvent -> " + world.getName());
+        handleWorldUnload(BukkitAdaptor.adapt(world));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldSave(WorldSaveEvent event) {
         World world = event.getWorld();
-        BukkitAdaptor.adapt(world).storageWorld().saveChunks();
+        Debugger.CHUNK.debug(() -> "WorldSaveEvent -> " + world.getName());
+        CEWorld ceWorld = BukkitAdaptor.adapt(world).storageWorld();
+        // Unload后还会触发 save，避免无效区块遍历。
+        if (ceWorld.isTicking()) {
+            ceWorld.saveChunks();
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onWorldInit(WorldInitEvent event) {
         World world = event.getWorld();
+        Debugger.CHUNK.debug(() -> "WorldInitEvent -> " + world.getName());
         BukkitWorld bukkitWorld = injectCraftWorld(world);
         installStorageWorld(bukkitWorld, getOrCreateStorageWorld(bukkitWorld));
     }
@@ -280,6 +297,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onWorldLoad(WorldLoadEvent event) {
         World world = event.getWorld();
+        Debugger.CHUNK.debug(() -> "WorldLoadEvent -> " + world.getName());
         BukkitWorld bukkitWorld = injectCraftWorld(world);
         installStorageWorld(bukkitWorld, getOrCreateStorageWorld(bukkitWorld));
         handleWorldLoad(bukkitWorld);
