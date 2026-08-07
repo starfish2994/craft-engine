@@ -163,8 +163,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         // 此时大概率为空，暂且保留代码
         for (World world : Bukkit.getWorlds()) {
             try {
-                BukkitWorld bukkitWorld = this.injectCraftWorld(world);
-                installStorageWorld(bukkitWorld, getOrCreateStorageWorld(bukkitWorld));
+                BukkitWorld bukkitWorld = ensureStorageWorld(world);
                 handleWorldLoad(bukkitWorld);
             } catch (Throwable e) {
                 this.plugin.logger().warn("Failed to load world " + world.getName(), e);
@@ -290,16 +289,14 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     public void onWorldInit(WorldInitEvent event) {
         World world = event.getWorld();
         Debugger.CHUNK.debug(() -> "WorldInitEvent -> " + world.getName());
-        BukkitWorld bukkitWorld = injectCraftWorld(world);
-        installStorageWorld(bukkitWorld, getOrCreateStorageWorld(bukkitWorld));
+        ensureStorageWorld(event.getWorld());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onWorldLoad(WorldLoadEvent event) {
         World world = event.getWorld();
         Debugger.CHUNK.debug(() -> "WorldLoadEvent -> " + world.getName());
-        BukkitWorld bukkitWorld = injectCraftWorld(world);
-        installStorageWorld(bukkitWorld, getOrCreateStorageWorld(bukkitWorld));
+        BukkitWorld bukkitWorld = ensureStorageWorld(event.getWorld());
         handleWorldLoad(bukkitWorld);
     }
 
@@ -377,14 +374,6 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             }
         }
         ((WorldHolder) injectedWorld).setStorageWorld(ceWorld);
-    }
-
-    public CEWorld getOrCreateStorageWorld(BukkitWorld injectedWorld) {
-        CEWorld storageWorld = injectedWorld.storageWorld();
-        if (storageWorld != null) {
-            return storageWorld;
-        }
-        return VersionHelper.hasFoliaPatch ? new FoliaCEWorld(injectedWorld, this.storageAdaptor) : new BukkitCEWorld(injectedWorld, this.storageAdaptor);
     }
 
     public CEWorld createStorageWorld(BukkitWorld injectedWorld) {
