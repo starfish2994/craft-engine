@@ -28,6 +28,7 @@ dependencies {
     compileOnly(project(":bukkit"))
     compileOnly(project(":bukkit:proxy"))
     compileOnly(project(":bukkit:compatibility:legacy"))
+    compileOnly(files("${rootProject.rootDir}/libs/leafpile-${rootProject.properties["leafpile_version"]}.jar"))
 
     // Reflection
     compileOnly("net.momirealms:sparrow-reflection:${rootProject.properties["sparrow_reflection_version"]}")

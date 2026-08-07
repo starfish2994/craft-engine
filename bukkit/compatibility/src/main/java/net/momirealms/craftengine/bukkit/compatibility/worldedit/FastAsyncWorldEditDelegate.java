@@ -1,9 +1,11 @@
 package net.momirealms.craftengine.bukkit.compatibility.worldedit;
 
+import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
 import com.fastasyncworldedit.bukkit.adapter.CachedBukkitAdapter;
 import com.fastasyncworldedit.bukkit.adapter.FaweAdapter;
 import com.fastasyncworldedit.core.configuration.Settings;
 import com.fastasyncworldedit.core.extent.processor.ExtentBatchProcessorHolder;
+import com.fastasyncworldedit.core.queue.implementation.ParallelQueueExtent;
 import com.fastasyncworldedit.core.util.ExtentTraverser;
 import com.fastasyncworldedit.core.util.ProcessorTraverser;
 import com.sk89q.worldedit.EditSession;
@@ -13,9 +15,16 @@ import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
+import com.sk89q.worldedit.function.RegionMaskingFilter;
+import com.sk89q.worldedit.function.block.BlockReplace;
+import com.sk89q.worldedit.function.mask.BlockMask;
+import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
@@ -50,13 +59,14 @@ import static java.util.Objects.requireNonNull;
 
 final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
     private static int[] ordinalToIbdID;
-    private final Set<CEChunk> chunksToSave;
+    // 兼任"本区块的 CEChunk 缓存"与"提交时需要落盘的区块集合"，避免对未加载区块逐块重复 readChunkAt
+    private final ConcurrentChainedLong2ReferenceHashTable<CEChunk> chunksToSave;
     private final LazyReference<CEWorld> ceWorld;
     private final Set<ChunkPos> brokenChunks = Collections.synchronizedSet(new HashSet<>());
 
     private FastAsyncWorldEditDelegate(EditSessionEvent event, Extent extent) {
         super(extent);
-        this.chunksToSave = new HashSet<>();
+        this.chunksToSave = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(16);
         this.ceWorld = LazyReference.lazyReference(() -> {
             World weWorld = event.getWorld();
             requireNonNull(weWorld, "WorldEdit world is null");
@@ -117,64 +127,116 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
         return this.ceWorld.get();
     }
 
-    @Override
-    public int setBlocks(final Set<BlockVector3> vset, final Pattern pattern) {
-        this.processBlocks(vset, pattern, getMask(), null);
-        return super.setBlocks(vset, pattern);
+    /**
+     * 下游存在 ParallelQueueExtent（异步并行编辑）时，其批量方法走并行 chunk 处理 + SIMD，
+     * 不会经过链上的 setBlock，此时只能保留"预扫描 + 转发"的镜像记录方式
+     */
+    private boolean hasParallelQueueBelow() {
+        return new ExtentTraverser<>(getExtent()).find(ParallelQueueExtent.class) != null;
     }
 
     @Override
+    public int setBlocks(final Set<BlockVector3> vset, final Pattern pattern) {
+        if (vset instanceof Region region) {
+            return setBlocks(region, pattern);
+        }
+        if (hasParallelQueueBelow()) {
+            this.processBlocks(vset, pattern, getMask());
+            return super.setBlocks(vset, pattern);
+        }
+        int count = 0;
+        for (BlockVector3 pos : vset) {
+            if (pattern.apply(this, pos, pos)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public int setBlocks(final Region region, final Pattern pattern) {
-        this.processBlocks(region, pattern, getMask(), null);
-        return super.setBlocks(region, pattern);
+        if (hasParallelQueueBelow()) {
+            this.processBlocks(region, pattern, getMask());
+            return super.setBlocks(region, pattern);
+        }
+        // 与 Extent 默认实现相同的快速路径
+        if (pattern instanceof BlockPattern blockPattern) {
+            return setBlocks(region, blockPattern.getBlock());
+        }
+        if (pattern instanceof BlockStateHolder) {
+            return setBlocks(region, (BlockStateHolder) pattern);
+        }
+        int count = 0;
+        for (BlockVector3 pos : region) {
+            if (pattern.apply(this, pos, pos)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Override
     public <B extends BlockStateHolder<B>> int setBlocks(final Region region, final B block) {
-        this.processBlocks(region, block, getMask(), null);
-        return super.setBlocks(region, block);
+        if (hasParallelQueueBelow()) {
+            this.processBlocks(region, block, getMask());
+            return super.setBlocks(region, block);
+        }
+        int count = 0;
+        for (BlockVector3 pos : region) {
+            if (setBlock(pos, block)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Override
     public int replaceBlocks(Region region, Mask mask, Pattern pattern) {
-        this.processBlocks(region, pattern, mask, null);
-        return super.replaceBlocks(region, mask, pattern);
+        if (hasParallelQueueBelow()) {
+            this.processBlocks(region, pattern, mask);
+            return super.replaceBlocks(region, mask, pattern);
+        }
+        // 逐块路由经过自身的 setBlock，mask 语义由 RegionMaskingFilter 保证，记录到的即为真实修改
+        BlockReplace replace = new BlockReplace(this, pattern);
+        RegionMaskingFilter filter = new RegionMaskingFilter(mask, replace);
+        RegionVisitor visitor = new RegionVisitor(region, filter, this);
+        Operations.completeLegacy(visitor);
+        return visitor.getAffected();
     }
 
     @Override
     public <B extends BlockStateHolder<B>> int replaceBlocks(final Region region, final Set<BaseBlock> filter, final B replacement) {
-        this.processBlocks(region, replacement, null, filter);
-        return super.replaceBlocks(region, filter, replacement);
+        return replaceBlocks(region, filter, (Pattern) replacement);
     }
 
     @Override
     public int replaceBlocks(final Region region, final Set<BaseBlock> filter, final Pattern pattern) {
-        this.processBlocks(region, pattern, null, filter);
-        return super.replaceBlocks(region, filter, pattern);
-    }
-
-    @Override
-    public <T extends BlockStateHolder<T>> boolean setBlock(int x, int y, int z, T block) {
-        boolean result = super.setBlock(x, y, z, block);
-        if (result) {
-            Mask mask = getMask();
-            if (mask != null && !mask.test(BlockVector3.at(x, y, z))) return true;
-            BaseBlock oldBlockState = getBlock(x, y, z).toBaseBlock();
-            this.processBlock(x, y, z, block.toBaseBlock(), oldBlockState);
-        }
-        return result;
+        // filter 匹配的是被替换的旧方块，统一转换为 mask 语义（mask.test 读取的是旧方块）
+        Mask mask = filter == null ? new ExistingBlockMask(this) : new BlockMask(this, filter);
+        return replaceBlocks(region, mask, pattern);
     }
 
     @Override
     public <T extends BlockStateHolder<T>> boolean setBlock(BlockVector3 position, T block) {
-        boolean result = super.setBlock(position, block);
-        if (result) {
-            Mask mask = getMask();
-            if (mask != null && !mask.test(position)) return true;
-            BaseBlock oldBlockState = getBlock(position).toBaseBlock();
-            this.processBlock(position.x(), position.y(), position.z(), block.toBaseBlock(), oldBlockState);
+        return setBlock(position.x(), position.y(), position.z(), block);
+    }
+
+    @Override
+    public <T extends BlockStateHolder<T>> boolean setBlock(int x, int y, int z, T block) {
+        // mask 在 FAWE 中是 flush 时由 MaskingExtent 的 IBatchProcessor 生效的，
+        // 链上 setBlock 对被掩码位置依然返回 true，这里必须自行过滤以免误记录
+        Mask mask = getMask();
+        if (mask != null && !mask.test(BlockVector3.at(x, y, z))) {
+            return super.setBlock(x, y, z, block);
         }
-        return result;
+        // 必须在修改发生前读取旧方块，否则读到的会是新状态
+        BaseBlock oldBlock = getFullBlock(x, y, z);
+        if (!super.setBlock(x, y, z, block)) {
+            return false;
+        }
+        this.processBlock(x, y, z, block.toBaseBlock(), oldBlock);
+        return true;
     }
 
     public Mask getMask() {
@@ -207,18 +269,17 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
         return operation;
     }
 
-    private void processBlocks(Iterable<BlockVector3> region, Pattern pattern, @Nullable Mask mask, @Nullable Set<BaseBlock> filter) {
+    /**
+     * 仅供并行下游路径使用的镜像预扫描。注意这是投机性记录：随机 pattern 的两次求值可能不同，
+     * 且批量操作中途失败时已记录的修改不会回滚
+     */
+    private void processBlocks(Iterable<BlockVector3> positions, Pattern pattern, @Nullable Mask mask) {
         final boolean hasMask = mask != null;
-        final boolean hasFilter = filter != null;
-        for (BlockVector3 position : region) {
+        for (BlockVector3 position : positions) {
             if (hasMask && !mask.test(position)) continue;
+            BaseBlock oldBlockState = getFullBlock(position);
             BaseBlock blockState = pattern.applyBlock(position);
-            if (hasFilter && filter.contains(blockState)) continue;
-            BaseBlock oldBlockState = getBlock(position).toBaseBlock();
-            int blockX = position.x();
-            int blockY = position.y();
-            int blockZ = position.z();
-            this.processBlock(blockX, blockY, blockZ, blockState, oldBlockState);
+            this.processBlock(position.x(), position.y(), position.z(), blockState, oldBlockState);
         }
     }
 
@@ -230,8 +291,13 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
         this.brokenChunks.add(ChunkPos.of(chunkX, chunkZ));
         if (BlockStateUtils.isVanillaBlock(newStateId) && BlockStateUtils.isVanillaBlock(oldStateId)) return;
         try {
-            CEChunk ceChunk = Optional.ofNullable(this.ceWorld().getChunkAtIfLoaded(chunkX, chunkZ))
-                    .orElse(this.ceWorld().worldDataStorage().readChunkAt(this.ceWorld(), new ChunkPos(chunkX, chunkZ), null)); // todo fix pdc storage type
+            long chunkKey = ChunkPos.asLong(chunkX, chunkZ);
+            CEChunk ceChunk = this.chunksToSave.get(chunkKey);
+            if (ceChunk == null) {
+                CEChunk loaded = this.ceWorld().getChunkAtIfLoaded(chunkX, chunkZ);
+                ceChunk = loaded != null ? loaded : this.ceWorld().worldDataStorage().readChunkAt(this.ceWorld(), new ChunkPos(chunkX, chunkZ), null); // todo fix pdc storage type
+                this.chunksToSave.put(chunkKey, ceChunk);
+            }
             CESection ceSection = ceChunk.sectionById(SectionPos.blockToSectionCoord(blockY));
             ImmutableBlockState immutableBlockState = BukkitBlockManager.instance().getImmutableBlockState(newStateId);
             if (immutableBlockState == null) {
@@ -239,7 +305,6 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
             } else {
                 ceSection.setBlockState(blockX & 15, blockY & 15, blockZ & 15, immutableBlockState);
             }
-            this.chunksToSave.add(ceChunk);
         } catch (IOException e) {
             CraftEngine.instance().logger().warn("Error when recording FastAsyncWorldEdit operation blocks", e);
         }
@@ -247,7 +312,7 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
 
     private void saveAllChunks() {
         try {
-            for (CEChunk ceChunk : this.chunksToSave) {
+            for (CEChunk ceChunk : this.chunksToSave.values()) {
                 this.ceWorld().worldDataStorage().writeChunkAt(ceChunk.chunkPos(), ceChunk);
             }
             this.chunksToSave.clear();
