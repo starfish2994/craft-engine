@@ -59,6 +59,7 @@ import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
+@SuppressWarnings("deprecation")
 final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
     private static int[] ordinalToIbdID;
     // 兼任"本区块的 CEChunk 缓存"与"提交时需要落盘的区块集合"，避免对未加载区块逐块重复 readChunkAt
