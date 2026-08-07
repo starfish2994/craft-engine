@@ -692,6 +692,35 @@ public final class RecipeEventListener implements Listener {
         return (int) Math.min((long) cost * 2L + 1L, 2147483647L);
     }
 
+    /*
+    处理砂轮合并修复。只关心两个输入槽都有物品的情况，单物品祛魔不属于修复逻辑。
+    原版砂轮只判断物品类型是否相同，无法区分相同原版材质的不同自定义物品，因此需要在此处拦截。
+     */
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onGrindstoneEvent(PrepareGrindstoneEvent event) {
+        if (event.getResult() == null) return;
+        GrindstoneInventory inventory = event.getInventory();
+        ItemStack first = inventory.getItem(0);
+        ItemStack second = inventory.getItem(1);
+        if (ItemStackUtils.isEmpty(first) || ItemStackUtils.isEmpty(second)) return;
+        Item wrappedFirst = BukkitItemManager.instance().wrap(first);
+        Optional<ItemDefinition> firstCustom = wrappedFirst.getDefinition();
+        Item wrappedSecond = BukkitItemManager.instance().wrap(second);
+        Optional<ItemDefinition> secondCustom = wrappedSecond.getDefinition();
+        // 两个都是原版物品
+        if (firstCustom.isEmpty() && secondCustom.isEmpty()) {
+            return;
+        }
+        // 自定义物品只能与相同id的物品合并，防止原版砂轮吞掉自定义数据
+        if (!wrappedFirst.customId().equals(wrappedSecond.customId())) {
+            event.setResult(null);
+            return;
+        }
+        if (firstCustom.isPresent() && firstCustom.get().settings().repairable().grindstoneRepair() == Tristate.FALSE) {
+            event.setResult(null);
+        }
+    }
+
     // only handle repair items for the moment
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onSpecialRecipe(PrepareItemCraftEvent event) {
