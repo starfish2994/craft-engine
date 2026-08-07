@@ -52,7 +52,9 @@ public interface Plugin {
 
     boolean isReloading();
 
-    boolean isInitializing();
+    boolean isEnabling();
+
+    boolean isFullyLoaded();
 
     boolean isStopping();
 

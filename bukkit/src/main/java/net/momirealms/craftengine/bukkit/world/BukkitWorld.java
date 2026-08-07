@@ -44,6 +44,7 @@ public final class BukkitWorld implements World {
     private final Path worldFolder;
     private CEWorld ceWorld;
     private WorldHeight worldHeight;
+    private boolean closed;
 
     public BukkitWorld(@NotNull org.bukkit.World bukkitWorld) {
         this.bukkitWorld = new WeakReference<>(bukkitWorld);
@@ -51,6 +52,14 @@ public final class BukkitWorld implements World {
         this.uuid = bukkitWorld.getUID();
         this.worldName = bukkitWorld.getName();
         this.worldFolder = bukkitWorld.getWorldFolder().toPath(); // 低版本没有直接获取path
+    }
+
+    @Override
+    public void cleanup() {
+        this.closed = true;
+        this.ceWorld = null;
+        this.minecraftWorld.clear();
+        this.bukkitWorld.clear();
     }
 
     @Override
@@ -65,8 +74,8 @@ public final class BukkitWorld implements World {
 
     @Override
     public CEWorld storageWorld() {
-        if (this.ceWorld == null) {
-            this.ceWorld = BukkitWorldManager.instance().getWorld(uuid());
+        if (this.ceWorld == null && !this.closed) {
+            this.ceWorld = BukkitWorldManager.instance().getWorldOffMainThread(uuid());
         }
         return this.ceWorld;
     }

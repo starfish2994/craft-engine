@@ -76,7 +76,6 @@ public final class BlockBreakLootListener implements Listener {
         }
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onBlockExplode(BlockExplodeEvent event) {
         float radius;
@@ -89,7 +88,6 @@ public final class BlockBreakLootListener implements Listener {
         handleExplosion(BukkitAdaptor.adapt(event.getBlock().getWorld()), event.blockList(), radius, null);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onEntityExplode(EntityExplodeEvent event) {
         float radius;

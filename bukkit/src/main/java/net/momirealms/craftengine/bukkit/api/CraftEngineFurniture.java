@@ -366,11 +366,11 @@ public final class CraftEngineFurniture {
      * @param dropLoot whether to drop loots
      * @param playSound whether to play break sound
      */
-    public static void remove(@NotNull Furniture furniture,
+    public static boolean remove(@NotNull Furniture furniture,
                               @Nullable net.momirealms.craftengine.core.entity.player.Player player,
                               boolean dropLoot,
                               boolean playSound) {
-        if (!furniture.isValid()) return;
+        if (!furniture.isValid()) return false;
         Location location = ((BukkitFurniture) furniture).getDropLocation();
         furniture.destroy(player);
         Loot loot = furniture.config.loot();

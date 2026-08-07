@@ -1,5 +1,9 @@
 package net.momirealms.craftengine.bukkit.world;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.Scheduler;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager;
@@ -19,10 +23,12 @@ import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
@@ -32,6 +38,7 @@ import net.momirealms.craftengine.core.world.chunk.PalettedContainer;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageAdaptor;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftChunkProxy;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.lithium.chunk.LithiumHashPaletteProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
@@ -67,6 +74,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -79,7 +88,25 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     private final BukkitCraftEngine plugin;
     private boolean initialized = false;
     // loaded worlds
-    private final ConcurrentChainedUUID2ReferenceHashTable<CEWorld> worlds;
+    private final ConcurrentChainedUUID2ReferenceHashTable<CEWorld> loadedWorlds;
+    private final Cache<UUID, CEWorld> unloadedWorlds = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.of(15, ChronoUnit.SECONDS))
+            .executor(CraftEngine.instance().scheduler().async())
+            .scheduler(Scheduler.systemScheduler())
+            .removalListener((UUID uuid, CEWorld ceWorld, RemovalCause cause) -> {
+                net.momirealms.craftengine.core.world.World world = ceWorld.world();
+                if (Config.fixWorldMemoryLeak()) {
+                    World bukkitWorld = (World) world.platformWorld();
+                    if (bukkitWorld != null) {
+                        CraftWorldProxy.INSTANCE.setWorld(bukkitWorld, null);
+                        Debugger.CHUNK.debug(() -> "Cleared '" + world.name() + "' level reference");
+                    }
+                }
+                world.cleanup();
+                Debugger.CHUNK.debug(() -> "World '" + world.name() + "' has been closed");
+            })
+            .initialCapacity(16)
+            .build();
     private CEWorld[] worldArray;
     private StorageAdaptor storageAdaptor;
     // for faster getter
@@ -101,7 +128,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             throw new IllegalStateException();
         }
         this.plugin = plugin;
-        this.worlds = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(16);
+        this.loadedWorlds = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(16);
         this.storageAdaptor = new BukkitStorageAdaptor();
         instance = this;
     }
@@ -139,7 +166,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         for (World world : Bukkit.getWorlds()) {
             BukkitWorld wrappedWorld = wrap(world);
             try {
-                CEWorld ceWorld = this.worlds.computeIfAbsent(world.getUID(), k -> VersionHelper.hasFoliaPatch ? new FoliaCEWorld(wrappedWorld, this.storageAdaptor) : new BukkitCEWorld(wrappedWorld, this.storageAdaptor));
+                CEWorld ceWorld = this.loadedWorlds.computeIfAbsent(world.getUID(), k -> VersionHelper.hasFoliaPatch ? new FoliaCEWorld(wrappedWorld, this.storageAdaptor) : new BukkitCEWorld(wrappedWorld, this.storageAdaptor));
                 injectWorld(ceWorld);
                 for (Chunk chunk : world.getLoadedChunks()) {
                     if (VersionHelper.hasFoliaPatch) {
@@ -179,8 +206,8 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             HandlerList.unregisterAll(listener);
         }
         for (World world : Bukkit.getWorlds()) {
-            //避免触发load world
-            if (this.worlds.containsKey(world.getUID())) {
+            // 避免触发load world
+            if (this.loadedWorlds.containsKey(world.getUID())) {
                 CEWorld ceWorld = getWorld(world.getUID());
                 ceWorld.setTicking(false);
                 for (Chunk chunk : world.getLoadedChunks()) {
@@ -197,7 +224,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 }
             }
         }
-        this.worlds.clear();
+        this.loadedWorlds.clear();
         this.lastWorld = null;
         this.lastWorldUUID = null;
     }
@@ -269,12 +296,15 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
      */
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldUnload(WorldUnloadEvent event) {
-        unloadWorld(wrap(event.getWorld()));
+        CEWorld world = this.loadedWorlds.get(event.getWorld().getUID());
+        if (world != null) {
+            unloadWorld(world.world);
+        }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldSave(WorldSaveEvent event) {
         for (CEWorld world : this.worldArray) {
             world.saveChunks();
@@ -285,9 +315,9 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     public void onWorldInit(WorldInitEvent event) {
         World world = event.getWorld();
         UUID uuid = world.getUID();
-        if (this.worlds.containsKey(uuid)) return;
+        if (this.loadedWorlds.containsKey(uuid)) return;
         CEWorld ceWorld = VersionHelper.hasFoliaPatch ? new FoliaCEWorld(wrap(world), this.storageAdaptor) : new BukkitCEWorld(wrap(world), this.storageAdaptor);
-        this.worlds.put(uuid, ceWorld);
+        this.loadedWorlds.put(uuid, ceWorld);
         this.resetWorldArray();
         this.injectWorld(ceWorld);
     }
@@ -296,8 +326,8 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     public void onWorldLoad(WorldLoadEvent event) {
         World world = event.getWorld();
         UUID uuid = world.getUID();
-        if (this.worlds.containsKey(uuid)) {
-            CEWorld ceWorld = this.worlds.get(uuid);
+        if (this.loadedWorlds.containsKey(uuid)) {
+            CEWorld ceWorld = this.loadedWorlds.get(uuid);
             for (Chunk chunk : world.getLoadedChunks()) {
                 handleChunkLoad(ceWorld, chunk);
                 CEChunk loadedChunk = ceWorld.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
@@ -313,7 +343,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onChunkLoad(ChunkLoadEvent event) {
-        CEWorld world = this.worlds.get(event.getWorld().getUID());
+        CEWorld world = this.loadedWorlds.get(event.getWorld().getUID());
         if (world == null) {
             return;
         }
@@ -322,7 +352,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onChunkUnload(ChunkUnloadEvent event) {
-        CEWorld world = this.worlds.get(event.getWorld().getUID());
+        CEWorld world = this.loadedWorlds.get(event.getWorld().getUID());
         if (world == null) {
             return;
         }
@@ -343,15 +373,42 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     @Override
+    public CEWorld getWorldOffMainThread(UUID uuid) {
+        CEWorld world = this.loadedWorlds.get(uuid);
+        if (world == null) {
+            world = this.unloadedWorlds.getIfPresent(uuid);
+        }
+        return world;
+    }
+
+    @Override
+    public CEWorld getWorldOnMainThread(UUID uuid) {
+        if (VersionHelper.hasFoliaPatch) {
+            return this.loadedWorlds.get(uuid);
+        }
+        if (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID)) {
+            return this.lastWorld;
+        }
+        CEWorld world = this.loadedWorlds.get(uuid);
+        if (world != null) {
+            this.lastWorldUUID = uuid;
+            this.lastWorld = world;
+        }
+        return world;
+    }
+
+    @Override
     public CEWorld getWorld(UUID uuid) {
         if (!VersionHelper.hasFoliaPatch && (uuid == this.lastWorldUUID || uuid.equals(this.lastWorldUUID))) {
             return this.lastWorld;
         }
-        CEWorld world = this.worlds.get(uuid);
+        CEWorld world = this.loadedWorlds.get(uuid);
         if (world != null) {
             this.lastWorldUUID = uuid;
             this.lastWorld = world;
-        } else {
+        }
+        // Allow other plugins to access CEWorld on onEnable phase
+        else if (!this.plugin.isFullyLoaded()) {
             World bukkitWorld = Bukkit.getWorld(uuid);
             if (bukkitWorld != null) {
                 world = this.loadWorld(wrap(bukkitWorld));
@@ -366,17 +423,18 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private void resetWorldArray() {
-        this.worldArray = this.worlds.values().toArray(new CEWorld[0]);
+        this.worldArray = this.loadedWorlds.values().toArray(new CEWorld[0]);
     }
 
     @Override
     public CEWorld loadWorld(net.momirealms.craftengine.core.world.World world) {
         UUID uuid = world.uuid();
-        if (this.worlds.containsKey(uuid)) {
-            return this.worlds.get(uuid);
+        if (this.loadedWorlds.containsKey(uuid)) {
+            return this.loadedWorlds.get(uuid);
         }
         CEWorld ceWorld = VersionHelper.hasFoliaPatch ? new FoliaCEWorld(world, this.storageAdaptor) : new BukkitCEWorld(world, this.storageAdaptor);
-        this.worlds.put(uuid, ceWorld);
+        this.loadedWorlds.put(uuid, ceWorld);
+        this.unloadedWorlds.invalidate(uuid);
         this.resetWorldArray();
         this.injectWorld(ceWorld);
         for (Chunk chunk : ((World) world.platformWorld()).getLoadedChunks()) {
@@ -389,12 +447,12 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     @Override
     public void loadWorld(CEWorld world, boolean forceInit) {
         UUID uuid = world.world().uuid();
-        if (this.worlds.containsKey(uuid)) {
+        if (this.loadedWorlds.containsKey(uuid)) {
             if (!forceInit) {
                 return;
             }
         }
-        this.worlds.put(uuid, world);
+        this.loadedWorlds.put(uuid, world);
         this.resetWorldArray();
         this.injectWorld(world);
         for (Chunk chunk : ((World) world.world().platformWorld()).getLoadedChunks()) {
@@ -467,10 +525,11 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     @Override
     public void unloadWorld(net.momirealms.craftengine.core.world.World world) {
         UUID uuid = world.uuid();
-        CEWorld ceWorld = this.worlds.remove(uuid);
+        CEWorld ceWorld = this.loadedWorlds.remove(uuid);
         if (ceWorld == null) {
             return;
         }
+        this.unloadedWorlds.put(uuid, ceWorld);
         this.resetWorldArray();
         ceWorld.setTicking(false);
         for (Chunk chunk : ((World) world.platformWorld()).getLoadedChunks()) {

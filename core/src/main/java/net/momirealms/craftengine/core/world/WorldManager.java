@@ -12,6 +12,10 @@ public interface WorldManager extends Manageable {
 
     void setStorageAdaptor(@NotNull StorageAdaptor storageAdaptor);
 
+    CEWorld getWorldOffMainThread(UUID uuid);
+
+    CEWorld getWorldOnMainThread(UUID uuid);
+
     CEWorld getWorld(UUID uuid);
 
     CEWorld[] getWorlds();

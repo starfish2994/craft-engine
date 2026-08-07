@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
@@ -165,7 +166,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void handleDeactivation(Object entity, org.bukkit.World craftWorld, Object pos, Vector positionVector) {
-        World world = BukkitWorldManager.instance().getWorld(craftWorld).world();
+        World world = BukkitAdaptor.adapt(craftWorld);
         world.playBlockSound(LocationUtils.toVec3d(LocationUtils.fromBlockPos(pos)), this.offSound);
         LevelUtils.sendGameEvent(
                 craftWorld,
@@ -176,7 +177,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void handleActivation(Object entity, org.bukkit.World craftWorld, Object pos, Vector positionVector) {
-        World world = BukkitWorldManager.instance().getWorld(craftWorld).world();
+        World world = BukkitAdaptor.adapt(craftWorld);
         world.playBlockSound(LocationUtils.toVec3d(LocationUtils.fromBlockPos(pos)), this.onSound);
         LevelUtils.sendGameEvent(
                 craftWorld,

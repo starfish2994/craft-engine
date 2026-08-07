@@ -116,7 +116,8 @@ public abstract class CraftEngine implements Plugin {
     private final PluginTaskRegistry postEnableTaskRegistry = new PluginTaskRegistry();
 
     protected boolean isReloading;
-    protected boolean isInitializing;
+    protected boolean isEnabling;
+    protected boolean isFullyLoaded;
     protected boolean isStopping;
     protected boolean isDisabled;
 
@@ -349,7 +350,7 @@ public abstract class CraftEngine implements Plugin {
     }
 
     protected void onPluginEnable() {
-        this.isInitializing = true;
+        this.isEnabling = true;
 
         // 注册网络相关的bukkit事件监听器
         this.networkManager.init();
@@ -452,12 +453,9 @@ public abstract class CraftEngine implements Plugin {
 
             // 初始资源已就绪（无论是否延迟加载），回调兼容性管理器以便其执行依赖注册表的初始化
             this.compatibilityManager.onInitialResourcesLoaded();
-
             // 必须要在完整重载后再初始化，否则会因为配置不存在，导致家具、弹射物等无法正确被加载
             this.projectileManager.delayedInit();
             this.furnitureManager.delayedInit();
-            // 完成初始化
-            this.isInitializing = false;
             // 异步去缓存资源包相关文件
             this.scheduler.executeAsync(() -> this.packManager.initCachedAssets());
             // 检查更新
@@ -466,12 +464,15 @@ public abstract class CraftEngine implements Plugin {
             }
             // 用于兼容那些注册群系比较晚的插件，点名批评某R开头的季节插件
             int biomeCount = this.platform.biomeCount();
+            // 完成初始化
+            this.isEnabling = false;
             this.scheduler.platform().runDelayed(() -> {
                 if (biomeCount != this.platform.biomeCount()) {
                     ((AbstractBlockManager) this.blockManager).registerBlockStatePacketListener();
                 }
                 // 一定等其他插件全部完成加载后再发重载事件
                 this.callReloadEvent();
+                this.isFullyLoaded = true;
             });
         });
     }
@@ -693,8 +694,13 @@ public abstract class CraftEngine implements Plugin {
     }
 
     @Override
-    public boolean isInitializing() {
-        return this.isInitializing;
+    public boolean isEnabling() {
+        return this.isEnabling;
+    }
+
+    @Override
+    public boolean isFullyLoaded() {
+        return this.isFullyLoaded;
     }
 
     @Override

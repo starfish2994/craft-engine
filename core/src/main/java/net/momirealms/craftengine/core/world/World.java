@@ -78,4 +78,6 @@ public interface World extends WorldAccessor, ChainParameterSource {
     long time();
 
     List<Player> getTrackedBy(ChunkPos pos);
+
+    void cleanup();
 }

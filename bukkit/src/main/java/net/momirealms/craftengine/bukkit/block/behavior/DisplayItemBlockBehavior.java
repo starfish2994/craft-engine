@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.DisplayItemBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
@@ -79,7 +80,8 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         if (player == null) return InteractionResult.PASS;
         World world = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
+        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOnMainThread(world.uuid());
+        BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) {
             return InteractionResult.PASS;
         }
@@ -121,7 +123,8 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         org.bukkit.World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).ceWorld();
+        if (ceWorld == null) return 0;
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) {
             return 0;

@@ -39,6 +39,7 @@ public abstract class CEWorld {
     protected volatile boolean isTickingAsyncBlockEntities = false;
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
+    protected boolean ticking;
 
     public CEWorld(World world, StorageAdaptor adaptor) {
         this(world, adaptor.adapt(world));
@@ -73,6 +74,11 @@ public abstract class CEWorld {
             if (this.asyncTickTask != null && !this.asyncTickTask.cancelled())
                 this.asyncTickTask.cancel();
         }
+        this.ticking = ticking;
+    }
+
+    public boolean isTicking() {
+        return this.ticking;
     }
 
     public String name() {

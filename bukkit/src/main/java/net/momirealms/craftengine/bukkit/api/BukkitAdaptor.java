@@ -45,7 +45,7 @@ public final class BukkitAdaptor {
      */
     @NotNull
     public static BukkitWorld adapt(@NotNull final World world) {
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(world);
+        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOffMainThread(world.getUID());
         if (ceWorld == null) return new BukkitWorld(world);
         return (BukkitWorld) ceWorld.world;
     }

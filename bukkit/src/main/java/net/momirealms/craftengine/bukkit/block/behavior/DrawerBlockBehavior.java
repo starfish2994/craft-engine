@@ -100,7 +100,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
 
     @Override
     public Object getContainer(Object thisBlock, Object[] args) {
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(LevelProxy.INSTANCE.getWorld(args[1]));
+        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOnMainThread(LevelProxy.INSTANCE.getWorld(args[1]).getUID());
         BlockPos blockPos = LocationUtils.fromBlockPos(args[2]);
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(blockPos);
         if (blockEntity == null) return null;
@@ -224,7 +224,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         org.bukkit.World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitWorldManager.instance().getWorldOnMainThread(bukkitWorld.getUID());
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) {
             return 0;
