@@ -49,7 +49,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.phys.BlockHitResultProxy
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import java.util.Optional;
 
@@ -106,8 +105,8 @@ public final class InteractListener {
                     buf.writeVarInt(hand == InteractionHand.MAIN_HAND ? 0 : 1);
                     buf.writeBoolean(usingSecondaryAction);
                 }
-
-                performInteractFurniture(furniture, entityId, serverPlayer, hand, usingSecondaryAction);
+                Vec3d packetPosition = new Vec3d(x, y, z);
+                performInteractFurniture(furniture, entityId, serverPlayer, hand, usingSecondaryAction, packetPosition);
             } else if (actionType == 0) {
                 // INTERACT
                 int hand = buf.readVarInt();
@@ -157,15 +156,16 @@ public final class InteractListener {
                 buf.writeBoolean(usingSecondaryAction);
             }
 
-            performInteractFurniture(furniture, entityId, serverPlayer, hand, usingSecondaryAction);
+            performInteractFurniture(furniture, entityId, serverPlayer, hand, usingSecondaryAction, vec3d);
         }
     }
 
     private static void performInteractFurniture(BukkitFurniture furniture,
-                                                int entityId,
-                                                BukkitServerPlayer serverPlayer,
-                                                InteractionHand hand,
-                                                boolean usingSecondaryAction) {
+                                                 int entityId,
+                                                 BukkitServerPlayer serverPlayer,
+                                                 InteractionHand hand,
+                                                 boolean usingSecondaryAction,
+                                                 Vec3d packetPosition) {
         Location location = furniture.location();
 
         Runnable mainThreadTask = () -> {
@@ -191,13 +191,14 @@ public final class InteractListener {
             if (platformPlayer == null) return;
             // 检测能否交互碰撞箱
             Location eyeLocation = serverPlayer.getEyeLocation();
-            Vector direction = eyeLocation.getDirection();
-            Location endLocation = eyeLocation.clone();
-            endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
-            Optional<EntityHitResult> optionalHitResult = part.aabb().clip(LocationUtils.toVec3d(eyeLocation), LocationUtils.toVec3d(endLocation));
-            if (optionalHitResult.isEmpty()) {
-                return;
-            }
+            Vec3d eyePosition = LocationUtils.toVec3d(eyeLocation);
+            Vec3d endPosition = new Vec3d(
+                    part.pos().x + packetPosition.x,
+                    part.pos().y + packetPosition.y,
+                    part.pos().z + packetPosition.z
+            );
+            Optional<EntityHitResult> optionalHitResult = part.aabb().clip(eyePosition, endPosition);
+            if (optionalHitResult.isEmpty()) return;
             EntityHitResult hitResult = optionalHitResult.get();
             Vec3d hitLocation = hitResult.hitLocation();
 
