@@ -650,6 +650,9 @@ chunk-system:
   blacklisted-worlds: []
   # Caches serialized chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
   cache-system: true
+  # Writes chunk data asynchronously on dedicated IO threads instead of blocking the server thread
+  # Requires server restart to take effect
+  async-save: true
   # Compression algorithm for chunk data
   # 1 = NONE      |  Compression Speed | Decompress Speed | Compression Ratio | Memory Usage   |
   # 2 = DEFLATE   |     Medium-Slow           Medium          Moderate              Low        |

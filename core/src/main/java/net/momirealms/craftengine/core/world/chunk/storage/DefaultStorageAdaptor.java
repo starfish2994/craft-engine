@@ -28,10 +28,12 @@ public final class DefaultStorageAdaptor implements StorageAdaptor {
         if (Config.chunkStorageType() == StorageType.NONE) {
             return new NoneStorage();
         }
+        DefaultRegionFileStorage regionStorage = new DefaultRegionFileStorage(world.directory().resolve(CEWorld.REGION_DIRECTORY), FACTORY);
+        WorldDataStorage storage = Config.enableAsyncChunkSave() ? new AsyncStorage(regionStorage) : regionStorage;
         if (Config.enableChunkCache()) {
-            return new CachedStorage<>(new DefaultRegionFileStorage(world.directory().resolve(CEWorld.REGION_DIRECTORY), FACTORY));
+            return new CachedStorage<>(storage);
         } else {
-            return new DefaultRegionFileStorage(world.directory().resolve(CEWorld.REGION_DIRECTORY), FACTORY);
+            return storage;
         }
     }
 }

@@ -168,7 +168,7 @@ public class BukkitEntity implements net.momirealms.craftengine.core.entity.Enti
         Object vehicle = EntityProxy.INSTANCE.getVehicle(entity);
         if (vehicle != null) {
             Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, entity);
-            return new Vec3d(mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(entity, EntityProxy.INSTANCE.getPose(entity)), mountPos.z);
+            return new Vec3d(mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(entity), mountPos.z);
         } else {
             return new Vec3d(EntityProxy.INSTANCE.getX(entity), EntityProxy.INSTANCE.getEyeY(entity), EntityProxy.INSTANCE.getZ(entity));
         }
@@ -179,7 +179,7 @@ public class BukkitEntity implements net.momirealms.craftengine.core.entity.Enti
         Object vehicle = EntityProxy.INSTANCE.getVehicle(entity);
         if (vehicle != null) {
             Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, entity);
-            return new Location(platformEntity().getWorld(), mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(entity, EntityProxy.INSTANCE.getPose(entity)), mountPos.z, EntityProxy.INSTANCE.getYRot(entity), EntityProxy.INSTANCE.getXRot(entity));
+            return new Location(platformEntity().getWorld(), mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(entity), mountPos.z, EntityProxy.INSTANCE.getYRot(entity), EntityProxy.INSTANCE.getXRot(entity));
         }
         return new Location(platformEntity().getWorld(), EntityProxy.INSTANCE.getXo(entity), EntityProxy.INSTANCE.getEyeY(entity), EntityProxy.INSTANCE.getZo(entity), EntityProxy.INSTANCE.getYRot(entity), EntityProxy.INSTANCE.getXRot(entity));
     }

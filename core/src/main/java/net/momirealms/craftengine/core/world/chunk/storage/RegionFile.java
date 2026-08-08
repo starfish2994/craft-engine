@@ -300,7 +300,20 @@ public final class RegionFile implements AutoCloseable {
     }
 
     public DataOutputStream getChunkDataOutputStream(ChunkPos pos) throws IOException {
-        return new DataOutputStream(this.compression.wrap(new ChunkBuffer(pos)));
+        return new DataOutputStream(this.compression.wrap(new WritingChunkBuffer(pos)));
+    }
+
+    public static byte[] encodeChunkData(CompressionMethod compression, CompoundTag nbt) throws IOException {
+        ChunkBuffer buffer = new ChunkBuffer(compression);
+        try (DataOutputStream dataOutputStream = new DataOutputStream(compression.wrap(buffer))) {
+            NBT.writeCompound(nbt, dataOutputStream, false);
+        }
+        buffer.patchHeader();
+        return buffer.toByteArray();
+    }
+
+    public void writeChunkData(ChunkPos pos, byte[] data) throws IOException {
+        this.write(pos, ByteBuffer.wrap(data));
     }
 
     public void flush() throws IOException {
@@ -320,7 +333,7 @@ public final class RegionFile implements AutoCloseable {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    protected synchronized void write(ChunkPos pos, ByteBuffer buf) throws IOException {
+    private synchronized void write(ChunkPos pos, ByteBuffer buf) throws IOException {
         // get old offset info
         int offsetIndex = RegionFile.getChunkLocation(pos);
         int previousSectorInfo = this.sectorInfo.get(offsetIndex);
@@ -447,11 +460,9 @@ public final class RegionFile implements AutoCloseable {
         return this.directory.resolve(s);
     }
 
-    private class ChunkBuffer extends ByteArrayOutputStream {
+    private static class ChunkBuffer extends ByteArrayOutputStream {
 
-        private final ChunkPos pos;
-
-        public ChunkBuffer(ChunkPos pos) {
+        public ChunkBuffer(CompressionMethod compression) {
             super(8096);
             // chunk size 4 bytes
             super.write(0);
@@ -459,8 +470,7 @@ public final class RegionFile implements AutoCloseable {
             super.write(0);
             super.write(0);
             // compression method
-            super.write(encodeFlag((byte) RegionFile.this.compression.getId(), FORMAT_VERSION, false));
-            this.pos = pos;
+            super.write(encodeFlag((byte) compression.getId(), FORMAT_VERSION, false));
         }
 
         @Override
@@ -479,10 +489,23 @@ public final class RegionFile implements AutoCloseable {
             super.write(b, off, len);
         }
 
+        void patchHeader() {
+            ByteBuffer.wrap(this.buf, 0, this.count).putInt(0, this.count - CHUNK_HEADER_SIZE + 1);
+        }
+    }
+
+    private final class WritingChunkBuffer extends ChunkBuffer {
+
+        private final ChunkPos pos;
+
+        public WritingChunkBuffer(ChunkPos pos) {
+            super(RegionFile.this.compression);
+            this.pos = pos;
+        }
+
         public void close() throws IOException {
-            ByteBuffer bytebuffer = ByteBuffer.wrap(this.buf, 0, this.count);
-            bytebuffer.putInt(0, this.count - CHUNK_HEADER_SIZE + 1);
-            RegionFile.this.write(this.pos, bytebuffer);
+            this.patchHeader();
+            RegionFile.this.write(this.pos, ByteBuffer.wrap(this.buf, 0, this.count));
         }
     }
 

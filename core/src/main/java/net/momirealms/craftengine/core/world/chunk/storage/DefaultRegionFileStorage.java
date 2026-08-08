@@ -64,6 +64,10 @@ public class DefaultRegionFileStorage implements WorldDataStorage {
         }
     }
 
+    ChunkFactory chunkFactory() {
+        return this.chunkFactory;
+    }
+
     public boolean doesRegionFileNotExistNoIO(ChunkPos pos) {
         long key = ChunkPos.asLong(pos.regionX(), pos.regionZ());
         return !this.doesRegionFilePossiblyExist(key);
@@ -212,6 +216,13 @@ public class DefaultRegionFileStorage implements WorldDataStorage {
                     NBT.writeCompound(nbt, dataOutputStream, false);
                 }
             }
+        }
+    }
+
+    public void writeChunkDataAt(@NotNull ChunkPos pos, byte[] data) throws IOException {
+        RegionFile regionFile = this.getRegionFile(pos, false);
+        synchronized (regionFile) {
+            regionFile.writeChunkData(pos, data);
         }
     }
 
