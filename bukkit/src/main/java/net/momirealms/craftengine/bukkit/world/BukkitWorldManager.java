@@ -190,7 +190,12 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             WorldDataStorage storage = ceWorld.worldDataStorage();
             Object nmsChunkPos = args[1];
             ChunkPos pos = new ChunkPos(ChunkPosProxy.INSTANCE.getX(nmsChunkPos), ChunkPosProxy.INSTANCE.getZ(nmsChunkPos));
-            storage.preloadChunkAt(ceWorld, pos, new BukkitChunkAccess(args[2]));
+            Object chunk = args[2];
+            // 满状态区块会被包成 ImposterProtoChunk，PDC 在被包裹的 LevelChunk 上，必须解包
+            if (ImposterProtoChunkProxy.CLASS.isInstance(chunk)) {
+                chunk = ImposterProtoChunkProxy.INSTANCE.getWrapped(chunk);
+            }
+            storage.preloadChunkAt(ceWorld, pos, new BukkitChunkAccess(chunk));
         } catch (Throwable ignored) {
             // 预热失败由事件里的主线程读取兜底
         }
