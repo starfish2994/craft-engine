@@ -129,6 +129,7 @@ public final class BukkitCraftEngine extends CraftEngine {
     // 这个方法应该尽早被执行，最好是boostrap阶段
     public void injectRegistries() {
         if (super.blockManager != null) return;
+        this.logger.info("Initializing registries...");
         try {
             BlockGenerator.init();
             BlockStateGenerator.init();

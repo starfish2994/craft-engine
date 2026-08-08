@@ -14,12 +14,22 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public final class CachedStorage<T extends WorldDataStorage> implements WorldDataStorage {
+    private static final int LOAD_LOCK_STRIPES = 256;
+
     private final T storage;
     private final ExpiringLong2ObjectCache<CEChunk> chunkCache;
+    private final Object[] loadLocks = new Object[LOAD_LOCK_STRIPES];
 
     public CachedStorage(T storage) {
         this.storage = storage;
         this.chunkCache = new ExpiringLong2ObjectCache<>(60, TimeUnit.SECONDS, 4096);
+        for (int i = 0; i < LOAD_LOCK_STRIPES; i++) {
+            this.loadLocks[i] = new Object();
+        }
+    }
+
+    private Object loadLock(long key) {
+        return this.loadLocks[Long.hashCode(key) & (LOAD_LOCK_STRIPES - 1)];
     }
 
     @Override
@@ -39,13 +49,34 @@ public final class CachedStorage<T extends WorldDataStorage> implements WorldDat
 
     @Override
     public @NotNull CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) throws IOException {
-        CEChunk chunk = this.chunkCache.getIfPresent(pos.longKey);
-        if (chunk != null) {
+        long key = pos.longKey;
+        CEChunk cached = this.chunkCache.getIfPresent(key);
+        if (cached != null) {
+            return cached;
+        }
+        synchronized (loadLock(key)) {
+            cached = this.chunkCache.getIfPresent(key);
+            if (cached != null) {
+                return cached;
+            }
+            CEChunk chunk = this.storage.readChunkAt(world, pos, chunkAccess);
+            this.chunkCache.put(key, chunk);
             return chunk;
         }
-        chunk = this.storage.readChunkAt(world, pos, chunkAccess);
-        this.chunkCache.put(pos.longKey, chunk);
-        return chunk;
+    }
+
+    @Override
+    public void preloadChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) throws IOException {
+        long key = pos.longKey;
+        if (this.chunkCache.getIfPresent(key) != null) {
+            return;
+        }
+        synchronized (loadLock(key)) {
+            if (this.chunkCache.getIfPresent(key) != null) {
+                return;
+            }
+            this.chunkCache.put(key, this.storage.readChunkAt(world, pos, chunkAccess));
+        }
     }
 
     @Override

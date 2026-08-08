@@ -19,4 +19,7 @@ public interface ServerPlayerGameModeProxy {
 
     @MethodInvoker(name = "destroyBlock")
     boolean destroyBlock(Object target, @Type(clazz = BlockPosProxy.class) Object pos);
+
+    @FieldGetter(name = "gameModeForPlayer")
+    Object getGameModeForPlayer(Object target);
 }

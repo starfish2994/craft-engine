@@ -66,16 +66,14 @@ public abstract class CEWorld {
             if (this.syncTickTask == null || this.syncTickTask.cancelled())
                 this.syncTickTask = CraftEngine.instance().scheduler().platform().runRepeating(this::syncTick, 1, 1);
             if (this.asyncTickTask == null || this.asyncTickTask.cancelled())
-                this.asyncTickTask = CraftEngine.instance().scheduler().platform().runRepeating(() -> {
+                this.asyncTickTask = CraftEngine.instance().scheduler().platform().runAsyncRepeating(() -> {
                     // 上一轮 asyncTick 还没跑完就跳过本轮，避免并发重入
                     if (this.asyncTickRunning.compareAndSet(false, true)) {
-                        CraftEngine.instance().scheduler().async().execute(() -> {
-                            try {
-                                this.asyncTick();
-                            } finally {
-                                this.asyncTickRunning.set(false);
-                            }
-                        });
+                        try {
+                            this.asyncTick();
+                        } finally {
+                            this.asyncTickRunning.set(false);
+                        }
                     }
                 }, 1, 1);
         } else {

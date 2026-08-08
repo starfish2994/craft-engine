@@ -52,6 +52,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerChunkCacheP
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ThreadedLevelLightEngineProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.CrudeIncrementalIntIdentityHashBiMapProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.ChunkPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.*;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.status.WorldGenContextProxy;
@@ -171,6 +172,28 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         }
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
         this.initialized = true;
+    }
+
+    /**
+     * 区块数据预热回调，由织入 SerializableChunkData#read 的 advice 在区块加载工作线程上调用。
+     * 此时原版区块数据（含 PDC）已读取完毕且严格早于 ChunkLoadEvent，
+     * 串行完成 CE 区块数据的读取与缓存，MCA 与 PDC 两种存储格式均可被预热。
+     * 启动期的区块加载因世界管理器尚未就绪而跳过。
+     */
+    public static void onChunkDataRead(Object[] args) {
+        try {
+            BukkitWorldManager manager = instance;
+            if (manager == null) return;
+            World bukkitWorld = LevelProxy.INSTANCE.getWorld(args[0]);
+            if (bukkitWorld == null) return;
+            CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
+            WorldDataStorage storage = ceWorld.worldDataStorage();
+            Object nmsChunkPos = args[1];
+            ChunkPos pos = new ChunkPos(ChunkPosProxy.INSTANCE.getX(nmsChunkPos), ChunkPosProxy.INSTANCE.getZ(nmsChunkPos));
+            storage.preloadChunkAt(ceWorld, pos, new BukkitChunkAccess(args[2]));
+        } catch (Throwable ignored) {
+            // 预热失败由事件里的主线程读取兜底
+        }
     }
 
     @Override
@@ -568,6 +591,10 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     if (ceChunk.isUnsaved()) {
                         ceWorld.worldDataStorage().writeChunkAt(chunkPos, ceChunk);
                         ceChunk.setUnsaved(false);
+                    }
+                    for (int i = 0; i < sections.length; i++) {
+                        Object section = sections[i];
+                        WorldStorageInjector.uninject(section);
                     }
                 } catch (IOException e) {
                     this.plugin.logger().warn("Failed to write chunk [world=" + ceWorld.name() +

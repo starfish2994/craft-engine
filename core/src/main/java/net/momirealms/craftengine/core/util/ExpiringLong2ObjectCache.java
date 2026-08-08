@@ -2,9 +2,9 @@ package net.momirealms.craftengine.core.util;
 
 import ca.spottedleaf.concurrentutil.collection.iterator.BaseObjectIterator;
 import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -75,7 +75,7 @@ public final class ExpiringLong2ObjectCache<V> {
     private void arm(long fireTime) {
         long generation = this.sweepGeneration.incrementAndGet();
         long delay = Math.max(fireTime - System.nanoTime(), this.pacerToleranceNanos);
-        CompletableFuture.runAsync(() -> fire(generation, fireTime), CompletableFuture.delayedExecutor(delay, TimeUnit.NANOSECONDS, ForkJoinPool.commonPool()));
+        CompletableFuture.runAsync(() -> fire(generation, fireTime), CompletableFuture.delayedExecutor(delay, TimeUnit.NANOSECONDS, CraftEngine.instance().scheduler().async()));
     }
 
     private void fire(long generation, long myFireTime) {

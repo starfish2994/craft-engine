@@ -94,6 +94,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypePro
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkSourceProxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.RegionizedPlayerChunkLoaderProxy;
+import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -333,7 +334,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public GameMode gameMode() {
-        Enum<?> gameType = (Enum<?>) ServerPlayerProxy.INSTANCE.getGameType(this.minecraftPlayer());
+        Enum<?> gameType = (Enum<?>) ServerPlayerGameModeProxy.INSTANCE.getGameModeForPlayer(ServerPlayerProxy.INSTANCE.getGameMode(this.minecraftPlayer()));
         return GameMode.VALUES[gameType.ordinal()];
     }
 
@@ -1171,7 +1172,6 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         this.lastSentState = -1;
     }
 
-    @SuppressWarnings("deprecation")
     public void broadcastDestroyProgressViaDisplay(BlockPos hitPos, float progress, DestroyStageDisplayEntitySetting display) {
         if (progress < 0) {
             clearDestroyStageDisplay();
@@ -1204,7 +1204,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         Object removePacket = entity.removePacket();
         entity.removeLeftViewers(current, viewerId -> {
             if (viewerId.equals(this.uuid)) return;
-            BukkitServerPlayer serverPlayer = (BukkitServerPlayer) BukkitNetworkManager.instance().getOnlineUser(viewerId);
+            BukkitServerPlayer serverPlayer = BukkitNetworkManager.instance().getOnlineUser(viewerId);
             if (serverPlayer == null) return;
             serverPlayer.sendPacket(removePacket, false);
         });

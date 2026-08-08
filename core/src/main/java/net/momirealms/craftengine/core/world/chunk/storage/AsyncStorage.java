@@ -30,7 +30,7 @@ public final class AsyncStorage implements WorldDataStorage {
             thread.setDaemon(true);
             return thread;
         };
-        WRITE_EXECUTOR = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() / 4), threadFactory);
+        WRITE_EXECUTOR = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() / 8), threadFactory);
     }
 
     private final DefaultRegionFileStorage storage;
