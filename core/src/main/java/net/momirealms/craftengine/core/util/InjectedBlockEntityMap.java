@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class MapListener<K, V> implements Map<K, V> {
+public class InjectedBlockEntityMap<K, V> implements Map<K, V> {
     private final Map<K, V> delegateMap;
     private final Consumer<V> putListener;
 
-    public MapListener(Map<K, V> original, Consumer<V> putListener) {
+    public InjectedBlockEntityMap(Map<K, V> original, Consumer<V> putListener) {
         this.delegateMap = original;
         this.putListener = putListener;
     }

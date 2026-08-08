@@ -737,7 +737,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             }
         } else {
             Map<Object, Object> blockEntities = ChunkAccessProxy.INSTANCE.getBlockEntities(levelChunk);
-            if (!(blockEntities instanceof MapListener<?,?>)) {
+            if (!(blockEntities instanceof InjectedBlockEntityMap<?,?>)) {
                 // <BlockPos, BlockEntity>
                 InjectedBlockEntityMap<Object, Object> mapListener = new InjectedBlockEntityMap<>(blockEntities, BukkitRecipeManager::injectFurnaceBlockEntity);
                 ChunkAccessProxy.INSTANCE.setBlockEntities(levelChunk, mapListener);

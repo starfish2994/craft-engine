@@ -333,12 +333,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
     @Override
     public GameMode gameMode() {
-        return switch (platformPlayer().getGameMode()) {
-            case CREATIVE -> GameMode.CREATIVE;
-            case SPECTATOR -> GameMode.SPECTATOR;
-            case ADVENTURE -> GameMode.ADVENTURE;
-            case SURVIVAL -> GameMode.SURVIVAL;
-        };
+        Enum<?> gameType = (Enum<?>) ServerPlayerProxy.INSTANCE.getGameType(this.minecraftPlayer());
+        return GameMode.VALUES[gameType.ordinal()];
     }
 
     @SuppressWarnings("UnstableApiUsage")

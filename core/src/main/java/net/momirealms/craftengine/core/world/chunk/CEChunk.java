@@ -695,7 +695,7 @@ public class CEChunk {
 
     @NotNull
     public ImmutableBlockState getBlockState(BlockPos pos) {
-        return getBlockState(pos.x(), pos.y(), pos.z());
+        return getBlockState(pos.x, pos.y, pos.z);
     }
 
     @NotNull

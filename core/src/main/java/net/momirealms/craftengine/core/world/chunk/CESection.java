@@ -35,7 +35,7 @@ public final class CESection {
 
     @ApiStatus.Internal
     public ImmutableBlockState getBlockState(int x, int y, int z) {
-        return statesContainer.get((y << 4 | z) << 4 | x);
+        return this.statesContainer.get((y << 4 | z) << 4 | x);
     }
 
     @ApiStatus.Internal

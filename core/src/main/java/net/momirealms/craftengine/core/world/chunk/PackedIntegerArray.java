@@ -19,9 +19,9 @@ public final class PackedIntegerArray implements PaletteStorage {
         int j;
         for (j = 0; j <= size - this.elementsPerLong; j += this.elementsPerLong) {
             long l = 0L;
-            for(int k = this.elementsPerLong - 1; k >= 0; --k) {
+            for (int k = this.elementsPerLong - 1; k >= 0; --k) {
                 l <<= elementBits;
-                l |= (long)data[j + k] & this.maxValue;
+                l |= (long) data[j + k] & this.maxValue;
             }
             this.data[i++] = l;
         }
@@ -30,7 +30,7 @@ public final class PackedIntegerArray implements PaletteStorage {
             long n = 0L;
             for (int o = m - 1; o >= 0; --o) {
                 n <<= elementBits;
-                n |= (long)data[j + o] & this.maxValue;
+                n |= (long) data[j + o] & this.maxValue;
             }
             this.data[i] = n;
         }
@@ -44,7 +44,7 @@ public final class PackedIntegerArray implements PaletteStorage {
         this.size = size;
         this.elementBits = elementBits;
         this.maxValue = (1L << elementBits) - 1L;
-        this.elementsPerLong = (char)(64 / elementBits);
+        this.elementsPerLong = (char) (64 / elementBits);
         int i = 3 * (this.elementsPerLong - 1);
         this.indexScale = INDEX_PARAMETERS[i + 0];
         this.indexOffset = INDEX_PARAMETERS[i + 1];
@@ -63,7 +63,7 @@ public final class PackedIntegerArray implements PaletteStorage {
     private int getStorageIndex(int index) {
         long l = Integer.toUnsignedLong(this.indexScale);
         long m = Integer.toUnsignedLong(this.indexOffset);
-        return (int)((long)index * l + m >> 32 >> this.indexShift);
+        return (int) ((long) index * l + m >> 32 >> this.indexShift);
     }
 
     @Override
@@ -71,8 +71,8 @@ public final class PackedIntegerArray implements PaletteStorage {
         int i = this.getStorageIndex(index);
         long l = this.data[i];
         int j = (index - i * this.elementsPerLong) * this.elementBits;
-        int k = (int)(l >> j & this.maxValue);
-        this.data[i] = l & ~(this.maxValue << j) | ((long)value & this.maxValue) << j;
+        int k = (int) (l >> j & this.maxValue);
+        this.data[i] = l & ~(this.maxValue << j) | ((long) value & this.maxValue) << j;
         return k;
     }
 
@@ -89,7 +89,7 @@ public final class PackedIntegerArray implements PaletteStorage {
         int i = this.getStorageIndex(index);
         long l = this.data[i];
         int j = (index - i * this.elementsPerLong) * this.elementBits;
-        return (int)(l >> j & this.maxValue);
+        return (int) (l >> j & this.maxValue);
     }
 
     @Override
@@ -98,7 +98,7 @@ public final class PackedIntegerArray implements PaletteStorage {
         long l = this.data[i];
         int j = (index - i * this.elementsPerLong) * this.elementBits;
         this.data[i] = l & ~(this.maxValue << j) | ((long) value & this.maxValue) << j;
-        return (int)(l >> j & this.maxValue);
+        return (int) (l >> j & this.maxValue);
     }
 
     @Override
@@ -125,8 +125,8 @@ public final class PackedIntegerArray implements PaletteStorage {
         for (int var5 = 0; var5 < var4; ++var5) {
             long l = var3[var5];
 
-            for(int j = 0; j < this.elementsPerLong; ++j) {
-                action.accept((int)(l & this.maxValue));
+            for (int j = 0; j < this.elementsPerLong; ++j) {
+                action.accept((int) (l & this.maxValue));
                 l >>= this.elementBits;
                 ++i;
                 if (i >= this.size) {
@@ -145,11 +145,11 @@ public final class PackedIntegerArray implements PaletteStorage {
         int k;
         long l;
         int m;
-        for(k = 0; k < i - 1; ++k) {
+        for (k = 0; k < i - 1; ++k) {
             l = this.data[k];
 
-            for(m = 0; m < this.elementsPerLong; ++m) {
-                out[j + m] = (int)(l & this.maxValue);
+            for (m = 0; m < this.elementsPerLong; ++m) {
+                out[j + m] = (int) (l & this.maxValue);
                 l >>= this.elementBits;
             }
 
@@ -160,8 +160,8 @@ public final class PackedIntegerArray implements PaletteStorage {
         if (k > 0) {
             l = this.data[i - 1];
 
-            for(m = 0; m < k; ++m) {
-                out[j + m] = (int)(l & this.maxValue);
+            for (m = 0; m < k; ++m) {
+                out[j + m] = (int) (l & this.maxValue);
                 l >>= this.elementBits;
             }
         }
