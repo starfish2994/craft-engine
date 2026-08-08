@@ -86,7 +86,7 @@ public final class EntityUtils {
     public static Vec3d getPassengerRidingPosition(Object nmsVehicle, Object nmsPassenger) {
         if (VersionHelper.isOrAbove1_20_5) {
             Vec3d passengerRidingPosition = LocationUtils.fromVec(EntityProxy.INSTANCE.getPassengerRidingPosition(nmsVehicle, nmsPassenger));
-            Vec3d vehicleAttachmentPoint = LocationUtils.fromVec(EntityProxy.INSTANCE.getVehicleAttachmentPoint(nmsVehicle, nmsPassenger));
+            Vec3d vehicleAttachmentPoint = LocationUtils.fromVec(EntityProxy.INSTANCE.getVehicleAttachmentPoint(nmsPassenger, nmsVehicle));
             return passengerRidingPosition.subtract(vehicleAttachmentPoint);
         } else if (VersionHelper.isOrAbove1_20_2) {
             Vec3d passengerRidingPosition = LocationUtils.fromVec(EntityProxy.INSTANCE.getPassengerRidingPosition(nmsVehicle, nmsPassenger));

@@ -170,7 +170,7 @@ public class BukkitEntity implements net.momirealms.craftengine.core.entity.Enti
             Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, entity);
             return new Vec3d(mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(entity, EntityProxy.INSTANCE.getPose(entity)), mountPos.z);
         } else {
-            return new Vec3d(EntityProxy.INSTANCE.getXo(entity), EntityProxy.INSTANCE.getEyeY(entity), EntityProxy.INSTANCE.getZo(entity));
+            return new Vec3d(EntityProxy.INSTANCE.getX(entity), EntityProxy.INSTANCE.getEyeY(entity), EntityProxy.INSTANCE.getZ(entity));
         }
     }
 
