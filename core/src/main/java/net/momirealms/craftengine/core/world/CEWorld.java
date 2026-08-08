@@ -37,6 +37,7 @@ public abstract class CEWorld {
     protected final List<TickingBlockEntity> pendingAsyncTickingBlockEntities = new ArrayList<>();
     protected volatile boolean isTickingSyncBlockEntities = false;
     protected volatile boolean isTickingAsyncBlockEntities = false;
+    protected final AtomicBoolean asyncTickRunning = new AtomicBoolean(false);
     protected SchedulerTask syncTickTask;
     protected SchedulerTask asyncTickTask;
     protected boolean ticking;
@@ -66,7 +67,16 @@ public abstract class CEWorld {
                 this.syncTickTask = CraftEngine.instance().scheduler().platform().runRepeating(this::syncTick, 1, 1);
             if (this.asyncTickTask == null || this.asyncTickTask.cancelled())
                 this.asyncTickTask = CraftEngine.instance().scheduler().platform().runRepeating(() -> {
-                    CraftEngine.instance().scheduler().async().execute(this::asyncTick);
+                    // 上一轮 asyncTick 还没跑完就跳过本轮，避免并发重入
+                    if (this.asyncTickRunning.compareAndSet(false, true)) {
+                        CraftEngine.instance().scheduler().async().execute(() -> {
+                            try {
+                                this.asyncTick();
+                            } finally {
+                                this.asyncTickRunning.set(false);
+                            }
+                        });
+                    }
                 }, 1, 1);
         } else {
             if (this.syncTickTask != null && !this.syncTickTask.cancelled())

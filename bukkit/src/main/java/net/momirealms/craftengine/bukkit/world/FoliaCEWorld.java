@@ -63,10 +63,6 @@ public final class FoliaCEWorld extends BukkitCEWorld {
     }
 
     @Override
-    public void asyncTick() {
-    }
-
-    @Override
     public void removeLoadedChunk(CEChunk chunk) {
         super.removeLoadedChunk(chunk);
     }
