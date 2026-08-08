@@ -228,7 +228,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
             // 触发行为卸载
             try {
-                furniture.controller.onUnload(isStopping);
+                furniture.controller.onUnload();
             } finally {
                 furniture.saveIfDirty();
             }

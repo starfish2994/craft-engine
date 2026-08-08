@@ -77,6 +77,19 @@ public abstract class BlockEntityController {
     public void onRemove() {
     }
 
+    /**
+     * 方块实体在已加载区块中生效时触发：区块加载（activateAllBlockEntities）或放置进已激活区块。
+     */
+    public void onLoad() {
+    }
+
+    /**
+     * 方块实体失效时触发：区块卸载（deactivateAllBlockEntities）或被移除。
+     * 与 onLoad 成对：只在区块处于激活状态时触发的移除才会收到 onUnload。
+     */
+    public void onUnload() {
+    }
+
     public void preBlockStateChange(ImmutableBlockState newState) {
     }
 
@@ -157,6 +170,18 @@ public abstract class BlockEntityController {
         public void onRemove() {
             this.first.onRemove();
             this.second.onRemove();
+        }
+
+        @Override
+        public void onLoad() {
+            this.first.onLoad();
+            this.second.onLoad();
+        }
+
+        @Override
+        public void onUnload() {
+            this.first.onUnload();
+            this.second.onUnload();
         }
 
         @Override
@@ -384,6 +409,20 @@ public abstract class BlockEntityController {
         public void onRemove() {
             for (BlockEntityController controller : this.controllers) {
                 controller.onRemove();
+            }
+        }
+
+        @Override
+        public void onLoad() {
+            for (BlockEntityController controller : this.controllers) {
+                controller.onLoad();
+            }
+        }
+
+        @Override
+        public void onUnload() {
+            for (BlockEntityController controller : this.controllers) {
+                controller.onUnload();
             }
         }
     }

@@ -454,16 +454,29 @@ public class CEChunk {
     public void addBlockEntity(BlockEntity blockEntity) {
         this.setBlockEntity(blockEntity);
         if (this.activated) {
+            try {
+                blockEntity.controller.onLoad();
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().warn("Failed to load block entity " + blockEntity.blockState + " at " + world.name() + " " + blockEntity.pos, t);
+            }
             this.replaceOrCreateTickingBlockEntity(blockEntity);
             this.createDynamicBlockEntityRenderer(blockEntity);
         }
     }
 
     public void removeBlockEntity(BlockPos blockPos) {
-        BlockEntity removedBlockEntity = this.blockEntities.remove(blockPos.asLong());
-        if (removedBlockEntity != null) {
-            removedBlockEntity.setValid(false);
-        }
+        BlockEntity blockEntity = this.blockEntities.remove(blockPos.asLong());
+        if (blockEntity != null) {
+            // 与 onLoad 成对：只有区块处于激活状态（即触发过 onLoad）时才触发 onUnload
+            if (this.activated) {
+                try {
+                    blockEntity.controller.onUnload();
+                } catch (Throwable t) {
+                    CraftEngine.instance().logger().warn("Failed to unload block entity " + blockEntity.blockState + " at " + world.name() + " " + blockEntity.pos, t);
+                }
+            }
+            blockEntity.setValid(false);
+    }
         this.removeBlockEntityTicker(blockPos);
         this.removeDynamicBlockEntityRenderer(blockPos);
     }
@@ -478,6 +491,11 @@ public class CEChunk {
             blockEntity.setValid(true);
             this.replaceOrCreateTickingBlockEntity(blockEntity);
             this.createDynamicBlockEntityRenderer(blockEntity);
+            try {
+                blockEntity.controller.onLoad();
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().warn("Failed to load block entity " + blockEntity.blockState + " at " + world.name() + " " + blockEntity.pos, t);
+            }
         }
         try {
             this.renderLock.readLock().lock();
@@ -492,7 +510,14 @@ public class CEChunk {
 
     public void deactivateAllBlockEntities() {
         if (!this.activated) return;
-        this.blockEntities.values().forEach(e -> e.setValid(false));
+        this.blockEntities.values().forEach(e -> {
+            e.setValid(false);
+            try {
+                e.controller.onUnload();
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().warn("Failed to unload block entity " + e.blockState + " at " + world.name() + " " + e.pos, t);
+            }
+        });
 
         if (!CraftEngine.instance().isStopping()) {
             try {
