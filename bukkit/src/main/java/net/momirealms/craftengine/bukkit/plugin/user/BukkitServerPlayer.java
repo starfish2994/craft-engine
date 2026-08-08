@@ -935,10 +935,10 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     // 客户端完成破坏方块
     @Override
     public void finishMiningBlock() {
+        clearActiveDestroyProgress(false);
         this.miningProgress = 0f;
         this.isDestroyingBlock = false;
         this.swingHandAck = false;
-        clearDestroyStageDisplay();
         this.destroyedState = null;
         this.destroyPos = null;
         this.isDestroyingCustomBlock = false;
@@ -948,10 +948,10 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     // 通过丢弃物品/右键方块/右键实体触发，会给几tick的挖掘冷却期
     @Override
     public void stopMiningBlock() {
+        clearActiveDestroyProgress(false);
         this.miningProgress = 0f;
         this.isDestroyingBlock = false;
         this.swingHandAck = false;
-        clearDestroyStageDisplay();
         this.destroyedState = null;
         this.destroyPos = null;
         this.isDestroyingCustomBlock = false;
@@ -1086,7 +1086,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
                     // send break particle + (removed sounds)
                     if (breakResult) {
                         sendPacket(ClientboundLevelEventPacketProxy.INSTANCE.newInstance(WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId(), false), false);
-                        clearDestroyStageDisplayForAll();
+                        clearActiveDestroyProgress(true);
                         this.destroyPos = null;
                         this.miningProgress = 0;
                         this.isDestroyingBlock = false;
@@ -1143,6 +1143,32 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
             if (!isWithinDestroyRange(hitPos, other)) continue;
             other.sendPacket(packet, false);
         }
+    }
+
+    /**
+     * Clears the destruction overlay before the tracked position/state is discarded.
+     * Vanilla crack overlays are keyed by breaker id and survive a block replacement;
+     * without an explicit reset, a newly placed block at the same position inherits
+     * the final crack stage until another update happens.
+     */
+    private void clearActiveDestroyProgress(boolean clearAllDisplayMiners) {
+        BlockPos position = this.destroyPos;
+        if (position == null || !this.isDestroyingCustomBlock) {
+            clearDestroyStageDisplay();
+            this.lastSentState = -1;
+            return;
+        }
+
+        if (currentDestroyStageDisplay() != null) {
+            if (clearAllDisplayMiners) {
+                clearDestroyStageDisplayForAll();
+            } else {
+                clearDestroyStageDisplay();
+            }
+        } else {
+            broadcastDestroyProgressVanilla(position, -1);
+        }
+        this.lastSentState = -1;
     }
 
     @SuppressWarnings("deprecation")
