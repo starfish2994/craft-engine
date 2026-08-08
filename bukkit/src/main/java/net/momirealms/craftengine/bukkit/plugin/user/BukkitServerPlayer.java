@@ -784,8 +784,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
             boolean firstPersonVisible = this.culling.isVisible(cullingData, this.firstPersonCameraVec3, useRayTracing);
             // 之前可见
             if (cullableObject.isShown) {
-                boolean thirdPersonVisible = this.culling.isVisible(cullingData, this.thirdPersonCameraVec3, useRayTracing);
-                if (!firstPersonVisible && !thirdPersonVisible) {
+                // 第一人称可见时结果已与第三人称无关
+                if (!firstPersonVisible && !this.culling.isVisible(cullingData, this.thirdPersonCameraVec3, useRayTracing)) {
                     cullableObject.setShown(this, false);
                 }
             }

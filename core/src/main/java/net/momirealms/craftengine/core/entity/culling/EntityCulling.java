@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.world.ChunkPos;
 import net.momirealms.craftengine.core.world.MutableVec3d;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
+import net.momirealms.craftengine.core.world.chunk.client.occlusion.OccludingSection;
 import net.momirealms.craftengine.core.world.collision.AABB;
 
 public final class EntityCulling {
@@ -23,6 +24,8 @@ public final class EntityCulling {
     private int lastVisitChunkX = Integer.MAX_VALUE;
     private int lastVisitChunkZ = Integer.MAX_VALUE;
     private ClientChunk lastVisitChunk = null;
+    private OccludingSection lastVisitSection = null;
+    private int lastVisitSectionY = Integer.MAX_VALUE;
     private int currentTokens = Config.entityCullingRateLimitingBucketSize();
     private double distanceScale = 1d;
     public int[] lastHitBlock = new int[3];
@@ -111,7 +114,19 @@ public final class EntityCulling {
         if (relZ == Relative.POSITIVE)      dotMask |= MASK_Z_POS;
         else if (relZ == Relative.NEGATIVE) dotMask |= MASK_Z_NEG;
 
+        double avgX = (minX + maxX) * 0.5;
+        double avgY = (minY + maxY) * 0.5;
+        double avgZ = (minZ + maxZ) * 0.5;
+
+        // 面心先于角点：面心更不容易被擦边遮挡，可见时能更快命中
         int size = 0;
+        if ((dotMask & (1 << 8)) != 0)  targetPoints[size++].set(avgX, avgY, minZ);
+        if ((dotMask & (1 << 9)) != 0)  targetPoints[size++].set(avgX, avgY, maxZ);
+        if ((dotMask & (1 << 10)) != 0) targetPoints[size++].set(minX, avgY, avgZ);
+        if ((dotMask & (1 << 11)) != 0) targetPoints[size++].set(maxX, avgY, avgZ);
+        if ((dotMask & (1 << 12)) != 0) targetPoints[size++].set(avgX, minY, avgZ);
+        if ((dotMask & (1 << 13)) != 0) targetPoints[size++].set(avgX, maxY, avgZ);
+
         if ((dotMask & (1 << 0)) != 0)  targetPoints[size++].set(minX, minY, minZ);
         if ((dotMask & (1 << 1)) != 0)  targetPoints[size++].set(maxX, minY, minZ);
         if ((dotMask & (1 << 2)) != 0)  targetPoints[size++].set(minX, minY, maxZ);
@@ -120,17 +135,6 @@ public final class EntityCulling {
         if ((dotMask & (1 << 5)) != 0)  targetPoints[size++].set(maxX, maxY, minZ);
         if ((dotMask & (1 << 6)) != 0)  targetPoints[size++].set(minX, maxY, maxZ);
         if ((dotMask & (1 << 7)) != 0)  targetPoints[size++].set(maxX, maxY, maxZ);
-
-        double avgX = (minX + maxX) * 0.5;
-        double avgY = (minY + maxY) * 0.5;
-        double avgZ = (minZ + maxZ) * 0.5;
-
-        if ((dotMask & (1 << 8)) != 0)  targetPoints[size++].set(avgX, avgY, minZ);
-        if ((dotMask & (1 << 9)) != 0)  targetPoints[size++].set(avgX, avgY, maxZ);
-        if ((dotMask & (1 << 10)) != 0) targetPoints[size++].set(minX, avgY, avgZ);
-        if ((dotMask & (1 << 11)) != 0) targetPoints[size++].set(maxX, avgY, avgZ);
-        if ((dotMask & (1 << 12)) != 0) targetPoints[size++].set(avgX, minY, avgZ);
-        if ((dotMask & (1 << 13)) != 0) targetPoints[size++].set(avgX, maxY, avgZ);
 
 //        if (Config.debugEntityCulling()) {
 //            for (int i = 0; i < size; i++) {
@@ -206,8 +210,8 @@ public final class EntityCulling {
 
             // 检查之前命中的方块，大概率还是命中
             if (this.canCheckLastHitBlock) {
-                double length = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-                this.direction.set(deltaX / length, deltaY / length, deltaZ / length);
+                // 不需要归一化：rayIntersection 中 t 的比较结果对 direction 的正缩放不变
+                this.direction.set(deltaX, deltaY, deltaZ);
                 if (rayIntersection(this.lastHitBlock[0], this.lastHitBlock[1], this.lastHitBlock[2], currentTarget, this.direction)) {
                     continue;
                 }
@@ -383,16 +387,40 @@ public final class EntityCulling {
             this.lastVisitChunk = trackedChunk;
             this.lastVisitChunkX = chunkX;
             this.lastVisitChunkZ = chunkZ;
+            this.lastVisitSection = null;
+            this.lastVisitSectionY = Integer.MAX_VALUE;
         }
         if (trackedChunk == null) {
             return false;
         }
-        return trackedChunk.isOccluding(x, y, z);
+        OccludingSection[] sections = trackedChunk.occludingSections;
+        if (sections == null) {
+            return false;
+        }
+        // DDA 连续步大多落在同一 section 内，section 级缓存省掉每次的索引换算和边界检查
+        int sectionY = y >> 4;
+        OccludingSection section;
+        if (sectionY == this.lastVisitSectionY) {
+            section = this.lastVisitSection;
+        } else {
+            int index = trackedChunk.sectionIndex(sectionY);
+            section = index >= 0 && index < sections.length ? sections[index] : null;
+            this.lastVisitSection = section;
+            this.lastVisitSectionY = sectionY;
+        }
+        if (section == null) {
+            return false;
+        }
+        return section.isOccluding((y & 15) << 8 | (z & 15) << 4 | x & 15);
     }
 
     public void removeLastVisitChunkIfMatches(int chunkX, int chunkZ) {
         if (this.lastVisitChunk != null && this.lastVisitChunkX == chunkX && this.lastVisitChunkZ == chunkZ) {
             this.lastVisitChunk = null;
+            this.lastVisitSection = null;
+            this.lastVisitChunkX = Integer.MAX_VALUE;
+            this.lastVisitChunkZ = Integer.MAX_VALUE;
+            this.lastVisitSectionY = Integer.MAX_VALUE;
         }
     }
 
