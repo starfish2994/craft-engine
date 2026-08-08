@@ -68,11 +68,13 @@ public final class FurnitureEventListener implements Listener {
         if (!chunk.isLoaded()) {
             return;
         }
+        // 整个实体列表同属一个区块，实体操作的推迟判断共享一次计算
+        BukkitFurnitureManager.SafeEntityOperationRunner operationRunner = this.manager.newEntityOperationRunner(chunk);
         List<Entity> entities = event.getEntities();
         for (int i = 0, size = entities.size(); i < size; i++) {
             Entity entity = entities.get(i);
             if (entity instanceof ItemDisplay itemDisplay) {
-                this.manager.handleMetaEntityDuringChunkLoad(itemDisplay);
+                this.manager.handleMetaEntityDuringChunkLoad(itemDisplay, operationRunner);
             } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
                 this.manager.handleCollisionEntityDuringChunkLoad(entity);
             }

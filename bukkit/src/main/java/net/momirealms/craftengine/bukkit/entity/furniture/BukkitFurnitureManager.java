@@ -251,6 +251,10 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
     }
 
     public void handleMetaEntityDuringChunkLoad(ItemDisplay entity) {
+        handleMetaEntityDuringChunkLoad(entity, null);
+    }
+
+    public void handleMetaEntityDuringChunkLoad(ItemDisplay entity, @Nullable SafeEntityOperationRunner runner) {
         // 实体可能不是持久的
         if (!entity.isPersistent()) {
             return;
@@ -290,7 +294,7 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         if (previous != null) return;
 
         // 创建新的家具
-        BukkitFurniture furnitureInstance = createFurnitureInstance(entity, furnitureDefinition);
+        BukkitFurniture furnitureInstance = createFurnitureInstance(entity, furnitureDefinition, runner);
         CompoundTag data = (CompoundTag) Optional.ofNullable(furnitureInstance.persistentData.getTag(FurniturePersistentData.CUSTOM_DATA)).orElseGet(CompoundTag::new);
         furnitureInstance.controller.loadCustomData(data);
         furnitureInstance.controller.onLoad();
@@ -382,15 +386,25 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
 
     // 创建家具实例，并初始化碰撞实体
     private BukkitFurniture createFurnitureInstance(ItemDisplay display, FurnitureDefinition furniture) {
+        return createFurnitureInstance(display, furniture, null);
+    }
+
+    // 创建家具实例，并初始化碰撞实体
+    private BukkitFurniture createFurnitureInstance(ItemDisplay display, FurnitureDefinition furniture, @Nullable SafeEntityOperationRunner runner) {
         BukkitFurniture bukkitFurniture = new BukkitFurniture(display, furniture, getFurnitureDataAccessor(display));
         initFurniture(bukkitFurniture);
         Location location = display.getLocation();
-        runSafeEntityOperation(location.getChunk(), () -> {
+        Runnable action = () -> {
             bukkitFurniture.addCollidersToWorld();
             for (FurnitureElement element : bukkitFurniture.elements()) {
                 element.activate();
             }
-        });
+        };
+        if (runner != null) {
+            runner.run(action);
+        } else {
+            runSafeEntityOperation(location.getChunk(), action);
+        }
         return bukkitFurniture;
     }
 
@@ -459,20 +473,47 @@ public final class BukkitFurnitureManager extends AbstractFurnitureManager {
         collider.destroy();
     }
 
+    private boolean shouldDeferEntityOperation(Chunk chunk) {
+        if (!VersionHelper.hasPaperPatch) return false;
+        Object world = CraftWorldProxy.INSTANCE.getWorld(chunk.getWorld());
+        Object entityLookup = LevelUtils.getEntityLookup(world);
+        Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, chunk.getX(), chunk.getZ());
+        return slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
+    }
+
     private void runSafeEntityOperation(Chunk chunk, Runnable action) {
         if (!chunk.isLoaded()) return;
-        if (VersionHelper.hasPaperPatch) {
-            Object world = CraftWorldProxy.INSTANCE.getWorld(chunk.getWorld());
-            Object entityLookup = LevelUtils.getEntityLookup(world);
-            Object slices = EntityLookupProxy.INSTANCE.getChunk(entityLookup, chunk.getX(), chunk.getZ());
-            boolean preventChange = slices != null && ChunkEntitySlicesProxy.INSTANCE.isPreventingStatusUpdates(slices);
-            if (preventChange) {
-                this.plugin.scheduler().platform().runLater(action, 1, chunk.getWorld(), chunk.getX(), chunk.getZ());
+        if (shouldDeferEntityOperation(chunk)) {
+            this.plugin.scheduler().platform().runLater(action, 1, chunk.getWorld(), chunk.getX(), chunk.getZ());
+        } else {
+            action.run();
+        }
+    }
+
+    public SafeEntityOperationRunner newEntityOperationRunner(Chunk chunk) {
+        return new SafeEntityOperationRunner(chunk);
+    }
+
+    public final class SafeEntityOperationRunner {
+        private final Chunk chunk;
+        private boolean resolved;
+        private boolean defer;
+
+        private SafeEntityOperationRunner(Chunk chunk) {
+            this.chunk = chunk;
+        }
+
+        public void run(Runnable action) {
+            if (!this.chunk.isLoaded()) return;
+            if (!this.resolved) {
+                this.defer = shouldDeferEntityOperation(this.chunk);
+                this.resolved = true;
+            }
+            if (this.defer) {
+                BukkitFurnitureManager.this.plugin.scheduler().platform().runLater(action, 1, this.chunk.getWorld(), this.chunk.getX(), this.chunk.getZ());
             } else {
                 action.run();
             }
-        } else {
-            action.run();
         }
     }
 

@@ -510,18 +510,15 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     Object section = sections[i];
                     WorldStorageInjector.uninject(section);
                     if (restore) {
-                        if (!ceSection.statesContainer.isEmpty()) {
-                            for (int x = 0; x < 16; x++) {
-                                for (int z = 0; z < 16; z++) {
-                                    for (int y = 0; y < 16; y++) {
-                                        ImmutableBlockState customState = ceSection.getBlockState(x, y, z);
-                                        if (!customState.isEmpty()) {
-                                            BlockStateWrapper wrapper = customState.restoreBlockState();
-                                            if (wrapper != null) {
-                                                LevelChunkSectionProxy.INSTANCE.setBlockState(section, x, y, z, wrapper.minecraftState(), false);
-                                                unsaved = true;
-                                            }
-                                        }
+                        PalettedContainer<ImmutableBlockState> statesContainer = ceSection.statesContainer;
+                        if (!statesContainer.isEmpty()) {
+                            for (int m = 0; m < 4096; m++) {
+                                ImmutableBlockState customState = statesContainer.get(m);
+                                if (!customState.isEmpty()) {
+                                    BlockStateWrapper wrapper = customState.restoreBlockState();
+                                    if (wrapper != null) {
+                                        LevelChunkSectionProxy.INSTANCE.setBlockState(section, m & 15, m >> 8, (m >> 4) & 15, wrapper.minecraftState(), false);
+                                        unsaved = true;
                                     }
                                 }
                             }

@@ -1,5 +1,8 @@
 package net.momirealms.craftengine.bukkit.item;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Scheduler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -52,6 +55,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
@@ -71,6 +76,7 @@ public final class BukkitItemManager extends AbstractItemManager {
     private final NetworkItemHandler networkItemHandler;
     private final Object bedrockItemHolder;
     private final BukkitItem emptyItem;
+    private final Cache<ByteArrayKey, BukkitItem> deserializedItemCache;
     private Set<Key> lastRegisteredPatterns = Set.of();
     private boolean hasExternalRecipeSource = false;
     private ItemSource[] recipeIngredientSources = null;
@@ -92,6 +98,12 @@ public final class BukkitItemManager extends AbstractItemManager {
         this.loadLastRegisteredPatterns();
         this.loadItemModelMappings();
         this.emptyItem = wrap(ItemStackProxy.EMPTY);
+        this.deserializedItemCache = Caffeine.newBuilder()
+                .maximumSize(512)
+                .expireAfterAccess(Duration.of(15, ChronoUnit.MINUTES))
+                .scheduler(Scheduler.systemScheduler())
+                .executor(this.plugin.scheduler().async())
+                .build();
     }
 
     @Override
@@ -382,7 +394,29 @@ public final class BukkitItemManager extends AbstractItemManager {
 
     @Override
     public BukkitItem fromBytes(byte[] bytes) {
-        return wrap(ItemStackUtils.fromBytes(bytes));
+        return fromBytes(bytes, true);
+    }
+
+    @Override
+    public BukkitItem fromBytes(byte[] bytes, boolean useCache) {
+        if (!useCache) {
+            return wrap(ItemStackUtils.fromBytes(bytes));
+        }
+        // 反序列化（解压 + DataFixer + codec 解析）很贵，而家具等场景会反复加载相同字节
+        BukkitItem template = this.deserializedItemCache.get(new ByteArrayKey(bytes), key -> wrap(ItemStackUtils.fromBytes(key.bytes())));
+        return (BukkitItem) template.copy();
+    }
+
+    private record ByteArrayKey(byte[] bytes) {
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof ByteArrayKey other && Arrays.equals(this.bytes, other.bytes());
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(this.bytes);
+        }
     }
 
     @Override

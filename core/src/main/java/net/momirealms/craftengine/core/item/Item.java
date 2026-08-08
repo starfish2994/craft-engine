@@ -71,6 +71,10 @@ public interface Item extends ChainParameterSource {
         return CraftEngine.instance().itemManager().fromBytes(bytes);
     }
 
+    static Item fromBytes(final byte[] bytes, final boolean useCache) {
+        return CraftEngine.instance().itemManager().fromBytes(bytes, useCache);
+    }
+
     default Item toClientSide(Player player) {
         Optional<Item> item = CraftEngine.instance().itemManager().s2c(this, player);
         return item.orElse(this);
