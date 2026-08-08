@@ -13,11 +13,12 @@ import net.momirealms.craftengine.core.util.FriendlyByteBuf;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.ServerGamePacketListenerImplProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import org.bukkit.entity.Player;
 
 public final class PickItemFromBlockListener implements ByteBufferPacketListener {
@@ -42,10 +43,10 @@ public final class PickItemFromBlockListener implements ByteBufferPacketListener
     }
 
     private static void handlePickItemFromBlockPacketOnMainThread(BukkitServerPlayer player, BlockPos pos) {
-        CEWorld serverLevel = player.world().ceWorld();
-        ImmutableBlockState blockState = serverLevel.getBlockStateAtIfLoaded(pos);
-        if (blockState == null || blockState.customBlockState() == null) return;
-        if (!BlockStateUtils.isCustomBlock(blockState.customBlockState().minecraftState())) return;
+        Object nmsWorld = CraftWorldProxy.INSTANCE.getWorld(player.platformPlayer().getWorld());
+        Object vanillaState = BlockGetterProxy.INSTANCE.getBlockState(nmsWorld, LocationUtils.toBlockPos(pos));
+        ImmutableBlockState blockState = BlockStateUtils.getOptionalCustomBlockState(vanillaState).orElse(null);
+        if (blockState == null) return;
         Item item = blockState.behavior().itemToPickup(player.world(), pos, blockState, player);
         Object itemStack;
         if (item == null) {
