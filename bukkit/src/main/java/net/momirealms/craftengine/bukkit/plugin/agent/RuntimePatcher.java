@@ -6,6 +6,7 @@ import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Bukkit;
@@ -38,7 +39,7 @@ public final class RuntimePatcher {
             BlocksAgent.install(inst);
         }
 
-        if (chunkDataWarmup) {
+        if (chunkDataWarmup && Config.enableChunkCache()) {
             try {
                 Class<?> bridge = injectBridge();
                 bridge.getField("CHUNK_DATA_WARMUP").set(null, (Consumer<Object[]>) BukkitWorldManager::onChunkDataRead);
