@@ -440,13 +440,19 @@ public final class ItemEventListener implements Listener {
                     try {
                         serverPlayer.setIsSimulatingInteraction(true);
                         // 先尝试 useOn
+                        Object nmsStack = itemInHand.minecraftItem();
+                        boolean infiniteMaterials = serverPlayer.canInstabuild();
+                        int countBefore = ItemStackProxy.INSTANCE.getCount(nmsStack);
                         result = ItemProxy.INSTANCE.useOn(item, UseOnContextProxy.INSTANCE.newInstance(
                                 world.minecraftWorld(),
                                 serverPlayer.minecraftPlayer(),
                                 hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND,
-                                itemInHand.minecraftItem(),
+                                nmsStack,
                                 nmsHitResult
                         ));
+                        if (infiniteMaterials) {
+                            ItemStackProxy.INSTANCE.setCount(nmsStack, countBefore);
+                        }
                         if (result != InteractionResultProxy.INSTANCE.getPass()) {
                             applyHeldItemTransform(serverPlayer, hand, result);
                             return;

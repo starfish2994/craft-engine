@@ -156,11 +156,6 @@ public final class MigrateWorldStorageCommand extends BukkitCommandFeature<Comma
                 });
     }
 
-    public enum Direction {
-        FROM,
-        TO
-    }
-
     private Path getRegionFolder(World world, StorageType sourceType) {
         return switch (sourceType) {
             case MCA, LINEAR -> world.getWorldFolder().toPath().resolve("craftengine");
@@ -321,6 +316,11 @@ public final class MigrateWorldStorageCommand extends BukkitCommandFeature<Comma
 
         positions.sort(Comparator.comparingInt(ChunkPos::x).thenComparingInt(ChunkPos::z));
         return positions;
+    }
+
+    public enum Direction {
+        FROM,
+        TO
     }
 
     private static final class MigrationStats {
