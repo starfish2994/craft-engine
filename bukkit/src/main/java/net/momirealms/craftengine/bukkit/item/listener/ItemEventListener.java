@@ -60,9 +60,15 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.context.UseOnContextProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.dimension.DimensionTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Openable;
@@ -455,6 +461,9 @@ public final class ItemEventListener implements Listener {
                         }
                         if (result != InteractionResultProxy.INSTANCE.getPass()) {
                             applyHeldItemTransform(serverPlayer, hand, result);
+                            if (InteractionResultProxy.INSTANCE.consumesAction(result)) {
+                                playSimulatedUseSound(serverPlayer, world, itemInHand, hitResult);
+                            }
                             return;
                         }
                         // 再尝试 use
@@ -465,6 +474,9 @@ public final class ItemEventListener implements Listener {
                                 hand == InteractionHand.MAIN_HAND ? InteractionHandProxy.MAIN_HAND : InteractionHandProxy.OFF_HAND
                         );
                         applyHeldItemTransform(serverPlayer, hand, result);
+                        if (InteractionResultProxy.INSTANCE.consumesAction(result)) {
+                            playSimulatedUseSound(serverPlayer, world, itemInHand, hitResult);
+                        }
                     } finally {
                         serverPlayer.setIsSimulatingInteraction(false);
                     }
@@ -519,6 +531,44 @@ public final class ItemEventListener implements Listener {
             if (transformed != null) {
                 player.setItemInHand(hand, ItemStackUtils.wrap(transformed));
             }
+        }
+    }
+
+    private void playSimulatedUseSound(BukkitServerPlayer player, BukkitWorld world, Item itemInHand, BlockHitResult hitResult) {
+        Key itemId = itemInHand.vanillaId();
+        BlockPos relative = hitResult.blockPos().relative(hitResult.direction());
+        switch (itemId.value()) {
+            case "water_bucket" -> {
+                if (world.bukkitWorld().getEnvironment() == World.Environment.NETHER) playEvaporationEffects(player, relative);
+                else player.playSound(Vec3d.atCenterOf(relative), Key.of("minecraft:item.bucket.empty"), SoundSource.BLOCK, 1.0F, 1.0F);
+            }
+            case "cod_bucket", "salmon_bucket", "tropical_fish_bucket", "pufferfish_bucket" -> {
+                if (world.bukkitWorld().getEnvironment() == World.Environment.NETHER) playEvaporationEffects(player, relative);
+                else player.playSound(Vec3d.atCenterOf(relative), Key.of("minecraft:item.bucket.empty_fish"), SoundSource.NEUTRAL, 1.0F, 1.0F);
+            }
+            case "axolotl_bucket" -> {
+                if (world.bukkitWorld().getEnvironment() == World.Environment.NETHER) playEvaporationEffects(player, relative);
+                else player.playSound(Vec3d.atCenterOf(relative), Key.of("minecraft:item.bucket.empty_axolotl"), SoundSource.NEUTRAL, 1.0F, 1.0F);
+            }
+            case "tadpole_bucket" -> {
+                if (world.bukkitWorld().getEnvironment() == World.Environment.NETHER) playEvaporationEffects(player, relative);
+                else player.playSound(Vec3d.atCenterOf(relative), Key.of("minecraft:item.bucket.empty_tadpole"), SoundSource.NEUTRAL, 1.0F, 1.0F);
+            }
+            case "lava_bucket" -> player.playSound(Vec3d.atCenterOf(relative), Key.of("minecraft:item.bucket.empty_lava"), SoundSource.BLOCK, 1.0F, 1.0F);
+            default -> {
+            }
+        }
+    }
+
+    private static void playEvaporationEffects(BukkitServerPlayer player, BlockPos pos) {
+        float pitch = 2.6F + (ThreadLocalRandom.current().nextFloat() - ThreadLocalRandom.current().nextFloat()) * 0.8F;
+        player.playSound(Vec3d.atCenterOf(pos), Key.of("minecraft:block.fire.extinguish"), SoundSource.BLOCK, 0.5F, pitch);
+        for (int i = 0; i < 8; i++) {
+            player.playParticle(Key.of("minecraft:large_smoke"),
+                    pos.x() + ThreadLocalRandom.current().nextDouble(),
+                    pos.y() + ThreadLocalRandom.current().nextDouble(),
+                    pos.z() + ThreadLocalRandom.current().nextDouble()
+            );
         }
     }
 

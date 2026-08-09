@@ -22,6 +22,9 @@ public interface LevelProxy extends LevelAccessorProxy {
     @FieldGetter(name = "dimensionTypeRegistration")
     Object getDimensionTypeRegistration(Object target);
 
+    @MethodInvoker(name = "dimensionType")
+    Object dimensionType(Object target);
+
     @FieldGetter(name = "dimension")
     Object getDimension(Object target);
 
