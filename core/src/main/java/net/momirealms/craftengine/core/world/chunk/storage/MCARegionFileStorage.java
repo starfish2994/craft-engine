@@ -109,21 +109,7 @@ public class MCARegionFileStorage implements RegionStorage {
     }
 
     public static ChunkPos getRegionFileCoordinates(Path file) {
-        String fileName = file.getFileName().toString();
-        if (!fileName.startsWith(REGION_FILE_PREFIX) || !fileName.endsWith(REGION_FILE_SUFFIX)) {
-            return null;
-        }
-        String[] split = fileName.split("\\.");
-        if (split.length != 4) {
-            return null;
-        }
-        try {
-            int x = Integer.parseInt(split[1]);
-            int z = Integer.parseInt(split[2]);
-            return new ChunkPos(x << 5, z << 5);
-        } catch (NumberFormatException ex) {
-            return null;
-        }
+        return RegionStorage.parseRegionFileCoordinates(file, REGION_FILE_PREFIX, REGION_FILE_SUFFIX);
     }
 
     @Override

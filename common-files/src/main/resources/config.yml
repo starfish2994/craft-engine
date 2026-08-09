@@ -641,11 +641,11 @@ chunk-system:
   #
   # Slime worlds will automatically use the Slime format for storage without requiring any configuration.
   #
-  # To migrate world storage, first change the storage type in the configuration.
-  # Then run the command: /ce feature migrate-world-storage [world] [previous_type]
-  # Once the migration is complete, restart the server.
+  # To migrate world storage, run the command: /ce feature migrate-world-storage [world] [from|to] [type]
+  # 'to' migrates from the current storage type to the specified one; 'from' is the reverse.
+  # After a 'to' migration, switch the storage type in the configuration and restart the server.
   #
-  storage-type: mca
+  storage-type: linear
   # Worlds whose name matches any of these regex patterns will always use 'none' storage mode (in-memory only)
   # Useful for temporary or frequently reset worlds where persistence is unnecessary
   blacklisted-worlds: []

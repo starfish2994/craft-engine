@@ -1,19 +1,18 @@
 package net.momirealms.craftengine.core.registry;
 
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 public interface Holder<T> {
+
+    static <T> Holder<T> direct(T value) {
+        return new Direct<>(value);
+    }
 
     T value();
 
@@ -25,10 +24,6 @@ public interface Holder<T> {
 
     boolean matchesPredicate(Predicate<ResourceKey<T>> predicate);
 
-    boolean hasTag(ResourceKey<T> tag);
-
-    Stream<ResourceKey<T>> tags();
-
     Optional<ResourceKey<T>> keyOptional();
 
     HolderKind kind();
@@ -39,8 +34,15 @@ public interface Holder<T> {
         return this.keyOptional().map(key -> key.location().toString()).orElse("[unregistered]");
     }
 
-    static <T> Holder<T> direct(T value) {
-        return new Direct<>(value);
+    enum HolderKind {
+        REFERENCE,
+        DIRECT
+    }
+
+    interface Owner<T> {
+        default boolean canSerializeIn(Owner<T> other) {
+            return other == this;
+        }
     }
 
     record Direct<T>(T value) implements Holder<T> {
@@ -56,11 +58,6 @@ public interface Holder<T> {
 
         @Override
         public boolean matchesKey(ResourceKey<T> key) {
-            return false;
-        }
-
-        @Override
-        public boolean hasTag(ResourceKey<T> tag) {
             return false;
         }
 
@@ -85,19 +82,9 @@ public interface Holder<T> {
         }
 
         @Override
-        public Stream<ResourceKey<T>> tags() {
-            return Stream.of();
-        }
-
-        @Override
         public @NotNull String toString() {
             return "Direct{" + this.value + "}";
         }
-    }
-
-    enum HolderKind {
-        REFERENCE,
-        DIRECT
     }
 
     class Reference<T> implements Holder<T> {
@@ -106,8 +93,6 @@ public interface Holder<T> {
         private ResourceKey<T> key;
         @Nullable
         private T value;
-        @Nullable
-        private Set<ResourceKey<T>> tags;
 
         public Reference(Owner<T> owner, @Nullable ResourceKey<T> key, @Nullable T value) {
             this.owner = owner;
@@ -148,18 +133,6 @@ public interface Holder<T> {
             return this.key() == key;
         }
 
-        private Set<ResourceKey<T>> boundTags() {
-            if (this.tags == null) {
-                throw new IllegalStateException("Tags not bound");
-            }
-            return this.tags;
-        }
-
-        @Override
-        public boolean hasTag(ResourceKey<T> tag) {
-            return this.boundTags().contains(tag);
-        }
-
         @Override
         public boolean matchesPredicate(Predicate<ResourceKey<T>> predicate) {
             return predicate.test(this.key());
@@ -196,15 +169,6 @@ public interface Holder<T> {
             this.value = value;
         }
 
-        public void bindTags(Collection<ResourceKey<T>> tags) {
-            this.tags = Collections.unmodifiableSet(new ReferenceOpenHashSet<>(tags));
-        }
-
-        @Override
-        public Stream<ResourceKey<T>> tags() {
-            return this.boundTags().stream();
-        }
-
         @Override
         public String toString() {
             return "Reference{" + this.key + "=" + this.value + "}";
@@ -220,12 +184,6 @@ public interface Holder<T> {
             public void bindValue(A value) {
                 throw new UnsupportedOperationException();
             }
-        }
-    }
-
-    interface Owner<T> {
-        default boolean canSerializeIn(Owner<T> other) {
-            return other == this;
         }
     }
 }

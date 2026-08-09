@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-public interface WorldDataStorage {
+public interface WorldDataStorage extends AutoCloseable {
 
     WorldSettings readSettings() throws IOException;
 

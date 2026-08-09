@@ -94,7 +94,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypePro
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkSourceProxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.RegionizedPlayerChunkLoaderProxy;
-import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;

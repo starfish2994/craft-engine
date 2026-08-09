@@ -599,10 +599,6 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                         ceWorld.worldDataStorage().writeChunkAt(chunkPos, ceChunk);
                         ceChunk.setUnsaved(false);
                     }
-                    for (int i = 0; i < sections.length; i++) {
-                        Object section = sections[i];
-                        WorldStorageInjector.uninject(section);
-                    }
                 } catch (IOException e) {
                     this.plugin.logger().warn("Failed to write chunk [world=" + ceWorld.name() +
                             ", chunk=(" + chunkPos.x + ", " + chunkPos.z + "), stage=" + stage.name() + "]", e);
@@ -716,6 +712,9 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                             }
                         }
                     }
+                    // 可能是新区块，已经被注入过了，那么在此取消注入
+                    // 防止二次写入，造成不必要的保存
+                    WorldStorageInjector.uninject(section);
                     if (ceWorld.settings.restoreCustomBlocksOnChunkLoad) {
                         boolean isEmptyBefore = LevelChunkSectionProxy.INSTANCE.hasOnlyAir(section);
                         int sectionY = ceSection.sectionY;
