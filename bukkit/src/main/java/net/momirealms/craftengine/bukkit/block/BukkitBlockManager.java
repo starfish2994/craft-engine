@@ -73,8 +73,8 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private Map<Object, Integer> igniteOdds;
     private Map<Object, Integer> burnOdds;
     // 自定义客户端侧原版方块标签
-    private Map<Integer, List<Key>> clientBoundTags = Map.of();
-    private Map<Integer, List<Key>> previousClientBoundTags = Map.of();
+    private Map<Integer, Collection<Key>> clientBoundTags = Map.of();
+    private Map<Integer, Collection<Key>> previousClientBoundTags = Map.of();
     // 缓存的原版方块tag包
     private List<TagUtils.TagEntry> cachedUpdateTags = List.of();
     // 被移除声音的原版方块
@@ -104,6 +104,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         this.findViewBlockingVanillaBlocks();
         Arrays.fill(this.immutableBlockStates, EmptyBlockDefinition.INSTANCE.defaultState());
         this.registerBlockStatePacketListener(); // 一定要预先初始化一次，预防id超出上限
+        TagUtils.blockTagNesting();
     }
 
     public static BukkitBlockManager instance() {
@@ -209,7 +210,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         // if there's no change
         if (this.clientBoundTags.equals(this.previousClientBoundTags)) return;
         List<TagUtils.TagEntry> list = new ArrayList<>();
-        for (Map.Entry<Integer, List<Key>> entry : this.clientBoundTags.entrySet()) {
+        for (Map.Entry<Integer, Collection<Key>> entry : this.clientBoundTags.entrySet()) {
             list.add(new TagUtils.TagEntry(entry.getKey(), entry.getValue()));
         }
         this.cachedUpdateTags = list;
@@ -359,7 +360,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
             Object holder = BukkitCraftEngine.instance().blockManager().getMinecraftBlockHolder(state.customBlockState().registryId());
             Set<Object> tags = new HashSet<>();
-            for (Key tag : settings.tags()) {
+            for (Key tag : TagUtils.expandBlockTags(settings.tags())) {
                 tags.add(TagKeyProxy.INSTANCE.create(RegistriesProxy.BLOCK, KeyUtils.toIdentifier(tag)));
             }
             HolderProxy.ReferenceProxy.INSTANCE.setTags(holder, tags);
@@ -480,7 +481,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         if (blockId == -1) {
             throw new IllegalStateException("Block " + id + " not found");
         }
-        this.clientBoundTags.put(blockId, tags);
+        this.clientBoundTags.put(blockId, TagUtils.expandBlockTags(tags));
     }
 
     public boolean isPlaceSoundMissing(Object sound) {

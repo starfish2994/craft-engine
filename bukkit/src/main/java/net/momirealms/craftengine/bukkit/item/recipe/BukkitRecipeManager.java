@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.item.recipe;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.papermc.paper.potion.PotionMix;
@@ -398,25 +399,22 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         try (AutoCloseable resourceManager = (AutoCloseable) MultiPackResourceManagerProxy.INSTANCE.newInstance(PackTypeProxy.SERVER_DATA, packResources)) {
             Map<Object, Object> scannedResources = FileToIdConverterProxy.INSTANCE.listMatchingResources(fileToIdConverter, resourceManager);
             for (Map.Entry<Object, Object> entry : scannedResources.entrySet()) {
-                Key id = extractKeyFromIdentifier(entry.getKey().toString());
+                Key id = KeyUtils.identifierToKey(FileToIdConverterProxy.INSTANCE.fileToId(fileToIdConverter, entry.getKey()));
                 try (Reader reader = ResourceProxy.INSTANCE.openAsReader(entry.getValue())) {
-                    JsonObject jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
-                    recipes.put(id, jsonObject);
+                    JsonElement jsonElement = JsonParser.parseReader(reader);
+                    if (!jsonElement.isJsonObject()) {
+                        this.plugin.logger().warn("Couldn't parse recipe file '" + id + "' from '" + entry.getKey() + "': not a JSON object");
+                        continue;
+                    }
+                    recipes.put(id, jsonElement.getAsJsonObject());
+                } catch (Throwable e) {
+                    this.plugin.logger().warn("Couldn't parse recipe file '" + id + "' from '" + entry.getKey() + "'", e);
                 }
             }
         } catch (Throwable e) {
             this.plugin.logger().warn("Unknown error occurred when loading data pack recipes", e);
         }
         return recipes;
-    }
-
-    private Key extractKeyFromIdentifier(String input) {
-        int prefixEndIndex = input.indexOf(':');
-        String prefix = input.substring(0, prefixEndIndex);
-        int lastSlashIndex = input.lastIndexOf('/');
-        int lastDotIndex = input.lastIndexOf('.');
-        String fileName = input.substring(lastSlashIndex + 1, lastDotIndex);
-        return Key.of(prefix, fileName);
     }
 
     public static void injectFurnaceBlockEntity(Object blockEntity) {
