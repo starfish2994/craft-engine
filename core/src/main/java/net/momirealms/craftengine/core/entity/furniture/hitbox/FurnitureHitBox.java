@@ -13,9 +13,14 @@ import java.util.function.Consumer;
 
 public interface FurnitureHitBox {
 
-    Seat<SeatOwner>[] seats();
+    @SuppressWarnings("unchecked")
+    default Seat<SeatOwner>[] seats() {
+        return new Seat[0];
+    }
 
-    List<Collider> colliders();
+    default List<Collider> colliders() {
+        return List.of();
+    }
 
     List<FurnitureHitboxPart> parts();
 
