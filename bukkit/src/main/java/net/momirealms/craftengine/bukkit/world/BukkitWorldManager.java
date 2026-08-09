@@ -184,6 +184,8 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         try {
             BukkitWorldManager manager = instance;
             if (manager == null) return;
+            // 在初始化完成前不要进行任何预加载
+            if (!manager.initialized) return;
             World bukkitWorld = LevelProxy.INSTANCE.getWorld(args[0]);
             if (bukkitWorld == null) return;
             CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
