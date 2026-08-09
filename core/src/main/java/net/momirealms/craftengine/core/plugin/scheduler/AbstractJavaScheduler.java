@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractJavaScheduler implements SchedulerAdapter {
-    private static final int PARALLELISM = 16;
+    private static final int PARALLELISM = 8;
 
     private final Plugin plugin;
 
@@ -23,7 +23,7 @@ public abstract class AbstractJavaScheduler implements SchedulerAdapter {
         this.plugin = plugin;
         this.scheduler = new ScheduledThreadPoolExecutor(4, r -> {
             Thread thread = Executors.defaultThreadFactory().newThread(r);
-            thread.setName("craft-engine-scheduler");
+            thread.setName("craft-engine-common-scheduler");
             return thread;
         });
         this.scheduler.setRemoveOnCancelPolicy(true);
@@ -61,7 +61,7 @@ public abstract class AbstractJavaScheduler implements SchedulerAdapter {
         try {
             if (!this.scheduler.awaitTermination(1, TimeUnit.MINUTES)) {
                 this.plugin.logger().error("Timed out waiting for the CraftEngine scheduler to terminate");
-                reportRunningTasks(thread -> thread.getName().equals("craft-engine-scheduler"));
+                reportRunningTasks(thread -> thread.getName().equals("craft-engine-common-scheduler"));
             }
         } catch (InterruptedException e) {
             plugin.logger().warn("Thread is interrupted", e);
@@ -74,7 +74,7 @@ public abstract class AbstractJavaScheduler implements SchedulerAdapter {
         try {
             if (!this.worker.awaitTermination(1, TimeUnit.MINUTES)) {
                 this.plugin.logger().error("Timed out waiting for the CraftEngine worker thread pool to terminate");
-                reportRunningTasks(thread -> thread.getName().startsWith("craft-engine-worker-"));
+                reportRunningTasks(thread -> thread.getName().startsWith("craft-engine-common-worker-"));
             }
         } catch (InterruptedException e) {
             plugin.logger().warn("Thread is interrupted", e);
@@ -98,7 +98,7 @@ public abstract class AbstractJavaScheduler implements SchedulerAdapter {
         public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
             ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
             thread.setDaemon(true);
-            thread.setName("craft-engine-worker-" + COUNT.getAndIncrement());
+            thread.setName("craft-engine-common-worker-" + COUNT.getAndIncrement());
             return thread;
         }
     }

@@ -166,6 +166,43 @@ public final class RegionFile implements AutoCloseable {
                 }
                 return inputStream;
             }
+        } else {
+            return decodeChunkData(pos, bytebuffer, size, flags);
+        }
+    }
+
+    /**
+     * Decodes a raw chunk payload (5-byte header + compressed data) into a data input stream.
+     * Shared by both MCA region files and buffered linear region files. External stream
+     * chunks are not supported by this method.
+     *
+     * @param pos The position of the chunk within the region file.
+     * @param bytebuffer The raw chunk payload, positioned at the start of the 5-byte header.
+     * @return A DataInputStream for the chunk's data if valid, or null if there is an error.
+     * @throws IOException If an I/O error occurs while creating the stream.
+     */
+    @Nullable
+    static DataInputStream decodeChunkData(ChunkPos pos, ByteBuffer bytebuffer) throws IOException {
+        if (bytebuffer.remaining() < CHUNK_HEADER_SIZE) {
+            LOGGER.error(String.format("Chunk %s header is truncated: expected %s but read %s", pos, CHUNK_HEADER_SIZE, bytebuffer.remaining()));
+            return null;
+        }
+        int size = bytebuffer.getInt();
+        byte flags = bytebuffer.get();
+        return decodeChunkData(pos, bytebuffer, size, flags);
+    }
+
+    @Nullable
+    private static DataInputStream decodeChunkData(ChunkPos pos, ByteBuffer bytebuffer, int size, byte flags) throws IOException {
+        byte compressionScheme = (byte) (flags & 0b00000111);
+        byte version = (byte) ((flags & 0b01111000) >>> 3);
+        int actualSize = size - 1;
+        if (size == 0) {
+            LOGGER.warn(String.format("Chunk %s is allocated, but stream is missing", pos));
+            return null;
+        } else if (isExternalStreamChunk(flags)) {
+            LOGGER.warn(String.format("Chunk %s is marked as an external stream, which is not supported here", pos));
+            return null;
         } else if (actualSize > bytebuffer.remaining()) {
             // If the declared size of the chunk is greater than the remaining bytes in the buffer, the stream is truncated.
             LOGGER.error(String.format("Chunk %s stream is truncated: expected %s but read %s", pos, actualSize, bytebuffer.remaining()));
@@ -175,19 +212,13 @@ public final class RegionFile implements AutoCloseable {
             LOGGER.error(String.format("Declared size %s of chunk %s is negative", size, pos));
             return null;
         } else {
-            if (version == FORMAT_VERSION) {
-                // Otherwise, create and return a standard input stream for the chunk data.
-                return this.createChunkInputStream(pos, compressionScheme, RegionFile.createInputStream(bytebuffer, actualSize));
-            } else {
-                int currentVersion = version;
-                DataInputStream inputStream = this.createChunkInputStream(pos, compressionScheme, RegionFile.createInputStream(bytebuffer, actualSize));
-                while (currentVersion < FORMAT_VERSION) {
-                    inputStream = FORMAT_UPDATER.get(currentVersion).apply(inputStream);
-                    if (inputStream == null) break;
-                    currentVersion++;
-                }
-                return inputStream;
+            int currentVersion = version;
+            DataInputStream inputStream = createChunkInputStream(pos, compressionScheme, RegionFile.createInputStream(bytebuffer, actualSize));
+            while (inputStream != null && currentVersion < FORMAT_VERSION) {
+                inputStream = FORMAT_UPDATER.get(currentVersion).apply(inputStream);
+                currentVersion++;
             }
+            return inputStream;
         }
     }
 
@@ -218,7 +249,7 @@ public final class RegionFile implements AutoCloseable {
     }
 
     @Nullable
-    private DataInputStream createChunkInputStream(ChunkPos pos, byte flags, InputStream stream) throws IOException {
+    private static DataInputStream createChunkInputStream(ChunkPos pos, byte flags, InputStream stream) throws IOException {
         CompressionMethod compressionMethod = CompressionMethod.fromId(flags);
         if (compressionMethod == null) {
             LOGGER.error(String.format("Chunk %s has invalid chunk stream version %s", pos, flags));

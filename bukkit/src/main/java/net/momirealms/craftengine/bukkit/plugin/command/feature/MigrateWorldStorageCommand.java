@@ -10,7 +10,7 @@ import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.ChunkPos;
-import net.momirealms.craftengine.core.world.chunk.storage.DefaultRegionFileStorage;
+import net.momirealms.craftengine.core.world.chunk.storage.MCARegionFileStorage;
 import net.momirealms.craftengine.core.world.chunk.storage.StorageType;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 import net.momirealms.sparrow.nbt.CompoundTag;
@@ -142,7 +142,7 @@ public final class MigrateWorldStorageCommand extends BukkitCommandFeature<Comma
 
     private WorldDataStorage createSourceStorage(StorageType sourceType, World world, BukkitWorld adaptedWorld) {
         return switch (sourceType) {
-            case MCA -> new DefaultRegionFileStorage(world.getWorldFolder().toPath().resolve("craftengine"),
+            case MCA -> new MCARegionFileStorage(world.getWorldFolder().toPath().resolve("craftengine"),
                     VersionHelper.hasFoliaPatch ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);
             case PDC -> new PersistentDataContainerStorage(adaptedWorld,
                     VersionHelper.hasFoliaPatch ? BukkitStorageAdaptor.FOLIA_FACTORY : BukkitStorageAdaptor.BUKKIT_FACTORY);

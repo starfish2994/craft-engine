@@ -33,12 +33,12 @@ public final class AsyncStorage implements WorldDataStorage {
         WRITE_EXECUTOR = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() / 8), threadFactory);
     }
 
-    private final DefaultRegionFileStorage storage;
+    private final RegionStorage storage;
     private final CompressionMethod compression;
     private final ConcurrentChainedLong2ReferenceHashTable<PendingWrite> pendingWrites = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(64);
     private final Object flushLock = new Object();
 
-    public AsyncStorage(DefaultRegionFileStorage storage) {
+    public AsyncStorage(RegionStorage storage) {
         this.storage = storage;
         this.compression = CompressionMethod.fromId(Config.compressionMethod());
     }

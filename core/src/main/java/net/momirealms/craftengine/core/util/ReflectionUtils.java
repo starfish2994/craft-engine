@@ -205,4 +205,13 @@ public final class ReflectionUtils {
             return null;
         }
     }
+
+    @Nullable
+    public static MethodHandle unreflectStatic(Method method) {
+        try {
+            return LOOKUP.unreflect(method);
+        } catch (IllegalAccessException e) {
+            return null;
+        }
+    }
 }

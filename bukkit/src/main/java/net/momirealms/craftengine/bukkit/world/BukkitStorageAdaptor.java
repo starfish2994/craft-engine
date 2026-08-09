@@ -59,13 +59,11 @@ public class BukkitStorageAdaptor implements StorageAdaptor {
             }
             case MCA -> {
                 Path path = world.directory().resolve(CEWorld.REGION_DIRECTORY);
-                DefaultRegionFileStorage regionStorage = new DefaultRegionFileStorage(path, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY);
-                WorldDataStorage storage = Config.enableAsyncChunkWrite() ? new AsyncStorage(regionStorage) : regionStorage;
-                if (Config.enableChunkCache()) {
-                    return new CachedStorage<>(storage);
-                } else {
-                    return storage;
-                }
+                return wrap(new MCARegionFileStorage(path, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY));
+            }
+            case LINEAR -> {
+                Path path = world.directory().resolve(CEWorld.REGION_DIRECTORY);
+                return wrap(new LinearRegionFileStorage(path, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY));
             }
             case PDC -> {
                 if (Config.enableChunkCache()) {
@@ -75,6 +73,15 @@ public class BukkitStorageAdaptor implements StorageAdaptor {
                 }
             }
             default -> throw new UnsupportedOperationException("Unsupported chunk storage type: " + Config.chunkStorageType());
+        }
+    }
+
+    private @NotNull WorldDataStorage wrap(@NotNull RegionStorage regionStorage) {
+        WorldDataStorage storage = Config.enableAsyncChunkWrite() ? new AsyncStorage(regionStorage) : regionStorage;
+        if (Config.enableChunkCache()) {
+            return new CachedStorage<>(storage);
+        } else {
+            return storage;
         }
     }
 }

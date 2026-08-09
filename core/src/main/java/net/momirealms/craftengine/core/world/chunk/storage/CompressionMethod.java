@@ -39,6 +39,11 @@ public final class CompressionMethod {
             Class<?> outputStreamClass = classLoader.loadClass("com.github.luben.zstd.ZstdOutputStream");
             MethodHandle outputStreamConstructor = ReflectionUtils.unreflectConstructor(outputStreamClass.getConstructor(OutputStream.class))
                     .asType(MethodType.methodType(OutputStream.class, OutputStream.class));
+            Class<?> zstdClass = classLoader.loadClass("com.github.luben.zstd.Zstd");
+            ZSTD_COMPRESS = ReflectionUtils.unreflectStatic(zstdClass.getMethod("compress", byte[].class, int.class))
+                    .asType(MethodType.methodType(byte[].class, byte[].class, int.class));
+            ZSTD_DECOMPRESS = ReflectionUtils.unreflectStatic(zstdClass.getMethod("decompress", byte[].class, int.class))
+                    .asType(MethodType.methodType(byte[].class, byte[].class, int.class));
             ZSTD = register(
                     new CompressionMethod(
                             5,
@@ -62,6 +67,25 @@ public final class CompressionMethod {
             );
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static final MethodHandle ZSTD_COMPRESS;
+    private static final MethodHandle ZSTD_DECOMPRESS;
+
+    public static byte[] zstdCompress(byte[] src, int level) throws IOException {
+        try {
+            return (byte[]) ZSTD_COMPRESS.invokeExact(src, level);
+        } catch (Throwable e) {
+            throw new IOException("Failed to zstd compress", e);
+        }
+    }
+
+    public static byte[] zstdDecompress(byte[] src, int originalSize) throws IOException {
+        try {
+            return (byte[]) ZSTD_DECOMPRESS.invokeExact(src, originalSize);
+        } catch (Throwable e) {
+            throw new IOException("Failed to zstd decompress", e);
         }
     }
 
