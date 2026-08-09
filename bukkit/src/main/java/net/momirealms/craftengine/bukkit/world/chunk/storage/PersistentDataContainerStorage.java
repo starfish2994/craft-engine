@@ -22,8 +22,9 @@ import java.io.*;
 import java.util.Objects;
 
 public class PersistentDataContainerStorage implements WorldDataStorage {
-    private static final NamespacedKey CHUNK_KEY = Objects.requireNonNull(NamespacedKey.fromString("craftengine:chunk_data"));
-    private static final NamespacedKey WORLD_SETTINGS_KEY = Objects.requireNonNull(NamespacedKey.fromString("craftengine:world_settings"));
+    public static final NamespacedKey CHUNK_KEY = Objects.requireNonNull(NamespacedKey.fromString("craftengine:chunk_data"));
+    public static final NamespacedKey WORLD_SETTINGS_KEY = Objects.requireNonNull(NamespacedKey.fromString("craftengine:world_settings"));
+
     private final ChunkFactory chunkFactory;
     private final World world;
 

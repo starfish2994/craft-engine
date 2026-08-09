@@ -68,7 +68,7 @@ public final class StairsBlockBehavior extends WaterloggedBlockBehavior {
         StairsShape stairsShape = getStairsShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
                 ? customState.with(this.shapeProperty, stairsShape).customBlockState().minecraftState()
-                : super.updateShape(thisBlock, args);
+                : blockState;
     }
 
     private StairsShape getStairsShape(ImmutableBlockState state, Object level, BlockPos pos) {

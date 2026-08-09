@@ -67,6 +67,17 @@ public class WaterloggedBlockBehavior extends BukkitBlockBehavior implements Buk
     }
 
     @Override
+    public Object updateShape(Object thisBlock, Object[] args) {
+        Object blockState = args[0];
+        Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
+        if (optionalCustomState.isEmpty()) return blockState;
+        if (optionalCustomState.get().get(this.waterloggedProperty)) {
+            LevelAccessorProxy.INSTANCE.scheduleTick$1(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
+        }
+        return blockState;
+    }
+
+    @Override
     public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
         Object level = context.getLevel().minecraftWorld();
         Object clickedPos = LocationUtils.toBlockPos(context.getClickedPos());

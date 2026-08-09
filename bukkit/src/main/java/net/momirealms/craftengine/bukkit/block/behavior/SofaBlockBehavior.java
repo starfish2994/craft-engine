@@ -61,7 +61,7 @@ public final class SofaBlockBehavior extends WaterloggedBlockBehavior {
         SofaShape sofaShape = getSofaShape(customState, level, LocationUtils.fromBlockPos(blockPos));
         return direction.axis().isHorizontal()
                 ? customState.with(this.shapeProperty, sofaShape).customBlockState().minecraftState()
-                : super.updateShape(thisBlock, args);
+                : blockState;
     }
 
     private SofaShape getSofaShape(ImmutableBlockState state, Object level, BlockPos pos) {

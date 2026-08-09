@@ -143,6 +143,13 @@ save_default_resource:
     - /craftengine resource save-default
     - /ce resource save-default
 
+search_resource:
+  enable: true
+  permission: ce.command.admin.resource
+  usage:
+    - /craftengine resource search
+    - /ce resource search
+
 set_locale:
   enable: true
   permission: ce.command.admin.set_locale
@@ -213,6 +220,13 @@ migrate_world_storage:
   usage:
     - /craftengine feature migrate-world-storage
     - /ce feature migrate-world-storage
+
+clear_world_storage:
+  enable: true
+  permission: ce.command.admin.clear_world_storage
+  usage:
+    - /craftengine feature clear-world-storage
+    - /ce feature clear-world-storage
 
 world_settings:
   enable: true

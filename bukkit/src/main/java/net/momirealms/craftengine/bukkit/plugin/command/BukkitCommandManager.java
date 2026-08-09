@@ -83,6 +83,7 @@ public final class BukkitCommandManager extends AbstractCommandManager<CommandSe
                 new SetItemItemModelCommand(this, plugin),
                 new RemoveItemComponentCommand(this, plugin),
                 new MigrateWorldStorageCommand(this, plugin),
+                new ClearWorldStorageCommand(this, plugin),
                 new WorldSettingsCommand(this, plugin)
         ));
         final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
