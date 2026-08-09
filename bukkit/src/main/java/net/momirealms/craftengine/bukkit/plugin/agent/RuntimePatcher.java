@@ -22,7 +22,7 @@ public final class RuntimePatcher {
 
     public static void patch(BukkitCraftEngine plugin) throws Exception {
         boolean registryInjection = !isDatapackDiscoveryAvailable();
-        boolean chunkDataWarmup = VersionHelper.hasPaperPatch && VersionHelper.isOrAbove1_21_4;
+        boolean chunkDataWarmup = VersionHelper.hasPaperPatch && VersionHelper.isOrAbove1_21_4 && Config.enableChunkCache() && Config.enableAsyncChunkRead();
         if (!registryInjection && !chunkDataWarmup) return;
 
         if (registryInjection) {
@@ -39,7 +39,7 @@ public final class RuntimePatcher {
             BlocksAgent.install(inst);
         }
 
-        if (chunkDataWarmup && Config.enableChunkCache()) {
+        if (chunkDataWarmup) {
             try {
                 Class<?> bridge = injectBridge();
                 bridge.getField("CHUNK_DATA_WARMUP").set(null, (Consumer<Object[]>) BukkitWorldManager::onChunkDataRead);

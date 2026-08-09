@@ -169,7 +169,8 @@ public final class Config {
     private boolean chunk_system$restore_custom_blocks_on_chunk_load;
     private boolean chunk_system$sync_custom_blocks_on_chunk_load;
     private boolean chunk_system$cache_system = true;
-    private boolean chunk_system$async_save = true;
+    private boolean chunk_system$async_write = true;
+    private boolean chunk_system$async_read = true;
     private boolean chunk_system$injection$target;
     private boolean chunk_system$process_invalid_furniture$enable;
     private Map<String, String> chunk_system$process_invalid_furniture$mapping;
@@ -552,7 +553,8 @@ public final class Config {
         this.chunk_system$restore_custom_blocks_on_chunk_load = config.getBoolean("chunk-system.restore-custom-blocks-on-chunk-load", true);
         this.chunk_system$sync_custom_blocks_on_chunk_load = config.getBoolean("chunk-system.sync-custom-blocks-on-chunk-load", false);
         this.chunk_system$cache_system = config.getBoolean("chunk-system.cache-system", true);
-        this.chunk_system$async_save = config.getBoolean("chunk-system.async-save", true);
+        this.chunk_system$async_write = config.getBoolean("chunk-system.async-write", true);
+        this.chunk_system$async_read = config.getBoolean("chunk-system.async-read", true);
 
         if (this.firstTime) {
             this.chunk_system$injection$target = config.getString("chunk-system.injection.target", "palette").equalsIgnoreCase("palette")
@@ -1425,8 +1427,12 @@ public final class Config {
         return instance.chunk_system$cache_system;
     }
 
-    public static boolean enableAsyncChunkSave() {
-        return instance.chunk_system$async_save;
+    public static boolean enableAsyncChunkWrite() {
+        return instance.chunk_system$async_write;
+    }
+
+    public static boolean enableAsyncChunkRead() {
+        return instance.chunk_system$async_read;
     }
 
     public static boolean addNonItalicTag() {

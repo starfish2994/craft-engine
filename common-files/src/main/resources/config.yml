@@ -652,7 +652,12 @@ chunk-system:
   cache-system: true
   # Writes chunk data asynchronously on dedicated IO threads instead of blocking the server thread
   # Requires server restart to take effect
-  async-save: true
+  async-write: true
+  # Hooks into the server's chunk loading pipeline to read and cache chunk data
+  # before the chunk load event, avoiding synchronous disk I/O on the main thread
+  # Only works on Paper 1.21.4+. Falls back to synchronous reads if the injection fails
+  # Requires server restart to take effect
+  async-read: true
   # Compression algorithm for chunk data
   # 1 = NONE      |  Compression Speed | Decompress Speed | Compression Ratio | Memory Usage   |
   # 2 = DEFLATE   |     Medium-Slow           Medium          Moderate              Low        |

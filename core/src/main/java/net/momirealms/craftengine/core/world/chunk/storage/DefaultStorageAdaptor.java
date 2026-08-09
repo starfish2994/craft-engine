@@ -29,7 +29,7 @@ public final class DefaultStorageAdaptor implements StorageAdaptor {
             return new NoneStorage();
         }
         DefaultRegionFileStorage regionStorage = new DefaultRegionFileStorage(world.directory().resolve(CEWorld.REGION_DIRECTORY), FACTORY);
-        WorldDataStorage storage = Config.enableAsyncChunkSave() ? new AsyncStorage(regionStorage) : regionStorage;
+        WorldDataStorage storage = Config.enableAsyncChunkWrite() ? new AsyncStorage(regionStorage) : regionStorage;
         if (Config.enableChunkCache()) {
             return new CachedStorage<>(storage);
         } else {
