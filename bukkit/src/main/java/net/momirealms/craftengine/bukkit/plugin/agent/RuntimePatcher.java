@@ -43,8 +43,8 @@ public final class RuntimePatcher {
             try {
                 Class<?> bridge = injectBridge();
                 bridge.getField("CHUNK_DATA_WARMUP").set(null, (Consumer<Object[]>) BukkitWorldManager::onChunkDataRead);
+                plugin.logger().info("Patching the server...");
                 ChunkLoadWarmupAgent.install(instrumentation());
-                plugin.logger().info("Hooked into chunk data read for chunk data warmup");
             } catch (Throwable t) {
                 plugin.logger().warn("Failed to hook chunk data read, chunk data will be read synchronously on chunk load", t);
             }

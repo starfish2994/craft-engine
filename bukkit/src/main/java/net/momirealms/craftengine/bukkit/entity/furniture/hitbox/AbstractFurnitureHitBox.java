@@ -40,6 +40,13 @@ public abstract class AbstractFurnitureHitBox implements FurnitureHitBox, SeatOw
         data.putInt("entity_id", this.furniture.entityId());
     }
 
+    public abstract FurnitureHitBoxConfig<?> config();
+
+    @Override
+    public boolean canUseItemOn() {
+        return config().canUseItemOn();
+    }
+
     @Override
     public Seat<SeatOwner>[] seats() {
         return this.seats;

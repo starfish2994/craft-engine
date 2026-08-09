@@ -23,9 +23,11 @@ public interface FurnitureHitBox {
 
     void hide(Player player);
 
-    FurnitureHitBoxConfig<?> config();
-
     void collectInteractableEntityId(Consumer<Integer> collector);
+
+    default boolean canUseItemOn() {
+        return false;
+    }
 
     default Optional<EntityHitResult> clip(Vec3d min, Vec3d max) {
         for (FurnitureHitboxPart value : parts()) {
