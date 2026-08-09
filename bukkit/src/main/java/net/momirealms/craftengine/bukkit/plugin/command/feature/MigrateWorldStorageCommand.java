@@ -265,9 +265,7 @@ public final class MigrateWorldStorageCommand extends BukkitCommandFeature<Comma
     private void finishMigration(CommandSender sender, World world, WorldDataStorage createdStorage, MigrationStats stats,
                                  ExecutorService executor, @Nullable StorageType restartHintType) {
         try {
-            if (createdStorage instanceof AutoCloseable closeable) {
-                closeable.close();
-            }
+            createdStorage.close();
         } catch (Exception e) {
             this.plugin().logger().warn("Failed to safely close storage.", e);
         } finally {
