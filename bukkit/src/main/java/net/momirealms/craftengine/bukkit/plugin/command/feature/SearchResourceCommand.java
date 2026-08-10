@@ -5,6 +5,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
 import net.momirealms.craftengine.core.plugin.config.IdConfigParser;
@@ -49,7 +50,7 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
                         NamespacedKey parserKey = context.get("type");
-                        Collection<Key> keys = BuiltInRegistries.CONFIG_PARSER.get(Key.from(parserKey.asString()))
+                        Collection<Key> keys = BuiltInRegistries.CONFIG_PARSER.get(KeyUtils.namespacedKeyToKey(parserKey))
                                 .map(Holder.Reference::value)
                                 .filter(it -> it instanceof IdConfigParser)
                                 .map(it -> ((IdConfigParser) it).registeredKeys())
@@ -65,7 +66,7 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                 }))
                 .handler(context -> {
                     NamespacedKey parserKey = context.get("type");
-                    IdConfigParser parser = (IdConfigParser) BuiltInRegistries.CONFIG_PARSER.get(Key.from(parserKey.asString()))
+                    IdConfigParser parser = (IdConfigParser) BuiltInRegistries.CONFIG_PARSER.get(KeyUtils.namespacedKeyToKey(parserKey))
                             .map(Holder.Reference::value)
                             .filter(it -> it instanceof IdConfigParser)
                             .orElse(null);
@@ -76,7 +77,7 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                     }
                     // Resource 不存在
                     NamespacedKey resourceKey = context.get("resource");
-                    Path path = parser.pathById(Key.from(resourceKey.asString()));
+                    Path path = parser.pathById(KeyUtils.namespacedKeyToKey(resourceKey));
                     if (path == null) {
                         handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_RESOURCE_NOT_FOUND, Component.text(resourceKey.asString()));
                         return;
