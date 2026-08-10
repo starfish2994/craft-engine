@@ -79,7 +79,7 @@ command.resource.save_default.success: <white>已成功将默认资源保存到�
 command.resource.save_default.failure: <red>保存默认资产的时候发生了未知的错误，请查看控制台
 command.resource.search.parser.not_found: <red>没有类型为“<arg:0>”的资源</red>
 command.resource.search.resource.not_found: <red>没有ID为“<arg:0>”的资源</red>
-command.resource.search.resource.success: <white>ID为“<arg:0>”的资源定义文件路径为：<arg:1></white>
+command.resource.search.success: <white>ID为“<arg:0>”的资源定义文件路径为：<arg:1></white>
 command.upload.failure.not_supported: <red>当前的托管方式“<arg:0>”不支持上传资源包</red>
 command.upload.on_progress: <white>已开始上传，请检查控制台以获取更多信息</white>
 command.send_resource_pack.success.single: <white>已将资源包发送给<arg:0></white>

@@ -1,20 +1,18 @@
 package net.momirealms.craftengine.bukkit.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
-import net.momirealms.craftengine.core.item.recipe.Recipe;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.command.CraftEngineCommandManager;
-import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.IdConfigParser;
 import net.momirealms.craftengine.core.plugin.locale.MessageConstants;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Holder;
-import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
 import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.Command;
@@ -28,7 +26,6 @@ import org.incendo.cloud.suggestion.SuggestionProvider;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class SearchResourceCommand extends BukkitCommandFeature<CommandSender> {
@@ -85,13 +82,40 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                         return;
                     }
 
-                    String pathStr = path.normalize().toString();
-                    handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_RESOURCE_SUCCESS, Component.text(resourceKey.asString()), Component.text(pathStr));
+                    String shortenPath = shortenPath(path.normalize().toString());
+                    String absolutePath = path.normalize().toAbsolutePath().toString();
+                    Component clickablePath = Component.text(shortenPath)
+                            .color(NamedTextColor.GOLD)
+                            .hoverEvent(HoverEvent.showText(Component.translatable("chat.copy.click", NamedTextColor.WHITE)))
+                            .clickEvent(ClickEvent.copyToClipboard(absolutePath));
+                    handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_SUCCESS, Component.text(resourceKey.asString()), clickablePath);
                 });
     }
 
     @Override
     public String getFeatureID() {
         return "search_resource";
+    }
+
+    /**
+     * 截取路径：从第一个 "/resource" 或 "\resource" 之后开始保留。
+     */
+    private static String shortenPath(String fullPath) {
+        int len = fullPath.length();
+        for (int i = 0; i < len; i++) {
+            char c = fullPath.charAt(i);
+            if (c == '/' || c == '\\') {
+                // 分隔符之后紧跟着 "resource" (忽略大小写)
+                if (i + 8 < len && fullPath.regionMatches(true, i + 1, "resource", 0, 8)) {
+                    return fullPath.substring(i + 1);
+                }
+            }
+        }
+        // 无前置路径，直接以 "resource" 开头
+        if (fullPath.regionMatches(true, 0, "resource", 0, 8)) {
+            return fullPath;
+        }
+        // 未找到，返回原路径
+        return fullPath;
     }
 }
