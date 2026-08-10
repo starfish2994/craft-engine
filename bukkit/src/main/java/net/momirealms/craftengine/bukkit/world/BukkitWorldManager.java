@@ -783,6 +783,11 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"configured-feature", "configured-features", "configured_feature", "configured_features"};
 
         @Override
+        public Key type() {
+            return Key.ce("configured_feature");
+        }
+
+        @Override
         public void postProcess() {
             List<Suggestion> suggestions = new ArrayList<>(BukkitWorldManager.this.cachedConfiguredFeaturesSuggestion);
             for (Key id : BukkitWorldManager.this.configuredFeatures.keySet()) {
@@ -842,6 +847,11 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"placed-feature", "placed-features", "placed_feature", "placed_features"};
         private final AtomicInteger id = new AtomicInteger();
         private List<ConditionalFeature> tempFeatures = null;
+
+        @Override
+        public Key type() {
+            return Key.ce("placed_feature");
+        }
 
         @Override
         public void preProcess() {

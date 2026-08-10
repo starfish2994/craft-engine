@@ -124,7 +124,15 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     protected abstract List<Key> resolveEntities(Key tag);
 
     private final class DamageFormulaParser extends SectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{"damage_rules", "damage-rules"};
+        public static final String[] CONFIG_SECTION_NAME = new String[]{
+                "damage_rule", "damage-rule",
+                "damage_rules", "damage-rules",
+        };
+
+        @Override
+        public Key type() {
+            return Key.ce("damage_rule");
+        }
 
         @Override
         protected void parseSection(Pack pack, Path path, ConfigSection section) {
@@ -179,6 +187,11 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"attributes", "attribute"};
 
         @Override
+        public Key type() {
+            return Key.ce("attribute");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }
@@ -226,7 +239,15 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     private final class OperationParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{"attribute_operations", "attribute-operations"};
+        public static final String[] CONFIG_SECTION_NAME = new String[]{
+                "attribute_operation", "attribute-operation",
+                "attribute_operations", "attribute-operations"
+        };
+
+        @Override
+        public Key type() {
+            return Key.ce("attribute_operation");
+        }
 
         @Override
         public String[] sectionId() {

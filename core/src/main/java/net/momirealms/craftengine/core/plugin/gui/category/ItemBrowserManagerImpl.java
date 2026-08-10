@@ -106,6 +106,11 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"categories", "category"};
 
         @Override
+        public Key type() {
+            return Key.ce("category");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }
