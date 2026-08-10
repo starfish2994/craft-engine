@@ -14,12 +14,14 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.Clientbo
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEntityDataPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetPassengersPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class PacketUtils {
     public static final Object ItemStack$OPTIONAL_STREAM_CODEC = VersionHelper.isOrAbove1_20_5 ? ItemStackProxy.INSTANCE.getOptionalStreamCodec() : null;
+    public static final Object ItemStackTemplate$STREAM_CODEC = VersionHelper.isOrAbove26_1 ? ItemStackTemplateProxy.INSTANCE.getStreamCodec() : null;
     public static final Object UNTRUSTED_ITEM_CODEC = VersionHelper.isOrAbove1_20_5 ? createUntrustedItemCodec() : null;
 
     private PacketUtils() {}
@@ -83,6 +85,17 @@ public final class PacketUtils {
         } else {
             FriendlyByteBufProxy.INSTANCE.writeItem(ensureNMSFriendlyByteBuf(buf), item.minecraftItem());
         }
+    }
+
+    public static Item readItemTemplate(ByteBuf buf) {
+        if (!VersionHelper.isOrAbove26_1) throw new UnsupportedOperationException("This feature is only available on 26.1+");
+        Object template = StreamDecoderProxy.INSTANCE.decode(ItemStackTemplate$STREAM_CODEC, ensureNMSFriendlyByteBuf(buf));
+        return ItemStackUtils.wrap(ItemStackTemplateProxy.INSTANCE.create(template));
+    }
+
+    public static void writeItemTemplate(ByteBuf buf, Item item) {
+        if (!VersionHelper.isOrAbove26_1) throw new UnsupportedOperationException("This feature is only available on 26.1+");
+        StreamEncoderProxy.INSTANCE.encode(ItemStackTemplate$STREAM_CODEC, ensureNMSFriendlyByteBuf(buf), ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(item.minecraftItem()));
     }
 
     public static Item readUntrustedItem(ByteBuf buf) {

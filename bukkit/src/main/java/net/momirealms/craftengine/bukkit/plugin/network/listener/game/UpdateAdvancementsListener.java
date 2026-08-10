@@ -32,7 +32,7 @@ public final class UpdateAdvancementsListener implements ByteBufferPacketListene
         BukkitServerPlayer player = (BukkitServerPlayer) user;
         boolean reset = buf.readBoolean();
         List<AdvancementHolder> added = buf.readCollection(ArrayList::new, byteBuf -> {
-            AdvancementHolder holder = AdvancementHolder.read(byteBuf, $ -> PacketUtils.readItem(buf));
+            AdvancementHolder holder = AdvancementHolder.read(byteBuf, $ -> VersionHelper.isOrAbove26_1 ? PacketUtils.readItemTemplate(buf) : PacketUtils.readItem(buf));
             if (!Config.disableItemOperations()) {
                 holder.applyClientboundData(item -> {
                     Optional<Item> remapped = itemManager.s2c(item, player);
@@ -69,7 +69,10 @@ public final class UpdateAdvancementsListener implements ByteBufferPacketListene
 
             buf.writeBoolean(reset);
             buf.writeCollection(added, (byteBuf, advancementHolder) -> advancementHolder.write(byteBuf,
-                    ($, item) -> PacketUtils.writeItem(buf, item)));
+                    ($, item) -> {
+                        if (VersionHelper.isOrAbove26_1) PacketUtils.writeItemTemplate(buf, item);
+                        else PacketUtils.writeItem(buf, item);
+                    }));
             buf.writeCollection(removed, FriendlyByteBuf::writeKey);
             buf.writeMap(progress, FriendlyByteBuf::writeKey, (byteBuf, advancementProgress) -> advancementProgress.write(byteBuf));
             if (VersionHelper.isOrAbove1_21_5) {
