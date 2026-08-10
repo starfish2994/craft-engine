@@ -98,21 +98,21 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
     }
 
     /**
-     * 截取路径：从第一个 "/resource" 或 "\resource" 之后开始保留。
+     * 截取路径：从第一个 "/resources" 或 "\resources" 之后开始保留。
      */
     private static String shortenPath(String fullPath) {
         int len = fullPath.length();
         for (int i = 0; i < len; i++) {
             char c = fullPath.charAt(i);
             if (c == '/' || c == '\\') {
-                // 分隔符之后紧跟着 "resource" (忽略大小写)
-                if (i + 8 < len && fullPath.regionMatches(true, i + 1, "resource", 0, 8)) {
+                // 分隔符之后紧跟着 "resources" (忽略大小写)
+                if (i + 8 < len && fullPath.regionMatches(true, i + 1, "resources", 0, 8)) {
                     return fullPath.substring(i + 1);
                 }
             }
         }
-        // 无前置路径，直接以 "resource" 开头
-        if (fullPath.regionMatches(true, 0, "resource", 0, 8)) {
+        // 无前置路径，直接以 "resources" 开头
+        if (fullPath.regionMatches(true, 0, "resources", 0, 8)) {
             return fullPath;
         }
         // 未找到，返回原路径
