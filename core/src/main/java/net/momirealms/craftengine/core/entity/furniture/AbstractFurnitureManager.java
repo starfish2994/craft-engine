@@ -179,6 +179,11 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
         public static final String[] CONFIG_SECTION_NAME = new String[] { "furniture" };
 
         @Override
+        public Key type() {
+            return Key.ce("furniture");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }

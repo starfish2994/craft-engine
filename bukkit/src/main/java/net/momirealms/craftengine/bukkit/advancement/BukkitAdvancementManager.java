@@ -148,6 +148,11 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
         private static final String[] CONFIG_SECTION_NAME = new String[]{"advancements", "advancement"};
 
         @Override
+        public Key type() {
+            return Key.ce("advancement");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }

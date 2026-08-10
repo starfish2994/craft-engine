@@ -178,6 +178,11 @@ public abstract class AbstractRecipeManager implements RecipeManager {
         private static final Key DYES = Key.of("dyes");
 
         @Override
+        public Key type() {
+            return Key.ce("recipe");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }

@@ -67,6 +67,7 @@ import net.momirealms.craftengine.core.pack.model.definition.special.SpecialMode
 import net.momirealms.craftengine.core.pack.model.definition.special.SpecialModelType;
 import net.momirealms.craftengine.core.pack.model.definition.tint.Tint;
 import net.momirealms.craftengine.core.pack.model.definition.tint.TintType;
+import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArgument;
 import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArgumentType;
 import net.momirealms.craftengine.core.plugin.context.CommonConditionType;
@@ -96,6 +97,7 @@ public final class Registries {
     private Registries() {}
 
     public static final Key ROOT_REGISTRY = Key.withCraftEngineNamespace("root");
+    public static final ResourceKey<Registry<ConfigParser>> CONFIG_PARSER = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("config_parser"));
     public static final ResourceKey<Registry<BlockDefinition>> BLOCK = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block"));
     public static final ResourceKey<Registry<BlockEntityTintSourceType<? extends BlockEntityTintSource>>> BLOCK_ENTITY_TINT_SOURCE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block_entity_tint_source_type"));
     public static final ResourceKey<Registry<ItemProcessorType<? extends ItemProcessor>>> ITEM_PROCESSOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_processor_type"));

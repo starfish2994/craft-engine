@@ -42,6 +42,7 @@ public final class BukkitCommandManager extends AbstractCommandManager<CommandSe
                 new SearchUsagePlayerCommand(this, plugin),
                 new SearchRecipeAdminCommand(this, plugin),
                 new SearchUsageAdminCommand(this, plugin),
+                new SearchResourceCommand(this, plugin),
                 new TestCommand(this, plugin),
                 new SetLocaleCommand(this, plugin),
                 new SetDisplayEntityViewDistanceScaleCommand(this, plugin),

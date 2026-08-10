@@ -294,6 +294,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
         private int count;
 
         @Override
+        public Key type() {
+            return Key.ce("block_state_mapping");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }
@@ -357,6 +362,11 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
 
     private final class BlockParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"blocks", "block"};
+
+        @Override
+        public Key type() {
+            return Key.ce("block");
+        }
 
         @Override
         public int count() {

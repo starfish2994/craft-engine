@@ -100,6 +100,11 @@ public abstract class AbstractPaintingManager implements PaintingManager {
         private static final String[] CONFIG_SECTION_NAME = new String[]{"paintings", "painting"};
 
         @Override
+        public Key type() {
+            return Key.ce("painting");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }

@@ -88,7 +88,15 @@ public abstract class AbstractSoundManager implements SoundManager {
     protected abstract void registerSounds(Collection<Key> sounds);
 
     private final class JukeboxSongParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"jukebox-songs", "jukebox-song", "jukebox_songs", "jukebox_song"};
+        public static final String[] CONFIG_SECTION_NAME = new String[] {
+                "jukebox-songs", "jukebox-song",
+                "jukebox_songs", "jukebox_song"
+        };
+
+        @Override
+        public Key type() {
+            return Key.ce("jukebox_song");
+        }
 
         @Override
         public String[] sectionId() {
@@ -126,6 +134,11 @@ public abstract class AbstractSoundManager implements SoundManager {
 
     private final class SoundParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"sounds", "sound"};
+
+        @Override
+        public Key type() {
+            return Key.ce("sound");
+        }
 
         @Override
         public String[] sectionId() {

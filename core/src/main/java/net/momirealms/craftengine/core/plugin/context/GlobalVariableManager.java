@@ -52,6 +52,11 @@ public final class GlobalVariableManager implements Manageable {
         };
 
         @Override
+        public Key type() {
+            return Key.ce("global_variable");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }

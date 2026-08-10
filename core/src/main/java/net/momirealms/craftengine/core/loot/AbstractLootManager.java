@@ -56,6 +56,11 @@ public abstract class AbstractLootManager implements LootManager {
         private int count;
 
         @Override
+        public Key type() {
+            return Key.ce("loot");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }
@@ -84,8 +89,18 @@ public abstract class AbstractLootManager implements LootManager {
     }
 
     protected final class LootSourceParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"loot-sources", "loot_sources", "vanilla-loots", "vanilla-loot", "vanilla_loots", "vanilla_loot"};
+        public static final String[] CONFIG_SECTION_NAME = new String[] {
+                "loot-source", "loot_source",
+                "loot-sources", "loot_sources",
+                "vanilla-loots", "vanilla-loot",
+                "vanilla_loots", "vanilla_loot"
+        };
         private int count;
+
+        @Override
+        public Key type() {
+            return Key.ce("loot_source");
+        }
 
         @Override
         public String[] sectionId() {

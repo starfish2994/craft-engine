@@ -47,6 +47,9 @@ import net.momirealms.craftengine.core.plugin.config.yaml.StringKeyConstructor;
 import net.momirealms.craftengine.core.plugin.locale.ClientLangData;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
+import net.momirealms.craftengine.core.registry.BuiltInRegistries;
+import net.momirealms.craftengine.core.registry.Registries;
+import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.sound.AbstractSoundManager;
 import net.momirealms.craftengine.core.sound.SoundEvent;
 import net.momirealms.craftengine.core.util.*;
@@ -134,7 +137,6 @@ public abstract class AbstractPackManager implements PackManager {
     private final BiConsumer<Path, Path> generationEventDispatcher;
     private final Map<String, Pack> loadedPacks = new LinkedHashMap<>();
     private final Map<String, ConfigParser> sectionParsers = new HashMap<>();
-    private final List<ConfigParser> parsers = new ArrayList<>();
     public final JsonObject vanillaBlockAtlas;
     public final JsonObject vanillaItemAtlas;
     private Map<Path, CachedConfigFile> cachedConfigFiles = Collections.emptyMap();
@@ -385,7 +387,7 @@ public abstract class AbstractPackManager implements PackManager {
         for (String id : parser.sectionId()) {
             this.sectionParsers.put(id, parser);
         }
-        this.parsers.add(parser);
+        ((WritableRegistry<ConfigParser>) BuiltInRegistries.CONFIG_PARSER).register(ResourceKey.create(Registries.CONFIG_PARSER.location(), parser.type()), parser);
         return true;
     }
 
@@ -610,7 +612,7 @@ public abstract class AbstractPackManager implements PackManager {
     private int loadResourceConfigs(Predicate<ConfigParser> predicate) {
         LoadingPyramid pyramid = new LoadingPyramid();
         Map<Path, List<ResourceException>> errorByPath = new ConcurrentHashMap<>();
-        for (ConfigParser parser : this.parsers) {
+        for (ConfigParser parser : BuiltInRegistries.CONFIG_PARSER) {
             if (!predicate.test(parser)) {
                 continue;
             }
@@ -628,6 +630,9 @@ public abstract class AbstractPackManager implements PackManager {
                         cause = cause.getCause();
                     }
                 });
+                if (parser instanceof IdConfigParser idConfigParser) {
+                    idConfigParser.clearIdToPath();
+                }
                 parser.preProcess();
                 parser.loadAll();
                 parser.postProcess();
@@ -661,7 +666,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public void clearResourceConfigs() {
-        for (ConfigParser parser : this.parsers) {
+        for (ConfigParser parser : BuiltInRegistries.CONFIG_PARSER) {
             parser.clearConfigs();
         }
     }
@@ -3632,6 +3637,11 @@ public abstract class AbstractPackManager implements PackManager {
         private int count = 0;
 
         @Override
+        public Key type() {
+            return Key.ce("config_factory");
+        }
+
+        @Override
         protected void parseSection(Pack pack, Path path, ConfigSection section) {
             List<ConfigSection> instances = section.getNonEmptyList(INSTANCES, ConfigValue::getAsSection);
             ConfigSection bundle = section.getNonNullSection(BLUEPRINT);
@@ -3681,6 +3691,11 @@ public abstract class AbstractPackManager implements PackManager {
         private final Set<String> excludeJson = new HashSet<>();
 
         public SkipOptimizationParser() {
+        }
+
+        @Override
+        public Key type() {
+            return Key.ce("skip_optimization");
         }
 
         public void clearCache() {
@@ -3741,6 +3756,11 @@ public abstract class AbstractPackManager implements PackManager {
         private static final String[] SECTION_ID = new String[] {"atlases", "atlas"};
         private static final String[] SOURCES = new String[] {"sources", "source"};
         private final Map<Key, List<SpriteSource>> atlases = new HashMap<>();
+
+        @Override
+        public Key type() {
+            return Key.ce("atlas");
+        }
 
         @Override
         public String[] sectionId() {

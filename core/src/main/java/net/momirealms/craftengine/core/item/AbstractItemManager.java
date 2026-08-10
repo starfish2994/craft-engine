@@ -270,6 +270,11 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         public static final String[] CONFIG_SECTION_NAME = new String[] {"equipments", "equipment"};
 
         @Override
+        public Key type() {
+            return Key.ce("equipment");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }
@@ -321,6 +326,11 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         private final Map<Key, IdAllocator> idAllocators = new HashMap<>();
         private final List<CompletableFuture<?>> futures = Collections.synchronizedList(new ArrayList<>());
         private final Map<Key, List<Key>> tempCategories = new ConcurrentHashMap<>();
+
+        @Override
+        public Key type() {
+            return Key.ce("item");
+        }
 
         @Override
         public int count() {

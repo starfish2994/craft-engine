@@ -20,6 +20,7 @@ import net.momirealms.craftengine.core.plugin.text.minimessage.ShiftTag;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
+import net.momirealms.craftengine.core.util.Key;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -417,6 +418,11 @@ public final class TranslationManagerImpl implements TranslationManager {
         private int count;
 
         @Override
+        public Key type() {
+            return Key.ce("translation");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }
@@ -483,6 +489,11 @@ public final class TranslationManagerImpl implements TranslationManager {
             return AdventureHelper.getLegacy().serialize(deserialize);
         };
         private int count;
+
+        @Override
+        public Key type() {
+            return Key.ce("language");
+        }
 
         @Override
         public String[] sectionId() {

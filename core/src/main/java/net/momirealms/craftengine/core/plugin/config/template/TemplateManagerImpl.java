@@ -43,6 +43,11 @@ public final class TemplateManagerImpl implements TemplateManager {
         public static final String[] CONFIG_SECTION_NAME = new String[]{"templates", "template"};
 
         @Override
+        public Key type() {
+            return Key.ce("template");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }

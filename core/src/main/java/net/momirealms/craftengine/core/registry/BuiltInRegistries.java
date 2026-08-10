@@ -67,6 +67,7 @@ import net.momirealms.craftengine.core.pack.model.definition.special.SpecialMode
 import net.momirealms.craftengine.core.pack.model.definition.special.SpecialModelType;
 import net.momirealms.craftengine.core.pack.model.definition.tint.Tint;
 import net.momirealms.craftengine.core.pack.model.definition.tint.TintType;
+import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArgument;
 import net.momirealms.craftengine.core.plugin.config.template.argument.TemplateArgumentType;
 import net.momirealms.craftengine.core.plugin.context.CommonConditionType;
@@ -94,6 +95,7 @@ import net.momirealms.craftengine.core.util.ResourceKey;
 import java.util.function.Supplier;
 
 public final class BuiltInRegistries {
+    public static final Registry<ConfigParser> CONFIG_PARSER = createConstantBoundRegistry(Registries.CONFIG_PARSER, 32);
     public static final Registry<BlockDefinition> BLOCK = new BlockRegistry<>(Registries.BLOCK, 512);
     public static final Registry<BlockBehaviorType<? extends BlockBehavior>> BLOCK_BEHAVIOR_TYPE = createConstantBoundRegistry(Registries.BLOCK_BEHAVIOR_TYPE, 64);
     public static final Registry<BlockEntityTintSourceType<? extends BlockEntityTintSource>> BLOCK_ENTITY_TINT_SOURCE_TYPE = createConstantBoundRegistry(Registries.BLOCK_ENTITY_TINT_SOURCE_TYPE, 16);

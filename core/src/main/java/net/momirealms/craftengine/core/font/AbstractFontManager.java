@@ -368,6 +368,11 @@ public abstract class AbstractFontManager implements FontManager {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"emojis", "emoji"};
 
         @Override
+        public Key type() {
+            return Key.ce("emoji");
+        }
+
+        @Override
         public String[] sectionId() {
             return CONFIG_SECTION_NAME;
         }
@@ -454,6 +459,11 @@ public abstract class AbstractFontManager implements FontManager {
     private final class ImageParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[] {"images", "image"};
         private final Map<Key, IdAllocator> idAllocators = new ConcurrentHashMap<>();
+
+        @Override
+        public Key type() {
+            return Key.ce("image");
+        }
 
         @Override
         public String[] sectionId() {
