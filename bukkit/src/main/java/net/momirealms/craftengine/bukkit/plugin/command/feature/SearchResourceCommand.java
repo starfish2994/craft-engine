@@ -27,6 +27,7 @@ import org.incendo.cloud.suggestion.SuggestionProvider;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public final class SearchResourceCommand extends BukkitCommandFeature<CommandSender> {
@@ -41,8 +42,10 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                 .required("type", NamespacedKeyParser.namespacedKeyComponent().suggestionProvider(new SuggestionProvider<>() {
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
-                        return CompletableFuture.completedFuture(BuiltInRegistries.CONFIG_PARSER.keySet().stream()
-                                .map(parserType -> Suggestion.suggestion(parserType.asString()))
+                        return CompletableFuture.completedFuture(BuiltInRegistries.CONFIG_PARSER.entrySet().stream()
+                                .map(Map.Entry::getValue)
+                                .filter(v -> v instanceof IdConfigParser parser && parser.supportSearch())
+                                .map(parserType -> Suggestion.suggestion(parserType.type().asString()))
                                 .toList());
                     }
                 }))
@@ -52,7 +55,7 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                         NamespacedKey parserKey = context.get("type");
                         Collection<Key> keys = BuiltInRegistries.CONFIG_PARSER.get(KeyUtils.namespacedKeyToKey(parserKey))
                                 .map(Holder.Reference::value)
-                                .filter(it -> it instanceof IdConfigParser)
+                                .filter(it -> it instanceof IdConfigParser parser && parser.supportSearch())
                                 .map(it -> ((IdConfigParser) it).registeredKeys())
                                 .orElse(null);
                         if (keys == null || keys.isEmpty()) {
@@ -68,7 +71,7 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                     NamespacedKey parserKey = context.get("type");
                     IdConfigParser parser = (IdConfigParser) BuiltInRegistries.CONFIG_PARSER.get(KeyUtils.namespacedKeyToKey(parserKey))
                             .map(Holder.Reference::value)
-                            .filter(it -> it instanceof IdConfigParser)
+                            .filter(it -> it instanceof IdConfigParser p && p.supportSearch())
                             .orElse(null);
                     // Parser 不存在
                     if (parser == null) {

@@ -3783,6 +3783,11 @@ public abstract class AbstractPackManager implements PackManager {
             return this.atlases.size();
         }
 
+        @Override
+        public boolean supportSearch() {
+            return false;
+        }
+
         public Map<Key, List<SpriteSource>> atlases() {
             return this.atlases;
         }

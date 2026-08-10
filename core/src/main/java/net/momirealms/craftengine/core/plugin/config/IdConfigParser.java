@@ -28,6 +28,10 @@ public abstract class IdConfigParser extends AbstractConfigParser {
         return false;
     }
 
+    public boolean supportSearch() {
+        return true;
+    }
+
     @Nullable
     public Path pathById(Key id) {
         return this.idToPath.get(id);
@@ -41,6 +45,9 @@ public abstract class IdConfigParser extends AbstractConfigParser {
     @Override
     public void clearConfigs() {
         super.clearConfigs();
+        if (!this.supportSearch()) {
+            clearIdToPath();
+        }
     }
 
     public void clearIdToPath() {
