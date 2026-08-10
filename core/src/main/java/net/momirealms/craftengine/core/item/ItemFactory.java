@@ -2,7 +2,7 @@ package net.momirealms.craftengine.core.item;
 
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.core.attribute.vanilla.AttributeModifier;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
 import net.momirealms.craftengine.core.item.component.value.Enchantment;
 import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
 import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
@@ -230,7 +230,7 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract boolean isEmpty(W item);
 
-    protected abstract void attributeModifiers(W item, List<AttributeModifier> modifiers);
+    protected abstract void attributeModifiers(W item, List<VanillaAttributeModifier> modifiers);
 
     protected abstract Optional<Map<String, String>> blockState(W item);
 

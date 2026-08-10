@@ -1,9 +1,9 @@
 package net.momirealms.craftengine.core.attribute;
 
-import com.ezylang.evalex.Expression;
 import net.momirealms.craftengine.core.attribute.formula.CauseToFormula;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormulas;
 import net.momirealms.craftengine.core.attribute.formula.VictimToFormula;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier.Operation;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.pack.Pack;
@@ -79,7 +79,10 @@ public abstract class AbstractAttributeManager implements AttributeManager {
 
     @Override
     public void removeContainer(UUID uuid) {
-        this.containers.remove(uuid);
+        AttributeGetter removed = this.containers.remove(uuid);
+        if (removed instanceof AttributeContainer container) {
+            container.clearSyncModifiers();
+        }
     }
 
     public AttributeGetter getOrCreateContainer(Entity entity) {
@@ -122,6 +125,9 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     protected abstract List<Key> resolveEntities(Key tag);
+
+    @Override
+    public abstract double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback);
 
     private final class DamageFormulaParser extends SectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = new String[]{
@@ -216,7 +222,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
-            double defaultValue = section.getDouble("base", 0d);
+            BaseValueSource baseValueSource = section.<BaseValueSource>getValue("base", BaseValueSources::fromConfig, () -> new ConstantBaseValueSource(0d));
             ConfigSection constraintSection = section.getSection("constraint");
             ValueConstraint constraint = ValueConstraint.noLimit();
             if (constraintSection != null) {
@@ -225,15 +231,12 @@ public abstract class AbstractAttributeManager implements AttributeManager {
                         constraintSection.getDouble("max", Double.MAX_VALUE)
                 );
             }
-            VanillaAttributeSync sync = null;
-            ConfigSection syncSection = section.getSection("sync");
-            if (syncSection != null) {
-                sync = new VanillaAttributeSync(
-                        syncSection.getNonNullKey("target"),
-                        new Expression(section.getString("value", "value"))
-                );
-            }
-            Attribute attribute = new Attribute(id, defaultValue, constraint, (e) -> true, sync);
+            List<SyncTarget> sync = section.getSectionList("sync", v -> new SyncTarget(
+                    v.getNonNullKey("target"),
+                    v.getNonNullEnum("operation", Operation.class),
+                    v.<SyncValueProvider>getValue("value", SyncValueProviders::fromConfig, () -> ExpressionSyncValueProvider.DEFAULT)
+            ));
+            Attribute attribute = new Attribute(id, baseValueSource, constraint, (e) -> true, sync);
             AbstractAttributeManager.this.configAttributes.put(id, attribute);
         }
     }
@@ -272,6 +275,11 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         @Override
         public void postProcess() {
             AbstractAttributeManager.this.rebuildSortedOperations();
+        }
+
+        @Override
+        public boolean supportSearch() {
+            return false;
         }
 
         @Override

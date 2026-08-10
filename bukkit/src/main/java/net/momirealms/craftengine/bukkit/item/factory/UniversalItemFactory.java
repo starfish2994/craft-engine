@@ -6,7 +6,7 @@ import net.momirealms.craftengine.bukkit.item.LegacyItemWrapper;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
-import net.momirealms.craftengine.core.attribute.vanilla.AttributeModifier;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
 import net.momirealms.craftengine.core.item.ItemType;
 import net.momirealms.craftengine.core.item.component.value.Enchantment;
 import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
@@ -434,9 +434,9 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     }
 
     @Override
-    protected void attributeModifiers(LegacyItemWrapper item, List<AttributeModifier> modifiers) {
+    protected void attributeModifiers(LegacyItemWrapper item, List<VanillaAttributeModifier> modifiers) {
         ListTag listTag = new ListTag();
-        for (AttributeModifier modifier : modifiers) {
+        for (VanillaAttributeModifier modifier : modifiers) {
             CompoundTag modifierTag = new CompoundTag();
             modifierTag.putString("AttributeName", modifier.type());
             modifierTag.putString("Name", modifier.id().toString());

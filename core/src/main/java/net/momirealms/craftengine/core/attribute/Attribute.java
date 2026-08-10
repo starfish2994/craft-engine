@@ -2,24 +2,23 @@ package net.momirealms.craftengine.core.attribute;
 
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.util.Key;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 public final class Attribute {
     public final Key id;
-    public final double defaultValue;
+    public final BaseValueSource baseValueSource;
     public final ValueConstraint constraint;
     public final Predicate<Entity> predicate;
-    @Nullable
-    public final VanillaAttributeSync sync;
+    public final List<SyncTarget> syncTargets;
 
-    public Attribute(Key id, double defaultValue, ValueConstraint constraint, Predicate<Entity> predicate, @Nullable VanillaAttributeSync sync) {
+    public Attribute(Key id, BaseValueSource baseValueSource, ValueConstraint constraint, Predicate<Entity> predicate, List<SyncTarget> syncTargets) {
         this.id = id;
-        this.defaultValue = defaultValue;
+        this.baseValueSource = baseValueSource;
         this.constraint = constraint;
-        this.sync = sync;
         this.predicate = predicate;
+        this.syncTargets = syncTargets;
     }
 
     public Key id() {
@@ -31,16 +30,18 @@ public final class Attribute {
     }
 
     public double defaultValue(Entity entity) {
-        // TODO per entity default value
-        return this.defaultValue;
+        return this.baseValueSource.resolve(entity);
+    }
+
+    public BaseValueSource baseValueSource() {
+        return this.baseValueSource;
     }
 
     public ValueConstraint constraint() {
         return this.constraint;
     }
 
-    @Nullable
-    public VanillaAttributeSync sync() {
-        return this.sync;
+    public List<SyncTarget> syncTargets() {
+        return this.syncTargets;
     }
 }

@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.entity;
 
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
@@ -7,6 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface LivingEntity extends Entity {
+
+    @Nullable
+    VanillaAttributeInstance getVanillaAttribute(Key attribute);
 
     double health();
 

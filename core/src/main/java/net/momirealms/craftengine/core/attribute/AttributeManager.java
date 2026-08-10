@@ -27,4 +27,6 @@ public interface AttributeManager extends Manageable {
     ConfigParser[] parsers();
 
     void processDamageEvent(DamageEvent event);
+
+    double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback);
 }

@@ -128,6 +128,8 @@ yaml.duplicated_key: 在文件“<arg:0>”中的第“<arg:2>”行发现发现
 yaml.inconsistent_value_type: 在文件“<arg:0>”中的第“<arg:2>”行发现发现重复的键“<arg:1>”且值类型不同
 plugin.compatibility: '[兼容性] 已挂钩 <arg:0>'
 attribute.damage_formula.unknown_type: 未知的伤害公式类型“<arg:0>”
+attribute.base_value_source.unknown_type: 未知的属性基础值来源类型“<arg:0>”
+attribute.sync_value_provider.unknown_type: 未知的同步数值提供器类型“<arg:0>”
 number.unknown_type: 未知的数字类型“<arg:0>”
 number.fixed.invalid_expression: 无效的表达式“<arg:0>”。https://ezylang.github.io/EvalEx/references/references.html
 number.greater_than: “<arg:0>”应大于“<arg:1>”

@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public final class AttributeModifier {
+public final class VanillaAttributeModifier {
     private final String type;
     private final Slot slot;
     private final Key id;
@@ -18,7 +18,7 @@ public final class AttributeModifier {
     @Nullable
     private final Display display;
 
-    public AttributeModifier(String type, Slot slot, Key id, double amount, Operation operation, @Nullable Display display) {
+    public VanillaAttributeModifier(String type, Slot slot, Key id, double amount, Operation operation, @Nullable Display display) {
         this.amount = amount;
         this.display = display;
         this.id = id;
@@ -111,7 +111,7 @@ public final class AttributeModifier {
         }
     }
 
-    public record Display(AttributeModifier.Display.Type type, Component value) {
+    public record Display(VanillaAttributeModifier.Display.Type type, Component value) {
 
         public enum Type {
                 DEFAULT, HIDDEN, OVERRIDE

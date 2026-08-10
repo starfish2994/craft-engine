@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.core.attribute.vanilla.AttributeModifier;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
 import net.momirealms.craftengine.core.item.ItemType;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.component.value.Enchantment;
@@ -674,11 +674,11 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected void attributeModifiers(ComponentItemWrapper item, List<AttributeModifier> modifierList) {
+    protected void attributeModifiers(ComponentItemWrapper item, List<VanillaAttributeModifier> modifierList) {
         CompoundTag compoundTag = (CompoundTag) item.getComponentAsSparrowTag(DataComponentKeys.ATTRIBUTE_MODIFIERS).orElseGet(CompoundTag::new);
         ListTag modifiers = new ListTag();
         compoundTag.put("modifiers", modifiers);
-        for (AttributeModifier modifier : modifierList) {
+        for (VanillaAttributeModifier modifier : modifierList) {
             CompoundTag modifierTag = new CompoundTag();
             modifierTag.putString("type", modifier.type());
             modifierTag.putString("slot", modifier.slot().name().toLowerCase(Locale.ENGLISH));

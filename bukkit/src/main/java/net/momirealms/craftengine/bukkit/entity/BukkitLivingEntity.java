@@ -1,7 +1,9 @@
 package net.momirealms.craftengine.bukkit.entity;
 
+import net.momirealms.craftengine.bukkit.attribute.BukkitVanillaAttributeInstance;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
@@ -33,6 +35,22 @@ public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.c
 
     public BukkitLivingEntity(Object entity) {
         super(entity);
+    }
+
+    @Nullable
+    @Override
+    public VanillaAttributeInstance getVanillaAttribute(Key attribute) {
+        if (VersionHelper.isOrAbove1_20_5) {
+            Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
+            if (holder == null) return null;
+            Object instance = LivingEntityProxy.INSTANCE.getAttribute(minecraftEntity(), holder);
+            return instance == null ? null : new BukkitVanillaAttributeInstance(instance);
+        } else {
+            Object attributeObject = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
+            if (attributeObject == null) return null;
+            Object instance = LivingEntityProxy.INSTANCE.getAttribute$legacy(minecraftEntity(), attributeObject);
+            return instance == null ? null : new BukkitVanillaAttributeInstance(instance);
+        }
     }
 
     @Override

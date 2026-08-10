@@ -1,7 +1,9 @@
 package net.momirealms.craftengine.core.attribute;
 
 import com.google.common.collect.ImmutableMap;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.Entity;
+import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
@@ -43,7 +45,20 @@ public final class AttributeContainer implements AttributeGetter {
     }
 
     public AttributeInstance getOrCreateInstance(Attribute attribute) {
-        return this.instances.computeIfAbsent(attribute.id(), k -> new AttributeInstance(attribute, this.context));
+        return this.instances.computeIfAbsent(attribute.id(), k -> new AttributeInstance(attribute, this.context, this.entity));
+    }
+
+    public void clearSyncModifiers() {
+        if (!(this.entity instanceof LivingEntity livingEntity)) return;
+        for (AttributeInstance instance : this.instances.values()) {
+            Attribute attribute = instance.attribute();
+            for (SyncTarget target : attribute.syncTargets()) {
+                VanillaAttributeInstance vanillaAttribute = livingEntity.getVanillaAttribute(target.target());
+                if (vanillaAttribute != null) {
+                    vanillaAttribute.removeModifier(attribute.id());
+                }
+            }
+        }
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
-import net.momirealms.craftengine.core.attribute.vanilla.AttributeModifier;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -130,21 +130,21 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
     }
 
     @Override
-    protected void attributeModifiers(ComponentItemWrapper item, List<AttributeModifier> modifierList) {
+    protected void attributeModifiers(ComponentItemWrapper item, List<VanillaAttributeModifier> modifierList) {
         ListTag modifiers = new ListTag();
-        for (AttributeModifier modifier : modifierList) {
+        for (VanillaAttributeModifier modifier : modifierList) {
             CompoundTag modifierTag = new CompoundTag();
             modifierTag.putString("type", modifier.type());
             modifierTag.putString("slot", modifier.slot().name().toLowerCase(Locale.ENGLISH));
             modifierTag.putString("id", modifier.id().toString());
             modifierTag.putDouble("amount", modifier.amount());
             modifierTag.putString("operation", modifier.operation().id());
-            AttributeModifier.Display display = modifier.display();
+            VanillaAttributeModifier.Display display = modifier.display();
             if (VersionHelper.isOrAbove1_21_6 && display != null) {
                 CompoundTag displayTag = new CompoundTag();
-                AttributeModifier.Display.Type displayType = display.type();
+                VanillaAttributeModifier.Display.Type displayType = display.type();
                 displayTag.putString("type", displayType.name().toLowerCase(Locale.ENGLISH));
-                if (displayType == AttributeModifier.Display.Type.OVERRIDE) {
+                if (displayType == VanillaAttributeModifier.Display.Type.OVERRIDE) {
                     displayTag.put("value", AdventureHelper.componentToTag(display.value()));
                 }
                 modifierTag.put("display", displayTag);
