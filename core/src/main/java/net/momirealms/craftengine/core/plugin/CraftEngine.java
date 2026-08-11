@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.attribute.AttributeManager;
 import net.momirealms.craftengine.core.block.AbstractBlockManager;
 import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.block.setting.BlockSettingsModifiers;
+import net.momirealms.craftengine.core.entity.EntityManager;
 import net.momirealms.craftengine.core.entity.culling.EntityCullingManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureManager;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifiers;
@@ -110,6 +111,7 @@ public abstract class CraftEngine implements Plugin {
     protected PaintingManager paintingManager;
     protected ProxyMessageManager proxyMessageManager;
     protected AttributeManager attributeManager;
+    protected EntityManager entityManager;
     protected ScriptManager scriptManager;
 
     private final PluginTaskRegistry preEnableTaskRegistry = new PluginTaskRegistry();
@@ -620,6 +622,8 @@ public abstract class CraftEngine implements Plugin {
         this.packManager.registerConfigSectionParser(this.paintingManager.parser());
         // register advancement parser
         this.packManager.registerConfigSectionParser(this.advancementManager.parser());
+        // register entity parser
+        this.packManager.registerConfigSectionParsers(this.entityManager.parsers());
         // register attribute parser
         this.packManager.registerConfigSectionParsers(this.attributeManager.parsers());
     }
@@ -746,6 +750,11 @@ public abstract class CraftEngine implements Plugin {
     @Override
     public AttributeManager attributeManager() {
         return this.attributeManager;
+    }
+
+    @Override
+    public EntityManager entityManager() {
+        return this.entityManager;
     }
 
     @Override

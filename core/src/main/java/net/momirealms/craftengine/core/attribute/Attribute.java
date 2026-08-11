@@ -1,4 +1,5 @@
 package net.momirealms.craftengine.core.attribute;
+
 import net.momirealms.craftengine.core.attribute.base.*;
 import net.momirealms.craftengine.core.attribute.format.*;
 import net.momirealms.craftengine.core.attribute.sync.*;
@@ -8,22 +9,23 @@ import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.Set;
 
 public final class Attribute {
     public final Key id;
     public final BaseValueSource baseValueSource;
     public final ValueConstraint constraint;
-    public final Predicate<Entity> predicate;
+    @Nullable
+    public final Set<Key> applicableEntityTypes;
     public final List<SyncTarget> syncTargets;
     @Nullable
     public final ValueFormatter formatter;
 
-    public Attribute(Key id, BaseValueSource baseValueSource, ValueConstraint constraint, Predicate<Entity> predicate, List<SyncTarget> syncTargets, @Nullable ValueFormatter formatter) {
+    public Attribute(Key id, BaseValueSource baseValueSource, ValueConstraint constraint, @Nullable Set<Key> applicableEntityTypes, List<SyncTarget> syncTargets, @Nullable ValueFormatter formatter) {
         this.id = id;
         this.baseValueSource = baseValueSource;
         this.constraint = constraint;
-        this.predicate = predicate;
+        this.applicableEntityTypes = applicableEntityTypes;
         this.syncTargets = syncTargets;
         this.formatter = formatter;
     }
@@ -46,6 +48,13 @@ public final class Attribute {
 
     public ValueConstraint constraint() {
         return this.constraint;
+    }
+
+    /**
+     * 该属性是否适用于指定实体。不适用时基值仍可读取，但 modifier 与原版同步不生效。
+     */
+    public boolean appliesTo(Entity entity) {
+        return this.applicableEntityTypes == null || this.applicableEntityTypes.contains(entity.type());
     }
 
     public List<SyncTarget> syncTargets() {

@@ -74,6 +74,7 @@ paper {
         }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
+        register("Vault") { required = false }
         register("AxiomPaper") { required = false }
         register("QuickShop-Hikari") { required = false }
 

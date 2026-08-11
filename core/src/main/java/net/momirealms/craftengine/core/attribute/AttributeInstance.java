@@ -108,6 +108,10 @@ public class AttributeInstance {
 
     public double recalculate() {
         double base = this.manualBaseValue != null ? this.manualBaseValue : this.attribute.baseValueSource().resolve(this.entity);
+        // 属性不适用于该实体时：基值可读，但不应用任何 modifier、不同步原版
+        if (!this.attribute.appliesTo(this.entity)) {
+            return this.attribute.limit(base);
+        }
         double value = base;
         for (AttributeOperation operation : CraftEngine.instance().attributeManager().sortedOperations()) {
             Map<Key, AttributeModifier> attributeModifiers = this.byOperation.get(operation.id());

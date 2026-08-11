@@ -9,6 +9,7 @@ import net.momirealms.craftengine.bukkit.attribute.BukkitAttributeManager;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.block.behavior.BukkitBlockBehaviors;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.BukkitBlockEntityElementConfigs;
+import net.momirealms.craftengine.bukkit.entity.BukkitEntityManager;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
 import net.momirealms.craftengine.bukkit.entity.furniture.behavior.BukkitFurnitureBehaviors;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
@@ -217,6 +218,8 @@ public final class BukkitCraftEngine extends CraftEngine {
         super.paintingManager = new BukkitPaintingManager(this);
         // 初始化属性管理器
         super.attributeManager = new BukkitAttributeManager(this);
+        // 初始化实体管理器
+        super.entityManager = new BukkitEntityManager(this);
         // 注册默认的parser
         this.registerDefaultParsers();
         // 脚本事件订阅挂到 Bukkit 事件总线

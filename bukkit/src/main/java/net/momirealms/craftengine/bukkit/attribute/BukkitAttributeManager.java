@@ -11,8 +11,6 @@ import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistr
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeSupplierProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.DefaultAttributesProxy;
 import org.bukkit.Bukkit;
-import org.bukkit.Tag;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
 
 import java.util.ArrayList;
@@ -91,16 +89,5 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
             }
         }
         return table;
-    }
-
-    @Override
-    protected List<Key> resolveEntities(Key tag) {
-        Tag<EntityType> bukkitTag = Bukkit.getTag(Tag.REGISTRY_ENTITY_TYPES, KeyUtils.toNamespacedKey(tag), EntityType.class);
-        if (bukkitTag == null) return List.of();
-        List<Key> result = new ArrayList<>();
-        for (EntityType type : bukkitTag.getValues()) {
-            result.add(KeyUtils.namespacedKeyToKey(type.getKey()));
-        }
-        return result;
     }
 }

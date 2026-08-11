@@ -70,6 +70,8 @@ dependencies {
     compileOnly("org.geysermc.geyser:api:2.9.0-SNAPSHOT")
     // Floodgate
     compileOnly("org.geysermc.floodgate:api:2.2.4-SNAPSHOT")
+    // Vault
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     // ItemBridge
     compileOnly("cn.gtemc:itembridge:${rootProject.properties["itembridge_version"]}")
     // LevelerBridge

@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.util.ConcurrentChainedUUID2ReferenceHashTable;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -128,8 +129,6 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         }
     }
 
-    protected abstract List<Key> resolveEntities(Key tag);
-
     @Override
     public abstract double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback);
 
@@ -160,7 +159,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
                         for (String target : targets) {
                             if (target.isEmpty()) continue;
                             if (target.charAt(0) == '#') {
-                                for (Key entity : resolveEntities(Key.of(target.substring(1)))) {
+                                for (Key entity : AbstractAttributeManager.this.plugin.entityManager().entityIdsByTag(Key.of(target.substring(1)))) {
                                     formulas.put(entity, formula);
                                 }
                             } else {
@@ -212,6 +211,11 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         }
 
         @Override
+        public List<LoadingStage> dependencies() {
+            return List.of(LoadingStages.ENTITY);
+        }
+
+        @Override
         public int count() {
             return AbstractAttributeManager.this.configAttributes.size();
         }
@@ -241,9 +245,26 @@ public abstract class AbstractAttributeManager implements AttributeManager {
                     v.<SyncValueProvider>getValue("value", SyncValueProviders::fromConfig, () -> ExpressionSyncValueProvider.DEFAULT)
             ));
             ValueFormatter formatter = section.getValue("format", ValueFormatters::fromConfig);
-            Attribute attribute = new Attribute(id, baseValueSource, constraint, (e) -> true, sync, formatter);
+            Set<Key> applicableEntityTypes = parseApplicableEntityTypes(section);
+            Attribute attribute = new Attribute(id, baseValueSource, constraint, applicableEntityTypes, sync, formatter);
             AbstractAttributeManager.this.configAttributes.put(id, attribute);
         }
+    }
+
+    @Nullable
+    private Set<Key> parseApplicableEntityTypes(ConfigSection section) {
+        List<String> entities = section.getStringList("entities");
+        if (entities.isEmpty()) return null;
+        Set<Key> types = new HashSet<>();
+        for (String entry : entities) {
+            if (entry.isEmpty()) continue;
+            if (entry.charAt(0) == '#') {
+                types.addAll(AbstractAttributeManager.this.plugin.entityManager().entityIdsByTag(Key.of(entry.substring(1))));
+            } else {
+                types.add(Key.of(entry));
+            }
+        }
+        return types.isEmpty() ? null : Set.copyOf(types);
     }
 
     private final class OperationParser extends IdSectionConfigParser {

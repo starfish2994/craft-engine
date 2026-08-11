@@ -33,6 +33,10 @@ import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsUtils
 import net.momirealms.craftengine.bukkit.compatibility.quickshop.QuickShopItemExpressionHandler;
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
+import net.momirealms.craftengine.bukkit.compatibility.vault.GiveMoneyFunction;
+import net.momirealms.craftengine.bukkit.compatibility.vault.HasMoneyCondition;
+import net.momirealms.craftengine.bukkit.compatibility.vault.TakeMoneyFunction;
+import net.momirealms.craftengine.bukkit.compatibility.vault.VaultUtils;
 import net.momirealms.craftengine.bukkit.compatibility.viaversion.ViaVersionUtils;
 import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockRegister;
 import net.momirealms.craftengine.bukkit.compatibility.worldguard.WorldGuardRegionCondition;
@@ -50,6 +54,7 @@ import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.condition.AlwaysFalseCondition;
+import net.momirealms.craftengine.core.plugin.context.function.DummyFunction;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.text.minimessage.FormattedLine;
@@ -232,6 +237,20 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         if (this.isPluginEnabled("Skript")) {
             runCatchingHook(SkriptHook::register, "Skript");
         }
+        if (this.isPluginEnabled("Vault")) {
+            runCatchingHook(() -> {
+                VaultUtils.init();
+                if (VaultUtils.hasEconomy()) {
+                    CommonConditions.register(Key.ce("has_money"), HasMoneyCondition.factory());
+                    CommonFunctions.register(Key.ce("take_money"), TakeMoneyFunction.factory(CommonConditions::fromConfig));
+                    CommonFunctions.register(Key.ce("give_money"), GiveMoneyFunction.factory(CommonConditions::fromConfig));
+                } else {
+                    registerVaultFallbacks();
+                }
+            }, "Vault");
+        } else {
+            registerVaultFallbacks();
+        }
         // 必须在 onDelayedEnable 注册：CraftEngine 是 paper 插件，先于 legacy 插件 Denizen 完成 enable，
         // 此时尚无法检测到 Denizen；而本方法在首个 tick 执行（Denizen 已 enable），
         // 且本任务的排队早于 Denizen 同 tick 的脚本解析任务，事件索引构建前注册完成
@@ -331,6 +350,12 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     private void initLuckPermsHook() {
         new LuckPermsEventListeners(this.plugin.javaPlugin(), this.plugin.fontManager()::refreshEmojiSuggestions);
         this.hasLuckPerms = true;
+    }
+
+    private void registerVaultFallbacks() {
+        CommonConditions.register(Key.ce("has_money"), AlwaysFalseCondition.factory());
+        CommonFunctions.register(Key.ce("take_money"), section -> DummyFunction.INSTANCE);
+        CommonFunctions.register(Key.ce("give_money"), section -> DummyFunction.INSTANCE);
     }
 
     private void initSlimeWorldHook() {
