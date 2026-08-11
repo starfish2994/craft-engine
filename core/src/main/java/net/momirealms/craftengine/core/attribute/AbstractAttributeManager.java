@@ -1,8 +1,12 @@
 package net.momirealms.craftengine.core.attribute;
+import net.momirealms.craftengine.core.attribute.base.*;
+import net.momirealms.craftengine.core.attribute.format.*;
+import net.momirealms.craftengine.core.attribute.formula.*;
+import net.momirealms.craftengine.core.attribute.sync.*;
 
-import net.momirealms.craftengine.core.attribute.formula.CauseToFormula;
-import net.momirealms.craftengine.core.attribute.formula.DamageFormulas;
-import net.momirealms.craftengine.core.attribute.formula.VictimToFormula;
+
+
+
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier.Operation;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -236,7 +240,8 @@ public abstract class AbstractAttributeManager implements AttributeManager {
                     v.getNonNullEnum("operation", Operation.class),
                     v.<SyncValueProvider>getValue("value", SyncValueProviders::fromConfig, () -> ExpressionSyncValueProvider.DEFAULT)
             ));
-            Attribute attribute = new Attribute(id, baseValueSource, constraint, (e) -> true, sync);
+            ValueFormatter formatter = section.getValue("format", ValueFormatters::fromConfig);
+            Attribute attribute = new Attribute(id, baseValueSource, constraint, (e) -> true, sync, formatter);
             AbstractAttributeManager.this.configAttributes.put(id, attribute);
         }
     }

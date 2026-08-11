@@ -1,6 +1,11 @@
 package net.momirealms.craftengine.core.registry;
 
 import net.momirealms.craftengine.core.attribute.*;
+import net.momirealms.craftengine.core.attribute.base.*;
+import net.momirealms.craftengine.core.attribute.format.*;
+import net.momirealms.craftengine.core.attribute.formula.*;
+import net.momirealms.craftengine.core.attribute.sync.*;
+import net.momirealms.craftengine.core.attribute.transform.*;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorType;
@@ -108,6 +113,7 @@ public final class Registries {
     public static final ResourceKey<Registry<BaseValueSourceType<? extends BaseValueSource>>> BASE_VALUE_SOURCE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("base_value_source_type"));
     public static final ResourceKey<Registry<SyncValueProviderType<? extends SyncValueProvider>>> SYNC_VALUE_PROVIDER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("sync_value_provider_type"));
     public static final ResourceKey<Registry<ValueTransformerType<? extends ValueTransformer>>> VALUE_TRANSFORMER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("value_transformer_type"));
+    public static final ResourceKey<Registry<ValueFormatterType<? extends ValueFormatter>>> VALUE_FORMATTER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("value_formatter_type"));
     public static final ResourceKey<Registry<TemplateArgumentType<? extends TemplateArgument>>> TEMPLATE_ARGUMENT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("template_argument_type"));
     public static final ResourceKey<Registry<ItemModelType<? extends ItemModel>>> ITEM_MODEL_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_model_type"));
     public static final ResourceKey<Registry<TintType<? extends Tint>>> TINT_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("tint_type"));

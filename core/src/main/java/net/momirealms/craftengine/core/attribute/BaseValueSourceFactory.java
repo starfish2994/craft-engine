@@ -1,8 +1,0 @@
-package net.momirealms.craftengine.core.attribute;
-
-import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-
-public interface BaseValueSourceFactory<T extends BaseValueSource> {
-
-    T create(ConfigSection args);
-}

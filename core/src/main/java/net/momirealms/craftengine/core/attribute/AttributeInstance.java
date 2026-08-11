@@ -1,4 +1,6 @@
 package net.momirealms.craftengine.core.attribute;
+import net.momirealms.craftengine.core.attribute.modifier.*;
+import net.momirealms.craftengine.core.attribute.sync.*;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;

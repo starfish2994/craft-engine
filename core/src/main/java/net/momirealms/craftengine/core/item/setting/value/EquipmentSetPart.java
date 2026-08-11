@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.item.setting.value;
 
-import net.momirealms.craftengine.core.attribute.EquipmentSetComponent;
-import net.momirealms.craftengine.core.attribute.EquipmentSetSlot;
+import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetComponent;
+import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetSlot;
 
 import java.util.ArrayList;
 import java.util.List;

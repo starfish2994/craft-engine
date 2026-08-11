@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.item.equipment;
 
-import net.momirealms.craftengine.core.attribute.AttributeModifierConfig;
+import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierConfig;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 
 import java.util.ArrayList;

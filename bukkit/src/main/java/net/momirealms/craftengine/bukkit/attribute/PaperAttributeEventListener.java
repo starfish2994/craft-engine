@@ -5,7 +5,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.AttributeContainer;
-import net.momirealms.craftengine.core.attribute.EntityEquipments;
+import net.momirealms.craftengine.core.attribute.equipment.EntityEquipments;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;

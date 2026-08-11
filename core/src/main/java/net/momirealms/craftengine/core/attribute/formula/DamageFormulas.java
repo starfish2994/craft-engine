@@ -1,8 +1,8 @@
 package net.momirealms.craftengine.core.attribute.formula;
 
-import net.momirealms.craftengine.core.attribute.DamageFormula;
-import net.momirealms.craftengine.core.attribute.DamageFormulaFactory;
-import net.momirealms.craftengine.core.attribute.DamageFormulaType;
+import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
+import net.momirealms.craftengine.core.attribute.formula.DamageFormulaFactory;
+import net.momirealms.craftengine.core.attribute.formula.DamageFormulaType;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;

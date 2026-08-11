@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.item.setting;
 
-import net.momirealms.craftengine.core.attribute.EquipmentSetComponent;
-import net.momirealms.craftengine.core.attribute.SlotAttributeModifierConfig;
+import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetComponent;
+import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileMeta;
 import net.momirealms.craftengine.core.item.AbstractItemManager;
 import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;

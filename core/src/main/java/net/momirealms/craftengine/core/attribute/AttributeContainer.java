@@ -1,4 +1,6 @@
 package net.momirealms.craftengine.core.attribute;
+import net.momirealms.craftengine.core.attribute.equipment.*;
+import net.momirealms.craftengine.core.attribute.sync.*;
 
 import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
