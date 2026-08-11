@@ -320,6 +320,13 @@ debug_clear_cooldown:
     - /craftengine debug clear-cooldown
     - /ce debug clear-cooldown
 
+debug_expression:
+  enable: true
+  permission: ce.command.debug.expression
+  usage:
+    - /craftengine debug expression
+    - /ce debug expression
+
 debug_is_chunk_persistent_loaded:
   enable: true
   permission: ce.command.debug.is_chunk_persistent_loaded

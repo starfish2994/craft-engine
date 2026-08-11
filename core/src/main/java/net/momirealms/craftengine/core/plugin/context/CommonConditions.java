@@ -10,6 +10,8 @@ import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
+import java.util.List;
+
 public final class CommonConditions {
     public static final CommonConditionType<HasPlayerCondition<Context>> HAS_PLAYER = register(Key.ce("has_player"), HasPlayerCondition.factory());
     public static final CommonConditionType<HasItemCondition<Context>> HAS_ITEM = register(Key.ce("has_item"), HasItemCondition.factory());
@@ -54,6 +56,16 @@ public final class CommonConditions {
     }
 
     public static <CTX extends Context> Condition<CTX> fromConfig(ConfigValue value) {
+        if (value.is(List.class)) {
+            List<Condition<CTX>> list = value.getAsList(CommonConditions::fromConfig);
+            if (list.isEmpty()) {
+                return AlwaysTrueCondition.instance();
+            } else if (list.size() == 1) {
+                return list.getFirst();
+            } else {
+                return AllOfCondition.allOf(list);
+            }
+        }
         return fromConfig(value.getAsSection());
     }
 

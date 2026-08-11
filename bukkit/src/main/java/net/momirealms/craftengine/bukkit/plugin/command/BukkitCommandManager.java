@@ -54,6 +54,7 @@ public final class BukkitCommandManager extends AbstractCommandManager<CommandSe
                 new DebugVisualStateUsageCommand(this, plugin),
                 new DebugAutoStateUsageCommand(this, plugin),
                 new DebugClearCooldownCommand(this, plugin),
+                new DebugExpressionCommand(this, plugin),
                 new DebugEntityIdCommand(this, plugin),
                 new DebugFurnitureCommand(this, plugin),
                 new DebugRealStateUsageCommand(this, plugin),

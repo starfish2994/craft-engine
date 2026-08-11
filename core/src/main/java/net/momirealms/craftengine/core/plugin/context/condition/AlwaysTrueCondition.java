@@ -5,7 +5,7 @@ import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
 
 public final class AlwaysTrueCondition<CTX extends Context> implements Condition<CTX> {
-    public static final AlwaysTrueCondition<Context> INSTANCE = new AlwaysTrueCondition<Context>();
+    public static final AlwaysTrueCondition<Context> INSTANCE = new AlwaysTrueCondition<>();
 
     private AlwaysTrueCondition() {}
 
@@ -16,6 +16,11 @@ public final class AlwaysTrueCondition<CTX extends Context> implements Condition
 
     public static <CTX extends Context> ConditionFactory<CTX, AlwaysTrueCondition<CTX>> factory() {
         return new Factory<>();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <CTX extends Context> AlwaysTrueCondition<CTX> instance() {
+        return (AlwaysTrueCondition<CTX>) INSTANCE;
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, AlwaysTrueCondition<CTX>> {

@@ -20,7 +20,7 @@ public final class AllOfCondition<CTX extends Context> implements Condition<CTX>
         this.condition = condition;
     }
 
-    public static AllOfCondition<Context> allOf(List<? extends Condition<Context>> conditions) {
+    public static <CTX extends Context> AllOfCondition<CTX> allOf(List<? extends Condition<CTX>> conditions) {
         return new AllOfCondition<>(conditions);
     }
 
