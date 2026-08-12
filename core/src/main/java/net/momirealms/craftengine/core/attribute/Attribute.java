@@ -50,9 +50,6 @@ public final class Attribute {
         return this.constraint;
     }
 
-    /**
-     * 该属性是否适用于指定实体。不适用时基值仍可读取，但 modifier 与原版同步不生效。
-     */
     public boolean appliesTo(Entity entity) {
         return this.applicableEntityTypes == null || this.applicableEntityTypes.contains(entity.type());
     }

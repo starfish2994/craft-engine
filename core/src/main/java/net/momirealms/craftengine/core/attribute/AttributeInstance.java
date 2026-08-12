@@ -26,6 +26,8 @@ public class AttributeInstance {
     private Double manualBaseValue;
     private double cachedValue;
     private boolean dirty = true;
+    // 最近一次重算使用的基值（NaN = 尚未重算过）
+    private double lastBase = Double.NaN;
     // 上次写回原版时的 (value, base)，用于变化检测
     private double lastSyncValue = Double.NaN;
     private double lastSyncBase = Double.NaN;
@@ -41,7 +43,6 @@ public class AttributeInstance {
     }
 
     public double getValue() {
-        // 动态基值（原版映射）每次读取都重算，保证原版基值变化及时反映
         if (this.dirty || this.attribute.baseValueSource().isDynamic()) {
             this.cachedValue = this.recalculate();
             this.dirty = false;
@@ -102,13 +103,17 @@ public class AttributeInstance {
         this.dirty = true;
     }
 
+    public boolean isDirty() {
+        return this.dirty;
+    }
+
     public Map<Key, AttributeModifier> getModifiersByOperation(Key operation) {
         return this.byOperation.computeIfAbsent(operation, k -> new Object2ObjectOpenHashMap<>());
     }
 
     public double recalculate() {
         double base = this.manualBaseValue != null ? this.manualBaseValue : this.attribute.baseValueSource().resolve(this.entity);
-        // 属性不适用于该实体时：基值可读，但不应用任何 modifier、不同步原版
+        this.lastBase = base;
         if (!this.attribute.appliesTo(this.entity)) {
             return this.attribute.limit(base);
         }
@@ -124,15 +129,16 @@ public class AttributeInstance {
                 }
             }
         }
-        value = this.attribute.limit(value);
-        syncToVanilla(value, base);
-        return value;
+        return this.attribute.limit(value);
     }
 
-    private void syncToVanilla(double value, double base) {
+    public void syncToVanilla() {
         List<SyncTarget> targets = this.attribute.syncTargets();
         if (targets.isEmpty()) return;
-        // 变化检测：value 与 base 都没变就不重复写回，避免无意义的原版 dirty 与属性包重发
+        if (!this.attribute.appliesTo(this.entity)) return;
+        if (Double.isNaN(this.lastBase)) return; // 尚未重算过
+        double value = this.cachedValue;
+        double base = this.lastBase;
         if (Double.compare(value, this.lastSyncValue) == 0 && Double.compare(base, this.lastSyncBase) == 0) return;
         if (!(this.entity instanceof LivingEntity livingEntity)) return;
         this.lastSyncValue = value;

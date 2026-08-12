@@ -32,12 +32,15 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     protected final Map<Key, Attribute> configAttributes = new HashMap<>();
     protected final Map<Key, AttributeOperation> configOperations = new HashMap<>();
     // 运行中的实体属性容器
-    protected final ConcurrentChainedUUID2ReferenceHashTable<AttributeGetter> containers = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(128);
+    protected final ConcurrentChainedUUID2ReferenceHashTable<AttributeContainer> containers = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(128);
     private final OperationParser operationParser = new OperationParser();
     private final AttributeParser attributeParser = new AttributeParser();
     private final DamageFormulaParser damageFormulaParser = new DamageFormulaParser();
     // API配置合并
     protected Map<Key, Attribute> mergedAttributes = Map.of();
+    // 按实体类型分桶的受限属性
+    protected List<Attribute> globalAttributes = List.of();
+    protected Map<Key, List<Attribute>> attributesByEntityType = Map.of();
     // 运算管线快照
     protected volatile List<AttributeOperation> sortedOperations = List.of();
     private CauseToFormula causeToFormula;
@@ -74,6 +77,11 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     @Override
+    public List<Attribute> attributesByEntityType(Key entityType) {
+        return this.attributesByEntityType.getOrDefault(entityType, this.globalAttributes);
+    }
+
+    @Override
     public double getAttributeValue(Entity entity, Attribute attribute) {
         AttributeGetter attributeGetter = getOrCreateContainer(entity);
         if (attributeGetter == null) {
@@ -84,17 +92,23 @@ public abstract class AbstractAttributeManager implements AttributeManager {
 
     @Override
     public void removeContainer(UUID uuid) {
-        AttributeGetter removed = this.containers.remove(uuid);
+        AttributeContainer removed = this.containers.remove(uuid);
         if (removed instanceof AttributeContainer container) {
             container.clearSyncModifiers();
         }
     }
 
-    public AttributeGetter getOrCreateContainer(Entity entity) {
-        if (Config.applyAttributeToAll() || entity instanceof Player) {
-            return this.containers.computeIfAbsent(entity.uuid(), k -> new AttributeContainer(this, entity));
-        }
+    @Override
+    public AttributeContainer getContainer(UUID uuid) {
+        return this.containers.get(uuid);
+    }
+
+    public AttributeContainer getContainer(Entity entity) {
         return this.containers.get(entity.uuid());
+    }
+
+    public AttributeContainer getOrCreateContainer(Entity entity) {
+        return this.containers.computeIfAbsent(entity.uuid(), k -> new AttributeContainer(this, entity));
     }
 
     @Override
@@ -226,6 +240,26 @@ public abstract class AbstractAttributeManager implements AttributeManager {
             attributes.putAll(AbstractAttributeManager.this.apiAttributes);
             attributes.putAll(AbstractAttributeManager.this.configAttributes);
             AbstractAttributeManager.this.mergedAttributes = attributes;
+            List<Attribute> global = new ArrayList<>();
+            Map<Key, List<Attribute>> byType = new HashMap<>();
+            for (Attribute attribute : attributes.values()) {
+                if (attribute.applicableEntityTypes == null) {
+                    global.add(attribute);
+                } else {
+                    for (Key entityType : attribute.applicableEntityTypes) {
+                        byType.computeIfAbsent(entityType, k -> new ArrayList<>()).add(attribute);
+                    }
+                }
+            }
+            AbstractAttributeManager.this.globalAttributes = List.copyOf(global);
+            Map<Key, List<Attribute>> byTypeImmutable = new HashMap<>();
+            byType.forEach((type, list) -> {
+                List<Attribute> merged = new ArrayList<>(global.size() + list.size());
+                merged.addAll(global);
+                merged.addAll(list);
+                byTypeImmutable.put(type, List.copyOf(merged));
+            });
+            AbstractAttributeManager.this.attributesByEntityType = Map.copyOf(byTypeImmutable);
         }
 
         @Override

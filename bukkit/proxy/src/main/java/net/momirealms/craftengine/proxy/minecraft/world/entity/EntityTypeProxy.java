@@ -16,4 +16,7 @@ public interface EntityTypeProxy {
 
     @MethodInvoker(name = "getHeight")
     float getHeight(Object target);
+
+    @FieldGetter(name = "builtInRegistryHolder")
+    Object getBuiltInRegistryHolder(Object target);
 }

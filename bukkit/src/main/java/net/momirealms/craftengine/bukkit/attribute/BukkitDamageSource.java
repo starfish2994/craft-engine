@@ -6,7 +6,10 @@ import net.momirealms.craftengine.core.attribute.formula.DamageSource;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourceProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public final class BukkitDamageSource implements DamageSource {
     private final Object source;
@@ -32,6 +35,15 @@ public final class BukkitDamageSource implements DamageSource {
             return null;
         }
         return EntityUtils.adaptNMS(causingEntity);
+    }
+
+    @Nullable
+    public org.bukkit.entity.Entity causingBukkitEntity() {
+        Object causingEntity = DamageSourceProxy.INSTANCE.getCausingEntity(this.source);
+        if (causingEntity == null) {
+            return null;
+        }
+        return EntityProxy.INSTANCE.getBukkitEntity(causingEntity);
     }
 
     public boolean isDirect() {

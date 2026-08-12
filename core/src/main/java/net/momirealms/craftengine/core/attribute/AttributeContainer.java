@@ -1,12 +1,15 @@
 package net.momirealms.craftengine.core.attribute;
-import net.momirealms.craftengine.core.attribute.equipment.*;
-import net.momirealms.craftengine.core.attribute.sync.*;
 
 import com.google.common.collect.ImmutableMap;
+import net.momirealms.craftengine.core.attribute.equipment.EntityEquipments;
+import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetSlot;
+import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.Entity;
+import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.Key;
@@ -26,9 +29,15 @@ public final class AttributeContainer implements AttributeGetter {
         this.entity = entity;
         this.context = entity instanceof Player player ? PlayerOptionalContext.of(player) : PlayerOptionalContext.emptyImmutable();
         this.equipments = new EntityEquipments(this);
-        for (Attribute attribute : manager.getAttributes()) {
-            if (attribute.appliesTo(entity)) {
-                this.getOrCreateInstance(attribute);
+        for (Attribute attribute : manager.attributesByEntityType(entity.type())) {
+            this.getOrCreateInstance(attribute);
+        }
+        if (entity instanceof LivingEntity livingEntity) {
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
+                Item item = livingEntity.getItemByEquipmentSlot(slot);
+                if (!item.isEmpty()) {
+                    this.equipments.add(EquipmentSetSlot.fromEquipmentSlot(slot), item);
+                }
             }
         }
     }
@@ -65,7 +74,25 @@ public final class AttributeContainer implements AttributeGetter {
 
     @Override
     public double getAttributeValue(Attribute attribute) {
-        return getOrCreateInstance(attribute).getValue();
+        AttributeInstance instance = getOrCreateInstance(attribute);
+        double value = instance.getValue();
+        instance.syncToVanilla();
+        return value;
+    }
+
+    public void tick() {
+        // 阶段一：重算脏的与动态基值的 sync 实例
+        for (AttributeInstance instance : this.instances.values()) {
+            if (instance.attribute().syncTargets().isEmpty()) continue;
+            if (instance.isDirty() || instance.attribute().baseValueSource().isDynamic()) {
+                instance.getValue();
+            }
+        }
+        // 阶段二：统一写回原版（变化检测在内部，值没变不会重复发包）
+        for (AttributeInstance instance : this.instances.values()) {
+            if (instance.attribute().syncTargets().isEmpty()) continue;
+            instance.syncToVanilla();
+        }
     }
 
     public AttributeContainerSnapshot createSnapshot() {

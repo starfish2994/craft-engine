@@ -43,6 +43,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
+import net.momirealms.craftengine.core.attribute.AttributeContainer;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -661,6 +662,14 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
         // 更新玩家游戏刻
         this.gameTicks = ServerPlayerGameModeProxy.INSTANCE.getGameTicks(ServerPlayerProxy.INSTANCE.getGameMode(serverPlayer));
+
+        // 推送属性同步：每 tick 把脏的属性实例批量写回原版
+        if (Config.enableAttributeSystem()) {
+            AttributeContainer attributeContainer = this.plugin.attributeManager().getContainer(this.uuid());
+            if (attributeContainer != null) {
+                attributeContainer.tick();
+            }
+        }
 
         // 更新CE UI
         if (this.gameTicks % 20 == 0) {

@@ -250,7 +250,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 : null;
         List<ConditionalFeature> features = new ArrayList<>();
         for (ConditionalFeature feature : this.customPlacedFeatures) {
-            if (feature.isAllowedWorld(name) && feature.isAllowedEnvironment(dimension) && feature.isAllowedDimensionType(dimensionType)) {
+            if (feature.isAllowedWorld(name) && feature.isAllowedDimension(dimension) && feature.isAllowedDimensionType(dimensionType)) {
                 features.add(feature);
             }
         }
@@ -892,7 +892,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             // 自定义筛选条件
             Predicate<Key> biomeFilter = parseFilter(section.getStringList(BIOME).stream(), Key::of);
             Predicate<String> worldFilter = parseFilter(section.getStringList(WORLD).stream(), Function.identity());
-            Predicate<Key> environmentFilter = parseFilter(section.getStringList(DIMENSION).stream(), Key::of);
+            Predicate<Key> dimensionFilter = parseFilter(section.getStringList(DIMENSION).stream(), Key::of);
             Predicate<Key> dimensionTypeFilter = parseFilter(section.getStringList(ENVIRONMENT).stream(), Key::of);
 
             // 解析feature
@@ -945,7 +945,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             // 构造 placed feature 实例
             Object placedFeature = PlacedFeatureProxy.INSTANCE.newInstance(configuredFeature, placements);
             BukkitWorldManager.this.placedFeatures.put(id, HolderProxy.INSTANCE.direct(placedFeature));
-            this.tempFeatures.add(new ConditionalFeature(this.id.getAndIncrement(), placedFeature, biomeFilter, worldFilter, environmentFilter, dimensionTypeFilter));
+            this.tempFeatures.add(new ConditionalFeature(this.id.getAndIncrement(), placedFeature, biomeFilter, worldFilter, dimensionFilter, dimensionTypeFilter));
         }
 
         @Override

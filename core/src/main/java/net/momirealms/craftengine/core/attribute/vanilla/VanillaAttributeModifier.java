@@ -114,7 +114,7 @@ public final class VanillaAttributeModifier {
     public record Display(VanillaAttributeModifier.Display.Type type, Component value) {
 
         public enum Type {
-                DEFAULT, HIDDEN, OVERRIDE
+            DEFAULT, HIDDEN, OVERRIDE
         }
     }
 }
