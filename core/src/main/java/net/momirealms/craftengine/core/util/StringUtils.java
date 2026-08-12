@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.util;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Locale;
 
 public final class StringUtils {
@@ -28,26 +29,50 @@ public final class StringUtils {
     }
 
     public static String[] splitByDot(String s) {
+        return split(s, '.');
+    }
+
+    public static String[] split(String s, char delimiter) {
         if (s == null || s.isEmpty()) {
             return new String[0];
         }
-        int dotCount = 0;
+        int count = 0;
         for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) == '.') {
-                dotCount++;
+            if (s.charAt(i) == delimiter) {
+                count++;
             }
         }
-        String[] result = new String[dotCount + 1];
+        String[] result = new String[count + 1];
         int start = 0;
         int index = 0;
         for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) == '.') {
+            if (s.charAt(i) == delimiter) {
                 result[index++] = s.substring(start, i);
                 start = i + 1;
             }
         }
         result[index] = s.substring(start);
         return result;
+    }
+
+    public static String[] split(String s, char delimiter, int limit) {
+        if (limit <= 0) {
+            return split(s, delimiter);
+        }
+        if (s == null || s.isEmpty()) {
+            return new String[0];
+        }
+        String[] result = new String[limit];
+        int start = 0;
+        int index = 0;
+        for (int i = 0; i < s.length() && index < limit - 1; i++) {
+            if (s.charAt(i) == delimiter) {
+                result[index++] = s.substring(start, i);
+                start = i + 1;
+            }
+        }
+        result[index] = s.substring(start);
+        return index == limit - 1 ? result : Arrays.copyOf(result, index + 1);
     }
 
     public static String toLowerCase(String str) {

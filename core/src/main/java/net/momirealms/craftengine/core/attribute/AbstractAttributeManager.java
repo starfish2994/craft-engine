@@ -165,7 +165,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
                 List<ConfigSection> sections = section.getList(damageSourceType, ConfigValue::getAsSection);
                 Map<Key, DamageFormula> formulas = new HashMap<>();
                 DamageFormula defaultFormula = null;
-                for (int i = section.size() - 1; i >= 0; i--) {
+                for (int i = sections.size() - 1; i >= 0; i--) {
                     ConfigSection configSection = sections.get(i);
                     List<String> targets = configSection.getStringList("target");
                     DamageFormula formula = configSection.getNonNullValue("formula", ConfigConstants.ARGUMENT_STRING, DamageFormulas::fromConfig);

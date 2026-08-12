@@ -75,23 +75,17 @@ public final class AttributeContainer implements AttributeGetter {
     @Override
     public double getAttributeValue(Attribute attribute) {
         AttributeInstance instance = getOrCreateInstance(attribute);
-        double value = instance.getValue();
-        instance.syncToVanilla();
-        return value;
+        if (instance == null) return 0;
+        return instance.getValue();
     }
 
     public void tick() {
-        // 阶段一：重算脏的与动态基值的 sync 实例
         for (AttributeInstance instance : this.instances.values()) {
-            if (instance.attribute().syncTargets().isEmpty()) continue;
-            if (instance.isDirty() || instance.attribute().baseValueSource().isDynamic()) {
-                instance.getValue();
+            instance.updateBaseValue();
+            if (instance.needVanillaSync()) {
+                instance.getValue(); // 触发 dirty
+                instance.syncToVanilla();
             }
-        }
-        // 阶段二：统一写回原版（变化检测在内部，值没变不会重复发包）
-        for (AttributeInstance instance : this.instances.values()) {
-            if (instance.attribute().syncTargets().isEmpty()) continue;
-            instance.syncToVanilla();
         }
     }
 

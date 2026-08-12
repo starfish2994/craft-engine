@@ -6,7 +6,9 @@ import com.ezylang.evalex.parser.ParseException;
 import net.momirealms.craftengine.core.attribute.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.util.ExceptionUtils;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.ThrowableUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -33,7 +35,8 @@ public class ExpressionDamageFormula implements DamageFormula {
         try {
             usedVariables = expression.getUsedVariables();
         } catch (ParseException e) {
-            throw new KnownResourceException("TODO", path, formula);
+            ThrowableUtils.sneakyThrow(e);
+            return null;
         }
         List<VariableBinding> bindings = new ArrayList<>();
         for (String variable : usedVariables) {
@@ -57,8 +60,10 @@ public class ExpressionDamageFormula implements DamageFormula {
     }
 
     private static Attribute resolveAttribute(String path, String formula, String variable, String prefix) {
-        return CraftEngine.instance().attributeManager().getAttribute(Key.of(variable.substring(prefix.length())))
-                .orElseThrow(() -> new KnownResourceException("TODO", path, formula, variable));
+        // evalex 变量名不允许冒号，约定首个下划线代替命名空间分隔符: attacker_example_attack_damage → example:attack_damage
+        String id = variable.substring(prefix.length()).replaceFirst("_", ":");
+        return CraftEngine.instance().attributeManager().getAttribute(Key.of(id))
+                .orElseThrow(() -> new KnownResourceException("attribute.formula.unknown_attribute", path, id, formula));
     }
 
     @Override

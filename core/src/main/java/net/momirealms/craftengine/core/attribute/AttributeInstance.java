@@ -22,12 +22,9 @@ public class AttributeInstance {
     private final Map<Key, Map<Key, AttributeModifier>> byOperation = new HashMap<>();
     private final Map<Key, AttributeModifier> byId = new Object2ObjectArrayMap<>();
     private final Context context;
-    @Nullable
-    private Double manualBaseValue;
     private double cachedValue;
     private boolean dirty = true;
-    // 最近一次重算使用的基值（NaN = 尚未重算过）
-    private double lastBase = Double.NaN;
+    private double lastBase;
     // 上次写回原版时的 (value, base)，用于变化检测
     private double lastSyncValue = Double.NaN;
     private double lastSyncBase = Double.NaN;
@@ -36,6 +33,7 @@ public class AttributeInstance {
         this.attribute = attribute;
         this.context = context;
         this.entity = entity;
+        this.lastBase = attribute.baseValueSource().resolve(entity);
     }
 
     public Attribute attribute() {
@@ -43,7 +41,7 @@ public class AttributeInstance {
     }
 
     public double getValue() {
-        if (this.dirty || this.attribute.baseValueSource().isDynamic()) {
+        if (this.dirty) {
             this.cachedValue = this.recalculate();
             this.dirty = false;
         }
@@ -91,14 +89,6 @@ public class AttributeInstance {
         }
     }
 
-    /**
-     * 手动覆盖基值；设置后优先于 BaseValueSource。
-     */
-    public void setBaseValue(double baseValue) {
-        this.manualBaseValue = baseValue;
-        this.setDirty();
-    }
-
     public void setDirty() {
         this.dirty = true;
     }
@@ -111,13 +101,16 @@ public class AttributeInstance {
         return this.byOperation.computeIfAbsent(operation, k -> new Object2ObjectOpenHashMap<>());
     }
 
-    public double recalculate() {
-        double base = this.manualBaseValue != null ? this.manualBaseValue : this.attribute.baseValueSource().resolve(this.entity);
-        this.lastBase = base;
-        if (!this.attribute.appliesTo(this.entity)) {
-            return this.attribute.limit(base);
+    public void updateBaseValue() {
+        double base = this.attribute.baseValueSource().resolve(this.entity);
+        if (base != this.lastBase) {
+            this.lastBase = base;
+            this.setDirty();
         }
-        double value = base;
+    }
+
+    public double recalculate() {
+        double value = this.lastBase;
         for (AttributeOperation operation : CraftEngine.instance().attributeManager().sortedOperations()) {
             Map<Key, AttributeModifier> attributeModifiers = this.byOperation.get(operation.id());
             if (attributeModifiers != null) {
@@ -132,15 +125,17 @@ public class AttributeInstance {
         return this.attribute.limit(value);
     }
 
+    public boolean needVanillaSync() {
+        return !this.attribute.syncTargets().isEmpty();
+    }
+
     public void syncToVanilla() {
         List<SyncTarget> targets = this.attribute.syncTargets();
         if (targets.isEmpty()) return;
-        if (!this.attribute.appliesTo(this.entity)) return;
-        if (Double.isNaN(this.lastBase)) return; // 尚未重算过
+        if (!(this.entity instanceof LivingEntity livingEntity)) return;
         double value = this.cachedValue;
         double base = this.lastBase;
         if (Double.compare(value, this.lastSyncValue) == 0 && Double.compare(base, this.lastSyncBase) == 0) return;
-        if (!(this.entity instanceof LivingEntity livingEntity)) return;
         this.lastSyncValue = value;
         this.lastSyncBase = base;
         for (SyncTarget target : targets) {

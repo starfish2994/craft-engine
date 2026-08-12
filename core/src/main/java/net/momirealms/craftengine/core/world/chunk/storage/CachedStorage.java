@@ -19,7 +19,7 @@ public final class CachedStorage<T extends WorldDataStorage> implements WorldDat
 
     public CachedStorage(T storage) {
         this.storage = storage;
-        this.chunkCache = new ExpiringLong2ObjectCache<>(60, TimeUnit.SECONDS, 4096);
+        this.chunkCache = new ExpiringLong2ObjectCache<>(30, TimeUnit.SECONDS, 4096);
     }
 
     @Override
