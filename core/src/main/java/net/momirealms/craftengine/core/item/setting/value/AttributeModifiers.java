@@ -21,7 +21,7 @@ public final class AttributeModifiers {
     public List<AttributeModifierConfig> modifiers(EquipmentSetSlot slot) {
         List<AttributeModifierConfig> attributeModifiers = new ArrayList<>(this.modifiers.size());
         for (SlotAttributeModifierConfig config : this.modifiers) {
-            if (config.slot == slot) {
+            if (config.slot.test(slot)) {
                 attributeModifiers.add(config);
             }
         }
