@@ -185,7 +185,6 @@ public final class Config {
     private boolean chunk_system$generation$feature;
 
     private boolean attribute$enable;
-    private boolean attribute$apply_to_all_entities;
     private boolean attribute$health_scaling$enable;
     private double attribute$health_scaling$threshold;
     private double attribute$health_scaling$visual_max_health;
@@ -603,7 +602,6 @@ public final class Config {
 
         // attribute
         this.attribute$enable = config.getBoolean("attribute.enable", true);
-        this.attribute$apply_to_all_entities = config.getBoolean("attribute.apply-to-all-entities", false);
         this.attribute$health_scaling$enable = config.getBoolean("attribute.health-scaling.enable", false);
         this.attribute$health_scaling$threshold = config.getDouble("attribute.health-scaling.threshold", 20d);
         this.attribute$health_scaling$visual_max_health = config.getDouble("attribute.health-scaling.visual-max-health", 20d);
@@ -1717,10 +1715,6 @@ public final class Config {
 
     public static boolean enableAttributeSystem() {
         return instance.attribute$enable;
-    }
-
-    public static boolean applyAttributeToAll() {
-        return instance.attribute$apply_to_all_entities;
     }
 
     public static boolean enableHealthScaling() {
