@@ -189,6 +189,7 @@ public final class Config {
     private boolean attribute$health_scaling$enable;
     private double attribute$health_scaling$threshold;
     private double attribute$health_scaling$visual_max_health;
+    private boolean attribute$disable_damage_indicator;
 
     private boolean furniture$hide_base_entity;
     private ColliderType furniture$collision_entity_type;
@@ -606,6 +607,7 @@ public final class Config {
         this.attribute$health_scaling$enable = config.getBoolean("attribute.health-scaling.enable", false);
         this.attribute$health_scaling$threshold = config.getDouble("attribute.health-scaling.threshold", 20d);
         this.attribute$health_scaling$visual_max_health = config.getDouble("attribute.health-scaling.visual-max-health", 20d);
+        this.attribute$disable_damage_indicator = config.getBoolean("attribute.disable-damage-indicator", false);
 
         // furniture
         this.furniture$hide_base_entity = config.getBoolean("furniture.hide-base-entity", true);
@@ -1731,6 +1733,10 @@ public final class Config {
 
     public static double healthScalingVisualMaxHealth() {
         return instance.attribute$health_scaling$visual_max_health;
+    }
+
+    public static boolean disableDamageIndicator() {
+        return instance.attribute$disable_damage_indicator;
     }
 
     public YamlDocument loadYamlConfig(String filePath, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {
