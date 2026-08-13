@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
@@ -111,7 +110,7 @@ public class AttributeInstance {
 
     public double recalculate() {
         double value = this.lastBase;
-        for (AttributeOperation operation : CraftEngine.instance().attributeManager().sortedOperations()) {
+        for (AttributeOperation operation : this.attribute.operations()) {
             Map<Key, AttributeModifier> attributeModifiers = this.byOperation.get(operation.id());
             if (attributeModifiers != null) {
                 double phaseBase = value;

@@ -15,16 +15,18 @@ public final class Attribute {
     public final Key id;
     public final BaseValueSource baseValueSource;
     public final ValueConstraint constraint;
+    public final List<AttributeOperation> operations;
     @Nullable
     public final Set<Key> applicableEntityTypes;
     public final List<SyncTarget> syncTargets;
     @Nullable
     public final ValueFormatter formatter;
 
-    public Attribute(Key id, BaseValueSource baseValueSource, ValueConstraint constraint, @Nullable Set<Key> applicableEntityTypes, List<SyncTarget> syncTargets, @Nullable ValueFormatter formatter) {
+    public Attribute(Key id, BaseValueSource baseValueSource, ValueConstraint constraint, List<AttributeOperation> operations, @Nullable Set<Key> applicableEntityTypes, List<SyncTarget> syncTargets, @Nullable ValueFormatter formatter) {
         this.id = id;
         this.baseValueSource = baseValueSource;
         this.constraint = constraint;
+        this.operations = operations;
         this.applicableEntityTypes = applicableEntityTypes;
         this.syncTargets = syncTargets;
         this.formatter = formatter;
@@ -48,6 +50,10 @@ public final class Attribute {
 
     public ValueConstraint constraint() {
         return this.constraint;
+    }
+
+    public List<AttributeOperation> operations() {
+        return this.operations;
     }
 
     public boolean appliesTo(Entity entity) {

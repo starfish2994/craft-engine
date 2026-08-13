@@ -41,8 +41,6 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     // 按实体类型分桶的受限属性
     protected List<Attribute> globalAttributes = List.of();
     protected Map<Key, List<Attribute>> attributesByEntityType = Map.of();
-    // 运算管线快照
-    protected volatile List<AttributeOperation> sortedOperations = List.of();
     private CauseToFormula causeToFormula;
 
     protected AbstractAttributeManager(CraftEngine plugin) {
@@ -58,12 +56,10 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         this.configOperations.clear();
     }
 
-    protected void rebuildSortedOperations() {
-        Map<Key, AttributeOperation> merged = new LinkedHashMap<>(this.apiOperations);
-        merged.putAll(this.configOperations);
-        List<AttributeOperation> all = new ArrayList<>(merged.values());
-        all.sort(Comparator.comparingInt(AttributeOperation::order));
-        this.sortedOperations = List.copyOf(all);
+    @Override
+    public Optional<AttributeOperation> getOperation(Key id) {
+        AttributeOperation operation = this.configOperations.get(id);
+        return operation != null ? Optional.of(operation) : Optional.ofNullable(this.apiOperations.get(id));
     }
 
     @Override
@@ -109,11 +105,6 @@ public abstract class AbstractAttributeManager implements AttributeManager {
 
     public AttributeContainer getOrCreateContainer(Entity entity) {
         return this.containers.computeIfAbsent(entity.uuid(), k -> new AttributeContainer(this, entity));
-    }
-
-    @Override
-    public List<AttributeOperation> sortedOperations() {
-        return this.sortedOperations;
     }
 
     @Override
@@ -226,7 +217,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
 
         @Override
         public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.ENTITY);
+            return List.of(LoadingStages.ENTITY, LoadingStages.ATTRIBUTE_OPERATION);
         }
 
         @Override
@@ -280,9 +271,22 @@ public abstract class AbstractAttributeManager implements AttributeManager {
             ));
             ValueFormatter formatter = section.getValue("format", ValueFormatters::fromConfig);
             Set<Key> applicableEntityTypes = parseApplicableEntityTypes(section);
-            Attribute attribute = new Attribute(id, baseValueSource, constraint, applicableEntityTypes, sync, formatter);
+            List<AttributeOperation> operations = parseOperations(section);
+            Attribute attribute = new Attribute(id, baseValueSource, constraint, operations, applicableEntityTypes, sync, formatter);
             AbstractAttributeManager.this.configAttributes.put(id, attribute);
         }
+    }
+
+    private List<AttributeOperation> parseOperations(ConfigSection section) {
+        List<String> operationIds = section.getStringList("operations");
+        if (operationIds.isEmpty()) return AttributeOperations.DEFAULT_PIPELINE;
+        List<AttributeOperation> operations = new ArrayList<>(operationIds.size());
+        for (String operationId : operationIds) {
+            Key operationKey = Key.of(operationId);
+            operations.add(getOperation(operationKey)
+                    .orElseThrow(() -> new KnownResourceException("attribute.unknown_operation", section.assemblePath("operations"), operationKey.asString())));
+        }
+        return List.copyOf(operations);
     }
 
     @Nullable
@@ -324,17 +328,12 @@ public abstract class AbstractAttributeManager implements AttributeManager {
 
         @Override
         public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.ATTRIBUTE);
+            return List.of();
         }
 
         @Override
         public int count() {
             return AbstractAttributeManager.this.configOperations.size();
-        }
-
-        @Override
-        public void postProcess() {
-            AbstractAttributeManager.this.rebuildSortedOperations();
         }
 
         @Override
@@ -344,9 +343,8 @@ public abstract class AbstractAttributeManager implements AttributeManager {
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
-            int order = section.getNonNullInt("order");
             String expression = section.getNonNullString("expression");
-            AbstractAttributeManager.this.configOperations.put(id, AttributeOperation.expression(id, order, expression));
+            AbstractAttributeManager.this.configOperations.put(id, AttributeOperation.expression(id, expression));
         }
     }
 }

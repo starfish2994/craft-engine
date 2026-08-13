@@ -28,7 +28,7 @@ public interface AttributeManager extends Manageable {
 
     void removeContainer(UUID uuid);
 
-    List<AttributeOperation> sortedOperations();
+    Optional<AttributeOperation> getOperation(Key id);
 
     DamageFormula findFormula(DamageEvent event);
 

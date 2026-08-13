@@ -11,20 +11,13 @@ public interface AttributeOperation {
 
     Key id();
 
-    int order();
-
     double apply(double phaseBase, double current, double amount);
 
-    static AttributeOperation of(Key id, int order, ApplyFunction function) {
+    static AttributeOperation of(Key id, ApplyFunction function) {
         return new AttributeOperation() {
             @Override
             public Key id() {
                 return id;
-            }
-
-            @Override
-            public int order() {
-                return order;
             }
 
             @Override
@@ -39,16 +32,16 @@ public interface AttributeOperation {
         };
     }
 
-    static AttributeOperation expression(Key id, int order, String rawExpression) {
+    static AttributeOperation expression(Key id, String rawExpression) {
         Expression expression = new Expression(rawExpression);
         try {
             expression.with("base", 0d).with("current", 0d).with("amount", 0d).evaluate();
         } catch (EvaluationException | ParseException e) {
-            throw new KnownResourceException("TODO", id.asString(), rawExpression);
+            throw new KnownResourceException("attribute.operation.invalid_expression", id.asString(), rawExpression);
         } catch (ArithmeticException ignored) {
             // 零值探针触发的数学域错误（如除零）不代表表达式非法
         }
-        return of(id, order, (base, current, amount) -> {
+        return of(id, (base, current, amount) -> {
             synchronized (expression) {
                 try {
                     return expression
